@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -440,8 +441,12 @@ public final class Tools {
     }
 
     public static void openURL(Activity act, String url) {
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        act.startActivity(browserIntent);
+        try {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            act.startActivity(browserIntent);
+        }catch (ActivityNotFoundException e) {
+            Tools.showError(act, e);
+        }
     }
 
     public static boolean shouldSkipLibrary(DependentLibrary library) {
