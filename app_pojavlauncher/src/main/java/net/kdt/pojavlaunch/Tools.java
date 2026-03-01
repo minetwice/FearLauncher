@@ -443,6 +443,7 @@ public final class Tools {
     public static void openURL(Activity act, String url) {
         try {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            browserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             act.startActivity(browserIntent);
         }catch (ActivityNotFoundException e) {
             Tools.showError(act, e);
