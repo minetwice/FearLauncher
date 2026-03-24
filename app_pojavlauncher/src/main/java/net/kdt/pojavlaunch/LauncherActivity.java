@@ -150,8 +150,8 @@ public class LauncherActivity extends BaseActivity {
         return false;
     };
 
-    private ActivityResultLauncher<String> mRequestNotificationPermissionLauncher;
-    private WeakReference<Runnable> mRequestNotificationPermissionRunnable;
+    private ActivityResultLauncher<String> mRequestPermissionLauncher;
+    private WeakReference<Runnable> mRequestPermissionRunnable;
 
     @Override
     protected boolean shouldIgnoreNotch() {
@@ -169,12 +169,12 @@ public class LauncherActivity extends BaseActivity {
         setContentView(R.layout.activity_pojav_launcher);
 
         IconCacheJanitor.runJanitor();
-        mRequestNotificationPermissionLauncher = registerForActivityResult(
+        mRequestPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
                     if(!isAllowed) handleNoNotificationPermission();
                     else {
-                        Runnable runnable = Tools.getWeakReference(mRequestNotificationPermissionRunnable);
+                        Runnable runnable = Tools.getWeakReference(mRequestPermissionRunnable);
                         if(runnable != null) runnable.run();
                     }
                 }
@@ -269,7 +269,7 @@ public class LauncherActivity extends BaseActivity {
 
     private void checkNotificationPermission() {
         if(LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
-            checkForNotificationPermission()) {
+            checkForPermission(Manifest.permission.POST_NOTIFICATIONS)) {
             return;
         }
 
@@ -279,14 +279,14 @@ public class LauncherActivity extends BaseActivity {
             showNotificationPermissionReasoning();
             return;
         }
-        askForNotificationPermission(null);
+        askForPermission(null, Manifest.permission.POST_NOTIFICATIONS);
     }
 
     private void showNotificationPermissionReasoning() {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.notification_permission_dialog_title)
                 .setMessage(R.string.notification_permission_dialog_text)
-                .setPositiveButton(android.R.string.ok, (d, w) -> askForNotificationPermission(null))
+                .setPositiveButton(android.R.string.ok, (d, w) -> askForPermission(null, Manifest.permission.POST_NOTIFICATIONS))
                 .setNegativeButton(android.R.string.cancel, (d, w)-> handleNoNotificationPermission())
                 .show();
     }
@@ -299,18 +299,18 @@ public class LauncherActivity extends BaseActivity {
         Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show();
     }
 
-    public boolean checkForNotificationPermission() {
+    public boolean checkForPermission(final String permission) {
         return Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_DENIED;
+                permission) != PackageManager.PERMISSION_DENIED;
     }
 
-    public void askForNotificationPermission(Runnable onSuccessRunnable) {
+    public void askForPermission(Runnable onSuccessRunnable, final String permission) {
         if(Build.VERSION.SDK_INT < 33) return;
         if(onSuccessRunnable != null) {
-            mRequestNotificationPermissionRunnable = new WeakReference<>(onSuccessRunnable);
+            mRequestPermissionRunnable = new WeakReference<>(onSuccessRunnable);
         }
-        mRequestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        mRequestPermissionLauncher.launch(permission);
     }
 
     /** Stuff all the view boilerplate here */

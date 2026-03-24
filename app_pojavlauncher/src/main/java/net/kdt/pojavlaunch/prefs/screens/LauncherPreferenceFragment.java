@@ -1,6 +1,7 @@
 package net.kdt.pojavlaunch.prefs.screens;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -38,9 +39,9 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat impleme
         Activity activity = getActivity();
         if(activity instanceof LauncherActivity) {
             LauncherActivity launcherActivity = (LauncherActivity)activity;
-            mRequestNotificationPermissionPreference.setVisible(!launcherActivity.checkForNotificationPermission());
+            mRequestNotificationPermissionPreference.setVisible(!launcherActivity.checkForPermission(Manifest.permission.POST_NOTIFICATIONS));
             mRequestNotificationPermissionPreference.setOnPreferenceClickListener(preference -> {
-                launcherActivity.askForNotificationPermission(()->mRequestNotificationPermissionPreference.setVisible(false));
+                launcherActivity.askForPermission(()->mRequestNotificationPermissionPreference.setVisible(false), Manifest.permission.POST_NOTIFICATIONS);
                 return true;
             });
         }else{
