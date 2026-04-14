@@ -1,0 +1,1343 @@
+{
+  "libraries": {
+    "org.lwjgl:lwjgl-glfw:3.3.6": {
+      "name": "org.lwjgl:lwjgl-glfw:3.3.6",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.3.6/lwjgl-glfw-3.3.6.jar",
+          "sha1": "e7b88a4465cdde4518e9f2b5abffc87f45b24615",
+          "size": 140343,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-glfw-3.3.6.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.3.6": {
+      "name": "org.lwjgl:lwjgl:3.3.6",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.3.6/lwjgl-3.3.6.jar",
+          "sha1": "8931a2a1b66d00252849dcaa7d3eac32c4ddb4a1",
+          "size": 831108,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-3.3.6.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.3.6/lwjgl-natives-linux-arm32-3.3.6.jar",
+            "sha1": "d62134c2d30d2b9e0a79992bed21aaa564f52eae",
+            "size": 85152,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-natives-linux-arm32-3.3.6.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.3.6/lwjgl-natives-linux-arm64-3.3.6.jar",
+            "sha1": "c40498115bf8055624715342038f667ef150748a",
+            "size": 105657,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-natives-linux-arm64-3.3.6.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.3.6/lwjgl-natives-linux-3.3.6.jar",
+            "sha1": "b79d56c4f6b396846e3be3d1e137dd4ddf35a392",
+            "size": 107975,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-natives-linux-3.3.6.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.1": {
+      "name": "org.lwjgl:lwjgl-glfw:3.3.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.3.1/lwjgl-glfw-3.3.1.jar",
+          "sha1": "9526649805b063d879f7b3642cc9f779eb63ae99",
+          "size": 130135,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-glfw-3.3.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.2": {
+      "name": "org.lwjgl:lwjgl-glfw:3.3.2",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.3.2/lwjgl-glfw-3.3.2.jar",
+          "sha1": "54846a354ec14b4a9e2a4b3c45ee4127fd52761b",
+          "size": 130229,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-glfw-3.3.2.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.3": {
+      "name": "org.lwjgl:lwjgl-glfw:3.3.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.3.3/lwjgl-glfw-3.3.3.jar",
+          "sha1": "8a5776d6ffb9a1dce4ffb8c4f7f9d69d2cee8897",
+          "size": 130079,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-glfw-3.3.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-spvc:3.4.1": {
+      "name": "org.lwjgl:lwjgl-spvc:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-spvc/3.4.1/lwjgl-spvc-3.4.1.jar",
+          "sha1": "a8003ac4a484eb587d966c593604c869bc3a0def",
+          "size": 141549,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-spvc-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-openal:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-openal:3.4.1": {
+      "name": "org.lwjgl:lwjgl-openal:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.4.1/lwjgl-openal-3.4.1.jar",
+          "sha1": "3c7ad9e39b02a7368d05b71a610cbf9e9379befa",
+          "size": 146193,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-openal-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.2.3": {
+      "name": "org.lwjgl:lwjgl-openal:3.2.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.2.3/lwjgl-openal-3.2.3.jar",
+          "sha1": "fab6a631bbbc7d7f449fda49f55146e36d87bea7",
+          "size": 79926,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-openal-3.2.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-stb:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl:3.3.1": {
+      "name": "org.lwjgl:lwjgl:3.3.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-3.3.1.jar",
+          "sha1": "c050ed83c380e571576b3552b630f84a46007c62",
+          "size": 719786,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-3.3.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-natives-linux-arm32-3.3.1.jar",
+            "sha1": "bd566d5e8b4a03b11c7a7056f0c6e27a1945f122",
+            "size": 74294,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-natives-linux-arm32-3.3.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-natives-linux-arm64-3.3.1.jar",
+            "sha1": "582b3a1585de35eb36e47dcf77a7be5e48283aef",
+            "size": 92193,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-natives-linux-arm64-3.3.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.3.1/lwjgl-natives-linux-3.3.1.jar",
+            "sha1": "61903cc820e92b2939d95dcb20505891ff010ffa",
+            "size": 94588,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-natives-linux-3.3.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-freetype:3.4.1": {
+      "name": "org.lwjgl:lwjgl-freetype:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-freetype/3.4.1/lwjgl-freetype-3.4.1.jar",
+          "sha1": "ca649170519105b4b519c7a36d7877e3d4c5d64e",
+          "size": 465792,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-freetype-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.3.2": {
+      "name": "org.lwjgl:lwjgl:3.3.2",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.3.2/lwjgl-3.3.2.jar",
+          "sha1": "b7cf0494f0321d8e58ca1883a5f2f4ddd6b4142e",
+          "size": 790149,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-3.3.2.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.3.2/lwjgl-natives-linux-arm32-3.3.2.jar",
+            "sha1": "7e53f6a33ff9748d9e13793be81cbe38f9877d1d",
+            "size": 81040,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-natives-linux-arm32-3.3.2.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.3.2/lwjgl-natives-linux-arm64-3.3.2.jar",
+            "sha1": "7d26221b8e8ede67e7535b0b2a7b4cbb1c012537",
+            "size": 99408,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-natives-linux-arm64-3.3.2.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.3.2/lwjgl-natives-linux-3.3.2.jar",
+            "sha1": "a2473e249c504fd7674c1480ff12a7f68ac6d95d",
+            "size": 102365,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-natives-linux-3.3.2.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.3.3": {
+      "name": "org.lwjgl:lwjgl:3.3.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.3.3/lwjgl-3.3.3.jar",
+          "sha1": "5fac18c377775493c7da67306fadd4a9f1e11d3f",
+          "size": 791737,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-3.3.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.3.3/lwjgl-natives-linux-arm32-3.3.3.jar",
+            "sha1": "6900a98531f88c15bddbdfeebc9f9c8d4c03e93c",
+            "size": 81398,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-natives-linux-arm32-3.3.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.3.3/lwjgl-natives-linux-arm64-3.3.3.jar",
+            "sha1": "86ae790684906157fa82ef249b4e11660fd43518",
+            "size": 100134,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-natives-linux-arm64-3.3.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.3.3/lwjgl-natives-linux-3.3.3.jar",
+            "sha1": "29a23526e6e244c4235b775d51f125b7bd65751b",
+            "size": 102868,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-natives-linux-3.3.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-stb:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-vma:3.4.1": {
+      "name": "org.lwjgl:lwjgl-vma:3.4.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-vma/3.4.1/lwjgl-vma-3.4.1.jar",
+          "sha1": "90674c4b3f7c3cd1ee2f39233b655cdc8a17bcdd",
+          "size": 104883,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-vma-3.4.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-vma/3.4.1/lwjgl-vma-natives-linux-arm32-3.4.1.jar",
+            "sha1": "2adadd67c1f974498324b06babb864d76b0e9392",
+            "size": 242948,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-vma-natives-linux-arm32-3.4.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-vma/3.4.1/lwjgl-vma-natives-linux-arm64-3.4.1.jar",
+            "sha1": "5fa956c0b6cc377d6bbcc0c6a0df2f8b147bd60a",
+            "size": 279207,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-vma-natives-linux-arm64-3.4.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-vma/3.4.1/lwjgl-vma-natives-linux-3.4.1.jar",
+            "sha1": "fa0f4d2871b915ba5ce927192ceb5018c68788f9",
+            "size": 294344,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-vma-natives-linux-3.4.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.6": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.3.6",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.3.6/lwjgl-jemalloc-3.3.6.jar",
+          "sha1": "684de58b7f82b25a0713c5315afba44010d9740e",
+          "size": 37919,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-jemalloc-3.3.6.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-shaderc:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-stb:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-vulkan:3.4.1": {
+      "name": "org.lwjgl:lwjgl-vulkan:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-vulkan/3.4.1/lwjgl-vulkan-3.4.1.jar",
+          "sha1": "89c7c3cde7bd951d5319aa69a7aa808630aabf22",
+          "size": 8540349,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-vulkan-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.4.1": {
+      "name": "org.lwjgl:lwjgl-opengl:3.4.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.4.1/lwjgl-opengl-3.4.1.jar",
+          "sha1": "5c067aad0997a853ce7ec5f7356c3520f4e783e9",
+          "size": 939051,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-opengl-3.4.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.4.1/lwjgl-opengl-natives-linux-arm32-3.4.1.jar",
+            "sha1": "6002175f4622ba058d454fda8cbf51fdbfcb5334",
+            "size": 49008,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-opengl-natives-linux-arm32-3.4.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.4.1/lwjgl-opengl-natives-linux-arm64-3.4.1.jar",
+            "sha1": "070c27afbf813566b0c70139f435ed3394552542",
+            "size": 71771,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-opengl-natives-linux-arm64-3.4.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.4.1/lwjgl-opengl-natives-linux-3.4.1.jar",
+            "sha1": "0a510a40c19e1cd5b0ad5251ba2df153c27d8356",
+            "size": 69349,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-opengl-natives-linux-3.4.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.2.3": {
+      "name": "org.lwjgl:lwjgl-opengl:3.2.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.2.3/lwjgl-opengl-3.2.3.jar",
+          "sha1": "46606cda262eb494c1a616bb8af5d67baf730eb4",
+          "size": 947623,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-opengl-3.2.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.2.3/lwjgl-opengl-natives-linux-arm32-3.2.3.jar",
+            "sha1": "cb8432c6dbfc8c4b188b234081c97554b16af994",
+            "size": 47459,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-opengl-natives-linux-arm32-3.2.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.2.3/lwjgl-opengl-natives-linux-arm64-3.2.3.jar",
+            "sha1": "3e220e97a78d0bb73671556332e15295c7f061f8",
+            "size": 70191,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-opengl-natives-linux-arm64-3.2.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.2.3/lwjgl-opengl-natives-linux-3.2.3.jar",
+            "sha1": "c708c0a959735f810c9a4133244963dcebf0f2b0",
+            "size": 67877,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-opengl-natives-linux-3.2.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-stb:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.4.1": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.4.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-3.4.1.jar",
+          "sha1": "5804de4c79c55184e1f31b26bb18771a9506b39c",
+          "size": 9230,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-tinyfd-3.4.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-natives-linux-arm32-3.4.1.jar",
+            "sha1": "f81c1be1ffbb5ede4397045c8b819301d32f0332",
+            "size": 51082,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-tinyfd-natives-linux-arm32-3.4.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-natives-linux-arm64-3.4.1.jar",
+            "sha1": "7b4927d9e7190bf7cb81d9c7a67e7da574dc0069",
+            "size": 43432,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-tinyfd-natives-linux-arm64-3.4.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-natives-linux-3.4.1.jar",
+            "sha1": "3bc1a4ca2e791da3f590dc28646a4458102d03b2",
+            "size": 44269,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-tinyfd-natives-linux-3.4.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.2.3": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.2.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.2.3/lwjgl-tinyfd-3.2.3.jar",
+          "sha1": "112f4776489c33b80c6b27d1928f61df10377549",
+          "size": 6434,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-tinyfd-3.2.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.2.3/lwjgl-tinyfd-natives-linux-arm32-3.2.3.jar",
+            "sha1": "9bfc0e602bcec75a478bbdd98aa1549cf0343bed",
+            "size": 41554,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-tinyfd-natives-linux-arm32-3.2.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.2.3/lwjgl-tinyfd-natives-linux-arm64-3.2.3.jar",
+            "sha1": "ba1d8a3363770ccf8a3d0ccd31d713844ed188ff",
+            "size": 37253,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-tinyfd-natives-linux-arm64-3.2.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.2.3/lwjgl-tinyfd-natives-linux-3.2.3.jar",
+            "sha1": "c7d6062bdbb9f4fec8c84759d27a756eeb896fda",
+            "size": 37101,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-tinyfd-natives-linux-3.2.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-spvc:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-glfw:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.2": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.3.2",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.3.2/lwjgl-jemalloc-3.3.2.jar",
+          "sha1": "0e12a17670a833871ad939604b91fcea3fd480a6",
+          "size": 36980,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-jemalloc-3.3.2.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.3": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.3.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.3.3/lwjgl-jemalloc-3.3.3.jar",
+          "sha1": "462815e180795acecb7f818d9592ce2a63449f62",
+          "size": 37700,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-jemalloc-3.3.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.1": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.3.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.3.1/lwjgl-jemalloc-3.3.1.jar",
+          "sha1": "c1794a62df496225706c0f7cd7767de1103274d8",
+          "size": 36976,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-jemalloc-3.3.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.4.1": {
+      "name": "org.lwjgl:lwjgl-stb:3.4.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.4.1/lwjgl-stb-3.4.1.jar",
+          "sha1": "41b16df2b68d03a874bbc62a09a502f6c19f6050",
+          "size": 138471,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-stb-3.4.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.4.1/lwjgl-stb-natives-linux-arm32-3.4.1.jar",
+            "sha1": "66f9490f50b96fa68c42eeb9f1246bb6862b9812",
+            "size": 244357,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-stb-natives-linux-arm32-3.4.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.4.1/lwjgl-stb-natives-linux-arm64-3.4.1.jar",
+            "sha1": "55394387d8ef337d4ecba3d8678490710feea866",
+            "size": 257063,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-stb-natives-linux-arm64-3.4.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.4.1/lwjgl-stb-natives-linux-3.4.1.jar",
+            "sha1": "ed0ddfe2fc507ddef8d559af1915b928e1cc0735",
+            "size": 307524,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-stb-natives-linux-3.4.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.2.3": {
+      "name": "org.lwjgl:lwjgl-stb:3.2.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-3.2.3.jar",
+          "sha1": "04521fa358b615cbedb699593c9d31152a82fa74",
+          "size": 104829,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-stb-3.2.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-natives-linux-arm32-3.2.3.jar",
+            "sha1": "1c56522b71ea8423c12ee278327e9594beac240b",
+            "size": 179726,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-stb-natives-linux-arm32-3.2.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-natives-linux-arm64-3.2.3.jar",
+            "sha1": "1a073f10f8d523c80ee62a5453271ffc331b6501",
+            "size": 216176,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-stb-natives-linux-arm64-3.2.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.2.3/lwjgl-stb-natives-linux-3.2.3.jar",
+            "sha1": "30c23fe5cd294b1cef468d3151cea79f999152fc",
+            "size": 232273,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-stb-natives-linux-3.2.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-shaderc:3.4.1": {
+      "name": "org.lwjgl:lwjgl-shaderc:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-shaderc/3.4.1/lwjgl-shaderc-3.4.1.jar",
+          "sha1": "42dca719dd9cbbd1baafcf9a14f92fd35fbcb098",
+          "size": 146713,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-shaderc-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-openal:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-glfw:3.4.1": {
+      "name": "org.lwjgl:lwjgl-glfw:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.4.1/lwjgl-glfw-3.4.1.jar",
+          "sha1": "86b2cc5212785162dc2c6f842acc119f19ee9bde",
+          "size": 144554,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-glfw-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-glfw:3.2.3": {
+      "name": "org.lwjgl:lwjgl-glfw:3.2.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-glfw/3.2.3/lwjgl-glfw-3.2.3.jar",
+          "sha1": "d381f6c61cdd04d8456429a2c8ac1807c73c1b82",
+          "size": 109105,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-glfw-3.2.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.6": {
+      "name": "org.lwjgl:lwjgl-freetype:3.3.6",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-freetype/3.3.6/lwjgl-freetype-3.3.6.jar",
+          "sha1": "c9bb0060f3f4a7fd5b997b115e1b4d30cc6eb05d",
+          "size": 460945,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-freetype-3.3.6.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.3.2": {
+      "name": "org.lwjgl:lwjgl-openal:3.3.2",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.3.2/lwjgl-openal-3.3.2.jar",
+          "sha1": "a9dbbc41e442d0ca52cd1f63d7e8da2e83d2557c",
+          "size": 102407,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-openal-3.3.2.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.3.3": {
+      "name": "org.lwjgl:lwjgl-openal:3.3.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.3.3/lwjgl-openal-3.3.3.jar",
+          "sha1": "efef2a738ef748038fb7561d2d4078f0abce3dc6",
+          "size": 104764,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-openal-3.3.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.3": {
+      "name": "org.lwjgl:lwjgl-freetype:3.3.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-freetype/3.3.3/lwjgl-freetype-3.3.3.jar",
+          "sha1": "267f6635a1934ff92c56f297ee130e08a8f9353a",
+          "size": 451946,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-freetype-3.3.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl:3.4.1": {
+      "name": "org.lwjgl:lwjgl:3.4.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.4.1/lwjgl-3.4.1.jar",
+          "sha1": "b9c3d826f4384db464dcba12141c24086998789c",
+          "size": 880561,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-3.4.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.4.1/lwjgl-natives-linux-arm32-3.4.1.jar",
+            "sha1": "b0b8a4ce50da3cc1b662d8870804b5f3af59b502",
+            "size": 88423,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-natives-linux-arm32-3.4.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.4.1/lwjgl-natives-linux-arm64-3.4.1.jar",
+            "sha1": "8bd5f375a619456fa2babc71e065d9528202c353",
+            "size": 109094,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-natives-linux-arm64-3.4.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.4.1/lwjgl-natives-linux-3.4.1.jar",
+            "sha1": "dfa508d5c0c7330fcde5b54a7e140822f5439f76",
+            "size": 111439,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-natives-linux-3.4.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.3.6": {
+      "name": "org.lwjgl:lwjgl-openal:3.3.6",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.3.6/lwjgl-openal-3.3.6.jar",
+          "sha1": "e3bc23592b9544f0efe0205330f0df0be606684e",
+          "size": 145306,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-openal-3.3.6.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.2": {
+      "name": "org.lwjgl:lwjgl-freetype:3.3.2",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-freetype/3.3.2/lwjgl-freetype-3.3.2.jar",
+          "sha1": "1f0303d0de2f6e89c8a067b28644944dbe526ef9",
+          "size": 441247,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-freetype-3.3.2.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.2.3": {
+      "name": "org.lwjgl:lwjgl:3.2.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl/3.2.3/lwjgl-3.2.3.jar",
+          "sha1": "b2d6aec19e5c45a8610ccba75f0a13e35f56d785",
+          "size": 557745,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-3.2.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl/3.2.3/lwjgl-natives-linux-arm32-3.2.3.jar",
+            "sha1": "72f51e65d0e446bf09e2a64fe88d2897c1d1d1fd",
+            "size": 47672,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-natives-linux-arm32-3.2.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl/3.2.3/lwjgl-natives-linux-arm64-3.2.3.jar",
+            "sha1": "7ccada72cb9ea9431cd8c999e4102ad8259a619f",
+            "size": 65264,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-natives-linux-arm64-3.2.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl/3.2.3/lwjgl-natives-linux-3.2.3.jar",
+            "sha1": "c9e88e1cfc11bd6e27523cb48a42d193ab89b966",
+            "size": 66127,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-natives-linux-3.2.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-openal:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-opengl:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.1": {
+      "name": "org.lwjgl:lwjgl-opengl:3.3.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.3.1/lwjgl-opengl-3.3.1.jar",
+          "sha1": "e7bfc0c9623a6c1efbf569f9db0cff13d76edee1",
+          "size": 929218,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-opengl-3.3.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.1/lwjgl-opengl-natives-linux-arm32-3.3.1.jar",
+            "sha1": "1012cdcdab0c8a89d272a21282a6088faea0fd48",
+            "size": 47884,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-opengl-natives-linux-arm32-3.3.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.1/lwjgl-opengl-natives-linux-arm64-3.3.1.jar",
+            "sha1": "90efbc363807032d13b1feb8e5c63f1a239fea7c",
+            "size": 70655,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-opengl-natives-linux-arm64-3.3.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.1/lwjgl-opengl-natives-linux-3.3.1.jar",
+            "sha1": "9c72fa97c50494da4ef3546f406197095917c6c6",
+            "size": 68345,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-opengl-natives-linux-3.3.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.3": {
+      "name": "org.lwjgl:lwjgl-opengl:3.3.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-3.3.3.jar",
+          "sha1": "a92422f9ace0c022d99b567c242c29a435693b89",
+          "size": 932754,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-opengl-3.3.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-natives-linux-arm32-3.3.3.jar",
+            "sha1": "60b4129b380001a1c2f84846efa0b56db09fe8e9",
+            "size": 48784,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-opengl-natives-linux-arm32-3.3.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-natives-linux-arm64-3.3.3.jar",
+            "sha1": "ae777dae0dae9479303631639a67958611275cad",
+            "size": 71449,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-opengl-natives-linux-arm64-3.3.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-natives-linux-3.3.3.jar",
+            "sha1": "1ecdc50fe92db82f37f4eb2e54ca0f383e404866",
+            "size": 69074,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-opengl-natives-linux-3.3.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-vma:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.2": {
+      "name": "org.lwjgl:lwjgl-opengl:3.3.2",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.3.2/lwjgl-opengl-3.3.2.jar",
+          "sha1": "7a9bdf75eb8e2543d71aa8abb7b3a5b31880ea9c",
+          "size": 932401,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-opengl-3.3.2.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.2/lwjgl-opengl-natives-linux-arm32-3.3.2.jar",
+            "sha1": "ca5091fe71efa9ab3b7145b70564e8549350c5b8",
+            "size": 48785,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-opengl-natives-linux-arm32-3.3.2.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.2/lwjgl-opengl-natives-linux-arm64-3.3.2.jar",
+            "sha1": "08fdeec6de276b7ce9faee299ee4a609c50cfd61",
+            "size": 71450,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-opengl-natives-linux-arm64-3.3.2.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.2/lwjgl-opengl-natives-linux-3.3.2.jar",
+            "sha1": "018fde5d02c12013417e635a076bc08d8d5be53e",
+            "size": 69076,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-opengl-natives-linux-3.3.2.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.3:natives-macos-patch": {
+      "name": "org.lwjgl:lwjgl-freetype:3.3.3:natives-macos-patch",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-freetype/3.3.3/lwjgl-freetype-3.3.3.jar",
+          "sha1": "267f6635a1934ff92c56f297ee130e08a8f9353a",
+          "size": 451946,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-freetype-3.3.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.3.2:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-opengl:3.3.6": {
+      "name": "org.lwjgl:lwjgl-opengl:3.3.6",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-3.3.6.jar",
+          "sha1": "7c8fef865d3b20f841ef1ddfe560459f6be21be6",
+          "size": 936436,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-opengl-3.3.6.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-natives-linux-arm32-3.3.6.jar",
+            "sha1": "f752549e2c4fc2056d7dc42c26fbfd84d1a3bbd1",
+            "size": 48791,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-opengl-natives-linux-arm32-3.3.6.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-natives-linux-arm64-3.3.6.jar",
+            "sha1": "eca91ca13e11752b8cc1811ef9cbb960d6daeb50",
+            "size": 71455,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-opengl-natives-linux-arm64-3.3.6.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-natives-linux-3.3.6.jar",
+            "sha1": "bcb597d8e015f0c7c40d80c143e8830f377513ba",
+            "size": 69082,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-opengl-natives-linux-3.3.6.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.3": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.3.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-3.3.3.jar",
+          "sha1": "8261f9ae429eb10f975911bffeff43f7360a5cae",
+          "size": 9263,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-tinyfd-3.3.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-natives-linux-arm32-3.3.3.jar",
+            "sha1": "ab70ab6126d50145fc95dc88dbf6f8acf9c37ab9",
+            "size": 48958,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-tinyfd-natives-linux-arm32-3.3.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-natives-linux-arm64-3.3.3.jar",
+            "sha1": "70bc5cd6a0e56c394200cc39dd1f10cb0eed8de7",
+            "size": 42096,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-tinyfd-natives-linux-arm64-3.3.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-natives-linux-3.3.3.jar",
+            "sha1": "4891f551d99a9caca19cf93061c0471245863100",
+            "size": 42871,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-tinyfd-natives-linux-3.3.3.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl:3.3.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.2": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.3.2",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.3.2/lwjgl-tinyfd-3.3.2.jar",
+          "sha1": "e9de61aabe0015c10b21d507ae5ac85b5b22a428",
+          "size": 9265,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-tinyfd-3.3.2.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.2/lwjgl-tinyfd-natives-linux-arm32-3.3.2.jar",
+            "sha1": "c01c0f0b9d6807ae1e4e7c88dbc3c22e7ab17e5f",
+            "size": 48416,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-tinyfd-natives-linux-arm32-3.3.2.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.2/lwjgl-tinyfd-natives-linux-arm64-3.3.2.jar",
+            "sha1": "25abd8e0e558574c1d73785e553088331a5bc089",
+            "size": 42477,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-tinyfd-natives-linux-arm64-3.3.2.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.2/lwjgl-tinyfd-natives-linux-3.3.2.jar",
+            "sha1": "de2fe69c55cec9f15fbdad447e9a1a52dac24d6c",
+            "size": 42332,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-tinyfd-natives-linux-3.3.2.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.3.6:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.1": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.3.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.3.1/lwjgl-tinyfd-3.3.1.jar",
+          "sha1": "9c37066789c2936eb2e99b3e0bf12669975f0105",
+          "size": 6803,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-tinyfd-3.3.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.1/lwjgl-tinyfd-natives-linux-arm32-3.3.1.jar",
+            "sha1": "b9d79c63d940570183f736b3d63ff9cf9e811b9f",
+            "size": 47731,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-tinyfd-natives-linux-arm32-3.3.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.1/lwjgl-tinyfd-natives-linux-arm64-3.3.1.jar",
+            "sha1": "76f8ef6f091b31feda047e937c8e650e65cb06b4",
+            "size": 41776,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-tinyfd-natives-linux-arm64-3.3.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.1/lwjgl-tinyfd-natives-linux-3.3.1.jar",
+            "sha1": "6621381d5ae83dbfb5c0904e3e1d62377f79e549",
+            "size": 41633,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-tinyfd-natives-linux-3.3.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-freetype:3.3.3:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-openal:3.3.1": {
+      "name": "org.lwjgl:lwjgl-openal:3.3.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-openal/3.3.1/lwjgl-openal-3.3.1.jar",
+          "sha1": "1b6c247eb8a552f96534a2f6f5463d4738327a5c",
+          "size": 88879,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-openal-3.3.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-tinyfd:3.3.6": {
+      "name": "org.lwjgl:lwjgl-tinyfd:3.3.6",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-tinyfd/3.3.6/lwjgl-tinyfd-3.3.6.jar",
+          "sha1": "2b60aab8e65e3d764cc2c913b27bf149616559d4",
+          "size": 9322,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-tinyfd-3.3.6.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.6/lwjgl-tinyfd-natives-linux-arm32-3.3.6.jar",
+            "sha1": "ffc019f1010081344275d054d1601735456d2b16",
+            "size": 50236,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-tinyfd-natives-linux-arm32-3.3.6.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.6/lwjgl-tinyfd-natives-linux-arm64-3.3.6.jar",
+            "sha1": "941412c724cc7cfc23bf53cc0f9de968510893d8",
+            "size": 43315,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-tinyfd-natives-linux-arm64-3.3.6.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-tinyfd/3.3.6/lwjgl-tinyfd-natives-linux-3.3.6.jar",
+            "sha1": "0aea8c88cccc9e5bf80a2bc3bbf6fc836166d4e7",
+            "size": 43813,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-tinyfd-natives-linux-3.3.6.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-freetype:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.4.1": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.4.1",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.4.1/lwjgl-jemalloc-3.4.1.jar",
+          "sha1": "ce4d2624c0ab580fa2518ab802e8be595bcb7203",
+          "size": 39219,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.4.1-r1/lwjgl-jemalloc-3.4.1.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-jemalloc:3.2.3": {
+      "name": "org.lwjgl:lwjgl-jemalloc:3.2.3",
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-jemalloc/3.2.3/lwjgl-jemalloc-3.2.3.jar",
+          "sha1": "9d6695b17a0a3878dddb73c4ac63bd73b0a58d26",
+          "size": 34441,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.2.3-r1/lwjgl-jemalloc-3.2.3.jar"
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.3.6": {
+      "name": "org.lwjgl:lwjgl-stb:3.3.6",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.3.6/lwjgl-stb-3.3.6.jar",
+          "sha1": "8fb76cd7b398f62334aa0068d72a6ecd4d38b0df",
+          "size": 140160,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-stb-3.3.6.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.6/lwjgl-stb-natives-linux-arm32-3.3.6.jar",
+            "sha1": "ca504972afa233ffec20f783a719f8e4f8d8490b",
+            "size": 244034,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-stb-natives-linux-arm32-3.3.6.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.6/lwjgl-stb-natives-linux-arm64-3.3.6.jar",
+            "sha1": "b4e477962de5cdee8206560d5d672370c31bd9a8",
+            "size": 256772,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-stb-natives-linux-arm64-3.3.6.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.6/lwjgl-stb-natives-linux-3.3.6.jar",
+            "sha1": "1146308a2e781cee532574ae745f299a3ed8f1cd",
+            "size": 308122,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.6-r1/lwjgl-stb-natives-linux-3.3.6.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.3.1": {
+      "name": "org.lwjgl:lwjgl-stb:3.3.1",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.3.1/lwjgl-stb-3.3.1.jar",
+          "sha1": "8ca53eaab74c938b10c8074a2ebff3cf7fba4dd4",
+          "size": 113270,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-stb-3.3.1.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.1/lwjgl-stb-natives-linux-arm32-3.3.1.jar",
+            "sha1": "f23c48b4e2fc7b7e254d1f1e1381b5be895203cf",
+            "size": 195400,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-stb-natives-linux-arm32-3.3.1.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.1/lwjgl-stb-natives-linux-arm64-3.3.1.jar",
+            "sha1": "8766ce26c3d71813e2560f5d19ed7da8557a0e49",
+            "size": 228114,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-stb-natives-linux-arm64-3.3.1.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.1/lwjgl-stb-natives-linux-3.3.1.jar",
+            "sha1": "3e24740b2c099d5f35ac0659ee531575c5c2872f",
+            "size": 258627,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.1-r1/lwjgl-stb-natives-linux-3.3.1.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-stb:3.3.2": {
+      "name": "org.lwjgl:lwjgl-stb:3.3.2",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.3.2/lwjgl-stb-3.3.2.jar",
+          "sha1": "b710d54e5ecf234f3654df6f4774d4a8659b5bec",
+          "size": 115681,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-stb-3.3.2.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.2/lwjgl-stb-natives-linux-arm32-3.3.2.jar",
+            "sha1": "56858deb88e5f10fe96d595e54130fa3a08868e2",
+            "size": 197407,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-stb-natives-linux-arm32-3.3.2.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.2/lwjgl-stb-natives-linux-arm64-3.3.2.jar",
+            "sha1": "c1a966099f4b3e8e8161ec2ee376459ea8bf2760",
+            "size": 228788,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-stb-natives-linux-arm64-3.3.2.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.2/lwjgl-stb-natives-linux-3.3.2.jar",
+            "sha1": "3234c3c4c90cdb5e95bde8698abceeff4237481a",
+            "size": 259666,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.2-r1/lwjgl-stb-natives-linux-3.3.2.jar"
+          }
+        }
+      }
+    },
+    "org.lwjgl:lwjgl-openal:3.4.1:natives-linux": {
+      "skip": true
+    },
+    "org.lwjgl:lwjgl-stb:3.3.3": {
+      "name": "org.lwjgl:lwjgl-stb:3.3.3",
+      "natives": {
+        "android-arm": "natives-linux-arm32",
+        "android-x86_64": "natives-linux",
+        "android-arm64": "natives-linux-arm64"
+      },
+      "downloads": {
+        "artifact": {
+          "path": "org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-3.3.3.jar",
+          "sha1": "f34e584c29601546225df448cc93c4e670d58a4e",
+          "size": 117472,
+          "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-stb-3.3.3.jar"
+        },
+        "classifiers": {
+          "natives-linux-arm32": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-natives-linux-arm32-3.3.3.jar",
+            "sha1": "2d40b88d9ce2284ca7f5bf316c29f3cc939b61c5",
+            "size": 197405,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-stb-natives-linux-arm32-3.3.3.jar"
+          },
+          "natives-linux-arm64": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-natives-linux-arm64-3.3.3.jar",
+            "sha1": "b1ab860de50452b653d3c5b946295a0f2ed1dad8",
+            "size": 228787,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-stb-natives-linux-arm64-3.3.3.jar"
+          },
+          "natives-linux": {
+            "path": "org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-natives-linux-3.3.3.jar",
+            "sha1": "a91717a359cf0a897c7541444469a54a798aac08",
+            "size": 259663,
+            "url": "https://github.com/MojoLauncher/unilwjgl3-builder/releases/download/v3.3.3-r1/lwjgl-stb-natives-linux-3.3.3.jar"
+          }
+        }
+      }
+    }
+  },
+  "artifactMapping": {
+    "org.lwjgl:lwjgl:3.1.6": "org.lwjgl:lwjgl:3.2.3",
+    "org.lwjgl:lwjgl-glfw:3.2.2": "org.lwjgl:lwjgl-glfw:3.2.3",
+    "org.lwjgl:lwjgl-glfw:3.1.6": "org.lwjgl:lwjgl-glfw:3.2.3",
+    "org.lwjgl:lwjgl-openal:3.1.6": "org.lwjgl:lwjgl-openal:3.2.3",
+    "org.lwjgl:lwjgl:3.2.1": "org.lwjgl:lwjgl:3.2.3",
+    "org.lwjgl:lwjgl:3.1.2": "org.lwjgl:lwjgl:3.2.3",
+    "org.lwjgl:lwjgl:3.2.2": "org.lwjgl:lwjgl:3.2.3",
+    "org.lwjgl:lwjgl-jemalloc:3.1.6": "org.lwjgl:lwjgl-jemalloc:3.2.3",
+    "org.lwjgl:lwjgl-opengl:3.2.2": "org.lwjgl:lwjgl-opengl:3.2.3",
+    "org.lwjgl:lwjgl-opengl:3.2.1": "org.lwjgl:lwjgl-opengl:3.2.3",
+    "org.lwjgl:lwjgl-opengl:3.1.2": "org.lwjgl:lwjgl-opengl:3.2.3",
+    "org.lwjgl:lwjgl-opengl:3.1.6": "org.lwjgl:lwjgl-opengl:3.2.3",
+    "org.lwjgl:lwjgl-tinyfd:3.2.2": "org.lwjgl:lwjgl-tinyfd:3.2.3",
+    "org.lwjgl:lwjgl-openal:3.2.1": "org.lwjgl:lwjgl-openal:3.2.3",
+    "org.lwjgl:lwjgl-openal:3.1.2": "org.lwjgl:lwjgl-openal:3.2.3",
+    "org.lwjgl:lwjgl-openal:3.2.2": "org.lwjgl:lwjgl-openal:3.2.3",
+    "org.lwjgl:lwjgl-stb:3.1.6": "org.lwjgl:lwjgl-stb:3.2.3",
+    "org.lwjgl:lwjgl-jemalloc:3.2.1": "org.lwjgl:lwjgl-jemalloc:3.2.3",
+    "org.lwjgl:lwjgl-jemalloc:3.1.2": "org.lwjgl:lwjgl-jemalloc:3.2.3",
+    "org.lwjgl:lwjgl-jemalloc:3.2.2": "org.lwjgl:lwjgl-jemalloc:3.2.3",
+    "org.lwjgl:lwjgl-glfw:3.2.1": "org.lwjgl:lwjgl-glfw:3.2.3",
+    "org.lwjgl:lwjgl-glfw:3.1.2": "org.lwjgl:lwjgl-glfw:3.2.3",
+    "org.lwjgl:lwjgl-stb:3.2.1": "org.lwjgl:lwjgl-stb:3.2.3",
+    "org.lwjgl:lwjgl-stb:3.1.2": "org.lwjgl:lwjgl-stb:3.2.3",
+    "org.lwjgl:lwjgl-stb:3.2.2": "org.lwjgl:lwjgl-stb:3.2.3"
+  }
+}

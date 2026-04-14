@@ -64,6 +64,7 @@ import net.kdt.pojavlaunch.utils.jre.GameRunner;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 import git.artdeell.dnbootstrap.glfw.AndroidClipboardProvider;
 import git.artdeell.dnbootstrap.glfw.GLFW;
@@ -72,6 +73,7 @@ import git.artdeell.mojo.R;
 
 public class MainActivity extends BaseActivity implements ControlButtonMenuListener, EditorExitable, ServiceConnection {
     public static final String INTENT_MINECRAFT_VERSION = "intent_version";
+    public static final String INTENT_MINECRAFT_CLASSPATH = "intent_classpath";
 
     public static TouchCharInput touchCharInput;
     private MinecraftGLSurface minecraftGLView;
@@ -171,8 +173,9 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
             touchCharInput.setCharacterSender(new LwjglCharSender());
 
-            String version = getIntent().getStringExtra(INTENT_MINECRAFT_VERSION);
-            version = version == null ? instance.versionId : version;
+            Bundle extras = Objects.requireNonNull(getIntent().getExtras());
+            String version = extras.getString(INTENT_MINECRAFT_VERSION);
+            File[] classpath = (File[]) extras.getSerializable(INTENT_MINECRAFT_CLASSPATH);
 
             setTitle("Minecraft " + version);
 
@@ -193,11 +196,10 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             navDrawer.setOnItemClickListener(gameActionClickListener);
             drawerLayout.closeDrawers();
 
-            final String finalVersion = version;
             minecraftGLView.setSurfaceReadyListener(() -> {
                 try {
                     if(!PREF_VIRTUAL_MOUSE_START) cursor.setVisibility(View.GONE);
-                    runCraft(finalVersion);
+                    runCraft(version, classpath);
                 }catch (Throwable e){
                     Tools.showErrorRemote(e);
                 }
@@ -331,7 +333,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         }
     }
 
-    private void runCraft(String versionId) throws Throwable {
+    private void runCraft(String versionId, File[] classpath) throws Throwable {
         String renderer = instance.getLaunchRenderer();
         if(!RendererCompatUtil.checkRendererCompatible(this, renderer)) {
             RendererCompatUtil.RenderersList renderersList = RendererCompatUtil.getCompatibleRenderers(this);
@@ -342,7 +344,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         Logger.appendToLog("--------- Starting game with Launcher Debug!");
         Tools.printLauncherInfo(versionId, instance.getLaunchArgs());
         JREUtils.redirectAndPrintJRELog();
-        GameRunner.launchMinecraft(this, minecraftAccount, instance, versionId, renderer);
+        GameRunner.launchMinecraft(this, minecraftAccount, instance, versionId, classpath, renderer);
         //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
         Tools.runOnUiThread(()-> mServiceBinder.isActive = false);
     }

@@ -116,9 +116,6 @@ public class JREUtils {
             envMap.put("LIBGL_VGPU_DUMP", "1");
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
-        if(Tools.deviceHasHangingLinker())
-            envMap.put("POJAV_EMUI_ITERATOR_MITIGATE", "1");
-
 
         // The OPEN GL version is changed according
         envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));

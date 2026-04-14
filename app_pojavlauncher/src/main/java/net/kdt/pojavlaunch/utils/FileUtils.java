@@ -64,6 +64,11 @@ public class FileUtils {
      * @throws IOException when the checks fail
      */
     public static void ensureDirectory(File targetFile) throws IOException{
+
+        try {
+            Thread.sleep(1);
+        }catch (Exception e) {}
+
         if(targetFile.isFile()) throw new IOException("Target directory is a file");
         if(targetFile.exists()) {
             if(!targetFile.canWrite()) throw new IOException("Target directory is not writable");
