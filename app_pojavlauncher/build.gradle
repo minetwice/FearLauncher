@@ -27,7 +27,7 @@ def getVersionName = {
     }else {
         def branchName = currentBranch.getName()
         def commitAbbreviation = latestCommit.abbreviatedId
-        return "hebe-${dateToday}-${commitAbbreviation}-${branchName}"
+        return "iris-${dateToday}-${commitAbbreviation}-${branchName}"
     }
 }
 
@@ -145,11 +145,11 @@ android {
         }
     }
 
-    ndkVersion = "28.2.13676358"
+    ndkVersion "29.0.14206865"
 
     externalNativeBuild {
-        ndkBuild {
-            path file('src/main/jni/Android.mk')
+        cmake {
+            path file('src/main/jni/CMakeLists.txt')
         }
     }
 
@@ -172,7 +172,6 @@ android {
     }
 
     buildFeatures {
-        prefab true
         buildConfig true
     }
 }
@@ -297,7 +296,6 @@ afterEvaluate {
         registrar.setVariant(variant)
 
         registrar.projectJarDependency project(":forge_installer"), "components/forge_installer"
-        registrar.projectJarDependency project(":jre_lwjgl3glfw"), "components/lwjgl3"
 
 		if (variant.getName().toLowerCase().contains("full")) {
             registrar.jreRuntimeDependency 8, "components/jre"
@@ -341,6 +339,8 @@ dependencies {
     implementation 'com.bytedance:bytehook:1.1.1'
 
     implementation 'com.github.MojoLauncher:alsoft-android-aar:f369161d5f'
+
+    implementation project(":dnbglfw")
 
     // implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.7.0'
 
