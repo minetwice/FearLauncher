@@ -1,4 +1,4 @@
-name: Fix styles.xml Syntax
+name: Replace PNGs with Color Drawables
 
 on:
   workflow_dispatch:
@@ -7,45 +7,45 @@ permissions:
   contents: write
 
 jobs:
-  fix-styles:
+  replace:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix styles.xml
+      - name: Delete all button PNGs
         run: |
-          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
-          
-          # Remove any existing RoundedButton style if malformed
-          if grep -q '<style name="RoundedButton"' "$STYLES"; then
-            sed -i '/<style name="RoundedButton"/,/<\/style>/d' "$STYLES"
-          fi
-          
-          # Ensure proper XML structure
-          if ! grep -q "^<resources>" "$STYLES"; then
-            echo '<?xml version="1.0" encoding="utf-8"?>' > "$STYLES.new"
-            echo '<resources>' >> "$STYLES.new"
-            echo '</resources>' >> "$STYLES.new"
-            cat "$STYLES" >> "$STYLES.new"
-            mv "$STYLES.new" "$STYLES"
-          fi
-          
-          # Insert RoundedButton before </resources>
-          sed -i '/<\/resources>/i\
-    <style name="RoundedButton" parent="Widget.AppCompat.Button">\
-        <item name="android:background">@drawable/btn_silver_ripple</item>\
-        <item name="android:textColor">@color/primary_text</item>\
-        <item name="android:textSize">14sp</item>\
-        <item name="android:padding">12dp</item>\
-        <item name="android:minHeight">48dp</item>\
-    </style>' "$STYLES"
-          
-          echo "✅ styles.xml fixed"
+          find app_pojavlauncher/src/main/res -type f -name "mine_button*.png" -delete
+          find app_pojavlauncher/src/main/res -type f -name "control_side_action_window*.png" -delete
+
+      - name: Create shape drawables
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="?attr/colorPrimary"/>
+              <corners android:radius="8dp"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="?attr/colorAccent"/>
+              <corners android:radius="8dp"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_selector.xml << 'EOF'
+          <selector xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:state_pressed="true" android:drawable="@drawable/mine_button_focused"/>
+              <item android:drawable="@drawable/mine_button_unfocused"/>
+          </selector>
+          EOF
+
+      - name: Update layout references
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/styles.xml
-          git diff --cached --quiet || git commit -m "Fix styles.xml RoundedButton style"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Replace PNG buttons with color drawables"
           git push origin HEAD:${GITHUB_REF_NAME}
