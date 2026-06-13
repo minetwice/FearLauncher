@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,80 +22,42 @@ jobs:
       - name: Run color replacement script
         run: |
           python3 - << 'EOF'
-          import os
-          import re
-
-          # Black & Silver palette (smooth gradient)
-          BLACK_SILVER_PALETTE = [
-              "#000000",  # pure black
-              "#1a1a1a",  # very dark gray
-              "#2d2d2d",  # dark gray
-              "#4d4d4d",  # medium gray
-              "#808080",  # silver
-              "#b3b3b3",  # light silver
-              "#e0e0e0",  # very light silver
-          ]
-
-          def brightness(hex_color):
-              hex_color = hex_color.lstrip('#')
-              if len(hex_color) == 8:
-                  hex_color = hex_color[2:]
-              if len(hex_color) == 6:
-                  r = int(hex_color[0:2], 16)
-                  g = int(hex_color[2:4], 16)
-                  b = int(hex_color[4:6], 16)
-                  return (r * 0.299 + g * 0.587 + b * 0.114)
+          import os, re
+          BLACK_SILVER_PALETTE = ["#000000","#1a1a1a","#2d2d2d","#4d4d4d","#808080","#b3b3b3","#e0e0e0"]
+          def brightness(c):
+              c=c.lstrip('#')
+              if len(c)==8: c=c[2:]
+              if len(c)==6:
+                  r,g,b=int(c[0:2],16),int(c[2:4],16),int(c[4:6],16)
+                  return r*0.299+g*0.587+b*0.114
               return 128
-
-          def map_to_palette(hex_color):
-              bright = brightness(hex_color)
-              idx = min(6, max(0, int(bright / 255 * 6)))
+          def map_to_palette(c):
+              idx = min(6, max(0, int(brightness(c)/255*6)))
               return BLACK_SILVER_PALETTE[idx]
-
-          def process_xml_file(filepath):
-              if not os.path.exists(filepath):
-                  return False
-              with open(filepath, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              hex_pattern = re.compile(r'(#[0-9A-Fa-f]{3,8})(?=[\s\>\"\'\)])')
-              original_colors = hex_pattern.findall(content)
-              if not original_colors:
-                  return False
-              new_content = content
-              changes = 0
-              for old_color in set(original_colors):
-                  new_color = map_to_palette(old_color)
-                  if new_color != old_color:
-                      new_content = new_content.replace(old_color, new_color)
-                      changes += 1
-              if changes > 0:
-                  with open(filepath, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"✅ Updated {filepath}: {changes} color(s)")
-                  return True
-              return False
-
-          # Files to process
-          color_files = [
-              "app_pojavlauncher/src/main/res/values/colors.xml",
-              "app_pojavlauncher/src/main/res/values-night/colors.xml",
-              "app_pojavlauncher/src/main/res/values/themes.xml",
-              "app_pojavlauncher/src/main/res/values/styles.xml",
-          ]
-
-          print("🎨 Starting Black & Silver Theme Conversion...")
-          for f in color_files:
-              process_xml_file(f)
-
-          # Layout files as well
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          def process(f):
+              if not os.path.exists(f): return
+              with open(f,'r') as fp: content=fp.read()
+              hex_pattern=re.compile(r'(#[0-9A-Fa-f]{3,8})(?=[\s\>\"\'\)])')
+              orig=hex_pattern.findall(content)
+              if not orig: return
+              newc=content
+              changes=0
+              for old in set(orig):
+                  new=map_to_palette(old)
+                  if new!=old:
+                      newc=newc.replace(old,new)
+                      changes+=1
+              if changes>0:
+                  with open(f,'w') as fp: fp.write(newc)
+                  print(f"✅ Updated {f}")
+          for f in ["app_pojavlauncher/src/main/res/values/colors.xml","app_pojavlauncher/src/main/res/values-night/colors.xml","app_pojavlauncher/src/main/res/values/themes.xml","app_pojavlauncher/src/main/res/values/styles.xml"]:
+              process(f)
+          layout_dir="app_pojavlauncher/src/main/res/layout"
           if os.path.exists(layout_dir):
-              for root, _, files in os.walk(layout_dir):
+              for root,_,files in os.walk(layout_dir):
                   for file in files:
                       if file.endswith(".xml"):
-                          process_xml_file(os.path.join(root, file))
-
-          print("✅ Color conversion complete.")
+                          process(os.path.join(root,file))
           EOF
 
       - name: Commit and push changes
@@ -111,9 +73,9 @@ jobs:
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
-      - name: Upload modified files as artifact
+      - name: Upload modified files
         uses: actions/upload-artifact@v4
         with:
           name: black-silver-themed-src
