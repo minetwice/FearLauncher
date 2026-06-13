@@ -1,4 +1,4 @@
-name: Fix Build Errors (Theme + Strings + Layouts)
+name: Fix Theme Parent
 
 on:
   workflow_dispatch:
@@ -7,53 +7,17 @@ permissions:
   contents: write
 
 jobs:
-  fix-all:
+  fix-theme:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # --------------------------------------------
-      # 1. Remove duplicate AppTheme from styles.xml
-      # --------------------------------------------
-      - name: Remove duplicate AppTheme from styles.xml
-        run: |
-          if grep -q '<style name="AppTheme"' app_pojavlauncher/src/main/res/values/styles.xml; then
-            sed -i '/<style name="AppTheme"/,/<\/style>/d' app_pojavlauncher/src/main/res/values/styles.xml
-            echo "✅ Removed AppTheme from styles.xml"
-          else
-            echo "ℹ️ No AppTheme found in styles.xml"
-          fi
-
-      # --------------------------------------------
-      # 2. Fix string formatting errors (add formatted="false")
-      # --------------------------------------------
-      - name: Fix multiple substitution strings
-        run: |
-          # Find all strings.xml files and add formatted="false" to strings with multiple % signs
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
-          echo "✅ Added formatted=false to problematic strings"
-
-      # --------------------------------------------
-      # 3. Fix duplicate android:tint attributes in layouts
-      # --------------------------------------------
-      - name: Remove duplicate android:tint attributes
-        run: |
-          # Remove ALL existing android:tint attributes first
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/ android:tint="[^"]*"//g' {} \;
-          # Re-add a single tint to each ImageView and ImageButton (but only once)
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<ImageView /s/<ImageView /<ImageView android:tint="@color/primary_text" /' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<ImageButton /s/<ImageButton /<ImageButton android:tint="@color/primary_text" /' {} \;
-          echo "✅ Fixed duplicate tint attributes"
-
-      # --------------------------------------------
-      # 4. Ensure themes.xml is valid
-      # --------------------------------------------
-      - name: Ensure themes.xml has proper AppTheme
+      - name: Replace themes.xml with valid AppCompat theme
         run: |
           cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
                   <item name="colorPrimary">@color/control_button_color</item>
                   <item name="colorPrimaryDark">@color/background_status_bar</item>
                   <item name="colorAccent">@color/icon_outline_color</item>
@@ -61,15 +25,12 @@ jobs:
               </style>
           </resources>
           EOF
-          echo "✅ Recreated themes.xml"
+          echo "✅ Replaced theme with AppCompat parent"
 
-      # --------------------------------------------
-      # 5. Commit all changes
-      # --------------------------------------------
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Fix build errors: duplicate theme, string formats, tint attributes"
+          git add app_pojavlauncher/src/main/res/values/themes.xml
+          git diff --cached --quiet || git commit -m "Fix theme parent: use AppCompat instead of MaterialComponents"
           git push origin HEAD:${GITHUB_REF_NAME}
