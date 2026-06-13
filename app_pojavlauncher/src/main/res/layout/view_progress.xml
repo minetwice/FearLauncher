@@ -27,7 +27,7 @@
         app:layout_constraintTop_toTopOf="@+id/progress_generic_progressbar"
         tools:ignore="RtlSymmetry" />
 
-    <ImageView android:tint="@color/primary_text" 
+    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:id="@+id/progress_flip_arrow"
         android:layout_width="@dimen/padding_extra_large"
         android:layout_height="@dimen/padding_extra_large"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="control_button_color">#808080</color>
-    <color name="control_button_pressed_color">#4D000000</color>
+    <color name="control_button_pressed_color">#3D000000</color>
     <color name="minebutton_color">#808080</color>
     <color name="background_app">#121212</color>
     <color name="divider">#2d2d2d</color>

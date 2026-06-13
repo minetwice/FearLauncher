@@ -40,7 +40,7 @@
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent">
 
-			<ImageView android:tint="@color/primary_text" 
+			<ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
 				android:id="@+id/main_mouse_pointer"
 				android:layout_width="18dp"
 				android:layout_height="27dp"
