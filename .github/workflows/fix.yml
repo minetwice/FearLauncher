@@ -1,4 +1,4 @@
-name: Remove Duplicate AppTheme from styles.xml
+name: Add Missing LauncherMenuButton Style
 
 on:
   workflow_dispatch:
@@ -7,20 +7,39 @@ permissions:
   contents: write
 
 jobs:
-  remove:
+  add-style:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete AppTheme block from styles.xml
+      - name: Append LauncherMenuButton to styles.xml
         run: |
-          sed -i '/<style name="AppTheme"/,/<\/style>/d' app_pojavlauncher/src/main/res/values/styles.xml
-          echo "✅ Removed AppTheme from styles.xml"
+          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
+          
+          # Check if style already exists
+          if grep -q '<style name="LauncherMenuButton"' "$STYLES"; then
+            echo "Style already exists"
+            exit 0
+          fi
+          
+          # Insert before </resources>
+          sed -i '/<\/resources>/i\
+    <style name="LauncherMenuButton">\
+        <item name="android:layout_width">wrap_content</item>\
+        <item name="android:layout_height">wrap_content</item>\
+        <item name="android:background">?attr/selectableItemBackground</item>\
+        <item name="android:minHeight">48dp</item>\
+        <item name="android:padding">12dp</item>\
+        <item name="android:textColor">@color/primary_text</item>\
+        <item name="android:textSize">16sp</item>\
+    </style>' "$STYLES"
+          
+          echo "✅ Added LauncherMenuButton style"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ fixed
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/values/styles.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate AppTheme (keep themes.xml version)"
+          git diff --cached --quiet || git commit -m "Add missing LauncherMenuButton style"
           git push origin HEAD:${GITHUB_REF_NAME}
