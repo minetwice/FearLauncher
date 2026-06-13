@@ -1,4 +1,4 @@
-name: 🔥 NUKE ALL PNGs – Replace with Code Drawables
+name: Fix styles.xml Syntax
 
 on:
   workflow_dispatch:
@@ -7,179 +7,31 @@ permissions:
   contents: write
 
 jobs:
-  nuke-pngs:
+  fix-styles:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # -------------------------------------------------
-      # 1. Backup all PNGs just in case
-      # -------------------------------------------------
-      - name: Backup all PNGs
+      - name: Correctly insert RoundedButton style into styles.xml
         run: |
-          mkdir -p png-backup
-          find app_pojavlauncher/src/main/res -type f -name "*.png" -exec cp --parents {} png-backup/ \;
-          echo "✅ Backed up PNGs to png-backup/"
+          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
+          # Remove any previously appended malformed lines
+          sed -i '/<style name="RoundedButton"/,/<\/style>/d' "$STYLES"
+          # Insert new style before </resources>
+          sed -i '/<\/resources>/i \
+    <style name="RoundedButton" parent="Widget.AppCompat.Button">\
+        <item name="android:background">@drawable/btn_silver_ripple</item>\
+        <item name="android:textColor">@color/primary_text</item>\
+        <item name="android:textSize">14sp</item>\
+        <item name="android:padding">12dp</item>\
+        <item name="android:minHeight">48dp</item>\
+    </style>' "$STYLES"
+          echo "✅ Fixed styles.xml"
 
-      # -------------------------------------------------
-      # 2. Delete EVERY PNG file in the entire project
-      # -------------------------------------------------
-      - name: Delete ALL PNG files (no exceptions)
-        run: |
-          find app_pojavlauncher/src/main/res -type f -name "*.png" -delete
-          echo "✅ Deleted all PNGs (including notif_icon, launcher icons, etc.)"
-
-      # -------------------------------------------------
-      # 3. Create generic vector drawable for missing icons
-      # -------------------------------------------------
-      - name: Create replacement vector icons for common names
-        run: |
-          # Function to create a simple vector (silver circle or generic shape)
-          create_vector() {
-            local name=$1
-            cat > app_pojavlauncher/src/main/res/drawable/$name.xml << 'EOFVEC'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-            <path
-                android:fillColor="@color/primary_text"
-                android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm-2,15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </vector>
-          EOFVEC
-            sed -i "s|M12,2C6.48|M12,2C6.48|" app_pojavlauncher/src/main/res/drawable/$name.xml
-            echo "Created vector: $name"
-          }
-          # For specific icons, create placeholder vectors
-          create_vector ic_curseforge
-          create_vector ic_modrinth
-          create_vector ic_mouse_pointer
-          create_vector ic_gamepad_pointer
-          create_vector spinner_arrow
-          create_vector spinner_arrow_right
-          # Add any other missing icon names from your report
-          echo "✅ Created placeholder vector drawables for missing icons."
-
-      # -------------------------------------------------
-      # 4. Create shape drawables for buttons and backgrounds
-      # -------------------------------------------------
-      - name: Create shape drawables for buttons
-        run: |
-          # Mine button shape (unfocused)
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="?attr/colorPrimary"/>
-              <corners android:radius="8dp"/>
-              <stroke android:width="1dp" android:color="@color/icon_outline_color"/>
-          </shape>
-          EOF
-          # Mine button focused
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="?attr/colorAccent"/>
-              <corners android:radius="8dp"/>
-              <stroke android:width="2dp" android:color="@color/primary_text"/>
-          </shape>
-          EOF
-          # Selector
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_selector.xml << 'EOF'
-          <selector xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:state_pressed="true" android:drawable="@drawable/mine_button_focused"/>
-              <item android:state_focused="true" android:drawable="@drawable/mine_button_focused"/>
-              <item android:drawable="@drawable/mine_button_unfocused"/>
-          </selector>
-          EOF
-          # Control side action window
-          cat > app_pojavlauncher/src/main/res/drawable/control_side_action_window.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/background_overlay"/>
-              <corners android:radius="4dp"/>
-          </shape>
-          EOF
-          echo "✅ Created shape drawables for buttons."
-
-      # -------------------------------------------------
-      # 5. Update ALL layout files: remove PNG references, add color/vector drawables
-      # -------------------------------------------------
-      - name: Update layouts to use new drawables or color fallbacks
-        run: |
-          # Remove any android:background that pointed to .png (now deleted)
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:background="@drawable/[^"]*\.png"||g' {} \;
-          # Replace mine_button references with selector
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_focused|@drawable/mine_button_selector|g' {} \;
-          # For ImageView/ImageButton with PNG src, add tint
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Image/s|<ImageView|<ImageView android:tint="@color/primary_text"|' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<ImageButton/s|<ImageButton|<ImageButton android:tint="@color/primary_text"|' {} \;
-          echo "✅ Updated layout files."
-
-      # -------------------------------------------------
-      # 6. Update Java/Kotlin code: replace R.drawable references with new vector IDs
-      # -------------------------------------------------
-      - name: Replace PNG drawable references in Java/Kotlin
-        run: |
-          # Replace specific drawable usages
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/R\.drawable\.ic_curseforge/R.drawable.ic_curseforge/g' {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/R\.drawable\.ic_modrinth/R.drawable.ic_modrinth/g' {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/R\.drawable\.ic_mouse_pointer/R.drawable.ic_mouse_pointer/g' {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/R\.drawable\.spinner_arrow/R.drawable.spinner_arrow/g' {} \;
-          # For any remaining R.drawable.xxx that might be missing, we'll keep the reference – it will now point to the new vector
-          echo "✅ Updated Java references."
-
-      # -------------------------------------------------
-      # 7. Force colors.xml to pure Black & Silver
-      # -------------------------------------------------
-      - name: Set colors.xml to Black/Silver
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="control_button_color">#808080</color>
-              <color name="control_button_pressed_color">#3D000000</color>
-              <color name="minebutton_color">#808080</color>
-              <color name="background_app">#121212</color>
-              <color name="divider">#2d2d2d</color>
-              <color name="background_overlay">#2d2d2d</color>
-              <color name="background_status_bar">#000000</color>
-              <color name="background_bottom_bar">#1a1a1a</color>
-              <color name="icon_outline_color">#e0e0e0</color>
-              <color name="primary_text">#e0e0e0</color>
-              <color name="secondary_text">#b3b3b3</color>
-          </resources>
-          EOF
-
-      # -------------------------------------------------
-      # 8. Ensure theme uses these colors
-      # -------------------------------------------------
-      - name: Update themes.xml
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-                  <item name="colorPrimary">@color/control_button_color</item>
-                  <item name="colorPrimaryDark">@color/background_status_bar</item>
-                  <item name="colorAccent">@color/icon_outline_color</item>
-                  <item name="android:windowBackground">@color/background_app</item>
-              </style>
-          </resources>
-          EOF
-
-      # -------------------------------------------------
-      # 9. Commit all changes and push
-      # -------------------------------------------------
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git add app_pojavlauncher/src/main/java/
-          git diff --cached --quiet || git commit -m "🔥 Nuke all PNGs, replace with code drawables (black/silver)"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git diff --cached --quiet || git commit -m "Fix styles.xml XML structure"
           git push origin HEAD:${GITHUB_REF_NAME}
-
-      - name: Upload full PNG backup (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: all-png-backup
-          path: png-backup/
