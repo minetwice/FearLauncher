@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Black & Silver Theme -->
+    <!-- All colors black/silver -->
     <color name="control_button_color">#808080</color>
     <color name="control_button_pressed_color">#3D000000</color>
     <color name="minebutton_color">#808080</color>
@@ -12,4 +12,8 @@
     <color name="icon_outline_color">#e0e0e0</color>
     <color name="primary_text">#e0e0e0</color>
     <color name="secondary_text">#b3b3b3</color>
+    <!-- Old color names kept for compatibility -->
+    <color name="colorPrimary">#808080</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#e0e0e0</color>
 </resources>
