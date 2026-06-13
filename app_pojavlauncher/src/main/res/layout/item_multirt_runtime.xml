@@ -40,7 +40,7 @@
         app:layout_constraintTop_toBottomOf="@+id/multirt_view_java_version"
         tools:text="1.8.0_292" />
 
-    <ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:id="@+id/multirt_view_removebtn"
         android:layout_width="@dimen/_35sdp"
         android:layout_height="0dp"

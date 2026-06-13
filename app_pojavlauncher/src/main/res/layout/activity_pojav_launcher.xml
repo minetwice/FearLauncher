@@ -19,7 +19,7 @@
         tools:ignore="RtlSymmetry" />
     <!-- Ignore because it's  done to fit the ImageButton within spinner background -->
 
-    <ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:id="@+id/setting_button"
         android:layout_width="@dimen/_52sdp"
         android:layout_height="@dimen/_52sdp"

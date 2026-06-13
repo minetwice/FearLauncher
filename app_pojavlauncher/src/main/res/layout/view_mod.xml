@@ -11,7 +11,7 @@
     android:layout_marginVertical="@dimen/padding_medium"
     >
 
-    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:id="@+id/mod_thumbnail_imageview"
         android:layout_width="@dimen/_65sdp"
         android:layout_height="@dimen/_65sdp"
@@ -22,7 +22,7 @@
         tools:src="@mipmap/ic_launcher_foreground"
         />
 
-    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:id="@+id/mod_source_imageview"
         android:layout_width="@dimen/_13sdp"
         android:layout_height="@dimen/_13sdp"

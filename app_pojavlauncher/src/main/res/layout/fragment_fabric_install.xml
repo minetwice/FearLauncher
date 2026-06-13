@@ -50,7 +50,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view" />
 
-    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_8sdp"
         android:paddingHorizontal="@dimen/_8sdp"
@@ -83,7 +83,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fabric_installer_game_ver_spinner" />
 
-    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+    <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_8sdp"
         android:paddingHorizontal="@dimen/_8sdp"

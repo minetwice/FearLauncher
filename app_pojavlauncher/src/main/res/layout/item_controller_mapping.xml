@@ -12,7 +12,7 @@
         android:focusable="true">
 
         <!-- Content description is set in ViewHolder -->
-        <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+        <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
             android:id="@+id/controller_mapper_button"
             android:layout_width="55dp"
             android:layout_height="55dp"
@@ -26,7 +26,7 @@
             app:srcCompat="@drawable/button_a"
             tools:ignore="ContentDescription" />
 
-        <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" 
+        <ImageView android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
             android:id="@+id/controller_mapper_expand_button"
             android:layout_width="@dimen/padding_large"
             android:layout_height="@dimen/padding_large"
