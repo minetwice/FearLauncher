@@ -15,17 +15,32 @@ jobs:
       - name: Correctly insert RoundedButton style into styles.xml
         run: |
           STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
-          # Remove any previously appended malformed lines
+          
+          # Remove any existing broken RoundedButton style block
           sed -i '/<style name="RoundedButton"/,/<\/style>/d' "$STYLES"
-          # Insert new style before </resources>
-          sed -i '/<\/resources>/i \
+          
+          # Ensure the file ends with a newline and has <resources> root
+          if ! grep -q "^<resources>" "$STYLES"; then
+            echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>" > "$STYLES"
+          fi
+          
+          # Remove trailing whitespace and ensure </resources> is on its own line
+          sed -i 's/[[:space:]]*$//' "$STYLES"
+          
+          # Insert the new style before the closing </resources> tag
+          # Using printf to avoid sed multiline issues
+          TEMP_FILE=$(mktemp)
+          sed '/<\/resources>/i\
     <style name="RoundedButton" parent="Widget.AppCompat.Button">\
         <item name="android:background">@drawable/btn_silver_ripple</item>\
         <item name="android:textColor">@color/primary_text</item>\
         <item name="android:textSize">14sp</item>\
         <item name="android:padding">12dp</item>\
         <item name="android:minHeight">48dp</item>\
-    </style>' "$STYLES"
+    </style>
+    ' "$STYLES" > "$TEMP_FILE"
+          
+          mv "$TEMP_FILE" "$STYLES"
           echo "✅ Fixed styles.xml"
 
       - name: Commit and push
