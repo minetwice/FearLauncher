@@ -6,7 +6,7 @@
         android:id="@+id/top_log_view"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:background="#555555"
+        android:background="#2d2d2d"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
