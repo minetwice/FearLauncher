@@ -1,0 +1,27 @@
+name: Fix Duplicate AppTheme
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-theme:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove AppTheme from styles.xml (keep only in themes.xml)
+        run: |
+          # Remove the entire AppTheme block from styles.xml
+          sed -i '/<style name="AppTheme"/,/<\/style>/d' app_pojavlauncher/src/main/res/values/styles.xml
+          echo "✅ Removed duplicate AppTheme from styles.xml"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git diff --cached --quiet || git commit -m "Fix duplicate AppTheme (remove from styles.xml)"
+          git push origin HEAD:${GITHUB_REF_NAME}
