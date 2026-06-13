@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Valomi nereikalingi failai</string>
     <string name="mcl_launch_downloading">Atsisiunčiama %s</string>
-    <string name="mcl_launch_downloading_progress">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Rengiamasi atsisiųsti resursus</string>
     <string name="mcl_options">Nustatymai</string>
     <string name="mcl_option_customcontrol">Kontrolės</string>
@@ -133,7 +133,7 @@
     <string name="customctrl_passthru">Pelės praileidimas</string>
     <string name="customctrl_swipeable">Perbraukiamas</string>
     <string name="customctrl_forward_lock">Ėjimo į priekį fiksavimas</string>
-    <string name="memory_warning_msg">Dabartinis kiekis laisvo RAM (%d) yra mažesnis negu paskirtas RAM (%d), kas gali baigtis išsijungimais. Pakeiskite paskirtą kiekį jeigu išsijungia žaidimas.</string>
+    <string formatted="false" name="memory_warning_msg">Dabartinis kiekis laisvo RAM (%d) yra mažesnis negu paskirtas RAM (%d), kas gali baigtis išsijungimais. Pakeiskite paskirtą kiekį jeigu išsijungia žaidimas.</string>
     <string name="mcl_memory_allocation">Atminties skirtstymas</string>
     <string name="multirt_runtime_corrupt">Sugadintas Java Modulis</string>
     <string name="multirt_runtime_incompatiblearch">Netinkama architektūra: %s</string>
@@ -199,7 +199,7 @@
     <string name="preference_enable_gyro_description">Įjungus leis pasisukti žaidime pasukant telefoną.</string>
     <string name="preference_gyro_sensitivity_title">Gyroskopo kontroliu sensityvumas</string>
     <string name="microsoft_login_retry_later">Per daug užklausų, pabandykite dar kartą vėliau.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Išeinate?</string>
     <string name="customctrl_editor_exit_msg">Ar tikrai norite išeiti?</string>
     <string name="customctrl_editor_exit">Išeiti iš editoriaus</string>
@@ -225,8 +225,8 @@
     <string name="generic_debug">Taisyti</string>
     <string name="search_modpack_no_result">Nerasta modpacks</string>
     <string name="search_modpack_error">Nepavyksta rasti modpacks</string>
-    <string name="modpack_download_downloading_mods_fc">Atsiunčiamos modifikacijos (Failas %d iš %d)</string>
-    <string name="modpack_download_applying_overrides">Taikyti perašymus (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Atsiunčiamos modifikacijos (Failas %d iš %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Taikyti perašymus (%d/%d)</string>
     <string name="modpack_install_notification_title">Mojo Modpack diegėjas</string>
     <string name="modpack_install_notification_success">Paspausk čia norint pabaigti Modpack instaliaciją</string>
     <string name="modpack_install_notification_data_not_available">Klaida atsiunčiant modifikacijų paleidėjo informaciją</string>

@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Limpiando archivos caché</string>
     <string name="mcl_launch_downloading">Descargando %s</string>
-    <string name="mcl_launch_downloading_progress">"Descargando %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Descargando %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Preparando para descargar los recursos</string>
     <string name="mcl_options">Opciones</string>
     <string name="mcl_option_customcontrol">Controles personalizados</string>
@@ -145,8 +145,8 @@
     <string name="customctrl_swipeable">Deslizable</string>
     <string name="customctrl_forward_lock">Bloqueo hacia adelante</string>
     <string name="customctrl_absolute_tracking">Seguimiento absoluto del dedo</string>
-    <string name="memory_warning_msg">La cantidad actual de memoria RAM libre (%d) es menor que la memoria RAM asignada (%d), lo que puede provocar cierres forzados. Cambia la asignación si el juego se cierra.</string>
-    <string name="address_memory_warning_msg">La cantidad actual de RAM libre (%d) es menor que la RAM asignada (%d), lo cual puede causar cierres forzados. Cambie la cantidad asignada si el juego se cierra.</string>
+    <string formatted="false" name="memory_warning_msg">La cantidad actual de memoria RAM libre (%d) es menor que la memoria RAM asignada (%d), lo que puede provocar cierres forzados. Cambia la asignación si el juego se cierra.</string>
+    <string formatted="false" name="address_memory_warning_msg">La cantidad actual de RAM libre (%d) es menor que la RAM asignada (%d), lo cual puede causar cierres forzados. Cambie la cantidad asignada si el juego se cierra.</string>
     <string name="mcl_memory_allocation">Asignación de memoria</string>
     <string name="mcl_memory_allocation_subtitle">Controla cuánta memoria se le da a Minecraft.</string>
     <string name="multirt_runtime_corrupt">Java Runtime Corrupto</string>
@@ -237,7 +237,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Desactiva esta opción si quieres usar letras minúsculas en tus controles.</string>
     <string name="preference_shader_dump_title">Activar dumpeo de shaders</string>
     <string name="preference_shader_dump_description">Registra shaders compilados (sic).</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">¿Vas a salir?</string>
     <string name="customctrl_editor_exit_msg">¿Estás seguro de que quieres salir?</string>
@@ -279,10 +279,10 @@
     <string name="search_modpack_no_result">No se encontraron modpacks</string>
     <string name="search_modpack_error">No se pudo encontrar modpacks</string>
     <string name="search_modpack_download_error">Error al descargar los metadatos del modpack</string>
-    <string name="modpack_download_downloading_metadata">Descargando metadatos del modpack (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Descargando mods (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Descargando mods (Archivo %d de %d)</string>
-    <string name="modpack_download_applying_overrides">Aplicando sobrescrituras (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Descargando metadatos del modpack (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Descargando mods (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Descargando mods (Archivo %d de %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Aplicando sobrescrituras (%d/%d)</string>
     <string name="modpack_install_notification_title">Instalador de mod pack</string>
     <string name="modpack_install_notification_success">Haz clic aquí para finalizar la instalación del modpack</string>
     <string name="modpack_install_notification_data_not_available">No se pudo descargar la información del mod loader</string>
@@ -321,8 +321,8 @@
     <string name="exception_failed_to_unpack_jre17">Error al instalar JRE 17</string>
     <string name="newdl_starting">Leyendo metadatos…</string>
     <string name="newdl_downloading_metadata">Descargando metadatos del juego (%s)</string>
-    <string name="newdl_downloading_game_files">Descargando el juego...(%d/%d,%.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Descargando el juego...(%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files">Descargando el juego...(%d/%d,%.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Descargando el juego...(%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Seleccione la región de la imagen</string>
     <string name="cropper_reset">Reiniciar</string>
     <string name="cropper_select_cancelled">Selección cancelada</string>

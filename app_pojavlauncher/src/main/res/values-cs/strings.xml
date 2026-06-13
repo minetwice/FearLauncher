@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Čištění mezipaměti</string>
     <string name="mcl_launch_downloading">Stahování %s</string>
-    <string name="mcl_launch_downloading_progress">"Stahování %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Stahování %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Příprava ke stažení prostředků</string>
     <string name="mcl_options">Možnosti</string>
     <string name="mcl_option_customcontrol">Vlastní ovládací prvky</string>
@@ -146,8 +146,8 @@
     <string name="customctrl_swipeable">Povolit přejíždění</string>
     <string name="customctrl_forward_lock">Uzamknout chození vpřed</string>
     <string name="customctrl_absolute_tracking">Absolutní následování prstu</string>
-    <string name="memory_warning_msg">Aktuální množství volné paměti RAM (%d) je nižší než přidělená paměť RAM (%d), což může vést k pádu. Spadne-li hra, snižte přidělení paměti.</string>
-    <string name="address_memory_warning_msg">Aktuální množství volné přístupné paměti RAM (%d) je nižší než přidělená paměť RAM (%d), což povede k pádu. Spadne-li hra, sniž přidělení paměti.</string>
+    <string formatted="false" name="memory_warning_msg">Aktuální množství volné paměti RAM (%d) je nižší než přidělená paměť RAM (%d), což může vést k pádu. Spadne-li hra, snižte přidělení paměti.</string>
+    <string formatted="false" name="address_memory_warning_msg">Aktuální množství volné přístupné paměti RAM (%d) je nižší než přidělená paměť RAM (%d), což povede k pádu. Spadne-li hra, sniž přidělení paměti.</string>
     <string name="mcl_memory_allocation">Přidělení paměti</string>
     <string name="mcl_memory_allocation_subtitle">Určuje množství paměti přidělené Minecraftu.</string>
     <string name="multirt_runtime_corrupt">Poškozená Java Runtime</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Vypněte toto, chcete-li užívat malá písmena ve vlastních ovládání.</string>
     <string name="preference_shader_dump_title">Povolit vyhazování shaderů</string>
     <string name="preference_shader_dump_description">Zaznamenat převedené shadery do souboru záznamu.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Odcházíte?</string>
     <string name="customctrl_editor_exit_msg">Určitě chcete odejít?</string>
@@ -280,10 +280,10 @@
     <string name="search_modpack_no_result">Nebyly nalezeny žádné modpacky</string>
     <string name="search_modpack_error">Nepodařilo se nalézt modpacky</string>
     <string name="search_modpack_download_error">Stahování metadat modpacku selhalo</string>
-    <string name="modpack_download_downloading_metadata">Stahování metadat modpacku (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Stahování módů (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Stahování módů (Soubor %d z %d)</string>
-    <string name="modpack_download_applying_overrides">Provádení přepisů (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Stahování metadat modpacku (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Stahování módů (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Stahování módů (Soubor %d z %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Provádení přepisů (%d/%d)</string>
     <string name="modpack_install_notification_title">Instalátor Modpacků Mojou</string>
     <string name="modpack_install_notification_success">Klikněte zde k dokončení instalace modpacku</string>
     <string name="modpack_install_notification_data_not_available">Stahování informací načítače módů selhalo</string>
@@ -322,8 +322,8 @@
     <string name="exception_failed_to_unpack_jre17">Instalace JRE 17 selhala</string>
     <string name="newdl_starting">Čtení metadat hry…</string>
     <string name="newdl_downloading_metadata">Stahování metadat hry (%s)</string>
-    <string name="newdl_downloading_game_files">Stahování hry… (%d/%d, %.2f MB)</string>
-    <string name="newdl_downloading_game_files_size">Stahování hry… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files">Stahování hry… (%d/%d, %.2f MB)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Stahování hry… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Vyberte oblast oříznutí</string>
     <string name="cropper_lock_vertical">Zamknout svisle</string>
     <string name="cropper_lock_horizontal">Zamknout Vodorovně</string>

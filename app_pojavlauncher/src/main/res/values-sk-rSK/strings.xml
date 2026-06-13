@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Čistí sa vyrovnávacia pamäť</string>
     <string name="mcl_launch_downloading">Sťahuje sa %s</string>
-    <string name="mcl_launch_downloading_progress">"Sťahovanie %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Sťahovanie %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Príprava na stiahnutie resources</string>
     <string name="mcl_options">Možnosti</string>
     <string name="mcl_option_customcontrol">Vlastné ovládacie prvky</string>
@@ -143,7 +143,7 @@
     <string name="customctrl_swipeable">Posunovateľné</string>
     <string name="customctrl_forward_lock">Zámok chodenia vpred</string>
     <string name="customctrl_absolute_tracking">Absolútne nasledovanie prsta</string>
-    <string name="memory_warning_msg">Aktuálne množstvo voľnej RAM (%d) je nižšia ako pridelená RAM (%d), čo môže viesť k pádu. Zmeňte alokáciu, ak hra spadne.</string>
+    <string formatted="false" name="memory_warning_msg">Aktuálne množstvo voľnej RAM (%d) je nižšia ako pridelená RAM (%d), čo môže viesť k pádu. Zmeňte alokáciu, ak hra spadne.</string>
     <string name="mcl_memory_allocation">Pridelenie pamäte</string>
     <string name="mcl_memory_allocation_subtitle">Určite, koľko pamäti bude dané Minecraftu.</string>
     <string name="multirt_runtime_corrupt">Poškodená Java Runtime</string>
@@ -231,7 +231,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Ak chcete v ovládacích prvkoch používať malé písmená, vypnite toto.</string>
     <string name="preference_shader_dump_title">Povolenie shader dumpingu</string>
     <string name="preference_shader_dump_description">Všetky konvertované shadery sa vypíšu do logu.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Koniec?</string>
     <string name="customctrl_editor_exit_msg">Ste si istí, že chcete odísť?</string>
     <string name="customctrl_editor_exit">Opustiť editor</string>
@@ -272,10 +272,10 @@
     <string name="search_modpack_no_result">Neboli nájdené žiadne modpacky</string>
     <string name="search_modpack_error">Nebolo možné nájsť modpacky</string>
     <string name="search_modpack_download_error">Nebolo možné stiahnuť metadáta modpacku</string>
-    <string name="modpack_download_downloading_metadata">Sťahujú sa metadáta modpacku (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Sťahujú sa módy (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Sťahujú sa módy (Súbor %d z %d)</string>
-    <string name="modpack_download_applying_overrides">Aplikovanie overridov (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Sťahujú sa metadáta modpacku (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Sťahujú sa módy (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Sťahujú sa módy (Súbor %d z %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Aplikovanie overridov (%d/%d)</string>
     <string name="modpack_install_notification_title">Mojo inštalátor modpackov</string>
     <string name="modpack_install_notification_success">Ťuknite sem na dokončenie inštalácie modpacku</string>
     <string name="modpack_install_notification_data_not_available">Nebolo možné stiahnuť informácie o mod loaderi</string>

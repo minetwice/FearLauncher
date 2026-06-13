@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Кэш файлдарын таҙартыу</string>
     <string name="mcl_launch_downloading">Йөкләү %s</string>
-    <string name="mcl_launch_downloading_progress">"Йөкләү %s (%.2f МБ/%.2f МБ)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Йөкләү %s (%.2f МБ/%.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Ресурстарҙы йөкләүгә әҙерлек</string>
     <string name="mcl_options">Опциялар</string>
     <string name="mcl_option_customcontrol">Ҡулланыусы идара итеү элементтары</string>

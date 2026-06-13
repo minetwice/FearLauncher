@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">キャッシュファイルを消去中</string>
     <string name="mcl_launch_downloading">%s をダウンロード中</string>
-    <string name="mcl_launch_downloading_progress">"%s (%.2f MB / %.2f MB) をダウンロードしています"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s (%.2f MB / %.2f MB) をダウンロードしています"</string>
     <string name="mcl_launch_download_assets">リソースのダウンロードを準備中</string>
     <string name="mcl_options">設定</string>
     <string name="mcl_option_customcontrol">カスタムコントロール</string>
@@ -128,7 +128,7 @@
     <string name="customctrl_passthru">マウスパススルー</string>
     <string name="customctrl_swipeable">スワイプする</string>
     <string name="customctrl_forward_lock">フォワードロック</string>
-    <string name="memory_warning_msg">現在の空きメモリ量(%d)は割り当てられたRAM(%d)よりも低く、クラッシュする可能性があります. ゲームがクラッシュした場合は割り当てを変更します。</string>
+    <string formatted="false" name="memory_warning_msg">現在の空きメモリ量(%d)は割り当てられたRAM(%d)よりも低く、クラッシュする可能性があります. ゲームがクラッシュした場合は割り当てを変更します。</string>
     <string name="mcl_memory_allocation">メモリ割り当て</string>
     <string name="multirt_runtime_corrupt">Javaのランタイムが破損しています</string>
     <string name="multirt_runtime_incompatiblearch">互換性のないアーキテクチャ: %s</string>
@@ -200,7 +200,7 @@
     <string name="preference_gyro_sample_rate_title">ジャイロコントロールサンプリングの速度</string>
     <string name="microsoft_login_retry_later">リクエストが多すぎるため、後でもう一度お試しください。</string>
     <string name="preference_shader_dump_title">シェーダーダンプをオンにする</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">終了しますか？</string>
     <string name="customctrl_editor_exit_msg">本当に終了しますか？</string>
     <string name="customctrl_editor_exit">編集を中止する</string>

@@ -101,7 +101,7 @@
 		app:layout_constraintEnd_toStartOf="@+id/edit_profile_button"
 		app:layout_constraintStart_toStartOf="parent" />
 
-	<ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
+	<ImageButton 
 		android:id="@+id/edit_profile_button"
 		android:layout_width="@dimen/_52sdp"
 		android:layout_height="@dimen/_52sdp"

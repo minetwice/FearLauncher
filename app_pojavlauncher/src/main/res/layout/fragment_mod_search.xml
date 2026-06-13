@@ -46,7 +46,7 @@
             app:layout_constraintEnd_toStartOf="@id/search_mod_filter"
             />
 
-        <ImageButton android:tint="@color/primary_text" android:tint="@color/primary_text" android:tint="@color/primary_text" 
+        <ImageButton 
             android:id="@+id/search_mod_filter"
             android:layout_width="wrap_content"
             android:layout_height="0dp"

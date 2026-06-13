@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Cache bestanden opschonen</string>
     <string name="mcl_launch_downloading">Downloaden %s</string>
-    <string name="mcl_launch_downloading_progress">"%s downloaden (%.2fMB / %.2fMB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s downloaden (%.2fMB / %.2fMB)"</string>
     <string name="mcl_launch_download_assets">Voorbereiden om bronnen te downloaden</string>
     <string name="mcl_options">Opties</string>
     <string name="mcl_option_customcontrol">Aangepaste controles</string>
@@ -143,7 +143,7 @@
     <string name="customctrl_swipeable">Sleepbaar</string>
     <string name="customctrl_forward_lock">Vooruit vergrendelen</string>
     <string name="customctrl_absolute_tracking">Absolute vingertracking</string>
-    <string name="memory_warning_msg">De huidige hoeveelheid vrije RAM (%d) is lager dan toegewezen RAM (%d), wat kan leiden tot crashes. Verander de toewijzing als het spel crasht.</string>
+    <string formatted="false" name="memory_warning_msg">De huidige hoeveelheid vrije RAM (%d) is lager dan toegewezen RAM (%d), wat kan leiden tot crashes. Verander de toewijzing als het spel crasht.</string>
     <string name="mcl_memory_allocation">Geheugen toewijzen</string>
     <string name="mcl_memory_allocation_subtitle">Bepaalt hoeveel werkgeheugen er aan Minecraft wordt gegeven.</string>
     <string name="multirt_runtime_corrupt">Corrupte Java Runtime</string>
@@ -226,10 +226,10 @@
     <string name="search_modpack_no_result">Geen modpacks gevonden</string>
     <string name="search_modpack_error">Kan modpacks niet vinden</string>
     <string name="search_modpack_download_error">Downloaden van modpack metadata mislukt</string>
-    <string name="modpack_download_downloading_metadata">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Mods downloaden (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Mods downloaden (File %d van de %d)</string>
-    <string name="modpack_download_applying_overrides">Toepassen van overrides (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Mods downloaden (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Mods downloaden (File %d van de %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Toepassen van overrides (%d/%d)</string>
     <string name="modpack_install_notification_title">Mojo Modpack Installer</string>
     <string name="modpack_install_notification_success">Klik hier om de installatie van modpack te voltooien</string>
     <string name="modpack_install_notification_data_not_available">Downloaden van mod loader gegevens mislukt</string>

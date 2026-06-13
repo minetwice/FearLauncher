@@ -96,7 +96,7 @@
     <string name="mcl_setting_title_mousespeed">Kursori kiirus</string>
     <string name="customctrl_passthru">Kursori läbivus</string>
     <string name="customctrl_swipeable">Viibatav</string>
-    <string name="memory_warning_msg">Hetkel saadaolev muutmälu (%d) on madalam kui eraldatud muutmälu (%d), mis võib krahhe põhjustada. Kui mäng jookseb kokku, muuda mälueraldust.</string>
+    <string formatted="false" name="memory_warning_msg">Hetkel saadaolev muutmälu (%d) on madalam kui eraldatud muutmälu (%d), mis võib krahhe põhjustada. Kui mäng jookseb kokku, muuda mälueraldust.</string>
     <string name="mcl_memory_allocation">Mälueraldus</string>
     <string name="multirt_config_title">Java Runtime\'id</string>
     <string name="multirt_config_add">Lisa uus</string>
@@ -128,7 +128,7 @@
     <string name="folder_fragment_create">Loo kaust</string>
     <string name="main_login_done">Sisenemine õnnestus</string>
     <string name="main_add_account">Lisa konto</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Lahkud?</string>
     <string name="customctrl_editor_exit_msg">Kas sa oled kindel, et soovid lahkuda?</string>
     <string name="customctrl_editor_exit">Lahku redaktorist</string>
