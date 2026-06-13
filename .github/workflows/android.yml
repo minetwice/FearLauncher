@@ -11,32 +11,43 @@ jobs:
     name: Build FearLauncher APK
     runs-on: ubuntu-22.04
     env:
+      # Secrets – तुम्हारे पास न हों तो भी build चलेगा (सिर्फ release builds में ज़रूरी)
       UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
       MOJOPUB_KEYSTORE_PASSWORD: ${{ secrets.MOJOPUB_KEYSTORE_PASSWORD }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      # ========== NEW: Change App Name & Directory Name ==========
-      - name: Change app name to 'Fear Launcher' in strings.xml
+      # ========== NAME & DIRECTORY CHANGE (सबसे पक्का तरीका) ==========
+      - name: Change app display name to 'Fear Launcher' everywhere
         run: |
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fear Launcher<\/string>/g' {} \;
-          # Also change other UI strings if you want
-          sed -i 's/<string name="launcher_name">.*<\/string>/<string name="launcher_name">Fear Launcher<\/string>/g' app_pojavlauncher/src/main/res/values/strings.xml || true
-          sed -i 's/<string name="title_activity_launcher">.*<\/string>/<string name="title_activity_launcher">Fear Launcher<\/string>/g' app_pojavlauncher/src/main/res/values/strings.xml || true
+          # 1. सभी strings.xml (हर भाषा में)
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="app_name">[^<]*</string>|<string name="app_name">Fear Launcher</string>|g' {} \;
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="launcher_name">[^<]*</string>|<string name="launcher_name">Fear Launcher</string>|g' {} \;
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="title_activity_launcher">[^<]*</string>|<string name="title_activity_launcher">Fear Launcher</string>|g' {} \;
+          
+          # 2. AndroidManifest.xml (मुख्य launcher label)
+          sed -i 's|android:label="[^"]*"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
+          sed -i 's|android:label="@string/app_name"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
+          
+          # 3. activity-alias के labels भी
+          sed -i 's|<activity-alias[^>]*android:label="[^"]*"|<activity-alias android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
 
-      - name: Change internal directory name from MojoLauncher to FearLauncher
+      - name: Change internal directory from MojoLauncher to FearLauncher
         run: |
-          # Replace in all Java/Kotlin files
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|/MojoLauncher|/FearLauncher|g' {} \;
+          # Java/Kotlin files में सभी जगह
           find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|"MojoLauncher"|"FearLauncher"|g' {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|MojoLauncher/|FearLauncher/|g' {} \;
-      # ============================================================
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i "s|'/MojoLauncher'|'/FearLauncher'|g" {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|/MojoLauncher/|/FearLauncher/|g' {} \;
+          # Constants files में अगर MOJO_DIR हो तो
+          find app_pojavlauncher/src/main/java -type f -name "*.java" -exec sed -i 's|MOJO_DIR|FEAR_DIR|g' {} \; 2>/dev/null || true
+      # ================================================================
 
-      - name: Get LTW
+      - name: Get LTW (Lightweight Library – optional)
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
@@ -60,34 +71,37 @@ jobs:
       - name: Create out directory
         run: mkdir out
 
-      - name: Build Publishing .aab
+      # ========== BUILD APPS ==========
+      - name: Build Debug APK (Full)
+        run: |
+          gradle :app_pojavlauncher:assembleFullDebug
+          mv app_pojavlauncher/build/outputs/apk/full/debug/app_pojavlauncher-full-debug.apk out/FearLauncher-debug-full.apk
+
+      - name: Build Debug APK (No runtime)
+        run: |
+          gradle :app_pojavlauncher:assembleNoruntimeDebug
+          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
+
+      # ये steps सिर्फ तब चलेंगे जब तुम release बनाना चाहो (अपना GitHub username डालो)
+      - name: Build Release AAB (Google Play)
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
           gradle :app_pojavlauncher:bundleFullGplay
           mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/FearLauncher-gplay.aab
 
-      - name: Build Debug .apk
-        run: |
-          gradle :app_pojavlauncher:assembleFullDebug
-          mv app_pojavlauncher/build/outputs/apk/full/debug/app_pojavlauncher-full-debug.apk out/FearLauncher-debug-full.apk
-
-      - name: Build Debug .apk (No runtime)
-        run: |
-          gradle :app_pojavlauncher:assembleNoruntimeDebug
-          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
-
-      - name: Build Nightly Release .apk
+      - name: Build Release APK (Nightly)
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
           gradle :app_pojavlauncher:assembleFullPubRelease
           mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
 
-      - name: Gen md5sums
+      - name: Generate MD5 checksums
         run: |
           md5sum out/FearLauncher-debug-full.apk > out/FearLauncher-debug-full.md5
           md5sum out/FearLauncher-debug-noruntime.apk > out/FearLauncher-debug-noruntime.md5
 
-      - name: Upload Debug APK
+      # ========== UPLOAD ARTIFACTS ==========
+      - name: Upload Debug APK (Full)
         uses: actions/upload-artifact@v4
         with:
           name: FearLauncher-debug-full
@@ -99,6 +113,13 @@ jobs:
           name: FearLauncher-debug-noruntime
           path: out/FearLauncher-debug-noruntime.apk
 
+      - name: Upload AAB (if built)
+        uses: actions/upload-artifact@v4
+        with:
+          name: FearLauncher-release-aab
+          path: out/FearLauncher-gplay.aab
+
+      # GitHub Release – सिर्फ तुम्हारे अपने repo के लिए
       - name: Release Nightly APK
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: softprops/action-gh-release@v3
@@ -112,19 +133,14 @@ jobs:
           files: |
             out/FearLauncher-release.apk
 
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: FearLauncher-release-aab
-          path: out/FearLauncher-gplay.aab
-
-      - name: Upload onto the Google Play testing track
+      # Google Play Upload – इसके लिए SERVICE_JSON secret चाहिए
+      - name: Upload to Google Play testing track
         continue-on-error: true
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_JSON }}
-          packageName: com.minetwice.fearlauncher
+          packageName: com.minetwice.fearlauncher   # अपना package name लिखो
           releaseFiles: out/FearLauncher-gplay.aab
           track: internal
           inAppUpdatePriority: 5
