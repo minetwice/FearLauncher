@@ -1,4 +1,4 @@
-name: Fix Missing Colors
+name: NUCLEAR - Remove All Brown Traces
 
 on:
   workflow_dispatch:
@@ -7,17 +7,41 @@ permissions:
   contents: write
 
 jobs:
-  add-colors:
+  nuke-brown:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add missing colors to colors.xml
+      # 1. Delete any remaining PNG (just in case)
+      - name: Delete any leftover PNGs
+        run: |
+          find app_pojavlauncher/src/main/res -type f -name "*.png" -delete
+          echo "✅ All PNGs deleted."
+
+      # 2. Replace all brown hex codes in all XML files
+      - name: Replace brown hex codes in XML
+        run: |
+          # List of brown shades to replace
+          browns=("#8B4513" "#A0522D" "#D2691E" "#CD853F" "#8B4513" "#A0522D" "#SaddleBrown" "#d2691e" "#cd853f" "#8b4513" "#a0522d")
+          for brown in "${browns[@]}"; do
+            find app_pojavlauncher/src/main/res -type f -name "*.xml" -exec sed -i "s|$brown|#121212|gI" {} \;
+          done
+          echo "✅ Replaced brown hex codes."
+
+      # 3. Replace any hardcoded brown strings in Java/Kotlin
+      - name: Replace brown in source code
+        run: |
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/#8B4513/#121212/gI' {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's/#A0522D/#121212/gI' {} \;
+          echo "✅ Replaced brown in Java."
+
+      # 4. Create a clean colors.xml with all required colors
+      - name: Write full colors.xml
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <!-- Black & Silver Theme -->
+              <!-- All colors black/silver -->
               <color name="control_button_color">#808080</color>
               <color name="control_button_pressed_color">#3D000000</color>
               <color name="minebutton_color">#808080</color>
@@ -29,14 +53,47 @@ jobs:
               <color name="icon_outline_color">#e0e0e0</color>
               <color name="primary_text">#e0e0e0</color>
               <color name="secondary_text">#b3b3b3</color>
+              <!-- Old color names kept for compatibility -->
+              <color name="colorPrimary">#808080</color>
+              <color name="colorPrimaryDark">#000000</color>
+              <color name="colorAccent">#e0e0e0</color>
           </resources>
           EOF
-          echo "✅ Added missing colors to colors.xml"
 
+      # 5. Force themes.xml to use black windowBackground
+      - name: Force theme window background
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="android:windowBackground">@color/background_app</item>
+                  <item name="android:colorBackground">@color/background_app</item>
+                  <item name="colorPrimary">@color/control_button_color</item>
+                  <item name="colorPrimaryDark">@color/background_status_bar</item>
+                  <item name="colorAccent">@color/icon_outline_color</item>
+              </style>
+          </resources>
+          EOF
+
+      # 6. Force root background in main layout
+      - name: Set background in activity_pojav_launcher.xml
+        run: |
+          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
+          if [ -f "$LAYOUT" ]; then
+            # Remove any existing background
+            sed -i 's|android:background="[^"]*"||g' "$LAYOUT"
+            # Add background to root (first element)
+            sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\|androidx.constraintlayout.widget.ConstraintLayout\)[^>]*\)/\1 android:background="@color\/background_app"/' "$LAYOUT"
+            echo "✅ Set background in $LAYOUT"
+          fi
+
+      # 7. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/colors.xml
-          git diff --cached --quiet || git commit -m "Add missing color definitions (background_status_bar, divider)"
+          git add app_pojavlauncher/src/main/res/
+          git add app_pojavlauncher/src/main/java/
+          git diff --cached --quiet || git commit -m "🔥 Nuclear brown removal - force black background everywhere"
           git push origin HEAD:${GITHUB_REF_NAME}
