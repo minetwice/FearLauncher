@@ -1,0 +1,53 @@
+name: Replace PNGs with Color Drawables
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. PNG backgrounds ko shape drawable se replace karo
+      - name: Replace button backgrounds (PNG -> shape XML)
+        run: |
+          # Common button background PNGs
+          btn_list="btn_default btn_control button_bg control_bg"
+          for btn in $btn_list; do
+            find app_pojavlauncher/src/main/res/drawable* -name "${btn}.png" -exec rm {} \;
+            # Create new XML shape
+            cat > app_pojavlauncher/src/main/res/drawable/${btn}.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="?attr/colorPrimary"/>
+              <corners android:radius="4dp"/>
+          </shape>
+          EOF
+            echo "✅ Replaced $btn.png with shape drawable"
+          done
+
+      # 2. Layouts mein ImageView/ImageButton mein tint add karo (agar nahi hai toh)
+      - name: Add tint to all ImageViews and ImageButtons
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Image/s|<ImageView|<ImageView android:tint="@color/primary_text" |' {} \;
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<ImageButton/s|<ImageButton|<ImageButton android:tint="@color/primary_text" |' {} \;
+
+      # 3. Remove any remaining PNG background references from layouts (optional)
+      - name: Remove direct background PNG references from layouts
+        run: |
+          # Replace android:background="@drawable/some.png" with color reference
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:background="@drawable/[^"]*\.png"|android:background="?attr/colorPrimary"|g' {} \;
+
+      # 4. Commit all changes
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/drawable*/*.xml
+          git add app_pojavlauncher/src/main/res/layout/*.xml
+          git diff --cached --quiet || git commit -m "Replace PNGs with color drawables and add tints"
+          git push origin HEAD:${GITHUB_REF_NAME}
