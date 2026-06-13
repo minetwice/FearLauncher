@@ -1,4 +1,4 @@
-name: Replace Button PNGs (Safe)
+name: Full Black & Silver Fix
 
 on:
   workflow_dispatch:
@@ -7,17 +7,48 @@ permissions:
   contents: write
 
 jobs:
-  replace:
+  fix-theme:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all mine_button* and control_side_action_window* .9.png files
+      # ----------------------------------------------
+      # 1. Overwrite colors.xml with Black/Silver theme
+      # ----------------------------------------------
+      - name: Set Black & Silver colors
         run: |
-          find app_pojavlauncher/src/main/res -type f \( -name "mine_button*.9.png" -o -name "control_side_action_window*.9.png" \) -delete
-          echo "Deleted old 9-patch PNGs."
+          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="control_button_color">#808080</color>
+              <color name="control_button_pressed_color">#4D000000</color>
+              <color name="minebutton_color">#808080</color>
+              <color name="background_app">#121212</color>
+              <color name="divider">#2d2d2d</color>
+              <color name="background_overlay">#2d2d2d</color>
+              <color name="background_status_bar">#000000</color>
+              <color name="background_bottom_bar">#1a1a1a</color>
+              <color name="icon_outline_color">#e0e0e0</color>
+              <color name="primary_text">#e0e0e0</color>
+              <color name="secondary_text">#b3b3b3</color>
+          </resources>
+          EOF
 
-      - name: Create new shape drawables and selector
+      # ----------------------------------------------
+      # 2. Delete all brown button 9-patch PNGs
+      # ----------------------------------------------
+      - name: Delete brown button PNGs
+        run: |
+          find app_pojavlauncher/src/main/res -type f -name "mine_button*.9.png" -delete
+          find app_pojavlauncher/src/main/res -type f -name "control_side_action_window*.9.png" -delete
+          # Also any other .9.png that might be related
+          find app_pojavlauncher/src/main/res -type f -name "*.9.png" -delete
+          echo "Deleted all 9-patch PNGs."
+
+      # ----------------------------------------------
+      # 3. Create shape drawables for buttons
+      # ----------------------------------------------
+      - name: Create button shape drawables
         run: |
           # Unfocused
           cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
@@ -48,20 +79,56 @@ jobs:
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
               <solid android:color="#2d2d2d"/>
               <corners android:radius="4dp"/>
-              <padding android:left="8dp" android:top="4dp" android:right="8dp" android:bottom="4dp"/>
           </shape>
           EOF
 
-      - name: Update layout references (if any) to use selector
+      # ----------------------------------------------
+      # 4. Convert CurseForge & Modrinth icons to silver (grayscale + brightness)
+      # ----------------------------------------------
+      - name: Install ImageMagick and convert PNGs to silver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          # Convert curseforge and modrinth icons to silver
+          for icon in ic_curseforge.png ic_modrinth.png; do
+            find app_pojavlauncher/src/main/res -name "$icon" -exec convert {} -colorspace gray -level 30%,70% {} \;
+          done
+          echo "Converted platform icons to silver."
+
+      # ----------------------------------------------
+      # 5. Update all layout files to use the new button selector
+      # ----------------------------------------------
+      - name: Update layout references
         run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_focused|@drawable/mine_button_selector|g' {} \;
 
-      - name: Commit and push all changes
+      # ----------------------------------------------
+      # 6. (Optional) Add a fallback background to main layouts
+      # ----------------------------------------------
+      - name: Ensure main launcher background uses color
+        run: |
+          MAIN_LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
+          if grep -q '<LinearLayout' $MAIN_LAYOUT; then
+            if ! grep -q 'android:background=' $MAIN_LAYOUT; then
+              sed -i 's|<LinearLayout|<LinearLayout android:background="@color/background_app"|' $MAIN_LAYOUT
+            fi
+          fi
+
+      # ----------------------------------------------
+      # 7. Commit and push all changes
+      # ----------------------------------------------
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/drawable/
-          git add app_pojavlauncher/src/main/res/layout/
-          git diff --cached --quiet || git commit -m "Replace button 9-patch PNGs with color drawables"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Full Black & Silver theme applied (auto)"
           git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Upload any leftover original PNGs as backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-png-backup
+          path: app_pojavlauncher/src/main/res/**/*.png
+          if-no-files-found: ignore
