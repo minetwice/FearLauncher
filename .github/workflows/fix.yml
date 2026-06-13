@@ -1,4 +1,4 @@
-name: Fix Theme Parent
+name: Add Missing notif_icon Drawable
 
 on:
   workflow_dispatch:
@@ -7,30 +7,31 @@ permissions:
   contents: write
 
 jobs:
-  fix-theme:
+  add-icon:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Replace themes.xml with valid AppCompat theme
+      - name: Create vector drawable for notif_icon
         run: |
-          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="colorPrimary">@color/control_button_color</item>
-                  <item name="colorPrimaryDark">@color/background_status_bar</item>
-                  <item name="colorAccent">@color/icon_outline_color</item>
-                  <item name="android:windowBackground">@color/background_app</item>
-              </style>
-          </resources>
+          # Create a simple silver notification icon as vector
+          cat > app_pojavlauncher/src/main/res/drawable/notif_icon.xml << 'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/primary_text"
+                  android:pathData="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.9,2 2,2zm6,-6v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32L13.5,4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.64,5.36 6,7.93 6,11v5l-2,2v1h16v-1l-2,-2z"/>
+          </vector>
           EOF
-          echo "✅ Replaced theme with AppCompat parent"
+          echo "✅ Created notif_icon vector drawable"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/themes.xml
-          git diff --cached --quiet || git commit -m "Fix theme parent: use AppCompat instead of MaterialComponents"
+          git add app_pojavlauncher/src/main/res/drawable/notif_icon.xml
+          git diff --cached --quiet || git commit -m "Add vector notif_icon to replace deleted PNG"
           git push origin HEAD:${GITHUB_REF_NAME}
