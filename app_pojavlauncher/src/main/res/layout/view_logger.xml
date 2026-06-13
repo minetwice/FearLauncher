@@ -6,7 +6,7 @@
         android:id="@+id/top_log_view"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:background="#2d2d2d"
+        android:background="@color/background_app"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -57,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:alpha="0.8"
-        android:background="#000000"
+        android:background="@color/background_app"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_log_view">
 

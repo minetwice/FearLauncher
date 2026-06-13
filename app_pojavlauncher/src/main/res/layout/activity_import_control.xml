@@ -20,7 +20,7 @@
 
 
         android:layout_marginHorizontal="@dimen/_15sdp"
-        android:background="@drawable/menu_background"
+        android:background="@color/background_app"
         android:paddingVertical="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="15dp"
 
-            android:background="@drawable/mine_button_background"
+            android:background="@color/background_app"
             android:onClick="startImport"
 
             android:text="@string/import_control_import_button"

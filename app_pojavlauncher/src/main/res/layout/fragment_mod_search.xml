@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:translationZ="10dp"
-        android:background="@drawable/background_overlay"
+        android:background="@color/background_app"
         android:paddingHorizontal="@dimen/padding_medium"
         android:paddingVertical="@dimen/padding_medium"
         android:layout_marginTop="@dimen/fragment_padding_medium"
@@ -33,7 +33,7 @@
             android:id="@+id/search_mod_edittext"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/background_line"
+            android:background="@color/background_app"
             android:textSize="@dimen/_13ssp"
             android:translationZ="2dp"
 

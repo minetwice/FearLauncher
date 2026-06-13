@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/_200sdp"
 
-        android:background="@drawable/background_card"
+        android:background="@color/background_app"
         android:translationZ="-1dp"
 
         app:layout_constraintBottom_toBottomOf="parent"
