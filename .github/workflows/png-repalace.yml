@@ -1,4 +1,4 @@
-name: Replace Minecraft Button PNGs with Color Drawables
+name: Replace Button PNGs (Safe)
 
 on:
   workflow_dispatch:
@@ -7,54 +7,44 @@ permissions:
   contents: write
 
 jobs:
-  replace-minecraft-buttons:
+  replace:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete mine_button and control_side_action_window PNGs
+      - name: Delete all mine_button* and control_side_action_window* .9.png files
         run: |
-          find app_pojavlauncher/src/main/res -type f -name "mine_button_*.png" -delete
-          find app_pojavlauncher/src/main/res -type f -name "control_side_action_window*.png" -delete
-          echo "Deleted old button PNGs."
+          find app_pojavlauncher/src/main/res -type f \( -name "mine_button*.9.png" -o -name "control_side_action_window*.9.png" \) -delete
+          echo "Deleted old 9-patch PNGs."
 
-      - name: Create new shape drawable for mine_button (unfocused)
+      - name: Create new shape drawables and selector
         run: |
+          # Unfocused
           cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
               <solid android:color="?attr/colorPrimary"/>
               <corners android:radius="8dp"/>
               <stroke android:width="1dp" android:color="@color/icon_outline_color"/>
           </shape>
           EOF
-
-      - name: Create new shape drawable for mine_button (focused)
-        run: |
+          # Focused
           cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
               <solid android:color="?attr/colorAccent"/>
               <corners android:radius="8dp"/>
               <stroke android:width="2dp" android:color="@color/primary_text"/>
           </shape>
           EOF
-
-      - name: Create selector (state list) for mine_button
-        run: |
+          # Selector
           cat > app_pojavlauncher/src/main/res/drawable/mine_button_selector.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
           <selector xmlns:android="http://schemas.android.com/apk/res/android">
               <item android:state_pressed="true" android:drawable="@drawable/mine_button_focused"/>
               <item android:state_focused="true" android:drawable="@drawable/mine_button_focused"/>
               <item android:drawable="@drawable/mine_button_unfocused"/>
           </selector>
           EOF
-
-      - name: Replace control_side_action_window with shape
-        run: |
+          # Control side action window background
           cat > app_pojavlauncher/src/main/res/drawable/control_side_action_window.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
               <solid android:color="#2d2d2d"/>
               <corners android:radius="4dp"/>
@@ -62,19 +52,16 @@ jobs:
           </shape>
           EOF
 
-      - name: Update layouts to use new selector (if they reference old PNG names)
+      - name: Update layout references (if any) to use selector
         run: |
-          # Replace any reference to mine_button_unfocused.png with mine_button_selector
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
-          # Also any other hardcoded background
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_focused|@drawable/mine_button_selector|g' {} \;
 
       - name: Commit and push all changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/drawable/*.xml
-          git add app_pojavlauncher/src/main/res/layout/*.xml
-          git add app_pojavlauncher/src/main/res/drawable-*/*.png
-          git diff --cached --quiet || git commit -m "Replace mine_button PNGs with color drawables"
+          git add app_pojavlauncher/src/main/res/drawable/
+          git add app_pojavlauncher/src/main/res/layout/
+          git diff --cached --quiet || git commit -m "Replace button 9-patch PNGs with color drawables"
           git push origin HEAD:${GITHUB_REF_NAME}
