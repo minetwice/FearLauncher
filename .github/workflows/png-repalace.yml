@@ -1,53 +1,69 @@
-name: Replace PNGs with Color Drawables
+name: Analyze PNG Files Usage
 
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: write
+  workflow_dispatch:    # Manual trigger from Actions tab
 
 jobs:
-  convert:
+  analyze:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 1. PNG backgrounds ko shape drawable se replace karo
-      - name: Replace button backgrounds (PNG -> shape XML)
+      - name: Generate PNG usage report
         run: |
-          # Common button background PNGs
-          btn_list="btn_default btn_control button_bg control_bg"
-          for btn in $btn_list; do
-            find app_pojavlauncher/src/main/res/drawable* -name "${btn}.png" -exec rm {} \;
-            # Create new XML shape
-            cat > app_pojavlauncher/src/main/res/drawable/${btn}.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="?attr/colorPrimary"/>
-              <corners android:radius="4dp"/>
-          </shape>
-          EOF
-            echo "✅ Replaced $btn.png with shape drawable"
+          echo "🔍 Scanning for PNG files and their usage..."
+          REPORT="png-usage-report.txt"
+          
+          echo "=============================================" > $REPORT
+          echo "PNG Files Usage Report for FearLauncher" >> $REPORT
+          echo "Generated: $(date)" >> $REPORT
+          echo "=============================================" >> $REPORT
+          echo "" >> $REPORT
+          
+          # Find all PNG files in the project
+          find app_pojavlauncher/src/main/res -type f -name "*.png" | while read png_file; do
+            echo "📄 File: $png_file" >> $REPORT
+            # Get just the filename without path and extension
+            filename=$(basename "$png_file" .png)
+            
+            # Search for usage in layout XML files
+            echo "   🔍 Used in layouts:" >> $REPORT
+            grep -r --include="*.xml" "$filename" app_pojavlauncher/src/main/res/layout/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
+            
+            # Search for usage in Java/Kotlin files
+            echo "   🔍 Used in Java/Kotlin code:" >> $REPORT
+            grep -r --include="*.java" --include="*.kt" "$filename" app_pojavlauncher/src/main/java/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
+            
+            # Search in any other XML (drawable definitions, etc.)
+            echo "   🔍 Used in other XML files:" >> $REPORT
+            grep -r --include="*.xml" "$filename" app_pojavlauncher/src/main/res/drawable/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
+            
+            # Try to guess purpose based on filename or path
+            echo "   📌 Possible purpose:" >> $REPORT
+            if [[ "$filename" == *"icon"* ]] || [[ "$filename" == *"logo"* ]]; then
+              echo "        - App icon or logo" >> $REPORT
+            elif [[ "$filename" == *"btn"* ]] || [[ "$filename" == *"button"* ]]; then
+              echo "        - Button background or state drawable" >> $REPORT
+            elif [[ "$filename" == *"bg"* ]] || [[ "$filename" == *"background"* ]]; then
+              echo "        - Background image for a screen or element" >> $REPORT
+            elif [[ "$filename" == *"control"* ]]; then
+              echo "        - Custom control (on-screen gamepad buttons)" >> $REPORT
+            elif [[ "$filename" == *"notif"* ]]; then
+              echo "        - Notification icon" >> $REPORT
+            elif [[ "$filename" == *"slider"* ]] || [[ "$filename" == *"thumb"* ]]; then
+              echo "        - Slider or seekbar thumb" >> $REPORT
+            else
+              echo "        - Unknown (check usage above)" >> $REPORT
+            fi
+            echo "" >> $REPORT
           done
+          
+          echo "✅ Report generated: $REPORT"
+          cat $REPORT
 
-      # 2. Layouts mein ImageView/ImageButton mein tint add karo (agar nahi hai toh)
-      - name: Add tint to all ImageViews and ImageButtons
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Image/s|<ImageView|<ImageView android:tint="@color/primary_text" |' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<ImageButton/s|<ImageButton|<ImageButton android:tint="@color/primary_text" |' {} \;
-
-      # 3. Remove any remaining PNG background references from layouts (optional)
-      - name: Remove direct background PNG references from layouts
-        run: |
-          # Replace android:background="@drawable/some.png" with color reference
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:background="@drawable/[^"]*\.png"|android:background="?attr/colorPrimary"|g' {} \;
-
-      # 4. Commit all changes
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/drawable*/*.xml
-          git add app_pojavlauncher/src/main/res/layout/*.xml
-          git diff --cached --quiet || git commit -m "Replace PNGs with color drawables and add tints"
-          git push origin HEAD:${GITHUB_REF_NAME}
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: png-usage-report
+          path: png-usage-report.txt
