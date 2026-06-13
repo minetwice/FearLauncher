@@ -26,7 +26,7 @@
         tools:ignore="RtlSymmetry" />
 
     <!-- Fun fact, if I put an Image button, the spinner fails to put an onclick listener on the extended view -->
-    <ImageView
+    <ImageView android:tint="@color/primary_text" 
         android:id="@+id/delete_account_button"
         android:layout_width="@dimen/_52sdp"
         android:layout_height="match_parent"

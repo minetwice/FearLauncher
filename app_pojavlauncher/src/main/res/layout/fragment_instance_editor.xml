@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="@dimen/fragment_padding_medium">
 
-            <ImageView
+            <ImageView android:tint="@color/primary_text" 
                 android:id="@+id/vprof_editor_instance_icon"
                 android:layout_width="@dimen/_50sdp"
                 android:layout_height="@dimen/_50sdp"
@@ -33,7 +33,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@tools:sample/avatars" />
 
-            <ImageView
+            <ImageView android:tint="@color/primary_text" 
                 android:layout_width="@dimen/_14sdp"
                 android:layout_height="@dimen/_14sdp"
                 android:src="@drawable/ic_px_edit"
@@ -199,7 +199,7 @@
                 app:layout_constraintTop_toBottomOf="@id/vprof_editor_jre_args"
                 tools:paddingVertical="@dimen/_12sdp" />
 
-            <ImageView
+            <ImageView android:tint="@color/primary_text" 
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/_8sdp"
                 android:paddingHorizontal="@dimen/_8sdp"
@@ -232,7 +232,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/vprof_editor_spinner_runtime"
                 tools:paddingVertical="@dimen/_12sdp" />
 
-            <ImageView
+            <ImageView android:tint="@color/primary_text" 
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/_8sdp"
                 android:paddingHorizontal="@dimen/_8sdp"

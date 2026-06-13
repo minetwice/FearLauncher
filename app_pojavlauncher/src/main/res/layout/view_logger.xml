@@ -42,7 +42,7 @@
         app:layout_constraintEnd_toStartOf="@+id/log_view_cancel"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
+    <ImageButton android:tint="@color/primary_text" 
         android:id="@+id/log_view_cancel"
         android:layout_width="70dp"
         android:layout_height="70dp"
