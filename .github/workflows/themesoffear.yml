@@ -1,7 +1,7 @@
 name: Apply Black & Silver Theme
 
 on:
-  workflow_dispatch:   # Manually trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   recolor:
@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,55 +24,43 @@ jobs:
           python3 - << 'EOF'
           import os
           import re
-          import xml.etree.ElementTree as ET
 
-          # Define our Black & Silver palette (smooth gradient)
+          # Black & Silver palette (smooth gradient)
           BLACK_SILVER_PALETTE = [
               "#000000",  # pure black
               "#1a1a1a",  # very dark gray
               "#2d2d2d",  # dark gray
               "#4d4d4d",  # medium gray
-              "#808080",  # silver/gray
+              "#808080",  # silver
               "#b3b3b3",  # light silver
               "#e0e0e0",  # very light silver
           ]
 
           def brightness(hex_color):
-              """Calculate approximate brightness of a color (0-255)"""
               hex_color = hex_color.lstrip('#')
               if len(hex_color) == 8:
-                  hex_color = hex_color[2:]  # remove alpha
+                  hex_color = hex_color[2:]
               if len(hex_color) == 6:
                   r = int(hex_color[0:2], 16)
                   g = int(hex_color[2:4], 16)
                   b = int(hex_color[4:6], 16)
                   return (r * 0.299 + g * 0.587 + b * 0.114)
-              return 128  # default medium
+              return 128
 
           def map_to_palette(hex_color):
-              """Map original color to one of the black/silver palette based on brightness"""
               bright = brightness(hex_color)
-              # Map brightness 0-255 to palette index 0-6
               idx = min(6, max(0, int(bright / 255 * 6)))
               return BLACK_SILVER_PALETTE[idx]
 
           def process_xml_file(filepath):
-              """Replace all color hex values in an XML file with palette mapping"""
               if not os.path.exists(filepath):
-                  print(f"Skipping {filepath} (not found)")
                   return False
-
               with open(filepath, 'r', encoding='utf-8') as f:
                   content = f.read()
-
-              # Find all hex color patterns: #RGB, #RRGGBB, #AARRGGBB
               hex_pattern = re.compile(r'(#[0-9A-Fa-f]{3,8})(?=[\s\>\"\'\)])')
               original_colors = hex_pattern.findall(content)
-
               if not original_colors:
-                  print(f"No hex colors found in {filepath}")
                   return False
-
               new_content = content
               changes = 0
               for old_color in set(original_colors):
@@ -78,18 +68,14 @@ jobs:
                   if new_color != old_color:
                       new_content = new_content.replace(old_color, new_color)
                       changes += 1
-                      print(f"  {old_color} -> {new_color}")
-
               if changes > 0:
                   with open(filepath, 'w', encoding='utf-8') as f:
                       f.write(new_content)
-                  print(f"✅ Updated {filepath}: {changes} color(s) replaced")
+                  print(f"✅ Updated {filepath}: {changes} color(s)")
                   return True
-              else:
-                  print(f"⚠️ No changes in {filepath}")
-                  return False
+              return False
 
-          # Paths to color-related files (adjust if your structure differs)
+          # Files to process
           color_files = [
               "app_pojavlauncher/src/main/res/values/colors.xml",
               "app_pojavlauncher/src/main/res/values-night/colors.xml",
@@ -97,39 +83,35 @@ jobs:
               "app_pojavlauncher/src/main/res/values/styles.xml",
           ]
 
-          print("🎨 Starting Black & Silver Theme Conversion...\n")
-          modified = False
+          print("🎨 Starting Black & Silver Theme Conversion...")
           for f in color_files:
-              if process_xml_file(f):
-                  modified = True
-              print()
+              process_xml_file(f)
 
-          # Additional: replace hardcoded color names in layouts? (optional)
-          print("Scanning layout files for color attributes...")
+          # Layout files as well
           layout_dir = "app_pojavlauncher/src/main/res/layout"
           if os.path.exists(layout_dir):
-              for root, dirs, files in os.walk(layout_dir):
+              for root, _, files in os.walk(layout_dir):
                   for file in files:
                       if file.endswith(".xml"):
-                          path = os.path.join(root, file)
-                          process_xml_file(path)
+                          process_xml_file(os.path.join(root, file))
 
-          if modified:
-              print("\n✨ All done! Commit the changes and rebuild.")
-          else:
-              print("\nℹ️ No color files were modified.")
+          print("✅ Color conversion complete.")
           EOF
 
-      - name: Commit and push changes (optional)
-        if: always()
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/values/*.xml
           git add app_pojavlauncher/src/main/res/layout/*.xml 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "🎨 Apply Black & Silver theme (auto-generated)"
-          git push origin HEAD:${GITHUB_REF_NAME}
-        continue-on-error: true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "🎨 Apply Black & Silver theme (auto-generated)"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload modified files as artifact
         uses: actions/upload-artifact@v4
