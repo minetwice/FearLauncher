@@ -3,6 +3,10 @@ name: Apply Black & Silver Theme
 on:
   workflow_dispatch:
 
+# Important: Give write permissions to GITHUB_TOKEN
+permissions:
+  contents: write
+
 jobs:
   recolor:
     name: Convert all colors to Black/Silver Gradient
@@ -11,8 +15,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
+        # No need to specify token – uses GITHUB_TOKEN with write perms
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -72,8 +75,6 @@ jobs:
             git commit -m "🎨 Apply Black & Silver theme (auto-generated)"
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Upload modified files
         uses: actions/upload-artifact@v4
