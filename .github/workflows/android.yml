@@ -8,10 +8,9 @@ on:
 
 jobs:
   build:
-    name: Build FearLauncher APK   # ✅ यहाँ name add किया
+    name: Build FearLauncher APK
     runs-on: ubuntu-22.04
     env:
-      # इन secrets की ज़रूरत तब पड़ेगी जब तुम release build करोगे
       UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
       MOJOPUB_KEYSTORE_PASSWORD: ${{ secrets.MOJOPUB_KEYSTORE_PASSWORD }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
@@ -21,7 +20,23 @@ jobs:
         with:
           submodules: true
 
-      - name: Get LTW (Lightweight Java Launcher Library)
+      # ========== NEW: Change App Name & Directory Name ==========
+      - name: Change app name to 'Fear Launcher' in strings.xml
+        run: |
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fear Launcher<\/string>/g' {} \;
+          # Also change other UI strings if you want
+          sed -i 's/<string name="launcher_name">.*<\/string>/<string name="launcher_name">Fear Launcher<\/string>/g' app_pojavlauncher/src/main/res/values/strings.xml || true
+          sed -i 's/<string name="title_activity_launcher">.*<\/string>/<string name="title_activity_launcher">Fear Launcher<\/string>/g' app_pojavlauncher/src/main/res/values/strings.xml || true
+
+      - name: Change internal directory name from MojoLauncher to FearLauncher
+        run: |
+          # Replace in all Java/Kotlin files
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|/MojoLauncher|/FearLauncher|g' {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|"MojoLauncher"|"FearLauncher"|g' {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|MojoLauncher/|FearLauncher/|g' {} \;
+      # ============================================================
+
+      - name: Get LTW
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
@@ -45,8 +60,7 @@ jobs:
       - name: Create out directory
         run: mkdir out
 
-      # ⚠️ तुम अपने खुद के release के लिए ये conditions बदल सकते हो
-      - name: Build Publishing .aab (only for your own releases)
+      - name: Build Publishing .aab
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
           gradle :app_pojavlauncher:bundleFullGplay
@@ -68,7 +82,7 @@ jobs:
           gradle :app_pojavlauncher:assembleFullPubRelease
           mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
 
-      - name: Generate MD5 checksums
+      - name: Gen md5sums
         run: |
           md5sum out/FearLauncher-debug-full.apk > out/FearLauncher-debug-full.md5
           md5sum out/FearLauncher-debug-noruntime.apk > out/FearLauncher-debug-noruntime.md5
@@ -85,7 +99,7 @@ jobs:
           name: FearLauncher-debug-noruntime
           path: out/FearLauncher-debug-noruntime.apk
 
-      - name: Release Nightly APK (GitHub Release)
+      - name: Release Nightly APK
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: softprops/action-gh-release@v3
         with:
@@ -98,20 +112,19 @@ jobs:
           files: |
             out/FearLauncher-release.apk
 
-      - name: Upload AAB (for Google Play)
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: FearLauncher-release-aab
           path: out/FearLauncher-gplay.aab
 
-      # Google Play upload - तुम्हारे पास service account JSON हो तभी काम करेगा
-      - name: Upload to Google Play testing track
+      - name: Upload onto the Google Play testing track
         continue-on-error: true
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_JSON }}
-          packageName: com.yourcompany.fearlauncher   # ← अपना package name लिखो
+          packageName: com.minetwice.fearlauncher
           releaseFiles: out/FearLauncher-gplay.aab
           track: internal
           inAppUpdatePriority: 5
