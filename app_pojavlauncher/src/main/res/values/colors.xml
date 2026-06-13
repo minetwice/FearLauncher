@@ -2,7 +2,6 @@
 <resources>
     <color name="control_button_color">#808080</color>
     <color name="control_button_pressed_color">#4D000000</color>
-
     <color name="minebutton_color">#808080</color>
     <color name="background_app">#121212</color>
     <color name="divider">#2d2d2d</color>
@@ -10,7 +9,6 @@
     <color name="background_status_bar">#000000</color>
     <color name="background_bottom_bar">#1a1a1a</color>
     <color name="icon_outline_color">#e0e0e0</color>
-
     <color name="primary_text">#e0e0e0</color>
     <color name="secondary_text">#b3b3b3</color>
 </resources>
