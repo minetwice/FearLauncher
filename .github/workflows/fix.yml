@@ -22,17 +22,22 @@ jobs:
             exit 0
           fi
           
+          # Use a temporary file for safe insertion
+          cat > /tmp/new_style.txt << 'EOF'
+          <style name="LauncherMenuButton">
+              <item name="android:layout_width">wrap_content</item>
+              <item name="android:layout_height">wrap_content</item>
+              <item name="android:background">?attr/selectableItemBackground</item>
+              <item name="android:minHeight">48dp</item>
+              <item name="android:padding">12dp</item>
+              <item name="android:textColor">@color/primary_text</item>
+              <item name="android:textSize">16sp</item>
+          </style>
+          
+          EOF
+          
           # Insert before </resources>
-          sed -i '/<\/resources>/i\
-    <style name="LauncherMenuButton">\
-        <item name="android:layout_width">wrap_content</item>\
-        <item name="android:layout_height">wrap_content</item>\
-        <item name="android:background">?attr/selectableItemBackground</item>\
-        <item name="android:minHeight">48dp</item>\
-        <item name="android:padding">12dp</item>\
-        <item name="android:textColor">@color/primary_text</item>\
-        <item name="android:textSize">16sp</item>\
-    </style>' "$STYLES"
+          sed -i "/<\/resources>/r /tmp/new_style.txt" "$STYLES"
           
           echo "✅ Added LauncherMenuButton style"
 
