@@ -1,4 +1,4 @@
-name: Android CI
+name: FearLauncher CI
 
 on:
   push:
@@ -8,18 +8,20 @@ on:
 
 jobs:
   build:
+    name: Build FearLauncher APK   # ✅ यहाँ name add किया
     runs-on: ubuntu-22.04
     env:
+      # इन secrets की ज़रूरत तब पड़ेगी जब तुम release build करोगे
       UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
       MOJOPUB_KEYSTORE_PASSWORD: ${{ secrets.MOJOPUB_KEYSTORE_PASSWORD }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Get LTW
+      - name: Get LTW (Lightweight Java Launcher Library)
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
@@ -29,81 +31,87 @@ jobs:
           name: output-aar
           path: app_pojavlauncher/libs
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.14.3"
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - name: Create out directory
         run: mkdir out
-      - name: Build Publishing .aab
-        if: github.repository_owner == 'MojoLauncher' && github.ref_name == 'v3_openjdk'
+
+      # ⚠️ तुम अपने खुद के release के लिए ये conditions बदल सकते हो
+      - name: Build Publishing .aab (only for your own releases)
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
           gradle :app_pojavlauncher:bundleFullGplay
-          mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/app-gplay.aab
+          mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/FearLauncher-gplay.aab
 
       - name: Build Debug .apk
         run: |
-          # Build the launcher
           gradle :app_pojavlauncher:assembleFullDebug
-          mv app_pojavlauncher/build/outputs/apk/full/debug/app_pojavlauncher-full-debug.apk out/app-debug-full.apk
+          mv app_pojavlauncher/build/outputs/apk/full/debug/app_pojavlauncher-full-debug.apk out/FearLauncher-debug-full.apk
 
       - name: Build Debug .apk (No runtime)
         run: |
           gradle :app_pojavlauncher:assembleNoruntimeDebug
-          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/app-debug-noruntime.apk
+          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
+
       - name: Build Nightly Release .apk
-        if: github.repository_owner == 'MojoLauncher' && github.ref_name == 'v3_openjdk'
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
           gradle :app_pojavlauncher:assembleFullPubRelease
-          mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/MojoLauncher-release.apk
-      - name: Gen md5sums
+          mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
+
+      - name: Generate MD5 checksums
         run: |
-          md5sum out/app-debug-full.apk > out/app-debug-full.md5
-          md5sum out/app-debug-noruntime.apk > out/app-debug-noruntime.md5
+          md5sum out/FearLauncher-debug-full.apk > out/FearLauncher-debug-full.md5
+          md5sum out/FearLauncher-debug-noruntime.apk > out/FearLauncher-debug-noruntime.md5
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: out/app-debug-full.apk
+          name: FearLauncher-debug-full
+          path: out/FearLauncher-debug-full.apk
 
       - name: Upload Debug APK (No runtime)
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-noruntime
-          path: out/app-debug-noruntime.apk
+          name: FearLauncher-debug-noruntime
+          path: out/FearLauncher-debug-noruntime.apk
 
-      - name: Release Nightly APK
-        if: github.repository_owner == 'MojoLauncher' && github.ref_name == 'v3_openjdk'
+      - name: Release Nightly APK (GitHub Release)
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: softprops/action-gh-release@v3
         with:
-          name: MojoLauncher Nightly Builds
+          name: FearLauncher Nightly Build
           prerelease: true
           tag_name: nightly
           body: |
-            MojoLauncher nightly build.
+            FearLauncher nightly build.
             Commit hash: ${{ github.sha }}
           files: |
-            out/MojoLauncher-release.apk
+            out/FearLauncher-release.apk
 
-      - name: Upload AAB
+      - name: Upload AAB (for Google Play)
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: out/app-gplay.aab
+          name: FearLauncher-release-aab
+          path: out/FearLauncher-gplay.aab
 
-      - name: Upload onto the Google Play testing track
+      # Google Play upload - तुम्हारे पास service account JSON हो तभी काम करेगा
+      - name: Upload to Google Play testing track
         continue-on-error: true
-        if: github.repository_owner == 'MojoLauncher' && github.ref_name == 'v3_openjdk'
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_JSON }}
-          packageName: git.artdeell.mojo
-          releaseFiles: out/app-gplay.aab
+          packageName: com.yourcompany.fearlauncher   # ← अपना package name लिखो
+          releaseFiles: out/FearLauncher-gplay.aab
           track: internal
           inAppUpdatePriority: 5
