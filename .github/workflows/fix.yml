@@ -1,4 +1,4 @@
-name: Apply Silver/Liquid Theme
+name: Completely Replace styles.xml
 
 on:
   workflow_dispatch:
@@ -7,76 +7,48 @@ permissions:
   contents: write
 
 jobs:
-  theme:
+  replace-styles:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create gradient drawables
+      - name: Write new styles.xml
         run: |
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/bg_gradient_liquid.xml << 'EOF'
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#1a1a1a" android:endColor="#121212" android:angle="135" android:type="linear"/>
-          </shape>
+          <resources>
+              <!-- Base app theme -->
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/control_button_color</item>
+                  <item name="colorPrimaryDark">@color/background_status_bar</item>
+                  <item name="colorAccent">@color/icon_outline_color</item>
+                  <item name="android:windowBackground">@color/background_app</item>
+              </style>
+              
+              <!-- Rounded button style with ripple -->
+              <style name="RoundedButton" parent="Widget.AppCompat.Button">
+                  <item name="android:background">@drawable/btn_silver_ripple</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:textSize">14sp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:minHeight">48dp</item>
+              </style>
+              
+              <!-- Other existing styles from original (if needed) -->
+              <style name="ControlButton">
+                  <item name="android:layout_width">wrap_content</item>
+                  <item name="android:layout_height">wrap_content</item>
+                  <item name="android:padding">8dp</item>
+                  <item name="android:textColor">@color/primary_text</item>
+              </style>
+          </resources>
           EOF
-          cat > app_pojavlauncher/src/main/res/drawable/bg_sidebar_liquid.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#2d2d2d" android:endColor="#1a1a1a" android:angle="45" android:type="linear"/>
-          </shape>
-          EOF
-
-      - name: Create rounded button with ripple
-        run: |
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#808080"/>
-              <corners android:radius="12dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#e0e0e0">
-              <item android:drawable="@drawable/btn_silver_rounded"/>
-          </ripple>
-          EOF
-
-      - name: Create click animation
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_click_anim.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <objectAnimator android:propertyName="scaleX" android:duration="100" android:valueTo="0.98" android:valueType="floatType"/>
-              <objectAnimator android:propertyName="scaleY" android:duration="100" android:valueTo="0.98" android:valueType="floatType"/>
-          </set>
-          EOF
-
-      - name: Update styles.xml with new button style
-        run: |
-          cat >> app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
-          <style name="RoundedButton" parent="Widget.AppCompat.Button">
-              <item name="android:background">@drawable/btn_silver_ripple</item>
-              <item name="android:textColor">@color/primary_text</item>
-              <item name="android:textSize">14sp</item>
-              <item name="android:padding">12dp</item>
-              <item name="android:minHeight">48dp</item>
-          </style>
-          EOF
-
-      - name: Force layout backgrounds to gradient
-        run: |
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          sed -i 's|android:background="[^"]*"|android:background="@drawable/bg_gradient_liquid"|g' "$LAYOUT"
-          # Add background if missing
-          if ! grep -q "android:background=" "$LAYOUT"; then
-            sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\|androidx.constraintlayout.widget.ConstraintLayout\)\)/\1 android:background="@drawable\/bg_gradient_liquid"/' "$LAYOUT"
-          fi
+          echo "✅ styles.xml overwritten with clean version"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Apply silver/liquid gradient theme with rounded ripple buttons"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git diff --cached --quiet || git commit -m "Replace styles.xml with clean well-formed version"
           git push origin HEAD:${GITHUB_REF_NAME}
