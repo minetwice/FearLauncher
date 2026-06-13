@@ -12,41 +12,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Correctly insert RoundedButton style into styles.xml
+      - name: Fix styles.xml
         run: |
           STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
           
-          # Remove any existing broken RoundedButton style block
-          sed -i '/<style name="RoundedButton"/,/<\/style>/d' "$STYLES"
-          
-          # Ensure the file ends with a newline and has <resources> root
-          if ! grep -q "^<resources>" "$STYLES"; then
-            echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>" > "$STYLES"
+          # Remove any existing RoundedButton style if malformed
+          if grep -q '<style name="RoundedButton"' "$STYLES"; then
+            sed -i '/<style name="RoundedButton"/,/<\/style>/d' "$STYLES"
           fi
           
-          # Remove trailing whitespace and ensure </resources> is on its own line
-          sed -i 's/[[:space:]]*$//' "$STYLES"
+          # Ensure proper XML structure
+          if ! grep -q "^<resources>" "$STYLES"; then
+            echo '<?xml version="1.0" encoding="utf-8"?>' > "$STYLES.new"
+            echo '<resources>' >> "$STYLES.new"
+            echo '</resources>' >> "$STYLES.new"
+            cat "$STYLES" >> "$STYLES.new"
+            mv "$STYLES.new" "$STYLES"
+          fi
           
-          # Insert the new style before the closing </resources> tag
-          # Using printf to avoid sed multiline issues
-          TEMP_FILE=$(mktemp)
-          sed '/<\/resources>/i\
+          # Insert RoundedButton before </resources>
+          sed -i '/<\/resources>/i\
     <style name="RoundedButton" parent="Widget.AppCompat.Button">\
         <item name="android:background">@drawable/btn_silver_ripple</item>\
         <item name="android:textColor">@color/primary_text</item>\
         <item name="android:textSize">14sp</item>\
         <item name="android:padding">12dp</item>\
         <item name="android:minHeight">48dp</item>\
-    </style>
-    ' "$STYLES" > "$TEMP_FILE"
+    </style>' "$STYLES"
           
-          mv "$TEMP_FILE" "$STYLES"
-          echo "✅ Fixed styles.xml"
+          echo "✅ styles.xml fixed"
 
-      - name: Commit and push
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/values/styles.xml
-          git diff --cached --quiet || git commit -m "Fix styles.xml XML structure"
+          git diff --cached --quiet || git commit -m "Fix styles.xml RoundedButton style"
           git push origin HEAD:${GITHUB_REF_NAME}
