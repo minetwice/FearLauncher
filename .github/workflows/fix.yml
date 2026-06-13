@@ -1,4 +1,4 @@
-name: Force Black Background Everywhere
+name: Fix Missing Colors
 
 on:
   workflow_dispatch:
@@ -7,69 +7,36 @@ permissions:
   contents: write
 
 jobs:
-  force-bg:
+  add-colors:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Ensure colors.xml has black/silver
-      - name: Set colors.xml
+      - name: Add missing colors to colors.xml
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="background_app">#121212</color>
-              <color name="background_overlay">#2d2d2d</color>
-              <color name="primary_text">#e0e0e0</color>
+              <!-- Black & Silver Theme -->
               <color name="control_button_color">#808080</color>
+              <color name="control_button_pressed_color">#3D000000</color>
+              <color name="minebutton_color">#808080</color>
+              <color name="background_app">#121212</color>
+              <color name="divider">#2d2d2d</color>
+              <color name="background_overlay">#2d2d2d</color>
+              <color name="background_status_bar">#000000</color>
+              <color name="background_bottom_bar">#1a1a1a</color>
+              <color name="icon_outline_color">#e0e0e0</color>
+              <color name="primary_text">#e0e0e0</color>
+              <color name="secondary_text">#b3b3b3</color>
           </resources>
           EOF
+          echo "✅ Added missing colors to colors.xml"
 
-      # 2. Force theme windowBackground to black
-      - name: Fix theme background
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:windowBackground">@color/background_app</item>
-                  <item name="colorPrimary">@color/control_button_color</item>
-                  <item name="colorPrimaryDark">#000000</item>
-              </style>
-          </resources>
-          EOF
-
-      # 3. Add background to EVERY layout's root element (if missing)
-      - name: Inject background into all root layouts
-        run: |
-          LAYOUT_DIR="app_pojavlauncher/src/main/res/layout"
-          for layout in $(find $LAYOUT_DIR -name "*.xml"); do
-            # Check if root has android:background already
-            if ! grep -q "android:background=" "$layout"; then
-              # Add background to first element (assuming LinearLayout, RelativeLayout, etc.)
-              sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\|androidx.constraintlayout.widget.ConstraintLayout\)[^>]*\)/\1 android:background="@color\/background_app"/' "$layout"
-              echo "Added background to $layout"
-            else
-              # Replace any existing background with background_app color
-              sed -i 's|android:background="@drawable/[^"]*"|android:background="@color/background_app"|g' "$layout"
-              sed -i 's|android:background="#[0-9A-Fa-f]*"|android:background="@color/background_app"|g' "$layout"
-              echo "Replaced background in $layout"
-            fi
-          done
-
-      # 4. Remove any brown color references from all XML files (just in case)
-      - name: Replace brown hex codes everywhere
-        run: |
-          find app_pojavlauncher/src/main/res -type f -name "*.xml" -exec sed -i 's/#8B4513/@color\/background_app/g' {} \;
-          find app_pojavlauncher/src/main/res -type f -name "*.xml" -exec sed -i 's/#A0522D/@color\/background_app/g' {} \;
-          find app_pojavlauncher/src/main/res -type f -name "*.xml" -exec sed -i 's/#d2691e/@color\/background_app/g' {} \;
-          find app_pojavlauncher/src/main/res -type f -name "*.xml" -exec sed -i 's/#cd853f/@color\/background_app/g' {} \;
-
-      # 5. Commit and push
-      - name: Commit
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Force black background on all layouts and theme"
+          git add app_pojavlauncher/src/main/res/values/colors.xml
+          git diff --cached --quiet || git commit -m "Add missing color definitions (background_status_bar, divider)"
           git push origin HEAD:${GITHUB_REF_NAME}
