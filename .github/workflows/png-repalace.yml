@@ -1,69 +1,80 @@
-name: Analyze PNG Files Usage
+name: Replace Minecraft Button PNGs with Color Drawables
 
 on:
-  workflow_dispatch:    # Manual trigger from Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  analyze:
+  replace-minecraft-buttons:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Generate PNG usage report
+      - name: Delete mine_button and control_side_action_window PNGs
         run: |
-          echo "🔍 Scanning for PNG files and their usage..."
-          REPORT="png-usage-report.txt"
-          
-          echo "=============================================" > $REPORT
-          echo "PNG Files Usage Report for FearLauncher" >> $REPORT
-          echo "Generated: $(date)" >> $REPORT
-          echo "=============================================" >> $REPORT
-          echo "" >> $REPORT
-          
-          # Find all PNG files in the project
-          find app_pojavlauncher/src/main/res -type f -name "*.png" | while read png_file; do
-            echo "📄 File: $png_file" >> $REPORT
-            # Get just the filename without path and extension
-            filename=$(basename "$png_file" .png)
-            
-            # Search for usage in layout XML files
-            echo "   🔍 Used in layouts:" >> $REPORT
-            grep -r --include="*.xml" "$filename" app_pojavlauncher/src/main/res/layout/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
-            
-            # Search for usage in Java/Kotlin files
-            echo "   🔍 Used in Java/Kotlin code:" >> $REPORT
-            grep -r --include="*.java" --include="*.kt" "$filename" app_pojavlauncher/src/main/java/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
-            
-            # Search in any other XML (drawable definitions, etc.)
-            echo "   🔍 Used in other XML files:" >> $REPORT
-            grep -r --include="*.xml" "$filename" app_pojavlauncher/src/main/res/drawable/ 2>/dev/null | sed 's/^/        - /' >> $REPORT || echo "        (none)" >> $REPORT
-            
-            # Try to guess purpose based on filename or path
-            echo "   📌 Possible purpose:" >> $REPORT
-            if [[ "$filename" == *"icon"* ]] || [[ "$filename" == *"logo"* ]]; then
-              echo "        - App icon or logo" >> $REPORT
-            elif [[ "$filename" == *"btn"* ]] || [[ "$filename" == *"button"* ]]; then
-              echo "        - Button background or state drawable" >> $REPORT
-            elif [[ "$filename" == *"bg"* ]] || [[ "$filename" == *"background"* ]]; then
-              echo "        - Background image for a screen or element" >> $REPORT
-            elif [[ "$filename" == *"control"* ]]; then
-              echo "        - Custom control (on-screen gamepad buttons)" >> $REPORT
-            elif [[ "$filename" == *"notif"* ]]; then
-              echo "        - Notification icon" >> $REPORT
-            elif [[ "$filename" == *"slider"* ]] || [[ "$filename" == *"thumb"* ]]; then
-              echo "        - Slider or seekbar thumb" >> $REPORT
-            else
-              echo "        - Unknown (check usage above)" >> $REPORT
-            fi
-            echo "" >> $REPORT
-          done
-          
-          echo "✅ Report generated: $REPORT"
-          cat $REPORT
+          find app_pojavlauncher/src/main/res -type f -name "mine_button_*.png" -delete
+          find app_pojavlauncher/src/main/res -type f -name "control_side_action_window*.png" -delete
+          echo "Deleted old button PNGs."
 
-      - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: png-usage-report
-          path: png-usage-report.txt
+      - name: Create new shape drawable for mine_button (unfocused)
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="?attr/colorPrimary"/>
+              <corners android:radius="8dp"/>
+              <stroke android:width="1dp" android:color="@color/icon_outline_color"/>
+          </shape>
+          EOF
+
+      - name: Create new shape drawable for mine_button (focused)
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="?attr/colorAccent"/>
+              <corners android:radius="8dp"/>
+              <stroke android:width="2dp" android:color="@color/primary_text"/>
+          </shape>
+          EOF
+
+      - name: Create selector (state list) for mine_button
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/mine_button_selector.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <selector xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:state_pressed="true" android:drawable="@drawable/mine_button_focused"/>
+              <item android:state_focused="true" android:drawable="@drawable/mine_button_focused"/>
+              <item android:drawable="@drawable/mine_button_unfocused"/>
+          </selector>
+          EOF
+
+      - name: Replace control_side_action_window with shape
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/control_side_action_window.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="#2d2d2d"/>
+              <corners android:radius="4dp"/>
+              <padding android:left="8dp" android:top="4dp" android:right="8dp" android:bottom="4dp"/>
+          </shape>
+          EOF
+
+      - name: Update layouts to use new selector (if they reference old PNG names)
+        run: |
+          # Replace any reference to mine_button_unfocused.png with mine_button_selector
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
+          # Also any other hardcoded background
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_focused|@drawable/mine_button_selector|g' {} \;
+
+      - name: Commit and push all changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/drawable/*.xml
+          git add app_pojavlauncher/src/main/res/layout/*.xml
+          git add app_pojavlauncher/src/main/res/drawable-*/*.png
+          git diff --cached --quiet || git commit -m "Replace mine_button PNGs with color drawables"
+          git push origin HEAD:${GITHUB_REF_NAME}
