@@ -1,4 +1,4 @@
-<androidx.constraintlayout.widget.ConstraintLayout android:background="@color/background_app"
+<androidx.constraintlayout.widget.ConstraintLayout android:background="@drawable/bg_gradient_liquid"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
