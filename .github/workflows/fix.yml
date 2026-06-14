@@ -15,14 +15,12 @@ jobs:
       - name: Append minebutton_color to colors.xml
         run: |
           COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
-          # Check if already present
           if grep -q 'minebutton_color' "$COLORS"; then
             echo "minebutton_color already exists"
             exit 0
           fi
-          # Insert before closing tag
-          sed -i '/<\/resources>/i\
-    <color name="minebutton_color">#9e9e9e</color>' "$COLORS"
+          # Insert before </resources> using awk for reliability
+          awk '/<\/resources>/ {print "    <color name=\"minebutton_color\">#9e9e9e</color>"}1' "$COLORS" > tmp && mv tmp "$COLORS"
           echo "✅ Added minebutton_color"
 
       - name: Commit and push
