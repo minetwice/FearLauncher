@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base app theme -->
-    
     <!-- Rounded button style with ripple -->
     <style name="RoundedButton" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/btn_silver_ripple</item>
@@ -11,7 +9,18 @@
         <item name="android:minHeight">48dp</item>
     </style>
     
-    <!-- Other existing styles from original (if needed) -->
+    <!-- Launcher menu button style (required) -->
+    <style name="LauncherMenuButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    
+    <!-- Control button style -->
     <style name="ControlButton">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -19,13 +28,3 @@
         <item name="android:textColor">@color/primary_text</item>
     </style>
 </resources>
-<style name="LauncherMenuButton">
-    <item name="android:layout_width">wrap_content</item>
-    <item name="android:layout_height">wrap_content</item>
-    <item name="android:background">?attr/selectableItemBackground</item>
-    <item name="android:minHeight">48dp</item>
-    <item name="android:padding">12dp</item>
-    <item name="android:textColor">@color/primary_text</item>
-    <item name="android:textSize">16sp</item>
-</style>
-
