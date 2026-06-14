@@ -1,4 +1,4 @@
-name: Fix Missing Layout Attributes
+name: Delete .bak File Directly
 
 on:
   workflow_dispatch:
@@ -7,68 +7,24 @@ permissions:
   contents: write
 
 jobs:
-  fix-layouts:
+  delete:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check and fix fragment_launcher.xml
+      - name: Remove the specific .bak file
         run: |
-          FILE="app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
-          
-          # Backup original
-          cp "$FILE" "$FILE.bak"
-          
-          # Find lines with android:layout_width but no android:layout_height
-          # Add layout_height="wrap_content" where missing (for views that are not ViewGroup)
-          # This is a safe approximate fix
-          python3 << 'PYTHON'
-          import re
-          file_path = 'app_pojavlauncher/src/main/res/layout/fragment_launcher.xml'
-          with open(file_path, 'r') as f:
-              lines = f.readlines()
-          
-          fixed = []
-          for i, line in enumerate(lines):
-              # If line contains android:layout_width but not android:layout_height, add it
-              if 'android:layout_width=' in line and 'android:layout_height=' not in line:
-                  # Insert layout_height before '/>' or '>'
-                  line = re.sub(r'(android:layout_width="[^"]+")', r'\1 android:layout_height="wrap_content"', line)
-                  print(f"Fixed line {i+1}")
-              fixed.append(line)
-          
-          with open(file_path, 'w') as f:
-              f.writelines(fixed)
-          print("✅ Fixed fragment_launcher.xml")
-          PYTHON
+          if [ -f "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml.bak" ]; then
+            rm "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml.bak"
+            echo "Deleted fragment_launcher.xml.bak"
+          else
+            echo "File not found"
+          fi
 
-      - name: Also check other potential problem layouts
-        run: |
-          # Find all layout files and ensure every view has layout_height
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" | while read file; do
-            python3 << PYTHON
-          import re, sys
-          file_path = '$file'
-          with open(file_path, 'r') as f:
-              lines = f.readlines()
-          changed = False
-          new_lines = []
-          for line in lines:
-              if 'android:layout_width=' in line and 'android:layout_height=' not in line:
-                  line = re.sub(r'(android:layout_width="[^"]+")', r'\1 android:layout_height="wrap_content"', line)
-                  changed = True
-              new_lines.append(line)
-          if changed:
-              with open(file_path, 'w') as f:
-                  f.writelines(new_lines)
-              print(f"Fixed {file_path}")
-          PYTHON
-          done
-
-      - name: Commit fixes
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git diff --cached --quiet || git commit -m "Add missing layout_height attributes in layouts"
+          git add -A
+          git diff --cached --quiet || git commit -m "Delete fragment_launcher.xml.bak"
           git push origin HEAD:${GITHUB_REF_NAME}
