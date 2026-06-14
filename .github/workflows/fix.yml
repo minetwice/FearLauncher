@@ -1,4 +1,4 @@
-name: Fix Duplicate Layout Attributes
+name: Final Fix All Resource Errors
 
 on:
   workflow_dispatch:
@@ -7,20 +7,45 @@ permissions:
   contents: write
 
 jobs:
-  fix-duplicates:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate android:layout_height attributes
+      - name: Remove duplicate layout_height attributes (Python)
         run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/\(android:layout_height="[^"]*"\)\s*android:layout_height="[^"]*"/\1/g' {} \;
-          echo "✅ Removed duplicate layout_height attributes"
+          python3 << 'PYTHON'
+          import os, re, glob
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
+              with open(xml_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              # Remove duplicate android:layout_height (keep first)
+              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
+              new_content = re.sub(pattern, r'\1', content)
+              if new_content != content:
+                  with open(xml_file, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"Fixed: {xml_file}")
+          print("Duplicate layout_height removal complete.")
+          PYTHON
 
-      - name: Commit and push
+      - name: Fix string formatting warnings (add formatted="false")
+        run: |
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/g' {} \;
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="mcl_launch_downloading_progress">/<string formatted="false" name="mcl_launch_downloading_progress">/g' {} \;
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="memory_warning_msg">/<string formatted="false" name="memory_warning_msg">/g' {} \;
+          echo "✅ Fixed string formatting."
+
+      - name: Delete any remaining .bak files
+        run: |
+          find app_pojavlauncher/src/main/res -type f -name "*.bak" -delete
+          echo "✅ Removed .bak files."
+
+      - name: Commit and push all fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git diff --cached --quiet || git commit -m "Fix duplicate layout_height attributes in layouts"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Final fix: remove duplicate layout_height, fix string formats, delete .bak"
           git push origin HEAD:${GITHUB_REF_NAME}
