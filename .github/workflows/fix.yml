@@ -1,4 +1,4 @@
-name: Final Fear Launcher Theme & Fixes
+name: Restore All Colors for Silver/White Theme
 
 on:
   workflow_dispatch:
@@ -7,118 +7,36 @@ permissions:
   contents: write
 
 jobs:
-  finalize:
+  fix-colors:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Force landscape orientation in AndroidManifest
-      - name: Set landscape orientation
-        run: |
-          MANIFEST="app_pojavlauncher/src/main/AndroidManifest.xml"
-          sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/ s/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' "$MANIFEST"
-          echo "✅ Landscape orientation set."
-
-      # 2. Create silver/white liquid gradient (animated transition)
-      - name: Create animated gradient background
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_1.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:startColor="#e0e0e0"
-                  android:endColor="#808080"
-                  android:angle="45"
-                  android:type="linear" />
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_2.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:startColor="#c0c0c0"
-                  android:endColor="#ffffff"
-                  android:angle="135"
-                  android:type="linear" />
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/bg_liquid_silver.xml << 'EOF'
-          <transition xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:drawable="@drawable/grad_silver_1" />
-              <item android:drawable="@drawable/grad_silver_2" />
-          </transition>
-          EOF
-          echo "✅ Gradient backgrounds created."
-
-      # 3. Apply background to main layout
-      - name: Apply liquid background
-        run: |
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          sed -i 's|android:background="[^"]*"|android:background="@drawable/bg_liquid_silver"|g' "$LAYOUT"
-          if ! grep -q 'android:background=' "$LAYOUT"; then
-            sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\)\)/\1 android:background="@drawable\/bg_liquid_silver"/' "$LAYOUT"
-          fi
-          echo "✅ Background applied."
-
-      # 4. Add button click animation (scale and ripple)
-      - name: Add button animations
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_scale.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <objectAnimator
-                  android:propertyName="scaleX"
-                  android:duration="100"
-                  android:valueTo="0.97"
-                  android:valueType="floatType" />
-              <objectAnimator
-                  android:propertyName="scaleY"
-                  android:duration="100"
-                  android:valueTo="0.97"
-                  android:valueType="floatType" />
-          </set>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="#808080" />
-              <corners android:radius="12dp" />
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#ffffff">
-              <item android:drawable="@drawable/btn_silver_rounded" />
-          </ripple>
-          EOF
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button style="@style/RoundedButton" /g' {} \;
-          echo "✅ Button animations added."
-
-      # 5. Fix version list blank issue: set proper layout height
-      - name: Fix version list visibility
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*version*.xml" -exec sed -i 's/android:layout_height="[^"]*"/android:layout_height="match_parent"/g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "fragment_launcher.xml" -exec sed -i 's/android:layout_height="[^"]*"/android:layout_height="match_parent"/g' {} \;
-          echo "✅ Version list layout fixed."
-
-      # 6. Update colors.xml to silver/white
-      - name: Set silver/white color scheme
+      - name: Write complete colors.xml with all required colors
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
+              <!-- Silver/White theme -->
+              <color name="control_button_color">#9e9e9e</color>
+              <color name="control_button_pressed_color">#3d000000</color>
+              <color name="minebutton_color">#808080</color>
               <color name="background_app">#f5f5f5</color>
+              <color name="divider">#e0e0e0</color>
+              <color name="background_overlay">#eeeeee</color>
+              <color name="background_status_bar">#ffffff</color>
+              <color name="background_bottom_bar">#fafafa</color>
+              <color name="icon_outline_color">#616161</color>
               <color name="primary_text">#212121</color>
               <color name="secondary_text">#757575</color>
-              <color name="control_button_color">#9e9e9e</color>
-              <color name="divider">#e0e0e0</color>
-              <color name="icon_outline_color">#616161</color>
           </resources>
           EOF
-          echo "✅ Silver/white colors set."
+          echo "✅ All colors restored."
 
-      # 7. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/
-          git diff --cached --quiet || git commit -m "Final: landscape, liquid silver gradient, button animations, version list fix, silver/white theme"
+          git add app_pojavlauncher/src/main/res/values/colors.xml
+          git diff --cached --quiet || git commit -m "Add missing background_status_bar and all silver/white colors"
           git push origin HEAD:${GITHUB_REF_NAME}
