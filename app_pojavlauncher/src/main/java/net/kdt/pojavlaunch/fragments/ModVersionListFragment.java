@@ -45,9 +45,7 @@ public abstract class ModVersionListFragment<T> extends Fragment implements Runn
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-  net.kdt.pojavlaunch.kotlin.VersionListFix.ensureListVisible(this);
         super.onViewCreated(view, savedInstanceState);
-  net.kdt.pojavlaunch.kotlin.VersionListFix.ensureListVisible(this);
         ((TextView)view.findViewById(R.id.title_textview)).setText(getTitleText());
         mProgressBar = view.findViewById(R.id.mod_dl_list_progress);
         mExpandableListView = view.findViewById(R.id.mod_dl_expandable_version_list);
