@@ -10,4 +10,5 @@
     <color name="divider">#e0e0e0</color>
     <color name="icon_outline_color">#616161</color>
     <color name="background_overlay">#eeeeee</color>
+    <color name="minebutton_color">#9e9e9e</color>
 </resources>
