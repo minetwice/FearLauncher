@@ -1,4 +1,4 @@
-name: Delete .bak File Directly
+name: Fix Duplicate Layout Attributes
 
 on:
   workflow_dispatch:
@@ -7,24 +7,20 @@ permissions:
   contents: write
 
 jobs:
-  delete:
+  fix-duplicates:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove the specific .bak file
+      - name: Remove duplicate android:layout_height attributes
         run: |
-          if [ -f "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml.bak" ]; then
-            rm "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml.bak"
-            echo "Deleted fragment_launcher.xml.bak"
-          else
-            echo "File not found"
-          fi
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/\(android:layout_height="[^"]*"\)\s*android:layout_height="[^"]*"/\1/g' {} \;
+          echo "✅ Removed duplicate layout_height attributes"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet || git commit -m "Delete fragment_launcher.xml.bak"
+          git add app_pojavlauncher/src/main/res/layout/
+          git diff --cached --quiet || git commit -m "Fix duplicate layout_height attributes in layouts"
           git push origin HEAD:${GITHUB_REF_NAME}
