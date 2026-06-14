@@ -9,7 +9,7 @@
         <item name="android:minHeight">48dp</item>
     </style>
     
-    <!-- Launcher menu button style (required) -->
+    <!-- Launcher menu button style -->
     <style name="LauncherMenuButton">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -20,7 +20,20 @@
         <item name="android:textSize">16sp</item>
     </style>
     
-    <!-- Control button style -->
+    <!-- ThickDivider -->
+    <style name="ThickDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:background">@color/divider</item>
+    </style>
+    
+    <!-- LauncherFragment_Divider -->
+    <style name="LauncherFragment_Divider" parent="ThickDivider">
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+    
+    <!-- Control button -->
     <style name="ControlButton">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -28,14 +41,3 @@
         <item name="android:textColor">@color/primary_text</item>
     </style>
 </resources>
-
-<style name="ThickDivider">
-    <item name="android:layout_width">match_parent</item>
-    <item name="android:layout_height">2dp</item>
-    <item name="android:background">@color/divider</item>
-</style>
-
-<style name="LauncherFragment_Divider" parent="ThickDivider">
-    <item name="android:layout_marginTop">8dp</item>
-    <item name="android:layout_marginBottom">8dp</item>
-</style>
