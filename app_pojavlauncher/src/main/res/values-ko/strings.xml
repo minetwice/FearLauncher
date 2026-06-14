@@ -145,7 +145,7 @@
     <string name="customctrl_swipeable">끌어당기기</string>
     <string name="customctrl_forward_lock">전면 잠금</string>
     <string name="customctrl_absolute_tracking">Absolute finger tracking</string>
-    <string name="memory_warning_msg">현재 사용 가능한 RAM 크기(%d) 가 할당된 RAM 크기(%d) 보다 낮습니다. 게임이 충돌할 경우 RAM 할당량을 변경하세요.</string>
+    <string formatted="false" name="memory_warning_msg">현재 사용 가능한 RAM 크기(%d) 가 할당된 RAM 크기(%d) 보다 낮습니다. 게임이 충돌할 경우 RAM 할당량을 변경하세요.</string>
     <string name="mcl_memory_allocation">메모리 할당</string>
     <string name="mcl_memory_allocation_subtitle">마인크래프트 메모리 할당량을 조절합니다.</string>
     <string name="multirt_runtime_corrupt">손상된 Java 런타임</string>

@@ -3,20 +3,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent" android:layout_height="wrap_content">
 
     <ImageView 
         android:id="@+id/imageView"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="match_parent"
         android:elevation="-10dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_setting_sign_in_background" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="wrap_content"
 
 
         android:layout_marginHorizontal="@dimen/_15sdp"
@@ -30,7 +27,6 @@
         <TextView
             android:id="@+id/textView_import_control_file_name"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="5dp"
             android:text="File name:"
@@ -40,7 +36,6 @@
         <com.kdt.mcgui.MineEditText
             android:id="@+id/editText_import_control_file_name"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_marginHorizontal="35dp"
             android:layout_marginBottom="20dp"
             android:hint="File name"
@@ -51,7 +46,6 @@
         <com.kdt.mcgui.MineButton
             android:id="@+id/mineButton_import_control"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_marginHorizontal="15dp"
 
             android:background="@color/background_app"

@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_height="@dimen/_60sdp"
     android:paddingHorizontal="@dimen/padding_medium"
     >
 
@@ -11,7 +10,6 @@
         android:id="@+id/multirt_view_java_version"
         style="@style/TextAppearance.AppCompat.Body1"
         android:layout_width="@dimen/_150sdp" android:layout_height="wrap_content"
-        android:layout_height="wrap_content"
 
 
         android:layout_marginEnd="@dimen/_8sdp"
@@ -30,7 +28,6 @@
     <TextView
         android:id="@+id/multirt_view_java_version_full"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
 
         android:layout_marginTop="8dp"
@@ -43,7 +40,6 @@
     <ImageButton 
         android:id="@+id/multirt_view_removebtn"
         android:layout_width="@dimen/_35sdp" android:layout_height="wrap_content"
-        android:layout_height="0dp"
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/padding_heavy"
         android:scaleType="fitCenter"
@@ -59,7 +55,6 @@
     <Button
         android:id="@+id/multirt_view_setdefaultbtn"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_height="0dp"
 
         android:background="?attr/selectableItemBackground"
         android:text="@string/multirt_config_setdefault"

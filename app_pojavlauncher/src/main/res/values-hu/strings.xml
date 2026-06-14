@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">A gyorsítótárazott fájlok törlése</string>
     <string name="mcl_launch_downloading">Letöltés%s</string>
-    <string name="mcl_launch_downloading_progress">"Downloading %s (%.2f MB / %.2f MB)
+    <string formatted="false" name="mcl_launch_downloading_progress">"Downloading %s (%.2f MB / %.2f MB)
 
 Azonosító (Kulcs): mcl_indítás_letöltés_folyamatban
 mcl_indítás_letöltés_folyamatban"</string>

@@ -5,7 +5,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:background="?attr/selectableItemBackground"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_height="@dimen/_52sdp"
     android:paddingStart="@dimen/_17sdp"
     app:drawableStartSize="@dimen/_36sdp"
     app:drawableStartIntegerScaling="true"
