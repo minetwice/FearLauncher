@@ -5,14 +5,14 @@
 
     <ProgressBar
         android:id="@+id/progress_generic_progressbar"
-        android:layout_width="@dimen/_40sdp"
+        android:layout_width="@dimen/_40sdp" android:layout_height="wrap_content"
         android:layout_height="@dimen/_30sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/progress_textview"
-        android:layout_width="0dp"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:layout_height="0dp"
         android:gravity="center"
         android:textSize="@dimen/_12ssp"
@@ -29,7 +29,7 @@
 
     <ImageView 
         android:id="@+id/progress_flip_arrow"
-        android:layout_width="@dimen/padding_extra_large"
+        android:layout_width="@dimen/padding_extra_large" android:layout_height="wrap_content"
         android:layout_height="@dimen/padding_extra_large"
         android:layout_marginEnd="@dimen/_8sdp"
         app:layout_constraintBottom_toBottomOf="@id/progress_generic_progressbar"
@@ -39,7 +39,7 @@
 
     <LinearLayout
         android:id="@+id/progress_linear_layout"
-        android:layout_width="match_parent"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
