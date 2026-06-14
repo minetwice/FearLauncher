@@ -1,4 +1,4 @@
-name: Final Clean styles.xml
+name: Fix Missing Layout Attributes
 
 on:
   workflow_dispatch:
@@ -7,64 +7,68 @@ permissions:
   contents: write
 
 jobs:
-  clean:
+  fix-layouts:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write complete, well-formed styles.xml
+      - name: Check and fix fragment_launcher.xml
         run: |
-          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <!-- Rounded button style with ripple -->
-              <style name="RoundedButton" parent="Widget.AppCompat.Button">
-                  <item name="android:background">@drawable/btn_silver_ripple</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:textSize">14sp</item>
-                  <item name="android:padding">12dp</item>
-                  <item name="android:minHeight">48dp</item>
-              </style>
-              
-              <!-- Launcher menu button style -->
-              <style name="LauncherMenuButton">
-                  <item name="android:layout_width">wrap_content</item>
-                  <item name="android:layout_height">wrap_content</item>
-                  <item name="android:background">?attr/selectableItemBackground</item>
-                  <item name="android:minHeight">48dp</item>
-                  <item name="android:padding">12dp</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:textSize">16sp</item>
-              </style>
-              
-              <!-- ThickDivider -->
-              <style name="ThickDivider">
-                  <item name="android:layout_width">match_parent</item>
-                  <item name="android:layout_height">2dp</item>
-                  <item name="android:background">@color/divider</item>
-              </style>
-              
-              <!-- LauncherFragment_Divider -->
-              <style name="LauncherFragment_Divider" parent="ThickDivider">
-                  <item name="android:layout_marginTop">8dp</item>
-                  <item name="android:layout_marginBottom">8dp</item>
-              </style>
-              
-              <!-- Control button -->
-              <style name="ControlButton">
-                  <item name="android:layout_width">wrap_content</item>
-                  <item name="android:layout_height">wrap_content</item>
-                  <item name="android:padding">8dp</item>
-                  <item name="android:textColor">@color/primary_text</item>
-              </style>
-          </resources>
-          EOF
-          echo "✅ Complete clean styles.xml created"
+          FILE="app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
+          
+          # Backup original
+          cp "$FILE" "$FILE.bak"
+          
+          # Find lines with android:layout_width but no android:layout_height
+          # Add layout_height="wrap_content" where missing (for views that are not ViewGroup)
+          # This is a safe approximate fix
+          python3 << 'PYTHON'
+          import re
+          file_path = 'app_pojavlauncher/src/main/res/layout/fragment_launcher.xml'
+          with open(file_path, 'r') as f:
+              lines = f.readlines()
+          
+          fixed = []
+          for i, line in enumerate(lines):
+              # If line contains android:layout_width but not android:layout_height, add it
+              if 'android:layout_width=' in line and 'android:layout_height=' not in line:
+                  # Insert layout_height before '/>' or '>'
+                  line = re.sub(r'(android:layout_width="[^"]+")', r'\1 android:layout_height="wrap_content"', line)
+                  print(f"Fixed line {i+1}")
+              fixed.append(line)
+          
+          with open(file_path, 'w') as f:
+              f.writelines(fixed)
+          print("✅ Fixed fragment_launcher.xml")
+          PYTHON
 
-      - name: Commit and push
+      - name: Also check other potential problem layouts
+        run: |
+          # Find all layout files and ensure every view has layout_height
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" | while read file; do
+            python3 << PYTHON
+          import re, sys
+          file_path = '$file'
+          with open(file_path, 'r') as f:
+              lines = f.readlines()
+          changed = False
+          new_lines = []
+          for line in lines:
+              if 'android:layout_width=' in line and 'android:layout_height=' not in line:
+                  line = re.sub(r'(android:layout_width="[^"]+")', r'\1 android:layout_height="wrap_content"', line)
+                  changed = True
+              new_lines.append(line)
+          if changed:
+              with open(file_path, 'w') as f:
+                  f.writelines(new_lines)
+              print(f"Fixed {file_path}")
+          PYTHON
+          done
+
+      - name: Commit fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/styles.xml
-          git diff --cached --quiet || git commit -m "Replace with complete well-formed styles.xml"
+          git add app_pojavlauncher/src/main/res/layout/
+          git diff --cached --quiet || git commit -m "Add missing layout_height attributes in layouts"
           git push origin HEAD:${GITHUB_REF_NAME}
