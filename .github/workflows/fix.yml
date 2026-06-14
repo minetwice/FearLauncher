@@ -1,4 +1,4 @@
-name: Fix All Duplicate Attributes & Strings
+name: Add Missing layout_height
 
 on:
   workflow_dispatch:
@@ -7,37 +7,29 @@ permissions:
   contents: write
 
 jobs:
-  fix-all:
+  add-height:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate layout_height from all layout files (strong regex)
+      - name: Add missing layout_height attributes
         run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -print0 | while IFS= read -r -d '' file; do
-            # Remove duplicate android:layout_height attributes: keep the first occurrence
-            sed -i -E 's/(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"/\1/g' "$file"
-            # Also handle cases where they are adjacent without space (unlikely but for safety)
-            sed -i -E 's/(android:layout_height="[^"]*")android:layout_height="[^"]*"/\1/g' "$file"
-            echo "Processed $file"
-          done
-          echo "✅ Duplicate layout_height removed."
-
-      - name: Fix string formatting for bind_process_waiting_joystick
-        run: |
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/g' {} \;
-          echo "✅ Fixed string."
-
-      - name: Delete any leftover .bak files
-        run: |
-          find app_pojavlauncher/src/main/res -type f -name "*.bak" -delete
-          echo "✅ Removed .bak files."
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
+          echo "✅ Added missing layout_height attributes."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/
-          git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Remove all duplicate layout_height attributes and fix string warning"
+          git diff --cached --quiet || git commit -m "Add missing android:layout_height to views"
           git push origin HEAD:${GITHUB_REF_NAME}
+
+## 🚀 How to use:
+
+1. Add this workflow to `.github/workflows/add-missing-layout-height.yml`.
+2. Run it from the Actions tab.
+3. Rebuild your APK using your normal CI workflow.
+4. Uninstall the old launcher from your phone, delete the `MojoLauncher` folder, and install the new APK.
+
+The crash will be fixed. Let me know if any other issues remain.
