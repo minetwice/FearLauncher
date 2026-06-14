@@ -1,4 +1,4 @@
-name: Add Missing minebutton_color
+name: Fix Kotlin Import and Missing Color
 
 on:
   workflow_dispatch:
@@ -7,26 +7,34 @@ permissions:
   contents: write
 
 jobs:
-  add-color:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Append minebutton_color to colors.xml
+      - name: Remove Kotlin package reference from ModVersionListFragment.java
+        run: |
+          FILE="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/fragments/ModVersionListFragment.java"
+          # Delete lines containing the Kotlin call
+          sed -i '/net\.kdt\.pojavlaunch\.kotlin\.VersionListFix/d' "$FILE"
+          echo "✅ Removed Kotlin reference"
+
+      - name: Add missing minebutton_color to colors.xml
         run: |
           COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
-          if grep -q 'minebutton_color' "$COLORS"; then
+          if ! grep -q 'minebutton_color' "$COLORS"; then
+            # Insert before </resources>
+            awk '/<\/resources>/ {print "    <color name=\"minebutton_color\">#9e9e9e</color>"}1' "$COLORS" > tmp && mv tmp "$COLORS"
+            echo "✅ Added minebutton_color"
+          else
             echo "minebutton_color already exists"
-            exit 0
           fi
-          # Insert before </resources> using awk for reliability
-          awk '/<\/resources>/ {print "    <color name=\"minebutton_color\">#9e9e9e</color>"}1' "$COLORS" > tmp && mv tmp "$COLORS"
-          echo "✅ Added minebutton_color"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/fragments/ModVersionListFragment.java
           git add app_pojavlauncher/src/main/res/values/colors.xml
-          git diff --cached --quiet || git commit -m "Add minebutton_color for button backgrounds"
+          git diff --cached --quiet || git commit -m "Remove Kotlin call, add minebutton_color"
           git push origin HEAD:${GITHUB_REF_NAME}
