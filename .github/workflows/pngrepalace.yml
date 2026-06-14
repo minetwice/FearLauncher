@@ -1,4 +1,4 @@
-name: Replace PNGs with Color Drawables
+name: Remove Backup XML Files
 
 on:
   workflow_dispatch:
@@ -7,45 +7,20 @@ permissions:
   contents: write
 
 jobs:
-  replace:
+  clean:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all button PNGs
+      - name: Delete all .bak files in layout directory
         run: |
-          find app_pojavlauncher/src/main/res -type f -name "mine_button*.png" -delete
-          find app_pojavlauncher/src/main/res -type f -name "control_side_action_window*.png" -delete
+          find app_pojavlauncher/src/main/res/layout -type f -name "*.bak" -delete
+          echo "✅ Removed .bak files"
 
-      - name: Create shape drawables
-        run: |
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="?attr/colorPrimary"/>
-              <corners android:radius="8dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="?attr/colorAccent"/>
-              <corners android:radius="8dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_selector.xml << 'EOF'
-          <selector xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:state_pressed="true" android:drawable="@drawable/mine_button_focused"/>
-              <item android:drawable="@drawable/mine_button_unfocused"/>
-          </selector>
-          EOF
-
-      - name: Update layout references
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|@drawable/mine_button_unfocused|@drawable/mine_button_selector|g' {} \;
-
-      - name: Commit changes
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Replace PNG buttons with color drawables"
+          git add app_pojavlauncher/src/main/res/layout/
+          git diff --cached --quiet || git commit -m "Remove backup .bak files from layout"
           git push origin HEAD:${GITHUB_REF_NAME}
