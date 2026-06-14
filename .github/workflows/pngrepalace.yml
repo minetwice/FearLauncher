@@ -1,4 +1,4 @@
-name: Remove Backup XML Files
+name: Thorough Fix
 
 on:
   workflow_dispatch:
@@ -7,20 +7,55 @@ permissions:
   contents: write
 
 jobs:
-  clean:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all .bak files in layout directory
+      - name: Python fix for duplicate attributes
         run: |
-          find app_pojavlauncher/src/main/res/layout -type f -name "*.bak" -delete
-          echo "✅ Removed .bak files"
+          python3 << 'PYTHON'
+          import os, re
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for root, dirs, files in os.walk(layout_dir):
+              for file in files:
+                  if not file.endswith('.xml'):
+                      continue
+                  path = os.path.join(root, file)
+                  with open(path, 'r', encoding='utf-8') as f:
+                      content = f.read()
+                  # Use regex to replace any pattern where android:layout_height appears twice in the same tag
+                  # This pattern matches any tag and removes duplicate layout_height within it
+                  def remove_duplicate(match):
+                      tag_content = match.group(0)
+                      # Find all layout_height occurrences
+                      import re as regex
+                      heights = regex.findall(r'android:layout_height="[^"]*"', tag_content)
+                      if len(heights) > 1:
+                          # Keep the first one, remove the others
+                          for h in heights[1:]:
+                              tag_content = tag_content.replace(h, '', 1)
+                      return tag_content
+                  pattern = r'<[^>]*android:layout_height="[^"]*"[^>]*android:layout_height="[^"]*"[^>]*>'
+                  new_content = re.sub(pattern, remove_duplicate, content)
+                  if new_content != content:
+                      with open(path, 'w', encoding='utf-8') as f:
+                          f.write(new_content)
+                      print(f"Fixed: {path}")
+          print("✅ Done")
+          PYTHON
 
-      - name: Commit and push
+      - name: Fix strings
+        run: |
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/g' {} \;
+
+      - name: Remove .bak
+        run: find app_pojavlauncher/src/main/res -type f -name "*.bak" -delete
+
+      - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git diff --cached --quiet || git commit -m "Remove backup .bak files from layout"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Thorough fix: remove duplicate layout_height from all tags"
           git push origin HEAD:${GITHUB_REF_NAME}
