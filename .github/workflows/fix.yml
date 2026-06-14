@@ -12,10 +12,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add missing layout_height attributes
+      - name: Add missing layout_height using Python
         run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
-          echo "✅ Added missing layout_height attributes."
+          python3 << 'EOF'
+          import os
+          import re
+
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for root, dirs, files in os.walk(layout_dir):
+              for file in files:
+                  if not file.endswith(".xml"):
+                      continue
+                  path = os.path.join(root, file)
+                  with open(path, "r", encoding="utf-8") as f:
+                      content = f.read()
+                  
+                  # Find all tags that have android:layout_width but not android:layout_height
+                  # We'll use a simple regex to add layout_height="wrap_content"
+                  def add_missing(match):
+                      tag = match.group(0)
+                      if 'android:layout_width=' in tag and 'android:layout_height=' not in tag:
+                          # Insert before the first '>' or '/>'
+                          if '/>' in tag:
+                              tag = tag.replace('/>', ' android:layout_height="wrap_content" />', 1)
+                          else:
+                              tag = tag.replace('>', ' android:layout_height="wrap_content">', 1)
+                      return tag
+                  
+                  # This pattern matches a single XML tag (open or self-closing)
+                  pattern = r'<[^>]+>'
+                  new_content = re.sub(pattern, add_missing, content)
+                  
+                  if new_content != content:
+                      with open(path, "w", encoding="utf-8") as f:
+                          f.write(new_content)
+                      print(f"Fixed: {path}")
+          
+          print("✅ Added missing layout_height to all views.")
+          EOF
 
       - name: Commit and push
         run: |
@@ -24,12 +58,3 @@ jobs:
           git add app_pojavlauncher/src/main/res/layout/
           git diff --cached --quiet || git commit -m "Add missing android:layout_height to views"
           git push origin HEAD:${GITHUB_REF_NAME}
-
-## 🚀 How to use:
-
-1. Add this workflow to `.github/workflows/add-missing-layout-height.yml`.
-2. Run it from the Actions tab.
-3. Rebuild your APK using your normal CI workflow.
-4. Uninstall the old launcher from your phone, delete the `MojoLauncher` folder, and install the new APK.
-
-The crash will be fixed. Let me know if any other issues remain.
