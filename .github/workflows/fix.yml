@@ -1,4 +1,4 @@
-name: Final Contrast & Animations
+name: Remove Duplicate AppTheme from styles.xml
 
 on:
   workflow_dispatch:
@@ -7,138 +7,22 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  remove:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Set high-contrast colors (dark text, light background)
-      - name: Set contrast colors
+      - name: Delete AppTheme block from styles.xml
         run: |
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#ECEFF1</color>
-              <color name="background_status_bar">#CFD8DC</color>
-              <color name="primary_text">#263238</color>
-              <color name="secondary_text">#546E7A</color>
-              <color name="control_button_color">#90A4AE</color>
-              <color name="control_button_pressed_color">#78909C</color>
-              <color name="divider">#B0BEC5</color>
-              <color name="icon_outline_color">#455A64</color>
-              <color name="minebutton_color">#90A4AE</color>
-          </resources>
-          EOF
+          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
+          # Remove lines from <style name="AppTheme" to </style>
+          sed -i '/<style name="AppTheme"/,/<\/style>/d' "$STYLES"
+          echo "✅ Removed AppTheme from styles.xml"
 
-      # 2. Add custom font (Roboto) via styles
-      - name: Add font and text styles
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:windowBackground">@color/background_app</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:typeface">sans</item>
-              </style>
-              <style name="RoundedButton" parent="Widget.AppCompat.Button">
-                  <item name="android:background">@drawable/btn_silver_ripple</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:textSize">14sp</item>
-                  <item name="android:typeface">sans</item>
-                  <item name="android:padding">12dp</item>
-              </style>
-              <style name="LauncherMenuButton">
-                  <item name="android:layout_width">wrap_content</item>
-                  <item name="android:layout_height">wrap_content</item>
-                  <item name="android:minHeight">48dp</item>
-                  <item name="android:padding">12dp</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:typeface">sans</item>
-              </style>
-          </resources>
-          EOF
-
-      # 3. Create fade-in animation for root view
-      - name: Add fade-in animation
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/fade_in.xml << 'EOF'
-          <alpha xmlns:android="http://schemas.android.com/apk/res/android"
-              android:duration="500"
-              android:fromAlpha="0.0"
-              android:toAlpha="1.0" />
-          EOF
-
-      # 4. Apply fade-in animation to launcher activity root layout
-      - name: Apply fade-in to launcher activity
-        run: |
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          if grep -q '<LinearLayout' "$LAYOUT"; then
-            sed -i 's/<LinearLayout/<LinearLayout android:animateLayoutChanges="true" android:animation="@anim\/fade_in"/' "$LAYOUT"
-          fi
-
-      # 5. Add button scale animation (click effect)
-      - name: Add button scale animation
-        run: |
-          cat > app_pojavlauncher/src/main/res/anim/button_scale.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <scale
-                  android:duration="100"
-                  android:fromXScale="1.0"
-                  android:fromYScale="1.0"
-                  android:toXScale="0.96"
-                  android:toYScale="0.96"
-                  android:pivotX="50%"
-                  android:pivotY="50%" />
-              <scale
-                  android:duration="100"
-                  android:fromXScale="0.96"
-                  android:fromYScale="0.96"
-                  android:toXScale="1.0"
-                  android:toYScale="1.0"
-                  android:pivotX="50%"
-                  android:pivotY="50%"
-                  android:startOffset="100" />
-          </set>
-          EOF
-
-      # 6. Create rounded button drawable with ripple
-      - name: Create button drawables
-        run: |
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="16dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_silver_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/primary_text">
-              <item android:drawable="@drawable/btn_silver_rounded"/>
-          </ripple>
-          EOF
-
-      # 7. Apply button animation to all buttons in layouts
-      - name: Attach animation to buttons
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button android:stateListAnimator="@anim\/button_scale" /g' {} \;
-
-      # 8. Force dark text in all TextViews
-      - name: Set default text color to primary_text
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="#[^"]*"/android:textColor="@color\/primary_text"/g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="@color\/white"/android:textColor="@color\/primary_text"/g' {} \;
-
-      # 9. Fix version list item background to be visible
-      - name: Ensure list items have contrasting background
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*list_item*.xml" -exec sed -i 's/android:background="[^"]*"/android:background="@color\/background_app"/g' {} \;
-
-      # 10. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "High contrast, custom font, fade-in, button scale animations"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git diff --cached --quiet || git commit -m "Remove duplicate AppTheme from styles.xml (keep themes.xml)"
           git push origin HEAD:${GITHUB_REF_NAME}
