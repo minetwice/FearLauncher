@@ -9,4 +9,6 @@
     <color name="divider">#B0BEC5</color>
     <color name="icon_outline_color">#455A64</color>
     <color name="minebutton_color">#90A4AE</color>
+    <color name="background_overlay">#eeeeee</color>
+    <color name="background_bottom_bar">#ffffff</color>
 </resources>
