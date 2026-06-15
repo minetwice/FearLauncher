@@ -1,4 +1,4 @@
-name: Remove Duplicate AppTheme from styles.xml
+name: Add All Missing Resources
 
 on:
   workflow_dispatch:
@@ -7,22 +7,65 @@ permissions:
   contents: write
 
 jobs:
-  remove:
+  add:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete AppTheme block from styles.xml
+      - name: Add missing colors to colors.xml
+        run: |
+          COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
+          # Add background_overlay if missing
+          if ! grep -q 'background_overlay' "$COLORS"; then
+            sed -i '/<\/resources>/i\    <color name="background_overlay">#eeeeee</color>' "$COLORS"
+          fi
+          # Add background_bottom_bar if missing
+          if ! grep -q 'background_bottom_bar' "$COLORS"; then
+            sed -i '/<\/resources>/i\    <color name="background_bottom_bar">#ffffff</color>' "$COLORS"
+          fi
+          echo "✅ Added missing colors"
+
+      - name: Add missing styles to styles.xml
         run: |
           STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
-          # Remove lines from <style name="AppTheme" to </style>
-          sed -i '/<style name="AppTheme"/,/<\/style>/d' "$STYLES"
-          echo "✅ Removed AppTheme from styles.xml"
+          # Add ThickDivider if missing
+          if ! grep -q 'ThickDivider' "$STYLES"; then
+            cat > /tmp/thickdivider.txt << 'EOF'
+          
+          <style name="ThickDivider">
+              <item name="android:layout_width">match_parent</item>
+              <item name="android:layout_height">2dp</item>
+              <item name="android:background">@color/divider</item>
+          </style>
+          EOF
+            sed -i '/<\/resources>/r /tmp/thickdivider.txt' "$STYLES"
+          fi
+          # Add LauncherFragment_Divider if missing
+          if ! grep -q 'LauncherFragment_Divider' "$STYLES"; then
+            cat > /tmp/launcherdivider.txt << 'EOF'
+          
+          <style name="LauncherFragment_Divider" parent="ThickDivider">
+              <item name="android:layout_marginTop">8dp</item>
+              <item name="android:layout_marginBottom">8dp</item>
+          </style>
+          EOF
+            sed -i '/<\/resources>/r /tmp/launcherdivider.txt' "$STYLES"
+          fi
+          echo "✅ Added missing styles"
+
+      - name: Ensure all colors referenced exist
+        run: |
+          # Also ensure color/divider exists (used by ThickDivider)
+          COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
+          if ! grep -q 'name="divider"' "$COLORS"; then
+            sed -i '/<\/resources>/i\    <color name="divider">#e0e0e0</color>' "$COLORS"
+          fi
+          echo "✅ Verified all colors"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/styles.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate AppTheme from styles.xml (keep themes.xml)"
+          git add app_pojavlauncher/src/main/res/values/
+          git diff --cached --quiet || git commit -m "Add missing colors and styles for build"
           git push origin HEAD:${GITHUB_REF_NAME}
