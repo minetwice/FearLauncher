@@ -1,4 +1,4 @@
-name: Add All Missing Resources
+name: Fix Malformed styles.xml
 
 on:
   workflow_dispatch:
@@ -7,65 +7,50 @@ permissions:
   contents: write
 
 jobs:
-  add:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add missing colors to colors.xml
+      - name: Write clean styles.xml
         run: |
-          COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
-          # Add background_overlay if missing
-          if ! grep -q 'background_overlay' "$COLORS"; then
-            sed -i '/<\/resources>/i\    <color name="background_overlay">#eeeeee</color>' "$COLORS"
-          fi
-          # Add background_bottom_bar if missing
-          if ! grep -q 'background_bottom_bar' "$COLORS"; then
-            sed -i '/<\/resources>/i\    <color name="background_bottom_bar">#ffffff</color>' "$COLORS"
-          fi
-          echo "✅ Added missing colors"
-
-      - name: Add missing styles to styles.xml
-        run: |
-          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
-          # Add ThickDivider if missing
-          if ! grep -q 'ThickDivider' "$STYLES"; then
-            cat > /tmp/thickdivider.txt << 'EOF'
-          
-          <style name="ThickDivider">
-              <item name="android:layout_width">match_parent</item>
-              <item name="android:layout_height">2dp</item>
-              <item name="android:background">@color/divider</item>
-          </style>
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="RoundedButton" parent="Widget.AppCompat.Button">
+                  <item name="android:background">@drawable/btn_silver_ripple</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:textSize">14sp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:minHeight">48dp</item>
+              </style>
+              
+              <style name="LauncherMenuButton">
+                  <item name="android:layout_width">wrap_content</item>
+                  <item name="android:layout_height">wrap_content</item>
+                  <item name="android:minHeight">48dp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:textColor">@color/primary_text</item>
+              </style>
+              
+              <style name="ThickDivider">
+                  <item name="android:layout_width">match_parent</item>
+                  <item name="android:layout_height">2dp</item>
+                  <item name="android:background">@color/divider</item>
+              </style>
+              
+              <style name="LauncherFragment_Divider" parent="ThickDivider">
+                  <item name="android:layout_marginTop">8dp</item>
+                  <item name="android:layout_marginBottom">8dp</item>
+              </style>
+          </resources>
           EOF
-            sed -i '/<\/resources>/r /tmp/thickdivider.txt' "$STYLES"
-          fi
-          # Add LauncherFragment_Divider if missing
-          if ! grep -q 'LauncherFragment_Divider' "$STYLES"; then
-            cat > /tmp/launcherdivider.txt << 'EOF'
-          
-          <style name="LauncherFragment_Divider" parent="ThickDivider">
-              <item name="android:layout_marginTop">8dp</item>
-              <item name="android:layout_marginBottom">8dp</item>
-          </style>
-          EOF
-            sed -i '/<\/resources>/r /tmp/launcherdivider.txt' "$STYLES"
-          fi
-          echo "✅ Added missing styles"
-
-      - name: Ensure all colors referenced exist
-        run: |
-          # Also ensure color/divider exists (used by ThickDivider)
-          COLORS="app_pojavlauncher/src/main/res/values/colors.xml"
-          if ! grep -q 'name="divider"' "$COLORS"; then
-            sed -i '/<\/resources>/i\    <color name="divider">#e0e0e0</color>' "$COLORS"
-          fi
-          echo "✅ Verified all colors"
+          echo "✅ Clean styles.xml written"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/
-          git diff --cached --quiet || git commit -m "Add missing colors and styles for build"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git diff --cached --quiet || git commit -m "Replace malformed styles.xml with clean version"
           git push origin HEAD:${GITHUB_REF_NAME}
