@@ -1,101 +1,166 @@
-name: Add In-Game Overlay Icons (Vector)
+name: Generate Complete Icon & UI Inventory Report
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  add-icons:
+  generate-report:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create vector icons for overlay buttons
+      - name: Generate comprehensive inventory
         run: |
-          # List of icon names
-          icons=("debug" "chat" "keyboard" "tab" "mouse" "3rd" "pri" "sec" "gui" "inv")
-          for icon in "${icons[@]}"; do
-            cat > app_pojavlauncher/src/main/res/drawable/ic_${icon}.xml << 'EOF'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/primary_text"
-                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm-2,15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </vector>
-          EOF
-            # Rename file with correct icon name (replace placeholder with actual)
-            mv app_pojavlauncher/src/main/res/drawable/ic_${icon}.xml app_pojavlauncher/src/main/res/drawable/ic_${icon}.tmp
-            sed "s/ic_placeholder/ic_${icon}/g" app_pojavlauncher/src/main/res/drawable/ic_${icon}.tmp > app_pojavlauncher/src/main/res/drawable/ic_${icon}.xml
-            rm app_pojavlauncher/src/main/res/drawable/ic_${icon}.tmp
-            echo "Created ic_${icon}.xml"
+          REPORT="icon-inventory-report.txt"
+          
+          echo "══════════════════════════════════════════════════════════════" > $REPORT
+          echo "           FEAR LAUNCHER - ICON & UI INVENTORY REPORT" >> $REPORT
+          echo "══════════════════════════════════════════════════════════════" >> $REPORT
+          echo "Generated: $(date)" >> $REPORT
+          echo "" >> $REPORT
+          
+          # =============== SECTION 1: ALL PNG FILES ===============
+          echo "📁 SECTION 1: PNG FILES (Existing)" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          find app_pojavlauncher/src/main/res -type f -name "*.png" | while read png; do
+            # Get file size and dimensions if possible
+            size=$(du -h "$png" | cut -f1)
+            dims=$(file "$png" | grep -o '[0-9]* x [0-9]*' | head -1 || echo "unknown")
+            echo "  📄 $png" >> $REPORT
+            echo "     Size: $size | Dimensions: $dims" >> $REPORT
           done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 2: VECTOR DRAWABLES ===============
+          echo "📁 SECTION 2: VECTOR DRAWABLES (XML)" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          find app_pojavlauncher/src/main/res/drawable -type f -name "*.xml" | while read xml; do
+            if grep -q "vector" "$xml"; then
+              echo "  📄 $xml" >> $REPORT
+              grep "android:width" "$xml" | head -1 >> $REPORT
+            fi
+          done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 3: ICON REFERENCES IN LAYOUTS ===============
+          echo "📁 SECTION 3: ICON REFERENCES IN LAYOUTS" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          echo "🔍 All @drawable references in layout files:" >> $REPORT
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec grep -H "android:src=\"@drawable/" {} \; | \
+            sed 's/.*layout\/\(.*\)\.xml:.*android:src="\([^"]*\)"/  Layout: \1.xml -> \2/' >> $REPORT
+          echo "" >> $REPORT
+          
+          # =============== SECTION 4: MISSING ICONS ===============
+          echo "📁 SECTION 4: MISSING ICONS (References without files)" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          echo "🔍 Checking for R.drawable references that have no file:" >> $REPORT
+          # Extract all drawable references from layout files
+          grep -rh "android:src=\"@drawable/" app_pojavlauncher/src/main/res/layout 2>/dev/null | \
+            sed 's/.*@drawable\/\([^"]*\)".*/\1/' | sort -u | while read drawable; do
+            if [ ! -f "app_pojavlauncher/src/main/res/drawable/${drawable}.xml" ] && \
+               [ ! -f "app_pojavlauncher/src/main/res/drawable/${drawable}.png" ] && \
+               [ ! -f "app_pojavlauncher/src/main/res/drawable-*/${drawable}.png" ]; then
+              echo "  ❌ MISSING: $drawable" >> $REPORT
+              # Find where it's referenced
+              echo "     Used in:" >> $REPORT
+              grep -rn "android:src=\"@drawable/${drawable}" app_pojavlauncher/src/main/res/layout 2>/dev/null | \
+                sed 's/.*layout\/\(.*\)\.xml.*/       - \1.xml/' >> $REPORT
+            fi
+          done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 5: SIDEBAR ANALYSIS ===============
+          echo "📁 SECTION 5: SIDEBAR / NAVIGATION OPTIONS" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          # Find navigation/sidebar layouts
+          find app_pojavlauncher/src/main/res/layout -name "*nav*.xml" -o -name "*side*.xml" -o -name "*drawer*.xml" | while read sidebar; do
+            echo "📄 Sidebar Layout: $sidebar" >> $REPORT
+            grep -E "android:text=|android:icon=|android:src=" "$sidebar" 2>/dev/null | while read line; do
+              text=$(echo "$line" | sed -n 's/.*android:text="\([^"]*\)".*/\1/p')
+              icon=$(echo "$line" | sed -n 's/.*android:icon="\([^"]*\)".*/\1/p')
+              src=$(echo "$line" | sed -n 's/.*android:src="\([^"]*\)".*/\1/p')
+              if [ -n "$text" ]; then
+                echo "   📌 Option: $text" >> $REPORT
+              fi
+              if [ -n "$icon" ]; then
+                echo "      Icon: $icon" >> $REPORT
+              fi
+              if [ -n "$src" ]; then
+                echo "      Src: $src" >> $REPORT
+              fi
+            done
+          done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 6: BUTTON DETAILS ===============
+          echo "📁 SECTION 6: BUTTON DETAILS" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          echo "🔍 All buttons with their text and icons:" >> $REPORT
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec grep -l "<Button" {} \; | while read layout; do
+            echo "  📄 $layout" >> $REPORT
+            grep "<Button" "$layout" 2>/dev/null | head -10 | while read btn; do
+              text=$(echo "$btn" | sed -n 's/.*android:text="\([^"]*\)".*/\1/p')
+              icon=$(echo "$btn" | sed -n 's/.*android:drawableStart="\([^"]*\)".*/\1/p')
+              bg=$(echo "$btn" | sed -n 's/.*android:background="\([^"]*\)".*/\1/p')
+              echo "    🔘 $text | icon: $icon | bg: $bg" >> $REPORT
+            done
+          done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 7: MENU ITEMS ===============
+          echo "📁 SECTION 7: MENU OPTIONS" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          find app_pojavlauncher/src/main/res/menu -name "*.xml" 2>/dev/null | while read menu; do
+            echo "📄 Menu: $menu" >> $REPORT
+            grep "android:title=" "$menu" 2>/dev/null | while read item; do
+              title=$(echo "$item" | sed -n 's/.*android:title="\([^"]*\)".*/\1/p')
+              icon=$(echo "$item" | sed -n 's/.*android:icon="\([^"]*\)".*/\1/p')
+              id=$(echo "$item" | sed -n 's/.*android:id="\([^"]*\)".*/\1/p')
+              echo "   📌 $title | icon: $icon | id: $id" >> $REPORT
+            done
+          done
+          echo "" >> $REPORT
+          
+          # =============== SECTION 8: OVERLAY/IN-GAME BUTTONS ===============
+          echo "📁 SECTION 8: OVERLAY / IN-GAME CONTROLS" >> $REPORT
+          echo "──────────────────────────────────────────────────────────" >> $REPORT
+          find app_pojavlauncher/src/main/res/layout -name "*control*.xml" -o -name "*gamepad*.xml" -o -name "*overlay*.xml" | while read ov; do
+            echo "📄 $ov" >> $REPORT
+            grep -E "android:text=|android:src=" "$ov" 2>/dev/null | while read line; do
+              text=$(echo "$line" | sed -n 's/.*android:text="\([^"]*\)".*/\1/p')
+              src=$(echo "$line" | sed -n 's/.*android:src="\([^"]*\)".*/\1/p')
+              if [ -n "$text" ]; then
+                echo "   🎮 $text" >> $REPORT
+                if [ -n "$src" ]; then
+                  echo "      src: $src" >> $REPORT
+                fi
+              fi
+            done
+          done
+          echo "" >> $REPORT
+          
+          # =============== SUMMARY ===============
+          echo "╔══════════════════════════════════════════════════════════════╗" >> $REPORT
+          echo "║                         SUMMARY                             ║" >> $REPORT
+          echo "╠══════════════════════════════════════════════════════════════╣" >> $REPORT
+          total_png=$(find app_pojavlauncher/src/main/res -type f -name "*.png" 2>/dev/null | wc -l)
+          total_vector=$(grep -l "vector" app_pojavlauncher/src/main/res/drawable/*.xml 2>/dev/null | wc -l)
+          total_missing=$(grep "❌ MISSING" $REPORT | wc -l)
+          total_layouts=$(find app_pojavlauncher/src/main/res/layout -name "*.xml" 2>/dev/null | wc -l)
+          total_buttons=$(grep -r "<Button" app_pojavlauncher/src/main/res/layout 2>/dev/null | wc -l)
+          
+          echo "║  PNG Files: $total_png" >> $REPORT
+          echo "║  Vector Drawables: $total_vector" >> $REPORT
+          echo "║  Missing Icons: $total_missing" >> $REPORT
+          echo "║  Layout Files: $total_layouts" >> $REPORT
+          echo "║  Total Buttons: $total_buttons" >> $REPORT
+          echo "╚══════════════════════════════════════════════════════════════╝" >> $REPORT
+          
+          echo "✅ Report generated: $REPORT"
+          cat $REPORT
 
-      # Alternative: specific icons with recognizable shapes
-      - name: Create more specific icon shapes
-        run: |
-          # Chat bubble
-          cat > app_pojavlauncher/src/main/res/drawable/ic_chat.xml << 'EOF'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/primary_text"
-                  android:pathData="M20,2H4c-1.1,0-2,0.9-2,2v18l4-4h14c1.1,0,2-0.9,2-2V4c0-1.1-0.9-2-2-2z"/>
-          </vector>
-          EOF
-          # Keyboard
-          cat > app_pojavlauncher/src/main/res/drawable/ic_keyboard.xml << 'EOF'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/primary_text"
-                  android:pathData="M20,5H4c-1.1,0-1.99,0.9-1.99,2L2,17c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V7c0-1.1-0.9-2-2-2zM11,8h2v2h-2V8zM8,8h2v2H8V8zM5,8h2v2H5V8zM8,13h8v2H8V13zM19,15h-2v-2h2V15zM19,11h-2V9h2V11z"/>
-          </vector>
-          EOF
-          # Mouse
-          cat > app_pojavlauncher/src/main/res/drawable/ic_mouse.xml << 'EOF'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/primary_text"
-                  android:pathData="M13,1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4,15c0,4.42,3.58,8,8,8s8-3.58,8-8v-4H4v4zM11,1.07C7.05,1.56,4,4.92,4,9h7V1.07z"/>
-          </vector>
-          EOF
-          # Inventory (chest)
-          cat > app_pojavlauncher/src/main/res/drawable/ic_inv.xml << 'EOF'
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/primary_text"
-                  android:pathData="M4,20h16V8H4v12zM8,10h2v2H8v-2zM8,14h2v2H8v-2zM14,10h2v2h-2v-2zM14,14h2v2h-2v-2zM4,6h16V4H4v2z"/>
-          </vector>
-          EOF
-
-      - name: Remove any references to .png versions
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/@drawable\/ic_\([a-z0-9]*\)\.png/@drawable\/ic_\1/g' {} \;
-          find app_pojavlauncher/src/main/res/drawable -name "*.xml" -exec sed -i 's/@drawable\/ic_\([a-z0-9]*\)\.png/@drawable\/ic_\1/g' {} \;
-
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/drawable/
-          git diff --cached --quiet || git commit -m "Add vector overlay icons (debug, chat, keyboard, etc.)"
-          git push origin HEAD:${GITHUB_REF_NAME}
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: icon-inventory-report
+          path: icon-inventory-report.txt
