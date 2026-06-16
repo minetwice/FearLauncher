@@ -1,4 +1,4 @@
-name: Remove Divider & Add Gear Icon to Overlay
+name: Fix Overlay - Remove Divider, Add Gear, Convert Buttons to Icons
 
 on:
   workflow_dispatch:
@@ -7,107 +7,53 @@ permissions:
   contents: write
 
 jobs:
-  fix-overlay:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Modify overlay layout
+      - name: Modify overlay layout with sed
         run: |
-          python3 << 'PYTHON'
-          import re
-          import xml.etree.ElementTree as ET
-          from xml.dom import minidom
+          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml"
 
-          LAYOUT_PATH = "app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml"
+          # 1. Remove the divider View (looks like a View with height 1dp/2dp and divider background)
+          sed -i '/<View.*android:layout_height="[12]dp".*android:background="@color\/divider"/d' "$LAYOUT"
+          sed -i '/<View.*android:layout_height="[12]dip".*android:background="@color\/divider"/d' "$LAYOUT"
+          sed -i '/<View.*android:background="@color\/divider".*android:layout_height="[12]dp"/d' "$LAYOUT"
+          sed -i '/<View.*android:layout_height="[12]dp".*android:background="#e0e0e0"/d' "$LAYOUT"
+          sed -i '/<View.*android:background="#e0e0e0".*android:layout_height="[12]dp"/d' "$LAYOUT"
+          echo "✅ Divider removed"
 
-          # Parse the XML
-          tree = ET.parse(LAYOUT_PATH)
-          root = tree.getroot()
+          # 2. Add gear icon at the very beginning (after the opening LinearLayout)
+          # Check if LinearLayout exists and doesn't already have gear
+          if ! grep -q "ic_gear" "$LAYOUT"; then
+            sed -i 's|<LinearLayout[^>]*>|&\n    <!-- Gear icon -->\n    <ImageButton\n        android:layout_width="wrap_content"\n        android:layout_height="wrap_content"\n        android:src="@drawable/ic_gear"\n        android:background="?attr/selectableItemBackground"\n        android:padding="8dp"\n        android:contentDescription="Settings" />|' "$LAYOUT"
+            echo "✅ Gear icon added"
+          else
+            echo "Gear icon already exists"
+          fi
 
-          # Find the root LinearLayout (assume first element)
-          if root.tag != 'LinearLayout':
-              # Find the first LinearLayout child
-              for child in root:
-                  if child.tag == 'LinearLayout':
-                      root = child
-                      break
-
-          # 1. Remove any divider View (height 1dp or 2dp, background with divider color)
-          to_remove = []
-          for child in root:
-              if child.tag == 'View':
-                  height = child.get('android:layout_height')
-                  bg = child.get('android:background')
-                  if height and (height in ['1dp', '2dp', '1dip', '2dip']):
-                      if bg and ('divider' in bg or '#e0e0e0' in bg or '#b0bec5' in bg):
-                          to_remove.append(child)
-          for child in to_remove:
-              root.remove(child)
-              print("Removed divider view")
-
-          # 2. Create gear icon as ImageButton
-          gear_btn = ET.Element('ImageButton')
-          gear_btn.set('android:layout_width', 'wrap_content')
-          gear_btn.set('android:layout_height', 'wrap_content')
-          gear_btn.set('android:src', '@drawable/ic_gear')
-          gear_btn.set('android:background', '?attr/selectableItemBackground')
-          gear_btn.set('android:padding', '8dp')
-          gear_btn.set('android:contentDescription', 'Settings')
-          # Add onClick listener if you want (requires Java method)
-          # gear_btn.set('android:onClick', 'openSettings')
-
-          # 3. Also ensure all buttons are actually ImageButtons with icons
-          # For each Button with text like "DEBUG" etc., change to ImageButton with icon
-          # We'll do that too if not already done
-          for child in root:
-              if child.tag == 'Button' and child.text:
-                  text = child.text.strip()
-                  icon_map = {
-                      'DEBUG': 'ic_debug',
-                      'CHAT': 'ic_chat',
-                      'KEYBOARD': 'ic_keyboard',
-                      'TAB': 'ic_tab',
-                      'MOUSE': 'ic_mouse',
-                      '3RD': 'ic_3rd',
-                      'PRI': 'ic_pri',
-                      'SEC': 'ic_sec',
-                      'GUI': 'ic_gui',
-                      'INV': 'ic_inv',
-                  }
-                  if text in icon_map:
-                      # Change to ImageButton
-                      child.tag = 'ImageButton'
-                      child.set('android:src', f'@drawable/{icon_map[text]}')
-                      child.set('android:background', '?attr/selectableItemBackground')
-                      child.set('android:padding', '8dp')
-                      # Remove text
-                      child.text = None
-                      # Remove any other text attributes
-                      if 'android:text' in child.attrib:
-                          del child.attrib['android:text']
-                      print(f"Converted {text} to ImageButton with icon {icon_map[text]}")
-
-          # 4. Insert gear button as first child (top)
-          root.insert(0, gear_btn)
-          print("Inserted gear icon at top")
-
-          # Save the modified XML with pretty formatting
-          # Convert to string with minidom for pretty print
-          rough_string = ET.tostring(tree.getroot(), encoding='utf-8')
-          reparsed = minidom.parseString(rough_string)
-          pretty_xml = reparsed.toprettyxml(indent="    ")
-          # Write back
-          with open(LAYOUT_PATH, 'w', encoding='utf-8') as f:
-              f.write(pretty_xml)
-          print("✅ Overlay layout updated successfully.")
-
-          PYTHON
+          # 3. Convert text buttons to ImageButtons with icons
+          # Map of button text -> icon drawable
+          # DEBUG -> ic_debug, CHAT -> ic_chat, KEYBOARD -> ic_keyboard, TAB -> ic_tab
+          # MOUSE -> ic_mouse, 3RD -> ic_3rd, PRI -> ic_pri, SEC -> ic_sec
+          # GUI -> ic_gui, INV -> ic_inv
+          sed -i 's|<Button[^>]*android:text="DEBUG"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_debug" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="DEBUG" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="CHAT"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_chat" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="CHAT" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="KEYBOARD"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_keyboard" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="KEYBOARD" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="TAB"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_tab" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="TAB" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="MOUSE"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_mouse" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="MOUSE" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="3RD"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_3rd" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="3RD" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="PRI"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_pri" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="PRI" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="SEC"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_sec" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="SEC" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="GUI"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_gui" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="GUI" />|g' "$LAYOUT"
+          sed -i 's|<Button[^>]*android:text="INV"[^>]*>|<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/ic_inv" android:background="?attr/selectableItemBackground" android:padding="8dp" android:contentDescription="INV" />|g' "$LAYOUT"
+          echo "✅ Converted buttons to icons"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml
-          git diff --cached --quiet || git commit -m "Remove divider, add gear icon top, convert overlay buttons to icons"
+          git diff --cached --quiet || git commit -m "Overlay: remove divider, add gear, convert buttons to icons"
           git push origin HEAD:${GITHUB_REF_NAME}
