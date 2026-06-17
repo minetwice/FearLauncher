@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Replace "Mojo" with "Fear" (skip .git, submodules, workflows)
+      - name: Replace "Mojo" with "Fear" (skip .gitmodules and submodule folders)
         run: |
           find . -type f \
             -not -path "./.git/*" \
@@ -28,13 +28,13 @@ jobs:
               sed -i 's/mojo/fear/g' "$file"
             fi
           done
-          echo "✅ Rename complete."
+          echo "✅ Rename complete (submodules skipped)."
 
       - name: Update package name
         run: |
           find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
 
-      - name: Commit (skip .gitmodules and submodule folder)
+      - name: Commit (excluding .gitmodules)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
