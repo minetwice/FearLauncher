@@ -1,0 +1,44 @@
+name: Rename to FearLauncher
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Change app display name in all strings.xml files
+      - name: Change app name to Fear Launcher
+        run: |
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="app_name">[^<]*</string>|<string name="app_name">Fear Launcher</string>|g' {} \;
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="launcher_name">[^<]*</string>|<string name="launcher_name">Fear Launcher</string>|g' {} \;
+          echo "✅ App name changed to Fear Launcher"
+
+      # 2. Change directory name in all Java/Kotlin files
+      - name: Change internal directory name to FearLauncher
+        run: |
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|"MojoLauncher"|"FearLauncher"|g' {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i "s|'/MojoLauncher'|'/FearLauncher'|g" {} \;
+          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|/MojoLauncher/|/FearLauncher/|g' {} \;
+          echo "✅ Directory name changed to FearLauncher"
+
+      # 3. Change AndroidManifest label
+      - name: Change manifest label
+        run: |
+          sed -i 's|android:label="[^"]*"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
+          sed -i 's|android:label="@string/app_name"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
+          echo "✅ Manifest label updated"
+
+      # 4. Commit all changes
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/
+          git diff --cached --quiet || git commit -m "Rename to FearLauncher: app name and directory"
+          git push origin HEAD:${GITHUB_REF_NAME}
