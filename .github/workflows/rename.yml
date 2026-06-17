@@ -1,4 +1,4 @@
-name: Nuclear Rename (With PAT)
+name: Rename to FearLauncher (With PAT)
 
 on:
   workflow_dispatch:
@@ -14,23 +14,23 @@ jobs:
         with:
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Replace all "Mojo" with "Fear"
+      - name: Replace all "Mojo" with "Fear" in text files
         run: |
           find . -type f -not -path "./.git/*" -not -name "*.png" -not -name "*.jpg" -not -name "*.jpeg" -not -name "*.gif" -not -name "*.ico" -not -name "*.jar" -not -name "*.zip" -not -name "*.aar" | while read file; do
             if file "$file" | grep -q "text"; then
               sed -i 's/MojoLauncher/FearLauncher/g' "$file"
               sed -i 's/Mojo/Fear/g' "$file"
               sed -i 's/mojo/fear/g' "$file"
-              echo "Processed: $file"
             fi
           done
+          echo "✅ Rename complete."
 
-      - name: Update package name
+      - name: Update package name in build.gradle
         run: |
           find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
           echo "✅ Package name updated."
 
-      - name: Commit and push everything (including workflows)
+      - name: Commit all changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
