@@ -1,4 +1,4 @@
-name: Rename to FearLauncher
+name: Nuclear Rename to FearLauncher
 
 on:
   workflow_dispatch:
@@ -12,33 +12,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Change app display name in all strings.xml files
-      - name: Change app name to Fear Launcher
+      - name: Replace all occurrences of "Mojo" with "Fear" (case-sensitive)
         run: |
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="app_name">[^<]*</string>|<string name="app_name">Fear Launcher</string>|g' {} \;
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's|<string name="launcher_name">[^<]*</string>|<string name="launcher_name">Fear Launcher</string>|g' {} \;
-          echo "✅ App name changed to Fear Launcher"
+          # Replace in all files except binary and .git
+          find . -type f -not -path "./.git/*" -not -name "*.png" -not -name "*.jpg" -not -name "*.jpeg" -not -name "*.gif" -not -name "*.ico" -not -name "*.jar" -not -name "*.zip" -not -name "*.aar" | while read file; do
+            if file "$file" | grep -q "text"; then
+              sed -i 's/MojoLauncher/FearLauncher/g' "$file"
+              sed -i 's/Mojo/Fear/g' "$file"
+              sed -i 's/mojo/fear/g' "$file"
+              echo "Processed: $file"
+            fi
+          done
 
-      # 2. Change directory name in all Java/Kotlin files
-      - name: Change internal directory name to FearLauncher
+      - name: Rename package directories (if any)
         run: |
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|"MojoLauncher"|"FearLauncher"|g' {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i "s|'/MojoLauncher'|'/FearLauncher'|g" {} \;
-          find app_pojavlauncher/src/main/java -type f \( -name "*.java" -o -name "*.kt" \) -exec sed -i 's|/MojoLauncher/|/FearLauncher/|g' {} \;
-          echo "✅ Directory name changed to FearLauncher"
+          # Rename any directories containing "mojo"
+          find . -type d -name "*mojo*" -not -path "./.git/*" | while read dir; do
+            newdir=$(echo "$dir" | sed 's/mojo/fear/g' | sed 's/Mojo/Fear/g')
+            if [ "$dir" != "$newdir" ]; then
+              mv "$dir" "$newdir"
+              echo "Renamed directory: $dir -> $newdir"
+            fi
+          done
 
-      # 3. Change AndroidManifest label
-      - name: Change manifest label
+      - name: Update package name in build.gradle (optional)
         run: |
-          sed -i 's|android:label="[^"]*"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
-          sed -i 's|android:label="@string/app_name"|android:label="Fear Launcher"|g' app_pojavlauncher/src/main/AndroidManifest.xml
-          echo "✅ Manifest label updated"
+          # Change applicationId from git.artdeell.mojo to com.minetwice.fearlauncher (example)
+          # You can customize this
+          find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
+          echo "✅ Package name updated in build.gradle"
 
-      # 4. Commit all changes
-      - name: Commit and push
+      - name: Commit all changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/
-          git diff --cached --quiet || git commit -m "Rename to FearLauncher: app name and directory"
+          git add -A
+          git diff --cached --quiet || git commit -m "Nuclear rename: Mojo -> Fear everywhere"
           git push origin HEAD:${GITHUB_REF_NAME}
