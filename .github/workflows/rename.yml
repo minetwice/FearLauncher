@@ -1,4 +1,4 @@
-name: Rename to FearLauncher (Skip Workflows)
+name: Rename to FearLauncher (Skip Submodules)
 
 on:
   workflow_dispatch:
@@ -12,11 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Replace "Mojo" with "Fear" (skip workflows)
+      - name: Replace "Mojo" with "Fear" (skip .git, submodules, workflows)
         run: |
           find . -type f \
             -not -path "./.git/*" \
             -not -path "./.github/workflows/*" \
+            -not -name ".gitmodules" \
+            -not -path "./dnbglfw/src/main/cpp/glfw/*" \
             -not -name "*.png" -not -name "*.jpg" -not -name "*.jpeg" \
             -not -name "*.gif" -not -name "*.ico" -not -name "*.jar" \
             -not -name "*.zip" -not -name "*.aar" | while read file; do
@@ -26,18 +28,18 @@ jobs:
               sed -i 's/mojo/fear/g' "$file"
             fi
           done
-          echo "✅ Rename complete (workflows skipped)."
+          echo "✅ Rename complete."
 
-      - name: Update package name in build.gradle
+      - name: Update package name
         run: |
           find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
-          echo "✅ Package name updated."
 
-      - name: Commit
+      - name: Commit (skip .gitmodules and submodule folder)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git reset .github/workflows/
-          git diff --cached --quiet || git commit -m "Rename: Mojo -> Fear (workflows unchanged)"
+          git reset .gitmodules || true
+          git reset dnbglfw/src/main/cpp/glfw || true
+          git diff --cached --quiet || git commit -m "Rename: Mojo -> Fear (submodules skipped)"
           git push origin HEAD:${GITHUB_REF_NAME}
