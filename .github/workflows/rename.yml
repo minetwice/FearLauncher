@@ -1,4 +1,4 @@
-name: Nuclear Rename to FearLauncher
+name: Nuclear Rename (With PAT)
 
 on:
   workflow_dispatch:
@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Replace all occurrences of "Mojo" with "Fear" (case-sensitive)
+      - name: Replace all "Mojo" with "Fear"
         run: |
-          # Replace in all files except binary and .git
           find . -type f -not -path "./.git/*" -not -name "*.png" -not -name "*.jpg" -not -name "*.jpeg" -not -name "*.gif" -not -name "*.ico" -not -name "*.jar" -not -name "*.zip" -not -name "*.aar" | while read file; do
             if file "$file" | grep -q "text"; then
               sed -i 's/MojoLauncher/FearLauncher/g' "$file"
@@ -24,28 +25,15 @@ jobs:
             fi
           done
 
-      - name: Rename package directories (if any)
+      - name: Update package name
         run: |
-          # Rename any directories containing "mojo"
-          find . -type d -name "*mojo*" -not -path "./.git/*" | while read dir; do
-            newdir=$(echo "$dir" | sed 's/mojo/fear/g' | sed 's/Mojo/Fear/g')
-            if [ "$dir" != "$newdir" ]; then
-              mv "$dir" "$newdir"
-              echo "Renamed directory: $dir -> $newdir"
-            fi
-          done
-
-      - name: Update package name in build.gradle (optional)
-        run: |
-          # Change applicationId from git.artdeell.mojo to com.minetwice.fearlauncher (example)
-          # You can customize this
           find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
-          echo "✅ Package name updated in build.gradle"
+          echo "✅ Package name updated."
 
-      - name: Commit all changes
+      - name: Commit and push everything (including workflows)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --cached --quiet || git commit -m "Nuclear rename: Mojo -> Fear everywhere"
+          git diff --cached --quiet || git commit -m "Full rename: Mojo -> Fear (including workflows)"
           git push origin HEAD:${GITHUB_REF_NAME}
