@@ -28,14 +28,15 @@ jobs:
           done
           echo "✅ Rename complete (workflows skipped)."
 
-      - name: Update package name
+      - name: Update package name in build.gradle
         run: |
           find app_pojavlauncher -name "build.gradle" -exec sed -i 's/applicationId "git.artdeell.mojo"/applicationId "com.minetwice.fearlauncher"/g' {} \;
+          echo "✅ Package name updated."
 
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
-          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git reset .github/workflows/
           git diff --cached --quiet || git commit -m "Rename: Mojo -> Fear (workflows unchanged)"
