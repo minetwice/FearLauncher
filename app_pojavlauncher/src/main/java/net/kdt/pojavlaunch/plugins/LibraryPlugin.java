@@ -13,8 +13,8 @@ public class LibraryPlugin {
     private static final String TAG = "LibraryPlugin";
 
     // Known plugins constants
-    public static final String ID_ANGLE_PLUGIN = "git.mojo.angle";
-    public static final String ID_FFMPEG_PLUGIN = "git.mojo.ffmpeg";
+    public static final String ID_ANGLE_PLUGIN = "git.fear.angle";
+    public static final String ID_FFMPEG_PLUGIN = "git.fear.ffmpeg";
 
     private String appId;
     private String libraryPath;

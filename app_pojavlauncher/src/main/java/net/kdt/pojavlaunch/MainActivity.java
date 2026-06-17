@@ -69,7 +69,7 @@ import java.util.Objects;
 import git.artdeell.dnbootstrap.glfw.AndroidClipboardProvider;
 import git.artdeell.dnbootstrap.glfw.GLFW;
 import git.artdeell.dnbootstrap.glfw.GLFWCursorView;
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 public class MainActivity extends BaseActivity implements ControlButtonMenuListener, EditorExitable, ServiceConnection {
     public static final String INTENT_MINECRAFT_VERSION = "intent_version";

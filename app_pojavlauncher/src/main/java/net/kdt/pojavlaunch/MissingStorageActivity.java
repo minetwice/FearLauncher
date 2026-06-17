@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 public class MissingStorageActivity extends AppCompatActivity {
     @Override

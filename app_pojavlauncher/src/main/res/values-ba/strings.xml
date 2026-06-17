@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
     <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">MojoLauncher</string>
+    <string name="app_short_name">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
@@ -13,7 +13,7 @@
     <!-- AlertDialog title -->
     <string name="alerttitle_installmod">Мода ҡуйыусыһын һайлағыҙ</string>
     <!-- Error messages -->
-    <string name="error_fatal">Көтмәгәндә MojoLauncher программаһының эше боҙолоп китә</string>
+    <string name="error_fatal">Көтмәгәндә FearLauncher программаһының эше боҙолоп китә</string>
     <string name="error_no_version">Версиялар юҡ!</string>
     <string name="error_show_more">Күберәк</string>
     <string name="error_show_less">Әҙерәк</string>

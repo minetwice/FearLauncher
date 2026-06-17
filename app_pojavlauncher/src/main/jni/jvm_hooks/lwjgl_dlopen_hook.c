@@ -32,7 +32,7 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
         return (jlong) pojavexec_loadVulkanDriver();
     }
     // Load renderer using egl_acquire
-    if(strstr(filename, "libGLMojo.so") == filename) {
+    if(strstr(filename, "libGLFear.so") == filename) {
         printf("LWJGL linkerhook: replacing OpenGL with renderspec driver\n");
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         return (jlong) rspec->egl_acquire(rspec->egl_path);

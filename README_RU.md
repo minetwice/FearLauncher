@@ -1,20 +1,20 @@
-<H1 align="center">MojoLauncher</H1>
+<H1 align="center">FearLauncher</H1>
 
 <a href="./README.md">Readme in English</a>
 
-<img src="./app_pojavlauncher/src/main/assets/pojavlauncher.png" align="left" width="150" height="150" alt="MojoLauncher logo">
+<img src="./app_pojavlauncher/src/main/assets/pojavlauncher.png" align="left" width="150" height="150" alt="FearLauncher logo">
 
-[![Android CI](https://github.com/MojoLauncher/MojoLauncher/workflows/Android%20CI/badge.svg)](https://github.com/MojoLauncher/MojoLauncher/actions)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/MojoLauncher/MojoLauncher)](https://github.com/MojoLauncher/MojoLauncher/actions)
+[![Android CI](https://github.com/FearLauncher/FearLauncher/workflows/Android%20CI/badge.svg)](https://github.com/FearLauncher/FearLauncher/actions)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/FearLauncher/FearLauncher)](https://github.com/FearLauncher/FearLauncher/actions)
 [![Discord](https://img.shields.io/discord/1365346109131722753.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/VHdwQFsaGX)
 
-* MojoLauncher это лаунчер, основанный на [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher), позволяющий играть в Minecraft: Java Edition на устройствах Android!
+* FearLauncher это лаунчер, основанный на [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher), позволяющий играть в Minecraft: Java Edition на устройствах Android!
 
 * Он может запускать почти любую версию Minecraft, позволяя устанваливать через .jar загрузчики модов такие как [Forge](https://files.minecraftforge.net/) и [Fabric](http://fabricmc.net/), и моды по типу [OptiFine](https://optifine.net).
 
 ## Навигация
 - [Введение](#introduction)
-- [Как получить MojoLauncher](#getting-mojolauncher)
+- [Как получить FearLauncher](#getting-fearlauncher)
 - [Сборка](#building) 
 - [Текущие планы](#current-roadmap) 
 - [Лицензия](#license) 
@@ -22,20 +22,20 @@
 - [Благодарности & Сторонние компоненты и их лицензии](#credits--third-party-components-and-their-licenses-if-available)
 
 ## Введение 
-* MojoLauncher это лаунчер Minecraft: Java Edition для Android основанный на [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher)
+* FearLauncher это лаунчер Minecraft: Java Edition для Android основанный на [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher)
 * Лаунчер может запускать почти все доступные версии Minecraft в диапазоне от rd-132211 до снапшотов 26.x (включая версии Combat Test). 
 * Моддинг через Forge и Fabric так же поддерживается. 
 
-## Как получить MojoLauncher
+## Как получить FearLauncher
 
-Получить копию MojoLauncher можно четырьмя способами:
+Получить копию FearLauncher можно четырьмя способами:
 
-1. Можно скачать готовый билд с раздела [релизов](http://github.com/mojolauncher/mojolauncher/releases).
+1. Можно скачать готовый билд с раздела [релизов](http://github.com/fearlauncher/fearlauncher/releases).
 
 2. Можно скачать с Google Play нажав на кнопку ниже:
-[![Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=git.artdeell.mojo)
+[![Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=git.artdeell.fear)
 
-3. Можно скачать с ранние билды с [Github Actions](http://github.com/mojolauncher/mojolauncher/actions).
+3. Можно скачать с ранние билды с [Github Actions](http://github.com/fearlauncher/fearlauncher/actions).
 
 4. Можно [собрать](#building) с исходного кода.
 ## Сборка  
@@ -63,7 +63,7 @@
 - Скорее всего есть ещё, поэтому у нас есть баг-трекер ;) 
 
 ## Лицензия
-- MojoLauncher лицензирован под [GNU LGPLv3](https://github.com/MojoLauncher/MojoLauncher/blob/v3_openjdk/LICENSE).
+- FearLauncher лицензирован под [GNU LGPLv3](https://github.com/FearLauncher/FearLauncher/blob/v3_openjdk/LICENSE).
 
 ## Внести свой вклад в проект
 Мы привествуем желающих внести свой вклад в проект! Нам не помешает любая помощь, не только код. Например, вы можете помочь в разработке и формировании вики. Вы так же можете помочь [перевести проект](https://crowdin.com/project/pojavlauncher) на ваш язык!
@@ -77,7 +77,7 @@
 - Android Support Libraries: [Apache License 2.0](https://android.googlesource.com/platform/prebuilts/maven_repo/android/+/master/NOTICE.txt).
 - [GL4ES](https://github.com/PojavLauncherTeam/gl4es): [MIT License](https://github.com/ptitSeb/gl4es/blob/master/LICENSE).<br>
 - [OpenJDK](https://github.com/PojavLauncherTeam/openjdk-multiarch-jdk8u): [GNU GPLv2 License](https://openjdk.java.net/legal/gplv2+ce.html).<br>
-- [LWJGL3](https://github.com/MojoLauncher/lwjgl3): [BSD-3 License](https://github.com/LWJGL/lwjgl3/blob/master/LICENSE.md).
+- [LWJGL3](https://github.com/FearLauncher/lwjgl3): [BSD-3 License](https://github.com/LWJGL/lwjgl3/blob/master/LICENSE.md).
 - [Mesa 3D Graphics Library](https://gitlab.freedesktop.org/mesa/mesa): [MIT License](https://docs.mesa3d.org/license.html).
 - [pro-grade](https://github.com/pro-grade/pro-grade) (Менеджер контейнеризации Java): [Apache License 2.0](https://github.com/pro-grade/pro-grade/blob/master/LICENSE.txt).
 - [bhook](https://github.com/bytedance/bhook) (Используется для получения кода ошибки): [MIT license](https://github.com/bytedance/bhook/blob/main/LICENSE).

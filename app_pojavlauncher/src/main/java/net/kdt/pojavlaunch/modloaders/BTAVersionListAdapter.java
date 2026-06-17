@@ -8,7 +8,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListAdapter;
 import android.widget.TextView;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 import java.util.ArrayList;
 import java.util.List;

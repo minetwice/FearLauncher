@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import net.kdt.pojavlaunch.MainActivity;
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;

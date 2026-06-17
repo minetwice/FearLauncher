@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 public class GameRunner {
     /**
@@ -267,7 +267,7 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLMojo.so");
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLFear.so");
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());

@@ -50,7 +50,7 @@ configurations {
 }
 
 android {
-    namespace 'git.artdeell.mojo'
+    namespace 'git.artdeell.fear'
 
     compileSdk = 36
 
@@ -66,13 +66,13 @@ android {
             keyPassword "android"
         }
         googlePlayBuild {
-            storeFile file("mojo_upload.jks")
+            storeFile file("fear_upload.jks")
             storePassword System.getenv("UPLOAD_KEYSTORE_PASSWORD")
             keyAlias "key0"
             keyPassword System.getenv("UPLOAD_KEYSTORE_PASSWORD")
         }
         publicBuild {
-            storeFile file("mojo_pub.jks")
+            storeFile file("fear_pub.jks")
             storePassword System.getenv("MOJOPUB_KEYSTORE_PASSWORD")
             keyAlias "key0"
             keyPassword System.getenv("MOJOPUB_KEYSTORE_PASSWORD")
@@ -80,7 +80,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "git.artdeell.mojo"
+        applicationId "git.artdeell.fear"
         minSdkVersion 21
         targetSdkVersion 36
         versionCode getDateSeconds()
@@ -109,8 +109,8 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.customDebug
-            resValue 'string', 'application_package', 'git.artdeell.mojo.debug'
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.scoped.gamefolder.debug'
+            resValue 'string', 'application_package', 'git.artdeell.fear.debug'
+            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.fear.scoped.gamefolder.debug'
         }
         proguard {
             initWith debug
@@ -129,8 +129,8 @@ android {
             // defaultConfig already set
             // multiDexEnabled = true
             // debuggable = true
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.scoped.gamefolder'
-            resValue 'string', 'application_package', 'git.artdeell.mojo'
+            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.fear.scoped.gamefolder'
+            resValue 'string', 'application_package', 'git.artdeell.fear'
         }
         gplay {
             initWith release
@@ -140,8 +140,8 @@ android {
             initWith release
             signingConfig signingConfigs.customDebug // WIP, changeme
             applicationIdSuffix '.pub'
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.pub.scoped.gamefolder'
-            resValue 'string', 'application_package', 'git.artdeell.mojo.pub'
+            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.fear.pub.scoped.gamefolder'
+            resValue 'string', 'application_package', 'git.artdeell.fear.pub'
         }
     }
 
@@ -284,7 +284,7 @@ class AssetTaskRegistrar {
     }
 
     def jreRuntimeDependency(int version, String relPath) {
-        def jreUrl = "https://github.com/MojoLauncher/android-openjdk-build-multiarch/releases/download/rolling/jre%d-pojav.zip"
+        def jreUrl = "https://github.com/FearLauncher/android-openjdk-build-multiarch/releases/download/rolling/jre%d-pojav.zip"
         onlineZipDependency(String.format(jreUrl, version), "ComponentRuntime$version", relPath)
     }
 }
@@ -301,7 +301,7 @@ afterEvaluate {
             registrar.jreRuntimeDependency 8, "components/jre"
         }
         
-		def cacioJarUrl = "https://jitpack.io/com/github/MojoLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
+		def cacioJarUrl = "https://jitpack.io/com/github/FearLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
 
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-shared", "-01d2dc1d65-1", "", "components/caciocavallo"
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-androidnw", "-01d2dc1d65-1", "", "components/caciocavallo"
@@ -338,7 +338,7 @@ dependencies {
     implementation 'net.sourceforge.htmlcleaner:htmlcleaner:2.29'
     implementation 'com.bytedance:bytehook:1.1.1'
 
-    implementation 'com.github.MojoLauncher:alsoft-android-aar:f369161d5f'
+    implementation 'com.github.FearLauncher:alsoft-android-aar:f369161d5f'
 
     implementation project(":dnbglfw")
 

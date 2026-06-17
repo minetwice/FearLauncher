@@ -10,7 +10,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 public class DrawerPullButton extends View {
     public DrawerPullButton(Context context) {super(context); init();}

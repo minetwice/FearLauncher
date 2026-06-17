@@ -24,10 +24,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 
 public class NewJREUtil {
-    private static final String DOWNLOAD_URL = "https://mojolauncher.github.io/jre-download/";
+    private static final String DOWNLOAD_URL = "https://fearlauncher.github.io/jre-download/";
     
     private static String getRemoteRuntimeVersion(InternalRuntime internalRuntime) throws IOException{
         return DownloadUtils.downloadString(DOWNLOAD_URL+internalRuntime.path+"/version");

@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.res.ResourcesCompat;
 
-import git.artdeell.mojo.R;
+import git.artdeell.fear.R;
 import net.kdt.pojavlaunch.Tools;
 
 /**
