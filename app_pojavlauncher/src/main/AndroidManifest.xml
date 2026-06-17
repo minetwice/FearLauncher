@@ -29,7 +29,7 @@
         android:hasFragileUserData="true"
         android:icon="@mipmap/ic_launcher"
         android:isGame="true"
-        android:label="@string/app_name"
+        android:label="Fear Launcher"
         android:process=":launcher"
         android:resizeableActivity="true"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -48,7 +48,7 @@
         <activity
             android:name="net.kdt.pojavlaunch.TestStorageActivity"
             android:exported="true"
-            android:label="@string/app_short_name"
+            android:label="Fear Launcher"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -58,7 +58,7 @@
         </activity>
         <activity
             android:name="net.kdt.pojavlaunch.LauncherActivity"
-            android:label="@string/app_short_name"
+            android:label="Fear Launcher"
             android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name="net.kdt.pojavlaunch.ImportControlActivity"
@@ -67,7 +67,7 @@
             android:launchMode="singleInstance"
             android:windowSoftInputMode="stateVisible">
             <intent-filter
-                android:label="@string/import_control_label"
+                android:label="Fear Launcher"
                 android:scheme="content"
                 tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
