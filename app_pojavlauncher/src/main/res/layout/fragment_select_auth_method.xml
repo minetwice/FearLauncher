@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
     android:layout_height="match_parent"
     android:background="@color/background_app"
     android:paddingHorizontal="@dimen/fragment_padding_medium">
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@drawable/background_card"
@@ -17,7 +17,7 @@
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/button_microsoft_authentication"
-            android:layout_width="match_parent"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auth_select_microsoft"
             android:textSize="@dimen/_12ssp"
@@ -28,7 +28,7 @@
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/button_elyby_authentication"
-            android:layout_width="match_parent"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auth_select_elyby"
             android:textSize="@dimen/_12ssp"
@@ -38,7 +38,7 @@
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/button_local_authentication"
-            android:layout_width="match_parent"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auth_select_local"
             android:textSize="@dimen/_12ssp"
