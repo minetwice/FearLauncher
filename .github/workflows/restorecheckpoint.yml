@@ -16,7 +16,6 @@ jobs:
 
       - name: Download checkpoint from release
         run: |
-          # Check if the "checkpoint" release exists
           if ! gh release view checkpoint > /dev/null 2>&1; then
             echo "No checkpoint release found. Please create one using the Save Checkpoint workflow first."
             exit 1
@@ -28,8 +27,8 @@ jobs:
 
       - name: Extract and overwrite files
         run: |
-          # Remove all current files (except .git and checkpoint tarball)
-          find . -not -path "./.git/*" -not -name "checkpoint.tar.gz" -not -path "." -delete
+          # Delete everything except .git and the tarball
+          find . -maxdepth 1 -not -name "." -not -name ".git" -not -name "checkpoint.tar.gz" -exec rm -rf {} \;
           # Extract archive
           tar -xzf checkpoint.tar.gz
           rm checkpoint.tar.gz
