@@ -1,4 +1,4 @@
-name: Fix Dependency URLs
+name: Restore Original Build Files from MojoLauncher
 
 on:
   workflow_dispatch:
@@ -7,25 +7,24 @@ permissions:
   contents: write
 
 jobs:
-  fix-deps:
+  restore:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: false
 
-      - name: Replace FearLauncher with MojoLauncher in all build.gradle files
+      - name: Download original build.gradle from MojoLauncher
         run: |
-          # Fix GitHub URLs
-          find . -name "build.gradle" -exec sed -i 's|https://github.com/FearLauncher/|https://github.com/MojoLauncher/|g' {} \;
-          # Fix JitPack group IDs
-          find . -name "build.gradle" -exec sed -i 's|com.github.FearLauncher|com.github.MojoLauncher|g' {} \;
-          # Fix specific dependency paths
-          find . -name "build.gradle" -exec sed -i 's|FearLauncher/android-openjdk|MojoLauncher/android-openjdk|g' {} \;
-          find . -name "build.gradle" -exec sed -i 's|FearLauncher/caciocavallo|MojoLauncher/caciocavallo|g' {} \;
-          echo "✅ Dependency URLs fixed."
+          # App module build.gradle
+          curl -o app_pojavlauncher/build.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/build.gradle
+          # Root build.gradle (if exists)
+          curl -o build.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/build.gradle
+          # Settings.gradle
+          curl -o settings.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/settings.gradle
+          echo "✅ Downloaded original build files."
 
-      - name: Also check .gitmodules (just in case)
+      - name: Fix .gitmodules (point to MojoLauncher/glfw)
         run: |
           if [ -f .gitmodules ]; then
             sed -i 's|https://github.com/FearLauncher/glfw|https://github.com/MojoLauncher/glfw|g' .gitmodules
@@ -36,6 +35,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add . **/build.gradle .gitmodules
-          git diff --cached --quiet || git commit -m "Fix dependency URLs: revert to MojoLauncher"
+          git add app_pojavlauncher/build.gradle build.gradle settings.gradle .gitmodules
+          git diff --cached --quiet || git commit -m "Restore original build files from MojoLauncher"
           git push origin HEAD:${GITHUB_REF_NAME}
