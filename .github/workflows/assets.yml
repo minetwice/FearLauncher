@@ -1,0 +1,184 @@
+name: Apply Silver-Blue Theme & Animations
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  theme:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Update colors.xml with silver-blue theme
+      - name: Set colors
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="background_app">#E8EEF0</color>
+              <color name="background_status_bar">#CFD8DC</color>
+              <color name="background_bottom_bar">#F5F7F8</color>
+              <color name="background_overlay">#B0BEC5</color>
+              <color name="control_button_color">#90A4AE</color>
+              <color name="control_button_pressed_color">#78909C</color>
+              <color name="divider">#B0BEC5</color>
+              <color name="icon_outline_color">#455A64</color>
+              <color name="primary_text">#212121</color>
+              <color name="secondary_text">#546E7A</color>
+              <color name="minebutton_color">#90A4AE</color>
+              <color name="accent_blue">#3F51B5</color>
+          </resources>
+          EOF
+
+      # 2. Create animated gradient background (TransitionDrawable)
+      - name: Create gradient backgrounds
+        run: |
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient
+                  android:startColor="#E8EEF0"
+                  android:endColor="#CFD8DC"
+                  android:angle="45"
+                  android:type="linear" />
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient
+                  android:startColor="#CFD8DC"
+                  android:endColor="#B0BEC5"
+                  android:angle="135"
+                  android:type="linear" />
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
+          <transition xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:drawable="@drawable/grad_silver_blue_1" />
+              <item android:drawable="@drawable/grad_silver_blue_2" />
+          </transition>
+          EOF
+
+      # 3. Create button click animation (scale)
+      - name: Create button animation
+        run: |
+          mkdir -p app_pojavlauncher/src/main/res/anim
+          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
+          <set xmlns:android="http://schemas.android.com/apk/res/android">
+              <scale
+                  android:duration="150"
+                  android:fromXScale="1.0"
+                  android:fromYScale="1.0"
+                  android:toXScale="0.95"
+                  android:toYScale="0.95"
+                  android:pivotX="50%"
+                  android:pivotY="50%" />
+              <scale
+                  android:duration="150"
+                  android:fromXScale="0.95"
+                  android:fromYScale="0.95"
+                  android:toXScale="1.0"
+                  android:toYScale="1.0"
+                  android:pivotX="50%"
+                  android:pivotY="50%"
+                  android:startOffset="150" />
+          </set>
+          EOF
+
+      # 4. Create ripple button drawable with rounded corners
+      - name: Create button drawables
+        run: |
+          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="@color/control_button_color"/>
+              <corners android:radius="16dp"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
+          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
+              android:color="@color/accent_blue">
+              <item android:drawable="@drawable/btn_rounded"/>
+          </ripple>
+          EOF
+
+      # 5. Update styles.xml with custom font, black text, and animations
+      - name: Set styles
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="android:windowBackground">@drawable/bg_animated_gradient</item>
+                  <item name="android:colorBackground">@color/background_app</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="colorPrimary">@color/control_button_color</item>
+                  <item name="colorPrimaryDark">@color/background_status_bar</item>
+                  <item name="colorAccent">@color/accent_blue</item>
+              </style>
+
+              <style name="RoundedButton" parent="Widget.AppCompat.Button">
+                  <item name="android:background">@drawable/btn_ripple</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:textSize">14sp</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:stateListAnimator">@anim/button_click</item>
+                  <item name="android:padding">12dp</item>
+              </style>
+
+              <style name="LauncherMenuButton">
+                  <item name="android:layout_width">wrap_content</item>
+                  <item name="android:layout_height">wrap_content</item>
+                  <item name="android:minHeight">48dp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:background">?attr/selectableItemBackground</item>
+              </style>
+
+              <style name="ThickDivider">
+                  <item name="android:layout_width">match_parent</item>
+                  <item name="android:layout_height">2dp</item>
+                  <item name="android:background">@color/divider</item>
+              </style>
+
+              <style name="LauncherFragment_Divider" parent="ThickDivider">
+                  <item name="android:layout_marginTop">8dp</item>
+                  <item name="android:layout_marginBottom">8dp</item>
+              </style>
+          </resources>
+          EOF
+
+      # 6. Auto-start transition animation in LauncherActivity
+      - name: Enable background animation
+        run: |
+          JAVA="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java"
+          if grep -q "setContentView" "$JAVA"; then
+            sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
+            // Start animated background transition\n\
+            android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getWindow().getDecorView().getBackground();\n\
+            if (transition != null) transition.startTransition(3000);' "$JAVA"
+          fi
+
+      # 7. Apply RoundedButton style to all buttons in layouts
+      - name: Apply button style
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button style="@style\/RoundedButton" /g' {} \;
+
+      # 8. Set text color to primary_text (black) in all layouts
+      - name: Enforce black text
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="#[^"]*"/android:textColor="@color\/primary_text"/g' {} \;
+
+      # 9. Commit all changes
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/
+          git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java
+          git diff --cached --quiet || git commit -m "Apply silver-blue theme, animations, black text, custom font"
+          git push origin HEAD:${GITHUB_REF_NAME}
