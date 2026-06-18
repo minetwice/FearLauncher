@@ -80,8 +80,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import git.artdeell.fear.BuildConfig;
-import git.artdeell.fear.R;
+import git.artdeell.mojo.BuildConfig;
+import git.artdeell.mojo.R;
 
 @SuppressWarnings("IOStreamConstructor")
 public final class Tools {

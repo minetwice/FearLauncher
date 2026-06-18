@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 public class Downloader {
     private static final double ONE_MEGABYTE = (1024d * 1024d);

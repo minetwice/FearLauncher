@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 import fr.spse.gamepad_remapper.Remapper;
 

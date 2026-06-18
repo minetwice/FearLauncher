@@ -28,7 +28,7 @@ import com.kdt.pickafile.FileSelectedListener;
 import net.kdt.pojavlaunch.MinecraftGLSurface;
 
 import git.artdeell.dnbootstrap.glfw.GLFW;
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.customcontrols.buttons.ControlButton;
 import net.kdt.pojavlaunch.customcontrols.buttons.ControlDrawer;

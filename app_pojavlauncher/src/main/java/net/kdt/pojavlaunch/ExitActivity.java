@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 @Keep
 public class ExitActivity extends AppCompatActivity {

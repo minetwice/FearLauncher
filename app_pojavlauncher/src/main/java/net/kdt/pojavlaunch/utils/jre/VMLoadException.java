@@ -4,7 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 public class VMLoadException extends Exception {
     private final int loadStep;

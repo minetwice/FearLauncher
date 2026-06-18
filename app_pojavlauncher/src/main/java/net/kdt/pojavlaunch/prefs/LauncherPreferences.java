@@ -18,7 +18,7 @@ import net.kdt.pojavlaunch.utils.JREUtils;
 
 import java.io.IOException;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 public class LauncherPreferences {
     public static final String PREF_KEY_CURRENT_INSTANCE = "currentInstance";

@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 public class RendererCompatUtil {
     private static RenderersList sCompatibleRenderers;

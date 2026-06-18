@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import git.artdeell.fear.R;
+import git.artdeell.mojo.R;
 
 public class NewJREUtil {
     private static final String DOWNLOAD_URL = "https://fearlauncher.github.io/jre-download/";
