@@ -1,4 +1,4 @@
-name: Apply Silver-Blue Theme & Animations
+name: Apply Silver-Blue Theme & Animations (Fixed)
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Update colors.xml with silver-blue theme
+      # 1. Set colors (same as before)
       - name: Set colors
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
@@ -62,7 +62,7 @@ jobs:
           </transition>
           EOF
 
-      # 3. Create button click animation (scale)
+      # 3. Create button click animation and drawables
       - name: Create button animation
         run: |
           mkdir -p app_pojavlauncher/src/main/res/anim
@@ -87,10 +87,6 @@ jobs:
                   android:startOffset="150" />
           </set>
           EOF
-
-      # 4. Create ripple button drawable with rounded corners
-      - name: Create button drawables
-        run: |
           cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
               <solid android:color="@color/control_button_color"/>
@@ -104,10 +100,10 @@ jobs:
           </ripple>
           EOF
 
-      # 5. Update styles.xml with custom font, black text, and animations
-      - name: Set styles
+      # 4. Update themes.xml to use animated gradient as windowBackground
+      - name: Set theme with animated background
         run: |
-          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -119,7 +115,15 @@ jobs:
                   <item name="colorPrimaryDark">@color/background_status_bar</item>
                   <item name="colorAccent">@color/accent_blue</item>
               </style>
+          </resources>
+          EOF
 
+      # 5. Update styles.xml (button styles, etc.)
+      - name: Set styles
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
               <style name="RoundedButton" parent="Widget.AppCompat.Button">
                   <item name="android:background">@drawable/btn_ripple</item>
                   <item name="android:textColor">@color/primary_text</item>
@@ -152,23 +156,25 @@ jobs:
           </resources>
           EOF
 
-      # 6. Auto-start transition animation in LauncherActivity
+      # 6. CORRECTLY enable background animation in Java (fixed)
       - name: Enable background animation
         run: |
           JAVA="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java"
-          if grep -q "setContentView" "$JAVA"; then
-            sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
-            // Start animated background transition\n\
-            android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getWindow().getDecorView().getBackground();\n\
-            if (transition != null) transition.startTransition(3000);' "$JAVA"
-          fi
+          # Remove any previous transition code
+          sed -i '/TransitionDrawable transition/d' "$JAVA"
+          sed -i '/transition.startTransition/d' "$JAVA"
+          # Insert correct code after setContentView
+          sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
+          // Start animated background transition\n\
+          android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getTheme().obtainStyledAttributes(new int[]{android.R.attr.windowBackground}).getDrawable(0);\n\
+          if (transition != null) transition.startTransition(3000);' "$JAVA"
 
-      # 7. Apply RoundedButton style to all buttons in layouts
+      # 7. Apply RoundedButton style to all buttons
       - name: Apply button style
         run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button style="@style\/RoundedButton" /g' {} \;
 
-      # 8. Set text color to primary_text (black) in all layouts
+      # 8. Enforce black text
       - name: Enforce black text
         run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="#[^"]*"/android:textColor="@color\/primary_text"/g' {} \;
@@ -180,5 +186,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java
-          git diff --cached --quiet || git commit -m "Apply silver-blue theme, animations, black text, custom font"
+          git diff --cached --quiet || git commit -m "Fix animated background: use theme windowBackground, safe cast"
           git push origin HEAD:${GITHUB_REF_NAME}
