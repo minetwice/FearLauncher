@@ -1,0 +1,231 @@
+name: Full Assets Inventory Report
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inventory:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y imagemagick file
+          python -m pip install --upgrade pip
+
+      - name: Run comprehensive asset scan
+        run: |
+          python3 << 'PYTHON'
+          import os
+          import re
+          import json
+          import subprocess
+          from pathlib import Path
+          from collections import defaultdict
+
+          # ------------------------------
+          # 1. Scan all PNG files
+          # ------------------------------
+          repo_root = Path('.')
+          png_files = []
+          total_png = 0
+
+          for root, dirs, files in os.walk(repo_root):
+              # Skip .git
+              if '.git' in root.split(os.sep):
+                  continue
+              for file in files:
+                  if file.lower().endswith('.png'):
+                      path = os.path.join(root, file)
+                      rel_path = os.path.relpath(path, repo_root)
+                      size = os.path.getsize(path)
+                      # Try to get dimensions using file command
+                      dims = "unknown"
+                      try:
+                          out = subprocess.check_output(['file', path], universal_newlines=True)
+                          match = re.search(r'(\d+)\s*x\s*(\d+)', out)
+                          if match:
+                              dims = f"{match.group(1)}x{match.group(2)}"
+                      except:
+                          pass
+                      # Determine density folder (drawable-ldpi, etc.)
+                      folder = os.path.basename(root)
+                      png_files.append({
+                          'path': rel_path,
+                          'file': file,
+                          'size': size,
+                          'dimensions': dims,
+                          'folder': folder,
+                          'full_path': path
+                      })
+                      total_png += 1
+
+          print(f"✅ Found {total_png} PNG files.")
+
+          # ------------------------------
+          # 2. Find all color definitions
+          # ------------------------------
+          colors_def = {}  # name -> hex
+          colors_files = []
+          for root, dirs, files in os.walk(repo_root):
+              if '.git' in root.split(os.sep):
+                  continue
+              for file in files:
+                  if file == 'colors.xml':
+                      path = os.path.join(root, file)
+                      rel_path = os.path.relpath(path, repo_root)
+                      colors_files.append(rel_path)
+                      with open(path, 'r', encoding='utf-8') as f:
+                          content = f.read()
+                      # Find <color name="...">#...</color>
+                      pattern = r'<color\s+name="([^"]+)"\s*>([^<]+)</color>'
+                      matches = re.findall(pattern, content)
+                      for name, value in matches:
+                          value = value.strip()
+                          colors_def[name] = value
+
+          print(f"✅ Found {len(colors_def)} color definitions in {len(colors_files)} files.")
+
+          # ------------------------------
+          # 3. Find hardcoded colors in XML/Java
+          # ------------------------------
+          hardcoded_colors = []  # list of dicts {file, line, color}
+          for root, dirs, files in os.walk(repo_root):
+              if '.git' in root.split(os.sep):
+                  continue
+              for file in files:
+                  if file.endswith(('.xml', '.java', '.kt')):
+                      path = os.path.join(root, file)
+                      rel_path = os.path.relpath(path, repo_root)
+                      with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                          lines = f.readlines()
+                      for i, line in enumerate(lines, 1):
+                          # Find hex colors #RRGGBB or #AARRGGBB
+                          hex_matches = re.findall(r'#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})', line)
+                          for hex_val in hex_matches:
+                              hardcoded_colors.append({
+                                  'file': rel_path,
+                                  'line': i,
+                                  'color': f'#{hex_val}'
+                              })
+
+          print(f"✅ Found {len(hardcoded_colors)} hardcoded color references.")
+
+          # ------------------------------
+          # 4. Find references to PNGs in layouts, menus, Java, etc.
+          # ------------------------------
+          png_refs = defaultdict(list)  # png_filename -> list of {file, line, context}
+          for root, dirs, files in os.walk(repo_root):
+              if '.git' in root.split(os.sep):
+                  continue
+              for file in files:
+                  if file.endswith(('.xml', '.java', '.kt')):
+                      path = os.path.join(root, file)
+                      rel_path = os.path.relpath(path, repo_root)
+                      with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                          lines = f.readlines()
+                      for i, line in enumerate(lines, 1):
+                          # Find references like @drawable/xxx or R.drawable.xxx
+                          # Also find .png filenames directly
+                          refs = re.findall(r'@drawable/([a-zA-Z0-9_]+)', line)
+                          refs += re.findall(r'R\.drawable\.([a-zA-Z0-9_]+)', line)
+                          refs += re.findall(r'([a-zA-Z0-9_]+)\.png', line)
+                          for ref in set(refs):
+                              # Check if this ref matches a PNG file name (without extension)
+                              # We'll store the ref with file and line
+                              png_refs[ref].append({
+                                  'file': rel_path,
+                                  'line': i,
+                                  'line_content': line.strip()[:60]
+                              })
+
+          print(f"✅ Found {len(png_refs)} unique PNG references.")
+
+          # ------------------------------
+          # 5. Generate report
+          # ------------------------------
+          report_lines = []
+          report_lines.append("=" * 80)
+          report_lines.append("       FEAR LAUNCHER - COMPLETE ASSETS INVENTORY")
+          report_lines.append("=" * 80)
+          report_lines.append(f"Generated: {subprocess.check_output(['date']).decode().strip()}")
+          report_lines.append("")
+
+          # Summary
+          report_lines.append("📊 SUMMARY")
+          report_lines.append("-" * 40)
+          report_lines.append(f"Total PNG files:          {total_png}")
+          report_lines.append(f"Total color definitions:   {len(colors_def)}")
+          report_lines.append(f"Hardcoded colors found:    {len(hardcoded_colors)}")
+          report_lines.append(f"Unique PNG references:     {len(png_refs)}")
+          report_lines.append("")
+
+          # PNG list with details
+          report_lines.append("📁 PNG FILES")
+          report_lines.append("-" * 40)
+          for png in png_files:
+              report_lines.append(f"  File: {png['file']}")
+              report_lines.append(f"    Path: {png['path']}")
+              report_lines.append(f"    Folder: {png['folder']}")
+              report_lines.append(f"    Size: {png['size']} bytes")
+              report_lines.append(f"    Dimensions: {png['dimensions']}")
+              # Find references
+              refs = png_refs.get(png['file'].replace('.png',''), [])
+              if refs:
+                  report_lines.append(f"    Used in:")
+                  for ref in refs[:5]:  # limit to 5
+                      report_lines.append(f"      - {ref['file']} (line {ref['line']})")
+                  if len(refs) > 5:
+                      report_lines.append(f"      ... and {len(refs)-5} more")
+              else:
+                  report_lines.append("    Used in: (none found)")
+              report_lines.append("")
+
+          # Color definitions
+          report_lines.append("🎨 COLOR DEFINITIONS")
+          report_lines.append("-" * 40)
+          for name, hex_val in sorted(colors_def.items()):
+              report_lines.append(f"  {name}: {hex_val}")
+
+          # Hardcoded colors
+          report_lines.append("\n🔍 HARDCODED COLORS")
+          report_lines.append("-" * 40)
+          for hc in hardcoded_colors[:20]:  # limit
+              report_lines.append(f"  {hc['color']} in {hc['file']} line {hc['line']}")
+          if len(hardcoded_colors) > 20:
+              report_lines.append(f"  ... and {len(hardcoded_colors)-20} more")
+
+          # Raw JSON data (for machine parsing)
+          json_data = {
+              'png_files': png_files,
+              'colors': colors_def,
+              'hardcoded_colors': hardcoded_colors,
+              'png_references': dict(png_refs)
+          }
+
+          # Write text report
+          with open('assets-inventory.txt', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(report_lines))
+
+          # Write JSON
+          with open('assets-inventory.json', 'w') as f:
+              json.dump(json_data, f, indent=2)
+
+          print("✅ Reports generated: assets-inventory.txt and assets-inventory.json")
+          PYTHON
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets-inventory
+          path: |
+            assets-inventory.txt
+            assets-inventory.json
