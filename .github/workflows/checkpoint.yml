@@ -21,7 +21,8 @@ jobs:
 
       - name: Archive repository state
         run: |
-          # Create a tarball of the entire repo, excluding unnecessary folders
+          # Use a temporary name to avoid self-inclusion
+          TMP_ARCHIVE="/tmp/checkpoint.tar.gz"
           tar --exclude='.git' \
               --exclude='build' \
               --exclude='app_pojavlauncher/build' \
@@ -30,12 +31,13 @@ jobs:
               --exclude='.idea' \
               --exclude='.gradle' \
               --exclude='local.properties' \
-              -czf checkpoint.tar.gz .
+              --exclude='checkpoint.tar.gz' \
+              -czf "$TMP_ARCHIVE" .
+          mv "$TMP_ARCHIVE" ./checkpoint.tar.gz
           echo "✅ Archive created: checkpoint.tar.gz"
 
       - name: Create or update GitHub Release with checkpoint
         run: |
-          # Check if release "checkpoint" exists
           if gh release view checkpoint > /dev/null 2>&1; then
             echo "Updating existing checkpoint release..."
             gh release delete checkpoint --yes
