@@ -1,0 +1,48 @@
+name: Save Checkpoint
+
+on:
+  workflow_dispatch:
+    inputs:
+      checkpoint_name:
+        description: 'Checkpoint name (e.g., "after-fixes")'
+        required: false
+        default: 'auto-save'
+
+permissions:
+  contents: write
+
+jobs:
+  save:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Archive repository state
+        run: |
+          # Create a tarball of the entire repo, excluding unnecessary folders
+          tar --exclude='.git' \
+              --exclude='build' \
+              --exclude='app_pojavlauncher/build' \
+              --exclude='dnbglfw/build' \
+              --exclude='*.iml' \
+              --exclude='.idea' \
+              --exclude='.gradle' \
+              --exclude='local.properties' \
+              -czf checkpoint.tar.gz .
+          echo "✅ Archive created: checkpoint.tar.gz"
+
+      - name: Create or update GitHub Release with checkpoint
+        run: |
+          # Check if release "checkpoint" exists
+          if gh release view checkpoint > /dev/null 2>&1; then
+            echo "Updating existing checkpoint release..."
+            gh release delete checkpoint --yes
+          fi
+          gh release create checkpoint \
+            --title "Checkpoint: ${{ github.event.inputs.checkpoint_name || 'auto-save' }}" \
+            --notes "Saved on $(date -u +'%Y-%m-%d %H:%M:%S UTC') from commit ${{ github.sha }}. Triggered by ${{ github.actor }}." \
+            checkpoint.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
