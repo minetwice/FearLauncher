@@ -1,4 +1,4 @@
-name: Fix Submodule URL
+name: Fix Dependency URLs
 
 on:
   workflow_dispatch:
@@ -7,26 +7,35 @@ permissions:
   contents: write
 
 jobs:
-  fix-submodule:
+  fix-deps:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout WITHOUT submodules
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          submodules: false   # ⬅️ important: submodules fetch nahi karega
+          submodules: false
 
-      - name: Fix .gitmodules URL
+      - name: Replace FearLauncher with MojoLauncher in all build.gradle files
         run: |
-          # Replace FearLauncher/glfw with MojoLauncher/glfw
-          sed -i 's|https://github.com/FearLauncher/glfw|https://github.com/MojoLauncher/glfw|g' .gitmodules
-          # If you have a fork, you can use your own URL:
-          # sed -i 's|https://github.com/FearLauncher/glfw|https://github.com/minetwice/glfw|g' .gitmodules
-          echo "✅ .gitmodules updated"
+          # Fix GitHub URLs
+          find . -name "build.gradle" -exec sed -i 's|https://github.com/FearLauncher/|https://github.com/MojoLauncher/|g' {} \;
+          # Fix JitPack group IDs
+          find . -name "build.gradle" -exec sed -i 's|com.github.FearLauncher|com.github.MojoLauncher|g' {} \;
+          # Fix specific dependency paths
+          find . -name "build.gradle" -exec sed -i 's|FearLauncher/android-openjdk|MojoLauncher/android-openjdk|g' {} \;
+          find . -name "build.gradle" -exec sed -i 's|FearLauncher/caciocavallo|MojoLauncher/caciocavallo|g' {} \;
+          echo "✅ Dependency URLs fixed."
+
+      - name: Also check .gitmodules (just in case)
+        run: |
+          if [ -f .gitmodules ]; then
+            sed -i 's|https://github.com/FearLauncher/glfw|https://github.com/MojoLauncher/glfw|g' .gitmodules
+            echo "✅ .gitmodules fixed."
+          fi
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .gitmodules
-          git diff --cached --quiet || git commit -m "Fix submodule URL: use MojoLauncher/glfw"
+          git add . **/build.gradle .gitmodules
+          git diff --cached --quiet || git commit -m "Fix dependency URLs: revert to MojoLauncher"
           git push origin HEAD:${GITHUB_REF_NAME}
