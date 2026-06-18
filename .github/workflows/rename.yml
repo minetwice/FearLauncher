@@ -1,4 +1,4 @@
-name: Restore Original Build Files from MojoLauncher
+name: Fix Package Imports
 
 on:
   workflow_dispatch:
@@ -7,34 +7,30 @@ permissions:
   contents: write
 
 jobs:
-  restore:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: false
 
-      - name: Download original build.gradle from MojoLauncher
+      - name: Fix all Java imports - change fear to mojo
         run: |
-          # App module build.gradle
-          curl -o app_pojavlauncher/build.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/build.gradle
-          # Root build.gradle (if exists)
-          curl -o build.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/build.gradle
-          # Settings.gradle
-          curl -o settings.gradle https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/settings.gradle
-          echo "✅ Downloaded original build files."
+          find app_pojavlauncher/src/main/java -type f -name "*.java" -exec sed -i 's/import git\.artdeell\.fear\.R;/import git.artdeell.mojo.R;/g' {} \;
+          echo "✅ Fixed imports."
 
-      - name: Fix .gitmodules (point to MojoLauncher/glfw)
+      - name: Also change any hardcoded fear package references
         run: |
-          if [ -f .gitmodules ]; then
-            sed -i 's|https://github.com/FearLauncher/glfw|https://github.com/MojoLauncher/glfw|g' .gitmodules
-            echo "✅ .gitmodules fixed."
-          fi
+          find app_pojavlauncher/src/main/java -type f -name "*.java" -exec sed -i 's/git\.artdeell\.fear/git.artdeell.mojo/g' {} \;
+          echo "✅ Fixed other package references."
+
+      - name: Ensure build.gradle uses correct package
+        run: |
+          sed -i 's/applicationId "git\.artdeell\.fear"/applicationId "git.artdeell.mojo"/g' app_pojavlauncher/build.gradle
+          echo "✅ Package in build.gradle fixed."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/build.gradle build.gradle settings.gradle .gitmodules
-          git diff --cached --quiet || git commit -m "Restore original build files from MojoLauncher"
+          git add app_pojavlauncher/src/main/java/ app_pojavlauncher/build.gradle
+          git diff --cached --quiet || git commit -m "Fix package imports: use git.artdeell.mojo"
           git push origin HEAD:${GITHUB_REF_NAME}
