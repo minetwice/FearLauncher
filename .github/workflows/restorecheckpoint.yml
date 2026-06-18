@@ -16,9 +16,15 @@ jobs:
 
       - name: Download checkpoint from release
         run: |
-          # Download the tarball from the "checkpoint" release
+          # Check if the "checkpoint" release exists
+          if ! gh release view checkpoint > /dev/null 2>&1; then
+            echo "No checkpoint release found. Please create one using the Save Checkpoint workflow first."
+            exit 1
+          fi
           gh release download checkpoint -p "checkpoint.tar.gz"
           echo "✅ Downloaded checkpoint.tar.gz"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract and overwrite files
         run: |
