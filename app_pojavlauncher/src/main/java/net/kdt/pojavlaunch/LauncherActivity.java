@@ -164,11 +164,14 @@ public class LauncherActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pojav_launcher);
+// Start animated background transition
+
+android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getTheme().obtainStyledAttributes(new int[]{android.R.attr.windowBackground}).getDrawable(0);
+
+if (transition != null) transition.startTransition(3000);
   // Start animated background transition
 
-  android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getWindow().getDecorView().getBackground();
 
-  if (transition != null) transition.startTransition(3000);
 
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
