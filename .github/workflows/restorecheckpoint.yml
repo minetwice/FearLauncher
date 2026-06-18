@@ -1,0 +1,38 @@
+name: Restore Checkpoint
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download checkpoint from release
+        run: |
+          # Download the tarball from the "checkpoint" release
+          gh release download checkpoint -p "checkpoint.tar.gz"
+          echo "✅ Downloaded checkpoint.tar.gz"
+
+      - name: Extract and overwrite files
+        run: |
+          # Remove all current files (except .git and checkpoint tarball)
+          find . -not -path "./.git/*" -not -name "checkpoint.tar.gz" -not -path "." -delete
+          # Extract archive
+          tar -xzf checkpoint.tar.gz
+          rm checkpoint.tar.gz
+          echo "✅ Repository restored to checkpoint state"
+
+      - name: Commit restored state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Restored checkpoint state (from release)"
+          git push origin HEAD:${GITHUB_REF_NAME}
