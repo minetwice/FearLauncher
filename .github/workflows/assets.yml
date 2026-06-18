@@ -1,4 +1,4 @@
-name: Apply Silver-Blue Theme & Animations (Fixed)
+name: Fix Animated Background (Layout-based)
 
 on:
   workflow_dispatch:
@@ -7,13 +7,13 @@ permissions:
   contents: write
 
 jobs:
-  theme:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Set colors (same as before)
-      - name: Set colors
+      # 1. Set colors and create gradient drawables (as before)
+      - name: Set colors and gradients
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -33,9 +33,6 @@ jobs:
           </resources>
           EOF
 
-      # 2. Create animated gradient background (TransitionDrawable)
-      - name: Create gradient backgrounds
-        run: |
           mkdir -p app_pojavlauncher/src/main/res/drawable
           cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
@@ -62,7 +59,7 @@ jobs:
           </transition>
           EOF
 
-      # 3. Create button click animation and drawables
+      # 2. Create button animation and drawables
       - name: Create button animation
         run: |
           mkdir -p app_pojavlauncher/src/main/res/anim
@@ -100,14 +97,14 @@ jobs:
           </ripple>
           EOF
 
-      # 4. Update themes.xml to use animated gradient as windowBackground
-      - name: Set theme with animated background
+      # 3. Modify theme: use a simple color background (not transition)
+      - name: Set theme with plain background
         run: |
           cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:windowBackground">@drawable/bg_animated_gradient</item>
+                  <item name="android:windowBackground">@color/background_app</item>
                   <item name="android:colorBackground">@color/background_app</item>
                   <item name="android:textColor">@color/primary_text</item>
                   <item name="android:fontFamily">sans-serif-condensed</item>
@@ -118,8 +115,31 @@ jobs:
           </resources>
           EOF
 
-      # 5. Update styles.xml (button styles, etc.)
-      - name: Set styles
+      # 4. Set root layout background to animated transition drawable
+      - name: Set background in activity_pojav_launcher.xml
+        run: |
+          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
+          # Remove any existing background attribute on root
+          sed -i 's|android:background="[^"]*"||g' "$LAYOUT"
+          # Add background attribute to the root element (assuming first tag is root)
+          sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\|androidx.constraintlayout.widget.ConstraintLayout\)[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
+
+      # 5. In Java, start transition on root view's background
+      - name: Fix LauncherActivity to animate root background
+        run: |
+          JAVA="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java"
+          # Remove any previous transition code
+          sed -i '/TransitionDrawable transition/d' "$JAVA"
+          sed -i '/transition.startTransition/d' "$JAVA"
+          # Insert correct code after setContentView
+          sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
+          // Animate the root layout background (TransitionDrawable)\n\
+          android.view.View root = findViewById(android.R.id.content);\n\
+          android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) root.getBackground();\n\
+          if (transition != null) transition.startTransition(3000);' "$JAVA"
+
+      # 6. Apply button style and text colors
+      - name: Apply button style and black text
         run: |
           cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -156,35 +176,15 @@ jobs:
           </resources>
           EOF
 
-      # 6. CORRECTLY enable background animation in Java (fixed)
-      - name: Enable background animation
-        run: |
-          JAVA="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java"
-          # Remove any previous transition code
-          sed -i '/TransitionDrawable transition/d' "$JAVA"
-          sed -i '/transition.startTransition/d' "$JAVA"
-          # Insert correct code after setContentView
-          sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
-          // Start animated background transition\n\
-          android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getTheme().obtainStyledAttributes(new int[]{android.R.attr.windowBackground}).getDrawable(0);\n\
-          if (transition != null) transition.startTransition(3000);' "$JAVA"
-
-      # 7. Apply RoundedButton style to all buttons
-      - name: Apply button style
-        run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button style="@style\/RoundedButton" /g' {} \;
-
-      # 8. Enforce black text
-      - name: Enforce black text
-        run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="#[^"]*"/android:textColor="@color\/primary_text"/g' {} \;
 
-      # 9. Commit all changes
+      # 7. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java
-          git diff --cached --quiet || git commit -m "Fix animated background: use theme windowBackground, safe cast"
+          git diff --cached --quiet || git commit -m "Fix animated background: set on root layout, not theme, to avoid cast exception"
           git push origin HEAD:${GITHUB_REF_NAME}
