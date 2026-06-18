@@ -1,4 +1,4 @@
-name: Fix Animated Background (Layout-based)
+name: Fix Missing layout_height
 
 on:
   workflow_dispatch:
@@ -12,179 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Set colors and create gradient drawables (as before)
-      - name: Set colors and gradients
+      - name: Add missing layout_height to all layout files
         run: |
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#E8EEF0</color>
-              <color name="background_status_bar">#CFD8DC</color>
-              <color name="background_bottom_bar">#F5F7F8</color>
-              <color name="background_overlay">#B0BEC5</color>
-              <color name="control_button_color">#90A4AE</color>
-              <color name="control_button_pressed_color">#78909C</color>
-              <color name="divider">#B0BEC5</color>
-              <color name="icon_outline_color">#455A64</color>
-              <color name="primary_text">#212121</color>
-              <color name="secondary_text">#546E7A</color>
-              <color name="minebutton_color">#90A4AE</color>
-              <color name="accent_blue">#3F51B5</color>
-          </resources>
-          EOF
+          # For each layout XML, add layout_height="wrap_content" to any tag that has layout_width but not layout_height
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -type f -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
+          echo "✅ Added missing layout_height attributes."
 
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:startColor="#E8EEF0"
-                  android:endColor="#CFD8DC"
-                  android:angle="45"
-                  android:type="linear" />
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:startColor="#CFD8DC"
-                  android:endColor="#B0BEC5"
-                  android:angle="135"
-                  android:type="linear" />
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
-          <transition xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:drawable="@drawable/grad_silver_blue_1" />
-              <item android:drawable="@drawable/grad_silver_blue_2" />
-          </transition>
-          EOF
-
-      # 2. Create button animation and drawables
-      - name: Create button animation
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <scale
-                  android:duration="150"
-                  android:fromXScale="1.0"
-                  android:fromYScale="1.0"
-                  android:toXScale="0.95"
-                  android:toYScale="0.95"
-                  android:pivotX="50%"
-                  android:pivotY="50%" />
-              <scale
-                  android:duration="150"
-                  android:fromXScale="0.95"
-                  android:fromYScale="0.95"
-                  android:toXScale="1.0"
-                  android:toYScale="1.0"
-                  android:pivotX="50%"
-                  android:pivotY="50%"
-                  android:startOffset="150" />
-          </set>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="16dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-              android:color="@color/accent_blue">
-              <item android:drawable="@drawable/btn_rounded"/>
-          </ripple>
-          EOF
-
-      # 3. Modify theme: use a simple color background (not transition)
-      - name: Set theme with plain background
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:windowBackground">@color/background_app</item>
-                  <item name="android:colorBackground">@color/background_app</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:fontFamily">sans-serif-condensed</item>
-                  <item name="colorPrimary">@color/control_button_color</item>
-                  <item name="colorPrimaryDark">@color/background_status_bar</item>
-                  <item name="colorAccent">@color/accent_blue</item>
-              </style>
-          </resources>
-          EOF
-
-      # 4. Set root layout background to animated transition drawable
-      - name: Set background in activity_pojav_launcher.xml
-        run: |
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          # Remove any existing background attribute on root
-          sed -i 's|android:background="[^"]*"||g' "$LAYOUT"
-          # Add background attribute to the root element (assuming first tag is root)
-          sed -i '1s/\(<\(LinearLayout\|RelativeLayout\|FrameLayout\|androidx.constraintlayout.widget.ConstraintLayout\)[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
-
-      # 5. In Java, start transition on root view's background
-      - name: Fix LauncherActivity to animate root background
-        run: |
-          JAVA="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java"
-          # Remove any previous transition code
-          sed -i '/TransitionDrawable transition/d' "$JAVA"
-          sed -i '/transition.startTransition/d' "$JAVA"
-          # Insert correct code after setContentView
-          sed -i '/setContentView(R.layout.activity_pojav_launcher);/a\
-          // Animate the root layout background (TransitionDrawable)\n\
-          android.view.View root = findViewById(android.R.id.content);\n\
-          android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) root.getBackground();\n\
-          if (transition != null) transition.startTransition(3000);' "$JAVA"
-
-      # 6. Apply button style and text colors
-      - name: Apply button style and black text
-        run: |
-          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="RoundedButton" parent="Widget.AppCompat.Button">
-                  <item name="android:background">@drawable/btn_ripple</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:textSize">14sp</item>
-                  <item name="android:fontFamily">sans-serif-condensed</item>
-                  <item name="android:stateListAnimator">@anim/button_click</item>
-                  <item name="android:padding">12dp</item>
-              </style>
-
-              <style name="LauncherMenuButton">
-                  <item name="android:layout_width">wrap_content</item>
-                  <item name="android:layout_height">wrap_content</item>
-                  <item name="android:minHeight">48dp</item>
-                  <item name="android:padding">12dp</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:fontFamily">sans-serif-condensed</item>
-                  <item name="android:background">?attr/selectableItemBackground</item>
-              </style>
-
-              <style name="ThickDivider">
-                  <item name="android:layout_width">match_parent</item>
-                  <item name="android:layout_height">2dp</item>
-                  <item name="android:background">@color/divider</item>
-              </style>
-
-              <style name="LauncherFragment_Divider" parent="ThickDivider">
-                  <item name="android:layout_marginTop">8dp</item>
-                  <item name="android:layout_marginBottom">8dp</item>
-              </style>
-          </resources>
-          EOF
-
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/<Button /<Button style="@style\/RoundedButton" /g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/android:textColor="#[^"]*"/android:textColor="@color\/primary_text"/g' {} \;
-
-      # 7. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/LauncherActivity.java
-          git diff --cached --quiet || git commit -m "Fix animated background: set on root layout, not theme, to avoid cast exception"
+          git add app_pojavlauncher/src/main/res/layout/
+          git diff --cached --quiet || git commit -m "Fix missing layout_height in layouts"
           git push origin HEAD:${GITHUB_REF_NAME}
