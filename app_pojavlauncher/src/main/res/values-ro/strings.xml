@@ -122,7 +122,7 @@
     <string name="mcl_setting_title_mousespeed">Viteza mouse-ului</string>
     <string name="customctrl_passthru">Mouse pass-thru</string>
     <string name="customctrl_swipeable">Glisabil</string>
-    <string name="memory_warning_msg">Cantitatea curentă de RAM liber (%d) este mai mică decât cantitatea alocată de RAM (%d), care ar putea duce la oprire. Schimbă cantitatea alocată dacă jocul se oprește.</string>
+    <string formatted="false" name="memory_warning_msg">Cantitatea curentă de RAM liber (%d) este mai mică decât cantitatea alocată de RAM (%d), care ar putea duce la oprire. Schimbă cantitatea alocată dacă jocul se oprește.</string>
     <string name="mcl_memory_allocation">Memorie alocată</string>
     <string name="multirt_runtime_corrupt">Java Runtime Corupt</string>
     <string name="multirt_runtime_incompatiblearch">Arhitectură incompatibilă: %s</string>

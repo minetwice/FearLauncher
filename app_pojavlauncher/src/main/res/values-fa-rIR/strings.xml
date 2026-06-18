@@ -139,7 +139,7 @@
     <string name="customctrl_swipeable">قابل سوایپ</string>
     <string name="customctrl_forward_lock">قفل حرکت به جلو</string>
     <string name="customctrl_absolute_tracking">تشخیص دقیق انگشت</string>
-    <string name="memory_warning_msg">میزان رم آزاد فعلی (%d) از میزان رم اختصاص یافته (%d) کمتر است، که ممکن است باعث کرش شود. رم اختصاص یافته را تغییر دهید اگر بازی کرش خورد.</string>
+    <string formatted="false" name="memory_warning_msg">میزان رم آزاد فعلی (%d) از میزان رم اختصاص یافته (%d) کمتر است، که ممکن است باعث کرش شود. رم اختصاص یافته را تغییر دهید اگر بازی کرش خورد.</string>
     <string name="mcl_memory_allocation">میزان رم اختصاص یافته</string>
     <string name="mcl_memory_allocation_subtitle">مقدار حافظه رم داده شده به ماینکرفت را کنترل میکند.</string>
     <string name="multirt_runtime_corrupt">جاوا ران‌ تایم خراب</string>
@@ -237,8 +237,8 @@
     <string name="search_modpack_download_error">ناموفق در دانلود metadata مادپک</string>
     <string name="modpack_download_downloading_metadata">در حال دانلود metadata مادپک (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods">درحال دانلود مادها (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">درحال دانلود ماد ها (File %d out of %d)</string>
-    <string name="modpack_download_applying_overrides">اعمال جایگزین ها (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">درحال دانلود ماد ها (File %d out of %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">اعمال جایگزین ها (%d/%d)</string>
     <string name="modpack_install_notification_title">نصب کننده مادپک پوجاو</string>
     <string name="modpack_install_notification_success">برای اتمام نصب مادپک اینجا کلیک کنید</string>
     <string name="modpack_install_notification_data_not_available">ناموفق در دانلود اطلاعات اجرا کننده ماد</string>

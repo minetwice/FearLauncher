@@ -169,8 +169,8 @@
     <string name="customctrl_swipeable">Có thể vuốt</string>
     <string name="customctrl_forward_lock">Khoá di chuyển lên</string>
     <string name="customctrl_absolute_tracking">Theo dõi chuyển động tuyệt đối của ngón tay</string>
-    <string name="memory_warning_msg">Số lượng RAM trống hiện tại (%d) thấp hơn số lượng RAM được phân bổ (%d), có thể dẫn đến sự cố. Thay đổi số lượng phân bổ nếu trò chơi bị sập.</string>
-    <string name="address_memory_warning_msg">Bộ nhớ trống hiện có (%d) thấp hơn bộ nhớ được phân bổ (%d), điều này có thể gây ra sự cố. Thay đổi lượng bộ nhớ được phân bổ nếu trò chơi bị văng.</string>
+    <string formatted="false" name="memory_warning_msg">Số lượng RAM trống hiện tại (%d) thấp hơn số lượng RAM được phân bổ (%d), có thể dẫn đến sự cố. Thay đổi số lượng phân bổ nếu trò chơi bị sập.</string>
+    <string formatted="false" name="address_memory_warning_msg">Bộ nhớ trống hiện có (%d) thấp hơn bộ nhớ được phân bổ (%d), điều này có thể gây ra sự cố. Thay đổi lượng bộ nhớ được phân bổ nếu trò chơi bị văng.</string>
     <string name="mcl_memory_allocation">Phân bổ bộ nhớ</string>
     <string name="mcl_memory_allocation_subtitle">Điều khiển lượng bộ nhớ tạm được đưa vào Minecraft.</string>
     <string name="multirt_runtime_corrupt">Java đã gặp xung đột</string>
@@ -326,8 +326,8 @@
 
     <string name="modpack_download_downloading_metadata">Đang tải dữ liệu modpack (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods">Đang tải mod (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Đang tải mod (Tệp %d trên %d)</string>
-    <string name="modpack_download_applying_overrides">Áp dụng các thay đổi (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Đang tải mod (Tệp %d trên %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Áp dụng các thay đổi (%d/%d)</string>
     <string name="modpack_install_notification_title">Trình cài đặt modpack</string>
     <string name="modpack_install_notification_success">Nhấn để hoàn thành cài đặt modpack</string>
     <string name="modpack_install_notification_data_not_available">Không thể tải thông tin trình cài đặt mod</string>
@@ -369,7 +369,7 @@
     <string name="exception_failed_to_unpack_jre17">Cài Đặt thất bại JRE 17</string>
     <string name="newdl_starting">Đang đọc siêu dữ liệu trò chơi…</string>
     <string name="newdl_downloading_metadata">Đang tải xuống siêu dữ liệu trò chơi (%s)</string>
-    <string name="newdl_downloading_game_files">Đang tải xuống trò chơi… (%d/%d, %.2f MB)</string>
+    <string formatted="false" name="newdl_downloading_game_files">Đang tải xuống trò chơi… (%d/%d, %.2f MB)</string>
     <string name="newdl_downloading_game_files_size">Đang tải xuống trò chơi… (%.2f/%.2f MB, %.2f MB)</string>
     <string name="cropper_title">Chọn vùng hình ảnh</string>
     <string name="cropper_lock_vertical">Khóa trục dọc</string>
@@ -423,7 +423,7 @@
     <string name="bta_installer_available_versions">Những phiên bản BTA được chọn </string>
     <string name="bta_installer_untested_versions">Những phiên bản BTA chưa được thử</string>
     <string name="bta_installer_nightly_versions">Những phiên bản nightly BTA </string>
-    <string name="newdl_extracting_native_libraries">Đang giải nén những thư viện gốc (%d/%d)</string>
+    <string formatted="false" name="newdl_extracting_native_libraries">Đang giải nén những thư viện gốc (%d/%d)</string>
     <string name="compat_version_not_supported">Thiết bị của bạn không thể chạy trình kết xuất LTW bởi vì nó không được hỗ trợ trên thiết bị của bạn.</string>
     <string name="oauth_unknown_error">Lỗi xác thực không xác định</string>
     <string name="oauth_web_complete">Đang xác thực…</string>

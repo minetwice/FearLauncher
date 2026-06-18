@@ -144,7 +144,7 @@
     <string name="customctrl_swipeable">ลากได้</string>
     <string name="customctrl_forward_lock">ล็อคไปข้างหน้า</string>
     <string name="customctrl_absolute_tracking">การตรวจจับนั้วเเบบสมบูรณ์</string>
-    <string name="memory_warning_msg">ขณะนี้เเรมที่เหลือในเครืองของคุณ (%d) น้อยกว่าเเรมที่ตั้งไว้ (%d) อาจะทำให้เด้งได้ ปรับค่าเเรมที่ต้องการเมื่อเกมเด้ง</string>
+    <string formatted="false" name="memory_warning_msg">ขณะนี้เเรมที่เหลือในเครืองของคุณ (%d) น้อยกว่าเเรมที่ตั้งไว้ (%d) อาจะทำให้เด้งได้ ปรับค่าเเรมที่ต้องการเมื่อเกมเด้ง</string>
     <string name="mcl_memory_allocation">การจัดสรรหน่วยความจำ</string>
     <string name="mcl_memory_allocation_subtitle">ควบคุมจำนวนหน่วยความจำที่มอบให้กับ Minecraft</string>
     <string name="multirt_runtime_corrupt">ตัวรันไทม์จาวาเสียหาย</string>
@@ -277,8 +277,8 @@
     <string name="search_modpack_download_error">ดาวน์โหลดข้อมูลเมตาของ modpack ไม่สำเร็จ</string>
     <string name="modpack_download_downloading_metadata">กำลังดาวน์โหลดข้อมูลเมตาของ modpack (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods">กำลังดาวน์โหลดม็อด (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">กำลังดาวน์โหลดม็อด (ไฟล์ %d ออกจาก %d)</string>
-    <string name="modpack_download_applying_overrides">กำลังใช้การแทนที่ (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">กำลังดาวน์โหลดม็อด (ไฟล์ %d ออกจาก %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">กำลังใช้การแทนที่ (%d/%d)</string>
     <string name="modpack_install_notification_title">ตัวติดตั้ง Fear Modpack</string>
     <string name="modpack_install_notification_success">คลิกที่นี่เพื่อเสร็จสิ้นการติดตั้ง modpack</string>
     <string name="modpack_install_notification_data_not_available">ดาวน์โหลดข้อมูลตัวโหลด mod ไม่สำเร็จ</string>

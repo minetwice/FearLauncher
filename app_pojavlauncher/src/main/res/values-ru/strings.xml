@@ -150,8 +150,8 @@
     <string name="customctrl_swipeable">Считывать движение пальца</string>
     <string name="customctrl_forward_lock">Фиксатор движения</string>
     <string name="customctrl_absolute_tracking">Динамический центр</string>
-    <string name="memory_warning_msg">Текущий объем свободной оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбоям. Измените количество выделенной памяти при сбое игры.</string>
-    <string name="address_memory_warning_msg">Текущий объём линейно адресуемой оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбою. В случае сбоя игры измените количество выделенной памяти.</string>
+    <string formatted="false" name="memory_warning_msg">Текущий объем свободной оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбоям. Измените количество выделенной памяти при сбое игры.</string>
+    <string formatted="false" name="address_memory_warning_msg">Текущий объём линейно адресуемой оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбою. В случае сбоя игры измените количество выделенной памяти.</string>
     <string name="mcl_memory_allocation">Выделение памяти</string>
     <string name="mcl_memory_allocation_subtitle">Управление объёмом выделяемой игре памяти.</string>
     <string name="multirt_runtime_corrupt">Среда выполнения Java повреждена</string>
@@ -296,8 +296,8 @@
     <string name="search_modpack_download_error">Не удалось загрузить метаданные сборки</string>
     <string name="modpack_download_downloading_metadata">Загрузка метаданных сборки (%.2f МБ / %.2f МБ)</string>
     <string name="modpack_download_downloading_mods">Загрузка модов (%.2f МБ / %.2f МБ)</string>
-    <string name="modpack_download_downloading_mods_fc">Загрузка модов (файл %d из %d)</string>
-    <string name="modpack_download_applying_overrides">Перезапись параметров (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Загрузка модов (файл %d из %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Перезапись параметров (%d/%d)</string>
     <string name="modpack_install_notification_title">Установка сборки FearLauncher</string>
     <string name="modpack_install_notification_success">Нажмите для завершения установки сборки</string>
     <string name="modpack_install_notification_data_not_available">Не удалось загрузить информацию о загрузчике модов</string>
@@ -337,7 +337,7 @@
     <string name="exception_failed_to_unpack_jre17">Не удалось установить JRE 17</string>
     <string name="newdl_starting">Чтение метаданных игры…</string>
     <string name="newdl_downloading_metadata">Загрузка метаданных игры (%s)</string>
-    <string name="newdl_downloading_game_files">Загрузка файлов игры… (%d/%d, %.2f МБ/с)</string>
+    <string formatted="false" name="newdl_downloading_game_files">Загрузка файлов игры… (%d/%d, %.2f МБ/с)</string>
     <string name="newdl_downloading_game_files_size">Загрузка файлов игры… (%.2f/%.2f МБ, %.2f МБ/с)</string>
     <string name="cropper_title">Выбрать часть изображения</string>
     <string name="cropper_lock_vertical">⬄</string>
@@ -391,7 +391,7 @@
     <string name="bta_installer_available_versions">Поддерживаемые версии BTA</string>
     <string name="bta_installer_untested_versions">Нетестированные версии BTA</string>
     <string name="bta_installer_nightly_versions">Экспериментальные версии BTA</string>
-    <string name="newdl_extracting_native_libraries">Распаковка дополнительных библиотек… (%d/%d)</string>
+    <string formatted="false" name="newdl_extracting_native_libraries">Распаковка дополнительных библиотек… (%d/%d)</string>
     <string name="fabric_dl_cant_read_meta2">Ошибка чтения метаданных Fabric</string>
     <string name="modloader_dl_install_fabric_instance">Установка с Fabric</string>
     <string name="modloader_dl_install_quilt_instance">Установка с Quilt</string>
@@ -407,8 +407,8 @@
     <string name="instance_dir_missing">Установки нет</string>
     <string name="gamedir_open_failed">Ошибка открытия папки игры</string>
     <string name="newerdl_inserting_metadata">Поиск метаданных файлов…</string>
-    <string name="newerdl_inserting_metadata_count">Поиск метаданных файлов… (%d/%d)</string>
-    <string name="newerdl_downloading_files_count">Загрузка файлов… (%d/%d, %.2f MB/s)</string>
+    <string formatted="false" name="newerdl_inserting_metadata_count">Поиск метаданных файлов… (%d/%d)</string>
+    <string formatted="false" name="newerdl_downloading_files_count">Загрузка файлов… (%d/%d, %.2f MB/s)</string>
     <string name="newerdl_downloading_files_size">Загрузка файлов… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="preference_verify_game_files_title">Проверять файлы игры</string>
     <string name="preference_verify_game_files_description">Проверять загружаемые файлы игры по контрольной сумме и размеру из метаданных. Файлы метаданных проверяются вне зависимости от этой настройки.</string>

@@ -172,8 +172,8 @@
     <string name="customctrl_swipeable">स्वाइप करने योग्य</string>
     <string name="customctrl_forward_lock">फॉरवर्ड लॉक</string>
     <string name="customctrl_absolute_tracking">एब्सोल्यूट फिंगर ट्रैकिंग</string>
-    <string name="memory_warning_msg">मौजूदा उपलब्ध RAM (%d) आवंटित RAM (%d) से कम है, जिससे गेम क्रैश हो सकता है। यदि गेम क्रैश होता है, तो आवंटन बदलें।</string>
-    <string name="address_memory_warning_msg">मौजूदा उपलब्ध एड्रेसेबल RAM स्पेस (%d) आवंटित RAM (%d) से कम है, जिससे गेम क्रैश हो जाएगा। यदि गेम क्रैश होता है, तो आवंटन बदलें।</string>
+    <string formatted="false" name="memory_warning_msg">मौजूदा उपलब्ध RAM (%d) आवंटित RAM (%d) से कम है, जिससे गेम क्रैश हो सकता है। यदि गेम क्रैश होता है, तो आवंटन बदलें।</string>
+    <string formatted="false" name="address_memory_warning_msg">मौजूदा उपलब्ध एड्रेसेबल RAM स्पेस (%d) आवंटित RAM (%d) से कम है, जिससे गेम क्रैश हो जाएगा। यदि गेम क्रैश होता है, तो आवंटन बदलें।</string>
     <string name="mcl_memory_allocation">मेमोरी आवंटन</string>
     <string name="mcl_memory_allocation_subtitle">नियंत्रित करता है कि Minecraft को कितनी मेमोरी दी जाती है।</string>
     <string name="multirt_runtime_corrupt">खराब जावा रनटाइम</string>
@@ -333,8 +333,8 @@
 
     <string name="modpack_download_downloading_metadata">मॉडपैक मेटाडेटा डाउनलोड हो रहा है (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods">मॉड्स डाउनलोड हो रहे हैं (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">मॉड्स डाउनलोड हो रहे हैं (फ़ाइल %d/%d)</string>
-    <string name="modpack_download_applying_overrides">ओवरराइड्स लागू हो रहे हैं (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">मॉड्स डाउनलोड हो रहे हैं (फ़ाइल %d/%d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">ओवरराइड्स लागू हो रहे हैं (%d/%d)</string>
     <string name="modpack_install_notification_title">मोजो मॉडपैक इंस्टॉलर</string>
     <string name="modpack_install_notification_success">मॉडपैक इंस्टॉलेशन पूरा करने के लिए यहां क्लिक करें</string>
     <string name="modpack_install_notification_data_not_available">मॉड लोडर जानकारी डाउनलोड करने में विफल</string>
@@ -373,7 +373,7 @@
     <string name="exception_failed_to_unpack_jre17">JRE 17 इंस्टॉल करने में विफल</string>
     <string name="newdl_starting">गेम मेटाडेटा पढ़ा जा रहा है…</string>
     <string name="newdl_downloading_metadata">गेम मेटाडेटा डाउनलोड हो रहा है (%s)</string>
-    <string name="newdl_downloading_game_files">गेम डाउनलोड हो रहा है… (%d/%d, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files">गेम डाउनलोड हो रहा है… (%d/%d, %.2f MB/s)</string>
     <string name="newdl_downloading_game_files_size">गेम डाउनलोड हो रहा है… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">छवि क्षेत्र चुनें</string>
     <string name="cropper_lock_vertical">V. लॉक</string>
@@ -427,7 +427,7 @@
     <string name="bta_installer_available_versions">समर्थित BTA संस्करण</string>
     <string name="bta_installer_untested_versions">अपरिक्षित BTA संस्करण</string>
     <string name="bta_installer_nightly_versions">नाइटली BTA संस्करण</string>
-    <string name="newdl_extracting_native_libraries">नेटिव लाइब्रेरीज़ निकाली जा रही हैं (%d/%d)</string>
+    <string formatted="false" name="newdl_extracting_native_libraries">नेटिव लाइब्रेरीज़ निकाली जा रही हैं (%d/%d)</string>
     <string name="compat_version_not_supported">आपका डिवाइस यह संस्करण नहीं चला सकता क्योंकि LTW आपके डिवाइस पर समर्थित नहीं है।</string>
     <string name="oauth_unknown_error">अज्ञात प्रमाणीकरण त्रुटि</string>
     <string name="oauth_web_complete">प्रमाणीकरण हो रहा है…</string>

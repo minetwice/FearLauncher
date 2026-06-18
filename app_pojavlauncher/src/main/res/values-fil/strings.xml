@@ -118,7 +118,7 @@
     <string name="mcl_setting_title_mousespeed">Bilis ng Mouse</string>
     <string name="customctrl_passthru">Mouse pass-thru</string>
     <string name="customctrl_swipeable">Pwede ma swipe</string>
-    <string name="memory_warning_msg">Ang kasalukuyang dami ng libreng RAM (%d) ay mas mababa kaysa sa inilalaan na RAM (%d), na maaaring humantong sa mga pag-crash. Baguhin ang paglalaan kung ang laro ay nag-crash.</string>
+    <string formatted="false" name="memory_warning_msg">Ang kasalukuyang dami ng libreng RAM (%d) ay mas mababa kaysa sa inilalaan na RAM (%d), na maaaring humantong sa mga pag-crash. Baguhin ang paglalaan kung ang laro ay nag-crash.</string>
     <string name="mcl_memory_allocation">Paglalaan ng memorya</string>
     <string name="multirt_runtime_corrupt">Sirang Java Runtime</string>
     <string name="multirt_runtime_incompatiblearch">Hindi tugmang arkitektura: %s</string>

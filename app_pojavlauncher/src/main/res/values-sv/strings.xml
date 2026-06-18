@@ -64,7 +64,7 @@
     <string name="mcl_setting_title_mousespeed">Mus hastighet</string>
     <string name="customctrl_passthru">Mus pass-thru</string>
     <string name="customctrl_swipeable">Svepbar</string>
-    <string name="memory_warning_msg">Det aktuella beloppet av gratis RAM (%d) är lägre än allokerat RAM (%d), vilket kan leda till krascher. Ändra tilldelningen om spelet kraschar.</string>
+    <string formatted="false" name="memory_warning_msg">Det aktuella beloppet av gratis RAM (%d) är lägre än allokerat RAM (%d), vilket kan leda till krascher. Ändra tilldelningen om spelet kraschar.</string>
     <string name="mcl_memory_allocation">Minne tilldelat</string>
     <string name="multirt_runtime_corrupt">Skadad Java körtid</string>
     <string name="multirt_config_add">Lägg till ny</string>

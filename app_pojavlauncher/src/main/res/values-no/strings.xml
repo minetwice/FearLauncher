@@ -93,7 +93,7 @@
     <string name="mcl_disable_gestures_subtitle">Deaktiverer gester, som for å knuse blokker og trykk for å plassere en blokk.</string>
     <string name="mcl_setting_title_mousespeed">Mus Hastighet</string>
     <string name="customctrl_passthru">Mus passe-thru</string>
-    <string name="memory_warning_msg">Den nåværende mengden ledig RAM (%d) er lavere enn allokert RAM (%d), noe som kan føre til krasj. Endre allokeringen hvis spillet krasjer.</string>
+    <string formatted="false" name="memory_warning_msg">Den nåværende mengden ledig RAM (%d) er lavere enn allokert RAM (%d), noe som kan føre til krasj. Endre allokeringen hvis spillet krasjer.</string>
     <string name="mcl_memory_allocation">Minne tildeling</string>
     <string name="multirt_runtime_corrupt">Korrupt Java Runtime</string>
     <string name="multirt_config_add">Legg til ny</string>

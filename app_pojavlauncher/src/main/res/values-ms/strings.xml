@@ -112,7 +112,7 @@
     <string name="mcl_disable_gestures_subtitle">Menyahdayakan gerak isyarat, seperti menahan untuk menhancurkan blok, dan tekan untuk meletakkan blok.</string>
     <string name="mcl_setting_title_mousespeed">Kecepatan Tetikus</string>
     <string name="customctrl_passthru">Mouse pass-thru</string>
-    <string name="memory_warning_msg">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
+    <string formatted="false" name="memory_warning_msg">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
     <string name="mcl_memory_allocation">Peruntukan memori</string>
     <string name="multirt_runtime_corrupt">Java Runtime Rosak</string>
     <string name="multirt_runtime_incompatiblearch">Seni bina tidak serasi: %s</string>

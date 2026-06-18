@@ -128,7 +128,7 @@
     <string name="customctrl_passthru">マウスパススルー</string>
     <string name="customctrl_swipeable">スワイプする</string>
     <string name="customctrl_forward_lock">フォワードロック</string>
-    <string name="memory_warning_msg">現在の空きメモリ量(%d)は割り当てられたRAM(%d)よりも低く、クラッシュする可能性があります. ゲームがクラッシュした場合は割り当てを変更します。</string>
+    <string formatted="false" name="memory_warning_msg">現在の空きメモリ量(%d)は割り当てられたRAM(%d)よりも低く、クラッシュする可能性があります. ゲームがクラッシュした場合は割り当てを変更します。</string>
     <string name="mcl_memory_allocation">メモリ割り当て</string>
     <string name="multirt_runtime_corrupt">Javaのランタイムが破損しています</string>
     <string name="multirt_runtime_incompatiblearch">互換性のないアーキテクチャ: %s</string>

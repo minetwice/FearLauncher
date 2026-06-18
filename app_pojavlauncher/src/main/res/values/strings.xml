@@ -175,8 +175,8 @@
     <string name="customctrl_swipeable">Swipeable</string>
     <string name="customctrl_forward_lock">Forward lock</string>
     <string name="customctrl_absolute_tracking">Absolute finger tracking</string>
-    <string name="memory_warning_msg">The current amount of free RAM (%d) is lower than allocated RAM (%d), which may lead to crashes. Change the allocation if the game crashes.</string>
-    <string name="address_memory_warning_msg">The current amount of free addressable RAM space (%d) is lower than the allocated RAM (%d), which will lead to crashes. Change the allocation if the game crashes.</string>
+    <string formatted="false" name="memory_warning_msg">The current amount of free RAM (%d) is lower than allocated RAM (%d), which may lead to crashes. Change the allocation if the game crashes.</string>
+    <string formatted="false" name="address_memory_warning_msg">The current amount of free addressable RAM space (%d) is lower than the allocated RAM (%d), which will lead to crashes. Change the allocation if the game crashes.</string>
     <string name="mcl_memory_allocation">Memory allocation</string>
     <string name="mcl_memory_allocation_subtitle">Controls how much memory is given to Minecraft.</string>
     <string name="multirt_runtime_corrupt">Corrupted Java Runtime</string>
@@ -343,8 +343,8 @@
 
     <string name="modpack_download_downloading_metadata">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods">Downloading mods (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Downloading mods (File %d out of %d)</string>
-    <string name="modpack_download_applying_overrides">Applying overrides (%d/%d)</string>
+    <string formatted="false" name="modpack_download_downloading_mods_fc">Downloading mods (File %d out of %d)</string>
+    <string formatted="false" name="modpack_download_applying_overrides">Applying overrides (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack Installer</string>
     <string name="modpack_install_notification_success">Click here to finish modpack installation</string>
     <string name="modpack_install_notification_data_not_available">Failed to download mod loader information</string>
@@ -386,7 +386,7 @@
     <string name="exception_failed_to_unpack_jre17">Failed to install JRE 17</string>
     <string name="newdl_starting">Reading game metadata…</string>
     <string name="newdl_downloading_metadata">Downloading game metadata (%s)</string>
-    <string name="newdl_downloading_game_files">Downloading game… (%d/%d, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files">Downloading game… (%d/%d, %.2f MB/s)</string>
     <string name="newdl_downloading_game_files_size">Downloading game… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Select image region</string>
     <string name="cropper_lock_vertical">V. lock</string>
@@ -441,7 +441,7 @@
     <string name="bta_installer_available_versions">Supported BTA versions</string>
     <string name="bta_installer_untested_versions">Untested BTA versions</string>
     <string name="bta_installer_nightly_versions">Nightly BTA versions</string>
-    <string name="newdl_extracting_native_libraries">Extracting native libraries (%d/%d)</string>
+    <string formatted="false" name="newdl_extracting_native_libraries">Extracting native libraries (%d/%d)</string>
     <string name="compat_version_not_supported">Your device cannot run this version because LTW is not supported on your device.</string>
     <string name="compat_sodium_not_supported">Your device cannot run Sodium on this version because LTW is not supported on your device.</string>
     <string name="oauth_unknown_error">Unknown authentication error</string>
@@ -452,8 +452,8 @@
     <string name="instance_dir_missing">Instance is missing</string>
     <string name="gamedir_open_failed">Failed to open game directory</string>
     <string name="newerdl_inserting_metadata">Searching for file metadata…</string>
-    <string name="newerdl_inserting_metadata_count">Searching for file metadata… (%d/%d)</string>
-    <string name="newerdl_downloading_files_count">Downloading files… (%d/%d, %.2f MB/s)</string>
+    <string formatted="false" name="newerdl_inserting_metadata_count">Searching for file metadata… (%d/%d)</string>
+    <string formatted="false" name="newerdl_downloading_files_count">Downloading files… (%d/%d, %.2f MB/s)</string>
     <string name="newerdl_downloading_files_size">Downloading files… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="preference_verify_game_files_title">Verify game files</string>
     <string name="preference_verify_game_files_description">Verify downloaded game files against the checksum and size set in the metadata. Metadata JSON files are verified regardless of this setting.</string>

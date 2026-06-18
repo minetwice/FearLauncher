@@ -96,7 +96,7 @@
     <string name="mcl_setting_title_mousespeed">Kursori kiirus</string>
     <string name="customctrl_passthru">Kursori läbivus</string>
     <string name="customctrl_swipeable">Viibatav</string>
-    <string name="memory_warning_msg">Hetkel saadaolev muutmälu (%d) on madalam kui eraldatud muutmälu (%d), mis võib krahhe põhjustada. Kui mäng jookseb kokku, muuda mälueraldust.</string>
+    <string formatted="false" name="memory_warning_msg">Hetkel saadaolev muutmälu (%d) on madalam kui eraldatud muutmälu (%d), mis võib krahhe põhjustada. Kui mäng jookseb kokku, muuda mälueraldust.</string>
     <string name="mcl_memory_allocation">Mälueraldus</string>
     <string name="multirt_config_title">Java Runtime\'id</string>
     <string name="multirt_config_add">Lisa uus</string>
