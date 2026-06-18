@@ -1,4 +1,4 @@
-name: Fix Package Imports
+name: Fix Strings & Missing Icon
 
 on:
   workflow_dispatch:
@@ -12,25 +12,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix all Java imports - change fear to mojo
+      # 1. Fix string formatting - add formatted="false" to all strings with multiple placeholders
+      - name: Fix multiple substitution warnings in strings.xml
         run: |
-          find app_pojavlauncher/src/main/java -type f -name "*.java" -exec sed -i 's/import git\.artdeell\.fear\.R;/import git.artdeell.mojo.R;/g' {} \;
-          echo "✅ Fixed imports."
+          # Find all strings.xml and add formatted="false" to those with multiple %s or %d
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i 's/<string name="\([^"]*\)">\(.*%[sd].*%[sd].*\)/<string formatted="false" name="\1">\2/g' {} \;
+          echo "✅ String formatting fixed."
 
-      - name: Also change any hardcoded fear package references
+      # 2. Create ic_fear_full vector drawable
+      - name: Create missing ic_fear_full icon
         run: |
-          find app_pojavlauncher/src/main/java -type f -name "*.java" -exec sed -i 's/git\.artdeell\.fear/git.artdeell.mojo/g' {} \;
-          echo "✅ Fixed other package references."
+          cat > app_pojavlauncher/src/main/res/drawable/ic_fear_full.xml << 'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/primary_text"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
+          </vector>
+          EOF
+          echo "✅ Created ic_fear_full"
 
-      - name: Ensure build.gradle uses correct package
-        run: |
-          sed -i 's/applicationId "git\.artdeell\.fear"/applicationId "git.artdeell.mojo"/g' app_pojavlauncher/build.gradle
-          echo "✅ Package in build.gradle fixed."
+      # 3. Update InstanceIconProvider.java if needed (it already uses R.drawable.ic_fear_full, so just making sure it compiles)
+      # No change needed – the icon is now present.
 
+      # 4. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/java/ app_pojavlauncher/build.gradle
-          git diff --cached --quiet || git commit -m "Fix package imports: use git.artdeell.mojo"
+          git add app_pojavlauncher/src/main/res/values*/strings.xml app_pojavlauncher/src/main/res/drawable/ic_fear_full.xml
+          git diff --cached --quiet || git commit -m "Fix string formatting warnings, add ic_fear_full vector"
           git push origin HEAD:${GITHUB_REF_NAME}
