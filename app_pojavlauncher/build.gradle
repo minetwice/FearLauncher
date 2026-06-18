@@ -284,7 +284,7 @@ class AssetTaskRegistrar {
     }
 
     def jreRuntimeDependency(int version, String relPath) {
-        def jreUrl = "https://github.com/FearLauncher/android-openjdk-build-multiarch/releases/download/rolling/jre%d-pojav.zip"
+        def jreUrl = "https://github.com/MojoLauncher/android-openjdk-build-multiarch/releases/download/rolling/jre%d-pojav.zip"
         onlineZipDependency(String.format(jreUrl, version), "ComponentRuntime$version", relPath)
     }
 }
@@ -301,7 +301,7 @@ afterEvaluate {
             registrar.jreRuntimeDependency 8, "components/jre"
         }
         
-		def cacioJarUrl = "https://jitpack.io/com/github/FearLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
+		def cacioJarUrl = "https://jitpack.io/com.github.MojoLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
 
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-shared", "-01d2dc1d65-1", "", "components/caciocavallo"
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-androidnw", "-01d2dc1d65-1", "", "components/caciocavallo"
@@ -338,7 +338,7 @@ dependencies {
     implementation 'net.sourceforge.htmlcleaner:htmlcleaner:2.29'
     implementation 'com.bytedance:bytehook:1.1.1'
 
-    implementation 'com.github.FearLauncher:alsoft-android-aar:f369161d5f'
+    implementation 'com.github.MojoLauncher:alsoft-android-aar:f369161d5f'
 
     implementation project(":dnbglfw")
 
