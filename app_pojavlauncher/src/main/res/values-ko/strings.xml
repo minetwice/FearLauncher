@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">캐시 삭제</string>
     <string name="mcl_launch_downloading">%s 다운로드 중</string>
-    <string name="mcl_launch_downloading_progress">"%s 다운로드 중 (%.2f MB / %.2fMB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s 다운로드 중 (%.2f MB / %.2fMB)"</string>
     <string name="mcl_launch_download_assets">다운로드 준비 중</string>
     <string name="mcl_options">설정</string>
     <string name="mcl_option_customcontrol">사용자 지정 조작</string>
@@ -236,7 +236,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">컨트롤 버튼 문자에 소문자를 사용하려면 이것을 비활성화하세요.</string>
     <string name="preference_shader_dump_title">쉐이더 덤핑 활성화</string>
     <string name="preference_shader_dump_description">쉐이더 변환 결과를 로그 파일로 저장.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">나가시겠습니까?</string>
     <string name="customctrl_editor_exit_msg">정말로 나가시겠습니까?</string>
     <string name="customctrl_editor_exit">편집기 나가기</string>
@@ -277,8 +277,8 @@
     <string name="search_modpack_no_result">모드팩이 없습니다.</string>
     <string name="search_modpack_error">모드팩을 찾는데 실패했습니다.</string>
     <string name="search_modpack_download_error">모드팩 메타데이터 다운로드에 실패 하였습니다.</string>
-    <string name="modpack_download_downloading_metadata">모드팩 메타데이터 다운로드중.. (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">모드 다운로드중 (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">모드팩 메타데이터 다운로드중.. (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">모드 다운로드중 (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">모드 다운로드중 (%d중 파일 %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">덮어쓰는 중 (%d/%d)</string>
     <string name="modpack_install_notification_title">모드팩 인스톨러</string>

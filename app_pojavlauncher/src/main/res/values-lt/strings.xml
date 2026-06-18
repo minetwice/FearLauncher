@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Valomi nereikalingi failai</string>
     <string name="mcl_launch_downloading">Atsisiunčiama %s</string>
-    <string name="mcl_launch_downloading_progress">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Rengiamasi atsisiųsti resursus</string>
     <string name="mcl_options">Nustatymai</string>
     <string name="mcl_option_customcontrol">Kontrolės</string>
@@ -199,7 +199,7 @@
     <string name="preference_enable_gyro_description">Įjungus leis pasisukti žaidime pasukant telefoną.</string>
     <string name="preference_gyro_sensitivity_title">Gyroskopo kontroliu sensityvumas</string>
     <string name="microsoft_login_retry_later">Per daug užklausų, pabandykite dar kartą vėliau.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Išeinate?</string>
     <string name="customctrl_editor_exit_msg">Ar tikrai norite išeiti?</string>
     <string name="customctrl_editor_exit">Išeiti iš editoriaus</string>

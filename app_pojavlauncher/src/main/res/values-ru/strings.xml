@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Очистка файлов кэша</string>
     <string name="mcl_launch_downloading">Загрузка %s</string>
-    <string name="mcl_launch_downloading_progress">"Загрузка %s (%.2f Мбайт / %.2f Мбайт)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Загрузка %s (%.2f Мбайт / %.2f Мбайт)"</string>
     <string name="mcl_launch_download_assets">Подготовка к загрузке ресурсов</string>
     <string name="mcl_options">Опции</string>
     <string name="mcl_option_customcontrol">Раскладка управления</string>
@@ -248,7 +248,7 @@
     <string name="create_instance">Создать новую установку</string>
     <string name="preference_shader_dump_title">Сохранять дамп шейдеров</string>
     <string name="preference_shader_dump_description">Записывать в файл журнала данные о конвертации шейдеров.</string>
-    <string name="percent_format">%d %%</string>
+    <string formatted="false" name="percent_format">%d %%</string>
     <string name="millisecond_format">%d мс</string>
     <string name="customctrl_editor_exit_title">Выйти?</string>
     <string name="customctrl_editor_exit_msg">Вы действительно хотите выйти?</string>
@@ -294,8 +294,8 @@
     <string name="search_modpack_no_result">Сборок не найдено</string>
     <string name="search_modpack_error">Не удалось выполнить поиск сборок</string>
     <string name="search_modpack_download_error">Не удалось загрузить метаданные сборки</string>
-    <string name="modpack_download_downloading_metadata">Загрузка метаданных сборки (%.2f МБ / %.2f МБ)</string>
-    <string name="modpack_download_downloading_mods">Загрузка модов (%.2f МБ / %.2f МБ)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Загрузка метаданных сборки (%.2f МБ / %.2f МБ)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Загрузка модов (%.2f МБ / %.2f МБ)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Загрузка модов (файл %d из %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Перезапись параметров (%d/%d)</string>
     <string name="modpack_install_notification_title">Установка сборки FearLauncher</string>
@@ -338,7 +338,7 @@
     <string name="newdl_starting">Чтение метаданных игры…</string>
     <string name="newdl_downloading_metadata">Загрузка метаданных игры (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Загрузка файлов игры… (%d/%d, %.2f МБ/с)</string>
-    <string name="newdl_downloading_game_files_size">Загрузка файлов игры… (%.2f/%.2f МБ, %.2f МБ/с)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Загрузка файлов игры… (%.2f/%.2f МБ, %.2f МБ/с)</string>
     <string name="cropper_title">Выбрать часть изображения</string>
     <string name="cropper_lock_vertical">⬄</string>
     <string name="cropper_lock_horizontal">⇳</string>
@@ -409,7 +409,7 @@
     <string name="newerdl_inserting_metadata">Поиск метаданных файлов…</string>
     <string formatted="false" name="newerdl_inserting_metadata_count">Поиск метаданных файлов… (%d/%d)</string>
     <string formatted="false" name="newerdl_downloading_files_count">Загрузка файлов… (%d/%d, %.2f MB/s)</string>
-    <string name="newerdl_downloading_files_size">Загрузка файлов… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newerdl_downloading_files_size">Загрузка файлов… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="preference_verify_game_files_title">Проверять файлы игры</string>
     <string name="preference_verify_game_files_description">Проверять загружаемые файлы игры по контрольной сумме и размеру из метаданных. Файлы метаданных проверяются вне зависимости от этой настройки.</string>
     <string name="preference_go_vroom_title">Быстрый запуск игры</string>

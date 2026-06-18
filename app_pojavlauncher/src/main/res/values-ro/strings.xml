@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Se șterg fișierele cache</string>
     <string name="mcl_launch_downloading">Se descarcă %s</string>
-    <string name="mcl_launch_downloading_progress">"Se descarcă %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Se descarcă %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Se pregătește pentru descărcarea resurselor</string>
     <string name="mcl_options">Opțiuni</string>
     <string name="mcl_option_customcontrol">Controale personalizate</string>
@@ -178,7 +178,7 @@
     <string name="preference_gyro_sample_rate_title">Rata de eşantionare giroscopică</string>
     <string name="microsoft_login_retry_later">Prea multe solicitări, vă rugăm să încercaţi din nou mai târziu.</string>
     <string name="preference_shader_dump_title">Activează dumping pentru shader</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Părăsiți?</string>
     <string name="customctrl_editor_exit_msg">Sunteți sigur că doriți să ieșiți?</string>
     <string name="customctrl_editor_exit">Părăsește editorul</string>

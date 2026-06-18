@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Очистка файловъ кэша</string>
     <string name="mcl_launch_downloading">Загрузка %s</string>
-    <string name="mcl_launch_downloading_progress">"Загрузка %s (%.2f МБайтъ / %.2f МБайтъ)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Загрузка %s (%.2f МБайтъ / %.2f МБайтъ)"</string>
     <string name="mcl_launch_download_assets">Подготовка къ загрузкѣ ресурсовъ</string>
     <string name="mcl_options">Настройки</string>
     <string name="mcl_option_customcontrol">Пользовательское управленіе</string>

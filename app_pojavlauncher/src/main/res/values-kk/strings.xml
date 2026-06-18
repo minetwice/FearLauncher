@@ -28,7 +28,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Кәш файлдары жойылуда</string>
     <string name="mcl_launch_downloading">%s жүктелуде</string>
-    <string name="mcl_launch_downloading_progress">"%s жүктелуде (%.2f МБ / %.2f МБ)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s жүктелуде (%.2f МБ / %.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Ресурс жүктеуге дайындалуда</string>
     <string name="mcl_options">Баптау</string>
     <string name="mcl_option_customcontrol">Өңделген басқару</string>

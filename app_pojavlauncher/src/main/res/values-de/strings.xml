@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Cache-Dateien bereinigen</string>
     <string name="mcl_launch_downloading">Lade %s herunter</string>
-    <string name="mcl_launch_downloading_progress">"Lade %s herunter (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Lade %s herunter (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Bereite das Herunterladen der Ressourcen vor</string>
     <string name="mcl_options">Optionen</string>
     <string name="mcl_option_customcontrol">Benutzerdefinierte Steuerung</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Deaktivieren, um Kleinbuchstaben für die Steuerung zu verwenden.</string>
     <string name="preference_shader_dump_title">Shader-Dumping aktivieren</string>
     <string name="preference_shader_dump_description">Konvertierte Shader mit in die Protokolldatei schreiben.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Gehst Du?</string>
     <string name="customctrl_editor_exit_msg">Wollen Sie das Spiel wirklich beenden?</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">Keine Modpacks gefunden</string>
     <string name="search_modpack_error">Es konnten keine Modpacks gefunden werden</string>
     <string name="search_modpack_download_error">Fehler beim Herunterladen der Modpack-Metadaten</string>
-    <string name="modpack_download_downloading_metadata">Herunterladen von Modpack-Metadaten (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Lade Mods herunter (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Herunterladen von Modpack-Metadaten (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Lade Mods herunter (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Lade Mods herunter ( %d von %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Wende Overrides an (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear-Modpack-Installer</string>
@@ -323,7 +323,7 @@ Um die offizielle Download-Quelle zu verwenden, drücke \"Auf offizielle Seite u
     <string name="newdl_starting">Lese Spiel-Metadaten…</string>
     <string name="newdl_downloading_metadata">Lade Spiel-Metadaten herunter (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Lade das Spiel herunter… (%d/%d, %.2f MB)</string>
-    <string name="newdl_downloading_game_files_size">Lade das Spiel herunter… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Lade das Spiel herunter… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Bildbereich auswählen</string>
     <string name="cropper_lock_vertical">Vertikaler Lock</string>
     <string name="cropper_lock_horizontal">Horizontaler Lock</string>

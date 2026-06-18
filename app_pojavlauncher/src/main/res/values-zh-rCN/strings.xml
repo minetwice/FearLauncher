@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">正在清理缓存</string>
     <string name="mcl_launch_downloading">正在下载 %s</string>
-    <string name="mcl_launch_downloading_progress">"正在下载 %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"正在下载 %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">正在准备下载资源</string>
     <string name="mcl_options">选项</string>
     <string name="mcl_option_customcontrol">自定义控制布局</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">如果您想在按键中显示小写字母，请关闭此设置。</string>
     <string name="preference_shader_dump_title">启用着色器输出</string>
     <string name="preference_shader_dump_description">记录切换的着色器到日志文件中。</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d 毫秒</string>
     <string name="customctrl_editor_exit_title">您确定要离开？</string>
     <string name="customctrl_editor_exit_msg">您确定要退出？</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">未找到整合包</string>
     <string name="search_modpack_error">寻找整合包失败</string>
     <string name="search_modpack_download_error">整合包元数据下载失败</string>
-    <string name="modpack_download_downloading_metadata">正在下载整合包元数据（%.2fMB / %.2fMB）</string>
-    <string name="modpack_download_downloading_mods">正在下载模组（%.2fMB / %.2fMB）</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">正在下载整合包元数据（%.2fMB / %.2fMB）</string>
+    <string formatted="false" name="modpack_download_downloading_mods">正在下载模组（%.2fMB / %.2fMB）</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">正在下载模组（文件 %d 中的 %d）</string>
     <string formatted="false" name="modpack_download_applying_overrides">正在覆盖文件（%d/%d）</string>
     <string name="modpack_install_notification_title">Fear 整合包安装器</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">正在读取游戏元数据…</string>
     <string name="newdl_downloading_metadata">正在下载游戏元数据（%s）</string>
     <string formatted="false" name="newdl_downloading_game_files">正在下载游戏… (%d/%d, %.2f MB/秒)</string>
-    <string name="newdl_downloading_game_files_size">正在下载游戏… (%.2f/%.2f MB, %.2f MB/秒)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">正在下载游戏… (%.2f/%.2f MB, %.2f MB/秒)</string>
     <string name="cropper_title">选择图像区域</string>
     <string name="cropper_lock_vertical">纵向锁定</string>
     <string name="cropper_lock_horizontal">横向锁定</string>

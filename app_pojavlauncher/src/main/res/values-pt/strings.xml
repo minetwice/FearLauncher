@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">A limpar os ficheiros em cache</string>
     <string name="mcl_launch_downloading">A transferir %s</string>
-    <string name="mcl_launch_downloading_progress">"A transferir %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"A transferir %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">A preparar para transferir os recursos</string>
     <string name="mcl_options">Opções</string>
     <string name="mcl_option_customcontrol">Controlos personalizados</string>

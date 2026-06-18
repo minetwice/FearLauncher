@@ -8,13 +8,11 @@
 
 	<androidx.constraintlayout.widget.ConstraintLayout
 		android:layout_width="match_parent" android:layout_height="wrap_content"
-		android:layout_height="match_parent"
 		android:background="#000000">
 
 		<net.kdt.pojavlaunch.customcontrols.keyboard.TouchCharInput
 			android:id="@+id/awt_touch_char"
 			android:layout_width="1dp" android:layout_height="wrap_content"
-			android:layout_height="1dp"
 			android:background="@android:color/darker_gray"
 			android:ems="10"
 			android:imeOptions="flagNoFullscreen|flagNoExtractUi|flagNoPersonalizedLearning|actionDone"
@@ -25,7 +23,6 @@
 		<net.kdt.pojavlaunch.AWTCanvasView
 			android:id="@+id/installmod_surfaceview"
 			android:layout_width="match_parent" android:layout_height="wrap_content"
-			android:layout_height="match_parent"
 			android:foregroundGravity="bottom"
 			app:layout_constraintBottom_toBottomOf="@+id/main_touchpad"
 			app:layout_constraintEnd_toEndOf="parent"
@@ -35,7 +32,6 @@
 		<LinearLayout
 			android:id="@+id/main_touchpad"
 			android:layout_width="match_parent" android:layout_height="wrap_content"
-			android:layout_height="match_parent"
 			android:orientation="vertical"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent">
@@ -43,7 +39,6 @@
 			<ImageView
 				android:id="@+id/main_mouse_pointer"
 				android:layout_width="18dp" android:layout_height="wrap_content"
-				android:layout_height="27dp"
 				android:src="@drawable/ic_mouse_pointer" />
 
 		</LinearLayout>
@@ -51,7 +46,6 @@
 		<Button
 			android:id="@+id/installmod_btn2"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentRight="true"
 			android:background="@drawable/control_button"
 			android:onClick="forceClose"
@@ -62,7 +56,6 @@
 		<Button
 			android:id="@+id/installmod_btn3"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_toLeftOf="@id/installmod_btn2"
 			android:layout_marginTop="2dp"
 			android:background="@drawable/control_button"
@@ -75,7 +68,6 @@
 		<Button
 			android:id="@+id/button2"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_toLeftOf="@id/installmod_btn3"
 			android:layout_marginTop="2dp"
 			android:background="@drawable/control_button"
@@ -88,7 +80,6 @@
 		<Button
 			android:id="@+id/button"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_marginStart="2dp"
 			android:layout_marginTop="2dp"
 			android:background="@drawable/control_button"
@@ -100,7 +91,6 @@
 		<Button
 			android:id="@+id/button3"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_marginStart="2dp"
 			android:layout_marginTop="2dp"
 			android:background="@drawable/control_button"
@@ -111,7 +101,6 @@
 
 		<Button
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_marginStart="2dp"
 			android:layout_marginTop="2dp"
 			android:background="@drawable/control_button"
@@ -123,7 +112,6 @@
 		<Button
 			android:id="@+id/installmod_mouse_pri"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:layout_marginBottom="2dp"
 			android:background="@drawable/control_button"
@@ -134,7 +122,6 @@
 		<Button
 			android:id="@+id/installmod_mouse_sec"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:layout_toRightOf="@id/installmod_mouse_pri"
 			android:background="@drawable/control_button"
@@ -146,7 +133,6 @@
 		<Button
 			android:id="@+id/installmod_window_moveleft"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:background="@drawable/control_button"
 			android:text="◀"
@@ -156,7 +142,6 @@
 		<Button
 			android:id="@+id/installmod_window_moveright"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:layout_toRightOf="@id/installmod_mouse_pri"
 			android:background="@drawable/control_button"
@@ -167,7 +152,6 @@
 		<Button
 			android:id="@+id/installmod_window_moveup"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:layout_toRightOf="@id/installmod_mouse_pri"
 			android:background="@drawable/control_button"
@@ -178,7 +162,6 @@
 		<Button
 			android:id="@+id/installmod_window_movedown"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:background="@drawable/control_button"
 			android:text="▼"
@@ -190,7 +173,6 @@
 	<com.kdt.LoggerView
 		android:id="@+id/launcherLoggerView"
 		android:layout_width="match_parent" android:layout_height="wrap_content"
-		android:layout_height="match_parent"
 		android:visibility="gone"
 		/>
 

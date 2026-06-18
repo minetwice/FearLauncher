@@ -43,7 +43,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">कैशे फ़ाइलों की सफाई</string>
     <string name="mcl_launch_downloading">डाउनलोड हो रहा है %s</string>
-    <string name="mcl_launch_downloading_progress">"%s डाउनलोड हो रहा है (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s डाउनलोड हो रहा है (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">संसाधन डाउनलोड करने की तैयारी हो रही है</string>
 
     <string name="mcl_options">विकल्प</string>
@@ -274,7 +274,7 @@
     <string name="create_instance">नया इंस्टेंस बनाएँ</string>
     <string name="preference_shader_dump_title">शेडर डंपिंग सक्षम करें</string>
     <string name="preference_shader_dump_description">कन्वर्टेड शेडर्स को लॉग फ़ाइल में लॉग करें।</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">क्या आप जा रहे हैं?</string>
     <string name="customctrl_editor_exit_msg">क्या आप वाकई बाहर निकलना चाहते हैं?</string>
@@ -331,8 +331,8 @@
     <string name="search_modpack_error">मॉडपैक खोजने में विफल</string>
     <string name="search_modpack_download_error">मॉडपैक मेटाडेटा डाउनलोड करने में विफल</string>
 
-    <string name="modpack_download_downloading_metadata">मॉडपैक मेटाडेटा डाउनलोड हो रहा है (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">मॉड्स डाउनलोड हो रहे हैं (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">मॉडपैक मेटाडेटा डाउनलोड हो रहा है (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">मॉड्स डाउनलोड हो रहे हैं (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">मॉड्स डाउनलोड हो रहे हैं (फ़ाइल %d/%d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">ओवरराइड्स लागू हो रहे हैं (%d/%d)</string>
     <string name="modpack_install_notification_title">मोजो मॉडपैक इंस्टॉलर</string>
@@ -374,7 +374,7 @@
     <string name="newdl_starting">गेम मेटाडेटा पढ़ा जा रहा है…</string>
     <string name="newdl_downloading_metadata">गेम मेटाडेटा डाउनलोड हो रहा है (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">गेम डाउनलोड हो रहा है… (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">गेम डाउनलोड हो रहा है… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">गेम डाउनलोड हो रहा है… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">छवि क्षेत्र चुनें</string>
     <string name="cropper_lock_vertical">V. लॉक</string>
     <string name="cropper_lock_horizontal">H. लॉक</string>

@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Кеш-файллар бетерүе</string>
     <string name="mcl_launch_downloading">%s йөкләтүе</string>
-    <string name="mcl_launch_downloading_progress">"%s йөкләтү (%.2f МБ / %.2f МБ)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s йөкләтү (%.2f МБ / %.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Ресурс йөкләүгә әзерләнү</string>
     <string name="mcl_options">Көйләүләр</string>
     <string name="mcl_option_customcontrol">Көйләнелгән идарә</string>
@@ -141,7 +141,7 @@
     <string name="main_add_account">Аккаунт өстәү</string>
     <string name="no_saved_accounts">Сакланган аккаунтлар юк</string>
     <string name="mc_download_failed">Minecraft йөкләнеп булмады! Бу акрын тоташу яки файл урнашуда хаталар аркасында туа ала торган.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="customctrl_editor_exit_title">Чыгумы?</string>
     <string name="global_save_and_exit">Саклау һәм чыгу</string>
     <string name="global_yes">Әйе</string>

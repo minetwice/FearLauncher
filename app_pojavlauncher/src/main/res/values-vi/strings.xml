@@ -42,7 +42,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Đang làm sạch bộ nhớ đệm</string>
     <string name="mcl_launch_downloading">Đang tải xuống %s</string>
-    <string name="mcl_launch_downloading_progress">"Đang tải %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Đang tải %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Chuẩn bị để tải xuống gói tài nguyên</string>
 
     <string name="mcl_options">Tùy chọn</string>
@@ -268,7 +268,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Tắt đi nếu bạn muốn sử dụng chữ cái thường trong mục điều khiển.</string>
     <string name="preference_shader_dump_title">Kích hoạt đổ bóng</string>
     <string name="preference_shader_dump_description">Ghi các trình đổ bóng đã chuyển đổi vào tệp nhật ký.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Rời đi?</string>
     <string name="customctrl_editor_exit_msg">Bạn có chắc bạn muốn thoát ra không?</string>
@@ -324,8 +324,8 @@
     <string name="search_modpack_error">Không thể tìm modpack</string>
     <string name="search_modpack_download_error">Không thể tải dữ liệu modpack</string>
 
-    <string name="modpack_download_downloading_metadata">Đang tải dữ liệu modpack (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Đang tải mod (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Đang tải dữ liệu modpack (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Đang tải mod (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Đang tải mod (Tệp %d trên %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Áp dụng các thay đổi (%d/%d)</string>
     <string name="modpack_install_notification_title">Trình cài đặt modpack</string>
@@ -370,7 +370,7 @@
     <string name="newdl_starting">Đang đọc siêu dữ liệu trò chơi…</string>
     <string name="newdl_downloading_metadata">Đang tải xuống siêu dữ liệu trò chơi (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Đang tải xuống trò chơi… (%d/%d, %.2f MB)</string>
-    <string name="newdl_downloading_game_files_size">Đang tải xuống trò chơi… (%.2f/%.2f MB, %.2f MB)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Đang tải xuống trò chơi… (%.2f/%.2f MB, %.2f MB)</string>
     <string name="cropper_title">Chọn vùng hình ảnh</string>
     <string name="cropper_lock_vertical">Khóa trục dọc</string>
     <string name="cropper_lock_horizontal">Khóa trục ngang</string>

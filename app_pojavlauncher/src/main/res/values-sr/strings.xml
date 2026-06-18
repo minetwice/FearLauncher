@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Чишћење кеш фајлова</string>
     <string name="mcl_launch_downloading">Преузимање %s</string>
-    <string name="mcl_launch_downloading_progress">"Преузимање %s (%.2f МБ / %.2f МБ)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Преузимање %s (%.2f МБ / %.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Спремање да се преузимају ресурси</string>
     <string name="mcl_options">Опције</string>
     <string name="mcl_option_customcontrol">Прилагођене контроле</string>

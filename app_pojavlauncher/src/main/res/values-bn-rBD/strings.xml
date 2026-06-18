@@ -43,7 +43,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">ক্যাশ ফাইল পরিষ্কার করা হচ্ছে</string>
     <string name="mcl_launch_downloading">%s ডাউনলোড হচ্ছে</string>
-    <string name="mcl_launch_downloading_progress">"%s (%.2f এমবি / %.2f এমবি) ডাউনলোড হচ্ছে"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s (%.2f এমবি / %.2f এমবি) ডাউনলোড হচ্ছে"</string>
     <string name="mcl_launch_download_assets">রিসোর্স ডাউনলোড করার জন্য প্রস্তুতি করা হচ্ছে</string>
 
     <string name="mcl_options">অপশনসমূহ</string>
@@ -277,7 +277,7 @@
     <string name="create_instance">নতুন ইনস্ট্যান্স তৈরি করুন</string>
     <string name="preference_shader_dump_title">শেডার ডাম্পিং চালু করুন</string>
     <string name="preference_shader_dump_description">লগ ফাইলে কনভার্ট করা শেডার সংরক্ষণ করুন।</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">প্রস্থান করবেন?</string>
     <string name="customctrl_editor_exit_msg">আপনি কি সত্যিই প্রস্থান করতে চান?</string>
@@ -325,8 +325,8 @@
     <string name="search_modpack_no_result">কোনো মডপ্যাক পাওয়া যায়নি</string>
     <string name="search_modpack_error">মডপ্যাক খুঁজতে ব্যর্থ</string>
     <string name="search_modpack_download_error">মডপ্যাক মেটাডেটা ডাউনলোড করতে ব্যর্থ</string>
-    <string name="modpack_download_downloading_metadata">মডপ্যাক মেটাডেটা ডাউনলোড হচ্ছে (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">মডগুলি ডাউনলোড হচ্ছে (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">মডপ্যাক মেটাডেটা ডাউনলোড হচ্ছে (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">মডগুলি ডাউনলোড হচ্ছে (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">মডগুলি ডাউনলোড হচ্ছে (ফাইল %d / %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">ওভাররাইড প্রয়োগ হচ্ছে (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack ইনস্টলার</string>
@@ -370,7 +370,7 @@
     <string name="newdl_starting">গেম মেটাডেটা পড়া হচ্ছে…</string>
     <string name="newdl_downloading_metadata">গেম মেটাডেটা ডাউনলোড হচ্ছে (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">গেম ডাউনলোড হচ্ছে… (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">গেম ডাউনলোড হচ্ছে… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">গেম ডাউনলোড হচ্ছে… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">ইমেজ এরিয়া নির্বাচন করুন</string>
     <string name="cropper_lock_vertical">ভার্টিকাল লক</string>
     <string name="cropper_lock_horizontal">হরিজন্টাল লক</string>

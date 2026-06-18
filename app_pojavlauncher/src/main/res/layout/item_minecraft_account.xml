@@ -9,7 +9,6 @@
     <fr.spse.extended_view.ExtendedTextView
         android:id="@+id/account_item"
         android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_height="match_parent"
         android:layout_weight="1"
 
         android:textSize="@dimen/_16ssp"
@@ -29,7 +28,6 @@
     <ImageView
         android:id="@+id/delete_account_button"
         android:layout_width="@dimen/_52sdp" android:layout_height="wrap_content"
-        android:layout_height="match_parent"
         android:background="?attr/selectableItemBackground"
         android:src="@drawable/ic_px_trash"
 

@@ -28,7 +28,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Tømmer cache-filer</string>
     <string name="mcl_launch_downloading">Laster ned %s</string>
-    <string name="mcl_launch_downloading_progress">"Laster ned %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Laster ned %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Forbereder å laste ned ressurser</string>
     <string name="mcl_options">Innstillinger</string>
     <string name="mcl_option_customcontrol">Tilpassede kontroller</string>

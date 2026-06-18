@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">正在清理快取</string>
     <string name="mcl_launch_downloading">正在下載 %s</string>
-    <string name="mcl_launch_downloading_progress">"正在下載 %s（%.2f MB/%.2f MB）"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"正在下載 %s（%.2f MB/%.2f MB）"</string>
     <string name="mcl_launch_download_assets">正在準備下載資源</string>
     <string name="mcl_options">選項</string>
     <string name="mcl_option_customcontrol">自訂控制鍵</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">如果你想在控制鍵中使用並顯示小寫字母，請關閉此設定。</string>
     <string name="preference_shader_dump_title">啟用著色器傾印</string>
     <string name="preference_shader_dump_description">將轉換後的著色器記錄到記錄檔中。</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d 毫秒</string>
     <string name="customctrl_editor_exit_title">是否離開？</string>
     <string name="customctrl_editor_exit_msg">您確定要離開嗎？</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">找不到模組包</string>
     <string name="search_modpack_error">尋找模組包失敗</string>
     <string name="search_modpack_download_error">模組包中繼資料下載失敗</string>
-    <string name="modpack_download_downloading_metadata">正在下載模組包中繼資料 (%.2f MB/%.2f MB)</string>
-    <string name="modpack_download_downloading_mods">正在下載模組 (%.2f MB/%.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">正在下載模組包中繼資料 (%.2f MB/%.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">正在下載模組 (%.2f MB/%.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">正在下載模組（第 %d/%d 個檔案）</string>
     <string formatted="false" name="modpack_download_applying_overrides">正在套用覆蓋（%d/%d）</string>
     <string name="modpack_install_notification_title">Fear 模組包安裝程式</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">正在讀取遊戲中繼資料……</string>
     <string name="newdl_downloading_metadata">正在下載遊戲中繼資料 (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">正在下載遊戲……（%d/%d, %.2f MB/秒）</string>
-    <string name="newdl_downloading_game_files_size">正在下載遊戲……（%.2f/%.2f MB, %.2f MB/秒）</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">正在下載遊戲……（%.2f/%.2f MB, %.2f MB/秒）</string>
     <string name="cropper_title">選擇圖片區域</string>
     <string name="cropper_lock_vertical">垂直鎖定</string>
     <string name="cropper_lock_horizontal">水平鎖定</string>

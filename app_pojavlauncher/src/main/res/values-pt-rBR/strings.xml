@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Limpando arquivos em cache</string>
     <string name="mcl_launch_downloading">Baixando %s</string>
-    <string name="mcl_launch_downloading_progress">"Baixando %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Baixando %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Preparando para baixar os recursos</string>
     <string name="mcl_options">Opções</string>
     <string name="mcl_option_customcontrol">Controles personalizados</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Desative isso se você quiser usar letras minúsculas em seus controles.</string>
     <string name="preference_shader_dump_title">Habilitar despejo de shader</string>
     <string name="preference_shader_dump_description">Registrar shaders convertidos no arquivo de registro.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Saindo?</string>
     <string name="customctrl_editor_exit_msg">Tem certeza que deseja sair?</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">Nenhum modpack encontrado</string>
     <string name="search_modpack_error">Falha ao encontrar modpacks</string>
     <string name="search_modpack_download_error">Falha ao baixar os metadados do modpack</string>
-    <string name="modpack_download_downloading_metadata">Baixando metadados do modpack (%.2f MB /%.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Baixando mods (%.2f MB /%.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Baixando metadados do modpack (%.2f MB /%.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Baixando mods (%.2f MB /%.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Baixando mods (Arquivo %d de %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Aplicando substituições (%d/%d)</string>
     <string name="modpack_install_notification_title">Instalador de Modpack do Fear</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">Lendo metadados do jogo…</string>
     <string name="newdl_downloading_metadata">Baixando metadados do jogo (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Baixando o jogo… (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Baixando o jogo… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Baixando o jogo… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Selecionar região da imagem</string>
     <string name="cropper_lock_vertical">Bloqueio V.</string>
     <string name="cropper_lock_horizontal">Bloqueio H.</string>

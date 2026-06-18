@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Cache bestanden opschonen</string>
     <string name="mcl_launch_downloading">Downloaden %s</string>
-    <string name="mcl_launch_downloading_progress">"%s downloaden (%.2fMB / %.2fMB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"%s downloaden (%.2fMB / %.2fMB)"</string>
     <string name="mcl_launch_download_assets">Voorbereiden om bronnen te downloaden</string>
     <string name="mcl_options">Opties</string>
     <string name="mcl_option_customcontrol">Aangepaste controles</string>
@@ -226,8 +226,8 @@
     <string name="search_modpack_no_result">Geen modpacks gevonden</string>
     <string name="search_modpack_error">Kan modpacks niet vinden</string>
     <string name="search_modpack_download_error">Downloaden van modpack metadata mislukt</string>
-    <string name="modpack_download_downloading_metadata">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Mods downloaden (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Mods downloaden (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Mods downloaden (File %d van de %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Toepassen van overrides (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack Installer</string>

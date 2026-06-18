@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Pulizia dei file di cache in corso</string>
     <string name="mcl_launch_downloading">Scaricando %s</string>
-    <string name="mcl_launch_downloading_progress">"Scaricando %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Scaricando %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Preparazione per il download delle risorse</string>
     <string name="mcl_options">Impostazioni</string>
     <string name="mcl_option_customcontrol">Controlli personalizzati</string>
@@ -239,7 +239,7 @@ Accedi almeno una volta su https://minecraft.net/ e riprova.</string>
     <string name="mcl_setting_subtitle_buttonallcaps">Disabilita questa opzione se vuoi usare lettere minuscole nei tuoi controlli.</string>
     <string name="preference_shader_dump_title">Abilità shader dumping</string>
     <string name="preference_shader_dump_description">Registra gli shader convertiti nel file di log.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Uscire?</string>
     <string name="customctrl_editor_exit_msg">Sei sicuro di voler uscire?</string>
@@ -281,8 +281,8 @@ Accedi almeno una volta su https://minecraft.net/ e riprova.</string>
     <string name="search_modpack_no_result">Nessun modpack trovato</string>
     <string name="search_modpack_error">La ricerca di modpack è fallita</string>
     <string name="search_modpack_download_error">Il download di modpack metadata è fallito</string>
-    <string name="modpack_download_downloading_metadata">Download dei modpack metadata (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Download delle mod (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Download dei modpack metadata (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Download delle mod (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Download delle mod (File %d di %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Applicazione delle ovverride (%d/%d)</string>
     <string name="modpack_install_notification_title">Installatore del Projav Modpack</string>
@@ -324,7 +324,7 @@ se vuoi scaricare dalla sorgente ufficiale premi \"Passa al sito ufficiale"\ e r
     <string name="newdl_starting">Lettura metadati del gioco…</string>
     <string name="newdl_downloading_metadata">Download dei metadati di gioco (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Download del gioco... (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Download del gioco... (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Download del gioco... (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Selezionare la regione dell\'immagine</string>
     <string name="cropper_select_cancelled">Selezione annullata</string>
     <string name="execute_jar_failed_to_read_file">Impossibile leggere il file .jar</string>

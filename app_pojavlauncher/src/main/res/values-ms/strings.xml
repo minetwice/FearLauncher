@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Membersihkan fail cache</string>
     <string name="mcl_launch_downloading">Memuat turun %s</string>
-    <string name="mcl_launch_downloading_progress">"Memuat turun %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Memuat turun %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Bersedia untuk memuat turun sumber</string>
     <string name="mcl_options">Pilihan</string>
     <string name="mcl_option_customcontrol">Kawalan custom</string>

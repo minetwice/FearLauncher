@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Membersihkan file cache</string>
     <string name="mcl_launch_downloading">Mengunduh %s</string>
-    <string name="mcl_launch_downloading_progress">"Mengunduh %s (%.2f MB / %.2f MB)"</string>
+    <string formatted="false" name="mcl_launch_downloading_progress">"Mengunduh %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Bersiap-siap untuk mengunduh sumber</string>
     <string name="mcl_options">Opsi</string>
     <string name="mcl_option_customcontrol">Kontrol kustom</string>
@@ -238,7 +238,7 @@
     <string name="mcl_setting_subtitle_buttonallcaps">Matikan ini jika kamu ingin menggunakan huruf kecil di kontrol.</string>
     <string name="preference_shader_dump_title">Aktifkan shader dumping</string>
     <string name="preference_shader_dump_description">Simpan catatan shader ke sebuah berkas.</string>
-    <string name="percent_format">%d%%</string>
+    <string formatted="false" name="percent_format">%d%%</string>
     <string name="millisecond_format">%d ms</string>
     <string name="customctrl_editor_exit_title">Meninggalkan?</string>
     <string name="customctrl_editor_exit_msg">Anda yakin ingin keluar?</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">Tidak dapat menemukan paket modifikasi</string>
     <string name="search_modpack_error">Gagal mencari paket modifikasi</string>
     <string name="search_modpack_download_error">Gagal mengunduh metadata paket modifikasi</string>
-    <string name="modpack_download_downloading_metadata">Mengunduh metadata paket modifikasi (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Mengunduh mod-mod (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_metadata">Mengunduh metadata paket modifikasi (%.2f MB / %.2f MB)</string>
+    <string formatted="false" name="modpack_download_downloading_mods">Mengunduh mod-mod (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Mengunduh mod-mod (Berkas %d dari %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Menerapkan pergantian-pergantian paksa (%d/%d)</string>
     <string name="modpack_install_notification_title">Pemasang Modpack Fear</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">Membaca metadata game…</string>
     <string name="newdl_downloading_metadata">Mendownload metadata game (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Mendownload game... (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Mendownload game... (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string formatted="false" name="newdl_downloading_game_files_size">Mendownload game... (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Pilih region gambar</string>
     <string name="cropper_lock_vertical">V. kunci</string>
     <string name="cropper_lock_horizontal">H. kunci</string>
