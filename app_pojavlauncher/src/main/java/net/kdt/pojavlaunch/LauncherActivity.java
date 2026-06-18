@@ -164,11 +164,16 @@ public class LauncherActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pojav_launcher);
-// Start animated background transition
+// Animate the root layout background (TransitionDrawable)
 
-android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) getTheme().obtainStyledAttributes(new int[]{android.R.attr.windowBackground}).getDrawable(0);
+android.view.View root = findViewById(android.R.id.content);
+
+android.graphics.drawable.TransitionDrawable transition = (android.graphics.drawable.TransitionDrawable) root.getBackground();
 
 if (transition != null) transition.startTransition(3000);
+// Start animated background transition
+
+
   // Start animated background transition
 
 
