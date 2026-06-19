@@ -1,4 +1,4 @@
-name: Remove Duplicate Attributes & Fix Strings
+name: Restore Layouts & Reapply Theme
 
 on:
   workflow_dispatch:
@@ -12,63 +12,74 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate attributes from all layout XMLs
+      - name: Download clean layout files from MojoLauncher
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob
-          import xml.etree.ElementTree as ET
-          from collections import OrderedDict
+          # List of problematic files
+          FILES=(
+            "fragment_mod_version_list.xml"
+            "fragment_file_selector.xml"
+            "spinner_mc_version.xml"
+            "fragment_profile_type.xml"
+            "activity_custom_controls.xml"
+            "item_minecraft_account.xml"
+            "activity_java_gui_launcher.xml"
+            "activity_pojav_launcher.xml"
+          )
+          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
+          for file in "${FILES[@]}"; do
+            curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
+            echo "Restored: $file"
+          done
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              with open(xml_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
+      - name: Apply theme changes safely (background, colors, button style)
+        run: |
+          # 1. Set animated gradient background in main launcher activity
+          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
+          if grep -q '<LinearLayout' "$LAYOUT"; then
+            sed -i 's|<LinearLayout\([^>]*\)>|<LinearLayout\1 android:background="@drawable/bg_animated_gradient">|' "$LAYOUT"
+          fi
+          # 2. Apply RoundedButton style to all buttons
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button style="@style/RoundedButton" |g' {} \;
+          # 3. Ensure text color is primary_text
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' {} \;
+          # 4. Add click animation to buttons (if not already)
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Button /!s|<Button |<Button android:stateListAnimator="@anim/button_click" |g' {} \;
+          echo "✅ Theme reapplied."
 
-              # Use regex to find tags with duplicate attributes
-              # We'll handle tags individually and remove duplicates.
-              def clean_tag(tag_text):
-                  # Find all attribute pairs (name="value")
-                  attr_pattern = r'([a-zA-Z0-9_:]+)="([^"]*)"'
-                  attrs = re.findall(attr_pattern, tag_text)
-                  # Keep only the first occurrence of each attribute name
-                  seen = OrderedDict()
-                  for name, value in attrs:
-                      if name not in seen:
-                          seen[name] = value
-                  # Rebuild the tag
-                  # Split at the first '>' to separate opening tag from children if any
-                  if '>' in tag_text:
-                      before, after = tag_text.split('>', 1)
-                  else:
-                      before = tag_text
-                      after = ''
-                  # Rebuild the opening tag part
-                  new_before = before.split()[0]  # tag name
-                  for name, value in seen.items():
-                      new_before += f' {name}="{value}"'
-                  # Handle self-closing
-                  if before.endswith('/>'):
-                      new_before += ' />'
-                  else:
-                      new_before += '>'
-                  return new_before + after
-
-              # Find all tags (simple regex, works for tags without nested < inside)
-              # We'll match tags that are standalone (not within text)
-              # Use a pattern that captures the whole tag
-              pattern = r'<[^>]*>'
-              new_content = re.sub(pattern, lambda m: clean_tag(m.group(0)), content)
-
-              if new_content != content:
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Cleaned: {xml_file}")
-
-          print("✅ Duplicate attributes removed.")
+      - name: Ensure drawables and colors are present
+        run: |
+          # Ensure color definitions exist
+          if ! grep -q "background_app" app_pojavlauncher/src/main/res/values/colors.xml; then
+            cat >> app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
+          <color name="background_app">#E8EEF0</color>
+          <color name="background_status_bar">#CFD8DC</color>
+          <color name="primary_text">#212121</color>
+          <color name="control_button_color">#90A4AE</color>
+          <color name="accent_blue">#3F51B5</color>
+          EOF
+          fi
+          # Ensure animated gradient exists
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
+          <transition xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:drawable="@drawable/grad_silver_blue_1" />
+              <item android:drawable="@drawable/grad_silver_blue_2" />
+          </transition>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient android:startColor="#E8EEF0" android:endColor="#CFD8DC" android:angle="45" android:type="linear"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
+          </shape>
+          EOF
+          echo "✅ Drawables created."
 
       - name: Fix string formatting warnings
         run: |
-          # Add formatted="false" to strings with multiple placeholders
           find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
           echo "✅ Strings fixed."
 
@@ -76,7 +87,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate layout attributes and fix string formatting"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Restore clean layouts, reapply theme, fix strings"
           git push origin HEAD:${GITHUB_REF_NAME}
