@@ -1,4 +1,4 @@
-name: Fix Duplicate ic_launcher_background
+name: Fix fragment_launcher.xml
 
 on:
   workflow_dispatch:
@@ -12,28 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate ic_launcher_background from colors.xml
+      - name: Download clean fragment_launcher.xml
         run: |
-          # Delete the line containing ic_launcher_background from colors.xml
-          sed -i '/ic_launcher_background/d' app_pojavlauncher/src/main/res/values/colors.xml
-          echo "✅ Removed duplicate ic_launcher_background from colors.xml"
+          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
+            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Downloaded clean fragment_launcher.xml"
 
-      - name: Ensure ic_launcher_background.xml exists with correct value
+      - name: Apply theme changes (minimal, only button styles and colors)
         run: |
-          mkdir -p app_pojavlauncher/src/main/res/values
-          cat > app_pojavlauncher/src/main/res/values/ic_launcher_background.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="ic_launcher_background">#E8EEF0</color>
-          </resources>
-          EOF
-          echo "✅ Ensured ic_launcher_background.xml exists"
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Applied theme to fragment_launcher"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/colors.xml
-          git add app_pojavlauncher/src/main/res/values/ic_launcher_background.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate ic_launcher_background color definition"
+          git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          git diff --cached --quiet || git commit -m "Fix fragment_launcher: replace with clean version from MojoLauncher"
           git push origin HEAD:${GITHUB_REF_NAME}
