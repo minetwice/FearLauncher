@@ -1,4 +1,4 @@
-name: Clean Layouts & Apply Minimal Theme
+name: Fix Missing Resources (Icons & Drawables)
 
 on:
   workflow_dispatch:
@@ -7,136 +7,199 @@ permissions:
   contents: write
 
 jobs:
-  clean:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Download ALL layout files from MojoLauncher (fresh start)
-      - name: Download all layout files from MojoLauncher
+      # 1. Create missing ic_setting_sign_in_background vector
+      - name: Create ic_setting_sign_in_background
         run: |
-          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
-          # Get list of all layout files (hardcoded list of common ones)
-          FILES=(
-            "activity_basemain.xml"
-            "activity_custom_controls.xml"
-            "activity_import_control.xml"
-            "activity_java_gui_launcher.xml"
-            "activity_pojav_launcher.xml"
-            "dialog_color_selector.xml"
-            "dialog_control_button_setting.xml"
-            "dialog_cropper.xml"
-            "dialog_expendable_list_view.xml"
-            "dialog_live_mouse_speed_editor.xml"
-            "dialog_mod_filters.xml"
-            "dialog_per_version_control.xml"
-            "dialog_quick_setting.xml"
-            "dialog_side_dialog.xml"
-            "fragment_controller_remapper.xml"
-            "fragment_fabric_install.xml"
-            "fragment_file_selector.xml"
-            "fragment_instance_editor.xml"
-            "fragment_launcher.xml"
-            "fragment_local_login.xml"
-            "fragment_mod_search.xml"
-            "fragment_mod_version_list.xml"
-            "fragment_profile_type.xml"
-            "fragment_select_auth_method.xml"
-            "item_centered_textview_large.xml"
-            "item_controller_mapping.xml"
-            "item_minecraft_account.xml"
-            "item_multirt_runtime.xml"
-            "item_simple_list_1.xml"
-            "item_version_profile_layout.xml"
-            "spinner_mc_version.xml"
-            "storage_test_no_sdcard.xml"
-            "view_logger.xml"
-            "view_mod.xml"
-            "view_mod_extended.xml"
-            "view_progress.xml"
+          cat > app_pojavlauncher/src/main/res/drawable/ic_setting_sign_in_background.xml << 'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/icon_outline_color"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm-1,17.93c-3.95-0.49-7-3.85-7-7.93 0-0.62,0.08-1.21,0.21-1.79L9,15v1c0,1.1 0.9,2 2,2v1.93zm6.9-2.54c-0.26-0.81-1-1.39-1.9-1.39h-1v-3c0-0.55-0.45-1-1-1H8v-2h2c0.55,0 1-0.45 1-1V7h2c1.1,0 2-0.9 2-2v-0.41c2.93,1.19 5,4.06 5,7.41 0,2.08-0.8,3.97-2.1,5.39z"/>
+          </vector>
+          EOF
+          echo "✅ Created ic_setting_sign_in_background"
+
+      # 2. Create launcher foreground and monochrome vectors
+      - name: Create launcher icon vectors
+        run: |
+          # Foreground (the main icon shape)
+          cat > app_pojavlauncher/src/main/res/drawable/ic_launcher_foreground.xml << 'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#90A4AE"
+                  android:pathData="M54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0z"
+                  android:strokeColor="#00000000"
+                  android:strokeWidth="1"/>
+              <!-- A simple circle with 'F' letter as icon -->
+              <path
+                  android:fillColor="#455A64"
+                  android:pathData="M54,27 C46,27 40,33 40,41 L40,67 C40,75 46,81 54,81 C62,81 68,75 68,67 L68,41 C68,33 62,27 54,27 Z
+                  M60,60 L48,60 L48,54 L58,54 L58,48 L48,48 L48,41 L58,41 L58,35 L48,35 L48,60 L42,60 L42,35 L48,35 L48,41 L58,41 L58,48 L48,48 L48,54 L58,54 L58,60 L60,60 Z"
+                  android:strokeColor="#00000000"
+                  android:strokeWidth="1"/>
+          </vector>
+          EOF
+
+          # Monochrome (for themed icons on Android 13+)
+          cat > app_pojavlauncher/src/main/res/drawable/ic_launcher_monochrome.xml << 'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#FFFFFF"
+                  android:pathData="M54,27 C46,27 40,33 40,41 L40,67 C40,75 46,81 54,81 C62,81 68,75 68,67 L68,41 C68,33 62,27 54,27 Z
+                  M60,60 L48,60 L48,54 L58,54 L58,48 L48,48 L48,41 L58,41 L58,35 L48,35 L48,60 L42,60 L42,35 L48,35 L48,41 L58,41 L58,48 L48,48 L48,54 L58,54 L58,60 L60,60 Z"/>
+          </vector>
+          EOF
+          echo "✅ Created launcher icon vectors"
+
+      # 3. Update mipmap-anydpi XML files to point to new vectors
+      - name: Update adaptive icon XMLs
+        run: |
+          # Ensure the mipmap-anydpi directory exists
+          mkdir -p app_pojavlauncher/src/main/res/mipmap-anydpi-v26
+
+          # Write ic_launcher.xml
+          cat > app_pojavlauncher/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+              <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
+          </adaptive-icon>
+          EOF
+
+          # Write ic_launcher_round.xml
+          cat > app_pojavlauncher/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+              <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
+          </adaptive-icon>
+          EOF
+
+          # Ensure ic_launcher_background color exists
+          if ! grep -q "ic_launcher_background" app_pojavlauncher/src/main/res/values/colors.xml; then
+            sed -i '/<\/resources>/i\    <color name="ic_launcher_background">#E8EEF0</color>' app_pojavlauncher/src/main/res/values/colors.xml
+          fi
+          echo "✅ Updated adaptive icon XMLs"
+
+      # 4. Ensure all other missing drawables are generated (from previous lists)
+      - name: Generate any remaining missing drawables
+        run: |
+          # List of known drawables that might still be missing
+          MISSING=(
+            "ic_px_hash"
+            "ic_px_zap"
+            "ic_px_file_dl"
+            "ic_px_verify_hash"
+            "ic_px_volcano"
+            "ic_microphone"
+            "ic_px_image"
+            "ic_px_gamepad"
+            "ic_px_java"
+            "ic_px_alt_sliders"
+            "ic_px_experiment"
+            "ic_px_translate"
+            "ic_px_bell"
+            "ic_px_image_renderer"
+            "ic_px_viewport_expand"
+            "ic_px_resolution"
+            "ic_px_runtime_mgr"
+            "ic_px_console"
+            "ic_px_ram"
+            "ic_px_java_run"
+            "ic_px_nogestures"
+            "ic_px_switch_arrows_x"
+            "ic_px_gestures"
+            "ic_px_control_size"
+            "ic_px_letters"
+            "ic_px_pointer_size"
+            "ic_px_speed"
+            "ic_px_virtual_mouse"
+            "ic_px_trash"
+            "ic_px_edit"
+            "ic_px_book"
+            "ic_px_sharelog"
+            "ic_px_folder"
+            "ic_px_sliders"
+            "ic_px_home"
+            "ic_px_arrow_left"
+            "ic_px_file"
+            "ic_filter"
+            "ic_add"
+            "ic_gear"
+            "ic_debug"
+            "ic_chat"
+            "ic_keyboard"
+            "ic_tab"
+            "ic_mouse"
+            "ic_3rd"
+            "ic_pri"
+            "ic_sec"
+            "ic_gui"
+            "ic_inv"
+            "ic_curseforge"
+            "ic_modrinth"
+            "ic_fear_full"
+            "ic_fabric"
+            "ic_quilt"
+            "ic_forge"
+            "ic_neoforge"
+            "ic_auth_ms"
+            "ic_auth_elyby"
+            "ic_discord"
+            "ic_telegram"
+            "ic_sharp_settings_24"
+            "ic_view_handle"
+            "ic_gamepad_pointer"
+            "ic_mouse_pointer"
+            "spinner_arrow"
+            "spinner_arrow_right"
+            "notif_icon"
+            "storage_alert"
+            "no_focus_shown"
           )
-          for file in "${FILES[@]}"; do
-            curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
-            echo "Restored: $file"
+          for name in "${MISSING[@]}"; do
+            if [ ! -f "app_pojavlauncher/src/main/res/drawable/${name}.xml" ]; then
+              cat > "app_pojavlauncher/src/main/res/drawable/${name}.xml" << 'EOFVEC'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/icon_outline_color"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
+          </vector>
+          EOFVEC
+              echo "Generated: ${name}.xml"
+            fi
           done
 
-      # 2. Apply theme changes ONLY to main launcher and fragment
-      - name: Apply minimal theme to main screens
-        run: |
-          # activity_pojav_launcher.xml
-          sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-
-          # fragment_launcher.xml
-          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-
-          # Also apply to in-game overlay (activity_java_gui_launcher) if needed
-          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml
-
-      # 3. Fix string warning
-      - name: Fix string formatting
-        run: |
-          sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
-
-      # 4. Create required drawables and colors (if missing)
-      - name: Ensure theme resources exist
-        run: |
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
-          <transition xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:drawable="@drawable/grad_silver_blue_1" />
-              <item android:drawable="@drawable/grad_silver_blue_2" />
-          </transition>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#E8EEF0" android:endColor="#CFD8DC" android:angle="45" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="16dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-              android:color="@color/accent_blue">
-              <item android:drawable="@drawable/btn_rounded"/>
-          </ripple>
-          EOF
-          # Ensure colors.xml has required colors
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#E8EEF0</color>
-              <color name="background_status_bar">#CFD8DC</color>
-              <color name="background_bottom_bar">#F5F7F8</color>
-              <color name="background_overlay">#B0BEC5</color>
-              <color name="control_button_color">#90A4AE</color>
-              <color name="control_button_pressed_color">#78909C</color>
-              <color name="divider">#B0BEC5</color>
-              <color name="icon_outline_color">#455A64</color>
-              <color name="primary_text">#212121</color>
-              <color name="secondary_text">#546E7A</color>
-              <color name="minebutton_color">#90A4AE</color>
-              <color name="accent_blue">#3F51B5</color>
-          </resources>
-          EOF
-
-      # 5. Commit all changes
+      # 5. Commit and push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Clean layouts from MojoLauncher, apply minimal theme to main screens"
+          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/drawable/
+          git add app_pojavlauncher/src/main/res/mipmap-anydpi-v26/
+          git add app_pojavlauncher/src/main/res/values/colors.xml
+          git diff --cached --quiet || git commit -m "Fix missing resources: ic_setting_sign_in_background, launcher foreground/monochrome, and all drawables"
           git push origin HEAD:${GITHUB_REF_NAME}
