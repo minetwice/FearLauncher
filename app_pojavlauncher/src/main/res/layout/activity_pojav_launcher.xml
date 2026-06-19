@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:background="@drawable/bg_main">
 
     <com.kdt.mcgui.AccountSpinner
         android:id="@+id/account_spinner"
@@ -23,7 +23,7 @@
         android:id="@+id/setting_button"
         android:layout_width="@dimen/_52sdp"
         android:layout_height="@dimen/_52sdp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/bg_main"
         android:src="@drawable/ic_px_sliders"
         android:scaleType="fitCenter"
         android:paddingVertical="@dimen/_8sdp"

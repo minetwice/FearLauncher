@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background_app">#E8EEF0</color>
-    <color name="background_status_bar">#CFD8DC</color>
-    <color name="background_bottom_bar">#F5F7F8</color>
-    <color name="background_overlay">#B0BEC5</color>
-    <color name="control_button_color">#90A4AE</color>
-    <color name="control_button_pressed_color">#78909C</color>
-    <color name="divider">#B0BEC5</color>
-    <color name="icon_outline_color">#455A64</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#546E7A</color>
-    <color name="minebutton_color">#90A4AE</color>
-    <color name="accent_blue">#3F51B5</color>
+    <color name="background_app">#1A1A2E</color>
+    <color name="background_status_bar">#16213E</color>
+    <color name="background_bottom_bar">#0F3460</color>
+    <color name="background_overlay">#2D4059</color>
+    <color name="control_button_color">#4A6FA5</color>
+    <color name="control_button_pressed_color">#3A5A8A</color>
+    <color name="divider">#2D4059</color>
+    <color name="icon_outline_color">#8BB8E8</color>
+    <color name="primary_text">#FFFFFF</color>
+    <color name="secondary_text">#8BB8E8</color>
+    <color name="minebutton_color">#4A6FA5</color>
+    <color name="accent_blue">#4A90D9</color>
+    <color name="button_green">#7CB342</color>
+    <color name="button_green_pressed">#558B2F</color>
+    <color name="ic_launcher_background">#1A1A2E</color>
 </resources>
