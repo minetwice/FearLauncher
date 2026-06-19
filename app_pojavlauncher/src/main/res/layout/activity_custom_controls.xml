@@ -3,21 +3,21 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_height="match_parent"
-	android:layout_width="match_parent" android:layout_height="wrap_content" 
+	android:layout_width="match_parent"
 	android:layout_alignParentRight="true"
 	android:id="@+id/customctrl_drawerlayout"
 	android:background="@color/background_status_bar">
 
 
 	<androidx.constraintlayout.widget.ConstraintLayout
-		
-		android:layout_width="wrap_content" android:layout_height="wrap_content">
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content">
 
 
 		<net.kdt.pojavlaunch.customcontrols.handleview.DrawerPullButton
 			android:id="@+id/drawer_button"
-			android:layout_width="40dp" android:layout_height="wrap_content"
-			
+			android:layout_width="40dp"
+			android:layout_height="20dp"
 			android:padding="6dp"
 			android:elevation="10dp"
 			app:layout_constraintEnd_toEndOf="parent"
@@ -25,7 +25,8 @@
 			app:layout_constraintTop_toTopOf="parent" />
 
 		<TextView
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
 			android:layout_alignParentRight="true"
 			android:text="@string/hint_control_mapping"
 			app:layout_constraintEnd_toEndOf="parent"
@@ -33,8 +34,8 @@
 
 		<net.kdt.pojavlaunch.customcontrols.ControlLayout
 			android:id="@+id/customctrl_controllayout"
-			android:layout_width="match_parent" android:layout_height="wrap_content"
-			>
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
 
 		</net.kdt.pojavlaunch.customcontrols.ControlLayout>
 
@@ -42,8 +43,8 @@
 
 	<ListView
 		android:id="@+id/customctrl_navigation_view"
-		android:layout_width="200dp" android:layout_height="wrap_content"
-		
+		android:layout_width="200dp"
+		android:layout_height="match_parent"
 		android:layout_gravity="right"
 		android:background="?attr/colorBackgroundFloating"
 		android:fitsSystemWindows="false" />
