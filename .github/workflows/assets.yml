@@ -1,4 +1,4 @@
-name: Fix Specific Layout Duplicates
+name: Fix Layout Duplicates
 
 on:
   workflow_dispatch:
@@ -16,8 +16,8 @@ jobs:
         run: |
           BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
           FILES=(
-            "item_minecraft_account.xml"
-            "activity_custom_controls.xml"
+            "dialog_side_dialog.xml"
+            "activity_basemain.xml"
           )
           for file in "${FILES[@]}"; do
             curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
@@ -47,25 +47,23 @@ jobs:
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
           echo "✅ String warning fixed."
 
-      - name: Apply theme changes (minimal, only to main layout)
+      - name: Apply theme changes (minimal)
         run: |
-          # Only reapply to main launcher activity if needed (but these files are specific)
-          # We'll just ensure the button styles are applied in these files if they exist
-          for file in item_minecraft_account.xml activity_custom_controls.xml; do
+          for file in dialog_side_dialog.xml activity_basemain.xml; do
             if [ -f "app_pojavlauncher/src/main/res/layout/$file" ]; then
               sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "app_pojavlauncher/src/main/res/layout/$file"
               sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "app_pojavlauncher/src/main/res/layout/$file"
               sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' "app_pojavlauncher/src/main/res/layout/$file"
             fi
           done
-          echo "✅ Theme applied to fixed files."
+          echo "✅ Theme applied."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/item_minecraft_account.xml
-          git add app_pojavlauncher/src/main/res/layout/activity_custom_controls.xml
+          git add app_pojavlauncher/src/main/res/layout/dialog_side_dialog.xml
+          git add app_pojavlauncher/src/main/res/layout/activity_basemain.xml
           git add app_pojavlauncher/src/main/res/values/strings.xml
-          git diff --cached --quiet || git commit -m "Fix duplicate layout_height in item_minecraft_account and activity_custom_controls, fix string"
+          git diff --cached --quiet || git commit -m "Fix duplicate layout_height in dialog_side_dialog and activity_basemain"
           git push origin HEAD:${GITHUB_REF_NAME}
