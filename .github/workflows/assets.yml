@@ -1,4 +1,4 @@
-name: Restore Layouts & Reapply Theme
+name: Restore All Corrupted Layouts & Reapply Theme
 
 on:
   workflow_dispatch:
@@ -7,14 +7,14 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  restore:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download clean layout files from MojoLauncher
+      - name: Download all layout files from MojoLauncher
         run: |
-          # List of problematic files
+          # List of layout files to restore (add all that we've touched)
           FILES=(
             "activity_basemain.xml"
             "item_centered_textview_large.xml"
@@ -28,6 +28,18 @@ jobs:
             "item_minecraft_account.xml"
             "activity_java_gui_launcher.xml"
             "activity_pojav_launcher.xml"
+            "item_version_profile_layout.xml"
+            "dialog_control_button_setting.xml"
+            "dialog_live_mouse_speed_editor.xml"
+            "activity_import_control.xml"
+            "dialog_side_dialog.xml"
+            "fragment_launcher.xml"
+            "fragment_instance_editor.xml"
+            "fragment_mod_search.xml"
+            "view_progress.xml"
+            "item_multirt_runtime.xml"
+            "fragment_fabric_install.xml"
+            "item_controller_mapping.xml"
           )
           BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
           for file in "${FILES[@]}"; do
@@ -35,34 +47,30 @@ jobs:
             echo "Restored: $file"
           done
 
-      - name: Apply theme changes safely (background, colors, button style)
+      - name: Apply theme changes safely (only to activity_pojav_launcher)
         run: |
-          # 1. Set animated gradient background in main launcher activity
           LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          if grep -q '<LinearLayout' "$LAYOUT"; then
-            sed -i 's|<LinearLayout\([^>]*\)>|<LinearLayout\1 android:background="@drawable/bg_animated_gradient">|' "$LAYOUT"
-          fi
-          # 2. Apply RoundedButton style to all buttons
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button style="@style/RoundedButton" |g' {} \;
-          # 3. Ensure text color is primary_text
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' {} \;
-          # 4. Add click animation to buttons (if not already)
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Button /!s|<Button |<Button android:stateListAnimator="@anim/button_click" |g' {} \;
-          echo "✅ Theme reapplied."
+          # Add background to the root LinearLayout using a safe method
+          sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
+          # Also apply button style to all buttons in this layout
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "$LAYOUT"
+          # Ensure text color is primary_text
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$LAYOUT"
+          # Add click animation
+          sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' "$LAYOUT"
 
-      - name: Ensure drawables and colors are present
+          # Also apply to fragment_launcher and other key fragments
+          FRAGMENTS=("fragment_launcher.xml" "fragment_instance_editor.xml")
+          for frag in "${FRAGMENTS[@]}"; do
+            if [ -f "app_pojavlauncher/src/main/res/layout/$frag" ]; then
+              sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "app_pojavlauncher/src/main/res/layout/$frag"
+              sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "app_pojavlauncher/src/main/res/layout/$frag"
+            fi
+          done
+          echo "✅ Theme changes reapplied safely."
+
+      - name: Ensure required drawables and colors exist
         run: |
-          # Ensure color definitions exist
-          if ! grep -q "background_app" app_pojavlauncher/src/main/res/values/colors.xml; then
-            cat >> app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <color name="background_app">#E8EEF0</color>
-          <color name="background_status_bar">#CFD8DC</color>
-          <color name="primary_text">#212121</color>
-          <color name="control_button_color">#90A4AE</color>
-          <color name="accent_blue">#3F51B5</color>
-          EOF
-          fi
-          # Ensure animated gradient exists
           mkdir -p app_pojavlauncher/src/main/res/drawable
           cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
           <transition xmlns:android="http://schemas.android.com/apk/res/android">
@@ -80,6 +88,18 @@ jobs:
               <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
           </shape>
           EOF
+          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="@color/control_button_color"/>
+              <corners android:radius="16dp"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
+          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
+              android:color="@color/accent_blue">
+              <item android:drawable="@drawable/btn_rounded"/>
+          </ripple>
+          EOF
           echo "✅ Drawables created."
 
       - name: Fix string formatting warnings
@@ -92,5 +112,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Restore clean layouts, reapply theme, fix strings"
+          git diff --cached --quiet || git commit -m "Restore all corrupted layouts, reapply theme, add drawables, fix strings"
           git push origin HEAD:${GITHUB_REF_NAME}
