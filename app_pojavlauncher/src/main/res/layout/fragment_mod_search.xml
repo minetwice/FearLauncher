@@ -15,8 +15,7 @@
      -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_mod_overlay"
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:translationZ="10dp"
         android:background="@drawable/background_overlay"
         android:paddingHorizontal="@dimen/padding_medium"
@@ -31,8 +30,7 @@
         <!-- Search text -->
         <EditText
             android:id="@+id/search_mod_edittext"
-            android:layout_width="0dp" android:layout_height="wrap_content" 
-            android:layout_height="wrap_content"
+            android:layout_width="0dp" android:layout_height="wrap_content"
             android:background="@drawable/background_line"
             android:textSize="@dimen/_13ssp"
             android:translationZ="2dp"
@@ -65,8 +63,7 @@
         <ProgressBar
             android:id="@+id/search_mod_progressbar"
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent" android:layout_height="wrap_content" 
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:indeterminate="true"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/search_mod_edittext"
@@ -94,8 +91,7 @@
 
     <TextView
         android:id="@+id/search_mod_status_text"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="TextView"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/search_mod_list"
@@ -105,8 +101,7 @@
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/mineButton_import_local_modpack"
-        android:layout_width="0dp" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:enabled="false"
         android:layout_marginTop="@dimen/padding_moderate"
         android:layout_marginBottom="@dimen/padding_moderate"

@@ -13,8 +13,7 @@
     <TextView
         android:id="@+id/side_dialog_title_textview"
         style="@style/TextAppearance.AppCompat.Large"
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:padding="@dimen/padding_moderate"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,14 +40,12 @@
     </com.kdt.DefocusableScrollView>
 
     <RelativeLayout
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal">
         <Button
             android:id="@+id/side_dialog_start_button"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content" android:layout_height="wrap_content" 
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:visibility="gone"
 
@@ -59,8 +56,7 @@
         <Button
             android:id="@+id/side_dialog_end_button"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content" android:layout_height="wrap_content" 
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:visibility="gone"
 

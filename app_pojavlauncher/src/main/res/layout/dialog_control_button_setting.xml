@@ -5,8 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/edit_layout"
-    android:layout_width="match_parent" android:layout_height="wrap_content" 
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
     android:paddingHorizontal="@dimen/padding_moderate"
     android:paddingVertical="@dimen/padding_moderate"
     app:layout_optimizationLevel="standard|dimensions|chains">
@@ -15,8 +14,7 @@
     <!-- EDIT NAME SECTION -->
     <TextView
         android:id="@+id/editName_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center"
         android:paddingEnd="5dp"
         android:text="@string/global_name"
@@ -26,8 +24,7 @@
 
     <EditText
         android:id="@+id/editName_editText"
-        android:layout_width="0dp" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:gravity="center"
         android:hint="Button Name"
         android:imeOptions="flagNoExtractUi"
@@ -40,8 +37,7 @@
     <!--  SIZE SECTION -->
     <TextView
         android:id="@+id/editSize_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center"
         android:paddingEnd="5dp"
         android:text="@string/customctrl_size"
@@ -52,8 +48,7 @@
 
     <EditText
         android:id="@+id/editSize_editTextX"
-        android:layout_width="@dimen/_134sdp" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/_134sdp" android:layout_height="wrap_content"
         android:gravity="center"
         android:imeOptions="flagNoExtractUi"
         android:inputType="numberDecimal"
@@ -89,8 +84,7 @@
     <!-- MAPPING SECTION -->
     <TextView
         android:id="@+id/editMapping_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
 
         android:paddingEnd="5dp"
         android:text="@string/customctrl_mapping"
@@ -259,8 +253,7 @@
     <!-- ORIENTATION SECTION -->
     <TextView
         android:id="@+id/editOrientation_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_2sdp"
         android:gravity="center"
         android:paddingEnd="5dp"
@@ -371,8 +364,7 @@
 
     <fr.spse.extended_view.ExtendedTextView
         android:id="@+id/editBackgroundColorWarning_textView"
-        android:layout_width="0dp" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
         android:drawableStart="?android:attr/alertDialogIcon"
         android:gravity="center_vertical"
@@ -389,8 +381,7 @@
     <!-- STROKE WIDTH -->
     <TextView
         android:id="@+id/editStrokeWidth_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
         android:paddingEnd="5dp"
@@ -442,8 +433,7 @@
     <!-- CORNER RADIUS SECTION -->
     <TextView
         android:id="@+id/editCornerRadius_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center"
         android:paddingEnd="5dp"
         android:text="@string/customctrl_corner_radius"
@@ -476,8 +466,7 @@
     <!-- BUTTON OPACITY SECTION -->
     <TextView
         android:id="@+id/editButtonOpacity_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center"
         android:paddingEnd="5dp"
         android:text="@string/customctrl_button_opacity"
@@ -509,23 +498,20 @@
     <!-- Button visibility -->
     <TextView
         android:id="@+id/visibility_textview"
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:text="@string/customctrl_visibility_title"
         app:layout_constraintTop_toBottomOf="@+id/editButtonOpacity_seekbar"
         tools:layout_editor_absoluteX="6dp" />
 
     <CheckBox
         android:id="@+id/visibility_game_checkbox"
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:text="@string/customctrl_visibility_ingame"
         app:layout_constraintTop_toBottomOf="@+id/visibility_textview" />
 
     <CheckBox
         android:id="@+id/visibility_menu_checkbox"
-        android:layout_width="match_parent" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
         android:text="@string/customctrl_visibility_in_menus"
         app:layout_constraintTop_toBottomOf="@+id/visibility_game_checkbox" />
 

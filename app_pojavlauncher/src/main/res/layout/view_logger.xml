@@ -11,8 +11,7 @@
 
     <TextView
         android:id="@+id/log_title"
-        android:layout_width="wrap_content" android:layout_height="wrap_content" 
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:paddingHorizontal="25dp"
         android:text="@string/log_view_label_log_output"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -63,8 +62,7 @@
 
         <TextView
             android:id="@+id/content_log_view"
-            android:layout_width="match_parent" android:layout_height="wrap_content" 
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:textIsSelectable="true"/>
 
     </com.kdt.DefocusableScrollView>
