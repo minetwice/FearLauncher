@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" 
+    android:layout_width="match_parent" android:layout_height="wrap_content" 
     android:layout_height="wrap_content"
     android:orientation="vertical">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controller_mapper_default_view"
-        android:layout_width="match_parent" 
+        android:layout_width="match_parent" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:focusable="true">
 
@@ -41,7 +41,7 @@
         <!-- Set in code -->
         <TextView
             android:id="@+id/controller_mapper_keycode_label"
-            android:layout_width="0dp" 
+            android:layout_width="0dp" android:layout_height="wrap_content" 
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:maxLines="2"
@@ -56,7 +56,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controller_mapper_expanded_view"
-        android:layout_width="match_parent" 
+        android:layout_width="match_parent" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/padding_medium"
         android:visibility="gone"
@@ -108,7 +108,7 @@
         <!-- A single "plus" sign does not need translation -->
         <TextView
             android:id="@+id/controller_mapper_plus_label1"
-            android:layout_width="wrap_content" 
+            android:layout_width="wrap_content" android:layout_height="wrap_content" 
             android:layout_height="wrap_content"
             android:text="+"
             android:textColor="@color/primary_text"
@@ -120,7 +120,7 @@
 
         <TextView
             android:id="@+id/controller_mapper_plus_label2"
-            android:layout_width="wrap_content" 
+            android:layout_width="wrap_content" android:layout_height="wrap_content" 
             android:layout_height="wrap_content"
             android:text="+"
             android:textColor="@color/primary_text"
@@ -132,7 +132,7 @@
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline3"
-            android:layout_width="wrap_content" 
+            android:layout_width="wrap_content" android:layout_height="wrap_content" 
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />

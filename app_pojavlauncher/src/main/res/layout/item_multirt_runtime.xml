@@ -10,7 +10,7 @@
     <TextView
         android:id="@+id/multirt_view_java_version"
         style="@style/TextAppearance.AppCompat.Body1"
-        android:layout_width="@dimen/_150sdp" 
+        android:layout_width="@dimen/_150sdp" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
 
 
@@ -29,7 +29,7 @@
 
     <TextView
         android:id="@+id/multirt_view_java_version_full"
-        android:layout_width="wrap_content" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
 

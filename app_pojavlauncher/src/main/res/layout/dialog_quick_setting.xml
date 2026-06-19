@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/edit_layout"
-    android:layout_width="match_parent" 
+    android:layout_width="match_parent" android:layout_height="wrap_content" 
     android:layout_height="wrap_content"
     android:paddingHorizontal="@dimen/padding_moderate"
     android:paddingVertical="@dimen/padding_moderate"
@@ -12,7 +12,7 @@
     <!-- Resolution settings -->
     <TextView
         android:id="@+id/editResolution_textView"
-        android:layout_width="wrap_content" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -79,7 +79,7 @@
     <!-- Gyroscope sensitivity -->
     <TextView
         android:id="@+id/editGyro_textView"
-        android:layout_width="wrap_content" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -118,7 +118,7 @@
     <!-- Mouse settings -->
     <TextView
         android:id="@+id/editMouseSpeed_textView"
-        android:layout_width="wrap_content" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -167,7 +167,7 @@
     <!-- gesture settings -->
     <TextView
         android:id="@+id/editGestureDelay_textView"
-        android:layout_width="wrap_content" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"

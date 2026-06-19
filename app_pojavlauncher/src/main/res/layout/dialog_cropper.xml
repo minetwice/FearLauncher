@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" 
+    android:layout_width="match_parent" android:layout_height="wrap_content" 
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
@@ -15,7 +15,7 @@
         android:layout_marginEnd="@dimen/padding_medium"
         android:layout_marginBottom="@dimen/padding_moderate" />
     <LinearLayout
-        android:layout_width="match_parent" 
+        android:layout_width="match_parent" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="@dimen/padding_medium"
@@ -44,7 +44,7 @@
             android:text="@string/cropper_reset"/>
     </LinearLayout>
     <ProgressBar
-        android:layout_width="match_parent" 
+        android:layout_width="match_parent" android:layout_height="wrap_content" 
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:id="@+id/crop_dialog_progressbar"
