@@ -1,4 +1,4 @@
-name: Fix Layout Duplicates
+name: Clean Layouts & Apply Minimal Theme
 
 on:
   workflow_dispatch:
@@ -7,63 +7,136 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  clean:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download clean problematic layout files from MojoLauncher
+      # 1. Download ALL layout files from MojoLauncher (fresh start)
+      - name: Download all layout files from MojoLauncher
         run: |
           BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
+          # Get list of all layout files (hardcoded list of common ones)
           FILES=(
-            "dialog_side_dialog.xml"
             "activity_basemain.xml"
+            "activity_custom_controls.xml"
+            "activity_import_control.xml"
+            "activity_java_gui_launcher.xml"
+            "activity_pojav_launcher.xml"
+            "dialog_color_selector.xml"
+            "dialog_control_button_setting.xml"
+            "dialog_cropper.xml"
+            "dialog_expendable_list_view.xml"
+            "dialog_live_mouse_speed_editor.xml"
+            "dialog_mod_filters.xml"
+            "dialog_per_version_control.xml"
+            "dialog_quick_setting.xml"
+            "dialog_side_dialog.xml"
+            "fragment_controller_remapper.xml"
+            "fragment_fabric_install.xml"
+            "fragment_file_selector.xml"
+            "fragment_instance_editor.xml"
+            "fragment_launcher.xml"
+            "fragment_local_login.xml"
+            "fragment_mod_search.xml"
+            "fragment_mod_version_list.xml"
+            "fragment_profile_type.xml"
+            "fragment_select_auth_method.xml"
+            "item_centered_textview_large.xml"
+            "item_controller_mapping.xml"
+            "item_minecraft_account.xml"
+            "item_multirt_runtime.xml"
+            "item_simple_list_1.xml"
+            "item_version_profile_layout.xml"
+            "spinner_mc_version.xml"
+            "storage_test_no_sdcard.xml"
+            "view_logger.xml"
+            "view_mod.xml"
+            "view_mod_extended.xml"
+            "view_progress.xml"
           )
           for file in "${FILES[@]}"; do
             curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
             echo "Restored: $file"
           done
 
-      - name: Remove duplicate layout_height from all layout files (extra safety)
+      # 2. Apply theme changes ONLY to main launcher and fragment
+      - name: Apply minimal theme to main screens
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob
+          # activity_pojav_launcher.xml
+          sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              with open(xml_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              # Remove duplicate android:layout_height
-              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
-              new_content = re.sub(pattern, r'\1', content)
-              if new_content != content:
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Cleaned: {xml_file}")
-          print("✅ Duplicates removed.")
+          # fragment_launcher.xml
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
 
-      - name: Fix string formatting warning
+          # Also apply to in-game overlay (activity_java_gui_launcher) if needed
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml
+
+      # 3. Fix string warning
+      - name: Fix string formatting
         run: |
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
-          echo "✅ String warning fixed."
 
-      - name: Apply theme changes (minimal)
+      # 4. Create required drawables and colors (if missing)
+      - name: Ensure theme resources exist
         run: |
-          for file in dialog_side_dialog.xml activity_basemain.xml; do
-            if [ -f "app_pojavlauncher/src/main/res/layout/$file" ]; then
-              sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "app_pojavlauncher/src/main/res/layout/$file"
-              sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "app_pojavlauncher/src/main/res/layout/$file"
-              sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' "app_pojavlauncher/src/main/res/layout/$file"
-            fi
-          done
-          echo "✅ Theme applied."
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
+          <transition xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:drawable="@drawable/grad_silver_blue_1" />
+              <item android:drawable="@drawable/grad_silver_blue_2" />
+          </transition>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient android:startColor="#E8EEF0" android:endColor="#CFD8DC" android:angle="45" android:type="linear"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="@color/control_button_color"/>
+              <corners android:radius="16dp"/>
+          </shape>
+          EOF
+          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
+          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
+              android:color="@color/accent_blue">
+              <item android:drawable="@drawable/btn_rounded"/>
+          </ripple>
+          EOF
+          # Ensure colors.xml has required colors
+          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="background_app">#E8EEF0</color>
+              <color name="background_status_bar">#CFD8DC</color>
+              <color name="background_bottom_bar">#F5F7F8</color>
+              <color name="background_overlay">#B0BEC5</color>
+              <color name="control_button_color">#90A4AE</color>
+              <color name="control_button_pressed_color">#78909C</color>
+              <color name="divider">#B0BEC5</color>
+              <color name="icon_outline_color">#455A64</color>
+              <color name="primary_text">#212121</color>
+              <color name="secondary_text">#546E7A</color>
+              <color name="minebutton_color">#90A4AE</color>
+              <color name="accent_blue">#3F51B5</color>
+          </resources>
+          EOF
 
+      # 5. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/dialog_side_dialog.xml
-          git add app_pojavlauncher/src/main/res/layout/activity_basemain.xml
-          git add app_pojavlauncher/src/main/res/values/strings.xml
-          git diff --cached --quiet || git commit -m "Fix duplicate layout_height in dialog_side_dialog and activity_basemain"
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Clean layouts from MojoLauncher, apply minimal theme to main screens"
           git push origin HEAD:${GITHUB_REF_NAME}
