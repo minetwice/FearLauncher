@@ -54,7 +54,7 @@
 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/search_mod_edittext"
-            app:layout_constraintBottom_toBottomOf="@id/search_mod_edittext"
+            app:layout_constraintBottom_toBottomOf="@id/search_mod_edittext" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true"
 
             />
 

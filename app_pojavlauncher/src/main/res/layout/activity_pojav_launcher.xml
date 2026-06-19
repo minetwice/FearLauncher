@@ -26,7 +26,7 @@
         android:paddingVertical="@dimen/_8sdp"
 
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
     <!-- Holding most of the dynamic content -->
     <androidx.fragment.app.FragmentContainerView

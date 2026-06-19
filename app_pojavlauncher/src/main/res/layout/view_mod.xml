@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
 
-        tools:src="@mipmap/ic_launcher_foreground"
+        tools:src="@mipmap/ic_launcher_foreground" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true"
         />
 
     <ImageView
@@ -29,7 +29,7 @@
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@mipmap/ic_launcher_foreground" />
+        tools:src="@mipmap/ic_launcher_foreground" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
     <TextView
         android:id="@+id/mod_title_textview"

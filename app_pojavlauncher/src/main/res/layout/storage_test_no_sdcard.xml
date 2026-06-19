@@ -9,7 +9,7 @@
     <ImageView
         android:layout_width="@dimen/_128sdp" android:layout_height="wrap_content"
         android:adjustViewBounds="true"
-        android:src="@drawable/storage_alert" />
+        android:src="@drawable/storage_alert" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
     <TextView
         android:layout_width="wrap_content" android:layout_height="wrap_content"

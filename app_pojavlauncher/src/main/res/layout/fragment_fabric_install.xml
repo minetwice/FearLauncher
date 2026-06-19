@@ -53,7 +53,7 @@
         android:src="@drawable/spinner_arrow"
         app:layout_constraintBottom_toBottomOf="@+id/fabric_installer_game_ver_spinner"
         app:layout_constraintEnd_toEndOf="@+id/fabric_installer_game_ver_spinner"
-        app:layout_constraintTop_toTopOf="@+id/fabric_installer_game_ver_spinner" />
+        app:layout_constraintTop_toTopOf="@+id/fabric_installer_game_ver_spinner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
     <TextView
         android:id="@+id/fabric_installer_label_loader_ver"
@@ -83,7 +83,7 @@
         android:src="@drawable/spinner_arrow"
         app:layout_constraintBottom_toBottomOf="@+id/fabric_installer_loader_ver_spinner"
         app:layout_constraintEnd_toEndOf="@+id/fabric_installer_loader_ver_spinner"
-        app:layout_constraintTop_toTopOf="@+id/fabric_installer_loader_ver_spinner" />
+        app:layout_constraintTop_toTopOf="@+id/fabric_installer_loader_ver_spinner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
 
     <TextView

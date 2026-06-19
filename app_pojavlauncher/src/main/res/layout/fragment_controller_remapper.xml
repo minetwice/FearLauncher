@@ -23,7 +23,7 @@
             android:layout_width="30sp" android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:contentDescription="@string/controller_button_select"
-            app:srcCompat="@drawable/button_select" />
+            app:srcCompat="@drawable/button_select" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
         <TextView
             android:layout_width="wrap_content" android:layout_height="wrap_content"

@@ -45,13 +45,13 @@
         android:src="@android:drawable/ic_delete"
         app:layout_constraintBottom_toBottomOf="@+id/top_log_view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
     <com.kdt.DefocusableScrollView
         android:id="@+id/content_log_scroll"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:alpha="0.8"
-        android:background="#000000"
+        android:background="@color/secondary_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_log_view">
 

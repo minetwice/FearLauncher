@@ -21,7 +21,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/button_a"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
 
         <ImageView
             android:id="@+id/controller_mapper_expand_button"
@@ -33,7 +33,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/spinner_arrow" />
+            app:srcCompat="@drawable/spinner_arrow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true" />
         <!-- Set in code -->
         <TextView
             android:id="@+id/controller_mapper_keycode_label"
