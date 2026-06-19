@@ -1,4 +1,4 @@
-name: Force Fix fragment_launcher.xml
+name: Clean Duplicate Attributes
 
 on:
   workflow_dispatch:
@@ -7,45 +7,42 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  clean:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Download clean copy from MojoLauncher
-      - name: Download clean fragment_launcher.xml
+      - name: Remove duplicate layout_height from all layout files
         run: |
-          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
-            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Downloaded clean fragment_launcher.xml"
+          python3 << 'PYTHON'
+          import os, re, glob
 
-      # 2. Add layout_height to any view that has layout_width but missing layout_height
-      - name: Ensure all views have layout_height
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
+              with open(xml_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              # Remove duplicate android:layout_height
+              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
+              new_content = re.sub(pattern, r'\1', content)
+              # Also remove duplicate android:layout_width if any
+              pattern2 = r'(android:layout_width="[^"]*")\s+android:layout_width="[^"]*"'
+              new_content = re.sub(pattern2, r'\1', new_content)
+              if new_content != content:
+                  with open(xml_file, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"Cleaned: {xml_file}")
+          print("✅ Duplicates removed.")
+
+      - name: Fix string formatting warning
         run: |
-          sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Added missing layout_height"
+          sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
+          echo "✅ String warning fixed."
 
-      # 3. Apply button style and text color (minimal theme)
-      - name: Apply theme changes
-        run: |
-          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Applied button styles and text colors"
-
-      # 4. Also ensure the main activity layout has background
-      - name: Ensure activity_pojav_launcher has background
-        run: |
-          if ! grep -q 'android:background=' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml; then
-            sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-          fi
-          echo "✅ Main layout background ensured"
-
-      # 5. Commit and push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          git add app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-          git diff --cached --quiet || git commit -m "Fix fragment_launcher: clean copy from MojoLauncher, ensure layout_height, apply theme"
+          git add app_pojavlauncher/src/main/res/layout/
+          git add app_pojavlauncher/src/main/res/values/strings.xml
+          git diff --cached --quiet || git commit -m "Remove duplicate layout_height from all layouts, fix string warning"
           git push origin HEAD:${GITHUB_REF_NAME}
