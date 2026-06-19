@@ -1,4 +1,4 @@
-name: Restore All Layouts & Fix Strings
+name: Restore ALL Layouts & Fix Strings
 
 on:
   workflow_dispatch:
@@ -12,44 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all layout files from MojoLauncher
+      - name: Download ALL layout files from MojoLauncher
         run: |
-          # All layout files that might be corrupted (add any that were touched)
-          FILES=(
-            "activity_basemain.xml"
-            "item_centered_textview_large.xml"
-            "fragment_local_login.xml"
-            "fragment_select_auth_method.xml"
-            "fragment_mod_version_list.xml"
-            "fragment_file_selector.xml"
-            "spinner_mc_version.xml"
-            "fragment_profile_type.xml"
-            "activity_custom_controls.xml"
-            "item_minecraft_account.xml"
-            "activity_java_gui_launcher.xml"
-            "activity_pojav_launcher.xml"
-            "item_version_profile_layout.xml"
-            "dialog_control_button_setting.xml"
-            "dialog_live_mouse_speed_editor.xml"
-            "activity_import_control.xml"
-            "dialog_side_dialog.xml"
-            "fragment_launcher.xml"
-            "fragment_instance_editor.xml"
-            "fragment_mod_search.xml"
-            "view_progress.xml"
-            "item_multirt_runtime.xml"
-            "fragment_fabric_install.xml"
-            "item_controller_mapping.xml"
-            "view_mod.xml"
-            "dialog_expendable_list_view.xml"
-            "dialog_quick_setting.xml"
-            "dialog_cropper.xml"
-            "fragment_controller_remapper.xml"
-          )
+          # Get list of all layout files from original repo
+          curl -s "https://api.github.com/repos/MojoLauncher/MojoLauncher/contents/app_pojavlauncher/src/main/res/layout?ref=v3_openjdk" | \
+            grep -o '"name": "[^"]*\.xml"' | sed 's/"name": "//g' | sed 's/"//g' > layout_files.txt
+          # Also get layouts from layout-land
+          curl -s "https://api.github.com/repos/MojoLauncher/MojoLauncher/contents/app_pojavlauncher/src/main/res/layout-land?ref=v3_openjdk" | \
+            grep -o '"name": "[^"]*\.xml"' | sed 's/"name": "//g' | sed 's/"//g' >> layout_files.txt
           BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
-          for file in "${FILES[@]}"; do
+          for file in $(cat layout_files.txt); do
             curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
             echo "Restored: $file"
+          done
+          # Also restore layout-land files
+          BASE_LAND="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout-land"
+          mkdir -p app_pojavlauncher/src/main/res/layout-land
+          for file in $(cat layout_files.txt); do
+            curl -s -o "app_pojavlauncher/src/main/res/layout-land/$file" "$BASE_LAND/$file" 2>/dev/null || true
           done
 
       - name: Fix string formatting warnings using Python
@@ -75,7 +55,7 @@ jobs:
           print("✅ Strings fixed.")
           PYTHON
 
-      - name: Apply theme changes (only to main layout)
+      - name: Apply theme changes (only to main activity and fragment)
         run: |
           LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
           sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
@@ -87,11 +67,15 @@ jobs:
           FRAG="app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
           sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "$FRAG"
           sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$FRAG"
+          # Also apply to activity_java_gui_launcher.xml (in-game overlay)
+          JAVA="app_pojavlauncher/src/main/res/layout/activity_java_gui_launcher.xml"
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "$JAVA"
           echo "✅ Theme reapplied."
 
       - name: Ensure drawables and styles exist
         run: |
           mkdir -p app_pojavlauncher/src/main/res/drawable
+          mkdir -p app_pojavlauncher/src/main/res/anim
           cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
           <transition xmlns:android="http://schemas.android.com/apk/res/android">
               <item android:drawable="@drawable/grad_silver_blue_1" />
@@ -120,12 +104,21 @@ jobs:
               <item android:drawable="@drawable/btn_rounded"/>
           </ripple>
           EOF
-          echo "✅ Drawables created."
+          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
+          <set xmlns:android="http://schemas.android.com/apk/res/android">
+              <scale android:duration="150" android:fromXScale="1.0" android:fromYScale="1.0"
+                  android:toXScale="0.95" android:toYScale="0.95" android:pivotX="50%" android:pivotY="50%" />
+              <scale android:duration="150" android:fromXScale="0.95" android:fromYScale="0.95"
+                  android:toXScale="1.0" android:toYScale="1.0" android:pivotX="50%" android:pivotY="50%"
+                  android:startOffset="150" />
+          </set>
+          EOF
+          echo "✅ Drawables and animations created."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Restore all corrupted layouts, fix strings, reapply theme"
+          git diff --cached --quiet || git commit -m "Restore ALL layout files, fix strings, reapply theme"
           git push origin HEAD:${GITHUB_REF_NAME}
