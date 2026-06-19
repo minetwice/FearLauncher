@@ -24,9 +24,7 @@ jobs:
           import os, re, json
 
           # Hardcoded list of all known icon drawable names
-          # (from previous inventory analysis)
           all_icons = [
-              # PX icons
               'ic_px_hash', 'ic_px_zap', 'ic_px_file_dl', 'ic_px_verify_hash',
               'ic_px_volcano', 'ic_microphone', 'ic_px_image', 'ic_px_gamepad',
               'ic_px_java', 'ic_px_alt_sliders', 'ic_px_experiment', 'ic_px_translate',
@@ -36,17 +34,14 @@ jobs:
               'ic_px_gestures', 'ic_px_control_size', 'ic_px_letters', 'ic_px_pointer_size',
               'ic_px_speed', 'ic_px_virtual_mouse', 'ic_px_trash', 'ic_px_edit',
               'ic_px_book', 'ic_px_sharelog', 'ic_px_folder', 'ic_px_sliders',
-              'ic_px_home', 'ic_px_arrow_left', 'ic_px_file', 'ic_px_control_size',
-              'ic_px_edit', 'ic_px_sharelog', 'ic_px_folder', 'ic_px_sliders',
-              # UI icons
-              'ic_filter', 'ic_add', 'ic_gear', 'ic_debug', 'ic_chat', 'ic_keyboard',
+              'ic_px_home', 'ic_px_arrow_left', 'ic_px_file', 'ic_filter',
+              'ic_add', 'ic_gear', 'ic_debug', 'ic_chat', 'ic_keyboard',
               'ic_tab', 'ic_mouse', 'ic_3rd', 'ic_pri', 'ic_sec', 'ic_gui', 'ic_inv',
               'ic_curseforge', 'ic_modrinth', 'ic_fear_full', 'ic_fabric', 'ic_quilt',
               'ic_forge', 'ic_neoforge', 'ic_auth_ms', 'ic_auth_elyby',
               'ic_discord', 'ic_telegram', 'ic_sharp_settings_24', 'ic_view_handle',
               'ic_gamepad_pointer', 'ic_mouse_pointer', 'spinner_arrow', 'spinner_arrow_right',
               'notif_icon', 'storage_alert', 'no_focus_shown',
-              # Backgrounds and other drawables
               'background_line', 'background_line_selected', 'background_line_unselected',
               'background_overlay', 'background_icon_edit', 'background_card',
               'menu_background', 'mine_button_background', 'control_button',
@@ -63,18 +58,14 @@ jobs:
                   inv = json.load(f)
               for key in inv.get('png_references', {}).keys():
                   all_icons.append(key)
-              # Also add any from png_files section
               for png in inv.get('png_files', []):
                   name = png['file'].replace('.png', '').replace('.9.png', '')
                   all_icons.append(name)
 
-          # Deduplicate
           all_icons = list(set(all_icons))
 
-          # Create drawable directory if not exists
           os.makedirs('app_pojavlauncher/src/main/res/drawable', exist_ok=True)
 
-          # Generate vector drawable for each name
           vector_content = '''<?xml version="1.0" encoding="utf-8"?>
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="24dp"
@@ -96,7 +87,7 @@ jobs:
           print(f"✅ Generated {len(all_icons)} vector drawables.")
           PYTHON
 
-      - name: Replace 9-patch with shape drawables (just in case)
+      - name: Replace 9-patch with shape drawables
         run: |
           cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
@@ -118,7 +109,7 @@ jobs:
           EOF
           echo "✅ Button shapes created."
 
-      - name: Fix duplicate layout_height and add missing layout_height (Python)
+      - name: Fix duplicate and missing layout_height
         run: |
           python3 << 'PYTHON'
           import os, re, glob, xml.etree.ElementTree as ET
@@ -161,7 +152,7 @@ jobs:
           find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
           echo "✅ Strings fixed."
 
-      - name: Apply silver-blue theme colors and animations
+      - name: Apply silver-blue theme and animations
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -224,7 +215,7 @@ jobs:
           EOF
           echo "✅ Theme and animations applied."
 
-      - name: Update layouts to use new drawables and apply button styles
+      - name: Update layouts
         run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button style="@style/RoundedButton" |g' {} \;
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' {} \;
@@ -235,8 +226,8 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ Fixed: space instead of dot
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/assets/
-          git diff --cached --quiet || git commit -m "Complete asset regeneration: delete all PNGs, generate vectors, fix layouts, apply theme"
+          git diff --cached --quiet || git commit -m "Complete asset regeneration: delete PNGs, generate vectors, fix layouts, apply theme"
           git push origin HEAD:${GITHUB_REF_NAME}
