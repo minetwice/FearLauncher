@@ -1,4 +1,4 @@
-name: Clean Duplicate Attributes
+name: Apply Reference Theme (Fullscreen, Landscape)
 
 on:
   workflow_dispatch:
@@ -7,42 +7,185 @@ permissions:
   contents: write
 
 jobs:
-  clean:
+  apply:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate layout_height from all layout files
+      # 1. Force landscape orientation
+      - name: Force landscape orientation
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob
+          MANIFEST="app_pojavlauncher/src/main/AndroidManifest.xml"
+          sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/ s/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' "$MANIFEST"
+          # If no orientation set, add it
+          sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/! s/<activity \([^>]*\)>/<activity \1 android:screenOrientation="landscape">/' "$MANIFEST"
+          echo "✅ Landscape orientation set."
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              with open(xml_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              # Remove duplicate android:layout_height
-              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
-              new_content = re.sub(pattern, r'\1', content)
-              # Also remove duplicate android:layout_width if any
-              pattern2 = r'(android:layout_width="[^"]*")\s+android:layout_width="[^"]*"'
-              new_content = re.sub(pattern2, r'\1', new_content)
-              if new_content != content:
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Cleaned: {xml_file}")
-          print("✅ Duplicates removed.")
+      # 2. Set fullscreen theme
+      - name: Set fullscreen theme
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+                  <item name="android:windowBackground">@color/background_app</item>
+                  <item name="android:colorBackground">@color/background_app</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="colorPrimary">@color/control_button_color</item>
+                  <item name="colorPrimaryDark">@color/background_status_bar</item>
+                  <item name="colorAccent">@color/accent_blue</item>
+              </style>
+          </resources>
+          EOF
+          echo "✅ Fullscreen theme applied."
 
-      - name: Fix string formatting warning
+      # 3. Apply Minecraft-like colors (dark blue/black theme from reference)
+      - name: Apply reference colors
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <!-- Reference Minecraft Launcher colors -->
+              <color name="background_app">#1A1A2E</color>
+              <color name="background_status_bar">#16213E</color>
+              <color name="background_bottom_bar">#0F3460</color>
+              <color name="background_overlay">#2D4059</color>
+              <color name="control_button_color">#4A6FA5</color>
+              <color name="control_button_pressed_color">#3A5A8A</color>
+              <color name="divider">#2D4059</color>
+              <color name="icon_outline_color">#8BB8E8</color>
+              <color name="primary_text">#FFFFFF</color>
+              <color name="secondary_text">#8BB8E8</color>
+              <color name="minebutton_color">#4A6FA5</color>
+              <color name="accent_blue">#4A90D9</color>
+              <color name="button_green">#7CB342</color>
+              <color name="button_green_pressed">#558B2F</color>
+              <!-- For icons -->
+              <color name="ic_launcher_background">#1A1A2E</color>
+          </resources>
+          EOF
+          echo "✅ Reference colors applied."
+
+      # 4. Create animated gradient background (subtle Minecraft style)
+      - name: Create background drawables
+        run: |
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          cat > app_pojavlauncher/src/main/res/drawable/bg_main.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient
+                  android:startColor="#1A1A2E"
+                  android:endColor="#16213E"
+                  android:angle="135"
+                  android:type="linear" />
+          </shape>
+          EOF
+          echo "✅ Background created."
+
+      # 5. Apply button style (rounded, Minecraft-like)
+      - name: Apply button styles
+        run: |
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="RoundedButton" parent="Widget.AppCompat.Button">
+                  <item name="android:background">@drawable/btn_rounded</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:textSize">14sp</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:stateListAnimator">@anim/button_click</item>
+                  <item name="android:padding">12dp</item>
+              </style>
+
+              <style name="LauncherMenuButton">
+                  <item name="android:layout_width">wrap_content</item>
+                  <item name="android:layout_height">wrap_content</item>
+                  <item name="android:minHeight">48dp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:background">?attr/selectableItemBackground</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="@color/control_button_color"/>
+              <corners android:radius="16dp"/>
+          </shape>
+          EOF
+          echo "✅ Button styles applied."
+
+      # 6. Set main layout background to gradient
+      - name: Set main layout background
+        run: |
+          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
+          sed -i 's|android:background="[^"]*"|android:background="@drawable/bg_main"|g' "$LAYOUT"
+          if ! grep -q 'android:background=' "$LAYOUT"; then
+            sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_main"/' "$LAYOUT"
+          fi
+          echo "✅ Main layout background set."
+
+      # 7. Fix string warning
+      - name: Fix string warning
         run: |
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
           echo "✅ String warning fixed."
 
+      # 8. Generate missing drawables (to avoid missing asset symbols)
+      - name: Generate missing drawables
+        run: |
+          # List of commonly referenced drawables
+          ICONS=(
+            "ic_px_hash" "ic_px_zap" "ic_px_file_dl" "ic_px_verify_hash"
+            "ic_px_volcano" "ic_microphone" "ic_px_image" "ic_px_gamepad"
+            "ic_px_java" "ic_px_alt_sliders" "ic_px_experiment" "ic_px_translate"
+            "ic_px_bell" "ic_px_image_renderer" "ic_px_viewport_expand"
+            "ic_px_resolution" "ic_px_runtime_mgr" "ic_px_console" "ic_px_ram"
+            "ic_px_java_run" "ic_px_nogestures" "ic_px_switch_arrows_x"
+            "ic_px_gestures" "ic_px_control_size" "ic_px_letters" "ic_px_pointer_size"
+            "ic_px_speed" "ic_px_virtual_mouse" "ic_px_trash" "ic_px_edit"
+            "ic_px_book" "ic_px_sharelog" "ic_px_folder" "ic_px_sliders"
+            "ic_px_home" "ic_px_arrow_left" "ic_px_file" "ic_filter"
+            "ic_add" "ic_gear" "ic_debug" "ic_chat" "ic_keyboard"
+            "ic_tab" "ic_mouse" "ic_3rd" "ic_pri" "ic_sec" "ic_gui" "ic_inv"
+            "ic_curseforge" "ic_modrinth" "ic_fear_full" "ic_fabric" "ic_quilt"
+            "ic_forge" "ic_neoforge" "ic_auth_ms" "ic_auth_elyby"
+            "ic_discord" "ic_telegram" "ic_sharp_settings_24" "ic_view_handle"
+            "ic_gamepad_pointer" "ic_mouse_pointer" "spinner_arrow" "spinner_arrow_right"
+            "notif_icon" "storage_alert" "no_focus_shown"
+            "ic_setting_sign_in_background" "ic_launcher_foreground" "ic_launcher_monochrome"
+            "mine_button_unfocused" "mine_button_focused" "control_side_action_window"
+          )
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          for name in "${ICONS[@]}"; do
+            if [ ! -f "app_pojavlauncher/src/main/res/drawable/${name}.xml" ]; then
+              cat > "app_pojavlauncher/src/main/res/drawable/${name}.xml" << 'EOFVEC'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/icon_outline_color"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
+          </vector>
+          EOFVEC
+              echo "Generated: ${name}.xml"
+            fi
+          done
+          echo "✅ All missing drawables generated."
+
+      # 9. Commit and push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git add app_pojavlauncher/src/main/res/values/strings.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate layout_height from all layouts, fix string warning"
+          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/
+          git add app_pojavlauncher/src/main/AndroidManifest.xml
+          git diff --cached --quiet || git commit -m "Apply reference theme: fullscreen, landscape, Minecraft-like colors, all drawables"
           git push origin HEAD:${GITHUB_REF_NAME}
