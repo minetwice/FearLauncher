@@ -1,6 +1,11 @@
-name: Replace All Icons with Vectors
+name: Auto-Fix Icons & Styles
 
 on:
+  push:
+    branches:
+      - v3_openjdk
+      - Fearv2
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,19 +17,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all PNG/WEBP images
+      - name: Check for skip ci
+        id: check_skip
         run: |
-          find app_pojavlauncher/src/main/res -type f \( -name "*.png" -o -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -delete
-          echo "✅ All images deleted."
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ "$COMMIT_MSG" == *"[skip ci]"* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping due to [skip ci]"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Generate vector for every referenced drawable
+      - name: Run fixes
+        if: steps.check_skip.outputs.skip == 'false'
         run: |
+          # =============================================
+          # 1. Generate vector for every referenced drawable
+          # =============================================
           python3 << 'PYTHON'
           import os, re, glob
 
           references = set()
-
-          # Search all files for drawable references
           for root, dirs, files in os.walk('.'):
               if '.git' in root or 'build' in root:
                   continue
@@ -36,16 +49,15 @@ jobs:
                               content = f.read()
                       except:
                           continue
-                      # @drawable/xxx or @drawable/xxx.png
                       matches = re.findall(r'@drawable/([a-zA-Z0-9_\.]+)', content)
                       for m in matches:
                           references.add(m.replace('.png', '').replace('.9.png', ''))
-                      # R.drawable.xxx
                       matches2 = re.findall(r'R\.drawable\.([a-zA-Z0-9_]+)', content)
                       references.update(matches2)
 
-          # Add common known names (just in case)
-          common = [
+          # Add known common missing icons
+          extra = [
+              'ic_minecraft', 'ic_arrow_drop_down', 'ic_launcher',
               'ic_px_hash', 'ic_px_zap', 'ic_px_file_dl', 'ic_px_verify_hash',
               'ic_px_volcano', 'ic_microphone', 'ic_px_image', 'ic_px_gamepad',
               'ic_px_java', 'ic_px_alt_sliders', 'ic_px_experiment', 'ic_px_translate',
@@ -66,9 +78,8 @@ jobs:
               'ic_setting_sign_in_background', 'ic_launcher_foreground', 'ic_launcher_monochrome',
               'mine_button_unfocused', 'mine_button_focused', 'control_side_action_window'
           ]
-          references.update(common)
+          references.update(extra)
 
-          # Create drawable directory
           os.makedirs('app_pojavlauncher/src/main/res/drawable', exist_ok=True)
 
           vector_template = '''<?xml version="1.0" encoding="utf-8"?>
@@ -94,8 +105,47 @@ jobs:
           print(f"✅ Generated {generated} vector drawables. Total references: {len(references)}.")
           PYTHON
 
-      - name: Apply Minecraft-like theme (fullscreen, landscape, colors)
-        run: |
+          # =============================================
+          # 2. Fix styles.xml (replace with clean version)
+          # =============================================
+          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="RoundedButton" parent="Widget.AppCompat.Button">
+                  <item name="android:background">@drawable/btn_rounded</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:textSize">14sp</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:stateListAnimator">@anim/button_click</item>
+                  <item name="android:padding">12dp</item>
+              </style>
+
+              <style name="LauncherMenuButton">
+                  <item name="android:layout_width">wrap_content</item>
+                  <item name="android:layout_height">wrap_content</item>
+                  <item name="android:minHeight">48dp</item>
+                  <item name="android:padding">12dp</item>
+                  <item name="android:textColor">@color/primary_text</item>
+                  <item name="android:fontFamily">sans-serif-condensed</item>
+                  <item name="android:background">?attr/selectableItemBackground</item>
+              </style>
+
+              <style name="ThickDivider">
+                  <item name="android:layout_width">match_parent</item>
+                  <item name="android:layout_height">2dp</item>
+                  <item name="android:background">@color/divider</item>
+              </style>
+
+              <style name="LauncherFragment_Divider" parent="ThickDivider">
+                  <item name="android:layout_marginTop">8dp</item>
+                  <item name="android:layout_marginBottom">8dp</item>
+              </style>
+          </resources>
+          EOF
+
+          # =============================================
+          # 3. Apply Minecraft-like theme (colors, landscape, fullscreen)
+          # =============================================
           # Colors
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -116,11 +166,12 @@ jobs:
           </resources>
           EOF
 
-          # Theme (fullscreen, landscape)
+          # Landscape
           MANIFEST="app_pojavlauncher/src/main/AndroidManifest.xml"
           sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/ s/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' "$MANIFEST"
           sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/! s/<activity \([^>]*\)>/<activity \1 android:screenOrientation="landscape">/' "$MANIFEST"
 
+          # Fullscreen theme
           cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -137,19 +188,6 @@ jobs:
           </resources>
           EOF
 
-          # Add missing styles
-          cat >> app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
-          <style name="ThickDivider">
-              <item name="android:layout_width">match_parent</item>
-              <item name="android:layout_height">2dp</item>
-              <item name="android:background">@color/divider</item>
-          </style>
-          <style name="LauncherFragment_Divider" parent="ThickDivider">
-              <item name="android:layout_marginTop">8dp</item>
-              <item name="android:layout_marginBottom">8dp</item>
-          </style>
-          EOF
-
           # Main background
           LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
           sed -i 's|android:background="[^"]*"|android:background="@drawable/bg_main"|g' "$LAYOUT"
@@ -157,15 +195,29 @@ jobs:
             sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_main"/' "$LAYOUT"
           fi
 
-      - name: Fix string warning
-        run: |
+          # Create bg_main drawable
+          mkdir -p app_pojavlauncher/src/main/res/drawable
+          cat > app_pojavlauncher/src/main/res/drawable/bg_main.xml << 'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <gradient
+                  android:startColor="#1A1A2E"
+                  android:endColor="#16213E"
+                  android:angle="135"
+                  android:type="linear" />
+          </shape>
+          EOF
+
+          # Fix string warning
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
 
-      - name: Commit and push
+          echo "✅ All fixes applied."
+
+      - name: Commit and push changes
+        if: steps.check_skip.outputs.skip == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/AndroidManifest.xml
-          git diff --cached --quiet || git commit -m "Replace all icons with vectors, apply Minecraft theme, fullscreen, landscape"
+          git diff --cached --quiet || git commit -m "Auto-fix: generate missing vectors, fix styles, apply theme [skip ci]"
           git push origin HEAD:${GITHUB_REF_NAME}
