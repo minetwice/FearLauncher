@@ -1,4 +1,4 @@
-name: Add Missing Divider Styles
+name: Generate Missing Drawables
 
 on:
   workflow_dispatch:
@@ -7,34 +7,69 @@ permissions:
   contents: write
 
 jobs:
-  add:
+  generate:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add ThickDivider and LauncherFragment_Divider to styles.xml
+      - name: Find and generate all missing drawables
         run: |
-          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
-          # Check if styles already exist
-          if ! grep -q 'ThickDivider' "$STYLES"; then
-            # Insert before </resources>
-            sed -i '/<\/resources>/i\
-          \    <style name="ThickDivider">\
-          \        <item name="android:layout_width">match_parent</item>\
-          \        <item name="android:layout_height">2dp</item>\
-          \        <item name="android:background">@color/divider</item>\
-          \    </style>\
-          \
-          \    <style name="LauncherFragment_Divider" parent="ThickDivider">\
-          \        <item name="android:layout_marginTop">8dp</item>\
-          \        <item name="android:layout_marginBottom">8dp</item>\
-          \    </style>' "$STYLES"
-            echo "✅ Added missing divider styles."
-          else
-            echo "✅ Divider styles already exist."
-          fi
+          python3 << 'PYTHON'
+          import os, re, glob
 
-      - name: Fix string formatting warning
+          # Get all drawable references from layout files
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          references = set()
+          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
+              with open(xml_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              # Find all @drawable/ references
+              matches = re.findall(r'@drawable/([a-zA-Z0-9_]+)', content)
+              references.update(matches)
+
+          # Also check for R.drawable references in Java (optional)
+          java_dir = "app_pojavlauncher/src/main/java"
+          for java_file in glob.glob(f"{java_dir}/**/*.java", recursive=True):
+              with open(java_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              matches = re.findall(r'R\.drawable\.([a-zA-Z0-9_]+)', content)
+              references.update(matches)
+
+          # Also check XML preferences (settings)
+          xml_dir = "app_pojavlauncher/src/main/res/xml"
+          for xml_file in glob.glob(f"{xml_dir}/**/*.xml", recursive=True):
+              with open(xml_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              matches = re.findall(r'@drawable/([a-zA-Z0-9_]+)', content)
+              references.update(matches)
+
+          # Generate vector for each missing drawable
+          drawable_dir = "app_pojavlauncher/src/main/res/drawable"
+          os.makedirs(drawable_dir, exist_ok=True)
+
+          generated = 0
+          for name in references:
+              if not os.path.exists(f"{drawable_dir}/{name}.xml"):
+                  vector = '''<?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="@color/icon_outline_color"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
+          </vector>
+          '''
+                  with open(f"{drawable_dir}/{name}.xml", 'w') as f:
+                      f.write(vector)
+                  print(f"Generated: {name}.xml")
+                  generated += 1
+
+          print(f"✅ Generated {generated} missing drawables. Total references: {len(references)}.")
+          PYTHON
+
+      - name: Fix string warning
         run: |
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
           echo "✅ String warning fixed."
@@ -43,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git add app_pojavlauncher/src/main/res/drawable/
           git add app_pojavlauncher/src/main/res/values/strings.xml
-          git diff --cached --quiet || git commit -m "Add ThickDivider and LauncherFragment_Divider styles, fix string warning"
+          git diff --cached --quiet || git commit -m "Generate all missing drawables to fix exclamation marks"
           git push origin HEAD:${GITHUB_REF_NAME}
