@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:background="@drawable/background_line"
     android:paddingHorizontal="@dimen/_2sdp"
     android:paddingVertical="@dimen/_2sdp"
@@ -12,8 +13,8 @@
 
     <ImageView
         android:id="@+id/mod_thumbnail_imageview"
-        android:layout_width="@dimen/_65sdp" android:layout_height="wrap_content"
-        
+        android:layout_width="@dimen/_65sdp"
+        android:layout_height="@dimen/_65sdp"
 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -23,8 +24,8 @@
 
     <ImageView
         android:id="@+id/mod_source_imageview"
-        android:layout_width="@dimen/_13sdp" android:layout_height="wrap_content"
-        
+        android:layout_width="@dimen/_13sdp"
+        android:layout_height="@dimen/_13sdp"
         android:layout_marginTop="3dp"
 
         android:layout_marginEnd="3dp"
@@ -36,7 +37,8 @@
     <TextView
         android:id="@+id/mod_title_textview"
         style="@style/TextAppearance.AppCompat.Body2"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:maxLines="1"
         android:layout_marginStart="@dimen/padding_moderate"
         android:ellipsize="end"
@@ -50,7 +52,8 @@
     <TextView
         android:id="@+id/mod_body_textview"
         style="@style/TextAppearance.AppCompat.Body1"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/padding_medium"
         android:layout_marginEnd="@dimen/padding_medium"
         android:ellipsize="end"
@@ -71,7 +74,8 @@
      -->
     <ViewStub
         android:id="@+id/mod_limited_state_stub"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout="@layout/view_mod_extended"
         app:layout_constraintTop_toBottomOf="@id/mod_thumbnail_imageview"/>
 
