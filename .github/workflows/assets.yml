@@ -1,4 +1,4 @@
-name: Fix Missing layout_height in All Layouts
+name: Fix fragment_launcher.xml Directly
 
 on:
   workflow_dispatch:
@@ -12,64 +12,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add missing android:layout_height to all layout files
+      - name: Download clean fragment_launcher.xml from MojoLauncher
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob, xml.etree.ElementTree as ET
-          from xml.dom import minidom
+          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
+            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Downloaded clean fragment_launcher.xml"
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              # Skip if file is empty or not valid XML
-              if os.path.getsize(xml_file) == 0:
-                  continue
-              try:
-                  tree = ET.parse(xml_file)
-                  root = tree.getroot()
-              except ET.ParseError:
-                  # If parsing fails, skip this file (it will be fixed by other means)
-                  continue
-
-              # Recursively find all elements with android:layout_width but missing android:layout_height
-              changed = False
-              for elem in root.iter():
-                  if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
-                      elem.set('android:layout_height', 'wrap_content')
-                      changed = True
-              if changed:
-                  # Write back the XML with proper formatting
-                  rough_string = ET.tostring(root, encoding='utf-8')
-                  reparsed = minidom.parseString(rough_string)
-                  pretty_xml = reparsed.toprettyxml(indent="    ")
-                  # Remove extra newlines (minidom adds some)
-                  pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(pretty_xml)
-                  print(f"Fixed: {xml_file}")
-
-          print("✅ Added missing layout_height attributes to all layouts.")
-
-      - name: Fix string formatting warnings using Python
+      - name: Also download other problematic layouts if they exist (optional)
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob
-          for strings_file in glob.glob("app_pojavlauncher/src/main/res/**/strings.xml", recursive=True):
-              with open(strings_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              def add_formatting(match):
-                  tag = match.group(0)
-                  if 'formatted=' not in tag:
-                      text = re.search(r'>(.*?)</string>', tag, re.DOTALL)
-                      if text and text.group(1).count('%') > 1:
-                          tag = tag.replace('<string ', '<string formatted="false" ', 1)
-                  return tag
-              pattern = r'<string [^>]*>.*?</string>'
-              new_content = re.sub(pattern, add_formatting, content, flags=re.DOTALL)
-              if new_content != content:
-                  with open(strings_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Fixed: {strings_file}")
-          print("✅ Strings fixed.")
+          # Also download fragment_instance_editor.xml just in case
+          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_instance_editor.xml \
+            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_instance_editor.xml
+          echo "✅ Also downloaded fragment_instance_editor.xml"
+
+      - name: Add missing layout_height to all views (just in case)
+        run: |
+          # For every layout file, ensure layout_height is present
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
+          echo "✅ Added missing layout_height to all layouts."
+
+      - name: Fix string formatting warnings
+        run: |
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
+          echo "✅ Strings fixed."
 
       - name: Commit and push
         run: |
@@ -77,5 +42,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Add missing layout_height to all layouts, fix string formatting"
+          git diff --cached --quiet || git commit -m "Fix fragment_launcher and add missing layout_height to all layouts"
           git push origin HEAD:${GITHUB_REF_NAME}
