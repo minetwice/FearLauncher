@@ -4,7 +4,7 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_height="match_parent"
-	android:layout_width="match_parent" android:layout_height="wrap_content"
+	android:layout_width="match_parent" 
 	android:layout_alignParentRight="true"
 	android:id="@+id/main_drawer_options"
 	android:background="@drawable/no_focus_shown"
@@ -26,7 +26,7 @@
 
 			<git.artdeell.dnbootstrap.glfw.GLFWCursorView
 				android:layout_height="match_parent"
-				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:layout_width="match_parent" 
 				android:orientation="vertical"
 				android:id="@+id/main_touchpad"
 				android:focusable="false"
