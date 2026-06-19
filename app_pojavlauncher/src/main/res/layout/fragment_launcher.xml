@@ -5,28 +5,28 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/fragment_menu_main"
 	android:gravity="top"
-	android:layout_width="match_parent" android:layout_height="wrap_content"
+	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical"
 	android:background="@color/background_app">
 	<ScrollView
-		android:layout_width="match_parent" android:layout_height="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="0dp"
 		app:layout_constraintTop_toTopOf="parent"
 		app:layout_constraintBottom_toTopOf="@id/mc_version_spinner">
 		<androidx.constraintlayout.widget.ConstraintLayout
-			android:layout_width="match_parent" android:layout_height="wrap_content"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 			<androidx.constraintlayout.widget.Guideline
 				android:id="@+id/center_guideline"
-				android:layout_width="0dp" android:layout_height="wrap_content"
+				android:layout_width="0dp"
 				android:layout_height="0dp"
 				android:orientation="vertical"
 				app:layout_constraintGuide_percent="0.5"/>
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/news_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="0dp" android:layout_height="wrap_content"
+				android:layout_width="0dp"
 				android:text="@string/mcl_tab_wiki"
 				android:drawableStart="@drawable/ic_px_book"
 				app:layout_constraintTop_toTopOf="parent"
@@ -43,7 +43,7 @@
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/social_media_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="0dp" android:layout_height="wrap_content"
+				android:layout_width="0dp"
 				android:text="@string/mcl_button_social_media"
 				android:drawableStart="@drawable/ic_social_media"
 				app:layout_constraintTop_toTopOf="parent"
@@ -54,7 +54,7 @@
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/custom_control_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:layout_width="match_parent"
 				android:drawableStart="@drawable/ic_px_gamepad"
 				android:text="@string/mcl_option_customcontrol"
 				app:layout_constraintTop_toBottomOf="@id/news_button" />
@@ -62,7 +62,7 @@
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/install_jar_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:layout_width="match_parent"
 				android:drawableStart="@drawable/ic_px_java_run"
 				android:text="@string/main_install_jar_file"
 				app:layout_constraintTop_toBottomOf="@id/custom_control_button" />
@@ -70,7 +70,7 @@
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/share_logs_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:layout_width="match_parent"
 				android:drawableStart="@drawable/ic_px_sharelog"
 				android:text="@string/main_share_logs"
 				app:layout_constraintTop_toBottomOf="@id/install_jar_button" />
@@ -78,7 +78,7 @@
 			<com.kdt.mcgui.LauncherMenuButton
 				android:id="@+id/open_files_button"
 				style="@style/LauncherMenuButton.Universal"
-				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:layout_width="match_parent"
 				android:drawableStart="@drawable/ic_px_folder"
 				android:text="@string/mcl_button_open_directory"
 				app:layout_constraintTop_toBottomOf="@id/share_logs_button" />
@@ -87,7 +87,7 @@
 
 	<com.kdt.mcgui.mcVersionSpinner
 		android:id="@+id/mc_version_spinner"
-		android:layout_width="0dp" android:layout_height="wrap_content"
+		android:layout_width="0dp"
 		android:layout_height="@dimen/_52sdp"
 		android:background="@android:color/transparent"
 		android:drawableEnd="@drawable/spinner_arrow"
@@ -103,7 +103,7 @@
 
 	<ImageButton
 		android:id="@+id/edit_profile_button"
-		android:layout_width="@dimen/_52sdp" android:layout_height="wrap_content"
+		android:layout_width="@dimen/_52sdp"
 		android:layout_height="@dimen/_52sdp"
 		android:background="?android:attr/selectableItemBackground"
 
@@ -116,7 +116,7 @@
 	<!-- This view is for cosmetic purpose only -->
 	<View
 		android:id="@+id/_background_display_view"
-		android:layout_width="match_parent" android:layout_height="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="0dp"
 		android:background="@color/background_bottom_bar"
 		android:translationZ="-1dp"
@@ -126,7 +126,7 @@
 
 	<com.kdt.mcgui.MineButton
 		android:id="@+id/play_button"
-		android:layout_width="match_parent" android:layout_height="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="@dimen/_62sdp"
 
 		android:layout_marginHorizontal="@dimen/_17sdp"

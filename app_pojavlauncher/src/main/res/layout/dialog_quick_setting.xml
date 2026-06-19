@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/edit_layout"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent" 
     android:layout_height="wrap_content"
     android:paddingHorizontal="@dimen/padding_moderate"
     android:paddingVertical="@dimen/padding_moderate"
@@ -12,7 +12,7 @@
     <!-- Resolution settings -->
     <TextView
         android:id="@+id/editResolution_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -25,7 +25,7 @@
     <com.kdt.CustomSeekbar
         android:id="@+id/editResolution_seekbar"
         android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
         android:min="@integer/resolution_seekbar_min"
         app:seekBarIncrement="@integer/resolution_seekbar_increment"
 
@@ -37,7 +37,7 @@
     <TextView
         android:id="@+id/editResolution_textView_percent"
         android:layout_width="150dp" android:layout_height="wrap_content"
-        android:layout_height="0dp"
+        
         android:gravity="end"
         tools:text="50%"
 
@@ -49,7 +49,7 @@
     <Switch
         android:id="@+id/checkboxGyro"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
         android:text="@string/preference_enable_gyro_title"
 
         app:layout_constraintStart_toStartOf="parent"
@@ -59,7 +59,7 @@
     <Switch
         android:id="@+id/checkboxGyroX"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
         android:text="@string/preference_gyro_invert_x_axis"
 
         app:layout_constraintStart_toStartOf="parent"
@@ -69,7 +69,7 @@
     <Switch
         android:id="@+id/checkboxGyroY"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
         android:text="@string/preference_gyro_invert_y_axis"
 
         app:layout_constraintStart_toStartOf="parent"
@@ -79,7 +79,7 @@
     <!-- Gyroscope sensitivity -->
     <TextView
         android:id="@+id/editGyro_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -92,7 +92,7 @@
     <com.kdt.CustomSeekbar
         android:id="@+id/editGyro_seekbar"
         android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
 
         android:min="@integer/gyro_speed_seekbar_min"
         android:max="@integer/gyro_speed_seekbar_max"
@@ -106,7 +106,7 @@
     <TextView
         android:id="@+id/editGyro_textView_percent"
         android:layout_width="150dp" android:layout_height="wrap_content"
-        android:layout_height="0dp"
+        
         android:gravity="end"
         tools:text="100%"
 
@@ -118,7 +118,7 @@
     <!-- Mouse settings -->
     <TextView
         android:id="@+id/editMouseSpeed_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -131,7 +131,7 @@
     <com.kdt.CustomSeekbar
         android:id="@+id/editMouseSpeed_seekbar"
         android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
 
         android:min="@integer/mouse_speed_seekbar_min"
         android:max="@integer/mouse_speed_seekbar_max"
@@ -145,7 +145,7 @@
     <TextView
         android:id="@+id/editMouseSpeed_textView_percent"
         android:layout_width="150dp" android:layout_height="wrap_content"
-        android:layout_height="0dp"
+        
         android:gravity="end"
         tools:text="100%"
 
@@ -157,7 +157,7 @@
     <Switch
         android:id="@+id/checkboxGesture"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
         android:text="@string/mcl_disable_gestures"
 
         app:layout_constraintStart_toStartOf="parent"
@@ -167,7 +167,7 @@
     <!-- gesture settings -->
     <TextView
         android:id="@+id/editGestureDelay_textView"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_5sdp"
         android:gravity="center"
@@ -180,7 +180,7 @@
     <com.kdt.CustomSeekbar
         android:id="@+id/editGestureDelay_seekbar"
         android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_36sdp"
+        
 
         android:min="@integer/gesture_delay_seekbar_min"
         android:max="@integer/gesture_delay_seekbar_max"
@@ -194,7 +194,7 @@
     <TextView
         android:id="@+id/editGestureDelay_textView_percent"
         android:layout_width="150dp" android:layout_height="wrap_content"
-        android:layout_height="0dp"
+        
         android:gravity="end"
         tools:text="270 ms"
 

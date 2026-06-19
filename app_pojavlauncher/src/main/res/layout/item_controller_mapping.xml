@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent" 
     android:layout_height="wrap_content"
     android:orientation="vertical">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controller_mapper_default_view"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_width="match_parent" 
         android:layout_height="wrap_content"
         android:focusable="true">
 
@@ -15,7 +15,7 @@
         <ImageView
             android:id="@+id/controller_mapper_button"
             android:layout_width="55dp" android:layout_height="wrap_content"
-            android:layout_height="55dp"
+            
             android:layout_marginStart="@dimen/padding_moderate"
             android:layout_marginTop="@dimen/padding_small"
             android:layout_marginBottom="@dimen/padding_small"
@@ -29,7 +29,7 @@
         <ImageView
             android:id="@+id/controller_mapper_expand_button"
             android:layout_width="@dimen/padding_large" android:layout_height="wrap_content"
-            android:layout_height="@dimen/padding_large"
+            
             android:layout_marginEnd="@dimen/padding_heavy"
             android:rotation="180"
             android:focusable="false"
@@ -41,7 +41,7 @@
         <!-- Set in code -->
         <TextView
             android:id="@+id/controller_mapper_keycode_label"
-            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_width="0dp" 
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:maxLines="2"
@@ -56,7 +56,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controller_mapper_expanded_view"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_width="match_parent" 
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/padding_medium"
         android:visibility="gone"
@@ -65,7 +65,7 @@
         <Spinner
             android:id="@+id/controller_mapper_key_spinner1"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="48dp"
+            
             android:layout_marginHorizontal="@dimen/padding_moderate"
             android:background="@null"
             app:layout_constraintTop_toTopOf="parent"
@@ -75,7 +75,7 @@
         <Spinner
             android:id="@+id/controller_mapper_key_spinner2"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="48dp"
+            
             android:layout_marginHorizontal="@dimen/padding_moderate"
             android:background="@null"
             app:layout_constraintTop_toTopOf="parent"
@@ -86,7 +86,7 @@
         <Spinner
             android:id="@+id/controller_mapper_key_spinner3"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="48dp"
+            
             android:layout_marginTop="@dimen/padding_moderate"
             android:layout_marginHorizontal="@dimen/padding_moderate"
             android:background="@null"
@@ -97,7 +97,7 @@
         <Spinner
             android:id="@+id/controller_mapper_key_spinner4"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="48dp"
+            
             android:layout_marginTop="@dimen/padding_moderate"
             android:layout_marginHorizontal="@dimen/padding_moderate"
             android:background="@null"
@@ -108,7 +108,7 @@
         <!-- A single "plus" sign does not need translation -->
         <TextView
             android:id="@+id/controller_mapper_plus_label1"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
             android:text="+"
             android:textColor="@color/primary_text"
@@ -120,7 +120,7 @@
 
         <TextView
             android:id="@+id/controller_mapper_plus_label2"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
             android:text="+"
             android:textColor="@color/primary_text"
@@ -132,7 +132,7 @@
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline3"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />
@@ -140,7 +140,7 @@
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/controller_mapper_toggleable_switch"
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="48dp"
+            
             android:text="@string/customctrl_toggle"
             android:layout_marginTop="@dimen/padding_moderate"
             android:layout_marginHorizontal="@dimen/padding_moderate"

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_height="match_parent"
+    
     android:background="@color/background_app"
     android:paddingHorizontal="@dimen/fragment_padding_medium">
 
@@ -11,7 +11,7 @@
     <TextView
         android:id="@+id/title_textview"
         style="@style/TextAppearance.AppCompat.Title"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_large"
         android:text="@string/fabric_dl_loader_title"
@@ -29,7 +29,7 @@
 
     <TextView
         android:id="@+id/fabric_installer_label_game_ver"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:text="@string/fabric_dl_game_version"
         app:layout_constraintBottom_toTopOf="@+id/fabric_installer_game_ver_spinner"
@@ -37,7 +37,7 @@
 
     <Spinner
         android:id="@+id/fabric_installer_game_ver_spinner"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_extra_large"
         android:background="@drawable/background_line"
@@ -52,7 +52,7 @@
 
     <ImageView
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_8sdp"
+        
         android:paddingHorizontal="@dimen/_8sdp"
         android:rotation="180"
         android:src="@drawable/spinner_arrow"
@@ -62,7 +62,7 @@
 
     <TextView
         android:id="@+id/fabric_installer_label_loader_ver"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
 
         android:text="@string/fabric_dl_loader_version"
@@ -71,7 +71,7 @@
 
     <Spinner
         android:id="@+id/fabric_installer_loader_ver_spinner"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_extra_large"
         android:background="@drawable/background_line"
@@ -85,7 +85,7 @@
 
     <ImageView
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_height="@dimen/_8sdp"
+        
         android:paddingHorizontal="@dimen/_8sdp"
         android:rotation="180"
         android:src="@drawable/spinner_arrow"
@@ -96,7 +96,7 @@
 
     <TextView
         android:id="@+id/fabric_installer_label_options"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
 
         android:text="@string/mcl_options"
@@ -104,7 +104,7 @@
         app:layout_constraintStart_toStartOf="@+id/fabric_installer_only_stable_checkbox" />
     <CheckBox
         android:id="@+id/fabric_installer_only_stable_checkbox"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_width="match_parent" 
         android:layout_height="wrap_content"
         android:text="@string/fabric_dl_only_stable"
         android:layout_marginTop="@dimen/padding_extra_large"
@@ -115,7 +115,7 @@
 
     <LinearLayout
         android:id="@+id/fabric_installer_retry_layout"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_width="match_parent" 
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingTop="@dimen/fragment_padding_medium"
@@ -126,7 +126,7 @@
 
         <TextView
             android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_height="match_parent"
+            
             android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -136,14 +136,14 @@
 
         <Button
             android:id="@+id/fabric_installer_retry_button"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
             android:text="@string/global_retry" />
     </LinearLayout>
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/fabric_installer_start_button"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_heavy"
         android:layout_marginBottom="@dimen/padding_heavy"
@@ -158,7 +158,7 @@
     <ProgressBar
         android:id="@+id/fabric_installer_progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_width="0dp" 
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:indeterminate="true"
