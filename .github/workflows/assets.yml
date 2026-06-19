@@ -1,4 +1,4 @@
-name: Auto-Fix Icons & Styles
+name: Remove Duplicate ic_launcher_background
 
 on:
   push:
@@ -17,207 +17,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check for skip ci
-        id: check_skip
+      - name: Remove duplicate ic_launcher_background from colors.xml
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          if [[ "$COMMIT_MSG" == *"[skip ci]"* ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⏭️ Skipping due to [skip ci]"
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
+          sed -i '/ic_launcher_background/d' app_pojavlauncher/src/main/res/values/colors.xml
+          echo "✅ Removed duplicate ic_launcher_background from colors.xml"
 
-      - name: Run fixes
-        if: steps.check_skip.outputs.skip == 'false'
+      - name: Ensure ic_launcher_background.xml exists
         run: |
-          # =============================================
-          # 1. Generate vector for every referenced drawable
-          # =============================================
-          python3 << 'PYTHON'
-          import os, re, glob
-
-          references = set()
-          for root, dirs, files in os.walk('.'):
-              if '.git' in root or 'build' in root:
-                  continue
-              for file in files:
-                  if file.endswith(('.xml', '.java', '.kt', '.gradle')):
-                      path = os.path.join(root, file)
-                      try:
-                          with open(path, 'r', encoding='utf-8') as f:
-                              content = f.read()
-                      except:
-                          continue
-                      matches = re.findall(r'@drawable/([a-zA-Z0-9_\.]+)', content)
-                      for m in matches:
-                          references.add(m.replace('.png', '').replace('.9.png', ''))
-                      matches2 = re.findall(r'R\.drawable\.([a-zA-Z0-9_]+)', content)
-                      references.update(matches2)
-
-          # Add known common missing icons
-          extra = [
-              'ic_minecraft', 'ic_arrow_drop_down', 'ic_launcher',
-              'ic_px_hash', 'ic_px_zap', 'ic_px_file_dl', 'ic_px_verify_hash',
-              'ic_px_volcano', 'ic_microphone', 'ic_px_image', 'ic_px_gamepad',
-              'ic_px_java', 'ic_px_alt_sliders', 'ic_px_experiment', 'ic_px_translate',
-              'ic_px_bell', 'ic_px_image_renderer', 'ic_px_viewport_expand',
-              'ic_px_resolution', 'ic_px_runtime_mgr', 'ic_px_console', 'ic_px_ram',
-              'ic_px_java_run', 'ic_px_nogestures', 'ic_px_switch_arrows_x',
-              'ic_px_gestures', 'ic_px_control_size', 'ic_px_letters', 'ic_px_pointer_size',
-              'ic_px_speed', 'ic_px_virtual_mouse', 'ic_px_trash', 'ic_px_edit',
-              'ic_px_book', 'ic_px_sharelog', 'ic_px_folder', 'ic_px_sliders',
-              'ic_px_home', 'ic_px_arrow_left', 'ic_px_file', 'ic_filter',
-              'ic_add', 'ic_gear', 'ic_debug', 'ic_chat', 'ic_keyboard',
-              'ic_tab', 'ic_mouse', 'ic_3rd', 'ic_pri', 'ic_sec', 'ic_gui', 'ic_inv',
-              'ic_curseforge', 'ic_modrinth', 'ic_fear_full', 'ic_fabric', 'ic_quilt',
-              'ic_forge', 'ic_neoforge', 'ic_auth_ms', 'ic_auth_elyby',
-              'ic_discord', 'ic_telegram', 'ic_sharp_settings_24', 'ic_view_handle',
-              'ic_gamepad_pointer', 'ic_mouse_pointer', 'spinner_arrow', 'spinner_arrow_right',
-              'notif_icon', 'storage_alert', 'no_focus_shown',
-              'ic_setting_sign_in_background', 'ic_launcher_foreground', 'ic_launcher_monochrome',
-              'mine_button_unfocused', 'mine_button_focused', 'control_side_action_window'
-          ]
-          references.update(extra)
-
-          os.makedirs('app_pojavlauncher/src/main/res/drawable', exist_ok=True)
-
-          vector_template = '''<?xml version="1.0" encoding="utf-8"?>
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/icon_outline_color"
-                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
-          </vector>
-          '''
-
-          generated = 0
-          for name in references:
-              if not os.path.exists(f"app_pojavlauncher/src/main/res/drawable/{name}.xml"):
-                  with open(f"app_pojavlauncher/src/main/res/drawable/{name}.xml", 'w') as f:
-                      f.write(vector_template)
-                  print(f"Generated: {name}.xml")
-                  generated += 1
-
-          print(f"✅ Generated {generated} vector drawables. Total references: {len(references)}.")
-          PYTHON
-
-          # =============================================
-          # 2. Fix styles.xml (replace with clean version)
-          # =============================================
-          cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
+          mkdir -p app_pojavlauncher/src/main/res/values
+          cat > app_pojavlauncher/src/main/res/values/ic_launcher_background.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="RoundedButton" parent="Widget.AppCompat.Button">
-                  <item name="android:background">@drawable/btn_rounded</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:textSize">14sp</item>
-                  <item name="android:fontFamily">sans-serif-condensed</item>
-                  <item name="android:stateListAnimator">@anim/button_click</item>
-                  <item name="android:padding">12dp</item>
-              </style>
-
-              <style name="LauncherMenuButton">
-                  <item name="android:layout_width">wrap_content</item>
-                  <item name="android:layout_height">wrap_content</item>
-                  <item name="android:minHeight">48dp</item>
-                  <item name="android:padding">12dp</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="android:fontFamily">sans-serif-condensed</item>
-                  <item name="android:background">?attr/selectableItemBackground</item>
-              </style>
-
-              <style name="ThickDivider">
-                  <item name="android:layout_width">match_parent</item>
-                  <item name="android:layout_height">2dp</item>
-                  <item name="android:background">@color/divider</item>
-              </style>
-
-              <style name="LauncherFragment_Divider" parent="ThickDivider">
-                  <item name="android:layout_marginTop">8dp</item>
-                  <item name="android:layout_marginBottom">8dp</item>
-              </style>
-          </resources>
-          EOF
-
-          # =============================================
-          # 3. Apply Minecraft-like theme (colors, landscape, fullscreen)
-          # =============================================
-          # Colors
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#1A1A2E</color>
-              <color name="background_status_bar">#16213E</color>
-              <color name="background_bottom_bar">#0F3460</color>
-              <color name="background_overlay">#2D4059</color>
-              <color name="control_button_color">#4A6FA5</color>
-              <color name="control_button_pressed_color">#3A5A8A</color>
-              <color name="divider">#2D4059</color>
-              <color name="icon_outline_color">#8BB8E8</color>
-              <color name="primary_text">#FFFFFF</color>
-              <color name="secondary_text">#8BB8E8</color>
-              <color name="minebutton_color">#4A6FA5</color>
-              <color name="accent_blue">#4A90D9</color>
               <color name="ic_launcher_background">#1A1A2E</color>
           </resources>
           EOF
+          echo "✅ Ensured ic_launcher_background.xml exists"
 
-          # Landscape
-          MANIFEST="app_pojavlauncher/src/main/AndroidManifest.xml"
-          sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/ s/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' "$MANIFEST"
-          sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/! s/<activity \([^>]*\)>/<activity \1 android:screenOrientation="landscape">/' "$MANIFEST"
-
-          # Fullscreen theme
-          cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-                  <item name="android:windowFullscreen">true</item>
-                  <item name="android:windowNoTitle">true</item>
-                  <item name="android:windowActionBar">false</item>
-                  <item name="android:windowBackground">@color/background_app</item>
-                  <item name="android:textColor">@color/primary_text</item>
-                  <item name="colorPrimary">@color/control_button_color</item>
-                  <item name="colorPrimaryDark">@color/background_status_bar</item>
-                  <item name="colorAccent">@color/accent_blue</item>
-              </style>
-          </resources>
-          EOF
-
-          # Main background
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          sed -i 's|android:background="[^"]*"|android:background="@drawable/bg_main"|g' "$LAYOUT"
-          if ! grep -q 'android:background=' "$LAYOUT"; then
-            sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_main"/' "$LAYOUT"
-          fi
-
-          # Create bg_main drawable
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/bg_main.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:startColor="#1A1A2E"
-                  android:endColor="#16213E"
-                  android:angle="135"
-                  android:type="linear" />
-          </shape>
-          EOF
-
-          # Fix string warning
-          sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
-
-          echo "✅ All fixes applied."
-
-      - name: Commit and push changes
-        if: steps.check_skip.outputs.skip == 'false'
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git add app_pojavlauncher/src/main/AndroidManifest.xml
-          git diff --cached --quiet || git commit -m "Auto-fix: generate missing vectors, fix styles, apply theme [skip ci]"
+          git add app_pojavlauncher/src/main/res/values/colors.xml
+          git add app_pojavlauncher/src/main/res/values/ic_launcher_background.xml
+          git diff --cached --quiet || git commit -m "Remove duplicate ic_launcher_background [skip ci]"
           git push origin HEAD:${GITHUB_REF_NAME}
