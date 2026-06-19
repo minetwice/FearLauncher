@@ -1,4 +1,4 @@
-name: Remove Duplicate ic_launcher_background
+name: Add Missing Divider Styles
 
 on:
   workflow_dispatch:
@@ -7,20 +7,43 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  add:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate ic_launcher_background from colors.xml
+      - name: Add ThickDivider and LauncherFragment_Divider to styles.xml
         run: |
-          sed -i '/ic_launcher_background/d' app_pojavlauncher/src/main/res/values/colors.xml
-          echo "✅ Removed ic_launcher_background from colors.xml"
+          STYLES="app_pojavlauncher/src/main/res/values/styles.xml"
+          # Check if styles already exist
+          if ! grep -q 'ThickDivider' "$STYLES"; then
+            # Insert before </resources>
+            sed -i '/<\/resources>/i\
+          \    <style name="ThickDivider">\
+          \        <item name="android:layout_width">match_parent</item>\
+          \        <item name="android:layout_height">2dp</item>\
+          \        <item name="android:background">@color/divider</item>\
+          \    </style>\
+          \
+          \    <style name="LauncherFragment_Divider" parent="ThickDivider">\
+          \        <item name="android:layout_marginTop">8dp</item>\
+          \        <item name="android:layout_marginBottom">8dp</item>\
+          \    </style>' "$STYLES"
+            echo "✅ Added missing divider styles."
+          else
+            echo "✅ Divider styles already exist."
+          fi
+
+      - name: Fix string formatting warning
+        run: |
+          sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
+          echo "✅ String warning fixed."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values/colors.xml
-          git diff --cached --quiet || git commit -m "Remove duplicate ic_launcher_background color definition"
+          git add app_pojavlauncher/src/main/res/values/styles.xml
+          git add app_pojavlauncher/src/main/res/values/strings.xml
+          git diff --cached --quiet || git commit -m "Add ThickDivider and LauncherFragment_Divider styles, fix string warning"
           git push origin HEAD:${GITHUB_REF_NAME}
