@@ -1,4 +1,4 @@
-name: Fix layout-land Files & Strings
+name: Remove Corrupted layout-land & Fix Strings
 
 on:
   workflow_dispatch:
@@ -12,27 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove corrupted layout-land files
+      - name: Delete all layout-land files
         run: |
           rm -rf app_pojavlauncher/src/main/res/layout-land/*
+          # Keep the directory itself (empty) to avoid any path issues
           mkdir -p app_pojavlauncher/src/main/res/layout-land
-          echo "✅ Removed layout-land files."
-
-      - name: Download clean layout-land files from MojoLauncher
-        run: |
-          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout-land"
-          FILES=(
-            "item_centered_textview.xml"
-            "fragment_fabric_install.xml"
-            "fragment_microsoft_login.xml"
-            "activity_import_control.xml"
-            "fragment_launcher.xml"
-            "activity_pojav_launcher.xml"
-          )
-          for file in "${FILES[@]}"; do
-            curl -s -o "app_pojavlauncher/src/main/res/layout-land/$file" "$BASE_URL/$file" || echo "Skipped $file (not found)"
-            echo "Processed: $file"
-          done
+          echo "✅ Removed all layout-land files."
 
       - name: Fix string formatting warnings using Python
         run: |
@@ -57,73 +42,11 @@ jobs:
           print("✅ Strings fixed.")
           PYTHON
 
-      - name: Ensure themes and drawables exist
-        run: |
-          # Ensure colors are defined
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#E8EEF0</color>
-              <color name="background_status_bar">#CFD8DC</color>
-              <color name="background_bottom_bar">#F5F7F8</color>
-              <color name="background_overlay">#B0BEC5</color>
-              <color name="control_button_color">#90A4AE</color>
-              <color name="control_button_pressed_color">#78909C</color>
-              <color name="divider">#B0BEC5</color>
-              <color name="icon_outline_color">#455A64</color>
-              <color name="primary_text">#212121</color>
-              <color name="secondary_text">#546E7A</color>
-              <color name="minebutton_color">#90A4AE</color>
-              <color name="accent_blue">#3F51B5</color>
-          </resources>
-          EOF
-
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
-          <transition xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:drawable="@drawable/grad_silver_blue_1" />
-              <item android:drawable="@drawable/grad_silver_blue_2" />
-          </transition>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#E8EEF0" android:endColor="#CFD8DC" android:angle="45" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="16dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-              android:color="@color/accent_blue">
-              <item android:drawable="@drawable/btn_rounded"/>
-          </ripple>
-          EOF
-
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <scale android:duration="150" android:fromXScale="1.0" android:fromYScale="1.0"
-                  android:toXScale="0.95" android:toYScale="0.95" android:pivotX="50%" android:pivotY="50%" />
-              <scale android:duration="150" android:fromXScale="0.95" android:fromYScale="0.95"
-                  android:toXScale="1.0" android:toYScale="1.0" android:pivotX="50%" android:pivotY="50%"
-                  android:startOffset="150" />
-          </set>
-          EOF
-          echo "✅ Resources created."
-
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Fix layout-land files, strings, and recreate resources"
+          git add app_pojavlauncher/src/main/res/layout-land/
+          git add app_pojavlauncher/src/main/res/values*/strings.xml
+          git diff --cached --quiet || git commit -m "Remove corrupted layout-land files, fix string formatting"
           git push origin HEAD:${GITHUB_REF_NAME}
