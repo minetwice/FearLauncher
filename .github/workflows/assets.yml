@@ -12,19 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all PNG files
+      - name: Delete all image files (PNG, WEBP, JPG, GIF)
         run: |
-          find app_pojavlauncher/src/main/res -type f -name "*.png" -delete
-          find app_pojavlauncher/src/main/assets -type f -name "*.png" -delete
-          echo "✅ All PNGs deleted."
+          find app_pojavlauncher/src/main/res -type f \( -name "*.png" -o -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -delete
+          find app_pojavlauncher/src/main/assets -type f \( -name "*.png" -o -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -delete
+          echo "✅ All image files deleted."
 
       - name: Generate vector drawables for all icons
         run: |
           python3 << 'PYTHON'
-          import os, re, json
+          import os, re
 
-          # Hardcoded list of all known icon drawable names
+          # Complete list of all known icon drawable names
           all_icons = [
+              # PX icons
               'ic_px_hash', 'ic_px_zap', 'ic_px_file_dl', 'ic_px_verify_hash',
               'ic_px_volcano', 'ic_microphone', 'ic_px_image', 'ic_px_gamepad',
               'ic_px_java', 'ic_px_alt_sliders', 'ic_px_experiment', 'ic_px_translate',
@@ -35,6 +36,7 @@ jobs:
               'ic_px_speed', 'ic_px_virtual_mouse', 'ic_px_trash', 'ic_px_edit',
               'ic_px_book', 'ic_px_sharelog', 'ic_px_folder', 'ic_px_sliders',
               'ic_px_home', 'ic_px_arrow_left', 'ic_px_file', 'ic_filter',
+              # UI and overlay icons
               'ic_add', 'ic_gear', 'ic_debug', 'ic_chat', 'ic_keyboard',
               'ic_tab', 'ic_mouse', 'ic_3rd', 'ic_pri', 'ic_sec', 'ic_gui', 'ic_inv',
               'ic_curseforge', 'ic_modrinth', 'ic_fear_full', 'ic_fabric', 'ic_quilt',
@@ -42,6 +44,7 @@ jobs:
               'ic_discord', 'ic_telegram', 'ic_sharp_settings_24', 'ic_view_handle',
               'ic_gamepad_pointer', 'ic_mouse_pointer', 'spinner_arrow', 'spinner_arrow_right',
               'notif_icon', 'storage_alert', 'no_focus_shown',
+              # Backgrounds and other drawables
               'background_line', 'background_line_selected', 'background_line_unselected',
               'background_overlay', 'background_icon_edit', 'background_card',
               'menu_background', 'mine_button_background', 'control_button',
@@ -52,17 +55,8 @@ jobs:
               'mine_button_unfocused', 'mine_button_focused', 'control_side_action_window',
           ]
 
-          # If inventory JSON exists, read it to get additional references
-          if os.path.exists('assets-inventory.json'):
-              with open('assets-inventory.json', 'r') as f:
-                  inv = json.load(f)
-              for key in inv.get('png_references', {}).keys():
-                  all_icons.append(key)
-              for png in inv.get('png_files', []):
-                  name = png['file'].replace('.png', '').replace('.9.png', '')
-                  all_icons.append(name)
-
-          all_icons = list(set(all_icons))
+          # Add any icons that might be referenced in layouts but not in this list (optional)
+          # We'll just use the hardcoded list for safety.
 
           os.makedirs('app_pojavlauncher/src/main/res/drawable', exist_ok=True)
 
@@ -226,8 +220,8 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ Fixed: space instead of dot
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/assets/
-          git diff --cached --quiet || git commit -m "Complete asset regeneration: delete PNGs, generate vectors, fix layouts, apply theme"
+          git diff --cached --quiet || git commit -m "Complete asset regeneration: delete all images, generate vectors, fix layouts, apply theme"
           git push origin HEAD:${GITHUB_REF_NAME}
