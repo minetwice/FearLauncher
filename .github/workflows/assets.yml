@@ -12,16 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Force landscape orientation
       - name: Force landscape orientation
         run: |
           MANIFEST="app_pojavlauncher/src/main/AndroidManifest.xml"
           sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/ s/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' "$MANIFEST"
-          # If no orientation set, add it
           sed -i '/<activity android:name="net.kdt.pojavlaunch.LauncherActivity"/! s/<activity \([^>]*\)>/<activity \1 android:screenOrientation="landscape">/' "$MANIFEST"
           echo "✅ Landscape orientation set."
 
-      # 2. Set fullscreen theme
       - name: Set fullscreen theme
         run: |
           cat > app_pojavlauncher/src/main/res/values/themes.xml << 'EOF'
@@ -43,13 +40,11 @@ jobs:
           EOF
           echo "✅ Fullscreen theme applied."
 
-      # 3. Apply Minecraft-like colors (dark blue/black theme from reference)
       - name: Apply reference colors
         run: |
           cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <!-- Reference Minecraft Launcher colors -->
               <color name="background_app">#1A1A2E</color>
               <color name="background_status_bar">#16213E</color>
               <color name="background_bottom_bar">#0F3460</color>
@@ -64,13 +59,11 @@ jobs:
               <color name="accent_blue">#4A90D9</color>
               <color name="button_green">#7CB342</color>
               <color name="button_green_pressed">#558B2F</color>
-              <!-- For icons -->
               <color name="ic_launcher_background">#1A1A2E</color>
           </resources>
           EOF
           echo "✅ Reference colors applied."
 
-      # 4. Create animated gradient background (subtle Minecraft style)
       - name: Create background drawables
         run: |
           mkdir -p app_pojavlauncher/src/main/res/drawable
@@ -85,7 +78,6 @@ jobs:
           EOF
           echo "✅ Background created."
 
-      # 5. Apply button style (rounded, Minecraft-like)
       - name: Apply button styles
         run: |
           cat > app_pojavlauncher/src/main/res/values/styles.xml << 'EOF'
@@ -120,7 +112,6 @@ jobs:
           EOF
           echo "✅ Button styles applied."
 
-      # 6. Set main layout background to gradient
       - name: Set main layout background
         run: |
           LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
@@ -130,16 +121,13 @@ jobs:
           fi
           echo "✅ Main layout background set."
 
-      # 7. Fix string warning
       - name: Fix string warning
         run: |
           sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
           echo "✅ String warning fixed."
 
-      # 8. Generate missing drawables (to avoid missing asset symbols)
       - name: Generate missing drawables
         run: |
-          # List of commonly referenced drawables
           ICONS=(
             "ic_px_hash" "ic_px_zap" "ic_px_file_dl" "ic_px_verify_hash"
             "ic_px_volcano" "ic_microphone" "ic_px_image" "ic_px_gamepad"
@@ -180,11 +168,10 @@ jobs:
           done
           echo "✅ All missing drawables generated."
 
-      # 9. Commit and push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ Corrected: space, not dot
           git add app_pojavlauncher/src/main/res/
           git add app_pojavlauncher/src/main/AndroidManifest.xml
           git diff --cached --quiet || git commit -m "Apply reference theme: fullscreen, landscape, Minecraft-like colors, all drawables"
