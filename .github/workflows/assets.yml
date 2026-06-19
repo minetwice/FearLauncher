@@ -31,7 +31,6 @@ jobs:
       # 2. Create launcher foreground and monochrome vectors
       - name: Create launcher icon vectors
         run: |
-          # Foreground (the main icon shape)
           cat > app_pojavlauncher/src/main/res/drawable/ic_launcher_foreground.xml << 'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
@@ -43,7 +42,6 @@ jobs:
                   android:pathData="M54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0 L54,0z"
                   android:strokeColor="#00000000"
                   android:strokeWidth="1"/>
-              <!-- A simple circle with 'F' letter as icon -->
               <path
                   android:fillColor="#455A64"
                   android:pathData="M54,27 C46,27 40,33 40,41 L40,67 C40,75 46,81 54,81 C62,81 68,75 68,67 L68,41 C68,33 62,27 54,27 Z
@@ -52,8 +50,6 @@ jobs:
                   android:strokeWidth="1"/>
           </vector>
           EOF
-
-          # Monochrome (for themed icons on Android 13+)
           cat > app_pojavlauncher/src/main/res/drawable/ic_launcher_monochrome.xml << 'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp"
@@ -68,13 +64,10 @@ jobs:
           EOF
           echo "✅ Created launcher icon vectors"
 
-      # 3. Update mipmap-anydpi XML files to point to new vectors
+      # 3. Update mipmap-anydpi XML files
       - name: Update adaptive icon XMLs
         run: |
-          # Ensure the mipmap-anydpi directory exists
           mkdir -p app_pojavlauncher/src/main/res/mipmap-anydpi-v26
-
-          # Write ic_launcher.xml
           cat > app_pojavlauncher/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
@@ -83,8 +76,6 @@ jobs:
               <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
           </adaptive-icon>
           EOF
-
-          # Write ic_launcher_round.xml
           cat > app_pojavlauncher/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
@@ -93,88 +84,32 @@ jobs:
               <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
           </adaptive-icon>
           EOF
-
-          # Ensure ic_launcher_background color exists
           if ! grep -q "ic_launcher_background" app_pojavlauncher/src/main/res/values/colors.xml; then
             sed -i '/<\/resources>/i\    <color name="ic_launcher_background">#E8EEF0</color>' app_pojavlauncher/src/main/res/values/colors.xml
           fi
           echo "✅ Updated adaptive icon XMLs"
 
-      # 4. Ensure all other missing drawables are generated (from previous lists)
-      - name: Generate any remaining missing drawables
+      # 4. Generate any remaining missing drawables
+      - name: Generate remaining drawables
         run: |
-          # List of known drawables that might still be missing
           MISSING=(
-            "ic_px_hash"
-            "ic_px_zap"
-            "ic_px_file_dl"
-            "ic_px_verify_hash"
-            "ic_px_volcano"
-            "ic_microphone"
-            "ic_px_image"
-            "ic_px_gamepad"
-            "ic_px_java"
-            "ic_px_alt_sliders"
-            "ic_px_experiment"
-            "ic_px_translate"
-            "ic_px_bell"
-            "ic_px_image_renderer"
-            "ic_px_viewport_expand"
-            "ic_px_resolution"
-            "ic_px_runtime_mgr"
-            "ic_px_console"
-            "ic_px_ram"
-            "ic_px_java_run"
-            "ic_px_nogestures"
-            "ic_px_switch_arrows_x"
-            "ic_px_gestures"
-            "ic_px_control_size"
-            "ic_px_letters"
-            "ic_px_pointer_size"
-            "ic_px_speed"
-            "ic_px_virtual_mouse"
-            "ic_px_trash"
-            "ic_px_edit"
-            "ic_px_book"
-            "ic_px_sharelog"
-            "ic_px_folder"
-            "ic_px_sliders"
-            "ic_px_home"
-            "ic_px_arrow_left"
-            "ic_px_file"
-            "ic_filter"
-            "ic_add"
-            "ic_gear"
-            "ic_debug"
-            "ic_chat"
-            "ic_keyboard"
-            "ic_tab"
-            "ic_mouse"
-            "ic_3rd"
-            "ic_pri"
-            "ic_sec"
-            "ic_gui"
-            "ic_inv"
-            "ic_curseforge"
-            "ic_modrinth"
-            "ic_fear_full"
-            "ic_fabric"
-            "ic_quilt"
-            "ic_forge"
-            "ic_neoforge"
-            "ic_auth_ms"
-            "ic_auth_elyby"
-            "ic_discord"
-            "ic_telegram"
-            "ic_sharp_settings_24"
-            "ic_view_handle"
-            "ic_gamepad_pointer"
-            "ic_mouse_pointer"
-            "spinner_arrow"
-            "spinner_arrow_right"
-            "notif_icon"
-            "storage_alert"
-            "no_focus_shown"
+            "ic_px_hash" "ic_px_zap" "ic_px_file_dl" "ic_px_verify_hash"
+            "ic_px_volcano" "ic_microphone" "ic_px_image" "ic_px_gamepad"
+            "ic_px_java" "ic_px_alt_sliders" "ic_px_experiment" "ic_px_translate"
+            "ic_px_bell" "ic_px_image_renderer" "ic_px_viewport_expand"
+            "ic_px_resolution" "ic_px_runtime_mgr" "ic_px_console" "ic_px_ram"
+            "ic_px_java_run" "ic_px_nogestures" "ic_px_switch_arrows_x"
+            "ic_px_gestures" "ic_px_control_size" "ic_px_letters" "ic_px_pointer_size"
+            "ic_px_speed" "ic_px_virtual_mouse" "ic_px_trash" "ic_px_edit"
+            "ic_px_book" "ic_px_sharelog" "ic_px_folder" "ic_px_sliders"
+            "ic_px_home" "ic_px_arrow_left" "ic_px_file" "ic_filter"
+            "ic_add" "ic_gear" "ic_debug" "ic_chat" "ic_keyboard"
+            "ic_tab" "ic_mouse" "ic_3rd" "ic_pri" "ic_sec" "ic_gui" "ic_inv"
+            "ic_curseforge" "ic_modrinth" "ic_fear_full" "ic_fabric" "ic_quilt"
+            "ic_forge" "ic_neoforge" "ic_auth_ms" "ic_auth_elyby"
+            "ic_discord" "ic_telegram" "ic_sharp_settings_24" "ic_view_handle"
+            "ic_gamepad_pointer" "ic_mouse_pointer" "spinner_arrow" "spinner_arrow_right"
+            "notif_icon" "storage_alert" "no_focus_shown"
           )
           for name in "${MISSING[@]}"; do
             if [ ! -f "app_pojavlauncher/src/main/res/drawable/${name}.xml" ]; then
@@ -197,9 +132,7 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config.user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/drawable/
-          git add app_pojavlauncher/src/main/res/mipmap-anydpi-v26/
-          git add app_pojavlauncher/src/main/res/values/colors.xml
-          git diff --cached --quiet || git commit -m "Fix missing resources: ic_setting_sign_in_background, launcher foreground/monochrome, and all drawables"
+          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ FIXED: space
+          git add app_pojavlauncher/src/main/res/
+          git diff --cached --quiet || git commit -m "Fix missing resources: ic_setting_sign_in_background, launcher icons, and all drawables"
           git push origin HEAD:${GITHUB_REF_NAME}
