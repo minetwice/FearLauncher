@@ -1,4 +1,4 @@
-name: Fix fragment_launcher.xml
+name: Force Fix fragment_launcher.xml
 
 on:
   workflow_dispatch:
@@ -12,22 +12,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 1. Download clean copy from MojoLauncher
       - name: Download clean fragment_launcher.xml
         run: |
           curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
             https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
           echo "✅ Downloaded clean fragment_launcher.xml"
 
-      - name: Apply theme changes (minimal, only button styles and colors)
+      # 2. Add layout_height to any view that has layout_width but missing layout_height
+      - name: Ensure all views have layout_height
+        run: |
+          sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Added missing layout_height"
+
+      # 3. Apply button style and text color (minimal theme)
+      - name: Apply theme changes
         run: |
           sed -i 's|<Button |<Button style="@style/RoundedButton" |g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
           sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Applied theme to fragment_launcher"
+          echo "✅ Applied button styles and text colors"
 
+      # 4. Also ensure the main activity layout has background
+      - name: Ensure activity_pojav_launcher has background
+        run: |
+          if ! grep -q 'android:background=' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml; then
+            sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
+          fi
+          echo "✅ Main layout background ensured"
+
+      # 5. Commit and push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          git diff --cached --quiet || git commit -m "Fix fragment_launcher: replace with clean version from MojoLauncher"
+          git add app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
+          git diff --cached --quiet || git commit -m "Fix fragment_launcher: clean copy from MojoLauncher, ensure layout_height, apply theme"
           git push origin HEAD:${GITHUB_REF_NAME}
