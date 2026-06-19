@@ -1,4 +1,4 @@
-name: Download Clean Layouts & Fix Duplicates
+name: Direct Fix fragment_launcher.xml
 
 on:
   workflow_dispatch:
@@ -12,96 +12,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download clean versions of problematic layout files
+      - name: Remove corrupted fragment_launcher.xml
         run: |
-          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
-          FILES=(
-            "fragment_mod_version_list.xml"
-            "fragment_file_selector.xml"
-            "spinner_mc_version.xml"
-            "fragment_profile_type.xml"
-            "fragment_launcher.xml"
-            "activity_pojav_launcher.xml"
-            "fragment_instance_editor.xml"
-          )
-          for file in "${FILES[@]}"; do
-            curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
-            echo "Restored: $file"
-          done
+          rm -f app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Removed old fragment_launcher.xml"
 
-      - name: Remove any duplicate layout_height attributes (Python)
+      - name: Download clean fragment_launcher.xml from MojoLauncher
+        run: |
+          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
+            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          echo "✅ Downloaded clean fragment_launcher.xml"
+
+      - name: Ensure all views have layout_height (Python fallback)
         run: |
           python3 << 'PYTHON'
-          import os, re, glob
-          import xml.etree.ElementTree as ET
+          import os, re, glob, xml.etree.ElementTree as ET
+          from xml.dom import minidom
 
           layout_dir = "app_pojavlauncher/src/main/res/layout"
           for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              with open(xml_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              # Find any tag with duplicate android:layout_height and remove duplicates
-              def remove_dups(match):
-                  tag = match.group(0)
-                  # Find all layout_height occurrences
-                  heights = re.findall(r'android:layout_height="[^"]*"', tag)
-                  if len(heights) > 1:
-                      # Keep the first, remove others
-                      for h in heights[1:]:
-                          tag = tag.replace(h, '', 1)
-                  return tag
-              # Match opening tags (self-closing or not) that contain at least one layout_height
-              pattern = r'<[^>]*android:layout_height="[^"]*"[^>]*>'
-              new_content = re.sub(pattern, remove_dups, content)
-              if new_content != content:
+              try:
+                  tree = ET.parse(xml_file)
+                  root = tree.getroot()
+              except ET.ParseError:
+                  continue
+              changed = False
+              for elem in root.iter():
+                  if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
+                      elem.set('android:layout_height', 'wrap_content')
+                      changed = True
+              if changed:
+                  rough_string = ET.tostring(root, encoding='utf-8')
+                  reparsed = minidom.parseString(rough_string)
+                  pretty_xml = reparsed.toprettyxml(indent="    ")
+                  pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
                   with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Cleaned: {xml_file}")
-          print("✅ Duplicate layout_height removed.")
+                      f.write(pretty_xml)
+                  print(f"Fixed: {xml_file}")
+          print("✅ All layouts have layout_height where needed.")
 
-      - name: Apply theme changes (background and button style) safely
+      - name: Fix string formatting warnings
         run: |
-          LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          # Add background to root LinearLayout (only if not already)
-          if ! grep -q 'android:background=' "$LAYOUT"; then
-            sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
-          fi
-          # Apply button style and animation to all buttons in this layout
-          sed -i 's|<Button |<Button style="@style/RoundedButton" android:stateListAnimator="@anim/button_click" |g' "$LAYOUT"
-          # Ensure text color is primary_text
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$LAYOUT"
-
-          # Also apply to fragment_launcher
-          FRAG="app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
-          sed -i 's|<Button |<Button style="@style/RoundedButton" android:stateListAnimator="@anim/button_click" |g' "$FRAG"
-          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$FRAG"
-
-      - name: Fix string formatting warnings (Python)
-        run: |
-          python3 << 'PYTHON'
-          import os, re, glob
-          for strings_file in glob.glob("app_pojavlauncher/src/main/res/**/strings.xml", recursive=True):
-              with open(strings_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              def add_formatting(match):
-                  tag = match.group(0)
-                  if 'formatted=' not in tag:
-                      text = re.search(r'>(.*?)</string>', tag, re.DOTALL)
-                      if text and text.group(1).count('%') > 1:
-                          tag = tag.replace('<string ', '<string formatted="false" ', 1)
-                  return tag
-              pattern = r'<string [^>]*>.*?</string>'
-              new_content = re.sub(pattern, add_formatting, content, flags=re.DOTALL)
-              if new_content != content:
-                  with open(strings_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Fixed: {strings_file}")
-          print("✅ Strings fixed.")
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
+          echo "✅ Strings fixed."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Download clean layouts, remove duplicate layout_height, fix strings, apply theme"
+          git diff --cached --quiet || git commit -m "Replace fragment_launcher with clean version and ensure all layout_height present"
           git push origin HEAD:${GITHUB_REF_NAME}
