@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="@dimen/_280sdp"
+    android:layout_width="@dimen/_280sdp" android:layout_height="wrap_content"
     android:layout_height="match_parent"
     android:background="@drawable/background_control_editor"
     android:paddingHorizontal="@dimen/padding_moderate"
@@ -15,7 +15,7 @@
 
     <net.kdt.pojavlaunch.colorselector.SVRectangleView
         android:id="@+id/color_selector_rectangle_view"
-        android:layout_width="0dp"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:layout_height="@dimen/_150sdp"
         android:focusable="true"
         android:layout_marginEnd="8dp"
@@ -26,7 +26,7 @@
 
     <net.kdt.pojavlaunch.colorselector.ColorSideBySideView
         android:id="@+id/color_selector_color_view"
-        android:layout_width="0dp"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:layout_height="@dimen/_94sdp"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="@+id/color_selector_rectangle_view"
@@ -35,7 +35,7 @@
 
     <EditText
         android:id="@+id/color_selector_hex_edit"
-        android:layout_width="0dp"
+        android:layout_width="0dp" android:layout_height="wrap_content"
         android:layout_height="wrap_content"
         android:hint="@string/color_default_hex"
         android:gravity="center"
@@ -51,7 +51,7 @@
 
     <net.kdt.pojavlaunch.colorselector.AlphaView
         android:id="@+id/color_selector_alpha_view"
-        android:layout_width="25dp"
+        android:layout_width="25dp" android:layout_height="wrap_content"
         android:layout_height="0dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toStartOf="@+id/color_selector_hue_view"
@@ -60,7 +60,7 @@
 
     <net.kdt.pojavlaunch.colorselector.HueView
         android:id="@+id/color_selector_hue_view"
-        android:layout_width="25dp"
+        android:layout_width="25dp" android:layout_height="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:focusable="true"
