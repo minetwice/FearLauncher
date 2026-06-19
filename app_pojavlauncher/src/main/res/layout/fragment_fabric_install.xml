@@ -123,7 +123,7 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:text="@string/modloader_dl_failed_to_load_list"
-            android:textColor="#FFFF0000"
+            android:textColor="@color/primary_text"
             android:textStyle="bold" />
 
         <Button
