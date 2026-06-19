@@ -16,6 +16,10 @@ jobs:
         run: |
           # List of problematic files
           FILES=(
+            "activity_basemain.xml"
+            "item_centered_textview_large.xml"
+            "fragment_local_login.xml"
+            "fragment_select_auth_method.xml"
             "fragment_mod_version_list.xml"
             "fragment_file_selector.xml"
             "spinner_mc_version.xml"
