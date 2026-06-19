@@ -40,7 +40,6 @@ jobs:
                   content = f.read()
 
               # Pattern to find duplicate android:layout_height within the same tag
-              # This handles cases with or without spaces
               pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
               new_content = re.sub(pattern, r'\1', content)
 
@@ -67,7 +66,7 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ fixed
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
           git diff --cached --quiet || git commit -m "Replace problematic layouts, remove duplicate attributes, add missing layout_height, fix strings"
