@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate android:layout_height attributes (Python)
+      - name: Remove duplicate layout_height from all layout files
         run: |
           python3 << 'PYTHON'
           import os, re, glob
@@ -21,25 +21,40 @@ jobs:
           for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
               with open(xml_file, 'r', encoding='utf-8') as f:
                   content = f.read()
-              # Use regex to find duplicate layout_height inside a tag
-              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
-              new_content = re.sub(pattern, r'\1', content)
+
+              # Use regex to find any tag that contains duplicate android:layout_height
+              # We'll replace the second occurrence of android:layout_height within the same tag
+              def remove_dup(match):
+                  tag = match.group(0)
+                  # Find all layout_height occurrences
+                  heights = re.findall(r'android:layout_height="[^"]*"', tag)
+                  if len(heights) > 1:
+                      # Keep the first one, remove the rest
+                      for h in heights[1:]:
+                          tag = tag.replace(h, '', 1)
+                  return tag
+
+              # Pattern matches opening tags (with or without attributes) and self-closing tags
+              pattern = r'<[^>]*android:layout_height="[^"]*"[^>]*>'
+              new_content = re.sub(pattern, remove_dup, content)
+
               if new_content != content:
                   with open(xml_file, 'w', encoding='utf-8') as f:
                       f.write(new_content)
-                  print(f"Fixed duplicate in: {xml_file}")
-          print("✅ Removed duplicate layout_height attributes")
+                  print(f"Fixed: {xml_file}")
+
+          print("✅ Removed duplicate layout_height attributes.")
 
       - name: Fix string formatting warnings
         run: |
-          # Add formatted="false" to all strings that contain multiple % placeholders
+          # Add formatted="false" to strings with multiple % placeholders
           find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
-          echo "✅ Added formatted=false to strings with multiple substitutions"
+          echo "✅ Fixed string formatting warnings."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ Fixed: space, not dot
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
           git diff --cached --quiet || git commit -m "Fix duplicate layout_height and string formatting"
