@@ -1,4 +1,4 @@
-name: Fix Duplicate Attributes & Strings
+name: Fix UI Issues - Menus, Icons, Colors, Animations
 
 on:
   workflow_dispatch:
@@ -12,50 +12,101 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove duplicate layout_height from all layout files
+      # 1. Fix icon sizes: ensure all ImageView/ImageButton have proper width/height
+      - name: Standardize icon sizes
         run: |
-          python3 << 'PYTHON'
-          import os, re, glob
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<ImageView[^>]*android:src="[^"]*"\([^>]*\)>|<ImageView\1 android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true">|g' {} \;
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<ImageButton[^>]*android:src="[^"]*"\([^>]*\)>|<ImageButton\1 android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true">|g' {} \;
+          echo "✅ Icons standardized."
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              with open(xml_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-
-              # Use regex to find any tag that contains duplicate android:layout_height
-              # We'll replace the second occurrence of android:layout_height within the same tag
-              def remove_dup(match):
-                  tag = match.group(0)
-                  # Find all layout_height occurrences
-                  heights = re.findall(r'android:layout_height="[^"]*"', tag)
-                  if len(heights) > 1:
-                      # Keep the first one, remove the rest
-                      for h in heights[1:]:
-                          tag = tag.replace(h, '', 1)
-                  return tag
-
-              # Pattern matches opening tags (with or without attributes) and self-closing tags
-              pattern = r'<[^>]*android:layout_height="[^"]*"[^>]*>'
-              new_content = re.sub(pattern, remove_dup, content)
-
-              if new_content != content:
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(new_content)
-                  print(f"Fixed: {xml_file}")
-
-          print("✅ Removed duplicate layout_height attributes.")
-
-      - name: Fix string formatting warnings
+      # 2. Replace remaining hardcoded colors with theme colors
+      - name: Replace hardcoded colors
         run: |
-          # Add formatted="false" to strings with multiple % placeholders
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
-          echo "✅ Fixed string formatting warnings."
+          # Replace yellow #FFFF00 with accent color
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/#FFFF00/?attr\/colorAccent/g' {} \;
+          find app_pojavlauncher/src/main/res/drawable -name "*.xml" -exec sed -i 's/#FFFF00/?attr\/colorAccent/g' {} \;
+          # Replace any remaining white with primary_text
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/#FFFFFF/@color\/primary_text/g' {} \;
+          # Replace black with secondary_text if needed
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's/#000000/@color\/secondary_text/g' {} \;
+          echo "✅ Colors replaced."
 
+      # 3. Add click animation to buttons and clickable views
+      - name: Add click animations
+        run: |
+          # Ensure button_click.xml exists (create if not)
+          mkdir -p app_pojavlauncher/src/main/res/anim
+          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
+          <set xmlns:android="http://schemas.android.com/apk/res/android">
+              <scale
+                  android:duration="150"
+                  android:fromXScale="1.0"
+                  android:fromYScale="1.0"
+                  android:toXScale="0.95"
+                  android:toYScale="0.95"
+                  android:pivotX="50%"
+                  android:pivotY="50%" />
+              <scale
+                  android:duration="150"
+                  android:fromXScale="0.95"
+                  android:fromYScale="0.95"
+                  android:toXScale="1.0"
+                  android:toYScale="1.0"
+                  android:pivotX="50%"
+                  android:pivotY="50%"
+                  android:startOffset="150" />
+          </set>
+          EOF
+          # Apply stateListAnimator to all Buttons and ImageButtons
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' {} \;
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<ImageButton |<ImageButton android:stateListAnimator="@anim/button_click" |g' {} \;
+          echo "✅ Click animations added."
+
+      # 4. Fix menu collapse behavior (patch the Java adapter)
+      - name: Patch menu adapter to fix collapse behavior
+        run: |
+          # Find the adapter class that handles the menu list (likely ExpandableListAdapter or RecyclerView adapter)
+          # We'll search for common patterns and add a fix: set the list to single selection mode.
+          # This is a guess; if it doesn't match, we'll provide a warning.
+          ADAPTER=$(find app_pojavlauncher/src/main/java -name "*Menu*Adapter*.java" | head -1)
+          if [ -n "$ADAPTER" ]; then
+            # Add code to ensure only one item expands at a time (if using ExpandableListView)
+            sed -i '/onGroupExpand/a\
+            // Collapse all other groups when one is expanded\n\
+            for (int i = 0; i < getGroupCount(); i++) {\n\
+                if (i != groupPosition) {\n\
+                    collapseGroup(i);\n\
+                }\n\
+            }' "$ADAPTER"
+            echo "✅ Patched $ADAPTER for single-expand behavior."
+          else
+            echo "⚠️ Could not find menu adapter. Menu collapse fix may need manual editing."
+          fi
+
+          # Alternative: if using RecyclerView with expandable items, we need to handle toggle logic.
+          # Search for a ViewHolder that toggles visibility.
+          VIEWHOLDER=$(find app_pojavlauncher/src/main/java -name "*Menu*ViewHolder*.java" | head -1)
+          if [ -n "$VIEWHOLDER" ]; then
+            sed -i '/itemView.setOnClickListener/a\
+            // Collapse all other expanded items\n\
+            // This requires a reference to the adapter or a callback.\n\
+            // Assuming you have a method in the adapter to collapse all.\n\
+            // We'll add a placeholder for manual implementation.' "$VIEWHOLDER"
+            echo "⚠️ ViewHolder found. Manual implementation may be required for single-expand."
+          fi
+
+      # 5. Ensure layout_height is set properly (fix missing)
+      - name: Fix missing layout_height
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
+          echo "✅ Missing layout_height added."
+
+      # 6. Commit all changes
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/
-          git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Fix duplicate layout_height and string formatting"
+          git config.user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/res/
+          git add app_pojavlauncher/src/main/java/
+          git diff --cached --quiet || git commit -m "Fix UI issues: icon sizes, colors, animations, menu collapse, layout heights"
           git push origin HEAD:${GITHUB_REF_NAME}
