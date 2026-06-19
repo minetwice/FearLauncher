@@ -1,4 +1,4 @@
-name: Force Fix fragment_launcher.xml
+name: Replace & Clean Problematic Layouts
 
 on:
   workflow_dispatch:
@@ -12,67 +12,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete corrupted fragment_launcher.xml
+      - name: Download clean versions of all problematic layouts
         run: |
-          rm -f app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Removed old file."
+          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
+          FILES=(
+            "fragment_mod_version_list.xml"
+            "fragment_file_selector.xml"
+            "spinner_mc_version.xml"
+            "fragment_profile_type.xml"
+            "fragment_launcher.xml"
+            "activity_pojav_launcher.xml"
+            "fragment_instance_editor.xml"
+          )
+          for file in "${FILES[@]}"; do
+            curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
+            echo "Restored: $file"
+          done
 
-      - name: Download clean version from MojoLauncher
-        run: |
-          curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
-            https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Downloaded fresh copy."
-
-      - name: Use Python to add missing layout_height and remove duplicates
+      - name: Remove duplicate attributes from all layout files
         run: |
           python3 << 'PYTHON'
-          import os, re, xml.etree.ElementTree as ET
-          from xml.dom import minidom
+          import os, re, glob
 
-          file_path = "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
-          try:
-              tree = ET.parse(file_path)
-              root = tree.getroot()
-          except ET.ParseError:
-              print("XML parsing failed, will try to recover with regex")
-              # If parsing fails, we can use a regex fallback
-              import subprocess
-              subprocess.run(["sed", "-i", "/android:layout_width=/ { /android:layout_height=/! s/\\(android:layout_width=\"[^\"]*\"\\)/\\1 android:layout_height=\"wrap_content\"/ }", file_path])
-              print("Applied sed fallback.")
-          else:
-              changed = False
-              for elem in root.iter():
-                  if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
-                      elem.set('android:layout_height', 'wrap_content')
-                      changed = True
-              if changed:
-                  # Write back with pretty formatting
-                  rough_string = ET.tostring(root, encoding='utf-8')
-                  reparsed = minidom.parseString(rough_string)
-                  pretty_xml = reparsed.toprettyxml(indent="    ")
-                  pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
-                  with open(file_path, 'w', encoding='utf-8') as f:
-                      f.write(pretty_xml)
-                  print("✅ Added missing layout_height.")
-              else:
-                  print("No missing layout_height found.")
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
+              with open(xml_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
 
-          # Also remove any duplicate layout_height attributes (just in case)
-          with open(file_path, 'r', encoding='utf-8') as f:
-              content = f.read()
-          # Remove duplicate layout_height within the same tag
-          pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
-          new_content = re.sub(pattern, r'\1', content)
-          if new_content != content:
-              with open(file_path, 'w', encoding='utf-8') as f:
-                  f.write(new_content)
-              print("✅ Removed duplicate layout_height.")
-          PYTHON
+              # Pattern to find duplicate android:layout_height within the same tag
+              # This handles cases with or without spaces
+              pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
+              new_content = re.sub(pattern, r'\1', content)
 
-      - name: Ensure all other layouts also have layout_height (safety net)
+              # Also handle duplicate android:layout_width if any
+              pattern2 = r'(android:layout_width="[^"]*")\s+android:layout_width="[^"]*"'
+              new_content = re.sub(pattern2, r'\1', new_content)
+
+              if new_content != content:
+                  with open(xml_file, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"Cleaned: {xml_file}")
+          print("✅ Duplicate attributes removed.")
+
+      - name: Ensure all views have layout_height (add if missing)
         run: |
           find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
-          echo "✅ Applied to all layouts."
+          echo "✅ Missing layout_height added."
 
       - name: Fix string formatting warnings
         run: |
@@ -82,9 +67,8 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
+          git config.user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Force fix fragment_launcher: ensure layout_height everywhere"
+          git diff --cached --quiet || git commit -m "Replace problematic layouts, remove duplicate attributes, add missing layout_height, fix strings"
           git push origin HEAD:${GITHUB_REF_NAME}
