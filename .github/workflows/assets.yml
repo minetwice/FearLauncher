@@ -1,4 +1,4 @@
-name: Restore All Corrupted Layouts & Reapply Theme
+name: Restore All Layouts & Fix Strings
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
 
       - name: Download all layout files from MojoLauncher
         run: |
-          # List of layout files to restore (add all that we've touched)
+          # All layout files that might be corrupted (add any that were touched)
           FILES=(
             "activity_basemain.xml"
             "item_centered_textview_large.xml"
@@ -40,6 +40,11 @@ jobs:
             "item_multirt_runtime.xml"
             "fragment_fabric_install.xml"
             "item_controller_mapping.xml"
+            "view_mod.xml"
+            "dialog_expendable_list_view.xml"
+            "dialog_quick_setting.xml"
+            "dialog_cropper.xml"
+            "fragment_controller_remapper.xml"
           )
           BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
           for file in "${FILES[@]}"; do
@@ -47,29 +52,44 @@ jobs:
             echo "Restored: $file"
           done
 
-      - name: Apply theme changes safely (only to activity_pojav_launcher)
+      - name: Fix string formatting warnings using Python
+        run: |
+          python3 << 'PYTHON'
+          import os, re, glob
+          for strings_file in glob.glob("app_pojavlauncher/src/main/res/**/strings.xml", recursive=True):
+              with open(strings_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              def add_formatting(match):
+                  tag = match.group(0)
+                  if 'formatted=' not in tag:
+                      text = re.search(r'>(.*?)</string>', tag, re.DOTALL)
+                      if text and text.group(1).count('%') > 1:
+                          tag = tag.replace('<string ', '<string formatted="false" ', 1)
+                  return tag
+              pattern = r'<string [^>]*>.*?</string>'
+              new_content = re.sub(pattern, add_formatting, content, flags=re.DOTALL)
+              if new_content != content:
+                  with open(strings_file, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"Fixed: {strings_file}")
+          print("✅ Strings fixed.")
+          PYTHON
+
+      - name: Apply theme changes (only to main layout)
         run: |
           LAYOUT="app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml"
-          # Add background to the root LinearLayout using a safe method
           sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' "$LAYOUT"
-          # Also apply button style to all buttons in this layout
           sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "$LAYOUT"
-          # Ensure text color is primary_text
           sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$LAYOUT"
-          # Add click animation
           sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' "$LAYOUT"
 
-          # Also apply to fragment_launcher and other key fragments
-          FRAGMENTS=("fragment_launcher.xml" "fragment_instance_editor.xml")
-          for frag in "${FRAGMENTS[@]}"; do
-            if [ -f "app_pojavlauncher/src/main/res/layout/$frag" ]; then
-              sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "app_pojavlauncher/src/main/res/layout/$frag"
-              sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "app_pojavlauncher/src/main/res/layout/$frag"
-            fi
-          done
-          echo "✅ Theme changes reapplied safely."
+          # Also apply to fragment_launcher
+          FRAG="app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
+          sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "$FRAG"
+          sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "$FRAG"
+          echo "✅ Theme reapplied."
 
-      - name: Ensure required drawables and colors exist
+      - name: Ensure drawables and styles exist
         run: |
           mkdir -p app_pojavlauncher/src/main/res/drawable
           cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
@@ -102,15 +122,10 @@ jobs:
           EOF
           echo "✅ Drawables created."
 
-      - name: Fix string formatting warnings
-        run: |
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
-          echo "✅ Strings fixed."
-
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/
-          git diff --cached --quiet || git commit -m "Restore all corrupted layouts, reapply theme, add drawables, fix strings"
+          git diff --cached --quiet || git commit -m "Restore all corrupted layouts, fix strings, reapply theme"
           git push origin HEAD:${GITHUB_REF_NAME}
