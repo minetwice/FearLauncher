@@ -26,7 +26,7 @@
 
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:gravity="center_vertical" android:text="@string/modloader_dl_failed_to_load_list" android:textColor="@color/primary_text" android:textStyle="bold">
 
-        <Button style="@style/RoundedButton" android:id="@+id/fabric_installer_retry_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/global_retry">
+        <Button style="@style/RoundedButton" style="@style/RoundedButton" android:id="@+id/fabric_installer_retry_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/global_retry">
     </LinearLayout>
 
     <com.kdt.mcgui.MineButton android:id="@+id/fabric_installer_start_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginTop="@dimen/padding_heavy" android:layout_marginBottom="@dimen/padding_heavy" android:enabled="false" android:text="@string/fabric_dl_install" app:layout_constraintBottom_toTopOf="@+id/fabric_installer_progress_bar" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/fabric_installer_game_ver_spinner" app:layout_constraintVertical_bias="1.0">

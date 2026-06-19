@@ -8,9 +8,9 @@
     </com.kdt.DefocusableScrollView>
 
     <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-        <Button style="@style/RoundedButton" android:id="@+id/side_dialog_start_button" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:visibility="gone" tools:visibility="visible" tools:text="Cancel">
+        <Button style="@style/RoundedButton" style="@style/RoundedButton" android:id="@+id/side_dialog_start_button" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:visibility="gone" tools:visibility="visible" tools:text="Cancel">
 
-        <Button style="@style/RoundedButton" android:id="@+id/side_dialog_end_button" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:visibility="gone" tools:text="Confirm" tools:visibility="visible" tools:ignore="RelativeOverlap">
+        <Button style="@style/RoundedButton" style="@style/RoundedButton" android:id="@+id/side_dialog_end_button" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:visibility="gone" tools:text="Confirm" tools:visibility="visible" tools:ignore="RelativeOverlap">
         <!-->
     </RelativeLayout>
 </LinearLayout>
