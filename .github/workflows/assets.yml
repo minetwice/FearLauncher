@@ -1,4 +1,4 @@
-name: Direct Fix fragment_launcher.xml
+name: Force Fix fragment_launcher.xml
 
 on:
   workflow_dispatch:
@@ -12,44 +12,67 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Remove corrupted fragment_launcher.xml
+      - name: Delete corrupted fragment_launcher.xml
         run: |
           rm -f app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Removed old fragment_launcher.xml"
+          echo "✅ Removed old file."
 
-      - name: Download clean fragment_launcher.xml from MojoLauncher
+      - name: Download clean version from MojoLauncher
         run: |
           curl -s -o app_pojavlauncher/src/main/res/layout/fragment_launcher.xml \
             https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
-          echo "✅ Downloaded clean fragment_launcher.xml"
+          echo "✅ Downloaded fresh copy."
 
-      - name: Ensure all views have layout_height (Python fallback)
+      - name: Use Python to add missing layout_height and remove duplicates
         run: |
           python3 << 'PYTHON'
-          import os, re, glob, xml.etree.ElementTree as ET
+          import os, re, xml.etree.ElementTree as ET
           from xml.dom import minidom
 
-          layout_dir = "app_pojavlauncher/src/main/res/layout"
-          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
-              try:
-                  tree = ET.parse(xml_file)
-                  root = tree.getroot()
-              except ET.ParseError:
-                  continue
+          file_path = "app_pojavlauncher/src/main/res/layout/fragment_launcher.xml"
+          try:
+              tree = ET.parse(file_path)
+              root = tree.getroot()
+          except ET.ParseError:
+              print("XML parsing failed, will try to recover with regex")
+              # If parsing fails, we can use a regex fallback
+              import subprocess
+              subprocess.run(["sed", "-i", "/android:layout_width=/ { /android:layout_height=/! s/\\(android:layout_width=\"[^\"]*\"\\)/\\1 android:layout_height=\"wrap_content\"/ }", file_path])
+              print("Applied sed fallback.")
+          else:
               changed = False
               for elem in root.iter():
                   if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
                       elem.set('android:layout_height', 'wrap_content')
                       changed = True
               if changed:
+                  # Write back with pretty formatting
                   rough_string = ET.tostring(root, encoding='utf-8')
                   reparsed = minidom.parseString(rough_string)
                   pretty_xml = reparsed.toprettyxml(indent="    ")
                   pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
-                  with open(xml_file, 'w', encoding='utf-8') as f:
+                  with open(file_path, 'w', encoding='utf-8') as f:
                       f.write(pretty_xml)
-                  print(f"Fixed: {xml_file}")
-          print("✅ All layouts have layout_height where needed.")
+                  print("✅ Added missing layout_height.")
+              else:
+                  print("No missing layout_height found.")
+
+          # Also remove any duplicate layout_height attributes (just in case)
+          with open(file_path, 'r', encoding='utf-8') as f:
+              content = f.read()
+          # Remove duplicate layout_height within the same tag
+          pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
+          new_content = re.sub(pattern, r'\1', content)
+          if new_content != content:
+              with open(file_path, 'w', encoding='utf-8') as f:
+                  f.write(new_content)
+              print("✅ Removed duplicate layout_height.")
+          PYTHON
+
+      - name: Ensure all other layouts also have layout_height (safety net)
+        run: |
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
+          echo "✅ Applied to all layouts."
 
       - name: Fix string formatting warnings
         run: |
@@ -59,9 +82,9 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"   # ✅ Fixed: space instead of dot
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/layout/fragment_launcher.xml
           git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Replace fragment_launcher with clean version and ensure all layout_height present"
+          git diff --cached --quiet || git commit -m "Force fix fragment_launcher: ensure layout_height everywhere"
           git push origin HEAD:${GITHUB_REF_NAME}
