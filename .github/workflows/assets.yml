@@ -1,4 +1,4 @@
-name: Ultimate Asset Regeneration
+name: Fix Specific Layout Duplicates
 
 on:
   workflow_dispatch:
@@ -7,221 +7,65 @@ permissions:
   contents: write
 
 jobs:
-  regenerate:
+  fix:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all image files (PNG, WEBP, JPG, GIF)
+      - name: Download clean problematic layout files from MojoLauncher
         run: |
-          find app_pojavlauncher/src/main/res -type f \( -name "*.png" -o -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -delete
-          find app_pojavlauncher/src/main/assets -type f \( -name "*.png" -o -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -delete
-          echo "✅ All image files deleted."
+          BASE_URL="https://raw.githubusercontent.com/MojoLauncher/MojoLauncher/v3_openjdk/app_pojavlauncher/src/main/res/layout"
+          FILES=(
+            "item_minecraft_account.xml"
+            "activity_custom_controls.xml"
+          )
+          for file in "${FILES[@]}"; do
+            curl -s -o "app_pojavlauncher/src/main/res/layout/$file" "$BASE_URL/$file"
+            echo "Restored: $file"
+          done
 
-      - name: Generate vector drawables for all icons
-        run: |
-          python3 << 'PYTHON'
-          import os, re
-
-          # Complete list of all known icon drawable names
-          all_icons = [
-              # PX icons
-              'ic_px_hash', 'ic_px_zap', 'ic_px_file_dl', 'ic_px_verify_hash',
-              'ic_px_volcano', 'ic_microphone', 'ic_px_image', 'ic_px_gamepad',
-              'ic_px_java', 'ic_px_alt_sliders', 'ic_px_experiment', 'ic_px_translate',
-              'ic_px_bell', 'ic_px_image_renderer', 'ic_px_viewport_expand',
-              'ic_px_resolution', 'ic_px_runtime_mgr', 'ic_px_console', 'ic_px_ram',
-              'ic_px_java_run', 'ic_px_nogestures', 'ic_px_switch_arrows_x',
-              'ic_px_gestures', 'ic_px_control_size', 'ic_px_letters', 'ic_px_pointer_size',
-              'ic_px_speed', 'ic_px_virtual_mouse', 'ic_px_trash', 'ic_px_edit',
-              'ic_px_book', 'ic_px_sharelog', 'ic_px_folder', 'ic_px_sliders',
-              'ic_px_home', 'ic_px_arrow_left', 'ic_px_file', 'ic_filter',
-              # UI and overlay icons
-              'ic_add', 'ic_gear', 'ic_debug', 'ic_chat', 'ic_keyboard',
-              'ic_tab', 'ic_mouse', 'ic_3rd', 'ic_pri', 'ic_sec', 'ic_gui', 'ic_inv',
-              'ic_curseforge', 'ic_modrinth', 'ic_fear_full', 'ic_fabric', 'ic_quilt',
-              'ic_forge', 'ic_neoforge', 'ic_auth_ms', 'ic_auth_elyby',
-              'ic_discord', 'ic_telegram', 'ic_sharp_settings_24', 'ic_view_handle',
-              'ic_gamepad_pointer', 'ic_mouse_pointer', 'spinner_arrow', 'spinner_arrow_right',
-              'notif_icon', 'storage_alert', 'no_focus_shown',
-              # Backgrounds and other drawables
-              'background_line', 'background_line_selected', 'background_line_unselected',
-              'background_overlay', 'background_icon_edit', 'background_card',
-              'menu_background', 'mine_button_background', 'control_button',
-              'button_select', 'button_a', 'button_b', 'button_x', 'button_y',
-              'button_start', 'trigger_right', 'trigger_left', 'shoulder_right',
-              'shoulder_left', 'stick_right', 'stick_left', 'dpad_up', 'dpad_down',
-              'dpad_right', 'dpad_left', 'stick_right_click', 'stick_left_click',
-              'mine_button_unfocused', 'mine_button_focused', 'control_side_action_window',
-          ]
-
-          # Add any icons that might be referenced in layouts but not in this list (optional)
-          # We'll just use the hardcoded list for safety.
-
-          os.makedirs('app_pojavlauncher/src/main/res/drawable', exist_ok=True)
-
-          vector_content = '''<?xml version="1.0" encoding="utf-8"?>
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="@color/icon_outline_color"
-                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2zm0,15c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17zm1-4h-2V7h2v6z"/>
-          </vector>
-          '''
-
-          for name in all_icons:
-              file_path = f'app_pojavlauncher/src/main/res/drawable/{name}.xml'
-              with open(file_path, 'w') as f:
-                  f.write(vector_content)
-              print(f"Generated: {name}.xml")
-
-          print(f"✅ Generated {len(all_icons)} vector drawables.")
-          PYTHON
-
-      - name: Replace 9-patch with shape drawables
-        run: |
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_unfocused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="8dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/mine_button_focused.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_pressed_color"/>
-              <corners android:radius="8dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/control_side_action_window.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/background_overlay"/>
-              <corners android:radius="4dp"/>
-          </shape>
-          EOF
-          echo "✅ Button shapes created."
-
-      - name: Fix duplicate and missing layout_height
+      - name: Remove duplicate layout_height from all layout files (extra safety)
         run: |
           python3 << 'PYTHON'
-          import os, re, glob, xml.etree.ElementTree as ET
-          from xml.dom import minidom
+          import os, re, glob
 
           layout_dir = "app_pojavlauncher/src/main/res/layout"
           for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
               with open(xml_file, 'r', encoding='utf-8') as f:
                   content = f.read()
-              # Remove duplicate layout_height
+              # Remove duplicate android:layout_height
               pattern = r'(android:layout_height="[^"]*")\s+android:layout_height="[^"]*"'
               new_content = re.sub(pattern, r'\1', content)
               if new_content != content:
                   with open(xml_file, 'w', encoding='utf-8') as f:
                       f.write(new_content)
-                  print(f"Cleaned duplicates in: {xml_file}")
-              # Ensure all views have layout_height
-              try:
-                  tree = ET.parse(xml_file)
-                  root = tree.getroot()
-              except ET.ParseError:
-                  continue
-              changed = False
-              for elem in root.iter():
-                  if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
-                      elem.set('android:layout_height', 'wrap_content')
-                      changed = True
-              if changed:
-                  rough_string = ET.tostring(root, encoding='utf-8')
-                  reparsed = minidom.parseString(rough_string)
-                  pretty_xml = reparsed.toprettyxml(indent="    ")
-                  pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
-                  with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(pretty_xml)
-                  print(f"Added missing height in: {xml_file}")
-          print("✅ Layout attributes fixed.")
+                  print(f"Cleaned: {xml_file}")
+          print("✅ Duplicates removed.")
 
-      - name: Fix string formatting warnings
+      - name: Fix string formatting warning
         run: |
-          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
-          echo "✅ Strings fixed."
+          sed -i 's/<string name="bind_process_waiting_joystick">/<string formatted="false" name="bind_process_waiting_joystick">/' app_pojavlauncher/src/main/res/values/strings.xml
+          echo "✅ String warning fixed."
 
-      - name: Apply silver-blue theme and animations
+      - name: Apply theme changes (minimal, only to main layout)
         run: |
-          cat > app_pojavlauncher/src/main/res/values/colors.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="background_app">#E8EEF0</color>
-              <color name="background_status_bar">#CFD8DC</color>
-              <color name="background_bottom_bar">#F5F7F8</color>
-              <color name="background_overlay">#B0BEC5</color>
-              <color name="control_button_color">#90A4AE</color>
-              <color name="control_button_pressed_color">#78909C</color>
-              <color name="divider">#B0BEC5</color>
-              <color name="icon_outline_color">#455A64</color>
-              <color name="primary_text">#212121</color>
-              <color name="secondary_text">#546E7A</color>
-              <color name="minebutton_color">#90A4AE</color>
-              <color name="accent_blue">#3F51B5</color>
-          </resources>
-          EOF
-
-          mkdir -p app_pojavlauncher/src/main/res/drawable
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_1.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#E8EEF0" android:endColor="#CFD8DC" android:angle="45" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/grad_silver_blue_2.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient android:startColor="#CFD8DC" android:endColor="#B0BEC5" android:angle="135" android:type="linear"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/bg_animated_gradient.xml << 'EOF'
-          <transition xmlns:android="http://schemas.android.com/apk/res/android">
-              <item android:drawable="@drawable/grad_silver_blue_1" />
-              <item android:drawable="@drawable/grad_silver_blue_2" />
-          </transition>
-          EOF
-
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <scale android:duration="150" android:fromXScale="1.0" android:fromYScale="1.0"
-                  android:toXScale="0.95" android:toYScale="0.95" android:pivotX="50%" android:pivotY="50%" />
-              <scale android:duration="150" android:fromXScale="0.95" android:fromYScale="0.95"
-                  android:toXScale="1.0" android:toYScale="1.0" android:pivotX="50%" android:pivotY="50%"
-                  android:startOffset="150" />
-          </set>
-          EOF
-
-          cat > app_pojavlauncher/src/main/res/drawable/btn_rounded.xml << 'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/control_button_color"/>
-              <corners android:radius="16dp"/>
-          </shape>
-          EOF
-          cat > app_pojavlauncher/src/main/res/drawable/btn_ripple.xml << 'EOF'
-          <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-              android:color="@color/accent_blue">
-              <item android:drawable="@drawable/btn_rounded"/>
-          </ripple>
-          EOF
-          echo "✅ Theme and animations applied."
-
-      - name: Update layouts
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button style="@style/RoundedButton" |g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/<Button /!s|<Button |<Button android:stateListAnimator="@anim/button_click" |g' {} \;
-          sed -i '1s/\(<LinearLayout[^>]*\)/\1 android:background="@drawable\/bg_animated_gradient"/' app_pojavlauncher/src/main/res/layout/activity_pojav_launcher.xml
-          echo "✅ Layouts updated."
+          # Only reapply to main launcher activity if needed (but these files are specific)
+          # We'll just ensure the button styles are applied in these files if they exist
+          for file in item_minecraft_account.xml activity_custom_controls.xml; do
+            if [ -f "app_pojavlauncher/src/main/res/layout/$file" ]; then
+              sed -i 's|<Button |<Button style="@style/RoundedButton" |g' "app_pojavlauncher/src/main/res/layout/$file"
+              sed -i 's|android:textColor="#[^"]*"|android:textColor="@color/primary_text"|g' "app_pojavlauncher/src/main/res/layout/$file"
+              sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' "app_pojavlauncher/src/main/res/layout/$file"
+            fi
+          done
+          echo "✅ Theme applied to fixed files."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git add app_pojavlauncher/src/main/assets/
-          git diff --cached --quiet || git commit -m "Complete asset regeneration: delete all images, generate vectors, fix layouts, apply theme"
+          git add app_pojavlauncher/src/main/res/layout/item_minecraft_account.xml
+          git add app_pojavlauncher/src/main/res/layout/activity_custom_controls.xml
+          git add app_pojavlauncher/src/main/res/values/strings.xml
+          git diff --cached --quiet || git commit -m "Fix duplicate layout_height in item_minecraft_account and activity_custom_controls, fix string"
           git push origin HEAD:${GITHUB_REF_NAME}
