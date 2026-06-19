@@ -1,4 +1,4 @@
-name: Fix UI Issues - Menus, Icons, Colors, Animations
+name: Remove Duplicate Attributes & Fix Strings
 
 on:
   workflow_dispatch:
@@ -12,104 +12,71 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Standardize icon sizes and replace colors
+      - name: Remove duplicate attributes from all layout XMLs
         run: |
           python3 << 'PYTHON'
           import os, re, glob
+          import xml.etree.ElementTree as ET
+          from collections import OrderedDict
 
           layout_dir = "app_pojavlauncher/src/main/res/layout"
-          # Standardize ImageView and ImageButton sizes
           for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
               with open(xml_file, 'r', encoding='utf-8') as f:
                   content = f.read()
-              # Add missing layout_width/height if needed, set max dimensions
-              content = re.sub(r'(<ImageView[^>]*?)(?=\s*/?>)',
-                               r'\1 android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true"',
-                               content)
-              content = re.sub(r'(<ImageButton[^>]*?)(?=\s*/?>)',
-                               r'\1 android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="24dp" android:maxHeight="24dp" android:adjustViewBounds="true"',
-                               content)
-              # Replace hardcoded colors
-              content = content.replace('#FFFF00', '?attr/colorAccent')
-              content = content.replace('#FFFFFF', '@color/primary_text')
-              content = content.replace('#000000', '@color/secondary_text')
-              if content != open(xml_file, 'r', encoding='utf-8').read():
+
+              # Use regex to find tags with duplicate attributes
+              # We'll handle tags individually and remove duplicates.
+              def clean_tag(tag_text):
+                  # Find all attribute pairs (name="value")
+                  attr_pattern = r'([a-zA-Z0-9_:]+)="([^"]*)"'
+                  attrs = re.findall(attr_pattern, tag_text)
+                  # Keep only the first occurrence of each attribute name
+                  seen = OrderedDict()
+                  for name, value in attrs:
+                      if name not in seen:
+                          seen[name] = value
+                  # Rebuild the tag
+                  # Split at the first '>' to separate opening tag from children if any
+                  if '>' in tag_text:
+                      before, after = tag_text.split('>', 1)
+                  else:
+                      before = tag_text
+                      after = ''
+                  # Rebuild the opening tag part
+                  new_before = before.split()[0]  # tag name
+                  for name, value in seen.items():
+                      new_before += f' {name}="{value}"'
+                  # Handle self-closing
+                  if before.endswith('/>'):
+                      new_before += ' />'
+                  else:
+                      new_before += '>'
+                  return new_before + after
+
+              # Find all tags (simple regex, works for tags without nested < inside)
+              # We'll match tags that are standalone (not within text)
+              # Use a pattern that captures the whole tag
+              pattern = r'<[^>]*>'
+              new_content = re.sub(pattern, lambda m: clean_tag(m.group(0)), content)
+
+              if new_content != content:
                   with open(xml_file, 'w', encoding='utf-8') as f:
-                      f.write(content)
-                  print(f"Fixed: {xml_file}")
-          print("✅ Icon sizes and colors fixed.")
+                      f.write(new_content)
+                  print(f"Cleaned: {xml_file}")
 
-      - name: Add click animations to all buttons
+          print("✅ Duplicate attributes removed.")
+
+      - name: Fix string formatting warnings
         run: |
-          mkdir -p app_pojavlauncher/src/main/res/anim
-          cat > app_pojavlauncher/src/main/res/anim/button_click.xml << 'EOF'
-          <set xmlns:android="http://schemas.android.com/apk/res/android">
-              <scale
-                  android:duration="150"
-                  android:fromXScale="1.0"
-                  android:fromYScale="1.0"
-                  android:toXScale="0.95"
-                  android:toYScale="0.95"
-                  android:pivotX="50%"
-                  android:pivotY="50%" />
-              <scale
-                  android:duration="150"
-                  android:fromXScale="0.95"
-                  android:fromYScale="0.95"
-                  android:toXScale="1.0"
-                  android:toYScale="1.0"
-                  android:pivotX="50%"
-                  android:pivotY="50%"
-                  android:startOffset="150" />
-          </set>
-          EOF
-          # Add stateListAnimator to all Buttons and ImageButtons
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<Button |<Button android:stateListAnimator="@anim/button_click" |g' {} \;
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i 's|<ImageButton |<ImageButton android:stateListAnimator="@anim/button_click" |g' {} \;
-          echo "✅ Click animations added."
-
-      - name: Patch menu adapter for single-expand behavior
-        run: |
-          python3 << 'PYTHON'
-          import os, re, glob
-
-          # Find Java files that might handle expandable menus
-          java_files = glob.glob("app_pojavlauncher/src/main/java/**/*.java", recursive=True)
-          target_file = None
-          for f in java_files:
-              with open(f, 'r', encoding='utf-8') as file:
-                  content = file.read()
-                  if 'ExpandableListView' in content or 'BaseExpandableListAdapter' in content:
-                      target_file = f
-                      break
-          if target_file:
-              with open(target_file, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              # Insert a method that collapses all groups when one is expanded
-              if 'onGroupExpand' in content:
-                  # Add a loop to collapse others
-                  pattern = r'public void onGroupExpand\(int groupPosition\)\s*\{([^}]*)\}'
-                  replacement = r'public void onGroupExpand(int groupPosition) {\1\n    // Collapse all other groups\n    for (int i = 0; i < getGroupCount(); i++) {\n        if (i != groupPosition) {\n            collapseGroup(i);\n        }\n    }\n}'
-                  content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-                  with open(target_file, 'w', encoding='utf-8') as f:
-                      f.write(content)
-                  print(f"Patched {target_file} for single-expand.")
-              else:
-                  print(f"onGroupExpand not found in {target_file}; check manually.")
-          else:
-              print("No ExpandableListView adapter found; menu collapse fix may need manual editing.")
-          PYTHON
-
-      - name: Fix missing layout_height
-        run: |
-          find app_pojavlauncher/src/main/res/layout -name "*.xml" -exec sed -i '/android:layout_width=/ { /android:layout_height=/! s/\(android:layout_width="[^"]*"\)/\1 android:layout_height="wrap_content"/ }' {} \;
-          echo "✅ Missing layout_height added."
+          # Add formatted="false" to strings with multiple placeholders
+          find app_pojavlauncher/src/main/res -name "strings.xml" -exec sed -i '/<string name="[^"]*">.*%.*%.*</s/<string /<string formatted="false" /' {} \;
+          echo "✅ Strings fixed."
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/
-          git add app_pojavlauncher/src/main/java/
-          git diff --cached --quiet || git commit -m "Fix UI issues: icon sizes, colors, animations, menu collapse, layout heights"
+          git add app_pojavlauncher/src/main/res/layout/
+          git add app_pojavlauncher/src/main/res/values*/strings.xml
+          git diff --cached --quiet || git commit -m "Remove duplicate layout attributes and fix string formatting"
           git push origin HEAD:${GITHUB_REF_NAME}
