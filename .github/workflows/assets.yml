@@ -1,4 +1,4 @@
-name: Remove Corrupted layout-land & Fix Strings
+name: Fix Missing layout_height in All Layouts
 
 on:
   workflow_dispatch:
@@ -12,12 +12,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete all layout-land files
+      - name: Add missing android:layout_height to all layout files
         run: |
-          rm -rf app_pojavlauncher/src/main/res/layout-land/*
-          # Keep the directory itself (empty) to avoid any path issues
-          mkdir -p app_pojavlauncher/src/main/res/layout-land
-          echo "✅ Removed all layout-land files."
+          python3 << 'PYTHON'
+          import os, re, glob, xml.etree.ElementTree as ET
+          from xml.dom import minidom
+
+          layout_dir = "app_pojavlauncher/src/main/res/layout"
+          for xml_file in glob.glob(f"{layout_dir}/**/*.xml", recursive=True):
+              # Skip if file is empty or not valid XML
+              if os.path.getsize(xml_file) == 0:
+                  continue
+              try:
+                  tree = ET.parse(xml_file)
+                  root = tree.getroot()
+              except ET.ParseError:
+                  # If parsing fails, skip this file (it will be fixed by other means)
+                  continue
+
+              # Recursively find all elements with android:layout_width but missing android:layout_height
+              changed = False
+              for elem in root.iter():
+                  if 'android:layout_width' in elem.attrib and 'android:layout_height' not in elem.attrib:
+                      elem.set('android:layout_height', 'wrap_content')
+                      changed = True
+              if changed:
+                  # Write back the XML with proper formatting
+                  rough_string = ET.tostring(root, encoding='utf-8')
+                  reparsed = minidom.parseString(rough_string)
+                  pretty_xml = reparsed.toprettyxml(indent="    ")
+                  # Remove extra newlines (minidom adds some)
+                  pretty_xml = '\n'.join([line for line in pretty_xml.splitlines() if line.strip()])
+                  with open(xml_file, 'w', encoding='utf-8') as f:
+                      f.write(pretty_xml)
+                  print(f"Fixed: {xml_file}")
+
+          print("✅ Added missing layout_height attributes to all layouts.")
 
       - name: Fix string formatting warnings using Python
         run: |
@@ -40,13 +70,12 @@ jobs:
                       f.write(new_content)
                   print(f"Fixed: {strings_file}")
           print("✅ Strings fixed.")
-          PYTHON
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/layout-land/
+          git add app_pojavlauncher/src/main/res/layout/
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --cached --quiet || git commit -m "Remove corrupted layout-land files, fix string formatting"
+          git diff --cached --quiet || git commit -m "Add missing layout_height to all layouts, fix string formatting"
           git push origin HEAD:${GITHUB_REF_NAME}
