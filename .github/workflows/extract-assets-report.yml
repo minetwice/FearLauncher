@@ -1,0 +1,108 @@
+name: Extract All Assets Report
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Generate Comprehensive Assets Report
+        run: |
+          REPORT_FILE="FEAR_LAUNCHER_ASSETS_REPORT.txt"
+          RES_DIR="app_pojavlauncher/src/main/res"
+          
+          echo "==========================================" > $REPORT_FILE
+          echo "   FEAR LAUNCHER - COMPLETE ASSETS DATA   " >> $REPORT_FILE
+          echo "   Generated: $(date)" >> $REPORT_FILE
+          echo "==========================================" >> $REPORT_FILE
+          echo "" >> $REPORT_FILE
+
+          # 1. LAYOUTS
+          echo "[SECTION 1] UI LAYOUTS (res/layout/)" >> $REPORT_FILE
+          echo "----------------------------------------" >> $REPORT_FILE
+          if [ -d "$RES_DIR/layout" ]; then
+            for f in "$RES_DIR"/layout/*.xml; do
+              echo ">>> FILE: $(basename $f)" >> $REPORT_FILE
+              cat "$f" >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+              echo "---END OF FILE---" >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+            done
+          else
+            echo "No layout files found." >> $REPORT_FILE
+          fi
+
+          # 2. DRAWABLES & IMAGES
+          echo "[SECTION 2] DRAWABLES & IMAGES" >> $REPORT_FILE
+          echo "----------------------------------------" >> $REPORT_FILE
+          for dir in "$RES_DIR"/drawable*; do
+            if [ -d "$dir" ]; then
+              echo ">>> DIRECTORY: $(basename $dir)" >> $REPORT_FILE
+              find "$dir" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" -o -name "*.xml" \) | sort | while read img; do
+                if [[ "$img" == *.png || "$img" == *.jpg ]]; then
+                  SIZE=$(stat -c%s "$img" 2>/dev/null || echo "unknown")
+                  DIMS=$(file "$img" | grep -oP '\d+ x \d+' || echo "N/A")
+                  echo "  IMAGE: $(basename $img) | Size: ${SIZE} bytes | Dims: ${DIMS}" >> $REPORT_FILE
+                else                  echo "  VECTOR/XML: $(basename $img)" >> $REPORT_FILE
+                  cat "$img" >> $REPORT_FILE
+                  echo "" >> $REPORT_FILE
+                fi
+              done
+              echo "" >> $REPORT_FILE
+            fi
+          done
+
+          # 3. VALUES (Colors, Strings, Styles, Themes)
+          echo "[SECTION 3] VALUES & THEMES" >> $REPORT_FILE
+          echo "----------------------------------------" >> $REPORT_FILE
+          for val_file in colors.xml strings.xml styles.xml themes.xml dimens.xml attrs.xml; do
+            if [ -f "$RES_DIR/values/$val_file" ]; then
+              echo ">>> FILE: values/$val_file" >> $REPORT_FILE
+              cat "$RES_DIR/values/$val_file" >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+              echo "---END OF FILE---" >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+            fi
+          done
+
+          # 4. FONTS
+          echo "[SECTION 4] FONTS" >> $REPORT_FILE
+          echo "----------------------------------------" >> $REPORT_FILE
+          if [ -d "$RES_DIR/font" ]; then
+            for f in "$RES_DIR"/font/*; do
+              echo ">>> FONT: $(basename $f)" >> $REPORT_FILE
+              if [[ "$f" == *.ttf || "$f" == *.otf ]]; then
+                echo "  Binary font file ($(stat -c%s "$f") bytes)" >> $REPORT_FILE
+              else
+                cat "$f" >> $REPORT_FILE
+              fi
+              echo "" >> $REPORT_FILE
+            done
+          else
+            echo "No font directory found." >> $REPORT_FILE
+          fi
+
+          # 5. MIPMAPS (App Icons)
+          echo "[SECTION 5] APP ICONS (mipmap/)" >> $REPORT_FILE
+          echo "----------------------------------------" >> $REPORT_FILE
+          for dir in "$RES_DIR"/mipmap*; do
+            if [ -d "$dir" ]; then
+              echo ">>> DIRECTORY: $(basename $dir)" >> $REPORT_FILE
+              ls -lh "$dir"/*.png 2>/dev/null | awk '{print "  " $9 " | " $5}' >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+            fi
+          done
+          echo "==========================================" >> $REPORT_FILE
+          echo "         END OF ASSETS REPORT             " >> $REPORT_FILE
+          echo "==========================================" >> $REPORT_FILE
+
+      - name: Upload Assets Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fear-launcher-complete-assets-data
+          path: FEAR_LAUNCHER_ASSETS_REPORT.txt
+          retention-days: 30
