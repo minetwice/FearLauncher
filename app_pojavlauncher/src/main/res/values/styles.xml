@@ -43,5 +43,7 @@
         <item name="cornerRadius">32dp</item>
         <item name="android:textSize">18sp</item>
         <item name="backgroundTint">@color/fear_primary</item>
+        <style name="Theme.FearLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+            <item name="fontFamily">@font/fear_display_fallback</item>
     </style>
 </resources>
