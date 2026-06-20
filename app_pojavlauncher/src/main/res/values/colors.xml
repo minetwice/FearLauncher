@@ -27,4 +27,9 @@
     <color name="sidebar_bg">#2B2B2B</color>          <!-- Left Sidebar Dark Gray -->
     <color name="top_bar_bg">#1E1E1E</color>          <!-- Top Tabs Background -->
     <color name="carousel_card_bg">#3A3A3A</color>    <!-- News Carousel Cards -->
+    <!-- Korax/FEAR Theme Specific Colors -->
+<color name="fear_surface_variant">#2A2A2A</color>  <!-- Slightly lighter than bg for cards/bars -->
+<color name="fear_secondary">#C4F000</color>         <!-- Neon Lime/Green from reference -->
+<color name="primary_text">#FFFFFF</color>            <!-- Pure White -->
+<color name="secondary_text">#B0B0B0</color>          <!-- Light Grey for subtitles/arrows -->
 </resources>
