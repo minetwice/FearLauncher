@@ -7,20 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_app">
 
-    <!-- HAMBURGER MENU ICON (Top Left - Click to open options via Java) -->
-    <ImageView
-        android:id="@+id/hamburger_menu_icon"
-        android:layout_width="@dimen/_48sdp"
-        android:layout_height="@dimen/_48sdp"
-        android:padding="@dimen/_12sdp"
-        android:src="@drawable/ic_px_sliders"
-        android:contentDescription="Menu"
-        app:tint="@color/primary_text"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- HERO BANNER SECTION (Clean Dark Surface) -->
+    <!-- HERO BANNER (Clean Dark Surface) -->
     <View
         android:id="@+id/hero_banner_image"
         android:layout_width="0dp"
@@ -29,7 +16,7 @@
         android:background="@color/fear_surface_variant"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/hamburger_menu_icon"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintDimensionRatio="16:9" />
 
     <!-- COMPACT PLAY BUTTON (Left Aligned, Slim) -->
@@ -47,6 +34,7 @@
         app:layout_constraintEnd_toStartOf="@id/version_container"
         app:layout_constraintWidth_percent="0.35"
         app:layout_constraintTop_toBottomOf="@id/hero_banner_image" />
+
     <!-- VERSION SPINNER & EDIT BUTTON -->
     <LinearLayout
         android:id="@+id/version_container"
@@ -59,7 +47,6 @@
         app:layout_constraintTop_toTopOf="@id/play_button"
         app:layout_constraintBottom_toBottomOf="@id/play_button"
         android:layout_marginStart="12dp">
-
         <com.kdt.mcgui.mcVersionSpinner
             android:id="@+id/mc_version_spinner"
             android:layout_width="0dp"
@@ -96,7 +83,8 @@
 
     <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="100dp"        android:layout_marginTop="8dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="8dp"
         android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/whats_new_label">
         <LinearLayout
@@ -108,8 +96,7 @@
                 android:layout_height="match_parent"
                 android:background="@color/carousel_card_bg" 
                 android:layout_marginEnd="12dp"/>
-            <View 
-                android:layout_width="160dp" 
+            <View                 android:layout_width="160dp" 
                 android:layout_height="match_parent"
                 android:background="@color/carousel_card_bg" 
                 android:layout_marginEnd="12dp"/>
@@ -121,7 +108,6 @@
     </HorizontalScrollView>
 
     <!-- HIDDEN LEGACY BUTTONS (CRITICAL FOR JAVA COMPATIBILITY) -->
-    <!-- Inhe GONE rakho taaki UI clean rahe par NullPointerException na aaye -->
     <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/news_button"
         style="@style/LauncherMenuButton.Universal"
@@ -145,6 +131,7 @@
         style="@style/LauncherMenuButton.Universal"
         android:layout_width="match_parent"
         android:visibility="gone" />
+
     <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/share_logs_button"
         style="@style/LauncherMenuButton.Universal"
