@@ -4,11 +4,11 @@ import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.Os;
-import android.view.GravityCompat;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -20,12 +20,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 
-import com.google.android.material.navigation.NavigationView;
 import com.kdt.mcgui.ProgressLayout;
 
 import git.artdeell.mojo.R;
@@ -47,10 +45,13 @@ import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 import net.kdt.pojavlaunch.services.ProgressServiceKeeper;
-import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;import net.kdt.pojavlaunch.tasks.AsyncVersionList;
-import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
+import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;
+import net.kdt.pojavlaunch.tasks.AsyncVersionList;
+import net.kdt.pojavlaunch.tasks.MinecraftDownloader;import net.kdt.pojavlaunch.utils.FileUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
+
+import java.io.File;
 
 public class LauncherActivity extends BaseActivity {
     public static final String SETTING_FRAGMENT_TAG = "SETTINGS_FRAGMENT";
@@ -58,8 +59,6 @@ public class LauncherActivity extends BaseActivity {
     private FragmentContainerView mFragmentView;
     private ImageButton mSettingsButton;
     private ImageView mHamburgerIcon; // New Hamburger Icon
-    private DrawerLayout mDrawerLayout; // New Drawer Layout
-    private NavigationView mNavigationView; // New Navigation View
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
@@ -96,19 +95,18 @@ public class LauncherActivity extends BaseActivity {
         if(manager.isStateSaved()) return;
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
         if(fragment instanceof MainMenuFragment){
-            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);        } else{
-            Tools.backToMainMenu(this);
+            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
+        } else{            Tools.backToMainMenu(this);
         }
     };
 
-    /* NEW: Hamburger Menu Click Listener */
+    /* NEW: Hamburger Menu Click Listener (Opens Settings as fallback) */
     private final View.OnClickListener mHamburgerClickListener = v -> {
-        if (mDrawerLayout != null) {
-            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                mDrawerLayout.closeDrawer(GravityCompat.START);
-            } else {
-                mDrawerLayout.openDrawer(GravityCompat.START);
-            }
+        FragmentManager manager = getSupportFragmentManager();
+        if(manager.isStateSaved()) return;
+        Fragment fragment = manager.findFragmentById(mFragmentView.getId());
+        if(fragment instanceof MainMenuFragment){
+            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
         }
     };
 
@@ -145,9 +143,9 @@ public class LauncherActivity extends BaseActivity {
         );
         return false;
     };
+
     private final TaskCountListener mDoubleLaunchPreventionListener = taskCount -> {
-        if(taskCount > 0) {
-            Tools.runOnUiThread(() ->
+        if(taskCount > 0) {            Tools.runOnUiThread(() ->
                     mNotificationManager.cancel(NotificationUtils.NOTIFICATION_ID_GAME_START)
             );
         }
@@ -182,25 +180,20 @@ public class LauncherActivity extends BaseActivity {
         bindViews();
         
         // Setup Hamburger Menu
-        if (mHamburgerIcon != null && mDrawerLayout != null) {
+        if (mHamburgerIcon != null) {
             mHamburgerIcon.setOnClickListener(mHamburgerClickListener);
-            // Optional: Close drawer when clicking outside or selecting item
-            mNavigationView.setNavigationItemSelectedListener(item -> {
-                mDrawerLayout.closeDrawers();
-                return handleDrawerItemClick(item.getItemId());
-            });
         }
 
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
-                    if(!isAllowed) Tools.runOnUiThread(() -> Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show());                }
+                    if(!isAllowed) Tools.runOnUiThread(() -> Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show());
+                }
         );
         checkNotificationPermission();
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
         ProgressKeeper.addTaskCountListener((mProgressServiceKeeper = new ProgressServiceKeeper(this)));
-
         mSettingsButton.setOnClickListener(mSettingButtonListener);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
         ExtraCore.addExtraListener(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
@@ -243,20 +236,14 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.removeTaskCountListener(mProgressLayout);
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
-        ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);        ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
+        ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
+        ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
         getSupportFragmentManager().unregisterFragmentLifecycleCallbacks(mFragmentCallbackListener);
     }
 
     /** Custom implementation to feel more natural when a backstack isn't present */
     @Override
-    public void onBackPressed() {
-        // Close drawer first if open
-        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-            return;
-        }
-
-        MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
+    public void onBackPressed() {        MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if(fragment != null){
             if(fragment.canGoBack()){
                 fragment.goBack();
@@ -292,7 +279,8 @@ public class LauncherActivity extends BaseActivity {
     private void checkNotificationPermission() {
         if(LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
             this.checkForPermission(33, Manifest.permission.POST_NOTIFICATIONS)) {
-            return;        }
+            return;
+        }
         showNotificationPermissionReasoning();
     }
 
@@ -305,7 +293,6 @@ public class LauncherActivity extends BaseActivity {
                 .setNegativeButton(android.R.string.cancel, (d, w)-> handleNoNotificationPermission())
                 .show();
     }
-
     private void handleNoNotificationPermission() {
         LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = true;
         LauncherPreferences.DEFAULT_PREF.edit()
@@ -319,35 +306,7 @@ public class LauncherActivity extends BaseActivity {
         mSettingsButton = findViewById(R.id.setting_button);
         mProgressLayout = findViewById(R.id.progress_layout);
         
-        // Bind new drawer views safely
+        // Bind hamburger icon safely
         mHamburgerIcon = findViewById(R.id.hamburger_menu_icon);
-        mDrawerLayout = findViewById(R.id.launcher_drawer_layout);
-        mNavigationView = findViewById(R.id.navigation_view);
-    }
-
-    /** Handle drawer menu item clicks - maps old buttons to actions */
-    private boolean handleDrawerItemClick(int itemId) {
-        if (itemId == R.id.nav_execute_jar) {
-            // Trigger install jar action
-            ExtraCore.setValue(ExtraConstants.OPEN_FILE_PICKER_JAR, true); 
-            return true;
-        } else if (itemId == R.id.nav_open_directory) {
-            Instance instance = Instances.loadSelectedInstance();
-            if(instance != null) {
-                File gameDirectory = instance.getGameDirectory();
-                if(FileUtils.ensureDirectorySilently(gameDirectory)) {
-                    Tools.openPath(this, gameDirectory, false);
-                } else {
-                    Toast.makeText(this, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
-                }
-            }
-            return true;        } else if (itemId == R.id.nav_share_logs) {
-            Tools.shareLog(this);
-            return true;
-        } else if (itemId == R.id.nav_custom_controls) {
-            startActivity(new Intent(this, CustomControlsActivity.class));
-            return true;
-        }
-        return false;
     }
 }
