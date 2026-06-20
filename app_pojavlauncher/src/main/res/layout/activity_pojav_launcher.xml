@@ -22,22 +22,21 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- TOP TABS BAR (Existing Spinner Hidden Visually but Kept for Logic) -->
+        <!-- TOP BAR WITH ACCOUNT SPINNER & SETTINGS -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/top_bar_bg">
             
-            <!-- Account Spinner Kept for Backend Compatibility -->
+            <!-- Account Spinner (Backend Compatible) -->
             <com.kdt.mcgui.AccountSpinner
                 android:id="@+id/account_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_52sdp"
                 android:dropDownWidth="@dimen/_250sdp"
-                android:paddingEnd="@dimen/_52sdp"
-                android:visibility="gone" />
+                android:paddingEnd="@dimen/_52sdp" />
 
-            <!-- Settings Button Repositioned to Top Right -->
+            <!-- Settings Button -->
             <ImageButton
                 android:id="@+id/setting_button"
                 android:layout_width="@dimen/_52sdp"
@@ -48,7 +47,7 @@
                 android:scaleType="fitCenter"
                 android:paddingVertical="@dimen/_8sdp" />
                 
-            <!-- Placeholder for Top Tabs Text -->
+            <!-- Title Text Overlay -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -60,14 +59,15 @@
                 android:textStyle="bold"/>
         </FrameLayout>
 
-        <!-- FRAGMENT CONTAINER FOR TABS -->
-        <FrameLayout
+        <!-- FRAGMENT CONTAINER (FIXED: FragmentContainerView for Java Compatibility) -->
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/container_fragment"
+            android:name="net.kdt.pojavlaunch.fragments.MainMenuFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- PROGRESS LAYOUT (Kept at Bottom) -->
+        <!-- PROGRESS LAYOUT -->
         <com.kdt.mcgui.ProgressLayout
             android:id="@+id/progress_layout"
             android:layout_width="match_parent"
