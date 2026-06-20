@@ -2,16 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_app">
 
-    <!-- ========================================== -->
-    <!-- LEFT PANEL: Hero Banner & Main Actions     -->
-    <!-- 55% Width for Landscape Optimization       -->
-    <!-- ========================================== -->
+    <!-- LEFT PANEL: Hero Banner & Main Actions (55% Width) -->
     <LinearLayout
         android:id="@+id/left_panel"
         android:layout_width="0dp"
@@ -22,14 +18,13 @@
         app:layout_constraintEnd_toStartOf="@id/right_panel"
         app:layout_constraintWidth_percent="0.55">
 
-        <!-- Hero Image Placeholder -->
-        <ImageView
+        <!-- Hero Image Placeholder (Cursor Removed) -->
+        <!-- Ab ye sirf ek clean dark surface dikhayega jab tak tum real wallpaper na daalo -->
+        <View
             android:id="@+id/hero_banner_image"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_gamepad_pointer"
             android:background="@color/fear_surface_variant" />
 
         <!-- Big Green Play Button (Official Style) -->
@@ -47,12 +42,12 @@
         <!-- Version Spinner Row -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginTop="12dp">
 
-            <com.kdt.mcgui.mcVersionSpinner
-                android:id="@+id/mc_version_spinner"
+            <com.kdt.mcgui.mcVersionSpinner                android:id="@+id/mc_version_spinner"
                 android:layout_width="0dp"
                 android:layout_height="@dimen/_52sdp"
                 android:layout_weight="1"
@@ -68,14 +63,12 @@
                 android:layout_width="@dimen/_52sdp"
                 android:layout_height="@dimen/_52sdp"
                 android:background="?android:attr/selectableItemBackground"
-                android:src="@drawable/ic_px_edit" />
+                android:src="@drawable/ic_px_edit"
+                app:tint="@color/primary_text" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ========================================== -->
-    <!-- RIGHT PANEL: Menu Items & News Carousel    -->
-    <!-- 45% Width for Landscape Optimization       -->
-    <!-- ========================================== -->
+    <!-- RIGHT PANEL: Menu Items & News (45% Width) -->
     <ScrollView
         android:id="@+id/right_panel"
         android:layout_width="0dp"
@@ -90,8 +83,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- HIDDEN LEGACY BUTTONS (Java Compatibility - DO NOT REMOVE) -->
-            <!-- Inhe GONE rakho taaki UI clean rahe par NullPointerException na aaye -->
+            <!-- Hidden Legacy Buttons (Java Compatibility - DO NOT REMOVE) -->
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/news_button"
                 style="@style/LauncherMenuButton.Universal"
@@ -102,32 +94,27 @@
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
                 android:visibility="gone" />
-
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/custom_control_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
+                style="@style/LauncherMenuButton.Universal"                android:layout_width="match_parent"
                 android:visibility="gone" />
-
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/install_jar_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
                 android:visibility="gone" />
-
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/share_logs_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
                 android:visibility="gone" />
-
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/open_files_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
                 android:visibility="gone" />
 
-            <!-- What's New Section -->
+            <!-- What's New Section (Text Color Fixed to White) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -145,7 +132,8 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal">                    <View android:layout_width="200dp" android:layout_height="match_parent"
+                    android:orientation="horizontal">
+                    <View android:layout_width="200dp" android:layout_height="match_parent"
                         android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
                     <View android:layout_width="200dp" android:layout_height="match_parent"
                         android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
@@ -156,9 +144,8 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Cosmetic Bottom Bar Background (Kept for Java Compat) -->
-    <View
-        android:id="@+id/_background_display_view"
+    <!-- Cosmetic Bottom Bar Background -->
+    <View        android:id="@+id/_background_display_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@color/background_bottom_bar"
