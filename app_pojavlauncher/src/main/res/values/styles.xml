@@ -86,4 +86,11 @@
         <item name="backgroundTint">@color/fear_primary</item>
         <item name="android:textColor">@color/fear_on_primary</item>
     </style>
+
+    <!-- Fixed: Added explicit textColor to prevent black text on dark bg -->
+<style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
+    <item name="android:background">?android:attr/selectableItemBackground</item>
+    <item name="android:textColor">@color/primary_text</item> <!-- Force White Text -->
+    <item name="android:textSize">@dimen/_14ssp</item>       <!-- Slightly larger for landscape -->
+</style>
 </resources>
