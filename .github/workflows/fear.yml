@@ -1,7 +1,7 @@
 name: Extract FEAR Core
 
 on:
-  workflow_dispatch: # Sirf manual button se chalega
+  workflow_dispatch:
 
 jobs:
   extract:
@@ -11,11 +11,98 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Create Extraction Script Safely
+        run: |
+          cat > extract_fear_core.py << 'SCRIPT_EOF'
+          #!/usr/bin/env python3
+          import os, re, sys, shutil, subprocess
+          from pathlib import Path
+
+          OUTPUT_BRANCH = "fear-core"
+          EXTRACTED_DIR = "fear_core_extracted"
+          KEEP_PATTERNS = [
+              r"renderer", r"render", r"zink", r"ltw", r"gl4es", r"vulkan",
+              r"opengl", r"gles", r"shader", r"texture", r"framebuffer",
+              r"egl", r"surface", r"swapchain", r"pipeline",
+              r"jvm", r"java.*home", r"launch", r"classpath", r"nativelib",
+              r"args", r"forge", r"fabric", r"optifine", r"sodium",
+              r"input", r"touch", r"controller", r"keymap", r"mouse",
+              r"joystick", r"gesture", r"virtual.*key",
+              r"version.*manag", r"download", r"asset.*down", r"library.*down",
+              r"auth", r"microsoft", r"mojang", r"profile",
+              r"setting", r"config", r"preference", r"option",
+              r"jni", r"native", r"bridge", r"c2s", r"s2c",
+          ]
+          EXCLUDE_DIR_PATTERNS = [
+              "activities", "activity", "ui/", "layout", "drawable",
+              "mipmap", "values", "menu", "anim", "xml/res",
+              "docs", ".github", ".git", "build", ".gradle",
+              "test", "androidTest", "debug"
+          ]
+          EXCLUDE_FILE_PATTERNS = [              r"mainactivity\.(java|kt)$", r"pojavapplication\.(java|kt)$",
+              r".*adapter\.(java|kt)$", r".*fragment\.(java|kt)$",
+              r".*dialog\.(java|kt)$", r".*view\.(java|kt)$",
+              r".*widget\.(java|kt)$", r"androidmanifest\.xml$",
+              r".*\.png$", r".*\.jpg$", r".*\.svg$", r".*\.md$", r".*\.txt$",
+          ]
+          SOURCE_EXTENSIONS = {".java",".kt",".c",".cpp",".h",".hpp",".rs",".glsl",".vert",".frag"}
+
+          def is_source_file(fp):
+              return Path(fp).suffix.lower() in SOURCE_EXTENSIONS
+
+          def matches_any(text, patterns):
+              t = text.lower().replace("\\","/")
+              for p in patterns:
+                  if re.search(p, t):
+                      return True
+              return False
+
+          def should_extract(fp, root):
+              rel = os.path.relpath(fp, root).replace("\\","/")
+              if not is_source_file(fp):
+                  return False
+              if matches_any(rel, EXCLUDE_DIR_PATTERNS):
+                  return False
+              if matches_any(os.path.basename(fp), EXCLUDE_FILE_PATTERNS):
+                  return False
+              if matches_any(rel, KEEP_PATTERNS):
+                  return True
+              return False
+
+          def main():
+              repo_root = os.getcwd()
+              out_dir = os.path.join(repo_root, EXTRACTED_DIR)
+              print("Scanning repository...")
+              files = []
+              for root, dirs, fnames in os.walk(repo_root):
+                  dirs[:] = [d for d in dirs if not matches_any(os.path.join(root,d).replace("\\","/"), EXCLUDE_DIR_PATTERNS)]
+                  for fn in fnames:
+                      fp = os.path.join(root, fn)
+                      if should_extract(fp, repo_root):
+                          files.append(fp)
+              print(f"Found {len(files)} core files")
+              if not files:
+                  print("No core files found!")
+                  sys.exit(1)
+              for fp in files:
+                  rel = os.path.relpath(fp, repo_root)
+                  dest = os.path.join(out_dir, rel)
+                  os.makedirs(os.path.dirname(dest), exist_ok=True)
+                  shutil.copy2(fp, dest)              print(f"Extracted to {out_dir}")
+              for f in files[:30]:
+                  print(f"  - {os.path.relpath(f, repo_root)}")
+
+          if __name__ == "__main__":
+              main()
+          SCRIPT_EOF
 
       - name: Run Extraction Script
         run: python3 extract_fear_core.py
@@ -25,21 +112,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -d "fear_core_extracted" ]; then
-            # Extracted files ko root par move karo
             cp -r fear_core_extracted/* .
             rm -rf fear_core_extracted
-            
-            # Naya branch bana aur push kar
             git checkout -b fear-core || git checkout fear-core
             git add .
             git commit -m "feat: auto-extracted core for FEAR LAUNCHER" || echo "No changes"
             git push origin fear-core --force
           else
-            echo "❌ No core files extracted!"
+            echo "No core files extracted!"
             exit 1
           fi
 
-      - name: Upload Extraction Log
+      - name: Upload Extraction Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
