@@ -1,180 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/launcher_drawer_layout"
+    android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_app">
 
-    <!-- MAIN CONTENT AREA -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/fragment_menu_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <!-- HAMBURGER MENU ICON (Top Left - Click to open options via Java) -->
+    <ImageView
+        android:id="@+id/hamburger_menu_icon"
+        android:layout_width="@dimen/_48sdp"
+        android:layout_height="@dimen/_48sdp"
+        android:padding="@dimen/_12sdp"
+        android:src="@drawable/ic_px_sliders"
+        android:contentDescription="Menu"
+        app:tint="@color/primary_text"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- HAMBURGER MENU ICON (Top Left) -->
-        <ImageView
-            android:id="@+id/hamburger_menu_icon"
-            android:layout_width="@dimen/_48sdp"
-            android:layout_height="@dimen/_48sdp"
-            android:padding="@dimen/_12sdp"
-            android:src="@drawable/ic_px_sliders"
-            android:contentDescription="Menu"
-            app:tint="@color/primary_text"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <!-- HERO BANNER SECTION (Clean Dark Surface) -->
+    <View
+        android:id="@+id/hero_banner_image"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/fear_surface_variant"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/hamburger_menu_icon"
+        app:layout_constraintDimensionRatio="16:9" />
 
-        <!-- HERO BANNER SECTION -->
-        <View
-            android:id="@+id/hero_banner_image"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            android:background="@color/fear_surface_variant"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/hamburger_menu_icon"
-            app:layout_constraintDimensionRatio="16:9" />
+    <!-- COMPACT PLAY BUTTON (Left Aligned, Slim) -->
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/play_button"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/_42sdp"
+        android:textAllCaps="true"
+        android:text="@string/main_play"
+        android:textSize="16sp"
+        android:textColor="@color/primary_text"
+        android:background="@color/mc_official_green"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/version_container"
+        app:layout_constraintWidth_percent="0.35"
+        app:layout_constraintTop_toBottomOf="@id/hero_banner_image" />
+    <!-- VERSION SPINNER & EDIT BUTTON -->
+    <LinearLayout
+        android:id="@+id/version_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toEndOf="@id/play_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/play_button"
+        app:layout_constraintBottom_toBottomOf="@id/play_button"
+        android:layout_marginStart="12dp">
 
-        <!-- COMPACT PLAY BUTTON (Left Aligned, Slim) -->
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/play_button"
+        <com.kdt.mcgui.mcVersionSpinner
+            android:id="@+id/mc_version_spinner"
             android:layout_width="0dp"
             android:layout_height="@dimen/_42sdp"
-            android:textAllCaps="true"
-            android:text="@string/main_play"
-            android:textSize="16sp"
-            android:textColor="@color/primary_text"
-            android:background="@color/mc_official_green"            android:layout_marginTop="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/version_container"
-            app:layout_constraintWidth_percent="0.35"
-            app:layout_constraintTop_toBottomOf="@id/hero_banner_image" />
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:drawableEnd="@drawable/spinner_arrow"
+            app:drawableEndSize="@dimen/padding_heavy"
+            app:drawableStartIntegerScaling="true"
+            app:drawableStartSize="@dimen/_36sdp"
+            app:drawableEndPadding="@dimen/_1sdp" />
 
-        <!-- VERSION SPINNER & EDIT BUTTON -->
+        <ImageButton
+            android:id="@+id/edit_profile_button"
+            android:layout_width="@dimen/_42sdp"
+            android:layout_height="@dimen/_42sdp"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_px_edit"
+            app:tint="@color/primary_text" />
+    </LinearLayout>
+
+    <!-- WHAT'S NEW CAROUSEL -->
+    <TextView
+        android:id="@+id/whats_new_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WHAT'S NEW"
+        android:textColor="@color/primary_text"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/play_button" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/whats_new_label">
         <LinearLayout
-            android:id="@+id/version_container"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintStart_toEndOf="@id/play_button"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/play_button"
-            app:layout_constraintBottom_toBottomOf="@id/play_button"
-            android:layout_marginStart="12dp">
-
-            <com.kdt.mcgui.mcVersionSpinner
-                android:id="@+id/mc_version_spinner"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/_42sdp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:drawableEnd="@drawable/spinner_arrow"
-                app:drawableEndSize="@dimen/padding_heavy"
-                app:drawableStartIntegerScaling="true"
-                app:drawableStartSize="@dimen/_36sdp"
-                app:drawableEndPadding="@dimen/_1sdp" />
-
-            <ImageButton
-                android:id="@+id/edit_profile_button"
-                android:layout_width="@dimen/_42sdp"
-                android:layout_height="@dimen/_42sdp"
-                android:background="?android:attr/selectableItemBackground"
-                android:src="@drawable/ic_px_edit"
-                app:tint="@color/primary_text" />
-        </LinearLayout>
-
-        <!-- WHAT'S NEW CAROUSEL -->
-        <TextView
-            android:id="@+id/whats_new_label"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="WHAT'S NEW"
-            android:textColor="@color/primary_text"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginTop="24dp"            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/play_button" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:layout_marginTop="8dp"
-            android:scrollbars="none"
-            app:layout_constraintTop_toBottomOf="@id/whats_new_label">
-            <LinearLayout
-                android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <View 
+                android:layout_width="160dp" 
                 android:layout_height="match_parent"
-                android:orientation="horizontal">
-                <View 
-                    android:layout_width="160dp" 
-                    android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg" 
-                    android:layout_marginEnd="12dp"/>
-                <View 
-                    android:layout_width="160dp" 
-                    android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg" 
-                    android:layout_marginEnd="12dp"/>
-                <View 
-                    android:layout_width="160dp" 
-                    android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg"/>
-            </LinearLayout>
-        </HorizontalScrollView>
+                android:background="@color/carousel_card_bg" 
+                android:layout_marginEnd="12dp"/>
+            <View 
+                android:layout_width="160dp" 
+                android:layout_height="match_parent"
+                android:background="@color/carousel_card_bg" 
+                android:layout_marginEnd="12dp"/>
+            <View 
+                android:layout_width="160dp" 
+                android:layout_height="match_parent"
+                android:background="@color/carousel_card_bg"/>
+        </LinearLayout>
+    </HorizontalScrollView>
 
-        <!-- HIDDEN LEGACY BUTTONS (CRITICAL FOR JAVA COMPATIBILITY) -->
-        <!-- Inhe GONE rakho taaki UI clean rahe par NullPointerException na aaye -->
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/news_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="0dp"
-            android:visibility="gone" />
+    <!-- HIDDEN LEGACY BUTTONS (CRITICAL FOR JAVA COMPATIBILITY) -->
+    <!-- Inhe GONE rakho taaki UI clean rahe par NullPointerException na aaye -->
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/news_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="0dp"
+        android:visibility="gone" />
 
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/social_media_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="0dp"
-            android:visibility="gone" />
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/social_media_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="0dp"
+        android:visibility="gone" />
 
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/custom_control_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/install_jar_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/custom_control_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="match_parent"
+        android:visibility="gone" />
 
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/share_logs_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/install_jar_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="match_parent"
+        android:visibility="gone" />
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/share_logs_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="match_parent"
+        android:visibility="gone" />
 
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/open_files_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
+    <com.kdt.mcgui.LauncherMenuButton
+        android:id="@+id/open_files_button"
+        style="@style/LauncherMenuButton.Universal"
+        android:layout_width="match_parent"
+        android:visibility="gone" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- NAVIGATION DRAWER (Hidden Options Moved Here) -->
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation_view"
-        android:layout_width="@dimen/_280sdp"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@color/fear_surface"
-        app:itemTextColor="@color/primary_text"
-        app:itemIconTint="@color/secondary_text"
-        app:headerLayout="@layout/nav_header_placeholder"
-        app:menu="@menu/nav_drawer_menu" />
-
-</androidx.drawerlayout.widget.DrawerLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
