@@ -125,6 +125,44 @@
                     android:background="@color/carousel_card_bg"/>
             </LinearLayout>
         </HorizontalScrollView>
+
+        <!-- HIDDEN LEGACY BUTTONS (CRITICAL FOR JAVA COMPATIBILITY) -->
+        <!-- Inhe GONE rakho taaki UI clean rahe par NullPointerException na aaye -->
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/news_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="0dp"
+            android:visibility="gone" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/social_media_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="0dp"
+            android:visibility="gone" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/custom_control_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="match_parent"
+            android:visibility="gone" />
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/install_jar_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="match_parent"
+            android:visibility="gone" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/share_logs_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="match_parent"
+            android:visibility="gone" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/open_files_button"
+            style="@style/LauncherMenuButton.Universal"
+            android:layout_width="match_parent"
+            android:visibility="gone" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- NAVIGATION DRAWER (Hidden Options Moved Here) -->
