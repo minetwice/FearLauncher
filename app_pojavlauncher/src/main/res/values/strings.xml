@@ -4,6 +4,13 @@
     <string name="app_name">Fear Launcher</string>
     <string name="app_short_name">FearLauncher</string>
 
+    <!-- Add formatted="false" to these strings in values/strings.xml -->
+<string name="mcl_launch_downloading_progress" formatted="false">Downloading %s (%.2f MB / %.2f MB)</string>
+<string name="modpack_download_downloading_metadata" formatted="false">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
+<string name="modpack_download_downloading_mods" formatted="false">Downloading mods (%.2f MB / %.2f MB)</string>
+<string name="newdl_downloading_game_files_size" formatted="false">Downloading game… (%.2f/%.2f MB, %.2f MB/s)</string>
+<string name="memory_warning_msg" formatted="false">The current amount of free RAM (%d) is lower than allocated RAM (%d), which may lead to crashes.</string>
+
     <!-- Action bar part -->
 
     <!-- Languages list part -->
