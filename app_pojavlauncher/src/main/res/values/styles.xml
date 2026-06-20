@@ -29,7 +29,7 @@
         <item name="colorSurfaceVariant">@color/fear_surface_variant</item>
         
         <!-- Typography -->
-        <item name="fontFamily">@font/fear_display_fallback</item>
+        <item name="fontFamily">sans-serif-medium</item>
         <item name="android:textSize">@dimen/_12ssp</item>
     </style>
 
