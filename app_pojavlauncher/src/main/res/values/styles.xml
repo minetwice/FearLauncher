@@ -42,12 +42,13 @@
         <item name="strokeColor">@color/background_overlay</item>
     </style>
 
-    <!-- Big Play Button -->
-    <style name="FearPlayButton" parent="Widget.MaterialComponents.Button.TonalButton">
+    <!-- Big Play Button (FIXED: Compatible with all Material versions) -->
+    <style name="FearPlayButton" parent="Widget.MaterialComponents.Button">
         <item name="android:layout_height">64dp</item>
         <item name="cornerRadius">32dp</item>
         <item name="android:textSize">18sp</item>
         <item name="backgroundTint">@color/fear_primary</item>
+        <item name="android:textColor">@color/fear_on_primary</item>
     </style>
 
     <!-- Legacy Pojav Styles (Preserved for Compatibility) -->
