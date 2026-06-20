@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_execute_jar"
+            android:icon="@drawable/ic_px_java_run"
+            android:title="@string/main_install_jar_file" />
+        <item
+            android:id="@+id/nav_open_directory"
+            android:icon="@drawable/ic_px_folder"
+            android:title="@string/mcl_button_open_directory" />
+        <item
+            android:id="@+id/nav_share_logs"
+            android:icon="@drawable/ic_px_sharelog"
+            android:title="@string/main_share_logs" />
+        <item
+            android:id="@+id/nav_custom_controls"
+            android:icon="@drawable/ic_px_gamepad"
+            android:title="@string/mcl_option_customcontrol" />
+    </group>
+</menu>
