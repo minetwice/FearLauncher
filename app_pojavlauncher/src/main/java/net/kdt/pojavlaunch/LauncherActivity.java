@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.Os;
+import android.view.GravityCompat;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -18,12 +20,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 
+import com.google.android.material.navigation.NavigationView;
 import com.kdt.mcgui.ProgressLayout;
 
+import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -42,19 +47,19 @@ import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 import net.kdt.pojavlaunch.services.ProgressServiceKeeper;
-import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;
-import net.kdt.pojavlaunch.tasks.AsyncVersionList;
+import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;import net.kdt.pojavlaunch.tasks.AsyncVersionList;
 import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
 import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
-
-import git.artdeell.mojo.R;
 
 public class LauncherActivity extends BaseActivity {
     public static final String SETTING_FRAGMENT_TAG = "SETTINGS_FRAGMENT";
 
     private FragmentContainerView mFragmentView;
     private ImageButton mSettingsButton;
+    private ImageView mHamburgerIcon; // New Hamburger Icon
+    private DrawerLayout mDrawerLayout; // New Drawer Layout
+    private NavigationView mNavigationView; // New Navigation View
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
@@ -77,13 +82,10 @@ public class LauncherActivity extends BaseActivity {
 
     /* Listener for the auth method selection screen */
     private final ExtraListener<Boolean> mSelectAuthMethod = (key, value) -> {
-        // The "false" value is used to stop auth method selection
         FragmentManager manager = getSupportFragmentManager();
         if(!value || manager.isStateSaved()) return false;
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
-        // Allow starting the add account only from the main menu, should it be moved to fragment itself ?
         if(!(fragment instanceof MainMenuFragment)) return false;
-
         Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
         return false;
     };
@@ -94,10 +96,19 @@ public class LauncherActivity extends BaseActivity {
         if(manager.isStateSaved()) return;
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
         if(fragment instanceof MainMenuFragment){
-            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-        } else{
-            // The setting button doubles as a home button now
+            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);        } else{
             Tools.backToMainMenu(this);
+        }
+    };
+
+    /* NEW: Hamburger Menu Click Listener */
+    private final View.OnClickListener mHamburgerClickListener = v -> {
+        if (mDrawerLayout != null) {
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                mDrawerLayout.openDrawer(GravityCompat.START);
+            }
         }
     };
 
@@ -106,24 +117,19 @@ public class LauncherActivity extends BaseActivity {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;
         }
-
         Instance selectedInstance = Instances.loadSelectedInstance();
-
         if(selectedInstance == null) {
             Toast.makeText(this, R.string.no_instance, Toast.LENGTH_LONG).show();
             return false;
         }
-
         if(selectedInstance.installer != null) {
             selectedInstance.installer.start();
             return false;
         }
-
         if (!Tools.isValidString(selectedInstance.versionId)){
             Toast.makeText(this, R.string.error_no_version, Toast.LENGTH_LONG).show();
             return false;
         }
-
         if(Accounts.getCurrent() == null){
             Toast.makeText(this, R.string.no_saved_accounts, Toast.LENGTH_LONG).show();
             ExtraCore.setValue(ExtraConstants.SELECT_AUTH_METHOD, true);
@@ -139,10 +145,7 @@ public class LauncherActivity extends BaseActivity {
         );
         return false;
     };
-
     private final TaskCountListener mDoubleLaunchPreventionListener = taskCount -> {
-        // Hide the notification that starts the game if there are tasks executing.
-        // Prevents the user from trying to launch the game with tasks ongoing.
         if(taskCount > 0) {
             Tools.runOnUiThread(() ->
                     mNotificationManager.cancel(NotificationUtils.NOTIFICATION_ID_GAME_START)
@@ -150,6 +153,7 @@ public class LauncherActivity extends BaseActivity {
         }
         return false;
     };
+
     @Override
     protected boolean shouldIgnoreNotch() {
         return getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT;
@@ -174,14 +178,23 @@ public class LauncherActivity extends BaseActivity {
         }
 
         IconCacheJanitor.runJanitor();
-
         getWindow().setBackgroundDrawable(null);
         bindViews();
+        
+        // Setup Hamburger Menu
+        if (mHamburgerIcon != null && mDrawerLayout != null) {
+            mHamburgerIcon.setOnClickListener(mHamburgerClickListener);
+            // Optional: Close drawer when clicking outside or selecting item
+            mNavigationView.setNavigationItemSelectedListener(item -> {
+                mDrawerLayout.closeDrawers();
+                return handleDrawerItemClick(item.getItemId());
+            });
+        }
+
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
-                    if(!isAllowed) Tools.runOnUiThread(() -> Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show());
-                }
+                    if(!isAllowed) Tools.runOnUiThread(() -> Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show());                }
         );
         checkNotificationPermission();
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -192,7 +205,6 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.addTaskCountListener(mProgressLayout);
         ExtraCore.addExtraListener(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
-
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
 
         new AsyncVersionList().getVersionList(versions -> ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions));
@@ -231,15 +243,19 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.removeTaskCountListener(mProgressLayout);
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
-        ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
-        ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
-
+        ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);        ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
         getSupportFragmentManager().unregisterFragmentLifecycleCallbacks(mFragmentCallbackListener);
     }
 
     /** Custom implementation to feel more natural when a backstack isn't present */
     @Override
     public void onBackPressed() {
+        // Close drawer first if open
+        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+            return;
+        }
+
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if(fragment != null){
             if(fragment.canGoBack()){
@@ -247,7 +263,6 @@ public class LauncherActivity extends BaseActivity {
                 return;
             }
         }
-
         super.onBackPressed();
     }
 
@@ -260,23 +275,16 @@ public class LauncherActivity extends BaseActivity {
         return null;
     }
 
-    @SuppressWarnings("unused")
-    private Fragment getVisibleFragment(int id){
-        Fragment fragment = getSupportFragmentManager().findFragmentById(id);
-        if(fragment != null && fragment.isVisible()) {
-            return fragment;
-        }
-        return null;
-    }
-
     public void askForPermission(int minApi, final String permission) {
         if(Build.VERSION.SDK_INT < minApi) return;
         mRequestPermissionLauncher.launch(permission);
     }
+    
     public boolean checkForPermission(int minApi, final String permission) {
         return Build.VERSION.SDK_INT < minApi ||
                 ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_DENIED;
     }
+    
     public boolean checkForPermissionRationale(int minApi, final String permission) {
         return checkForPermission(minApi, permission) || ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
     }
@@ -284,8 +292,7 @@ public class LauncherActivity extends BaseActivity {
     private void checkNotificationPermission() {
         if(LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
             this.checkForPermission(33, Manifest.permission.POST_NOTIFICATIONS)) {
-            return;
-        }
+            return;        }
         showNotificationPermissionReasoning();
     }
 
@@ -311,5 +318,36 @@ public class LauncherActivity extends BaseActivity {
         mFragmentView = findViewById(R.id.container_fragment);
         mSettingsButton = findViewById(R.id.setting_button);
         mProgressLayout = findViewById(R.id.progress_layout);
+        
+        // Bind new drawer views safely
+        mHamburgerIcon = findViewById(R.id.hamburger_menu_icon);
+        mDrawerLayout = findViewById(R.id.launcher_drawer_layout);
+        mNavigationView = findViewById(R.id.navigation_view);
+    }
+
+    /** Handle drawer menu item clicks - maps old buttons to actions */
+    private boolean handleDrawerItemClick(int itemId) {
+        if (itemId == R.id.nav_execute_jar) {
+            // Trigger install jar action
+            ExtraCore.setValue(ExtraConstants.OPEN_FILE_PICKER_JAR, true); 
+            return true;
+        } else if (itemId == R.id.nav_open_directory) {
+            Instance instance = Instances.loadSelectedInstance();
+            if(instance != null) {
+                File gameDirectory = instance.getGameDirectory();
+                if(FileUtils.ensureDirectorySilently(gameDirectory)) {
+                    Tools.openPath(this, gameDirectory, false);
+                } else {
+                    Toast.makeText(this, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
+                }
+            }
+            return true;        } else if (itemId == R.id.nav_share_logs) {
+            Tools.shareLog(this);
+            return true;
+        } else if (itemId == R.id.nav_custom_controls) {
+            startActivity(new Intent(this, CustomControlsActivity.class));
+            return true;
+        }
+        return false;
     }
 }
