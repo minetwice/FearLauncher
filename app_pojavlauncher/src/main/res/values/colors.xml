@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- === EXISTING COLORS (Preserved) === -->
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
-
     <color name="minebutton_color">#91dffb</color>
     <color name="background_app">#181818</color>
     <color name="divider">@color/background_overlay</color>
@@ -10,7 +10,20 @@
     <color name="background_status_bar">#242424</color>
     <color name="background_bottom_bar">#232323</color>
     <color name="icon_outline_color">#FFFFFF</color>
-
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#B2B2B2</color>
+
+    <!-- === NEW FEAR LAUNCHER GAMING PALETTE === -->
+    <color name="fear_primary">#FF4500</color>       <!-- Neon Orange Accent -->
+    <color name="fear_on_primary">#FFFFFF</color>
+    <color name="fear_secondary">#00E676</color>     <!-- Neon Green for FPS/Status -->
+    <color name="fear_tertiary">#2979FF</color>      <!-- Electric Blue for Links -->
+    
+    <!-- Surface Colors for Cards/Sheets -->
+    <color name="fear_surface">#1E1E1E</color>
+    <color name="fear_surface_variant">#2A2A2A</color>
+    <color name="fear_surface_container">#141414</color>
+    
+    <!-- Glass Effect Base -->
+    <color name="fear_glass_bg">#CC181818</color>    <!-- 80% opacity bg -->
 </resources>
