@@ -1,54 +1,77 @@
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:orientation="horizontal"
+    android:background="@color/background_app">
 
-    <com.kdt.mcgui.AccountSpinner
-        android:id="@+id/account_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_52sdp"
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/sidebar_navigation"
+        android:layout_width="@dimen/_60sdp"
+        android:layout_height="match_parent"
+        android:background="@color/sidebar_bg"
+        app:itemIconTint="@color/primary_text"
+        app:itemTextColor="@color/secondary_text" />
 
-        android:dropDownWidth="@dimen/_250sdp"
-        android:dropDownVerticalOffset="@dimen/_52sdp"
-        android:paddingEnd="@dimen/_52sdp"
+    <!-- MAIN CONTENT AREA -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="RtlSymmetry" />
-    <!-- Ignore because it's  done to fit the ImageButton within spinner background -->
+        <!-- TOP TABS BAR (Existing Spinner Hidden Visually but Kept for Logic) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/top_bar_bg">
+            
+            <!-- Account Spinner Kept for Backend Compatibility -->
+            <com.kdt.mcgui.AccountSpinner
+                android:id="@+id/account_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_52sdp"
+                android:dropDownWidth="@dimen/_250sdp"
+                android:paddingEnd="@dimen/_52sdp"
+                android:visibility="gone" />
 
-    <ImageButton
-        android:id="@+id/setting_button"
-        android:layout_width="@dimen/_52sdp"
-        android:layout_height="@dimen/_52sdp"
-        android:background="?attr/selectableItemBackground"
-        android:src="@drawable/ic_px_sliders"
-        android:scaleType="fitCenter"
-        android:paddingVertical="@dimen/_8sdp"
+            <!-- Settings Button Repositioned to Top Right -->
+            <ImageButton
+                android:id="@+id/setting_button"
+                android:layout_width="@dimen/_52sdp"
+                android:layout_height="@dimen/_52sdp"
+                android:layout_gravity="end|center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:src="@drawable/ic_px_sliders"
+                android:scaleType="fitCenter"
+                android:paddingVertical="@dimen/_8sdp" />
+                
+            <!-- Placeholder for Top Tabs Text -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="16dp"
+                android:text="MINECRAFT: JAVA EDITION"
+                android:textColor="@color/primary_text"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+        </FrameLayout>
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <!-- FRAGMENT CONTAINER FOR TABS -->
+        <FrameLayout
+            android:id="@+id/container_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <!-- Holding most of the dynamic content -->
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/container_fragment"
-        android:name="net.kdt.pojavlaunch.fragments.MainMenuFragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/progress_layout"
-        app:layout_constraintTop_toBottomOf="@+id/account_spinner" />
-
-
-    <com.kdt.mcgui.ProgressLayout
-        android:id="@+id/progress_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- PROGRESS LAYOUT (Kept at Bottom) -->
+        <com.kdt.mcgui.ProgressLayout
+            android:id="@+id/progress_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
