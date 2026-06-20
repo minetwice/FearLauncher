@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_app">
 
-    <!-- LEFT SIDE: Hero Banner + Play Controls -->
+    <!-- LEFT PANEL: Hero Banner & Main Actions (55% Width) -->
     <LinearLayout
         android:id="@+id/left_panel"
         android:layout_width="0dp"
@@ -18,14 +18,15 @@
         app:layout_constraintEnd_toStartOf="@id/right_panel"
         app:layout_constraintWidth_percent="0.55">
 
-        <!-- Hero Image -->
+        <!-- Hero Image Placeholder -->
         <ImageView
             android:id="@+id/hero_banner_image"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_gamepad_pointer" />
+            android:src="@drawable/ic_gamepad_pointer"
+            android:background="@color/fear_surface_variant" />
 
         <!-- Big Green Play Button -->
         <com.kdt.mcgui.MineButton
@@ -46,8 +47,8 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginTop="12dp">
-
-            <com.kdt.mcgui.mcVersionSpinner                android:id="@+id/mc_version_spinner"
+            <com.kdt.mcgui.mcVersionSpinner
+                android:id="@+id/mc_version_spinner"
                 android:layout_width="0dp"
                 android:layout_height="@dimen/_52sdp"
                 android:layout_weight="1"
@@ -67,82 +68,88 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- RIGHT SIDE: Menu Buttons + News Carousel -->
-    <LinearLayout
+    <!-- RIGHT PANEL: Menu Items & News (45% Width) -->
+    <ScrollView
         android:id="@+id/right_panel"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintStart_toEndOf="@id/left_panel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.45">
 
-        <!-- Hidden Legacy Buttons (Java Compatibility) -->
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/news_button"
-            style="@style/LauncherMenuButton.Universal"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/social_media_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/custom_control_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/install_jar_button"
-            style="@style/LauncherMenuButton.Universal"            android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/share_logs_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/open_files_button"
-            style="@style/LauncherMenuButton.Universal"
-            android:layout_width="match_parent"
-            android:visibility="gone" />
-
-        <!-- What's New Section -->
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WHAT'S NEW"
-            android:textColor="@color/primary_text"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
+            android:orientation="vertical">
 
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:scrollbars="none">
-            <LinearLayout
+            <!-- Hidden Legacy Buttons (Java Compatibility - DO NOT REMOVE) -->
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/news_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/social_media_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/custom_control_button"
+                style="@style/LauncherMenuButton.Universal"                android:layout_width="match_parent"
+                android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/install_jar_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/share_logs_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/open_files_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:visibility="gone" />
+
+            <!-- What's New Section -->
+            <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-                <View android:layout_width="200dp" android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
-                <View android:layout_width="200dp" android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
-                <View android:layout_width="200dp" android:layout_height="match_parent"
-                    android:background="@color/carousel_card_bg"/>
-            </LinearLayout>
-        </HorizontalScrollView>
-    </LinearLayout>
+                android:layout_height="wrap_content"
+                android:text="WHAT'S NEW"
+                android:textColor="@color/primary_text"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+                    <View android:layout_width="200dp" android:layout_height="match_parent"
+                        android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
+                    <View android:layout_width="200dp" android:layout_height="match_parent"
+                        android:background="@color/carousel_card_bg" android:layout_marginEnd="12dp"/>
+                    <View android:layout_width="200dp" android:layout_height="match_parent"
+                        android:background="@color/carousel_card_bg"/>
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Cosmetic Bottom Bar Background -->
     <View
-        android:id="@+id/_background_display_view"
-        android:layout_width="match_parent"
+        android:id="@+id/_background_display_view"        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@color/background_bottom_bar"
         android:translationZ="-1dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="@id/play_button" /></androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintTop_toTopOf="@id/play_button" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
