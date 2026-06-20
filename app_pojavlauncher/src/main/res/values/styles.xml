@@ -1,42 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light or not? -->
-    <style name="AppTheme" parent="@style/Theme.AppCompat.NoActionBar">
+    <style name="Theme.FearLauncher" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Status & Nav Bar -->
+        <item name="android:statusBarColor">@color/background_status_bar</item>
+        <item name="android:navigationBarColor">@color/background_app</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Primary Branding -->
+        <item name="colorPrimary">@color/fear_primary</item>
+        <item name="colorOnPrimary">@color/fear_on_primary</item>
+        <item name="colorSecondary">@color/fear_secondary</item>
+        <item name="colorTertiary">@color/fear_tertiary</item>
+        
+        <!-- Surfaces -->
+        <item name="android:colorBackground">@color/background_app</item>
+        <item name="colorSurface">@color/fear_surface</item>
+        <item name="colorSurfaceVariant">@color/fear_surface_variant</item>
+        <item name="colorSurfaceContainer">@color/fear_surface_container</item>
+        
+        <!-- Typography -->
+        <item name="fontFamily">@font/fear_display</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        
+        <!-- Remove Legacy Overlays -->
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:statusBarColor">@color/background_status_bar</item>
-        <item name="android:navigationBarColor">@color/background_app</item>
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
-
-        <item name="android:textSize">@dimen/_12ssp</item>
-
     </style>
 
-    <style name="LauncherFragment_Divider">
-        <item name="android:layout_width">@dimen/padding_tiny</item>
-        <item name="android:layout_height">0dp</item>
-        <item name="android:background">@color/divider</item>
+    <!-- Card Style for Version/Profile Items -->
+    <style name="FearCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/fear_surface_variant</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/background_overlay</item>
     </style>
 
-    <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">?android:attr/selectableItemBackground</item>
-    </style>
-
-    <style name="LauncherMenuButton.Universal" parent="LauncherMenuButton">
-        <item name="android:layout_height">@dimen/_66sdp</item>
-    </style>
-
-    <style name="ThickDivider">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/_1sdp</item>
-        <item name="android:background">?android:attr/listDivider</item>
-    </style>
-
-    <item name="dimension_tracker" type="id" />
-    <style name="DimensionTracker">
-        <item name="android:id">@id/dimension_tracker</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
+    <!-- Big Play Button -->
+    <style name="FearPlayButton" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:layout_height">64dp</item>
+        <item name="cornerRadius">32dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="backgroundTint">@color/fear_primary</item>
     </style>
 </resources>
