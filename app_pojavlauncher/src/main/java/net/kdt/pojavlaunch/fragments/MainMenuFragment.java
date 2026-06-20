@@ -47,7 +47,7 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Note: Legacy buttons are hidden in XML but we keep references safe        Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
+        // Properly declared variables to fix "cannot find symbol" errors        Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
         Button mInstallJarButton = view.findViewById(R.id.install_jar_button);
         Button mShareLogsButton = view.findViewById(R.id.share_logs_button);
         Button mOpenDirectoryButton = view.findViewById(R.id.open_files_button);
@@ -56,18 +56,22 @@ public class MainMenuFragment extends Fragment {
         Button mPlayButton = view.findViewById(R.id.play_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
 
-        // Safe listeners for hidden buttons (preserves functionality if needed later)
+        // Safe listeners with null checks
         if (mCustomControlButton != null) 
             mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+        
         if (mInstallJarButton != null) 
             mInstallJarButton.setOnClickListener(v -> runInstallerWithConfirmation());
+            
         if (mShareLogsButton != null) 
             mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
+            
         if (mOpenDirectoryButton != null) 
             mOpenDirectoryButton.setOnClickListener((v)-> openGameDirectory(v.getContext()));
 
         if (mEditProfileButton != null) 
             mEditProfileButton.setOnClickListener(v -> mVersionSpinner.openProfileEditor(requireActivity()));
+            
         if (mPlayButton != null) 
             mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
     }
@@ -92,8 +96,8 @@ public class MainMenuFragment extends Fragment {
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
     }
 
-    private void runInstallerWithConfirmation() {
-        if (ProgressKeeper.getTaskCount() == 0) {
+    private void runInstallerWithConfirmation() {        if (ProgressKeeper.getTaskCount() == 0) {
             mModInstallerLauncher.launch(null);
         } else Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
-    }}
+    }
+}
