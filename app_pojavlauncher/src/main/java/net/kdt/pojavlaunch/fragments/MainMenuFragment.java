@@ -47,23 +47,29 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // PROPERLY DECLARED VARIABLES TO FIX "CANNOT FIND SYMBOL" ERRORS        Button mNewsButton = view.findViewById(R.id.news_button);
-        Button mSocialMediaButton = view.findViewById(R.id.social_media_button);
+        // --- FIX START: Variables Declared Here to Solve "Cannot Find Symbol" ---        Button mNewsButton = view.findViewById(R.id.news_button);
+        Button mDiscordButton = view.findViewById(R.id.social_media_button);
         Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
         Button mInstallJarButton = view.findViewById(R.id.install_jar_button);
         Button mShareLogsButton = view.findViewById(R.id.share_logs_button);
         Button mOpenDirectoryButton = view.findViewById(R.id.open_files_button);
-
+        
         ImageButton mEditProfileButton = view.findViewById(R.id.edit_profile_button);
         Button mPlayButton = view.findViewById(R.id.play_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
+        // --- FIX END ---
 
-        // SAFE LISTENERS WITH NULL CHECKS
-        if (mNewsButton != null) 
+        // Safe Listeners with Null Checks
+        if (mNewsButton != null) {
             mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
-            
-        if (mSocialMediaButton != null) 
-            mSocialMediaButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
+            mNewsButton.setOnLongClickListener((v)->{
+                Tools.swapFragment(requireActivity(), GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
+                return true;
+            });
+        }
+
+        if (mDiscordButton != null) 
+            mDiscordButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
             
         if (mCustomControlButton != null) 
             mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
@@ -82,23 +88,15 @@ public class MainMenuFragment extends Fragment {
             
         if (mPlayButton != null) 
             mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
-
-        // LONG CLICK FOR GAMEPAD MAPPER (PRESERVED FROM ORIGINAL)
-        if (mNewsButton != null) {
-            mNewsButton.setOnLongClickListener((v)->{
-                Tools.swapFragment(requireActivity(), GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
-                return true;
-            });
-        }
     }
 
     private void openGameDirectory(Context context) {
         Instance instance = Instances.loadSelectedInstance();
         if(instance == null) {
             Toast.makeText(context, R.string.no_instance, Toast.LENGTH_LONG).show();
-            return;        }
-        File gameDirectory = instance.getGameDirectory();
-        if(FileUtils.ensureDirectorySilently(gameDirectory)) {
+            return;
+        }
+        File gameDirectory = instance.getGameDirectory();        if(FileUtils.ensureDirectorySilently(gameDirectory)) {
             openPath(context, gameDirectory, false);
         }else {
             Toast.makeText(context, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
