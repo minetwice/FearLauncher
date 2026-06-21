@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_px_home"
+            android:title="Home" />
+            
+        <item
+            android:id="@+id/nav_installations"
+            android:icon="@drawable/ic_px_java"
+            android:title="Installations" />
+            
+        <item
+            android:id="@+id/nav_mods"
+            android:icon="@drawable/ic_px_file_dl"
+            android:title="Mods" />
+            
+        <item
+            android:id="@+id/nav_resource_packs"
+            android:icon="@drawable/ic_px_image"
+            android:title="Resource Packs" />
+            
+        <item
+            android:id="@+id/nav_skins"
+            android:icon="@drawable/ic_px_edit"
+            android:title="Skins" />
+            
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_px_sliders"
+            android:title="Settings" />
+            
+    </group>
+</menu>
