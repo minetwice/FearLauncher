@@ -1,145 +1,295 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app">
+    android:background="@color/background_app"
+    android:fillViewport="true">
 
-    <!-- HAMBURGER MENU ICON (New Addition for Navigation) -->
-    <ImageView
-        android:id="@+id/hamburger_menu_icon"
-        android:layout_width="@dimen/_48sdp"
-        android:layout_height="@dimen/_48sdp"
-        android:padding="@dimen/_12sdp"
-        android:src="@drawable/ic_px_sliders"
-        android:contentDescription="Menu"
-        app:tint="@color/primary_text"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- SCROLLABLE CONTENT AREA -->
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/hamburger_menu_icon"
-        app:layout_constraintBottom_toTopOf="@id/mc_version_spinner">
-        
-        <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingTop="@dimen/_16sdp"
+        android:paddingBottom="@dimen/_80sdp">
+
+        <!-- Welcome Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome back,"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_14ssp" />
+
+        <TextView
+            android:id="@+id/welcome_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FearUser!"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_24ssp"
+            android:textStyle="bold"
+            android:fontFamily="@font/minecraft_ten" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:text="Ready to explore your world?"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_12ssp" />
+
+        <!-- Hero Section -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/center_guideline"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="@color/fear_surface_variant"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5"/>
-                
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/news_button"
-                style="@style/LauncherMenuButton.Universal"
+                android:padding="@dimen/_20sdp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FEAR LAUNCHER"
+                    android:textColor="@color/fear_primary"
+                    android:textSize="@dimen/_28ssp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/minecraft_ten"
+                    android:letterSpacing="0.05" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="YOUR WORLD. YOUR ADVENTURE."
+                    android:textColor="@color/primary_text"
+                    android:textSize="@dimen/_12ssp"
+                    android:letterSpacing="0.1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Jump into endless possibilities and create your own story."
+                    android:textColor="@color/secondary_text"
+                    android:textSize="@dimen/_11ssp"
+                    android:gravity="center" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/play_button"
+                    android:layout_width="200dp"
+                    android:layout_height="@dimen/_56sdp"
+                    android:layout_marginTop="@dimen/_16sdp"
+                    android:text="▶ PLAY NOW"
+                    android:textAllCaps="false"
+                    android:textSize="@dimen/_16ssp"
+                    android:textColor="@color/fear_on_primary"
+                    android:backgroundTint="@color/fear_primary"
+                    app:cornerRadius="28dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Recent Installations -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24sdp"
+            android:text="Recent Installations"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Instance Card 1 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="140dp"
+                    android:layout_height="100dp"
+                    android:layout_marginEnd="@dimen/_12sdp"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/fear_surface_variant"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_px_java"
+                            android:tint="@color/fear_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_4sdp"
+                            android:text="Fear Vanilla"
+                            android:textColor="@color/primary_text"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.20.4"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/_10ssp" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Add more cards similarly -->
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- News & Updates -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24sdp"
+            android:text="News & Updates"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_12sdp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/fear_surface_variant"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/_16sdp">
+
+                <!-- News Item -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fear Launcher v1.0.0 Released!"
+                    android:textColor="@color/primary_text"
+                    android:textSize="@dimen/_13ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thank you for using Fear Launcher."
+                    android:textColor="@color/secondary_text"
+                    android:textSize="@dimen/_11ssp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="May 20, 2024"
+                    android:textColor="@color/fear_primary"
+                    android:textSize="@dimen/_10ssp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="@dimen/_12sdp"
+                    android:background="@color/background_overlay" />
+
+                <!-- More news items... -->
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Quick Actions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24sdp"
+            android:text="Quick Actions"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:columnCount="2"
+            android:rowCount="2">
+
+            <!-- Quick Action Buttons -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:text="@string/mcl_tab_wiki"
-                android:drawableStart="@drawable/ic_px_book"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/social_divider" />
-                            <View
-                android:id="@+id/social_divider"
-                style="@style/LauncherFragment_Divider"
-                android:layout_marginVertical="@dimen/padding_large"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="@id/center_guideline"
-                app:layout_constraintEnd_toEndOf="@id/center_guideline"
-                app:layout_constraintBottom_toBottomOf="@id/news_button"/>
-                
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/social_media_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="0dp"
-                android:text="@string/mcl_button_social_media"
-                android:drawableStart="@drawable/ic_social_media"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toEndOf="@id/social_divider"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="@dimen/_6sdp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/fear_surface_variant"
+                app:cardElevation="0dp">
 
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/custom_control_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:drawableStart="@drawable/ic_px_gamepad"
-                android:text="@string/mcl_option_customcontrol"
-                app:layout_constraintTop_toBottomOf="@id/news_button" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="@dimen/_24sdp"
+                        android:layout_height="@dimen/_24sdp"
+                        android:src="@drawable/ic_px_file_dl"
+                        android:tint="@color/fear_primary" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_4sdp"
+                        android:text="Browse Mods"
+                        android:textColor="@color/primary_text"
+                        android:textSize="@dimen/_11ssp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/install_jar_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:drawableStart="@drawable/ic_px_java_run"
-                android:text="@string/main_install_jar_file"
-                app:layout_constraintTop_toBottomOf="@id/custom_control_button" />
+            <!-- Add more quick action cards -->
+        </GridLayout>
 
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/share_logs_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:drawableStart="@drawable/ic_px_sharelog"
-                android:text="@string/main_share_logs"
-                app:layout_constraintTop_toBottomOf="@id/install_jar_button" />
+        <!-- Footer -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_32sdp"
+            android:text="Fear Launcher v1.0.0"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_11ssp"
+            android:gravity="center" />
 
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/open_files_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:drawableStart="@drawable/ic_px_folder"
-                android:text="@string/mcl_button_open_directory"
-                app:layout_constraintTop_toBottomOf="@id/share_logs_button" />        </androidx.constraintlayout.widget.ConstraintLayout>
-    </ScrollView>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Made with ❤️ by Fear Team"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_10ssp"
+            android:gravity="center" />
 
-    <com.kdt.mcgui.mcVersionSpinner
-        android:id="@+id/mc_version_spinner"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/_52sdp"
-        android:background="@android:color/transparent"
-        android:drawableEnd="@drawable/spinner_arrow"
-        app:drawableEndSize="@dimen/padding_heavy"
-        app:drawableStartIntegerScaling="true"
-        app:drawableStartSize="@dimen/_36sdp"
-        app:drawableEndPadding="@dimen/_1sdp"
-        app:layout_constraintBottom_toTopOf="@id/play_button"
-        app:layout_constraintEnd_toStartOf="@+id/edit_profile_button"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
-        android:id="@+id/edit_profile_button"
-        android:layout_width="@dimen/_52sdp"
-        android:layout_height="@dimen/_52sdp"
-        android:background="?android:attr/selectableItemBackground"
-        android:src="@drawable/ic_px_edit"
-        app:layout_constraintBottom_toBottomOf="@+id/mc_version_spinner"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/mc_version_spinner" />
-
-    <View
-        android:id="@+id/_background_display_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@color/background_bottom_bar"
-        android:translationZ="-1dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="@id/mc_version_spinner" />
-
-    <com.kdt.mcgui.MineButton
-        android:id="@+id/play_button"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_62sdp"
-        android:layout_marginHorizontal="@dimen/_17sdp"
-        android:layout_marginBottom="@dimen/_15sdp"
-        android:textAllCaps="true"
-        android:text="@string/main_play"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+</ScrollView>
