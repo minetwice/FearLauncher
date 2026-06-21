@@ -4,7 +4,10 @@
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
     <color name="minebutton_color">#91dffb</color>
-    <color name="background_app">#181818</color>
+    
+    <!-- UPDATED: Korax Dark Theme Background -->
+    <color name="background_app">#0D0D0D</color>
+    
     <color name="divider">@color/background_overlay</color>
     <color name="background_overlay">#464646</color>
     <color name="background_status_bar">#242424</color>
@@ -13,30 +16,25 @@
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#B2B2B2</color>
 
-    <!-- Dark Theme (Korax Style) -->
-<color name="background_app">#0D0D0D</color>
-<color name="fear_surface">#1A1A1A</color>
-<color name="fear_surface_variant">#242424</color>
-<color name="sidebar_bg">#0D0D0D</color>
-<color name="top_bar_bg">#121212</color>
-
-    <!-- === FEAR LAUNCHER GAMING PALETTE (No Duplicates) === -->
+    <!-- === FEAR LAUNCHER GAMING PALETTE (Korax Style Dark Surfaces) === -->
+    <color name="fear_surface">#1A1A1A</color>
+    <color name="fear_surface_variant">#242424</color>
+    <color name="fear_surface_container">#141414</color>
+    
+    <!-- Sidebar & Top Bar (Korax Official Dark Style) -->
+    <color name="sidebar_bg">#0D0D0D</color>
+    <color name="top_bar_bg">#121212</color>
+    
+    <!-- === FEAR LAUNCHER BRAND ACCENTS (Neon/Gaming) === -->
     <color name="fear_primary">#FF4500</color>       <!-- Neon Orange Accent -->
     <color name="fear_on_primary">#FFFFFF</color>
     <color name="fear_secondary">#00E676</color>     <!-- Neon Green for FPS/Status -->
     <color name="fear_tertiary">#2979FF</color>      <!-- Electric Blue for Links -->
     
-    <!-- Surface Colors for Cards/Sheets -->
-    <color name="fear_surface">#1E1E1E</color>
-    <color name="fear_surface_variant">#2A2A2A</color>
-    <color name="fear_surface_container">#141414</color>
-    
     <!-- Glass Effect Base -->
     <color name="fear_glass_bg">#CC181818</color>    <!-- 80% opacity bg -->
     
-    <!-- Official Minecraft Launcher Colors -->
+    <!-- Official Minecraft Launcher Colors (Extra) -->
     <color name="mc_official_green">#3C8527</color>   <!-- Play Button Green -->
-    <color name="sidebar_bg">#2B2B2B</color>          <!-- Left Sidebar Dark Gray -->
-    <color name="top_bar_bg">#1E1E1E</color>          <!-- Top Tabs Background -->
     <color name="carousel_card_bg">#3A3A3A</color>    <!-- News Carousel Cards -->
 </resources>
