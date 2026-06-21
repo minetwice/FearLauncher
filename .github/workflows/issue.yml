@@ -1,15 +1,22 @@
-name: Fix Translation Strings
+name: Fix Translation Strings (formatted="false")
 
 on:
-  workflow_dispatch:  # सिर्फ Manual Run के लिए
+  # Manual trigger from Actions tab
+  workflow_dispatch:
+  # Optional: Run automatically on push to main/master
+  # push:
+  #   branches: [ main, master ]
 
 jobs:
-  fix:
+  fix-strings:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Auto-fix formatted="false"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 🔥 Main Fix: Add formatted="false" to required strings
+      - name: Auto-fix formatted="false" (avoid duplicates)
         run: |
           STRINGS_TO_FIX=(
             "mcl_launch_downloading_progress"
@@ -18,19 +25,35 @@ jobs:
             "newdl_downloading_game_files_size"
             "memory_warning_msg"
           )
+
+          # Scan all values-* folders
           find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read -r file; do
             for str in "${STRINGS_TO_FIX[@]}"; do
-              if grep -q "name=\"$str\"" "$file" && ! grep -q "name=\"$str\" formatted=\"false\"" "$file"; then
-                echo "✅ Fixing $str in $file"
+              # Check if string exists and does NOT already have 'formatted=' attribute
+              if grep -q "name=\"$str\"" "$file" && ! grep -q "name=\"$str\".*formatted=" "$file"; then
+                echo "✅ Adding formatted=\"false\" to $str in $file"
                 sed -i "s/name=\"$str\"/name=\"$str\" formatted=\"false\"/g" "$file"
               fi
             done
           done
-      
-      - name: Commit & Push Changes
+        shell: bash
+
+      # 🔥 Duplicate Cleanup: Remove any duplicate formatted attributes (if any)
+      - name: Remove duplicate formatted attributes
+        run: |
+          find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read -r file; do
+            # Replace double occurrences with single
+            sed -i 's/formatted="false" formatted="false"/formatted="false"/g' "$file"
+          done
+        shell: bash
+
+      # (Optional) Commit and push changes back to repo
+      - name: Commit & Push fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
+          git add app_pojavlauncher/src/main/res/values*/strings.xml
+          # Only commit if there are changes
           git diff --staged --quiet || git commit -m "ci: auto-add formatted=false to translations"
           git push
+        shell: bash
