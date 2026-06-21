@@ -28,7 +28,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Rensar cachefiler</string>
     <string name="mcl_launch_downloading">Laddar ned %s</string>
-    <string name="mcl_launch_downloading_progress">"Laddar ner %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Laddar ner %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Förbereder nedladdning av resurser</string>
     <string name="mcl_options">Alternativ</string>
     <string name="mcl_option_customcontrol">Anpassade kontroller</string>
@@ -64,7 +64,7 @@
     <string name="mcl_setting_title_mousespeed">Mus hastighet</string>
     <string name="customctrl_passthru">Mus pass-thru</string>
     <string name="customctrl_swipeable">Svepbar</string>
-    <string formatted="false" name="memory_warning_msg">Det aktuella beloppet av gratis RAM (%d) är lägre än allokerat RAM (%d), vilket kan leda till krascher. Ändra tilldelningen om spelet kraschar.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Det aktuella beloppet av gratis RAM (%d) är lägre än allokerat RAM (%d), vilket kan leda till krascher. Ändra tilldelningen om spelet kraschar.</string>
     <string name="mcl_memory_allocation">Minne tilldelat</string>
     <string name="multirt_runtime_corrupt">Skadad Java körtid</string>
     <string name="multirt_config_add">Lägg till ny</string>

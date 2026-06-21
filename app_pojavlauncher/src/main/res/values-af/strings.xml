@@ -28,7 +28,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Cache-Dateien bereinigen</string>
     <string name="mcl_launch_downloading">Lade %s herunter</string>
-    <string name="mcl_launch_downloading_progress">"Lade %s herunter (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Lade %s herunter (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Bereite das Herunterladen der Ressourcen vor</string>
     <string name="mcl_options">Optionen</string>
     <string name="mcl_option_customcontrol">Benutzerdefinierte Steuerung</string>

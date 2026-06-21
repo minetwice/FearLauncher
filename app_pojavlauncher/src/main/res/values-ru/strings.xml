@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Очистка файлов кэша</string>
     <string name="mcl_launch_downloading">Загрузка %s</string>
-    <string name="mcl_launch_downloading_progress">"Загрузка %s (%.2f Мбайт / %.2f Мбайт)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Загрузка %s (%.2f Мбайт / %.2f Мбайт)"</string>
     <string name="mcl_launch_download_assets">Подготовка к загрузке ресурсов</string>
     <string name="mcl_options">Опции</string>
     <string name="mcl_option_customcontrol">Раскладка управления</string>
@@ -150,7 +150,7 @@
     <string name="customctrl_swipeable">Считывать движение пальца</string>
     <string name="customctrl_forward_lock">Фиксатор движения</string>
     <string name="customctrl_absolute_tracking">Динамический центр</string>
-    <string formatted="false" name="memory_warning_msg">Текущий объем свободной оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбоям. Измените количество выделенной памяти при сбое игры.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Текущий объем свободной оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбоям. Измените количество выделенной памяти при сбое игры.</string>
     <string formatted="false" name="address_memory_warning_msg">Текущий объём линейно адресуемой оперативной памяти (%d) меньше, чем выделенная (%d), что может привести к сбою. В случае сбоя игры измените количество выделенной памяти.</string>
     <string name="mcl_memory_allocation">Выделение памяти</string>
     <string name="mcl_memory_allocation_subtitle">Управление объёмом выделяемой игре памяти.</string>
@@ -294,8 +294,8 @@
     <string name="search_modpack_no_result">Сборок не найдено</string>
     <string name="search_modpack_error">Не удалось выполнить поиск сборок</string>
     <string name="search_modpack_download_error">Не удалось загрузить метаданные сборки</string>
-    <string name="modpack_download_downloading_metadata">Загрузка метаданных сборки (%.2f МБ / %.2f МБ)</string>
-    <string name="modpack_download_downloading_mods">Загрузка модов (%.2f МБ / %.2f МБ)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Загрузка метаданных сборки (%.2f МБ / %.2f МБ)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Загрузка модов (%.2f МБ / %.2f МБ)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Загрузка модов (файл %d из %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Перезапись параметров (%d/%d)</string>
     <string name="modpack_install_notification_title">Установка сборки FearLauncher</string>
@@ -338,7 +338,7 @@
     <string name="newdl_starting">Чтение метаданных игры…</string>
     <string name="newdl_downloading_metadata">Загрузка метаданных игры (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Загрузка файлов игры… (%d/%d, %.2f МБ/с)</string>
-    <string name="newdl_downloading_game_files_size">Загрузка файлов игры… (%.2f/%.2f МБ, %.2f МБ/с)</string>
+    <string name="newdl_downloading_game_files_size" formatted="false">Загрузка файлов игры… (%.2f/%.2f МБ, %.2f МБ/с)</string>
     <string name="cropper_title">Выбрать часть изображения</string>
     <string name="cropper_lock_vertical">⬄</string>
     <string name="cropper_lock_horizontal">⇳</string>

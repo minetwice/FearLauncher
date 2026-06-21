@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Nettoyage des fichiers cache</string>
     <string name="mcl_launch_downloading">Téléchargement de %s</string>
-    <string name="mcl_launch_downloading_progress">"Téléchargement de %s (%.2f Mo / %.2f Mo)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Téléchargement de %s (%.2f Mo / %.2f Mo)"</string>
     <string name="mcl_launch_download_assets">Préparation du téléchargement des ressources</string>
     <string name="mcl_options">Options</string>
     <string name="mcl_option_customcontrol">Contrôles personnalisés</string>
@@ -146,7 +146,7 @@
     <string name="customctrl_swipeable">Balayable</string>
     <string name="customctrl_forward_lock">Verrouillage vers l\'avant</string>
     <string name="customctrl_absolute_tracking">Suivi absolu du doigt</string>
-    <string formatted="false" name="memory_warning_msg">La quantité actuelle de RAM libre (%d) est inférieure à la RAM allouée (%d), ce qui peut entraîner des plantages. Changez l\'allocation si le jeu plante.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">La quantité actuelle de RAM libre (%d) est inférieure à la RAM allouée (%d), ce qui peut entraîner des plantages. Changez l\'allocation si le jeu plante.</string>
     <string formatted="false" name="address_memory_warning_msg">La quantité actuelle d\'espace RAM allouable libre (%d) est inférieure à la RAM allouée (%d), ce qui entraînera des crashs. Modifiez l\'allocation de la RAM si le jeu crash.</string>
     <string name="mcl_memory_allocation">Allocation de mémoire</string>
     <string name="mcl_memory_allocation_subtitle">Contrôle la quantité de mémoire donnée à Minecraft.</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">Aucun modpack trouvé</string>
     <string name="search_modpack_error">Échec de la recherche des modpacks</string>
     <string name="search_modpack_download_error">Échec du téléchargement des métadonnées du modpack</string>
-    <string name="modpack_download_downloading_metadata">Téléchargement des métadonnées du modpack (%.2f Mo / %.2f Mo)</string>
-    <string name="modpack_download_downloading_mods">Téléchargement des mods (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Téléchargement des métadonnées du modpack (%.2f Mo / %.2f Mo)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Téléchargement des mods (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Téléchargement des mods (Fichier %d sur %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Application des remplacements (%d/%d)</string>
     <string name="modpack_install_notification_title">Installeur Fear de Modpack</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">Lecture des métadonnées du jeu …</string>
     <string name="newdl_downloading_metadata">Téléchargement des métadonnées du jeu (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Téléchargement du jeu en cours… (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Téléchargement du jeu en cours… (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string name="newdl_downloading_game_files_size" formatted="false">Téléchargement du jeu en cours… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Sélectionnez une version de Forge</string>
     <string name="cropper_lock_vertical">Verrouillage vertical</string>
     <string name="cropper_lock_horizontal">Verrouillage horizontal</string>

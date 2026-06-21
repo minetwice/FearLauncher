@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">A gyorsítótárazott fájlok törlése</string>
     <string name="mcl_launch_downloading">Letöltés%s</string>
-    <string name="mcl_launch_downloading_progress">"Downloading %s (%.2f MB / %.2f MB)
+    <string name="mcl_launch_downloading_progress" formatted="false">"Downloading %s (%.2f MB / %.2f MB)
 
 Azonosító (Kulcs): mcl_indítás_letöltés_folyamatban
 mcl_indítás_letöltés_folyamatban"</string>
@@ -128,7 +128,7 @@ mcl_indítás_letöltés_folyamatban"</string>
     <string name="mcl_setting_check_libraries">Könyvtárak ellenőrzése letöltés után</string>
     <string name="mcl_setting_check_libraries_subtitle">Ez az opció arra kényszeríti az indítót, hogy ellenőrizze a könyvtár hash-t, ha elérhető. Meggátolja a hibás letöltéseket.</string>
     <string name="dl_library_sha_fail">Könyvtár %s sérült és újra le lesz töltve</string>
-    <string formatted="false" name="memory_warning_msg">A jelenlegi szabad memória (%d) kevesebb a kiosztottnál (%d), ami kifagyásokhoz vezethet. Változtass a kiosztáson ha ez történik.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">A jelenlegi szabad memória (%d) kevesebb a kiosztottnál (%d), ami kifagyásokhoz vezethet. Változtass a kiosztáson ha ez történik.</string>
     <string name="mcl_memory_allocation">Memória kiosztás</string>
     <string name="mcl_memory_allocation_subtitle">Szabályozza mennyi memória legyen kiosztva a Minecraft nak.</string>
     <string name="multirt_runtime_corrupt">Sérült Java Runtime</string>

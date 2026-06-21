@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Valomi nereikalingi failai</string>
     <string name="mcl_launch_downloading">Atsisiunčiama %s</string>
-    <string name="mcl_launch_downloading_progress">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Atsisiunčiama %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Rengiamasi atsisiųsti resursus</string>
     <string name="mcl_options">Nustatymai</string>
     <string name="mcl_option_customcontrol">Kontrolės</string>
@@ -133,7 +133,7 @@
     <string name="customctrl_passthru">Pelės praileidimas</string>
     <string name="customctrl_swipeable">Perbraukiamas</string>
     <string name="customctrl_forward_lock">Ėjimo į priekį fiksavimas</string>
-    <string formatted="false" name="memory_warning_msg">Dabartinis kiekis laisvo RAM (%d) yra mažesnis negu paskirtas RAM (%d), kas gali baigtis išsijungimais. Pakeiskite paskirtą kiekį jeigu išsijungia žaidimas.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Dabartinis kiekis laisvo RAM (%d) yra mažesnis negu paskirtas RAM (%d), kas gali baigtis išsijungimais. Pakeiskite paskirtą kiekį jeigu išsijungia žaidimas.</string>
     <string name="mcl_memory_allocation">Atminties skirtstymas</string>
     <string name="multirt_runtime_corrupt">Sugadintas Java Modulis</string>
     <string name="multirt_runtime_incompatiblearch">Netinkama architektūra: %s</string>

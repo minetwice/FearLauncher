@@ -31,7 +31,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Czyszczenie plików pamięci podręcznej</string>
     <string name="mcl_launch_downloading">Pobieranie %s</string>
-    <string name="mcl_launch_downloading_progress">"Pobieranie %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Pobieranie %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Przygotowywanie do pobrania zasobów</string>
     <string name="mcl_options">Opcje</string>
     <string name="mcl_option_customcontrol">Sterowanie</string>
@@ -146,7 +146,7 @@
     <string name="customctrl_swipeable">Przesuwalny</string>
     <string name="customctrl_forward_lock">Zablokowanie w przód</string>
     <string name="customctrl_absolute_tracking">Bezwzględne śledzenie palców</string>
-    <string formatted="false" name="memory_warning_msg">Bieżąca ilość wolnej pamięci RAM (%d) jest mniejsza od przydzielonej pamięci RAM (%d), co może prowadzić do awarii. Zmień ilość, jeśli gra ulegnie awarii.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Bieżąca ilość wolnej pamięci RAM (%d) jest mniejsza od przydzielonej pamięci RAM (%d), co może prowadzić do awarii. Zmień ilość, jeśli gra ulegnie awarii.</string>
     <string formatted="false" name="address_memory_warning_msg">Bieżąca ilość wolnej pamięci RAM (%d) jest niższa od przydzielonej pamięci, (%d), co może prowadzić do awarii. Zmień przydzielenie, jeśli gra ulegnie awarii.</string>
     <string name="mcl_memory_allocation">Przydział pamięci</string>
     <string name="mcl_memory_allocation_subtitle">Dostosuj ilość pamięci przydzieloną do Minecrafta.</string>
@@ -280,8 +280,8 @@
     <string name="search_modpack_no_result">Nie znaleziono paczek modów</string>
     <string name="search_modpack_error">Nie udało się znaleźć paczek modów</string>
     <string name="search_modpack_download_error">Nie udało się pobrać metadanych paczki modów</string>
-    <string name="modpack_download_downloading_metadata">Pobieranie metadanych paczki modów (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Pobieranie modyfikacji (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Pobieranie metadanych paczki modów (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Pobieranie modyfikacji (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Pobieranie modów (%d z %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Stosowanie nadpisania (%d/%d)</string>
     <string name="modpack_install_notification_title">Instalator paczek modów Fear</string>
@@ -323,7 +323,7 @@
     <string name="newdl_starting">Czytanie metadanych gry…</string>
     <string name="newdl_downloading_metadata">Pobieranie metadanych gry (%s)</string>
     <string formatted="false" name="newdl_downloading_game_files">Pobieranie gry... (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Pobieranie gry... (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string name="newdl_downloading_game_files_size" formatted="false">Pobieranie gry... (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Wybierz region obrazu</string>
     <string name="cropper_lock_vertical">Blokada wertykalna</string>
     <string name="cropper_lock_horizontal">Blokada horyzontalna</string>

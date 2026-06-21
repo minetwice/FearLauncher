@@ -28,7 +28,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Tømmer cache-filer</string>
     <string name="mcl_launch_downloading">Laster ned %s</string>
-    <string name="mcl_launch_downloading_progress">"Laster ned %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Laster ned %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Forbereder å laste ned ressurser</string>
     <string name="mcl_options">Innstillinger</string>
     <string name="mcl_option_customcontrol">Tilpassede kontroller</string>
@@ -93,7 +93,7 @@
     <string name="mcl_disable_gestures_subtitle">Deaktiverer gester, som for å knuse blokker og trykk for å plassere en blokk.</string>
     <string name="mcl_setting_title_mousespeed">Mus Hastighet</string>
     <string name="customctrl_passthru">Mus passe-thru</string>
-    <string formatted="false" name="memory_warning_msg">Den nåværende mengden ledig RAM (%d) er lavere enn allokert RAM (%d), noe som kan føre til krasj. Endre allokeringen hvis spillet krasjer.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Den nåværende mengden ledig RAM (%d) er lavere enn allokert RAM (%d), noe som kan føre til krasj. Endre allokeringen hvis spillet krasjer.</string>
     <string name="mcl_memory_allocation">Minne tildeling</string>
     <string name="multirt_runtime_corrupt">Korrupt Java Runtime</string>
     <string name="multirt_config_add">Legg til ny</string>

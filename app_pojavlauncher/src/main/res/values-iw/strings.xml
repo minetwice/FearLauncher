@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">מנקה קבצי מטמון</string>
     <string name="mcl_launch_downloading">מוריד %s</string>
-    <string name="mcl_launch_downloading_progress">"מתקין %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"מתקין %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">מתכונן להורדת משאבים</string>
     <string name="mcl_options">אפשרויות</string>
     <string name="mcl_option_customcontrol">פקדים מותאמים אישית</string>
@@ -136,7 +136,7 @@
     <string name="customctrl_passthru">עכבר עובר דרך</string>
     <string name="customctrl_swipeable">ניתן להחלקה</string>
     <string name="customctrl_forward_lock">נעילת קדימה</string>
-    <string formatted="false" name="memory_warning_msg">הכמות הנוכחית של RAM פנוי (%d) נמוכה מכמות ה-RAM שהוקצתה (%d), מה שעלול לגרום למשחק לקרוס. הנך מתבקש לשנות את ההקצאה במידה והמשחק קורס.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">הכמות הנוכחית של RAM פנוי (%d) נמוכה מכמות ה-RAM שהוקצתה (%d), מה שעלול לגרום למשחק לקרוס. הנך מתבקש לשנות את ההקצאה במידה והמשחק קורס.</string>
     <string name="mcl_memory_allocation">הקצאת זיכרון</string>
     <string name="mcl_memory_allocation_subtitle">שולט בכמה זיכרון ניתן ל מיינקראפט.</string>
     <string name="multirt_runtime_corrupt">Java Runtime פגומה</string>

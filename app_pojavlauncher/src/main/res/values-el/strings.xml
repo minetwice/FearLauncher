@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Εκκαθάριση χώρου προσωρινής αποθήκευσης αρχείων</string>
     <string name="mcl_launch_downloading">Γίνεται λήψη %s</string>
-    <string name="mcl_launch_downloading_progress">"Λήψη %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Λήψη %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Προετοιμασία για λήψη πόρων</string>
     <string name="mcl_options">Ρυθμίσεις</string>
     <string name="mcl_option_customcontrol">Προσαρμοσμένα controls</string>
@@ -144,7 +144,7 @@
     <string name="customctrl_swipeable">Ευέλικτο</string>
     <string name="customctrl_forward_lock">Κλείδωμα ευθείας κινήσεως</string>
     <string name="customctrl_absolute_tracking">Απόλυτη παρακολούθηση δακτύλων</string>
-    <string formatted="false" name="memory_warning_msg">Το τρέχον ποσό της διαθέσιμης μνήμης RAM (%d) είναι μικρότερο από την κατανεμημένη RAM (%d), το οποίο μπορεί να οδηγήσει σε καταρρεύσεις. Αλλάξτε την κατανομή αν το παιχνίδι καταρρεύσει.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Το τρέχον ποσό της διαθέσιμης μνήμης RAM (%d) είναι μικρότερο από την κατανεμημένη RAM (%d), το οποίο μπορεί να οδηγήσει σε καταρρεύσεις. Αλλάξτε την κατανομή αν το παιχνίδι καταρρεύσει.</string>
     <string name="mcl_memory_allocation">Κατανομή μνήμης</string>
     <string name="mcl_memory_allocation_subtitle">Ελέγχει πόση μνήμη δίνεται στο Minecraft.</string>
     <string name="multirt_runtime_corrupt">Κατεστραμμένο Java Runtime</string>
@@ -275,8 +275,8 @@
     <string name="search_modpack_no_result">Δεν βρέθηκαν modpacks</string>
     <string name="search_modpack_error">Αποτυχία εύρεσης modpacks</string>
     <string name="search_modpack_download_error">Αποτυχία λήψης μεταδεδομένων modpack</string>
-    <string name="modpack_download_downloading_metadata">Λήψη μεταδεδομένων modpack (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Λήψη mods (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Λήψη μεταδεδομένων modpack (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Λήψη mods (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Λήψη mods (Αρχείο %d από %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Εφαρμογή παρακάμψεων (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack Installer</string>

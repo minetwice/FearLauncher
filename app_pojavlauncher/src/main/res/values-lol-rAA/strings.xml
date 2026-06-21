@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Cleanin cache filez</string>
     <string name="mcl_launch_downloading">Downloadin %s</string>
-    <string name="mcl_launch_downloading_progress">"Downloadin %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Downloadin %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Preparin 2 download resourcez</string>
     <string name="mcl_options">Opshuns</string>
     <string name="mcl_option_customcontrol">Custom controls</string>
@@ -143,7 +143,7 @@
     <string name="customctrl_swipeable">Scratchable</string>
     <string name="customctrl_forward_lock">Forward lock and keyz</string>
     <string name="customctrl_absolute_tracking">Absolute finger trackin\'</string>
-    <string formatted="false" name="memory_warning_msg">WURNING: Catz iz becomin’ une of teh Memory Muncherz, wich may leid tu game crash! (Free %d, munch’d %d MB) Change teh allocasion if teh game crashez.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">WURNING: Catz iz becomin’ une of teh Memory Muncherz, wich may leid tu game crash! (Free %d, munch’d %d MB) Change teh allocasion if teh game crashez.</string>
     <string name="mcl_memory_allocation">RAM allocasion</string>
     <string name="mcl_memory_allocation_subtitle">Controlz how much memory is given to block game.</string>
     <string name="multirt_runtime_corrupt">Derti Coffee Cup</string>
@@ -272,8 +272,8 @@
     <string name="search_modpack_no_result">No madpacks found check again likebhai</string>
     <string name="search_modpack_error">Fualed to find movpacka</string>
     <string name="search_modpack_download_error">Failed to download modpack metadata</string>
-    <string name="modpack_download_downloading_metadata">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Downloading mods (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Downloading mods (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Downloading mods (File %d out of %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Applying overrides (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack Installer really gud</string>

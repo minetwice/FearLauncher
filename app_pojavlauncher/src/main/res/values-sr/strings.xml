@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Чишћење кеш фајлова</string>
     <string name="mcl_launch_downloading">Преузимање %s</string>
-    <string name="mcl_launch_downloading_progress">"Преузимање %s (%.2f МБ / %.2f МБ)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Преузимање %s (%.2f МБ / %.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Спремање да се преузимају ресурси</string>
     <string name="mcl_options">Опције</string>
     <string name="mcl_option_customcontrol">Прилагођене контроле</string>
@@ -110,7 +110,7 @@
     <string name="mcl_disable_gestures_subtitle">Искључи покрете, као држи да се уништи блок, и притисни да се стави блок.</string>
     <string name="mcl_setting_title_mousespeed">Брзина миша</string>
     <string name="customctrl_passthru">Миш прпћи-кроз</string>
-    <string formatted="false" name="memory_warning_msg">Слободна меморија (%d) је нижа од подешене меморије (%d), то можда заустави функцију игре. Промените подешену меморију ако се то деси.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Слободна меморија (%d) је нижа од подешене меморије (%d), то можда заустави функцију игре. Промените подешену меморију ако се то деси.</string>
     <string name="mcl_memory_allocation">Подешена меморија</string>
     <string name="profiles_profile_name">Име</string>
     <string name="pedit_renderer">Рендерер</string>

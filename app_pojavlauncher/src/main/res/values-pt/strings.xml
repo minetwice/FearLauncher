@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">A limpar os ficheiros em cache</string>
     <string name="mcl_launch_downloading">A transferir %s</string>
-    <string name="mcl_launch_downloading_progress">"A transferir %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"A transferir %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">A preparar para transferir os recursos</string>
     <string name="mcl_options">Opções</string>
     <string name="mcl_option_customcontrol">Controlos personalizados</string>
@@ -143,7 +143,7 @@
     <string name="customctrl_swipeable">Deslizável</string>
     <string name="customctrl_forward_lock">Bloqueio da Frente</string>
     <string name="customctrl_absolute_tracking">Rastreamento absoluto do dedo</string>
-    <string formatted="false" name="memory_warning_msg">A quantidade atual de memória RAM livre (%d) é menor do que a memória RAM alocada (%d), o que pode levar a falhas. Altera a alocação se o jogo falhar.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">A quantidade atual de memória RAM livre (%d) é menor do que a memória RAM alocada (%d), o que pode levar a falhas. Altera a alocação se o jogo falhar.</string>
     <string name="mcl_memory_allocation">Alocação de memória</string>
     <string name="mcl_memory_allocation_subtitle">Controla quanta memória é delegada ao Minecraft.</string>
     <string name="multirt_runtime_corrupt">Runtime do Java corrompida</string>

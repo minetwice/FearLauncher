@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Завсарийн санах ойн файлуудийг цэвэрлэж байна</string>
     <string name="mcl_launch_downloading">Татаж байна %s</string>
-    <string name="mcl_launch_downloading_progress">"Татаж байна %s (%.2f МБ / %.2f МБ)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Татаж байна %s (%.2f МБ / %.2f МБ)"</string>
     <string name="mcl_launch_download_assets">Татаж авхад бэлдэж байна</string>
     <string name="mcl_options">Тохиргоо</string>
     <string name="mcl_option_customcontrol">Control солих</string>

@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Очищення файлів кешу</string>
     <string name="mcl_launch_downloading">Завантаження %s</string>
-    <string name="mcl_launch_downloading_progress">"Завантажено %s (%.2f Мбайт / %.2f Мбайт)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Завантажено %s (%.2f Мбайт / %.2f Мбайт)"</string>
     <string name="mcl_launch_download_assets">Підготовка до завантаження ресурсів</string>
     <string name="mcl_options">Налаштування</string>
     <string name="mcl_option_customcontrol">Кастомне керування</string>
@@ -144,7 +144,7 @@
     <string name="customctrl_swipeable">Гортаємий</string>
     <string name="customctrl_forward_lock">Заблокувати ходьбу вперед</string>
     <string name="customctrl_absolute_tracking">Абсолютне відстеження пальців</string>
-    <string formatted="false" name="memory_warning_msg">Поточна кількість вільної оперативної пам\'яті (%d) менша, ніж виділена оперативна пам\'ять (%d), що може призвести до збоїв. Змініть кількість оперативної пам\'яті, якщо гра вилетить.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Поточна кількість вільної оперативної пам\'яті (%d) менша, ніж виділена оперативна пам\'ять (%d), що може призвести до збоїв. Змініть кількість оперативної пам\'яті, якщо гра вилетить.</string>
     <string name="mcl_memory_allocation">Виділення пам\'яті</string>
     <string name="mcl_memory_allocation_subtitle">Контролює, скільки пам’яті надається Minecraft.</string>
     <string name="multirt_runtime_corrupt">Java Runtime пошкоджено</string>
@@ -287,8 +287,8 @@
     <string name="search_modpack_no_result">Модпаки не знайдено</string>
     <string name="search_modpack_error">Не вдалося знайти модпаки</string>
     <string name="search_modpack_download_error">Не вдалося завантажити метадані модпаку</string>
-    <string name="modpack_download_downloading_metadata">Завантаження метаданих модпака (%.2f Мб / %.2f Мб)</string>
-    <string name="modpack_download_downloading_mods">Завантаження модів (%.2f Мб / %.2f Мб)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Завантаження метаданих модпака (%.2f Мб / %.2f Мб)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Завантаження модів (%.2f Мб / %.2f Мб)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Завантаження модів (Файл %d з %d)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Застосування переписів (%d/%d)</string>
     <string name="modpack_install_notification_title">Інсталяція модпаку...</string>
@@ -343,7 +343,7 @@
     <string name="instance_shared_data_on">Зберігати данні гри в спільній папці</string>
     <string name="preference_use_angle_title">Використовуати ANGLE</string>
     <string formatted="false" name="newdl_downloading_game_files">Завантаження файлів гри... (%d/%d, %.2f MB/s)</string>
-    <string name="newdl_downloading_game_files_size">Завантаження файлів гри... (%.2f/%.2f MB, %.2f MB/s)</string>
+    <string name="newdl_downloading_game_files_size" formatted="false">Завантаження файлів гри... (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="cropper_title">Виберіть частину зображення</string>
     <string name="cropper_lock_vertical">Верт. блокування</string>
     <string name="cropper_lock_horizontal">Гориз. блокування</string>

@@ -18,7 +18,7 @@
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_downloading_progress">"Henter %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Henter %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_setting_title_use_surface_view">Brug alternativ overflade rendering</string>
     <string name="mcl_setting_title_ignore_notch">Ignorer kamerahak</string>
     <!-- Global strings -->

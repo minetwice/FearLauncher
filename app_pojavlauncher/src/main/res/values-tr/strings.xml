@@ -30,7 +30,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Önbellek dosyaları temizleniyor</string>
     <string name="mcl_launch_downloading">%s indiriliyor</string>
-    <string name="mcl_launch_downloading_progress">"%s indiriliyor (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"%s indiriliyor (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Kaynaklar yüklenmeye hazırlanılıyor</string>
     <string name="mcl_options">Seçenekler</string>
     <string name="mcl_option_customcontrol">Özel kontroller</string>
@@ -144,7 +144,7 @@
     <string name="customctrl_swipeable">Kaydırılabilir</string>
     <string name="customctrl_forward_lock">İleri kilit</string>
     <string name="customctrl_absolute_tracking">Mutlak parmak takibi</string>
-    <string formatted="false" name="memory_warning_msg">Şuanki boş bellek (%d) verilecek bellekten (%d) daha az, bu durum çökmelere sebep olabilir. Eğer oyun çökerse verilen belleği değiştirin.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Şuanki boş bellek (%d) verilecek bellekten (%d) daha az, bu durum çökmelere sebep olabilir. Eğer oyun çökerse verilen belleği değiştirin.</string>
     <string name="mcl_memory_allocation">Bellek ayırma</string>
     <string name="mcl_memory_allocation_subtitle">Minecraft\'a ne kadar bellek verileceğini kontrol eder.</string>
     <string name="multirt_runtime_corrupt">Bozuk Java Runtime</string>
@@ -275,8 +275,8 @@
     <string name="search_modpack_no_result">Hiçbir mod paketi bulunmadı</string>
     <string name="search_modpack_error">Mod paketi bulunamadı</string>
     <string name="search_modpack_download_error">Mod paketi meta verileri indirilemedi</string>
-    <string name="modpack_download_downloading_metadata">Mod paketi meta verileri indirliyor (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods">Modlar indiriliyor (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_metadata" formatted="false">Mod paketi meta verileri indirliyor (%.2f MB / %.2f MB)</string>
+    <string name="modpack_download_downloading_mods" formatted="false">Modlar indiriliyor (%.2f MB / %.2f MB)</string>
     <string formatted="false" name="modpack_download_downloading_mods_fc">Modlar indiriliyor (%d dosyadan %d tanesi)</string>
     <string formatted="false" name="modpack_download_applying_overrides">Geçersiz kılmalar uygulanıyor (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Mod Paketi Yükleyicisi</string>

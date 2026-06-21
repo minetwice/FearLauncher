@@ -29,7 +29,7 @@
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_cleancache">Membersihkan fail cache</string>
     <string name="mcl_launch_downloading">Memuat turun %s</string>
-    <string name="mcl_launch_downloading_progress">"Memuat turun %s (%.2f MB / %.2f MB)"</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">"Memuat turun %s (%.2f MB / %.2f MB)"</string>
     <string name="mcl_launch_download_assets">Bersedia untuk memuat turun sumber</string>
     <string name="mcl_options">Pilihan</string>
     <string name="mcl_option_customcontrol">Kawalan custom</string>
@@ -112,7 +112,7 @@
     <string name="mcl_disable_gestures_subtitle">Menyahdayakan gerak isyarat, seperti menahan untuk menhancurkan blok, dan tekan untuk meletakkan blok.</string>
     <string name="mcl_setting_title_mousespeed">Kecepatan Tetikus</string>
     <string name="customctrl_passthru">Mouse pass-thru</string>
-    <string formatted="false" name="memory_warning_msg">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
+    <string formatted="false" name="memory_warning_msg" formatted="false">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
     <string name="mcl_memory_allocation">Peruntukan memori</string>
     <string name="multirt_runtime_corrupt">Java Runtime Rosak</string>
     <string name="multirt_runtime_incompatiblearch">Seni bina tidak serasi: %s</string>
