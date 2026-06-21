@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -18,8 +20,8 @@ import androidx.fragment.app.Fragment;
 
 import com.kdt.mcgui.mcVersionSpinner;
 
-import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.CustomControlsActivity;
+import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
@@ -37,69 +39,142 @@ public class MainMenuFragment extends Fragment {
     private mcVersionSpinner mVersionSpinner;
 
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
-            registerForActivityResult(new OpenDocumentWithExtension("jar"), (data)->{
-                if(data != null) Tools.launchModInstaller(requireContext(), data);
+            registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
+                if (data != null) Tools.launchModInstaller(requireContext(), data);
             });
 
-    public MainMenuFragment(){
+    public MainMenuFragment() {
         super(R.layout.fragment_launcher);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // === DECLARATIONS MUST BE HERE AT THE TOP OF METHOD ===        Button mNewsButton = view.findViewById(R.id.news_button);
-        Button mDiscordButton = view.findViewById(R.id.social_media_button);
-        Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
-        Button mInstallJarButton = view.findViewById(R.id.install_jar_button);
-        Button mShareLogsButton = view.findViewById(R.id.share_logs_button);
-        Button mOpenDirectoryButton = view.findViewById(R.id.open_files_button);
-
-        ImageButton mEditProfileButton = view.findViewById(R.id.edit_profile_button);
-        Button mPlayButton = view.findViewById(R.id.play_button);
+        // === FIND ALL VIEWS ===
+        ImageButton hamburgerMenuButton = view.findViewById(R.id.hamburger_menu_button);
+        TextView welcomeUsername = view.findViewById(R.id.welcome_username);
+        Button playButton = view.findViewById(R.id.play_button);
+        Button newsButton = view.findViewById(R.id.news_button);
+        Button discordButton = view.findViewById(R.id.social_media_button);
+        Button customControlButton = view.findViewById(R.id.custom_control_button);
+        Button shareLogsButton = view.findViewById(R.id.share_logs_button);
+        ImageButton editProfileButton = view.findViewById(R.id.edit_profile_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
-        // ================================================
 
-        // Safe Listeners with Null Checks
-        if (mNewsButton != null) {
-            mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
-            mNewsButton.setOnLongClickListener((v)->{
+        // =====================================================
+        // 1. HAMBURGER MENU (Execute .jar & Open Directory)
+        // =====================================================
+        if (hamburgerMenuButton != null) {
+            hamburgerMenuButton.setOnClickListener(v -> showHamburgerPopup(v));
+        }
+
+        // =====================================================
+        // 2. WELCOME USERNAME (Dynamic Setup)
+        // =====================================================
+        if (welcomeUsername != null) {
+            // TODO: Replace with actual username from AccountManager
+            // String username = AccountManager.getCurrentUsername();
+            // welcomeUsername.setText(username);
+        }
+
+        // =====================================================
+        // 3. PLAY BUTTON
+        // =====================================================
+        if (playButton != null) {
+            playButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
+        }
+
+        // =====================================================
+        // 4. WIKI / NEWS BUTTON
+        // =====================================================
+        if (newsButton != null) {
+            newsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
+            newsButton.setOnLongClickListener((v) -> {
                 Tools.swapFragment(requireActivity(), GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
                 return true;
             });
         }
 
-        if (mDiscordButton != null) 
-            mDiscordButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
-            
-        if (mCustomControlButton != null) 
-            mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
-            
-        if (mInstallJarButton != null) 
-            mInstallJarButton.setOnClickListener(v -> runInstallerWithConfirmation());
-            
-        if (mShareLogsButton != null) 
-            mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
-            
-        if (mOpenDirectoryButton != null) 
-            mOpenDirectoryButton.setOnClickListener((v)-> openGameDirectory(v.getContext()));
+        // =====================================================
+        // 5. DISCORD / SOCIAL BUTTON
+        // =====================================================
+        if (discordButton != null) {
+            discordButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
+        }
 
-        if (mEditProfileButton != null) 
-            mEditProfileButton.setOnClickListener(v -> mVersionSpinner.openProfileEditor(requireActivity()));
-            
-        if (mPlayButton != null) 
-            mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
+        // =====================================================
+        // 6. CUSTOM CONTROLS BUTTON
+        // =====================================================
+        if (customControlButton != null) {
+            customControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+        }
+
+        // =====================================================
+        // 7. SHARE LOGS BUTTON
+        // =====================================================
+        if (shareLogsButton != null) {
+            shareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
+        }
+
+        // =====================================================
+        // 8. EDIT PROFILE BUTTON (Version Spinner)
+        // =====================================================
+        if (editProfileButton != null) {
+            editProfileButton.setOnClickListener(v -> {
+                if (mVersionSpinner != null) {
+                    mVersionSpinner.openProfileEditor(requireActivity());
+                }
+            });
+        }
     }
 
+    // =====================================================
+    // HAMBURGER POPUP MENU LOGIC
+    // =====================================================
+    private void showHamburgerPopup(View anchor) {
+        PopupMenu popup = new PopupMenu(requireContext(), anchor);
+        popup.getMenu().add(0, 1, 0, "Execute .jar");
+        popup.getMenu().add(0, 2, 1, "Open Game Directory");
+
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == 1) {
+                runInstallerWithConfirmation();
+                return true;
+            } else if (id == 2) {
+                openGameDirectory(requireContext());
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    // =====================================================
+    // OPEN GAME DIRECTORY (Copied from old code)
+    // =====================================================
     private void openGameDirectory(Context context) {
         Instance instance = Instances.loadSelectedInstance();
-        if(instance == null) {
+        if (instance == null) {
             Toast.makeText(context, R.string.no_instance, Toast.LENGTH_LONG).show();
             return;
         }
-        File gameDirectory = instance.getGameDirectory();        if(FileUtils.ensureDirectorySilently(gameDirectory)) {
+        File gameDirectory = instance.getGameDirectory();
+        if (FileUtils.ensureDirectorySilently(gameDirectory)) {
             openPath(context, gameDirectory, false);
-        }else {
+        } else {
             Toast.makeText(context, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // =====================================================
+    // INSTALLER LAUNCHER (Copied from old code)
+    // =====================================================
+    private void runInstallerWithConfirmation() {
+        if (ProgressKeeper.getTaskCount() == 0) {
+            mModInstallerLauncher.launch(null);
+        } else {
+            Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -107,11 +182,5 @@ public class MainMenuFragment extends Fragment {
     public void onResume() {
         super.onResume();
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
-    }
-
-    private void runInstallerWithConfirmation() {
-        if (ProgressKeeper.getTaskCount() == 0) {
-            mModInstallerLauncher.launch(null);
-        } else Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
     }
 }
