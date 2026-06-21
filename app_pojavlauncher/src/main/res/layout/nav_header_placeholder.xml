@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<View xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/_100sdp"
-    android:background="@color/fear_surface_variant" />
+    android:layout_height="@dimen/_140sdp"
+    android:background="@color/sidebar_bg"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="@dimen/_48sdp"
+        android:layout_height="@dimen/_48sdp"
+        android:src="@drawable/ic_fear_full" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:text="FEAR"
+        android:textColor="@color/fear_primary"
+        android:textSize="@dimen/_18ssp"
+        android:textStyle="bold"
+        android:fontFamily="@font/minecraft_ten" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Launcher"
+        android:textColor="@color/secondary_text"
+        android:textSize="@dimen/_11ssp" />
+
+</LinearLayout>
