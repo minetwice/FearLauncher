@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_app"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,7 +15,7 @@
         android:paddingTop="@dimen/_16sdp"
         android:paddingBottom="@dimen/_80sdp">
 
-        <!-- Welcome Header -->
+        <!-- ===== WELCOME HEADER ===== -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,7 +41,7 @@
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/_12ssp" />
 
-        <!-- Hero Section -->
+        <!-- ===== HERO SECTION (Big Play Card) ===== -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -84,6 +85,7 @@
                     android:textSize="@dimen/_11ssp"
                     android:gravity="center" />
 
+                <!-- PLAY NOW BUTTON -->
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/play_button"
                     android:layout_width="200dp"
@@ -99,7 +101,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Recent Installations -->
+        <!-- ===== RECENT INSTALLATIONS ===== -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -120,7 +122,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Instance Card 1 -->
+                <!-- Card 1 -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="140dp"
                     android:layout_height="100dp"
@@ -161,16 +163,97 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Add more cards similarly -->
+                <!-- Card 2 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="140dp"
+                    android:layout_height="100dp"
+                    android:layout_marginEnd="@dimen/_12sdp"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/fear_surface_variant"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_px_file_dl"
+                            android:tint="@color/fear_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_4sdp"
+                            android:text="Fear Modded"
+                            android:textColor="@color/primary_text"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.19.2"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/_10ssp" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 3 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="140dp"
+                    android:layout_height="100dp"
+                    android:layout_marginEnd="@dimen/_12sdp"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/fear_surface_variant"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_px_home"
+                            android:tint="@color/fear_tertiary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_4sdp"
+                            android:text="Fear SMP"
+                            android:textColor="@color/primary_text"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.20.1"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/_10ssp" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- News & Updates -->
+        <!-- ===== NEWS & UPDATES ===== -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_24sdp"
-            android:text="News & Updates"
+            android:text="News &amp; Updates"
             android:textColor="@color/primary_text"
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold" />
@@ -189,7 +272,7 @@
                 android:orientation="vertical"
                 android:padding="@dimen/_16sdp">
 
-                <!-- News Item -->
+                <!-- News Item 1 -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -219,11 +302,64 @@
                     android:layout_marginVertical="@dimen/_12sdp"
                     android:background="@color/background_overlay" />
 
-                <!-- More news items... -->
+                <!-- News Item 2 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="New Update Coming Soon"
+                    android:textColor="@color/primary_text"
+                    android:textSize="@dimen/_13ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="We're working on exciting new features."
+                    android:textColor="@color/secondary_text"
+                    android:textSize="@dimen/_11ssp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="May 15, 2024"
+                    android:textColor="@color/fear_primary"
+                    android:textSize="@dimen/_10ssp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="@dimen/_12sdp"
+                    android:background="@color/background_overlay" />
+
+                <!-- News Item 3 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Join Our Community"
+                    android:textColor="@color/primary_text"
+                    android:textSize="@dimen/_13ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Join our Discord server for support and updates!"
+                    android:textColor="@color/secondary_text"
+                    android:textSize="@dimen/_11ssp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="May 10, 2024"
+                    android:textColor="@color/fear_primary"
+                    android:textSize="@dimen/_10ssp" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Quick Actions -->
+        <!-- ===== QUICK ACTIONS ===== -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -240,7 +376,7 @@
             android:columnCount="2"
             android:rowCount="2">
 
-            <!-- Quick Action Buttons -->
+            <!-- Quick Action: Browse Mods -->
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="80dp"
@@ -254,12 +390,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
                     <ImageView
                         android:layout_width="@dimen/_24sdp"
                         android:layout_height="@dimen/_24sdp"
                         android:src="@drawable/ic_px_file_dl"
                         android:tint="@color/fear_primary" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -270,10 +411,114 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Add more quick action cards -->
+            <!-- Quick Action: Resource Packs -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="@dimen/_6sdp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/fear_surface_variant"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="@dimen/_24sdp"
+                        android:layout_height="@dimen/_24sdp"
+                        android:src="@drawable/ic_px_image"
+                        android:tint="@color/fear_secondary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_4sdp"
+                        android:text="Resource Packs"
+                        android:textColor="@color/primary_text"
+                        android:textSize="@dimen/_11ssp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Quick Action: Change Skin -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="@dimen/_6sdp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/fear_surface_variant"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="@dimen/_24sdp"
+                        android:layout_height="@dimen/_24sdp"
+                        android:src="@drawable/ic_px_edit"
+                        android:tint="@color/fear_tertiary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_4sdp"
+                        android:text="Change Skin"
+                        android:textColor="@color/primary_text"
+                        android:textSize="@dimen/_11ssp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Quick Action: Launcher Settings -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="@dimen/_6sdp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/fear_surface_variant"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="@dimen/_24sdp"
+                        android:layout_height="@dimen/_24sdp"
+                        android:src="@drawable/ic_px_sliders"
+                        android:tint="#FFFFFF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_4sdp"
+                        android:text="Launcher Settings"
+                        android:textColor="@color/primary_text"
+                        android:textSize="@dimen/_11ssp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
         </GridLayout>
 
-        <!-- Footer -->
+        <!-- ===== FOOTER ===== -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -286,7 +531,26 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
             android:text="Made with ❤️ by Fear Team"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_10ssp"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:text="No tasks running"
+            android:textColor="@color/fear_secondary"
+            android:textSize="@dimen/_12ssp"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Everything is up to date!"
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/_10ssp"
             android:gravity="center" />
