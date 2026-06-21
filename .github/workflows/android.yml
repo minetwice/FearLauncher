@@ -2,7 +2,7 @@ name: FearLauncher CI
 
 on:
   push:
-    branches: [ main, master, dev ] # ✅ Specific branches par hi trigger karo taaki cache waste na ho
+    branches: [ main, master, dev ]
   workflow_dispatch:
   pull_request:
     types: [labeled]
@@ -21,20 +21,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0
 
-      # ✅ NEW: Gradle Configuration Cache & Dependency Caching
+      # ✅ FIX: Gradle Wrapper Permission Fix
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ✅ FIX: Unified Caching (Removed setup-java cache to avoid conflicts)
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.14.3"
-          cache-read-only: false # Read/Write dono allow karo taaki cache update hota rahe
+          cache-read-only: false
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle' # ✅ Java dependencies ko bhi cache karega
 
       - name: Get LTW (Lightweight Java Launcher Library)
         uses: dawidd6/action-download-artifact@v6
@@ -43,31 +47,31 @@ jobs:
           repo: MojoLauncher/LTW
           workflow: android.yml
           workflow_conclusion: success
-          name: output-aar
-          path: app_pojavlauncher/libs
+          name: output-aar          path: app_pojavlauncher/libs
 
       - name: Create Output Directory
         run: mkdir -p out
-      - name: Build Publishing .aab (Only for your own releases)
-        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
-        run: |
-          ./gradlew :app_pojavlauncher:bundleFullGplay --build-cache
-          mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/FearLauncher-gplay.aab
 
       - name: Build Debug .apk
         run: |
-          ./gradlew :app_pojavlauncher:assembleFullDebug --build-cache
+          ./gradlew :app_pojavlauncher:assembleFullDebug
           mv app_pojavlauncher/build/outputs/apk/full/debug/app_pojavlauncher-full-debug.apk out/FearLauncher-debug-full.apk
 
       - name: Build Debug .apk (No runtime)
         run: |
-          ./gradlew :app_pojavlauncher:assembleNoruntimeDebug --build-cache
+          ./gradlew :app_pojavlauncher:assembleNoruntimeDebug
           mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
+
+      - name: Build Publishing .aab (Only for your own releases)
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+        run: |
+          ./gradlew :app_pojavlauncher:bundleFullGplay
+          mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/FearLauncher-gplay.aab
 
       - name: Build Nightly Release .apk
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
-          ./gradlew :app_pojavlauncher:assembleFullPubRelease --build-cache
+          ./gradlew :app_pojavlauncher:assembleFullPubRelease
           mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
 
       - name: Generate MD5 Checksums
@@ -80,7 +84,7 @@ jobs:
         with:
           name: FearLauncher-debug-full
           path: out/FearLauncher-debug-full.apk
-          retention-days: 7 # ✅ Artifacts ko 7 din rakhne se storage bachti hai
+          retention-days: 7
 
       - name: Upload Debug APK (No runtime)
         uses: actions/upload-artifact@v4
@@ -89,6 +93,13 @@ jobs:
           path: out/FearLauncher-debug-noruntime.apk
           retention-days: 7
 
+      - name: Upload AAB (for Google Play)
+        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+        uses: actions/upload-artifact@v4
+        with:          name: FearLauncher-release-aab
+          path: out/FearLauncher-gplay.aab
+          retention-days: 30
+
       - name: Release Nightly APK (GitHub Release)
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         uses: softprops/action-gh-release@v3
@@ -96,17 +107,11 @@ jobs:
           name: FearLauncher Nightly Build
           prerelease: true
           tag_name: nightly
-          body: |            FearLauncher nightly build.
+          body: |
+            FearLauncher nightly build.
             Commit hash: ${{ github.sha }}
           files: |
             out/FearLauncher-release.apk
-
-      - name: Upload AAB (for Google Play)
-        uses: actions/upload-artifact@v4
-        with:
-          name: FearLauncher-release-aab
-          path: out/FearLauncher-gplay.aab
-          retention-days: 30
 
       - name: Upload to Google Play testing track
         continue-on-error: true
