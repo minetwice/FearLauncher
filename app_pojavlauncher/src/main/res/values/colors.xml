@@ -13,6 +13,13 @@
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#B2B2B2</color>
 
+    <!-- Dark Theme (Korax Style) -->
+<color name="background_app">#0D0D0D</color>
+<color name="fear_surface">#1A1A1A</color>
+<color name="fear_surface_variant">#242424</color>
+<color name="sidebar_bg">#0D0D0D</color>
+<color name="top_bar_bg">#121212</color>
+
     <!-- === FEAR LAUNCHER GAMING PALETTE (No Duplicates) === -->
     <color name="fear_primary">#FF4500</color>       <!-- Neon Orange Accent -->
     <color name="fear_on_primary">#FFFFFF</color>
