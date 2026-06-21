@@ -1,4 +1,4 @@
-name: Fix Translation Strings
+name: Fix Translations
 
 on:
   workflow_dispatch:
@@ -8,17 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Fix translations
+      - name: Clean formatted attributes
         run: |
-          find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read -r file; do
-            perl -pi -e 's/\s+formatted="[^"]*"//g; s/(name="[^"]+")/\1 formatted="false"/g' "$file"
+          find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read f; do
+            perl -pi -e 's/\s+formatted="[^"]*"//g; s/(name="[^"]+")/\1 formatted="false"/g' "$f"
           done
-          
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --staged --quiet || git commit -m "fix: remove duplicate formatted attributes"
+          git diff --staged --quiet || git commit -m "fix: remove duplicate formatted"
           git push
