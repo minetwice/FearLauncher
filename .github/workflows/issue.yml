@@ -1,26 +1,21 @@
 name: Fix Translation Strings (No Build)
 
 on:
-  # Manual trigger from GitHub Actions tab
-  workflow_dispatch:
-  # (Optional) Uncomment below to run automatically on push
-  # push:
-  #   branches: [ main, master ]
+  workflow_dispatch:  # Manually run from Actions tab
 
 jobs:
   fix-translations:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       # ====================================================
-      # 🔥 FIX ALL TRANSLATIONS – Add formatted="false" & remove duplicates
+      # 🔥 AGGRESSIVE FIX – Remove duplicates & add clean formatted="false"
       # ====================================================
       - name: Fix strings.xml files
         run: |
-          echo "🔍 Scanning translation files..."
+          echo "🔍 Scanning and fixing translation files..."
 
           STRINGS_TO_FIX=(
             "mcl_launch_downloading_progress"
@@ -34,19 +29,14 @@ jobs:
           find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read -r file; do
             echo "📄 Processing: $file"
             
-            # 1. Add formatted="false" if NOT already present
             for str in "${STRINGS_TO_FIX[@]}"; do
-              if grep -q "name=\"$str\"" "$file" && ! grep -q "name=\"$str\".*formatted=" "$file"; then
-                echo "  ✅ Adding formatted=\"false\" to '$str'"
-                sed -i "s/name=\"$str\"/name=\"$str\" formatted=\"false\"/g" "$file"
+              if grep -q "name=\"$str\"" "$file"; then
+                # 🧠 LOGIC: Remove any existing 'formatted' attribute, then add clean 'formatted="false"'
+                # This ensures NO duplicates ever.
+                perl -pi -e "s/(name=\"$str\")(\s+formatted=\"[^\"]*\")?/\1 formatted=\"false\"/g" "$file"
+                echo "  ✅ Fixed '$str' in $(basename $file)"
               fi
             done
-
-            # 2. REMOVE DUPLICATES: Convert double formatted into single
-            if grep -q 'formatted="false" formatted="false"' "$file"; then
-              echo "  🧹 Removing duplicate formatted attributes in: $file"
-              sed -i 's/formatted="false" formatted="false"/formatted="false"/g' "$file"
-            fi
           done
 
           echo "✅ All translation fixes applied successfully!"
@@ -57,19 +47,13 @@ jobs:
       # ====================================================
       - name: Commit and push fixes
         run: |
-          # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Add only the changed strings.xml files
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-
-          # Check if there are any changes to commit
           if git diff --staged --quiet; then
             echo "ℹ️ No changes to commit."
           else
-            echo "📦 Committing fixes..."
-            git commit -m "ci: auto-fix formatted='false' in translation strings (No Build)"
+            git commit -m "ci: clean duplicate formatted attributes in translations"
             git push
             echo "✅ Changes pushed to repository!"
           fi
