@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">FearLauncher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label">Kirjaudu sisään</string>
+    <string name="login_online_login_label" formatted="false">Kirjaudu sisään</string>
     <!-- Hint -->
     <!-- Warnings -->
     <!-- AlertDialog title -->
     <!-- Error messages -->
-    <string name="error_show_more">Näytä lisää</string>
-    <string name="error_show_less">Näytä vähemmän</string>
+    <string name="error_show_more" formatted="false">Näytä lisää</string>
+    <string name="error_show_less" formatted="false">Näytä vähemmän</string>
     <!-- Toast messages -->
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_options">Asetukset</string>
+    <string name="mcl_options" formatted="false">Asetukset</string>
     <!-- Global strings -->
-    <string name="global_save">Tallenna</string>
+    <string name="global_save" formatted="false">Tallenna</string>
     <!-- MainActivity: strings -->
     <!-- MainActivity: Control buttons -->
-    <string name="control_mouse">Hiiri</string>
+    <string name="control_mouse" formatted="false">Hiiri</string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_viewout">tallenna tulos</string>
+    <string name="control_viewout" formatted="false">tallenna tulos</string>
     <!-- ImportControlActivity Strings -->
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="unnamed">Nimetön</string>
-    <string name="profiles_latest_snapshot">VIimeisin snapshot</string>
-    <string name="profiles_latest_release">Viimeisin julkaisu</string>
-    <string name="profiles_profile_version">Versio</string>
-    <string name="global_delete">Poista</string>
+    <string name="unnamed" formatted="false">Nimetön</string>
+    <string name="profiles_latest_snapshot" formatted="false">VIimeisin snapshot</string>
+    <string name="profiles_latest_release" formatted="false">Viimeisin julkaisu</string>
+    <string name="profiles_profile_version" formatted="false">Versio</string>
+    <string name="global_delete" formatted="false">Poista</string>
 </resources>

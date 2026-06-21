@@ -1,318 +1,318 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">Punjabi launcher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">Punjabi launcher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label">logout</string>
+    <string name="login_online_login_label" formatted="false">logout</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account">Dis akownt wil be removed!</string>
+    <string name="warning_remove_account" formatted="false">Dis akownt wil be removed!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod">Chooz mod installr</string>
+    <string name="alerttitle_installmod" formatted="false">Chooz mod installr</string>
     <!-- Error messages -->
-    <string name="error_fatal">Pojaw Launcher haz unexpectadly crashd</string>
-    <string name="error_no_version">No vershun!</string>
-    <string name="error_show_more">Show mor</string>
-    <string name="error_show_less">Show les</string>
+    <string name="error_fatal" formatted="false">Pojaw Launcher haz unexpectadly crashd</string>
+    <string name="error_no_version" formatted="false">No vershun!</string>
+    <string name="error_show_more" formatted="false">Show mor</string>
+    <string name="error_show_less" formatted="false">Show les</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied">Teh riid/rite 2 storage permishun iz requird!</string>
-    <string name="toast_optifine_success">Instal succesful</string>
+    <string name="toast_permission_denied" formatted="false">Teh riid/rite 2 storage permishun iz requird!</string>
+    <string name="toast_optifine_success" formatted="false">Instal succesful</string>
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki">Wikkiez</string>
+    <string name="mcl_tab_wiki" formatted="false">Wikkiez</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache">Cleanin cache filez</string>
-    <string name="mcl_launch_downloading">Downloadin %s</string>
+    <string name="mcl_launch_cleancache" formatted="false">Cleanin cache filez</string>
+    <string name="mcl_launch_downloading" formatted="false">Downloadin %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"Downloadin %s (%.2f MB / %.2f MB)"</string>
-    <string name="mcl_launch_download_assets">Preparin 2 download resourcez</string>
-    <string name="mcl_options">Opshuns</string>
-    <string name="mcl_option_customcontrol">Custom controls</string>
-    <string name="mcl_setting_title_use_surface_view">USE ALTERNATE SURFACE RENDERIN</string>
-    <string name="mcl_setting_subtitle_use_surface_view">May halp purrformance in gpu bound skenarioz.</string>
-    <string name="mcl_setting_title_ignore_notch">Ignoer notch</string>
-    <string name="mcl_setting_subtitle_ignore_notch">Ignores da notch an extends da screen under it.\nGives yu a more immersive experience.</string>
-    <string name="mcl_setting_title_resolution_scaler">Resolushun Scalah</string>
-    <string name="mcl_setting_subtitle_resolution_scaler">Allows yu to decrease da game resolution. 100% is full resolution.</string>
-    <string name="mcl_setting_title_longpresstrigger">Trigger long press delayz</string>
-    <string name="mcl_setting_subtitle_longpresstrigger">Change long press trigger delay for destroying blockz an droppin\' itemz.</string>
-    <string name="mcl_setting_title_buttonscale">Control buttons scalin</string>
-    <string name="mcl_setting_subtitle_buttonscale">Upscale dem if da buttonz are too small.</string>
-    <string name="mcl_setting_title_mousescale">Mouse scalin</string>
-    <string name="mcl_setting_subtitle_mousescale">Change da size of da virtual mouse.</string>
-    <string name="mcl_setting_title_javaargs">CCz’UM L’unch argumentz</string>
-    <string name="mcl_setting_subtitle_javaargs">Bees careful, dis can mak teh game crash if modified witout knowledge.</string>
-    <string name="mcl_setting_category_renderer">Renderer</string>
-    <string name="mcl_setting_renderer_gles2_4">Holy gl4es - (awl versionz, fastz)</string>
-    <string name="mcl_setting_renderer_vulkan_zink">Zink (vulkan) - (awl versionz, mid)</string>
-    <string name="mcl_setting_veroption_release">RELEASD</string>
-    <string name="mcl_setting_veroption_snapshot">Snapshot</string>
-    <string name="mcl_setting_veroption_oldalpha">Old-alaf</string>
-    <string name="mcl_setting_veroption_oldbeta">Old-beat</string>
-    <string name="mcl_setting_java_sandbox">Sandbox .jar execution</string>
-    <string name="mcl_setting_java_sandbox_subtitle">Control da availability of da sandbox security manager when executin\' a .jar file.</string>
-    <string name="mcl_version_clone">Cloen</string>
+    <string name="mcl_launch_download_assets" formatted="false">Preparin 2 download resourcez</string>
+    <string name="mcl_options" formatted="false">Opshuns</string>
+    <string name="mcl_option_customcontrol" formatted="false">Custom controls</string>
+    <string name="mcl_setting_title_use_surface_view" formatted="false">USE ALTERNATE SURFACE RENDERIN</string>
+    <string name="mcl_setting_subtitle_use_surface_view" formatted="false">May halp purrformance in gpu bound skenarioz.</string>
+    <string name="mcl_setting_title_ignore_notch" formatted="false">Ignoer notch</string>
+    <string name="mcl_setting_subtitle_ignore_notch" formatted="false">Ignores da notch an extends da screen under it.\nGives yu a more immersive experience.</string>
+    <string name="mcl_setting_title_resolution_scaler" formatted="false">Resolushun Scalah</string>
+    <string name="mcl_setting_subtitle_resolution_scaler" formatted="false">Allows yu to decrease da game resolution. 100% is full resolution.</string>
+    <string name="mcl_setting_title_longpresstrigger" formatted="false">Trigger long press delayz</string>
+    <string name="mcl_setting_subtitle_longpresstrigger" formatted="false">Change long press trigger delay for destroying blockz an droppin\' itemz.</string>
+    <string name="mcl_setting_title_buttonscale" formatted="false">Control buttons scalin</string>
+    <string name="mcl_setting_subtitle_buttonscale" formatted="false">Upscale dem if da buttonz are too small.</string>
+    <string name="mcl_setting_title_mousescale" formatted="false">Mouse scalin</string>
+    <string name="mcl_setting_subtitle_mousescale" formatted="false">Change da size of da virtual mouse.</string>
+    <string name="mcl_setting_title_javaargs" formatted="false">CCz’UM L’unch argumentz</string>
+    <string name="mcl_setting_subtitle_javaargs" formatted="false">Bees careful, dis can mak teh game crash if modified witout knowledge.</string>
+    <string name="mcl_setting_category_renderer" formatted="false">Renderer</string>
+    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy gl4es - (awl versionz, fastz)</string>
+    <string name="mcl_setting_renderer_vulkan_zink" formatted="false">Zink (vulkan) - (awl versionz, mid)</string>
+    <string name="mcl_setting_veroption_release" formatted="false">RELEASD</string>
+    <string name="mcl_setting_veroption_snapshot" formatted="false">Snapshot</string>
+    <string name="mcl_setting_veroption_oldalpha" formatted="false">Old-alaf</string>
+    <string name="mcl_setting_veroption_oldbeta" formatted="false">Old-beat</string>
+    <string name="mcl_setting_java_sandbox" formatted="false">Sandbox .jar execution</string>
+    <string name="mcl_setting_java_sandbox_subtitle" formatted="false">Control da availability of da sandbox security manager when executin\' a .jar file.</string>
+    <string name="mcl_version_clone" formatted="false">Cloen</string>
     <!-- Global strings -->
-    <string name="global_edit">Edit</string>
-    <string name="global_error">Eror</string>
-    <string name="global_load">Load</string>
-    <string name="global_name">Naym</string>
-    <string name="global_remove">Remoev</string>
-    <string name="global_clone">Cloen</string>
-    <string name="global_restart">Re-start</string>
-    <string name="global_save">Saev</string>
-    <string name="global_unpacking">Unpacking %s</string>
-    <string name="global_error_field_empty">Dis field can\'t bees empty</string>
-    <string name="global_waiting">Wait</string>
-    <string name="global_select">Select</string>
-    <string name="global_retry">Again bro</string>
-    <string name="global_default">My favritz</string>
+    <string name="global_edit" formatted="false">Edit</string>
+    <string name="global_error" formatted="false">Eror</string>
+    <string name="global_load" formatted="false">Load</string>
+    <string name="global_name" formatted="false">Naym</string>
+    <string name="global_remove" formatted="false">Remoev</string>
+    <string name="global_clone" formatted="false">Cloen</string>
+    <string name="global_restart" formatted="false">Re-start</string>
+    <string name="global_save" formatted="false">Saev</string>
+    <string name="global_unpacking" formatted="false">Unpacking %s</string>
+    <string name="global_error_field_empty" formatted="false">Dis field can\'t bees empty</string>
+    <string name="global_waiting" formatted="false">Wait</string>
+    <string name="global_select" formatted="false">Select</string>
+    <string name="global_retry" formatted="false">Again bro</string>
+    <string name="global_default" formatted="false">My favritz</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title">Applicashun/game exitd wif code %d, chek lastestlog.txt 4 moar details.</string>
-    <string name="mcn_exit_confirm">R u suer u wantz 2 forec cloes?</string>
-    <string name="mcn_check_fail_vulkan_support">Zink (vulkan) renderer is not supported on dis device!</string>
+    <string name="mcn_exit_title" formatted="false">Applicashun/game exitd wif code %d, chek lastestlog.txt 4 moar details.</string>
+    <string name="mcn_exit_confirm" formatted="false">R u suer u wantz 2 forec cloes?</string>
+    <string name="mcn_check_fail_vulkan_support" formatted="false">Zink (vulkan) renderer is not supported on dis device!</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat">Chat</string>
-    <string name="control_debug">Debug</string>
-    <string name="control_primary">Pri</string>
-    <string name="control_secondary">Sec</string>
-    <string name="control_shift">◇</string>
-    <string name="control_inventory">Inv</string>
-    <string name="control_up">▲</string>
-    <string name="control_left">◀</string>
-    <string name="control_right">▶</string>
-    <string name="control_down">▼</string>
-    <string name="control_jump">⬛</string>
-    <string name="control_thirdperson">3rd</string>
-    <string name="control_listplayers">Tab</string>
-    <string name="control_mouse">Mouse</string>
-    <string name="control_mouseoff">Mouse: off</string>
-    <string name="control_mouseon">Mouse: on </string>
+    <string name="control_chat" formatted="false">Chat</string>
+    <string name="control_debug" formatted="false">Debug</string>
+    <string name="control_primary" formatted="false">Pri</string>
+    <string name="control_secondary" formatted="false">Sec</string>
+    <string name="control_shift" formatted="false">◇</string>
+    <string name="control_inventory" formatted="false">Inv</string>
+    <string name="control_up" formatted="false">▲</string>
+    <string name="control_left" formatted="false">◀</string>
+    <string name="control_right" formatted="false">▶</string>
+    <string name="control_down" formatted="false">▼</string>
+    <string name="control_jump" formatted="false">⬛</string>
+    <string name="control_thirdperson" formatted="false">3rd</string>
+    <string name="control_listplayers" formatted="false">Tab</string>
+    <string name="control_mouse" formatted="false">Mouse</string>
+    <string name="control_mouseoff" formatted="false">Mouse: off</string>
+    <string name="control_mouseon" formatted="false">Mouse: on </string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose">Force close</string>
-    <string name="control_viewout">tree input</string>
-    <string name="control_adebug">Input Debug</string>
-    <string name="control_customkey">Send custom keycoed</string>
+    <string name="control_forceclose" formatted="false">Force close</string>
+    <string name="control_viewout" formatted="false">tree input</string>
+    <string name="control_adebug" formatted="false">Input Debug</string>
+    <string name="control_customkey" formatted="false">Send custom keycoed</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label">Import controls</string>
-    <string name="import_control_invalid_file">Invalid or coruptd file</string>
-    <string name="import_control_import_button">import controls</string>
-    <string name="import_control_verifying_file">File iz bean verifid plz wait an try again…</string>
-    <string name="import_control_invalid_name">Invalid naym ir file alerdy exists</string>
-    <string name="import_control_done">Importatshun dun</string>
+    <string name="import_control_label" formatted="false">Import controls</string>
+    <string name="import_control_invalid_file" formatted="false">Invalid or coruptd file</string>
+    <string name="import_control_import_button" formatted="false">import controls</string>
+    <string name="import_control_verifying_file" formatted="false">File iz bean verifid plz wait an try again…</string>
+    <string name="import_control_invalid_name" formatted="false">Invalid naym ir file alerdy exists</string>
+    <string name="import_control_done" formatted="false">Importatshun dun</string>
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="customctrl_toggle">Toggleabel</string>
-    <string name="customctrl_size">Siez</string>
-    <string name="customctrl_mapping">Mappin’</string>
-    <string name="customctrl_orientation">Direksion</string>
-    <string name="customctrl_background_color">Bakground colour</string>
-    <string name="customctrl_corner_radius">Cornur round saiz</string>
-    <string name="customctrl_stroke_width">Strok witz</string>
-    <string name="customctrl_stroke_color">Strok colour</string>
-    <string name="customctrl_button_opacity">Buton Owpacity</string>
-    <string name="customctrl_addbutton">Add button</string>
-    <string name="customctrl_addbutton_drawer">Add buton drawr’</string>
-    <string name="customctrl_addbutton_joystick">Add stick control</string>
-    <string name="customctrl_addsubbutton">Add b’low-buton</string>
-    <string name="customctrl_selectdefault">Slects original map of controlz</string>
-    <string name="customctrl_export">Export controlmapz</string>
-    <string name="main_share_logs">Share log filez</string>
-    <string name="main_install_jar_file">Run like a .jar</string>
-    <string name="main_play">Pulay</string>
-    <string name="autoram_info_msg">Memori setd 2 %d MB</string>
-    <string name="mcl_setting_check_libraries">Check libraries aftr downloadin</string>
-    <string name="mcl_setting_check_libraries_subtitle">Dis option forcez da launcher to check da library hash if it\'z available. Preventz broken downloadz.</string>
-    <string name="dl_library_sha_fail">Library %s iz breakd and wil’ be redownloaded</string>
-    <string name="dl_library_sha_unknown">Library %s cant’ be checkd, haz 2 assuem iz’ gud</string>
-    <string name="dl_library_sha_pass">Library %s iz prfekt an usabel</string>
-    <string name="mcl_disable_gestures">Disabel gesturez</string>
-    <string name="mcl_disable_gestures_subtitle">Disablez gesturez, laik hold 2 break block, an tap 2 plaec block.</string>
-    <string name="mcl_disable_swap_hand">Disable double tap to swap handz</string>
-    <string name="mcl_disable_swap_hand_subtitle">Disables double tappin\' on da hotbar item to swap it in da second hand.</string>
-    <string name="mcl_setting_title_mousespeed">Mice speed</string>
-    <string name="mcl_setting_subtitle_mousespeed">Changes da speed of da virtual mouuse.</string>
-    <string name="customctrl_passthru">Mouses pas-thur</string>
-    <string name="customctrl_swipeable">Scratchable</string>
-    <string name="customctrl_forward_lock">Forward lock and keyz</string>
-    <string name="customctrl_absolute_tracking">Absolute finger trackin\'</string>
-    <string formatted="false" name="memory_warning_msg" formatted="false">WURNING: Catz iz becomin’ une of teh Memory Muncherz, wich may leid tu game crash! (Free %d, munch’d %d MB) Change teh allocasion if teh game crashez.</string>
-    <string name="mcl_memory_allocation">RAM allocasion</string>
-    <string name="mcl_memory_allocation_subtitle">Controlz how much memory is given to block game.</string>
-    <string name="multirt_runtime_corrupt">Derti Coffee Cup</string>
-    <string name="multirt_runtime_incompatiblearch">Incompatible architecchur: %s</string>
-    <string name="multirt_config_title">Java Marathon</string>
-    <string name="multirt_config_add">Add new</string>
-    <string name="multirt_title">Coffee Cupz klecsion</string>
-    <string name="multirt_subtitle">Manage downloaded Java Marathons.</string>
-    <string name="multirt_progress_caching">Storin’ tu cache memori...</string>
-    <string name="multirt_config_setdefault">Set favoritz</string>
-    <string name="multirt_config_setdefault_already">My favritz</string>
-    <string name="multirt_config_removeerror_last">Yyu have one Java Marathon here.</string>
-    <string name="multirt_nojava8rt">Ken´t find Java 8. In ordr 2 use dis opshun, u ned 2 install Java 8.</string>
-    <string name="multirt_delete_runtime">Delete Marathon</string>
-    <string name="pvc_gameDirectory">Gamez’ direktory</string>
-    <string name="pvc_jvmArgs">CCz’UM argumentz</string>
-    <string name="preference_mouse_start_title">Start with mousse with</string>
-    <string name="preference_mouse_start_description">Da virtual mouse appears at startup when dis option is on.</string>
-    <string name="preference_video_title">Video and rendering</string>
-    <string name="preference_video_description">Resolution, renderer an purrformance</string>
-    <string name="preference_control_title">Control customization</string>
-    <string name="preference_control_description">Gestures, buttonz an scaling</string>
-    <string name="preference_java_title">Java Tweakz</string>
-    <string name="preference_java_description">Java Marathon, jvm argumentz, ram amount an sandbox</string>
-    <string name="preference_misc_title">Miscellaneous settings</string>
-    <string name="preference_misc_description">Version list an librariez check</string>
-    <string name="preference_experimental_title">Experimental Stuff</string>
-    <string name="preference_experimental_description">Use thingz dere wid considerashun, no support</string>
-    <string name="preference_sustained_performance_title">Enable sustaind performance mode</string>
-    <string name="preference_sustained_performance_description">Limit thermal throttling by limitin\' peak purrformance.</string>
-    <string name="preference_force_vsync_title">Force enable VSync</string>
-    <string name="preference_force_vsync_description">Limit thermal throttling by limitin\' peak purrformance.</string>
-    <string name="preference_force_english_title">Force language to Burger King</string>
-    <string name="preference_force_english_description">Allows yu to see original stringz, as intended by developurz. Requirez a restart.</string>
-    <string name="preference_edit_controls_title">Change custom controls</string>
-    <string name="preference_edit_controls_summary">Tweak da control scheme to fit yor needz.</string>
-    <string name="preference_category_gyro_controls">Moving Phone controls</string>
-    <string name="preference_gyro_invert_x_axis">Invert Y axis</string>
-    <string name="preference_gyro_invert_y_axis">Invert X axis</string>
-    <string name="preference_gyro_invert_x_axis_description">Invert da vertical axis.</string>
-    <string name="preference_gyro_invert_y_axis_description">Invert da horizontal axis.</string>
-    <string name="preference_gyro_smoothing_title">Enable moving controls better just like butte\'</string>
-    <string name="preference_gyro_smoothing_description">Reduce jitter in exchange of latencyz.</string>
-    <string name="preference_back_title">Bak 2 teh last screen</string>
-    <string name="unnamed">No named</string>
-    <string name="profiles_latest_snapshot">last snap shot</string>
-    <string name="profiles_latest_release">latest releez</string>
-    <string name="profiles_profile_name">Naym</string>
-    <string name="profiles_profile_version">Type of cat</string>
-    <string name="global_delete">Delete</string>
-    <string name="pedit_java_runtime">Java runtime</string>
-    <string name="pedit_renderer">Renderer</string>
-    <string name="notif_channel_name">Geneal</string>
-    <string name="lazy_service_default_title">Fear background police</string>
-    <string name="use_global_default">(Use Base Normal)</string>
-    <string name="default_control">Default controlmap</string>
-    <string name="progresslayout_tasks_in_progress">%d taskz in progress</string>
-    <string name="notification_terminate">Get rid of it</string>
-    <string name="notification_game_runs">The game is running (run forest run)!</string>
-    <string name="folder_dialog_create">Create</string>
-    <string name="folder_dialog_insert_name">Insert Folder official certificate legal name</string>
-    <string name="folder_fragment_create">Create folderz</string>
-    <string name="folder_fragment_select">Select folderz</string>
-    <string name="main_login_done">Login ready sir</string>
-    <string name="main_add_account">Add block game account</string>
-    <string name="tasks_ongoing">Taskz are in da zone, be patient</string>
-    <string name="no_saved_accounts">No saved accounts for block game need help</string>
-    <string name="mc_download_failed">Failed to download minecraft! Dis could be due to bad network connection, incorrectly placed filez, etc..</string>
-    <string name="xerr_unknown">Unknown xbox live api error %d</string>
-    <string name="xerr_no_account">Yu don\'t seem to have an xbox live account. Pleez log in once on https://minecraft.net/ an try again when the sun is able to walk.</string>
-    <string name="xerr_adult_verification">An adult needz to verify yor account.</string>
-    <string name="xerr_child">yor account iz a child account, an needz to be added into a family in ordur to log in.</string>
-    <string name="minecraft_not_owned">it seemz like dis account doez not hav a minecraft profile. if yu haz xbox game pass, purrlease log in on https://minecraft.net/ an set it up.</string>
-    <string name="xerr_not_available">xbox live iz not available in yur country sowyy</string>
-    <string name="preference_enable_gyro_title">enable gyroscopz controlz like a pro gamer</string>
-    <string name="preference_enable_gyro_description">enablin\' dis will allow yu to turn in-game by turnin\' yor phone.</string>
-    <string name="preference_gyro_sensitivity_title">Gyroscope controls sensitivity like a sigma</string>
-    <string name="preference_gyro_sensitivity_description">adjust da sensitivity of gyroscopz controlz.</string>
-    <string name="toast_turn_on_gyro">enable gyroscopz controlz first to use dis!</string>
-    <string name="preference_gyro_sample_rate_title">Gyroscope sampling rate</string>
-    <string name="preference_gyro_sample_rate_description">if yu hav purrformance issuez wid gyroscopz controlz, increase dis.</string>
-    <string name="microsoft_login_retry_later">too many requestz, purrlease try again later.</string>
-    <string name="storage_required">pojavlauncher requirez external storage to be attached. purrlease reconnect it an restart da app.</string>
-    <string name="mcl_setting_title_buttonallcaps">only use capital letterz in button labelz</string>
-    <string name="mcl_setting_subtitle_buttonallcaps">disable dis if yu want to use lowurcase letturz in yor controlz.</string>
-    <string name="preference_shader_dump_title">Enable shader dumping</string>
-    <string name="preference_shader_dump_description">log converted shaderz into da log file.</string>
-    <string name="percent_format">%d%%</string>
-    <string name="customctrl_editor_exit_title">Don\'t leave plz stay?</string>
-    <string name="customctrl_editor_exit_msg">Are you sure don\'t leave plz?</string>
-    <string name="customctrl_editor_exit">Leave editor</string>
-    <string name="global_save_and_exit">Exit like a pro</string>
-    <string name="global_yes">Ye</string>
-    <string name="global_no">Nah</string>
-    <string name="preference_controller_map_wiped">The controllerz config has been wiped hahaha.</string>
-    <string name="preference_category_controller_settings">Controller settings</string>
-    <string name="preference_wipe_controller_title">Reset control mapz</string>
-    <string name="preference_wipe_controller_description">allowz yu to remap da controllur buttonz.</string>
-    <string name="preference_deadzone_scale_title">joystick deadzone like headshot MVP</string>
-    <string name="preference_deadzone_scale_description">increase it if da joystick drifts.</string>
-    <string name="preference_force_big_core_title">force da renderer to run on da big core like big boy core</string>
-    <string name="preference_force_big_core_desc">forcez da minecraft render thread to run on da core wid da highest maximum frequency for max fps like pro gamer.</string>
-    <string name="version_select_hint">Selcts a version of block game</string>
-    <string name="forge_dl_progress">Downloading more ram installer for %s</string>
-    <string name="forge_dl_searching">searchin\' for forge version numbur</string>
-    <string name="modloader_dl_failed_to_load_list">faild to load teh versiunz list!</string>
-    <string name="forge_dl_no_installer">sowwy, but dis vershun ov forge duz not haz an installur, wich iz not yet supported.</string>
-    <string name="forge_dl_select_version">select forge vershun</string>
-    <string name="fabric_dl_progress">downloading %s loadur metadata</string>
-    <string name="fabric_dl_loader_version">%s loader version</string>
-    <string name="fabric_dl_game_version">Blockgame versionz</string>
-    <string name="fabric_dl_install">Install like a pro gamer</string>
-    <string name="fabric_dl_cant_read_meta">failed to read %s loader metadata. purrlease try again laturr.</string>
-    <string name="create_profile_vanilla_like_versions">Normal block game like versions</string>
-    <string name="create_profile_modded_versions">Mod game version 2024 pojavlauncher</string>
-    <string name="fabric_dl_loader_title">Select versions</string>
-    <string name="of_dl_select_version">Select optfine version</string>
-    <string name="of_dl_failed_to_scrape">failed to collect data for optifine installashun</string>
-    <string name="of_dl_progress">Downloadin %s</string>
-    <string name="hint_search_modpack">Search for modpacks</string>
-    <string name="preference_vulkan_driver_system_title">Use system Vulkan driver</string>
-    <string name="preference_vulkan_driver_system_description">force da launchur to use da system vulkan drivur instead of turnip on adreno gpus. only affectz zink an modz dat use vulkan so don\'t use with Mali frcoal.</string>
-    <string name="generic_install">Install like a pro gamer</string>
-    <string name="generic_apply">Appy</string>
-    <string name="generic_debug">Debug</string>
-    <string name="search_modpack_no_result">No madpacks found check again likebhai</string>
-    <string name="search_modpack_error">Fualed to find movpacka</string>
-    <string name="search_modpack_download_error">Failed to download modpack metadata</string>
+    <string name="customctrl_toggle" formatted="false">Toggleabel</string>
+    <string name="customctrl_size" formatted="false">Siez</string>
+    <string name="customctrl_mapping" formatted="false">Mappin’</string>
+    <string name="customctrl_orientation" formatted="false">Direksion</string>
+    <string name="customctrl_background_color" formatted="false">Bakground colour</string>
+    <string name="customctrl_corner_radius" formatted="false">Cornur round saiz</string>
+    <string name="customctrl_stroke_width" formatted="false">Strok witz</string>
+    <string name="customctrl_stroke_color" formatted="false">Strok colour</string>
+    <string name="customctrl_button_opacity" formatted="false">Buton Owpacity</string>
+    <string name="customctrl_addbutton" formatted="false">Add button</string>
+    <string name="customctrl_addbutton_drawer" formatted="false">Add buton drawr’</string>
+    <string name="customctrl_addbutton_joystick" formatted="false">Add stick control</string>
+    <string name="customctrl_addsubbutton" formatted="false">Add b’low-buton</string>
+    <string name="customctrl_selectdefault" formatted="false">Slects original map of controlz</string>
+    <string name="customctrl_export" formatted="false">Export controlmapz</string>
+    <string name="main_share_logs" formatted="false">Share log filez</string>
+    <string name="main_install_jar_file" formatted="false">Run like a .jar</string>
+    <string name="main_play" formatted="false">Pulay</string>
+    <string name="autoram_info_msg" formatted="false">Memori setd 2 %d MB</string>
+    <string name="mcl_setting_check_libraries" formatted="false">Check libraries aftr downloadin</string>
+    <string name="mcl_setting_check_libraries_subtitle" formatted="false">Dis option forcez da launcher to check da library hash if it\'z available. Preventz broken downloadz.</string>
+    <string name="dl_library_sha_fail" formatted="false">Library %s iz breakd and wil’ be redownloaded</string>
+    <string name="dl_library_sha_unknown" formatted="false">Library %s cant’ be checkd, haz 2 assuem iz’ gud</string>
+    <string name="dl_library_sha_pass" formatted="false">Library %s iz prfekt an usabel</string>
+    <string name="mcl_disable_gestures" formatted="false">Disabel gesturez</string>
+    <string name="mcl_disable_gestures_subtitle" formatted="false">Disablez gesturez, laik hold 2 break block, an tap 2 plaec block.</string>
+    <string name="mcl_disable_swap_hand" formatted="false">Disable double tap to swap handz</string>
+    <string name="mcl_disable_swap_hand_subtitle" formatted="false">Disables double tappin\' on da hotbar item to swap it in da second hand.</string>
+    <string name="mcl_setting_title_mousespeed" formatted="false">Mice speed</string>
+    <string name="mcl_setting_subtitle_mousespeed" formatted="false">Changes da speed of da virtual mouuse.</string>
+    <string name="customctrl_passthru" formatted="false">Mouses pas-thur</string>
+    <string name="customctrl_swipeable" formatted="false">Scratchable</string>
+    <string name="customctrl_forward_lock" formatted="false">Forward lock and keyz</string>
+    <string name="customctrl_absolute_tracking" formatted="false">Absolute finger trackin\'</string>
+    <string name="memory_warning_msg" formatted="false">WURNING: Catz iz becomin’ une of teh Memory Muncherz, wich may leid tu game crash! (Free %d, munch’d %d MB) Change teh allocasion if teh game crashez.</string>
+    <string name="mcl_memory_allocation" formatted="false">RAM allocasion</string>
+    <string name="mcl_memory_allocation_subtitle" formatted="false">Controlz how much memory is given to block game.</string>
+    <string name="multirt_runtime_corrupt" formatted="false">Derti Coffee Cup</string>
+    <string name="multirt_runtime_incompatiblearch" formatted="false">Incompatible architecchur: %s</string>
+    <string name="multirt_config_title" formatted="false">Java Marathon</string>
+    <string name="multirt_config_add" formatted="false">Add new</string>
+    <string name="multirt_title" formatted="false">Coffee Cupz klecsion</string>
+    <string name="multirt_subtitle" formatted="false">Manage downloaded Java Marathons.</string>
+    <string name="multirt_progress_caching" formatted="false">Storin’ tu cache memori...</string>
+    <string name="multirt_config_setdefault" formatted="false">Set favoritz</string>
+    <string name="multirt_config_setdefault_already" formatted="false">My favritz</string>
+    <string name="multirt_config_removeerror_last" formatted="false">Yyu have one Java Marathon here.</string>
+    <string name="multirt_nojava8rt" formatted="false">Ken´t find Java 8. In ordr 2 use dis opshun, u ned 2 install Java 8.</string>
+    <string name="multirt_delete_runtime" formatted="false">Delete Marathon</string>
+    <string name="pvc_gameDirectory" formatted="false">Gamez’ direktory</string>
+    <string name="pvc_jvmArgs" formatted="false">CCz’UM argumentz</string>
+    <string name="preference_mouse_start_title" formatted="false">Start with mousse with</string>
+    <string name="preference_mouse_start_description" formatted="false">Da virtual mouse appears at startup when dis option is on.</string>
+    <string name="preference_video_title" formatted="false">Video and rendering</string>
+    <string name="preference_video_description" formatted="false">Resolution, renderer an purrformance</string>
+    <string name="preference_control_title" formatted="false">Control customization</string>
+    <string name="preference_control_description" formatted="false">Gestures, buttonz an scaling</string>
+    <string name="preference_java_title" formatted="false">Java Tweakz</string>
+    <string name="preference_java_description" formatted="false">Java Marathon, jvm argumentz, ram amount an sandbox</string>
+    <string name="preference_misc_title" formatted="false">Miscellaneous settings</string>
+    <string name="preference_misc_description" formatted="false">Version list an librariez check</string>
+    <string name="preference_experimental_title" formatted="false">Experimental Stuff</string>
+    <string name="preference_experimental_description" formatted="false">Use thingz dere wid considerashun, no support</string>
+    <string name="preference_sustained_performance_title" formatted="false">Enable sustaind performance mode</string>
+    <string name="preference_sustained_performance_description" formatted="false">Limit thermal throttling by limitin\' peak purrformance.</string>
+    <string name="preference_force_vsync_title" formatted="false">Force enable VSync</string>
+    <string name="preference_force_vsync_description" formatted="false">Limit thermal throttling by limitin\' peak purrformance.</string>
+    <string name="preference_force_english_title" formatted="false">Force language to Burger King</string>
+    <string name="preference_force_english_description" formatted="false">Allows yu to see original stringz, as intended by developurz. Requirez a restart.</string>
+    <string name="preference_edit_controls_title" formatted="false">Change custom controls</string>
+    <string name="preference_edit_controls_summary" formatted="false">Tweak da control scheme to fit yor needz.</string>
+    <string name="preference_category_gyro_controls" formatted="false">Moving Phone controls</string>
+    <string name="preference_gyro_invert_x_axis" formatted="false">Invert Y axis</string>
+    <string name="preference_gyro_invert_y_axis" formatted="false">Invert X axis</string>
+    <string name="preference_gyro_invert_x_axis_description" formatted="false">Invert da vertical axis.</string>
+    <string name="preference_gyro_invert_y_axis_description" formatted="false">Invert da horizontal axis.</string>
+    <string name="preference_gyro_smoothing_title" formatted="false">Enable moving controls better just like butte\'</string>
+    <string name="preference_gyro_smoothing_description" formatted="false">Reduce jitter in exchange of latencyz.</string>
+    <string name="preference_back_title" formatted="false">Bak 2 teh last screen</string>
+    <string name="unnamed" formatted="false">No named</string>
+    <string name="profiles_latest_snapshot" formatted="false">last snap shot</string>
+    <string name="profiles_latest_release" formatted="false">latest releez</string>
+    <string name="profiles_profile_name" formatted="false">Naym</string>
+    <string name="profiles_profile_version" formatted="false">Type of cat</string>
+    <string name="global_delete" formatted="false">Delete</string>
+    <string name="pedit_java_runtime" formatted="false">Java runtime</string>
+    <string name="pedit_renderer" formatted="false">Renderer</string>
+    <string name="notif_channel_name" formatted="false">Geneal</string>
+    <string name="lazy_service_default_title" formatted="false">Fear background police</string>
+    <string name="use_global_default" formatted="false">(Use Base Normal)</string>
+    <string name="default_control" formatted="false">Default controlmap</string>
+    <string name="progresslayout_tasks_in_progress" formatted="false">%d taskz in progress</string>
+    <string name="notification_terminate" formatted="false">Get rid of it</string>
+    <string name="notification_game_runs" formatted="false">The game is running (run forest run)!</string>
+    <string name="folder_dialog_create" formatted="false">Create</string>
+    <string name="folder_dialog_insert_name" formatted="false">Insert Folder official certificate legal name</string>
+    <string name="folder_fragment_create" formatted="false">Create folderz</string>
+    <string name="folder_fragment_select" formatted="false">Select folderz</string>
+    <string name="main_login_done" formatted="false">Login ready sir</string>
+    <string name="main_add_account" formatted="false">Add block game account</string>
+    <string name="tasks_ongoing" formatted="false">Taskz are in da zone, be patient</string>
+    <string name="no_saved_accounts" formatted="false">No saved accounts for block game need help</string>
+    <string name="mc_download_failed" formatted="false">Failed to download minecraft! Dis could be due to bad network connection, incorrectly placed filez, etc..</string>
+    <string name="xerr_unknown" formatted="false">Unknown xbox live api error %d</string>
+    <string name="xerr_no_account" formatted="false">Yu don\'t seem to have an xbox live account. Pleez log in once on https://minecraft.net/ an try again when the sun is able to walk.</string>
+    <string name="xerr_adult_verification" formatted="false">An adult needz to verify yor account.</string>
+    <string name="xerr_child" formatted="false">yor account iz a child account, an needz to be added into a family in ordur to log in.</string>
+    <string name="minecraft_not_owned" formatted="false">it seemz like dis account doez not hav a minecraft profile. if yu haz xbox game pass, purrlease log in on https://minecraft.net/ an set it up.</string>
+    <string name="xerr_not_available" formatted="false">xbox live iz not available in yur country sowyy</string>
+    <string name="preference_enable_gyro_title" formatted="false">enable gyroscopz controlz like a pro gamer</string>
+    <string name="preference_enable_gyro_description" formatted="false">enablin\' dis will allow yu to turn in-game by turnin\' yor phone.</string>
+    <string name="preference_gyro_sensitivity_title" formatted="false">Gyroscope controls sensitivity like a sigma</string>
+    <string name="preference_gyro_sensitivity_description" formatted="false">adjust da sensitivity of gyroscopz controlz.</string>
+    <string name="toast_turn_on_gyro" formatted="false">enable gyroscopz controlz first to use dis!</string>
+    <string name="preference_gyro_sample_rate_title" formatted="false">Gyroscope sampling rate</string>
+    <string name="preference_gyro_sample_rate_description" formatted="false">if yu hav purrformance issuez wid gyroscopz controlz, increase dis.</string>
+    <string name="microsoft_login_retry_later" formatted="false">too many requestz, purrlease try again later.</string>
+    <string name="storage_required" formatted="false">pojavlauncher requirez external storage to be attached. purrlease reconnect it an restart da app.</string>
+    <string name="mcl_setting_title_buttonallcaps" formatted="false">only use capital letterz in button labelz</string>
+    <string name="mcl_setting_subtitle_buttonallcaps" formatted="false">disable dis if yu want to use lowurcase letturz in yor controlz.</string>
+    <string name="preference_shader_dump_title" formatted="false">Enable shader dumping</string>
+    <string name="preference_shader_dump_description" formatted="false">log converted shaderz into da log file.</string>
+    <string name="percent_format" formatted="false">%d%%</string>
+    <string name="customctrl_editor_exit_title" formatted="false">Don\'t leave plz stay?</string>
+    <string name="customctrl_editor_exit_msg" formatted="false">Are you sure don\'t leave plz?</string>
+    <string name="customctrl_editor_exit" formatted="false">Leave editor</string>
+    <string name="global_save_and_exit" formatted="false">Exit like a pro</string>
+    <string name="global_yes" formatted="false">Ye</string>
+    <string name="global_no" formatted="false">Nah</string>
+    <string name="preference_controller_map_wiped" formatted="false">The controllerz config has been wiped hahaha.</string>
+    <string name="preference_category_controller_settings" formatted="false">Controller settings</string>
+    <string name="preference_wipe_controller_title" formatted="false">Reset control mapz</string>
+    <string name="preference_wipe_controller_description" formatted="false">allowz yu to remap da controllur buttonz.</string>
+    <string name="preference_deadzone_scale_title" formatted="false">joystick deadzone like headshot MVP</string>
+    <string name="preference_deadzone_scale_description" formatted="false">increase it if da joystick drifts.</string>
+    <string name="preference_force_big_core_title" formatted="false">force da renderer to run on da big core like big boy core</string>
+    <string name="preference_force_big_core_desc" formatted="false">forcez da minecraft render thread to run on da core wid da highest maximum frequency for max fps like pro gamer.</string>
+    <string name="version_select_hint" formatted="false">Selcts a version of block game</string>
+    <string name="forge_dl_progress" formatted="false">Downloading more ram installer for %s</string>
+    <string name="forge_dl_searching" formatted="false">searchin\' for forge version numbur</string>
+    <string name="modloader_dl_failed_to_load_list" formatted="false">faild to load teh versiunz list!</string>
+    <string name="forge_dl_no_installer" formatted="false">sowwy, but dis vershun ov forge duz not haz an installur, wich iz not yet supported.</string>
+    <string name="forge_dl_select_version" formatted="false">select forge vershun</string>
+    <string name="fabric_dl_progress" formatted="false">downloading %s loadur metadata</string>
+    <string name="fabric_dl_loader_version" formatted="false">%s loader version</string>
+    <string name="fabric_dl_game_version" formatted="false">Blockgame versionz</string>
+    <string name="fabric_dl_install" formatted="false">Install like a pro gamer</string>
+    <string name="fabric_dl_cant_read_meta" formatted="false">failed to read %s loader metadata. purrlease try again laturr.</string>
+    <string name="create_profile_vanilla_like_versions" formatted="false">Normal block game like versions</string>
+    <string name="create_profile_modded_versions" formatted="false">Mod game version 2024 pojavlauncher</string>
+    <string name="fabric_dl_loader_title" formatted="false">Select versions</string>
+    <string name="of_dl_select_version" formatted="false">Select optfine version</string>
+    <string name="of_dl_failed_to_scrape" formatted="false">failed to collect data for optifine installashun</string>
+    <string name="of_dl_progress" formatted="false">Downloadin %s</string>
+    <string name="hint_search_modpack" formatted="false">Search for modpacks</string>
+    <string name="preference_vulkan_driver_system_title" formatted="false">Use system Vulkan driver</string>
+    <string name="preference_vulkan_driver_system_description" formatted="false">force da launchur to use da system vulkan drivur instead of turnip on adreno gpus. only affectz zink an modz dat use vulkan so don\'t use with Mali frcoal.</string>
+    <string name="generic_install" formatted="false">Install like a pro gamer</string>
+    <string name="generic_apply" formatted="false">Appy</string>
+    <string name="generic_debug" formatted="false">Debug</string>
+    <string name="search_modpack_no_result" formatted="false">No madpacks found check again likebhai</string>
+    <string name="search_modpack_error" formatted="false">Fualed to find movpacka</string>
+    <string name="search_modpack_download_error" formatted="false">Failed to download modpack metadata</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Downloading mods (%.2f MB / %.2f MB)</string>
-    <string formatted="false" name="modpack_download_downloading_mods_fc">Downloading mods (File %d out of %d)</string>
-    <string formatted="false" name="modpack_download_applying_overrides">Applying overrides (%d/%d)</string>
-    <string name="modpack_install_notification_title">Fear Modpack Installer really gud</string>
-    <string name="modpack_install_notification_success">Click here to finish modpack installation</string>
-    <string name="modpack_install_notification_data_not_available">Failed to download mod loader information please stay like a sigma 😎😎</string>
-    <string name="modpack_install_modloader_download_failed">Failed to download the mod loader files</string>
-    <string name="modpack_install_download_failed">Failed to download modpack files</string>
-    <string name="notif_error_occured">An error has occurred</string>
-    <string name="notif_error_occured_desc">Click to see more details</string>
-    <string name="fabric_dl_only_stable">Show only stable versions</string>
-    <string name="dl_tampered_manifest_title">Hey man we know what you are doing 😡😡😡</string>
-    <string name="dl_tampered_manifest"><![CDATA[teh game vershun manifest on teh mirroar doez not match teh offishul mojang vershun manifest, wich meanz it may haz been tamperd wif.<br/>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">Downloading mods (File %d out of %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">Applying overrides (%d/%d)</string>
+    <string name="modpack_install_notification_title" formatted="false">Fear Modpack Installer really gud</string>
+    <string name="modpack_install_notification_success" formatted="false">Click here to finish modpack installation</string>
+    <string name="modpack_install_notification_data_not_available" formatted="false">Failed to download mod loader information please stay like a sigma 😎😎</string>
+    <string name="modpack_install_modloader_download_failed" formatted="false">Failed to download the mod loader files</string>
+    <string name="modpack_install_download_failed" formatted="false">Failed to download modpack files</string>
+    <string name="notif_error_occured" formatted="false">An error has occurred</string>
+    <string name="notif_error_occured_desc" formatted="false">Click to see more details</string>
+    <string name="fabric_dl_only_stable" formatted="false">Show only stable versions</string>
+    <string name="dl_tampered_manifest_title" formatted="false">Hey man we know what you are doing 😡😡😡</string>
+    <string name="dl_tampered_manifest" formatted="false"><![CDATA[teh game vershun manifest on teh mirroar doez not match teh offishul mojang vershun manifest, wich meanz it may haz been tamperd wif.<br/>
 dis iz not safe. ur personal infurmashun may be at risk if yu continue.<br/>
 if yu still wanna use teh mirroar, press "turn off manifest checks" n start teh download again.<br/>
 if yu wanna use teh offishul download source, press "switch to offishul site" n start teh download again.<br/>]]></string>
-    <string name="dl_turn_off_manifest_checks">Turn off manifest checks</string>
-    <string name="dl_switch_to_official_site">Switch to official site</string>
-    <string name="preference_download_source_title">Game download source</string>
-    <string name="preference_download_source_description">select a download mirror instead of usin\' da official download servur</string>
-    <string name="preference_verify_manifest_title">Verify game version manifest</string>
-    <string name="preference_verify_manifest_description">wen enabled, teh launchur will check teh game vershun manifest along wif teh librariez.</string>
-    <string name="notif_download_finished">Your game is ready sir</string>
-    <string name="notif_download_finished_desc">Click here to start it!</string>
-    <string name="preference_category_gestures">Gestures</string>
-    <string name="preference_category_buttons">Buttonz</string>
-    <string name="preference_category_experimental_settings">Experimental fuckury only do it if you are a pro 😼</string>
-    <string name="preference_category_java_tweaks">Java Tweakz</string>
-    <string name="preference_category_main_categories">Categories</string>
-    <string name="preference_category_miscellaneous">Miscellaneous settings</string>
-    <string name="preference_category_video">Video settings</string>
-    <string name="notification_permission_dialog_title">Permission request</string>
-    <string name="notification_permission_dialog_text">Punjabi launcher requirez a permisshun to post notifishunz to prevent game/modpack downloadz frum stoppin wen yu leev teh app. wifout dis permisshun, android may shut down ur downloadz wen yu put launcher in background mode stay open.</string>
-    <string name="notification_permission_toast">You can always change your mind later by going into Settings</string>
-    <string name="preference_ask_for_notification_title">Allow notifications</string>
-    <string name="preference_ask_for_notification_description">click to re-request teh notifishun permisshun, required for game/modpack background downloadz to werk properly.</string>
-    <string name="preference_vsync_in_zink_title">Allow V-Sync with Zink</string>
-    <string name="preference_vsync_in_zink_description">lowz teh launchur to use internal system apis to enable v-sync for zink.turn dis off if ur launchur suddnly crashz wif zink afta a system update</string>
-    <string name="exception_failed_to_unpack_jre17">Failed to install JRE 17</string>
-    <string name="newdl_starting">Reading game metadata…</string>
-    <string name="newdl_downloading_metadata">Downloading game metadata (%s)</string>
-    <string name="controller_button_select">Select</string>
+    <string name="dl_turn_off_manifest_checks" formatted="false">Turn off manifest checks</string>
+    <string name="dl_switch_to_official_site" formatted="false">Switch to official site</string>
+    <string name="preference_download_source_title" formatted="false">Game download source</string>
+    <string name="preference_download_source_description" formatted="false">select a download mirror instead of usin\' da official download servur</string>
+    <string name="preference_verify_manifest_title" formatted="false">Verify game version manifest</string>
+    <string name="preference_verify_manifest_description" formatted="false">wen enabled, teh launchur will check teh game vershun manifest along wif teh librariez.</string>
+    <string name="notif_download_finished" formatted="false">Your game is ready sir</string>
+    <string name="notif_download_finished_desc" formatted="false">Click here to start it!</string>
+    <string name="preference_category_gestures" formatted="false">Gestures</string>
+    <string name="preference_category_buttons" formatted="false">Buttonz</string>
+    <string name="preference_category_experimental_settings" formatted="false">Experimental fuckury only do it if you are a pro 😼</string>
+    <string name="preference_category_java_tweaks" formatted="false">Java Tweakz</string>
+    <string name="preference_category_main_categories" formatted="false">Categories</string>
+    <string name="preference_category_miscellaneous" formatted="false">Miscellaneous settings</string>
+    <string name="preference_category_video" formatted="false">Video settings</string>
+    <string name="notification_permission_dialog_title" formatted="false">Permission request</string>
+    <string name="notification_permission_dialog_text" formatted="false">Punjabi launcher requirez a permisshun to post notifishunz to prevent game/modpack downloadz frum stoppin wen yu leev teh app. wifout dis permisshun, android may shut down ur downloadz wen yu put launcher in background mode stay open.</string>
+    <string name="notification_permission_toast" formatted="false">You can always change your mind later by going into Settings</string>
+    <string name="preference_ask_for_notification_title" formatted="false">Allow notifications</string>
+    <string name="preference_ask_for_notification_description" formatted="false">click to re-request teh notifishun permisshun, required for game/modpack background downloadz to werk properly.</string>
+    <string name="preference_vsync_in_zink_title" formatted="false">Allow V-Sync with Zink</string>
+    <string name="preference_vsync_in_zink_description" formatted="false">lowz teh launchur to use internal system apis to enable v-sync for zink.turn dis off if ur launchur suddnly crashz wif zink afta a system update</string>
+    <string name="exception_failed_to_unpack_jre17" formatted="false">Failed to install JRE 17</string>
+    <string name="newdl_starting" formatted="false">Reading game metadata…</string>
+    <string name="newdl_downloading_metadata" formatted="false">Downloading game metadata (%s)</string>
+    <string name="controller_button_select" formatted="false">Select</string>
 </resources>

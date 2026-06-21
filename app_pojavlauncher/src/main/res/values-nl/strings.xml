@@ -1,272 +1,272 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">FearLauncher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label">Aanmelden</string>
+    <string name="login_online_login_label" formatted="false">Aanmelden</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account">Dit account wordt verwijderd!</string>
+    <string name="warning_remove_account" formatted="false">Dit account wordt verwijderd!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod">Selecteer een mod installatie</string>
+    <string name="alerttitle_installmod" formatted="false">Selecteer een mod installatie</string>
     <!-- Error messages -->
-    <string name="error_fatal">FearLauncher is onverwacht gecrasht</string>
-    <string name="error_no_version">Geen versie!</string>
-    <string name="error_show_more">Meer weergeven</string>
-    <string name="error_show_less">Minder weergeven</string>
+    <string name="error_fatal" formatted="false">FearLauncher is onverwacht gecrasht</string>
+    <string name="error_no_version" formatted="false">Geen versie!</string>
+    <string name="error_show_more" formatted="false">Meer weergeven</string>
+    <string name="error_show_less" formatted="false">Minder weergeven</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied">De rechten om te lezen/schrijven naar opslag zijn vereist!</string>
-    <string name="toast_optifine_success">Installatie geslaagd</string>
+    <string name="toast_permission_denied" formatted="false">De rechten om te lezen/schrijven naar opslag zijn vereist!</string>
+    <string name="toast_optifine_success" formatted="false">Installatie geslaagd</string>
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki">Wiki</string>
+    <string name="mcl_tab_wiki" formatted="false">Wiki</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache">Cache bestanden opschonen</string>
-    <string name="mcl_launch_downloading">Downloaden %s</string>
+    <string name="mcl_launch_cleancache" formatted="false">Cache bestanden opschonen</string>
+    <string name="mcl_launch_downloading" formatted="false">Downloaden %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"%s downloaden (%.2fMB / %.2fMB)"</string>
-    <string name="mcl_launch_download_assets">Voorbereiden om bronnen te downloaden</string>
-    <string name="mcl_options">Opties</string>
-    <string name="mcl_option_customcontrol">Aangepaste controles</string>
-    <string name="mcl_setting_title_use_surface_view">Gebruik alternatieve oppervlakte weergave</string>
-    <string name="mcl_setting_subtitle_use_surface_view">Kan de prestaties van de GPU gebonden scenario\'s helpen.</string>
-    <string name="mcl_setting_title_ignore_notch">Negeer notch</string>
-    <string name="mcl_setting_subtitle_ignore_notch">Negeert de camera en breidt het scherm eronder uit.\ngeeft je een meer meeslepende ervaring.</string>
-    <string name="mcl_setting_title_resolution_scaler">Resolutie Schaaler</string>
-    <string name="mcl_setting_subtitle_resolution_scaler">Laat je de game resolutie verlagen. 100% is volledige resolutie.</string>
-    <string name="mcl_setting_title_longpresstrigger">Trigger lange druk vertraging</string>
-    <string name="mcl_setting_subtitle_longpresstrigger">Verander de vertraging van het inhouden om blokken te breken en items te droppen.</string>
-    <string name="mcl_setting_title_buttonscale">Controle knoppen schalen</string>
-    <string name="mcl_setting_subtitle_buttonscale">Vergroot de knoppen als ze te klein zijn.</string>
-    <string name="mcl_setting_title_mousescale">Muis schaling</string>
-    <string name="mcl_setting_subtitle_mousescale">Verander de grootte van de virtuele muis.</string>
-    <string name="mcl_setting_title_javaargs">JVM Launch argumenten</string>
-    <string name="mcl_setting_subtitle_javaargs">Wees voorzichtig, dit kan een spelcrash maken als het is aangepast zonder kennis.</string>
-    <string name="mcl_setting_category_renderer">Renderer</string>
-    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - (alle versies, snel)</string>
-    <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - (alle versies, middelmatig)</string>
-    <string name="mcl_setting_veroption_release">Release</string>
-    <string name="mcl_setting_veroption_snapshot">Snapshot</string>
-    <string name="mcl_setting_veroption_oldalpha">Oud-alpha</string>
-    <string name="mcl_setting_veroption_oldbeta">Oud-beta</string>
-    <string name="mcl_setting_java_sandbox">Sandbox .jar uitvoeren</string>
-    <string name="mcl_setting_java_sandbox_subtitle">Beheer de beschikbaarheid van de sandbox-beveiligingsmanager bij het uitvoeren van een .jar bestand.</string>
-    <string name="mcl_version_clone">Dupliceren</string>
+    <string name="mcl_launch_download_assets" formatted="false">Voorbereiden om bronnen te downloaden</string>
+    <string name="mcl_options" formatted="false">Opties</string>
+    <string name="mcl_option_customcontrol" formatted="false">Aangepaste controles</string>
+    <string name="mcl_setting_title_use_surface_view" formatted="false">Gebruik alternatieve oppervlakte weergave</string>
+    <string name="mcl_setting_subtitle_use_surface_view" formatted="false">Kan de prestaties van de GPU gebonden scenario\'s helpen.</string>
+    <string name="mcl_setting_title_ignore_notch" formatted="false">Negeer notch</string>
+    <string name="mcl_setting_subtitle_ignore_notch" formatted="false">Negeert de camera en breidt het scherm eronder uit.\ngeeft je een meer meeslepende ervaring.</string>
+    <string name="mcl_setting_title_resolution_scaler" formatted="false">Resolutie Schaaler</string>
+    <string name="mcl_setting_subtitle_resolution_scaler" formatted="false">Laat je de game resolutie verlagen. 100% is volledige resolutie.</string>
+    <string name="mcl_setting_title_longpresstrigger" formatted="false">Trigger lange druk vertraging</string>
+    <string name="mcl_setting_subtitle_longpresstrigger" formatted="false">Verander de vertraging van het inhouden om blokken te breken en items te droppen.</string>
+    <string name="mcl_setting_title_buttonscale" formatted="false">Controle knoppen schalen</string>
+    <string name="mcl_setting_subtitle_buttonscale" formatted="false">Vergroot de knoppen als ze te klein zijn.</string>
+    <string name="mcl_setting_title_mousescale" formatted="false">Muis schaling</string>
+    <string name="mcl_setting_subtitle_mousescale" formatted="false">Verander de grootte van de virtuele muis.</string>
+    <string name="mcl_setting_title_javaargs" formatted="false">JVM Launch argumenten</string>
+    <string name="mcl_setting_subtitle_javaargs" formatted="false">Wees voorzichtig, dit kan een spelcrash maken als het is aangepast zonder kennis.</string>
+    <string name="mcl_setting_category_renderer" formatted="false">Renderer</string>
+    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy GL4ES - (alle versies, snel)</string>
+    <string name="mcl_setting_renderer_vulkan_zink" formatted="false">Zink (Vulkan) - (alle versies, middelmatig)</string>
+    <string name="mcl_setting_veroption_release" formatted="false">Release</string>
+    <string name="mcl_setting_veroption_snapshot" formatted="false">Snapshot</string>
+    <string name="mcl_setting_veroption_oldalpha" formatted="false">Oud-alpha</string>
+    <string name="mcl_setting_veroption_oldbeta" formatted="false">Oud-beta</string>
+    <string name="mcl_setting_java_sandbox" formatted="false">Sandbox .jar uitvoeren</string>
+    <string name="mcl_setting_java_sandbox_subtitle" formatted="false">Beheer de beschikbaarheid van de sandbox-beveiligingsmanager bij het uitvoeren van een .jar bestand.</string>
+    <string name="mcl_version_clone" formatted="false">Dupliceren</string>
     <!-- Global strings -->
-    <string name="global_edit">Bewerken</string>
-    <string name="global_error">Error</string>
-    <string name="global_load">Laad</string>
-    <string name="global_name">Naam</string>
-    <string name="global_remove">Verwijderen</string>
-    <string name="global_clone">Dupliceren</string>
-    <string name="global_restart">Opnieuw starten</string>
-    <string name="global_save">Opslaan</string>
-    <string name="global_unpacking">Uitpakken %s</string>
-    <string name="global_error_field_empty">Dit veld mag niet leeg zijn</string>
-    <string name="global_waiting">Wacht</string>
-    <string name="global_select">Selecteer</string>
-    <string name="global_retry">Probeer opnieuw</string>
-    <string name="global_default">Standaard</string>
+    <string name="global_edit" formatted="false">Bewerken</string>
+    <string name="global_error" formatted="false">Error</string>
+    <string name="global_load" formatted="false">Laad</string>
+    <string name="global_name" formatted="false">Naam</string>
+    <string name="global_remove" formatted="false">Verwijderen</string>
+    <string name="global_clone" formatted="false">Dupliceren</string>
+    <string name="global_restart" formatted="false">Opnieuw starten</string>
+    <string name="global_save" formatted="false">Opslaan</string>
+    <string name="global_unpacking" formatted="false">Uitpakken %s</string>
+    <string name="global_error_field_empty" formatted="false">Dit veld mag niet leeg zijn</string>
+    <string name="global_waiting" formatted="false">Wacht</string>
+    <string name="global_select" formatted="false">Selecteer</string>
+    <string name="global_retry" formatted="false">Probeer opnieuw</string>
+    <string name="global_default" formatted="false">Standaard</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title">Applicatie/Game is afgesloten met de code %d, controleer latestlog.txt voor meer details.</string>
-    <string name="mcn_exit_confirm">Weet je zeker dat je sluiting wilt forceren?</string>
-    <string name="mcn_check_fail_vulkan_support">Zink (Vulkan) renderer wordt niet ondersteund op dit apparaat!</string>
+    <string name="mcn_exit_title" formatted="false">Applicatie/Game is afgesloten met de code %d, controleer latestlog.txt voor meer details.</string>
+    <string name="mcn_exit_confirm" formatted="false">Weet je zeker dat je sluiting wilt forceren?</string>
+    <string name="mcn_check_fail_vulkan_support" formatted="false">Zink (Vulkan) renderer wordt niet ondersteund op dit apparaat!</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat">Chat</string>
-    <string name="control_debug">Foutoplossing</string>
-    <string name="control_primary">Pri</string>
-    <string name="control_secondary">Sec</string>
-    <string name="control_shift">◇</string>
-    <string name="control_inventory">Inv</string>
-    <string name="control_up">▲</string>
-    <string name="control_left">◀</string>
-    <string name="control_right">▶</string>
-    <string name="control_down">▼</string>
-    <string name="control_jump">⬛</string>
-    <string name="control_thirdperson">3de</string>
-    <string name="control_listplayers">Tab</string>
-    <string name="control_mouse">Muis</string>
-    <string name="control_mouseoff">Mouse: uit</string>
-    <string name="control_mouseon">Mouse: aan </string>
+    <string name="control_chat" formatted="false">Chat</string>
+    <string name="control_debug" formatted="false">Foutoplossing</string>
+    <string name="control_primary" formatted="false">Pri</string>
+    <string name="control_secondary" formatted="false">Sec</string>
+    <string name="control_shift" formatted="false">◇</string>
+    <string name="control_inventory" formatted="false">Inv</string>
+    <string name="control_up" formatted="false">▲</string>
+    <string name="control_left" formatted="false">◀</string>
+    <string name="control_right" formatted="false">▶</string>
+    <string name="control_down" formatted="false">▼</string>
+    <string name="control_jump" formatted="false">⬛</string>
+    <string name="control_thirdperson" formatted="false">3de</string>
+    <string name="control_listplayers" formatted="false">Tab</string>
+    <string name="control_mouse" formatted="false">Muis</string>
+    <string name="control_mouseoff" formatted="false">Mouse: uit</string>
+    <string name="control_mouseon" formatted="false">Mouse: aan </string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose">Geforceerd sluiten</string>
-    <string name="control_viewout">Logboek output</string>
-    <string name="control_adebug">Input Debug</string>
-    <string name="control_customkey">Verstuur aangepaste sleutelcode</string>
+    <string name="control_forceclose" formatted="false">Geforceerd sluiten</string>
+    <string name="control_viewout" formatted="false">Logboek output</string>
+    <string name="control_adebug" formatted="false">Input Debug</string>
+    <string name="control_customkey" formatted="false">Verstuur aangepaste sleutelcode</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label">Besturing importeren</string>
-    <string name="import_control_invalid_file">Ongeldig of corrupt bestand</string>
-    <string name="import_control_import_button">besturing importeren</string>
-    <string name="import_control_verifying_file">Bestand wordt geverifieerd, wacht even en probeer het opnieuw…</string>
-    <string name="import_control_invalid_name">Ongeldige naam of bestand bestaat al</string>
-    <string name="import_control_done">Importeren voltooid</string>
+    <string name="import_control_label" formatted="false">Besturing importeren</string>
+    <string name="import_control_invalid_file" formatted="false">Ongeldig of corrupt bestand</string>
+    <string name="import_control_import_button" formatted="false">besturing importeren</string>
+    <string name="import_control_verifying_file" formatted="false">Bestand wordt geverifieerd, wacht even en probeer het opnieuw…</string>
+    <string name="import_control_invalid_name" formatted="false">Ongeldige naam of bestand bestaat al</string>
+    <string name="import_control_done" formatted="false">Importeren voltooid</string>
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="customctrl_toggle">Omschakelbaar</string>
-    <string name="customctrl_size">Grootte</string>
-    <string name="customctrl_mapping">Koppelen</string>
-    <string name="customctrl_orientation">Oriëntatie</string>
-    <string name="customctrl_background_color">Achtergrondkleur</string>
-    <string name="customctrl_corner_radius">Hoek radius</string>
-    <string name="customctrl_stroke_width">Lijndikte</string>
-    <string name="customctrl_stroke_color">Lijnkleur</string>
-    <string name="customctrl_button_opacity">Doorzichtigheid van knop</string>
-    <string name="customctrl_addbutton">Knop toevoegen</string>
-    <string name="customctrl_addbutton_drawer">Voeg een knoppen menu toe</string>
-    <string name="customctrl_addbutton_joystick">Joystick toevoegen</string>
-    <string name="customctrl_addsubbutton">Subknop toevoegen</string>
-    <string name="customctrl_selectdefault">Selecteer standaard controlmap</string>
-    <string name="customctrl_export">Exporteer controlmap</string>
-    <string name="main_share_logs">Logbestand delen</string>
-    <string name="main_install_jar_file">Een .jar bestand uitvoeren</string>
-    <string name="main_play">Speel</string>
-    <string name="autoram_info_msg">Geheugen ingesteld op %d MB</string>
-    <string name="mcl_setting_check_libraries">Bibliotheken controleren na het downloaden</string>
-    <string name="mcl_setting_check_libraries_subtitle">Deze optie zorgt ervoor dat launcher de bibliotheek hash controleert als deze beschikbaar is. Voorkomt defecte downloads.</string>
-    <string name="dl_library_sha_fail">Bibliotheek %s is beschadigd en zal opnieuw worden gedownload</string>
-    <string name="dl_library_sha_unknown">Bibliotheek %s kan niet worden gecontroleerd, we nemen aan dat het goed is</string>
-    <string name="dl_library_sha_pass">Bibliotheek %s is prima en bruikbaar</string>
-    <string name="mcl_disable_gestures">Gebaren uitschakelen</string>
-    <string name="mcl_disable_gestures_subtitle">Schakelt gebaren uit, zoals vasthouden om blok te breken en tikken om een blok te plaatsen.</string>
-    <string name="mcl_disable_swap_hand">Dubbel tikken om van handen te wisselen uitschakelen</string>
-    <string name="mcl_disable_swap_hand_subtitle">Schakelt dubbelklikken op een hotbar voorwerp uit om het met de tweede hand te verwisselen.</string>
-    <string name="mcl_setting_title_mousespeed">Muis Snelheid</string>
-    <string name="mcl_setting_subtitle_mousespeed">Veranderd de snelheid van de virtuele muis.</string>
-    <string name="customctrl_passthru">Muis pass-thru</string>
-    <string name="customctrl_swipeable">Sleepbaar</string>
-    <string name="customctrl_forward_lock">Vooruit vergrendelen</string>
-    <string name="customctrl_absolute_tracking">Absolute vingertracking</string>
-    <string formatted="false" name="memory_warning_msg" formatted="false">De huidige hoeveelheid vrije RAM (%d) is lager dan toegewezen RAM (%d), wat kan leiden tot crashes. Verander de toewijzing als het spel crasht.</string>
-    <string name="mcl_memory_allocation">Geheugen toewijzen</string>
-    <string name="mcl_memory_allocation_subtitle">Bepaalt hoeveel werkgeheugen er aan Minecraft wordt gegeven.</string>
-    <string name="multirt_runtime_corrupt">Corrupte Java Runtime</string>
-    <string name="multirt_runtime_incompatiblearch">Incompatibele architectuur: %s</string>
-    <string name="multirt_config_title">Java Runtimes</string>
-    <string name="multirt_config_add">Nieuwe toevoegen</string>
-    <string name="multirt_title">Runtime Beheerder</string>
-    <string name="multirt_subtitle">Beheer geïnstalleerd Java runtimes.</string>
-    <string name="multirt_progress_caching">Cache gegevens laden...</string>
-    <string name="multirt_config_setdefault">Zet standaard</string>
-    <string name="multirt_config_setdefault_already">Standaard</string>
-    <string name="multirt_config_removeerror_last">Je moet minstens één Java Runtime geïnstalleerd hebben.</string>
-    <string name="multirt_nojava8rt">We kunnen geen Java 8 vinden.</string>
-    <string name="multirt_delete_runtime">Verwijder runtime</string>
-    <string name="pvc_jvmArgs">JVM argumenten</string>
-    <string name="preference_mouse_start_title">Start met een virtuele muis op</string>
-    <string name="preference_mouse_start_description">De virtuele muis verschijnt bij het opstarten wanneer deze optie ingeschakeld is.</string>
-    <string name="preference_video_title">Video en renderer</string>
-    <string name="preference_video_description">Resolutie, renderer en prestaties</string>
-    <string name="preference_control_title">Controle aanpassingen</string>
-    <string name="preference_control_description">Gebaren, knoppen en schaal</string>
-    <string name="preference_java_title">Java Tweaks</string>
-    <string name="preference_java_description">Java Runtimes, JVM Argumenten, RAM hoeveelheid en sandbox</string>
-    <string name="preference_misc_title">Overige instellingen</string>
-    <string name="preference_misc_description">Versielijst en bibliotheken controleren</string>
-    <string name="preference_experimental_title">Experimentele dingen</string>
-    <string name="preference_experimental_description">Gebruik dingen daar met aandacht, er is geen support voor beschikbaar</string>
-    <string name="preference_sustained_performance_title">geblancerende prestatiemodus inschakelen</string>
-    <string name="preference_sustained_performance_description">Limiteer thermische beperking door het beperken van piekprestaties.</string>
-    <string name="preference_force_vsync_title">Forceer het inschakelen van VSync</string>
-    <string name="preference_force_vsync_description">Limiteer thermische beperking door het beperken van piekprestaties.</string>
-    <string name="preference_force_english_title">Forceer de taal naar Engels</string>
-    <string name="preference_force_english_description">Maakt het mogelijk om originele tekenreeksen te zien, zoals bedoeld door ontwikkelaars. Vereist een herstart.</string>
-    <string name="preference_edit_controls_title">Aangepaste besturing bewerken</string>
-    <string name="preference_edit_controls_summary">Pas het controleschema aan aan uw behoeften aan.</string>
-    <string name="preference_category_gyro_controls">Gyroscoop besturing</string>
-    <string name="preference_gyro_invert_x_axis">X-as omkeren</string>
-    <string name="preference_gyro_invert_y_axis">Y-as omkeren</string>
-    <string name="preference_gyro_invert_x_axis_description">De horizontale as omkeren.</string>
-    <string name="preference_gyro_invert_y_axis_description">De verticale as omkeren.</string>
-    <string name="preference_gyro_smoothing_title">Activeer vloeiende gyroscoop besturing</string>
-    <string name="preference_back_title">Terug naar het laatste scherm</string>
-    <string name="unnamed">Naamloos</string>
-    <string name="profiles_latest_snapshot">Laatste Snapshot</string>
-    <string name="profiles_latest_release">Nieuwste stabiele versie</string>
-    <string name="profiles_profile_name">Naam</string>
-    <string name="profiles_profile_version">Versie</string>
-    <string name="global_delete">Verwijder</string>
-    <string name="pedit_java_runtime">Java Runtime</string>
-    <string name="pedit_renderer">Renderer</string>
-    <string name="notif_channel_name">Algemeen</string>
-    <string name="lazy_service_default_title">Fear voorgrond Service</string>
-    <string name="use_global_default">(Gebruik globale standaardwaarde)</string>
-    <string name="default_control">Standaard controlmap</string>
-    <string name="progresslayout_tasks_in_progress">%d taken in uitvoering</string>
-    <string name="notification_terminate">Afbreken</string>
-    <string name="notification_game_runs">Het spel is bezig!</string>
-    <string name="folder_dialog_create">Aanmaken</string>
-    <string name="folder_dialog_insert_name">Mapnaam invoegen</string>
-    <string name="folder_fragment_create">Map maken</string>
-    <string name="folder_fragment_select">Map selecteren</string>
-    <string name="main_login_done">Inloggen voltooid</string>
-    <string name="main_add_account">Account toevoegen</string>
-    <string name="tasks_ongoing">Taken zijn bezig, even geduld alstublieft</string>
-    <string name="no_saved_accounts">Geen opgeslagen accounts</string>
-    <string name="mc_download_failed">Het downloaden van Minecraft is mislukt! Dit kan worden veroorzaakt door een slechte netwerkverbinding, verkeerd geplaatste bestanden, enz..</string>
-    <string name="xerr_unknown">Onbekende Xbox Live API fout %d</string>
-    <string name="xerr_no_account">Het lijkt erop dat je geen Xbox Live-account hebt. Log een keer in op https://minecraft.net/ en probeer het opnieuw.</string>
-    <string name="xerr_adult_verification">Een volwassene moet je account verifiëren.</string>
-    <string name="xerr_child">Je account is een kind account en moet worden toegevoegd aan een Familie om in te loggen.</string>
-    <string name="minecraft_not_owned">Het lijkt erop dat deze account geen Minecraft-profiel heeft. Als je Xbox Game Pass hebt, log dan in op https://minecraft.net/ en stel het in.</string>
-    <string name="xerr_not_available">Xbox Live is niet beschikbaar in jouw land</string>
-    <string name="preference_enable_gyro_title">Zet gyroscoop besturing aan</string>
-    <string name="preference_enable_gyro_description">Door dit in te schakelen kan je in-game inschakelen door je telefoon om te draaien.</string>
-    <string name="preference_gyro_sensitivity_title">Gyroscoop bediening gevoeligheid</string>
-    <string name="preference_gyro_sensitivity_description">Pas de gevoeligheid van gyroscoop aan.</string>
-    <string name="toast_turn_on_gyro">Schakel gyroscoop eerst in om dit te gebruiken!</string>
-    <string name="of_dl_progress">Downloaden %s</string>
-    <string name="generic_debug">Foutoplossing</string>
-    <string name="search_modpack_no_result">Geen modpacks gevonden</string>
-    <string name="search_modpack_error">Kan modpacks niet vinden</string>
-    <string name="search_modpack_download_error">Downloaden van modpack metadata mislukt</string>
+    <string name="customctrl_toggle" formatted="false">Omschakelbaar</string>
+    <string name="customctrl_size" formatted="false">Grootte</string>
+    <string name="customctrl_mapping" formatted="false">Koppelen</string>
+    <string name="customctrl_orientation" formatted="false">Oriëntatie</string>
+    <string name="customctrl_background_color" formatted="false">Achtergrondkleur</string>
+    <string name="customctrl_corner_radius" formatted="false">Hoek radius</string>
+    <string name="customctrl_stroke_width" formatted="false">Lijndikte</string>
+    <string name="customctrl_stroke_color" formatted="false">Lijnkleur</string>
+    <string name="customctrl_button_opacity" formatted="false">Doorzichtigheid van knop</string>
+    <string name="customctrl_addbutton" formatted="false">Knop toevoegen</string>
+    <string name="customctrl_addbutton_drawer" formatted="false">Voeg een knoppen menu toe</string>
+    <string name="customctrl_addbutton_joystick" formatted="false">Joystick toevoegen</string>
+    <string name="customctrl_addsubbutton" formatted="false">Subknop toevoegen</string>
+    <string name="customctrl_selectdefault" formatted="false">Selecteer standaard controlmap</string>
+    <string name="customctrl_export" formatted="false">Exporteer controlmap</string>
+    <string name="main_share_logs" formatted="false">Logbestand delen</string>
+    <string name="main_install_jar_file" formatted="false">Een .jar bestand uitvoeren</string>
+    <string name="main_play" formatted="false">Speel</string>
+    <string name="autoram_info_msg" formatted="false">Geheugen ingesteld op %d MB</string>
+    <string name="mcl_setting_check_libraries" formatted="false">Bibliotheken controleren na het downloaden</string>
+    <string name="mcl_setting_check_libraries_subtitle" formatted="false">Deze optie zorgt ervoor dat launcher de bibliotheek hash controleert als deze beschikbaar is. Voorkomt defecte downloads.</string>
+    <string name="dl_library_sha_fail" formatted="false">Bibliotheek %s is beschadigd en zal opnieuw worden gedownload</string>
+    <string name="dl_library_sha_unknown" formatted="false">Bibliotheek %s kan niet worden gecontroleerd, we nemen aan dat het goed is</string>
+    <string name="dl_library_sha_pass" formatted="false">Bibliotheek %s is prima en bruikbaar</string>
+    <string name="mcl_disable_gestures" formatted="false">Gebaren uitschakelen</string>
+    <string name="mcl_disable_gestures_subtitle" formatted="false">Schakelt gebaren uit, zoals vasthouden om blok te breken en tikken om een blok te plaatsen.</string>
+    <string name="mcl_disable_swap_hand" formatted="false">Dubbel tikken om van handen te wisselen uitschakelen</string>
+    <string name="mcl_disable_swap_hand_subtitle" formatted="false">Schakelt dubbelklikken op een hotbar voorwerp uit om het met de tweede hand te verwisselen.</string>
+    <string name="mcl_setting_title_mousespeed" formatted="false">Muis Snelheid</string>
+    <string name="mcl_setting_subtitle_mousespeed" formatted="false">Veranderd de snelheid van de virtuele muis.</string>
+    <string name="customctrl_passthru" formatted="false">Muis pass-thru</string>
+    <string name="customctrl_swipeable" formatted="false">Sleepbaar</string>
+    <string name="customctrl_forward_lock" formatted="false">Vooruit vergrendelen</string>
+    <string name="customctrl_absolute_tracking" formatted="false">Absolute vingertracking</string>
+    <string name="memory_warning_msg" formatted="false">De huidige hoeveelheid vrije RAM (%d) is lager dan toegewezen RAM (%d), wat kan leiden tot crashes. Verander de toewijzing als het spel crasht.</string>
+    <string name="mcl_memory_allocation" formatted="false">Geheugen toewijzen</string>
+    <string name="mcl_memory_allocation_subtitle" formatted="false">Bepaalt hoeveel werkgeheugen er aan Minecraft wordt gegeven.</string>
+    <string name="multirt_runtime_corrupt" formatted="false">Corrupte Java Runtime</string>
+    <string name="multirt_runtime_incompatiblearch" formatted="false">Incompatibele architectuur: %s</string>
+    <string name="multirt_config_title" formatted="false">Java Runtimes</string>
+    <string name="multirt_config_add" formatted="false">Nieuwe toevoegen</string>
+    <string name="multirt_title" formatted="false">Runtime Beheerder</string>
+    <string name="multirt_subtitle" formatted="false">Beheer geïnstalleerd Java runtimes.</string>
+    <string name="multirt_progress_caching" formatted="false">Cache gegevens laden...</string>
+    <string name="multirt_config_setdefault" formatted="false">Zet standaard</string>
+    <string name="multirt_config_setdefault_already" formatted="false">Standaard</string>
+    <string name="multirt_config_removeerror_last" formatted="false">Je moet minstens één Java Runtime geïnstalleerd hebben.</string>
+    <string name="multirt_nojava8rt" formatted="false">We kunnen geen Java 8 vinden.</string>
+    <string name="multirt_delete_runtime" formatted="false">Verwijder runtime</string>
+    <string name="pvc_jvmArgs" formatted="false">JVM argumenten</string>
+    <string name="preference_mouse_start_title" formatted="false">Start met een virtuele muis op</string>
+    <string name="preference_mouse_start_description" formatted="false">De virtuele muis verschijnt bij het opstarten wanneer deze optie ingeschakeld is.</string>
+    <string name="preference_video_title" formatted="false">Video en renderer</string>
+    <string name="preference_video_description" formatted="false">Resolutie, renderer en prestaties</string>
+    <string name="preference_control_title" formatted="false">Controle aanpassingen</string>
+    <string name="preference_control_description" formatted="false">Gebaren, knoppen en schaal</string>
+    <string name="preference_java_title" formatted="false">Java Tweaks</string>
+    <string name="preference_java_description" formatted="false">Java Runtimes, JVM Argumenten, RAM hoeveelheid en sandbox</string>
+    <string name="preference_misc_title" formatted="false">Overige instellingen</string>
+    <string name="preference_misc_description" formatted="false">Versielijst en bibliotheken controleren</string>
+    <string name="preference_experimental_title" formatted="false">Experimentele dingen</string>
+    <string name="preference_experimental_description" formatted="false">Gebruik dingen daar met aandacht, er is geen support voor beschikbaar</string>
+    <string name="preference_sustained_performance_title" formatted="false">geblancerende prestatiemodus inschakelen</string>
+    <string name="preference_sustained_performance_description" formatted="false">Limiteer thermische beperking door het beperken van piekprestaties.</string>
+    <string name="preference_force_vsync_title" formatted="false">Forceer het inschakelen van VSync</string>
+    <string name="preference_force_vsync_description" formatted="false">Limiteer thermische beperking door het beperken van piekprestaties.</string>
+    <string name="preference_force_english_title" formatted="false">Forceer de taal naar Engels</string>
+    <string name="preference_force_english_description" formatted="false">Maakt het mogelijk om originele tekenreeksen te zien, zoals bedoeld door ontwikkelaars. Vereist een herstart.</string>
+    <string name="preference_edit_controls_title" formatted="false">Aangepaste besturing bewerken</string>
+    <string name="preference_edit_controls_summary" formatted="false">Pas het controleschema aan aan uw behoeften aan.</string>
+    <string name="preference_category_gyro_controls" formatted="false">Gyroscoop besturing</string>
+    <string name="preference_gyro_invert_x_axis" formatted="false">X-as omkeren</string>
+    <string name="preference_gyro_invert_y_axis" formatted="false">Y-as omkeren</string>
+    <string name="preference_gyro_invert_x_axis_description" formatted="false">De horizontale as omkeren.</string>
+    <string name="preference_gyro_invert_y_axis_description" formatted="false">De verticale as omkeren.</string>
+    <string name="preference_gyro_smoothing_title" formatted="false">Activeer vloeiende gyroscoop besturing</string>
+    <string name="preference_back_title" formatted="false">Terug naar het laatste scherm</string>
+    <string name="unnamed" formatted="false">Naamloos</string>
+    <string name="profiles_latest_snapshot" formatted="false">Laatste Snapshot</string>
+    <string name="profiles_latest_release" formatted="false">Nieuwste stabiele versie</string>
+    <string name="profiles_profile_name" formatted="false">Naam</string>
+    <string name="profiles_profile_version" formatted="false">Versie</string>
+    <string name="global_delete" formatted="false">Verwijder</string>
+    <string name="pedit_java_runtime" formatted="false">Java Runtime</string>
+    <string name="pedit_renderer" formatted="false">Renderer</string>
+    <string name="notif_channel_name" formatted="false">Algemeen</string>
+    <string name="lazy_service_default_title" formatted="false">Fear voorgrond Service</string>
+    <string name="use_global_default" formatted="false">(Gebruik globale standaardwaarde)</string>
+    <string name="default_control" formatted="false">Standaard controlmap</string>
+    <string name="progresslayout_tasks_in_progress" formatted="false">%d taken in uitvoering</string>
+    <string name="notification_terminate" formatted="false">Afbreken</string>
+    <string name="notification_game_runs" formatted="false">Het spel is bezig!</string>
+    <string name="folder_dialog_create" formatted="false">Aanmaken</string>
+    <string name="folder_dialog_insert_name" formatted="false">Mapnaam invoegen</string>
+    <string name="folder_fragment_create" formatted="false">Map maken</string>
+    <string name="folder_fragment_select" formatted="false">Map selecteren</string>
+    <string name="main_login_done" formatted="false">Inloggen voltooid</string>
+    <string name="main_add_account" formatted="false">Account toevoegen</string>
+    <string name="tasks_ongoing" formatted="false">Taken zijn bezig, even geduld alstublieft</string>
+    <string name="no_saved_accounts" formatted="false">Geen opgeslagen accounts</string>
+    <string name="mc_download_failed" formatted="false">Het downloaden van Minecraft is mislukt! Dit kan worden veroorzaakt door een slechte netwerkverbinding, verkeerd geplaatste bestanden, enz..</string>
+    <string name="xerr_unknown" formatted="false">Onbekende Xbox Live API fout %d</string>
+    <string name="xerr_no_account" formatted="false">Het lijkt erop dat je geen Xbox Live-account hebt. Log een keer in op https://minecraft.net/ en probeer het opnieuw.</string>
+    <string name="xerr_adult_verification" formatted="false">Een volwassene moet je account verifiëren.</string>
+    <string name="xerr_child" formatted="false">Je account is een kind account en moet worden toegevoegd aan een Familie om in te loggen.</string>
+    <string name="minecraft_not_owned" formatted="false">Het lijkt erop dat deze account geen Minecraft-profiel heeft. Als je Xbox Game Pass hebt, log dan in op https://minecraft.net/ en stel het in.</string>
+    <string name="xerr_not_available" formatted="false">Xbox Live is niet beschikbaar in jouw land</string>
+    <string name="preference_enable_gyro_title" formatted="false">Zet gyroscoop besturing aan</string>
+    <string name="preference_enable_gyro_description" formatted="false">Door dit in te schakelen kan je in-game inschakelen door je telefoon om te draaien.</string>
+    <string name="preference_gyro_sensitivity_title" formatted="false">Gyroscoop bediening gevoeligheid</string>
+    <string name="preference_gyro_sensitivity_description" formatted="false">Pas de gevoeligheid van gyroscoop aan.</string>
+    <string name="toast_turn_on_gyro" formatted="false">Schakel gyroscoop eerst in om dit te gebruiken!</string>
+    <string name="of_dl_progress" formatted="false">Downloaden %s</string>
+    <string name="generic_debug" formatted="false">Foutoplossing</string>
+    <string name="search_modpack_no_result" formatted="false">Geen modpacks gevonden</string>
+    <string name="search_modpack_error" formatted="false">Kan modpacks niet vinden</string>
+    <string name="search_modpack_download_error" formatted="false">Downloaden van modpack metadata mislukt</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Mods downloaden (%.2f MB / %.2f MB)</string>
-    <string formatted="false" name="modpack_download_downloading_mods_fc">Mods downloaden (File %d van de %d)</string>
-    <string formatted="false" name="modpack_download_applying_overrides">Toepassen van overrides (%d/%d)</string>
-    <string name="modpack_install_notification_title">Fear Modpack Installer</string>
-    <string name="modpack_install_notification_success">Klik hier om de installatie van modpack te voltooien</string>
-    <string name="modpack_install_notification_data_not_available">Downloaden van mod loader gegevens mislukt</string>
-    <string name="modpack_install_modloader_download_failed">Downloaden van mod laader bestanden mislukt</string>
-    <string name="modpack_install_download_failed">Fout bij het downloaden van modpack bestanden</string>
-    <string name="notif_error_occured">Er is een fout opgetreden</string>
-    <string name="notif_error_occured_desc">Klik voor meer details</string>
-    <string name="fabric_dl_only_stable">Toon alleen stabiele versies</string>
-    <string name="dl_tampered_manifest_title">Waarschuwing voor bestandscontrole</string>
-    <string name="dl_tampered_manifest"><![CDATA[De spelversie op de app komt niet overeen met de officiële versie van Mojang, wat betekent dat er mogelijk aan geknoeid is.<br/>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">Mods downloaden (File %d van de %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">Toepassen van overrides (%d/%d)</string>
+    <string name="modpack_install_notification_title" formatted="false">Fear Modpack Installer</string>
+    <string name="modpack_install_notification_success" formatted="false">Klik hier om de installatie van modpack te voltooien</string>
+    <string name="modpack_install_notification_data_not_available" formatted="false">Downloaden van mod loader gegevens mislukt</string>
+    <string name="modpack_install_modloader_download_failed" formatted="false">Downloaden van mod laader bestanden mislukt</string>
+    <string name="modpack_install_download_failed" formatted="false">Fout bij het downloaden van modpack bestanden</string>
+    <string name="notif_error_occured" formatted="false">Er is een fout opgetreden</string>
+    <string name="notif_error_occured_desc" formatted="false">Klik voor meer details</string>
+    <string name="fabric_dl_only_stable" formatted="false">Toon alleen stabiele versies</string>
+    <string name="dl_tampered_manifest_title" formatted="false">Waarschuwing voor bestandscontrole</string>
+    <string name="dl_tampered_manifest" formatted="false"><![CDATA[De spelversie op de app komt niet overeen met de officiële versie van Mojang, wat betekent dat er mogelijk aan geknoeid is.<br/>
         <b>Dit is niet veilig. Uw persoonlijke gegevens kunnen gevaar lopen als u doorgaat.</b><br/>
         Als je nog steeds de app wilt gebruiken, Druk op \"Uitschakelen van manifest controles\" en start de download opnieuw.<br/>
         Als u de officiële downloadbron wilt gebruiken, druk op \"Overschakelen naar officiële site\" en start de download opnieuw.<br/>]]></string>
-    <string name="dl_turn_off_manifest_checks">Zet manifest controles uit</string>
-    <string name="dl_switch_to_official_site">Overschakelen naar officiële site</string>
-    <string name="preference_download_source_title">Spel download bron</string>
-    <string name="preference_download_source_description">Selecteer een eigen download server in plaats van de officiële downloadserver te gebruiken</string>
-    <string name="preference_verify_manifest_title">Verifieer het spel versie manifest</string>
-    <string name="preference_verify_manifest_description">Wanneer ingeschakeld, zal de launcher het spel manifest controleren samen met de bibliotheken.</string>
-    <string name="notif_download_finished">Het spel is klaar om te starten</string>
-    <string name="notif_download_finished_desc">Klik hier om te starten!</string>
-    <string name="preference_category_gestures">Gebaren</string>
-    <string name="preference_category_buttons">Knoppen</string>
-    <string name="preference_category_experimental_settings">Experimentele dingen</string>
-    <string name="preference_category_java_tweaks">Java Tweaks</string>
-    <string name="preference_category_main_categories">Categorieën</string>
-    <string name="preference_category_miscellaneous">Overige instellingen</string>
-    <string name="preference_category_video">Video-instellingen</string>
-    <string name="notification_permission_dialog_title">Verzoek om toestemming</string>
-    <string name="notification_permission_dialog_text">FearLauncher heeft toestemming nodig om meldingen te plaatsen om te voorkomen dat downloads van game/modpack stoppen wanneer je de app verlaat. Zonder deze toestemming kan Android je downloads afsluiten als je FearLauncher in de achtergrondmodus plaatst.</string>
-    <string name="notification_permission_toast">U kunt later altijd van gedachten veranderen door naar Instellingen te gaan</string>
-    <string name="preference_ask_for_notification_title">Meldingen toestaan</string>
-    <string name="preference_ask_for_notification_description">Klik om de meldingsmachtiging opnieuw op te vragen, vereist voor game/modpack achtergrond downloads om correct te werken.</string>
-    <string name="preference_vsync_in_zink_title">V-Sync met Zink toestaan</string>
-    <string name="preference_vsync_in_zink_description">Hiermee kan de launcher interne systeem API\'s gebruiken om V-Sync voor Zink in te schakelen. Schakel dit uit als je launcher ineens crasht met Zink na een systeemupdate.</string>
-    <string name="exception_failed_to_unpack_jre17">Installatie van JRE 17 mislukt</string>
-    <string name="newdl_starting">Metadata van het spel lezen…</string>
-    <string name="newdl_downloading_metadata">Spelmetagegevens downloaden (%s)</string>
-    <string name="controller_button_select">Selecteer</string>
+    <string name="dl_turn_off_manifest_checks" formatted="false">Zet manifest controles uit</string>
+    <string name="dl_switch_to_official_site" formatted="false">Overschakelen naar officiële site</string>
+    <string name="preference_download_source_title" formatted="false">Spel download bron</string>
+    <string name="preference_download_source_description" formatted="false">Selecteer een eigen download server in plaats van de officiële downloadserver te gebruiken</string>
+    <string name="preference_verify_manifest_title" formatted="false">Verifieer het spel versie manifest</string>
+    <string name="preference_verify_manifest_description" formatted="false">Wanneer ingeschakeld, zal de launcher het spel manifest controleren samen met de bibliotheken.</string>
+    <string name="notif_download_finished" formatted="false">Het spel is klaar om te starten</string>
+    <string name="notif_download_finished_desc" formatted="false">Klik hier om te starten!</string>
+    <string name="preference_category_gestures" formatted="false">Gebaren</string>
+    <string name="preference_category_buttons" formatted="false">Knoppen</string>
+    <string name="preference_category_experimental_settings" formatted="false">Experimentele dingen</string>
+    <string name="preference_category_java_tweaks" formatted="false">Java Tweaks</string>
+    <string name="preference_category_main_categories" formatted="false">Categorieën</string>
+    <string name="preference_category_miscellaneous" formatted="false">Overige instellingen</string>
+    <string name="preference_category_video" formatted="false">Video-instellingen</string>
+    <string name="notification_permission_dialog_title" formatted="false">Verzoek om toestemming</string>
+    <string name="notification_permission_dialog_text" formatted="false">FearLauncher heeft toestemming nodig om meldingen te plaatsen om te voorkomen dat downloads van game/modpack stoppen wanneer je de app verlaat. Zonder deze toestemming kan Android je downloads afsluiten als je FearLauncher in de achtergrondmodus plaatst.</string>
+    <string name="notification_permission_toast" formatted="false">U kunt later altijd van gedachten veranderen door naar Instellingen te gaan</string>
+    <string name="preference_ask_for_notification_title" formatted="false">Meldingen toestaan</string>
+    <string name="preference_ask_for_notification_description" formatted="false">Klik om de meldingsmachtiging opnieuw op te vragen, vereist voor game/modpack achtergrond downloads om correct te werken.</string>
+    <string name="preference_vsync_in_zink_title" formatted="false">V-Sync met Zink toestaan</string>
+    <string name="preference_vsync_in_zink_description" formatted="false">Hiermee kan de launcher interne systeem API\'s gebruiken om V-Sync voor Zink in te schakelen. Schakel dit uit als je launcher ineens crasht met Zink na een systeemupdate.</string>
+    <string name="exception_failed_to_unpack_jre17" formatted="false">Installatie van JRE 17 mislukt</string>
+    <string name="newdl_starting" formatted="false">Metadata van het spel lezen…</string>
+    <string name="newdl_downloading_metadata" formatted="false">Spelmetagegevens downloaden (%s)</string>
+    <string name="controller_button_select" formatted="false">Selecteer</string>
 </resources>

@@ -1,141 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">FearLauncher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label">Log masuk</string>
+    <string name="login_online_login_label" formatted="false">Log masuk</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account">Akaun ini akan dihapus!</string>
+    <string name="warning_remove_account" formatted="false">Akaun ini akan dihapus!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod">Pilih sebuah pemasang mod</string>
+    <string name="alerttitle_installmod" formatted="false">Pilih sebuah pemasang mod</string>
     <!-- Error messages -->
-    <string name="error_fatal">FearLauncher terhenti tanpa diduga</string>
-    <string name="error_no_version">Tiada versi!</string>
-    <string name="error_show_more">Tunjuk lebih banyak</string>
-    <string name="error_show_less">Tunjuk lebih sedikit</string>
+    <string name="error_fatal" formatted="false">FearLauncher terhenti tanpa diduga</string>
+    <string name="error_no_version" formatted="false">Tiada versi!</string>
+    <string name="error_show_more" formatted="false">Tunjuk lebih banyak</string>
+    <string name="error_show_less" formatted="false">Tunjuk lebih sedikit</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied">Kebenaran untuk membaca/menulis kepada storan diperlukan!</string>
-    <string name="toast_optifine_success">Pemasangan berjaya</string>
+    <string name="toast_permission_denied" formatted="false">Kebenaran untuk membaca/menulis kepada storan diperlukan!</string>
+    <string name="toast_optifine_success" formatted="false">Pemasangan berjaya</string>
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki">Wiki</string>
+    <string name="mcl_tab_wiki" formatted="false">Wiki</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache">Membersihkan fail cache</string>
-    <string name="mcl_launch_downloading">Memuat turun %s</string>
+    <string name="mcl_launch_cleancache" formatted="false">Membersihkan fail cache</string>
+    <string name="mcl_launch_downloading" formatted="false">Memuat turun %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"Memuat turun %s (%.2f MB / %.2f MB)"</string>
-    <string name="mcl_launch_download_assets">Bersedia untuk memuat turun sumber</string>
-    <string name="mcl_options">Pilihan</string>
-    <string name="mcl_option_customcontrol">Kawalan custom</string>
-    <string name="mcl_setting_title_use_surface_view">Gunakan pemaparan permukaan ganti</string>
-    <string name="mcl_setting_title_ignore_notch">Abaikan takik</string>
-    <string name="mcl_setting_title_resolution_scaler">Pengskala Resolusi</string>
-    <string name="mcl_setting_title_buttonscale">Skala butang kawalan</string>
-    <string name="mcl_setting_title_mousescale">Skala tetikus</string>
-    <string name="mcl_setting_title_javaargs">JVM Launch arguments</string>
-    <string name="mcl_setting_subtitle_javaargs">Berhati-hati, ini mungkin menyebabkan permainan menjadi ranap jika diubah tanpa pengetahuan.</string>
-    <string name="mcl_setting_category_renderer">Renderer</string>
-    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - (semua versi, pantas)</string>
-    <string name="mcl_setting_veroption_release">Rilis</string>
-    <string name="mcl_setting_veroption_snapshot">Petikan</string>
-    <string name="mcl_setting_veroption_oldalpha">Alfa-lama</string>
-    <string name="mcl_setting_veroption_oldbeta">Beta-lama</string>
-    <string name="mcl_version_clone">Klon</string>
+    <string name="mcl_launch_download_assets" formatted="false">Bersedia untuk memuat turun sumber</string>
+    <string name="mcl_options" formatted="false">Pilihan</string>
+    <string name="mcl_option_customcontrol" formatted="false">Kawalan custom</string>
+    <string name="mcl_setting_title_use_surface_view" formatted="false">Gunakan pemaparan permukaan ganti</string>
+    <string name="mcl_setting_title_ignore_notch" formatted="false">Abaikan takik</string>
+    <string name="mcl_setting_title_resolution_scaler" formatted="false">Pengskala Resolusi</string>
+    <string name="mcl_setting_title_buttonscale" formatted="false">Skala butang kawalan</string>
+    <string name="mcl_setting_title_mousescale" formatted="false">Skala tetikus</string>
+    <string name="mcl_setting_title_javaargs" formatted="false">JVM Launch arguments</string>
+    <string name="mcl_setting_subtitle_javaargs" formatted="false">Berhati-hati, ini mungkin menyebabkan permainan menjadi ranap jika diubah tanpa pengetahuan.</string>
+    <string name="mcl_setting_category_renderer" formatted="false">Renderer</string>
+    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy GL4ES - (semua versi, pantas)</string>
+    <string name="mcl_setting_veroption_release" formatted="false">Rilis</string>
+    <string name="mcl_setting_veroption_snapshot" formatted="false">Petikan</string>
+    <string name="mcl_setting_veroption_oldalpha" formatted="false">Alfa-lama</string>
+    <string name="mcl_setting_veroption_oldbeta" formatted="false">Beta-lama</string>
+    <string name="mcl_version_clone" formatted="false">Klon</string>
     <!-- Global strings -->
-    <string name="global_edit">Sunting</string>
-    <string name="global_error">Ralat</string>
-    <string name="global_load">Memuat</string>
-    <string name="global_name">Nama</string>
-    <string name="global_remove">Hapus</string>
-    <string name="global_clone">Klon</string>
-    <string name="global_restart">Mula Semula</string>
-    <string name="global_save">Simpan</string>
-    <string name="global_unpacking">Menyahpek %s</string>
-    <string name="global_error_field_empty">Medan ini tidak boleh dibiarkan kosong</string>
-    <string name="global_waiting">Tunggu</string>
-    <string name="global_default">Lalai</string>
+    <string name="global_edit" formatted="false">Sunting</string>
+    <string name="global_error" formatted="false">Ralat</string>
+    <string name="global_load" formatted="false">Memuat</string>
+    <string name="global_name" formatted="false">Nama</string>
+    <string name="global_remove" formatted="false">Hapus</string>
+    <string name="global_clone" formatted="false">Klon</string>
+    <string name="global_restart" formatted="false">Mula Semula</string>
+    <string name="global_save" formatted="false">Simpan</string>
+    <string name="global_unpacking" formatted="false">Menyahpek %s</string>
+    <string name="global_error_field_empty" formatted="false">Medan ini tidak boleh dibiarkan kosong</string>
+    <string name="global_waiting" formatted="false">Tunggu</string>
+    <string name="global_default" formatted="false">Lalai</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title">Aplikasi/Permainan keluar dengan kod %d, semak latestlog.txt untuk butiran lebih lanjut.</string>
-    <string name="mcn_exit_confirm">Adakah anda mahu paksa tutup aplikasi?</string>
+    <string name="mcn_exit_title" formatted="false">Aplikasi/Permainan keluar dengan kod %d, semak latestlog.txt untuk butiran lebih lanjut.</string>
+    <string name="mcn_exit_confirm" formatted="false">Adakah anda mahu paksa tutup aplikasi?</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat">Sembang</string>
-    <string name="control_debug">Nyahpepijat</string>
-    <string name="control_primary">Pri</string>
-    <string name="control_secondary">Sec</string>
-    <string name="control_shift">◇</string>
-    <string name="control_inventory">Inv</string>
-    <string name="control_up">▲</string>
-    <string name="control_left">◀</string>
-    <string name="control_right">▶</string>
-    <string name="control_down">▼</string>
-    <string name="control_thirdperson">3rd</string>
-    <string name="control_listplayers">Tab</string>
-    <string name="control_mouse">Tetikus</string>
-    <string name="control_mouseoff">Tetikus: tutup</string>
-    <string name="control_mouseon">Tetikus: buka </string>
+    <string name="control_chat" formatted="false">Sembang</string>
+    <string name="control_debug" formatted="false">Nyahpepijat</string>
+    <string name="control_primary" formatted="false">Pri</string>
+    <string name="control_secondary" formatted="false">Sec</string>
+    <string name="control_shift" formatted="false">◇</string>
+    <string name="control_inventory" formatted="false">Inv</string>
+    <string name="control_up" formatted="false">▲</string>
+    <string name="control_left" formatted="false">◀</string>
+    <string name="control_right" formatted="false">▶</string>
+    <string name="control_down" formatted="false">▼</string>
+    <string name="control_thirdperson" formatted="false">3rd</string>
+    <string name="control_listplayers" formatted="false">Tab</string>
+    <string name="control_mouse" formatted="false">Tetikus</string>
+    <string name="control_mouseoff" formatted="false">Tetikus: tutup</string>
+    <string name="control_mouseon" formatted="false">Tetikus: buka </string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose">Paksa tutup</string>
-    <string name="control_viewout">Log output</string>
-    <string name="control_adebug">Nyahpepijat Input</string>
-    <string name="control_customkey">Hantar kod kunci custom</string>
+    <string name="control_forceclose" formatted="false">Paksa tutup</string>
+    <string name="control_viewout" formatted="false">Log output</string>
+    <string name="control_adebug" formatted="false">Nyahpepijat Input</string>
+    <string name="control_customkey" formatted="false">Hantar kod kunci custom</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label">Import Kawalan</string>
-    <string name="import_control_invalid_file">Fail tidak sah atau rosak</string>
-    <string name="import_control_import_button">import kawalan</string>
-    <string name="import_control_verifying_file">Fail sedang disahkan, sila tunggu dan cuba lagi…</string>
-    <string name="import_control_invalid_name">Nama tidak sah atau fail sudah wujud</string>
-    <string name="import_control_done">Pengimportan selesai</string>
+    <string name="import_control_label" formatted="false">Import Kawalan</string>
+    <string name="import_control_invalid_file" formatted="false">Fail tidak sah atau rosak</string>
+    <string name="import_control_import_button" formatted="false">import kawalan</string>
+    <string name="import_control_verifying_file" formatted="false">Fail sedang disahkan, sila tunggu dan cuba lagi…</string>
+    <string name="import_control_invalid_name" formatted="false">Nama tidak sah atau fail sudah wujud</string>
+    <string name="import_control_done" formatted="false">Pengimportan selesai</string>
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="customctrl_toggle">Boleh Ditukar</string>
-    <string name="customctrl_size">Saiz</string>
-    <string name="customctrl_mapping">Pemetaan</string>
-    <string name="customctrl_orientation">Orientasi</string>
-    <string name="customctrl_background_color">Warna Latar Belakang</string>
-    <string name="customctrl_button_opacity">Kelegapan Butang</string>
-    <string name="customctrl_addbutton">Tambah butang</string>
-    <string name="main_play">Main</string>
-    <string name="autoram_info_msg">Memori ditetapkan kepada %d MB</string>
-    <string name="mcl_setting_check_libraries">Periksa library selepas muat turun</string>
-    <string name="dl_library_sha_fail">Library %s ini rosak dan akan dimuat turun semula</string>
-    <string name="dl_library_sha_unknown">Library %s tidak boleh diperiksa, harus menganggap bahawa ianya baik</string>
-    <string name="dl_library_sha_pass">Library %s adalah baik dan boleh digunakan</string>
-    <string name="mcl_disable_gestures">Nyahdayakan gerak isyarat</string>
-    <string name="mcl_disable_gestures_subtitle">Menyahdayakan gerak isyarat, seperti menahan untuk menhancurkan blok, dan tekan untuk meletakkan blok.</string>
-    <string name="mcl_setting_title_mousespeed">Kecepatan Tetikus</string>
-    <string name="customctrl_passthru">Mouse pass-thru</string>
-    <string formatted="false" name="memory_warning_msg" formatted="false">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
-    <string name="mcl_memory_allocation">Peruntukan memori</string>
-    <string name="multirt_runtime_corrupt">Java Runtime Rosak</string>
-    <string name="multirt_runtime_incompatiblearch">Seni bina tidak serasi: %s</string>
-    <string name="multirt_config_setdefault">Tetapkan lalai</string>
-    <string name="multirt_config_setdefault_already">Lalai</string>
-    <string name="multirt_nojava8rt">Tidak menemui Java 8. Untuk menggunakan pilihan ini, anda perlu memasang Java 8.</string>
-    <string name="pvc_gameDirectory">Direktori permainan</string>
-    <string name="pvc_jvmArgs">Argumen JVM</string>
-    <string name="preference_misc_title">Tetapan lain-lain</string>
-    <string name="preference_experimental_title">Benda Uji Kaji</string>
-    <string name="preference_back_title">Kembali ke skrin terakhir</string>
-    <string name="unnamed">Tidak dinamakan</string>
-    <string name="profiles_latest_snapshot">Petikan Terkini</string>
-    <string name="profiles_latest_release">Terbitan terkini</string>
-    <string name="profiles_profile_name">Nama</string>
-    <string name="profiles_profile_version">Versi</string>
-    <string name="global_delete">Hapus</string>
-    <string name="pedit_java_runtime">Java Runtime</string>
-    <string name="pedit_renderer">Renderer</string>
-    <string name="notif_channel_name">Umum</string>
-    <string name="progresslayout_tasks_in_progress">%d tugas sedang dijalankan</string>
-    <string name="notification_terminate">Tamatkan</string>
-    <string name="of_dl_progress">Memuat turun %s</string>
-    <string name="generic_debug">Nyahpepijat</string>
-    <string name="preference_category_miscellaneous">Tetapan lain-lain</string>
+    <string name="customctrl_toggle" formatted="false">Boleh Ditukar</string>
+    <string name="customctrl_size" formatted="false">Saiz</string>
+    <string name="customctrl_mapping" formatted="false">Pemetaan</string>
+    <string name="customctrl_orientation" formatted="false">Orientasi</string>
+    <string name="customctrl_background_color" formatted="false">Warna Latar Belakang</string>
+    <string name="customctrl_button_opacity" formatted="false">Kelegapan Butang</string>
+    <string name="customctrl_addbutton" formatted="false">Tambah butang</string>
+    <string name="main_play" formatted="false">Main</string>
+    <string name="autoram_info_msg" formatted="false">Memori ditetapkan kepada %d MB</string>
+    <string name="mcl_setting_check_libraries" formatted="false">Periksa library selepas muat turun</string>
+    <string name="dl_library_sha_fail" formatted="false">Library %s ini rosak dan akan dimuat turun semula</string>
+    <string name="dl_library_sha_unknown" formatted="false">Library %s tidak boleh diperiksa, harus menganggap bahawa ianya baik</string>
+    <string name="dl_library_sha_pass" formatted="false">Library %s adalah baik dan boleh digunakan</string>
+    <string name="mcl_disable_gestures" formatted="false">Nyahdayakan gerak isyarat</string>
+    <string name="mcl_disable_gestures_subtitle" formatted="false">Menyahdayakan gerak isyarat, seperti menahan untuk menhancurkan blok, dan tekan untuk meletakkan blok.</string>
+    <string name="mcl_setting_title_mousespeed" formatted="false">Kecepatan Tetikus</string>
+    <string name="customctrl_passthru" formatted="false">Mouse pass-thru</string>
+    <string name="memory_warning_msg" formatted="false">Bilangan RAM yang ada (%d) lebih rendah daripada RAM yang diperuntuk (%d), yang mungkin akan menyebabkan ranap. Tukar peruntukan jikalau permainan ranap.</string>
+    <string name="mcl_memory_allocation" formatted="false">Peruntukan memori</string>
+    <string name="multirt_runtime_corrupt" formatted="false">Java Runtime Rosak</string>
+    <string name="multirt_runtime_incompatiblearch" formatted="false">Seni bina tidak serasi: %s</string>
+    <string name="multirt_config_setdefault" formatted="false">Tetapkan lalai</string>
+    <string name="multirt_config_setdefault_already" formatted="false">Lalai</string>
+    <string name="multirt_nojava8rt" formatted="false">Tidak menemui Java 8. Untuk menggunakan pilihan ini, anda perlu memasang Java 8.</string>
+    <string name="pvc_gameDirectory" formatted="false">Direktori permainan</string>
+    <string name="pvc_jvmArgs" formatted="false">Argumen JVM</string>
+    <string name="preference_misc_title" formatted="false">Tetapan lain-lain</string>
+    <string name="preference_experimental_title" formatted="false">Benda Uji Kaji</string>
+    <string name="preference_back_title" formatted="false">Kembali ke skrin terakhir</string>
+    <string name="unnamed" formatted="false">Tidak dinamakan</string>
+    <string name="profiles_latest_snapshot" formatted="false">Petikan Terkini</string>
+    <string name="profiles_latest_release" formatted="false">Terbitan terkini</string>
+    <string name="profiles_profile_name" formatted="false">Nama</string>
+    <string name="profiles_profile_version" formatted="false">Versi</string>
+    <string name="global_delete" formatted="false">Hapus</string>
+    <string name="pedit_java_runtime" formatted="false">Java Runtime</string>
+    <string name="pedit_renderer" formatted="false">Renderer</string>
+    <string name="notif_channel_name" formatted="false">Umum</string>
+    <string name="progresslayout_tasks_in_progress" formatted="false">%d tugas sedang dijalankan</string>
+    <string name="notification_terminate" formatted="false">Tamatkan</string>
+    <string name="of_dl_progress" formatted="false">Memuat turun %s</string>
+    <string name="generic_debug" formatted="false">Nyahpepijat</string>
+    <string name="preference_category_miscellaneous" formatted="false">Tetapan lain-lain</string>
 </resources>

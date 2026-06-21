@@ -1,371 +1,371 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">FearLauncher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_username_hint">اسم المستخدم</string>
-    <string name="login_online_login_label">تسجيل الدخول</string>
+    <string name="login_online_username_hint" formatted="false">اسم المستخدم</string>
+    <string name="login_online_login_label" formatted="false">تسجيل الدخول</string>
     <!-- Hint -->
-    <string name="hint_control_mapping">"أضغط على أيقونة الإعدادات في أعلى منتصف الشاشة لفتح قائمة التعديلات ⚙\nأضغط على زر للتخصيص: تغيير, تعديل الحجم، حذف، أو تعديل أزرار التحكم."</string>
+    <string name="hint_control_mapping" formatted="false">"أضغط على أيقونة الإعدادات في أعلى منتصف الشاشة لفتح قائمة التعديلات ⚙\nأضغط على زر للتخصيص: تغيير, تعديل الحجم، حذف، أو تعديل أزرار التحكم."</string>
     <!-- Warnings -->
-    <string name="warning_remove_account">سيتم إزالة هذا الحساب!</string>
+    <string name="warning_remove_account" formatted="false">سيتم إزالة هذا الحساب!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod">حدد مشغل مودات لتثبيته</string>
+    <string name="alerttitle_installmod" formatted="false">حدد مشغل مودات لتثبيته</string>
     <!-- Error messages -->
-    <string name="error_fatal">لقد توقف FearLauncher بشكل غير متوقع</string>
-    <string name="error_no_version">لا يوجد إصدار!</string>
-    <string name="error_show_more">اظهر المزيد</string>
-    <string name="error_show_less">أظهِر أقل</string>
+    <string name="error_fatal" formatted="false">لقد توقف FearLauncher بشكل غير متوقع</string>
+    <string name="error_no_version" formatted="false">لا يوجد إصدار!</string>
+    <string name="error_show_more" formatted="false">اظهر المزيد</string>
+    <string name="error_show_less" formatted="false">أظهِر أقل</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied">مطلوب إذن القراءة و الكتابة للتخزين!</string>
-    <string name="toast_optifine_success">تم التثبيت بنجاح</string>
+    <string name="toast_permission_denied" formatted="false">مطلوب إذن القراءة و الكتابة للتخزين!</string>
+    <string name="toast_optifine_success" formatted="false">تم التثبيت بنجاح</string>
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki">موسوعة</string>
+    <string name="mcl_tab_wiki" formatted="false">موسوعة</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache">تنظيف ملفات ذاكرة التخزين المؤقت</string>
-    <string name="mcl_launch_downloading">التحميل جارٍ %s</string>
+    <string name="mcl_launch_cleancache" formatted="false">تنظيف ملفات ذاكرة التخزين المؤقت</string>
+    <string name="mcl_launch_downloading" formatted="false">التحميل جارٍ %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"جارٍ تنزيل %s (%.2f ميغابايت / %.2f ميغابايت)"</string>
-    <string name="mcl_launch_download_assets">جار الاستعداد لتنزيل الموارد</string>
-    <string name="mcl_options">الخيارات</string>
-    <string name="mcl_option_customcontrol">تخصيص التحكم</string>
-    <string name="mcl_setting_title_use_surface_view">استخدام عرض الأسطح البديل</string>
-    <string name="mcl_setting_subtitle_use_surface_view">قد يساعد الأداء في سيناريوهات المعتمدة على GPU.</string>
-    <string name="mcl_setting_title_ignore_notch">تجاهل النوتش (الجزء المفقود من أعلى الشاشة قرب الكاميرا الأمامية)</string>
-    <string name="mcl_setting_subtitle_ignore_notch">تجاهل النوتش وتوسيع الشاشة أسفلها.\nيعطيك تجرِبة أكثر انغماساً.</string>
-    <string name="mcl_setting_title_resolution_scaler">مقياس الدقة</string>
-    <string name="mcl_setting_subtitle_resolution_scaler">يسمح لك بتخفيض دقة اللعبة. 100% هي الدقة الكاملة.</string>
-    <string name="mcl_setting_title_longpresstrigger">فعل التأخير للضغط المطول</string>
-    <string name="mcl_setting_subtitle_longpresstrigger">تغيير مدة \"تفعيل الضغط المطول\" عند تدمير الأشياء و إسقاط العناصر.</string>
-    <string name="mcl_setting_title_buttonscale">ضبط حجم أزرار التحكم</string>
-    <string name="mcl_setting_subtitle_buttonscale">كَبِر حجم الأزرار إذا كانت صغيرة جداً.</string>
-    <string name="mcl_setting_title_mousescale">ضبط حجم الفأرة</string>
-    <string name="mcl_setting_subtitle_mousescale">غير حجم مؤشر الفأرة الافتراضية.</string>
-    <string name="mcl_setting_title_javaargs">معلمات بَدْء تشغيل JVM</string>
-    <string name="mcl_setting_subtitle_javaargs">كن حذرا، تعديلها بغير علم قد يتسبب بتعطيل اللعبة.</string>
-    <string name="mcl_setting_category_renderer">عارض الرسوميات</string>
-    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - (جميع الإصدارات، سريع)</string>
-    <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - (جميع الإصدارات، متوسط)</string>
-    <string name="mcl_setting_renderer_ltw">LTW (OpenGL ES 3) - 1.17+ فقط</string>
-    <string name="mcl_setting_veroption_release">إصدار نهائي</string>
-    <string name="mcl_setting_veroption_snapshot">اللمحات \"سنابشوت\"</string>
-    <string name="mcl_setting_veroption_oldalpha">نسخ ألفا قديمة</string>
-    <string name="mcl_setting_veroption_oldbeta">نسخ بيتا قديمة</string>
-    <string name="mcl_setting_java_sandbox">تنفيذ ملف \".jar\" داخل Sandbox</string>
-    <string name="mcl_setting_java_sandbox_subtitle">التحكم بقدرة وجود Sandbox Security Manger عند تشغيل مِلَفّ .jar.</string>
-    <string name="mcl_version_clone">نسخ</string>
+    <string name="mcl_launch_download_assets" formatted="false">جار الاستعداد لتنزيل الموارد</string>
+    <string name="mcl_options" formatted="false">الخيارات</string>
+    <string name="mcl_option_customcontrol" formatted="false">تخصيص التحكم</string>
+    <string name="mcl_setting_title_use_surface_view" formatted="false">استخدام عرض الأسطح البديل</string>
+    <string name="mcl_setting_subtitle_use_surface_view" formatted="false">قد يساعد الأداء في سيناريوهات المعتمدة على GPU.</string>
+    <string name="mcl_setting_title_ignore_notch" formatted="false">تجاهل النوتش (الجزء المفقود من أعلى الشاشة قرب الكاميرا الأمامية)</string>
+    <string name="mcl_setting_subtitle_ignore_notch" formatted="false">تجاهل النوتش وتوسيع الشاشة أسفلها.\nيعطيك تجرِبة أكثر انغماساً.</string>
+    <string name="mcl_setting_title_resolution_scaler" formatted="false">مقياس الدقة</string>
+    <string name="mcl_setting_subtitle_resolution_scaler" formatted="false">يسمح لك بتخفيض دقة اللعبة. 100% هي الدقة الكاملة.</string>
+    <string name="mcl_setting_title_longpresstrigger" formatted="false">فعل التأخير للضغط المطول</string>
+    <string name="mcl_setting_subtitle_longpresstrigger" formatted="false">تغيير مدة \"تفعيل الضغط المطول\" عند تدمير الأشياء و إسقاط العناصر.</string>
+    <string name="mcl_setting_title_buttonscale" formatted="false">ضبط حجم أزرار التحكم</string>
+    <string name="mcl_setting_subtitle_buttonscale" formatted="false">كَبِر حجم الأزرار إذا كانت صغيرة جداً.</string>
+    <string name="mcl_setting_title_mousescale" formatted="false">ضبط حجم الفأرة</string>
+    <string name="mcl_setting_subtitle_mousescale" formatted="false">غير حجم مؤشر الفأرة الافتراضية.</string>
+    <string name="mcl_setting_title_javaargs" formatted="false">معلمات بَدْء تشغيل JVM</string>
+    <string name="mcl_setting_subtitle_javaargs" formatted="false">كن حذرا، تعديلها بغير علم قد يتسبب بتعطيل اللعبة.</string>
+    <string name="mcl_setting_category_renderer" formatted="false">عارض الرسوميات</string>
+    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy GL4ES - (جميع الإصدارات، سريع)</string>
+    <string name="mcl_setting_renderer_vulkan_zink" formatted="false">Zink (Vulkan) - (جميع الإصدارات، متوسط)</string>
+    <string name="mcl_setting_renderer_ltw" formatted="false">LTW (OpenGL ES 3) - 1.17+ فقط</string>
+    <string name="mcl_setting_veroption_release" formatted="false">إصدار نهائي</string>
+    <string name="mcl_setting_veroption_snapshot" formatted="false">اللمحات \"سنابشوت\"</string>
+    <string name="mcl_setting_veroption_oldalpha" formatted="false">نسخ ألفا قديمة</string>
+    <string name="mcl_setting_veroption_oldbeta" formatted="false">نسخ بيتا قديمة</string>
+    <string name="mcl_setting_java_sandbox" formatted="false">تنفيذ ملف \".jar\" داخل Sandbox</string>
+    <string name="mcl_setting_java_sandbox_subtitle" formatted="false">التحكم بقدرة وجود Sandbox Security Manger عند تشغيل مِلَفّ .jar.</string>
+    <string name="mcl_version_clone" formatted="false">نسخ</string>
     <!-- Global strings -->
-    <string name="global_edit">تعديل</string>
-    <string name="global_error">خطأ</string>
-    <string name="global_load">تحميل</string>
-    <string name="global_name">الاسم</string>
-    <string name="global_remove">إزالة</string>
-    <string name="global_clone">نسخ</string>
-    <string name="global_restart">اعادة تشغيل</string>
-    <string name="global_save">حفظ</string>
-    <string name="global_unpacking">جاري فك الضغط %s</string>
-    <string name="global_error_field_empty">لا يمكن لهذه الخانة أن تكون فارغة</string>
-    <string name="global_waiting">انتظر</string>
-    <string name="global_select">اختر</string>
-    <string name="global_retry">أعد المحاولة</string>
-    <string name="global_default">الافتراضي</string>
+    <string name="global_edit" formatted="false">تعديل</string>
+    <string name="global_error" formatted="false">خطأ</string>
+    <string name="global_load" formatted="false">تحميل</string>
+    <string name="global_name" formatted="false">الاسم</string>
+    <string name="global_remove" formatted="false">إزالة</string>
+    <string name="global_clone" formatted="false">نسخ</string>
+    <string name="global_restart" formatted="false">اعادة تشغيل</string>
+    <string name="global_save" formatted="false">حفظ</string>
+    <string name="global_unpacking" formatted="false">جاري فك الضغط %s</string>
+    <string name="global_error_field_empty" formatted="false">لا يمكن لهذه الخانة أن تكون فارغة</string>
+    <string name="global_waiting" formatted="false">انتظر</string>
+    <string name="global_select" formatted="false">اختر</string>
+    <string name="global_retry" formatted="false">أعد المحاولة</string>
+    <string name="global_default" formatted="false">الافتراضي</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title">تم الخروج من التطبيق/اللعبة بخلل %d، تحقق من latestlog.txt لمزيد من التفاصيل.</string>
-    <string name="mcn_exit_confirm">هل أنت متأكد من أنك تريد فرض الإغلاق؟</string>
-    <string name="mcn_check_fail_vulkan_support">عارض الرسوميات Zink (Vulkan) غير مدعوم على هذا الجهاز!</string>
+    <string name="mcn_exit_title" formatted="false">تم الخروج من التطبيق/اللعبة بخلل %d، تحقق من latestlog.txt لمزيد من التفاصيل.</string>
+    <string name="mcn_exit_confirm" formatted="false">هل أنت متأكد من أنك تريد فرض الإغلاق؟</string>
+    <string name="mcn_check_fail_vulkan_support" formatted="false">عارض الرسوميات Zink (Vulkan) غير مدعوم على هذا الجهاز!</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat">دردشة</string>
-    <string name="control_debug">Debug</string>
-    <string name="control_primary">Pri</string>
-    <string name="control_secondary">Sec</string>
-    <string name="control_shift">◇</string>
-    <string name="control_inventory">Inv</string>
-    <string name="control_up">▲</string>
-    <string name="control_left">◀</string>
-    <string name="control_right">▶</string>
-    <string name="control_down">▼</string>
-    <string name="control_jump">⬛</string>
-    <string name="control_thirdperson">3rd</string>
-    <string name="control_listplayers">Tab</string>
-    <string name="control_mouse">الفأرة</string>
-    <string name="control_mouseoff">وضع الفأرة: معطلة</string>
-    <string name="control_mouseon">وضع الفأرة: مفعلة </string>
+    <string name="control_chat" formatted="false">دردشة</string>
+    <string name="control_debug" formatted="false">Debug</string>
+    <string name="control_primary" formatted="false">Pri</string>
+    <string name="control_secondary" formatted="false">Sec</string>
+    <string name="control_shift" formatted="false">◇</string>
+    <string name="control_inventory" formatted="false">Inv</string>
+    <string name="control_up" formatted="false">▲</string>
+    <string name="control_left" formatted="false">◀</string>
+    <string name="control_right" formatted="false">▶</string>
+    <string name="control_down" formatted="false">▼</string>
+    <string name="control_jump" formatted="false">⬛</string>
+    <string name="control_thirdperson" formatted="false">3rd</string>
+    <string name="control_listplayers" formatted="false">Tab</string>
+    <string name="control_mouse" formatted="false">الفأرة</string>
+    <string name="control_mouseoff" formatted="false">وضع الفأرة: معطلة</string>
+    <string name="control_mouseon" formatted="false">وضع الفأرة: مفعلة </string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose">فرض الإغلاق</string>
-    <string name="control_viewout">سِجل الإخراج</string>
-    <string name="control_adebug">مدخل التصحيح</string>
-    <string name="control_customkey">إرسال رمز مفتاحي مخصص</string>
+    <string name="control_forceclose" formatted="false">فرض الإغلاق</string>
+    <string name="control_viewout" formatted="false">سِجل الإخراج</string>
+    <string name="control_adebug" formatted="false">مدخل التصحيح</string>
+    <string name="control_customkey" formatted="false">إرسال رمز مفتاحي مخصص</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label">استيراد مخطط أزرار تحكم</string>
-    <string name="import_control_invalid_file">المِلَفّ غير صالح أو تآلف</string>
-    <string name="import_control_import_button">استيراد مخطط لأزرار التحكم</string>
-    <string name="import_control_verifying_file">يتم التحقق من المِلَفّ، الرجاء الانتظار والمحاولة مرة أخرى…</string>
-    <string name="import_control_invalid_name">الاسم غير صالح أو المِلَفّ موجود مسبقًا</string>
-    <string name="import_control_done">تم الاستيراد</string>
+    <string name="import_control_label" formatted="false">استيراد مخطط أزرار تحكم</string>
+    <string name="import_control_invalid_file" formatted="false">المِلَفّ غير صالح أو تآلف</string>
+    <string name="import_control_import_button" formatted="false">استيراد مخطط لأزرار التحكم</string>
+    <string name="import_control_verifying_file" formatted="false">يتم التحقق من المِلَفّ، الرجاء الانتظار والمحاولة مرة أخرى…</string>
+    <string name="import_control_invalid_name" formatted="false">الاسم غير صالح أو المِلَفّ موجود مسبقًا</string>
+    <string name="import_control_done" formatted="false">تم الاستيراد</string>
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="customctrl_toggle">تبديلي</string>
-    <string name="customctrl_size">الحجم</string>
-    <string name="customctrl_mapping">تخطيط الأزرار</string>
-    <string name="customctrl_orientation">الاتجاه</string>
-    <string name="customctrl_background_color">لون الخلفية</string>
-    <string name="customctrl_corner_radius">تقوس زاوية الأركان</string>
-    <string name="customctrl_stroke_width">عرض الخط</string>
-    <string name="customctrl_stroke_color">لون الخط</string>
-    <string name="customctrl_button_opacity">شفافية الزر</string>
-    <string name="customctrl_addbutton">إضافة زر</string>
-    <string name="customctrl_addbutton_drawer">إضافة درج</string>
-    <string name="customctrl_addbutton_joystick">اضف عصا تحكم</string>
-    <string name="customctrl_addsubbutton">إضافة زر فرعي</string>
-    <string name="customctrl_selectdefault">اختيار تخطيط تحكم افتراضي</string>
-    <string name="customctrl_export">استخرج مخطط التحكم</string>
-    <string name="main_share_logs">مشاركة ملف السجل</string>
-    <string name="main_install_jar_file">نفذ مِلَفّ .jar</string>
-    <string name="main_play">ابدأ اللعب</string>
-    <string name="autoram_info_msg">تم تعيين الذاكرة إلى %d ميغابايت</string>
-    <string name="mcl_setting_check_libraries">التحقق من المكتبات بعد التحميل</string>
-    <string name="mcl_setting_check_libraries_subtitle">هذا الخِيار يجبر البرنامَج على التحقق من بيانات المِلَفّ إذا كان متاحاً. يمنع الأخطاء من الحدوث خلال التنزيل.</string>
-    <string name="dl_library_sha_fail">المكتبة %s تآلفه وسيتم إعادة تحميلها</string>
-    <string name="dl_library_sha_unknown">لا يمكن التحقق من ملفات المكتبة %s، يجب افتراض أنها بحالة جيدة</string>
-    <string name="dl_library_sha_pass">المكتبة %s بحالة جيدة وقابلة للاستخدام</string>
-    <string name="mcl_disable_gestures">تعطيل الإيماءات</string>
-    <string name="mcl_disable_gestures_subtitle">تعطيل الإيماءات، مثل تثبيت الضغط لكسر كتلة، والنقر لوضع كتلة.</string>
-    <string name="mcl_disable_swap_hand">تعطيل الضغط مرتين لتبديل اليدين</string>
-    <string name="mcl_disable_swap_hand_subtitle">يعطل تبديل العنصر المحمول لليد الأخرى عند الضغط مرتين.</string>
-    <string name="mcl_setting_title_mousespeed">سرعة تحرك الفأرة</string>
-    <string name="mcl_setting_subtitle_mousespeed">يغير سرعة مؤشر الفأرة الافتراضية.</string>
-    <string name="customctrl_passthru">سماح تحريك الشاشة في أثناء استخدام الزر</string>
-    <string name="customctrl_swipeable">قابل للسحب</string>
-    <string name="customctrl_forward_lock">قفل إلى الأمام</string>
-    <string name="customctrl_absolute_tracking">تتبع الأصابع بشكل مطلق</string>
-    <string formatted="false" name="memory_warning_msg" formatted="false">الكَمَيَّة الحالية من ذاكرة الوصول العشوائي المتاحة للاستخدام (%d) أقل من ذاكرة الوصول العشوائي المحددة (%d)، مما قد يؤدي إلى حدوث أعطال. غير الذاكرة المخصصة إذا توقفت اللعبة.</string>
-    <string formatted="false" name="address_memory_warning_msg">الكَمَيَّة الحالية من ذاكرة الوصول العشوائي المتاحة للاستخدام (%d) أقل من ذاكرة الوصول العشوائي المحددة (%d)، مما قد يؤدي إلى حدوث أعطال. غير الذاكرة المخصصة إذا توقفت اللعبة.</string>
-    <string name="mcl_memory_allocation">الذاكرة المخصصة للاستخدام</string>
-    <string name="mcl_memory_allocation_subtitle">يتحكم في كَمَيَّة الذاكرة المعطاة لـ Minecraft.</string>
-    <string name="multirt_runtime_corrupt">بيئة تشغيل Java تالفة</string>
-    <string name="multirt_runtime_incompatiblearch">بنية غير متوافقة: %s</string>
-    <string name="multirt_config_title">بيئة تشغيل Java</string>
-    <string name="multirt_config_add">إضافة جديد</string>
-    <string name="multirt_title">مدير بيئة تشغيل Java</string>
-    <string name="multirt_subtitle">إدارة مشغلات جافا المثبتة.</string>
-    <string name="multirt_progress_caching">تخزين المعلومات...</string>
-    <string name="multirt_config_setdefault">تعيين كافتراضي</string>
-    <string name="multirt_config_setdefault_already">الافتراضي</string>
-    <string name="multirt_config_removeerror_last">يجب أن يكون لديك على الأقل بيئة تشغيل جافا واحدة مثبتة.</string>
-    <string name="multirt_nocompatiblert">لم يتم العثور على أي بيئة تشغيل Java متوافقة، هذا الإصدار يتطلب Java %d أو أحدث.</string>
-    <string name="multirt_nojava8rt">لا يمكن العثور على Java 8. لاستخدام هذا الخِيار، تحتاج إلى تثبيت Java 8.</string>
-    <string name="multirt_delete_runtime">حذف بيئة التشغيل</string>
-    <string name="pvc_gameDirectory">مكان تخزين اللعبة</string>
-    <string name="pvc_jvmArgs">مدخلات JVM</string>
-    <string name="preference_mouse_start_title">البَدْء بالفأرة الافتراضية مشغلة</string>
-    <string name="preference_mouse_start_description">عند تفعيل هذا الخِيار سوف تظهر الفأرة الافتراضية بمجرد التشغيل.</string>
-    <string name="preference_video_title">الفيديو و عارض الرسوميات</string>
-    <string name="preference_video_description">الدِّقَّة، عارض الرسوميات، الأداء</string>
-    <string name="preference_control_title">تخصيص أزرار التحكم</string>
-    <string name="preference_control_description">الإيماءات، الأزرار، و تغيير الحجم</string>
-    <string name="preference_java_title">تعديلات جافا</string>
-    <string name="preference_java_description">Java Runtimes, Jvm Arguments, حجم الذاكرة العشوائية و Sandbox</string>
-    <string name="preference_misc_title">أعدادات متنوعة</string>
-    <string name="preference_misc_description">قائمة الإصدار، والتحقق من المكاتب</string>
-    <string name="preference_experimental_title">أشياء تجريبية</string>
-    <string name="preference_experimental_description">استخدم هذه الخِيارات بحذر، لن يتم مساعدتك</string>
-    <string name="preference_sustained_performance_title">تمكين وضع الأداء المستقر</string>
-    <string name="preference_sustained_performance_description">الحد من الاختناق الحراري عن طريق حد الأداء الأقصى.</string>
-    <string name="preference_force_vsync_title">أجبار على تفعيل VSync</string>
-    <string name="preference_force_vsync_description">الحد من الاختناق الحراري عن طريق حد الأداء الأقصى.</string>
-    <string name="preference_force_english_title">إجبار تحويل اللغة إلى اللغة الإنجليزية</string>
-    <string name="preference_force_english_description">يسمح لك برؤية النصوص الأصلية، كما أرادها المطورون. يتطلب إعادة التشغيل.</string>
-    <string name="preference_edit_controls_title">تعديل مخطط التحكم</string>
-    <string name="preference_edit_controls_summary">عدل مخطط التحكم لتلبي احتياجاتك.</string>
-    <string name="preference_category_gyro_controls">تحكم باستخدام الجايروسكوب</string>
-    <string name="preference_category_virtual_mouse">الفأرة الافتراضية</string>
-    <string name="preference_gyro_invert_x_axis">عكس المحور الأفقي</string>
-    <string name="preference_gyro_invert_y_axis">عكس المحور العمودي</string>
-    <string name="preference_gyro_invert_x_axis_description">اعكس المحور الأفقي.</string>
-    <string name="preference_gyro_invert_y_axis_description">اعكس المحور العمودي.</string>
-    <string name="preference_gyro_smoothing_title">فعل تسليس حركة الجايروسكوب</string>
-    <string name="preference_gyro_smoothing_description">سلاسة اكثر مقابل التأخير.</string>
-    <string name="preference_back_title">العودة إلى الشاشة الأخيرة</string>
-    <string name="unnamed">غير مسمى</string>
-    <string name="profiles_latest_snapshot">آخر لمحة (سنابشوت)</string>
-    <string name="profiles_latest_release">أحدث إصدار</string>
-    <string name="profiles_profile_name">الاسم</string>
-    <string name="profiles_profile_version">الإصدار</string>
-    <string name="global_delete">حذف</string>
-    <string name="pedit_java_runtime">بيئة تشغيل Java</string>
-    <string name="pedit_renderer">عارض الرسوميات</string>
-    <string name="notif_channel_name">عام</string>
-    <string name="lazy_service_default_title">خدمة Fear في المقدمة</string>
-    <string name="mcl_setting_veroption_installed">مثبت</string>
-    <string name="use_global_default">(استخدم الافتراضي العام)</string>
-    <string name="default_control">مخطط التحكم الأفتراضي</string>
-    <string name="progresslayout_tasks_in_progress">%d مهام قيد التنفيذ</string>
-    <string name="notification_terminate">إنهاء</string>
-    <string name="notification_game_runs">اللعبة قيد التشغيل!</string>
-    <string name="folder_dialog_create">إنشاء</string>
-    <string name="folder_dialog_insert_name">إدراج اسم المجلد</string>
-    <string name="folder_fragment_create">إنشاء مجلد</string>
-    <string name="folder_fragment_select">اختار المجلد</string>
-    <string name="main_login_done">تم تسجيل الدخول</string>
-    <string name="main_add_account">أضف حساباً</string>
-    <string name="tasks_ongoing">المهام قيد التقدم، يرجى الانتظار</string>
-    <string name="no_saved_accounts">لا توجد حسابات محفوظة</string>
-    <string name="mc_download_failed">فشل تنزيل Minecraft! قد يكون ذلك بسبب سوء اتصال الشبكة، الملفات التي تم وضعها بشكل خاطئ، الخ..</string>
-    <string name="xerr_unknown">خطأ Xbox Live API غير معروف %d</string>
-    <string name="xerr_no_account">لا يبدو أن لديك حساب Xbox Live. الرجاء تسجيل الدخول مرة واحدة على https://minecraft.net/ وحاول مرة أخرى.</string>
-    <string name="xerr_adult_verification">يحتاج الشخص البالغ إلى التحقق من حسابك.</string>
-    <string name="xerr_child">حسابك هو حساب طفل، ويجب إضافته إلى العائلة لتسجيل الدخول.</string>
-    <string name="minecraft_not_owned">يبدو أن هذا الحساب ليس لديه ملف تعريف Minecraft. إذا كان لديك Xbox Game Pass، يرجى تسجيل الدخول على https://minecraft.net/ و إعداده.</string>
-    <string name="xerr_not_available">Xbox Live غير متوفر في بلدك</string>
-    <string name="preference_enable_gyro_title">تمكين التحكم بالجيروسكوب</string>
-    <string name="preference_enable_gyro_description">هذا الخيار سيجعلك تتحرك باللعبة عن طريق تحريك هاتفك.</string>
-    <string name="preference_gyro_sensitivity_title">حساسية التحكم في الغيروسكوب</string>
-    <string name="preference_gyro_sensitivity_description">عدل حساسية تحكم الجايروسكوب.</string>
-    <string name="toast_turn_on_gyro">فعل الجايروسكوب اولاً!</string>
-    <string name="preference_gyro_sample_rate_title">معدل أخذ العينات من الجايرسكوب</string>
-    <string name="preference_gyro_sample_rate_description">اذا كان لديك مشاكل أداء في الجايروسكوب، زد هذا الخيار.</string>
-    <string name="microsoft_login_retry_later">طلبات كثيرة جداً، الرجاء المحاولة مرة أخرى لاحقاً.</string>
-    <string name="storage_required">يتطلب FearLauncher أن تكون وحدة التخزين الخارجية متصلة. الرجاء إعادة الاتصال بها وإعادة تشغيل التطبيق.</string>
-    <string name="mcl_setting_title_buttonallcaps">استخدم الأحرف الكبيرة فقط في اسماء الأزرار</string>
-    <string name="mcl_setting_subtitle_buttonallcaps">عطل هذا اذا كنت تريد إستخدام الأحرف الصغيرة.</string>
-    <string name="preference_shader_dump_title">تمكين افراغ الشادر</string>
-    <string name="preference_shader_dump_description">سجل الShaders المحولة داخل ملف السجل.</string>
-    <string name="percent_format">%d%%</string>
-    <string name="millisecond_format">%d جزء من الثانية</string>
-    <string name="customctrl_editor_exit_title">مغادرة؟</string>
-    <string name="customctrl_editor_exit_msg">هل أنت متأكد من أنك تريد الخروج؟</string>
-    <string name="customctrl_editor_exit">مغادرة المحرر</string>
-    <string name="global_save_and_exit">حفظ وخروج</string>
-    <string name="global_yes">نعم</string>
-    <string name="global_no">لا</string>
-    <string name="preference_controller_map_wiped">تم مسح إعدادات ذراع التحكم.</string>
-    <string name="preference_category_controller_settings">إعدادات ذراع التحكم</string>
-    <string name="preference_wipe_controller_title">إعادة تعيين إعدادات ذراع التحكم</string>
-    <string name="preference_wipe_controller_description">يسمح لك بإعادة تعيين أزرار ذراع التحكم.</string>
-    <string name="preference_deadzone_scale_title">مقياس كمية تحرك عصا التحكم</string>
-    <string name="preference_deadzone_scale_description">قم بالزيادة إذا انحدرت عصا التحكم.</string>
-    <string name="preference_force_big_core_title">إجبار عارض الرسوميات على تشغيل النواة الكبيرة</string>
-    <string name="preference_force_big_core_desc">يجبر عارض رسوميات Minecraft للعمل على نواة ذات التردد الأعلى على اقصى تردد لها.</string>
-    <string name="version_select_hint">إختر إصدار</string>
-    <string name="forge_dl_progress">تنزيل المثبت ل %s</string>
-    <string name="forge_dl_searching">البحث عن رقم إصدار Forge</string>
-    <string name="modloader_dl_failed_to_load_list">فشل تحميل قائمة الإصدارات!</string>
-    <string name="forge_dl_no_installer">عذراً، لكن هذا الإصدار من Forge لا يحتوي على مثبت، الذي لم يتم دعمه بعد.</string>
-    <string name="forge_dl_select_version">إختر إصدار Forge</string>
-    <string name="fabric_dl_progress">تنزيل البيانات التعريفية لمحمل %s</string>
-    <string name="fabric_dl_loader_version">%s إصدار المحمل</string>
-    <string name="fabric_dl_game_version">إصدار Minecraft</string>
-    <string name="fabric_dl_install">تثبيت</string>
-    <string name="fabric_dl_cant_read_meta">فشل قراءة البيانات التعريفية ل%s. الرجاء المحاولة في وقت لاحق.</string>
-    <string name="create_profile_vanilla_like_versions">الإصدارات الشبيهة بالVanilla</string>
-    <string name="create_profile_modded_versions">الإصدارات المعدلة</string>
-    <string name="fabric_dl_loader_title">حدد إصدارات</string>
-    <string name="of_dl_select_version">حدد إصدار OptiFine</string>
-    <string name="of_dl_failed_to_scrape">فشل في جمع البيانات لتثبيت OptiFine</string>
-    <string name="of_dl_progress">التحميل جارٍ %s</string>
-    <string name="hint_search_modpack">البحث عن modpack</string>
-    <string name="preference_vulkan_driver_system_title">استخدم Vulkan driver الخاص بالنظام</string>
-    <string name="preference_vulkan_driver_system_description">اجبر البرنامج على استخدام Vulkan driver الخاص بالنظام بدلاً من Turnip على Adreno GPUs، فقط يؤثر بZink و المودات المستخدمة ل Vulkan.</string>
-    <string name="generic_install">تثبيت</string>
-    <string name="generic_apply">طبّق</string>
-    <string name="generic_debug">Debug</string>
-    <string name="search_modpack_no_result">لم يتم العثور على مودباك</string>
-    <string name="search_modpack_error">فشل العثور على مودباك</string>
-    <string name="search_modpack_download_error">فشل تنزيل البيانات التعريفية للمودباك</string>
+    <string name="customctrl_toggle" formatted="false">تبديلي</string>
+    <string name="customctrl_size" formatted="false">الحجم</string>
+    <string name="customctrl_mapping" formatted="false">تخطيط الأزرار</string>
+    <string name="customctrl_orientation" formatted="false">الاتجاه</string>
+    <string name="customctrl_background_color" formatted="false">لون الخلفية</string>
+    <string name="customctrl_corner_radius" formatted="false">تقوس زاوية الأركان</string>
+    <string name="customctrl_stroke_width" formatted="false">عرض الخط</string>
+    <string name="customctrl_stroke_color" formatted="false">لون الخط</string>
+    <string name="customctrl_button_opacity" formatted="false">شفافية الزر</string>
+    <string name="customctrl_addbutton" formatted="false">إضافة زر</string>
+    <string name="customctrl_addbutton_drawer" formatted="false">إضافة درج</string>
+    <string name="customctrl_addbutton_joystick" formatted="false">اضف عصا تحكم</string>
+    <string name="customctrl_addsubbutton" formatted="false">إضافة زر فرعي</string>
+    <string name="customctrl_selectdefault" formatted="false">اختيار تخطيط تحكم افتراضي</string>
+    <string name="customctrl_export" formatted="false">استخرج مخطط التحكم</string>
+    <string name="main_share_logs" formatted="false">مشاركة ملف السجل</string>
+    <string name="main_install_jar_file" formatted="false">نفذ مِلَفّ .jar</string>
+    <string name="main_play" formatted="false">ابدأ اللعب</string>
+    <string name="autoram_info_msg" formatted="false">تم تعيين الذاكرة إلى %d ميغابايت</string>
+    <string name="mcl_setting_check_libraries" formatted="false">التحقق من المكتبات بعد التحميل</string>
+    <string name="mcl_setting_check_libraries_subtitle" formatted="false">هذا الخِيار يجبر البرنامَج على التحقق من بيانات المِلَفّ إذا كان متاحاً. يمنع الأخطاء من الحدوث خلال التنزيل.</string>
+    <string name="dl_library_sha_fail" formatted="false">المكتبة %s تآلفه وسيتم إعادة تحميلها</string>
+    <string name="dl_library_sha_unknown" formatted="false">لا يمكن التحقق من ملفات المكتبة %s، يجب افتراض أنها بحالة جيدة</string>
+    <string name="dl_library_sha_pass" formatted="false">المكتبة %s بحالة جيدة وقابلة للاستخدام</string>
+    <string name="mcl_disable_gestures" formatted="false">تعطيل الإيماءات</string>
+    <string name="mcl_disable_gestures_subtitle" formatted="false">تعطيل الإيماءات، مثل تثبيت الضغط لكسر كتلة، والنقر لوضع كتلة.</string>
+    <string name="mcl_disable_swap_hand" formatted="false">تعطيل الضغط مرتين لتبديل اليدين</string>
+    <string name="mcl_disable_swap_hand_subtitle" formatted="false">يعطل تبديل العنصر المحمول لليد الأخرى عند الضغط مرتين.</string>
+    <string name="mcl_setting_title_mousespeed" formatted="false">سرعة تحرك الفأرة</string>
+    <string name="mcl_setting_subtitle_mousespeed" formatted="false">يغير سرعة مؤشر الفأرة الافتراضية.</string>
+    <string name="customctrl_passthru" formatted="false">سماح تحريك الشاشة في أثناء استخدام الزر</string>
+    <string name="customctrl_swipeable" formatted="false">قابل للسحب</string>
+    <string name="customctrl_forward_lock" formatted="false">قفل إلى الأمام</string>
+    <string name="customctrl_absolute_tracking" formatted="false">تتبع الأصابع بشكل مطلق</string>
+    <string name="memory_warning_msg" formatted="false">الكَمَيَّة الحالية من ذاكرة الوصول العشوائي المتاحة للاستخدام (%d) أقل من ذاكرة الوصول العشوائي المحددة (%d)، مما قد يؤدي إلى حدوث أعطال. غير الذاكرة المخصصة إذا توقفت اللعبة.</string>
+    <string name="address_memory_warning_msg" formatted="false">الكَمَيَّة الحالية من ذاكرة الوصول العشوائي المتاحة للاستخدام (%d) أقل من ذاكرة الوصول العشوائي المحددة (%d)، مما قد يؤدي إلى حدوث أعطال. غير الذاكرة المخصصة إذا توقفت اللعبة.</string>
+    <string name="mcl_memory_allocation" formatted="false">الذاكرة المخصصة للاستخدام</string>
+    <string name="mcl_memory_allocation_subtitle" formatted="false">يتحكم في كَمَيَّة الذاكرة المعطاة لـ Minecraft.</string>
+    <string name="multirt_runtime_corrupt" formatted="false">بيئة تشغيل Java تالفة</string>
+    <string name="multirt_runtime_incompatiblearch" formatted="false">بنية غير متوافقة: %s</string>
+    <string name="multirt_config_title" formatted="false">بيئة تشغيل Java</string>
+    <string name="multirt_config_add" formatted="false">إضافة جديد</string>
+    <string name="multirt_title" formatted="false">مدير بيئة تشغيل Java</string>
+    <string name="multirt_subtitle" formatted="false">إدارة مشغلات جافا المثبتة.</string>
+    <string name="multirt_progress_caching" formatted="false">تخزين المعلومات...</string>
+    <string name="multirt_config_setdefault" formatted="false">تعيين كافتراضي</string>
+    <string name="multirt_config_setdefault_already" formatted="false">الافتراضي</string>
+    <string name="multirt_config_removeerror_last" formatted="false">يجب أن يكون لديك على الأقل بيئة تشغيل جافا واحدة مثبتة.</string>
+    <string name="multirt_nocompatiblert" formatted="false">لم يتم العثور على أي بيئة تشغيل Java متوافقة، هذا الإصدار يتطلب Java %d أو أحدث.</string>
+    <string name="multirt_nojava8rt" formatted="false">لا يمكن العثور على Java 8. لاستخدام هذا الخِيار، تحتاج إلى تثبيت Java 8.</string>
+    <string name="multirt_delete_runtime" formatted="false">حذف بيئة التشغيل</string>
+    <string name="pvc_gameDirectory" formatted="false">مكان تخزين اللعبة</string>
+    <string name="pvc_jvmArgs" formatted="false">مدخلات JVM</string>
+    <string name="preference_mouse_start_title" formatted="false">البَدْء بالفأرة الافتراضية مشغلة</string>
+    <string name="preference_mouse_start_description" formatted="false">عند تفعيل هذا الخِيار سوف تظهر الفأرة الافتراضية بمجرد التشغيل.</string>
+    <string name="preference_video_title" formatted="false">الفيديو و عارض الرسوميات</string>
+    <string name="preference_video_description" formatted="false">الدِّقَّة، عارض الرسوميات، الأداء</string>
+    <string name="preference_control_title" formatted="false">تخصيص أزرار التحكم</string>
+    <string name="preference_control_description" formatted="false">الإيماءات، الأزرار، و تغيير الحجم</string>
+    <string name="preference_java_title" formatted="false">تعديلات جافا</string>
+    <string name="preference_java_description" formatted="false">Java Runtimes, Jvm Arguments, حجم الذاكرة العشوائية و Sandbox</string>
+    <string name="preference_misc_title" formatted="false">أعدادات متنوعة</string>
+    <string name="preference_misc_description" formatted="false">قائمة الإصدار، والتحقق من المكاتب</string>
+    <string name="preference_experimental_title" formatted="false">أشياء تجريبية</string>
+    <string name="preference_experimental_description" formatted="false">استخدم هذه الخِيارات بحذر، لن يتم مساعدتك</string>
+    <string name="preference_sustained_performance_title" formatted="false">تمكين وضع الأداء المستقر</string>
+    <string name="preference_sustained_performance_description" formatted="false">الحد من الاختناق الحراري عن طريق حد الأداء الأقصى.</string>
+    <string name="preference_force_vsync_title" formatted="false">أجبار على تفعيل VSync</string>
+    <string name="preference_force_vsync_description" formatted="false">الحد من الاختناق الحراري عن طريق حد الأداء الأقصى.</string>
+    <string name="preference_force_english_title" formatted="false">إجبار تحويل اللغة إلى اللغة الإنجليزية</string>
+    <string name="preference_force_english_description" formatted="false">يسمح لك برؤية النصوص الأصلية، كما أرادها المطورون. يتطلب إعادة التشغيل.</string>
+    <string name="preference_edit_controls_title" formatted="false">تعديل مخطط التحكم</string>
+    <string name="preference_edit_controls_summary" formatted="false">عدل مخطط التحكم لتلبي احتياجاتك.</string>
+    <string name="preference_category_gyro_controls" formatted="false">تحكم باستخدام الجايروسكوب</string>
+    <string name="preference_category_virtual_mouse" formatted="false">الفأرة الافتراضية</string>
+    <string name="preference_gyro_invert_x_axis" formatted="false">عكس المحور الأفقي</string>
+    <string name="preference_gyro_invert_y_axis" formatted="false">عكس المحور العمودي</string>
+    <string name="preference_gyro_invert_x_axis_description" formatted="false">اعكس المحور الأفقي.</string>
+    <string name="preference_gyro_invert_y_axis_description" formatted="false">اعكس المحور العمودي.</string>
+    <string name="preference_gyro_smoothing_title" formatted="false">فعل تسليس حركة الجايروسكوب</string>
+    <string name="preference_gyro_smoothing_description" formatted="false">سلاسة اكثر مقابل التأخير.</string>
+    <string name="preference_back_title" formatted="false">العودة إلى الشاشة الأخيرة</string>
+    <string name="unnamed" formatted="false">غير مسمى</string>
+    <string name="profiles_latest_snapshot" formatted="false">آخر لمحة (سنابشوت)</string>
+    <string name="profiles_latest_release" formatted="false">أحدث إصدار</string>
+    <string name="profiles_profile_name" formatted="false">الاسم</string>
+    <string name="profiles_profile_version" formatted="false">الإصدار</string>
+    <string name="global_delete" formatted="false">حذف</string>
+    <string name="pedit_java_runtime" formatted="false">بيئة تشغيل Java</string>
+    <string name="pedit_renderer" formatted="false">عارض الرسوميات</string>
+    <string name="notif_channel_name" formatted="false">عام</string>
+    <string name="lazy_service_default_title" formatted="false">خدمة Fear في المقدمة</string>
+    <string name="mcl_setting_veroption_installed" formatted="false">مثبت</string>
+    <string name="use_global_default" formatted="false">(استخدم الافتراضي العام)</string>
+    <string name="default_control" formatted="false">مخطط التحكم الأفتراضي</string>
+    <string name="progresslayout_tasks_in_progress" formatted="false">%d مهام قيد التنفيذ</string>
+    <string name="notification_terminate" formatted="false">إنهاء</string>
+    <string name="notification_game_runs" formatted="false">اللعبة قيد التشغيل!</string>
+    <string name="folder_dialog_create" formatted="false">إنشاء</string>
+    <string name="folder_dialog_insert_name" formatted="false">إدراج اسم المجلد</string>
+    <string name="folder_fragment_create" formatted="false">إنشاء مجلد</string>
+    <string name="folder_fragment_select" formatted="false">اختار المجلد</string>
+    <string name="main_login_done" formatted="false">تم تسجيل الدخول</string>
+    <string name="main_add_account" formatted="false">أضف حساباً</string>
+    <string name="tasks_ongoing" formatted="false">المهام قيد التقدم، يرجى الانتظار</string>
+    <string name="no_saved_accounts" formatted="false">لا توجد حسابات محفوظة</string>
+    <string name="mc_download_failed" formatted="false">فشل تنزيل Minecraft! قد يكون ذلك بسبب سوء اتصال الشبكة، الملفات التي تم وضعها بشكل خاطئ، الخ..</string>
+    <string name="xerr_unknown" formatted="false">خطأ Xbox Live API غير معروف %d</string>
+    <string name="xerr_no_account" formatted="false">لا يبدو أن لديك حساب Xbox Live. الرجاء تسجيل الدخول مرة واحدة على https://minecraft.net/ وحاول مرة أخرى.</string>
+    <string name="xerr_adult_verification" formatted="false">يحتاج الشخص البالغ إلى التحقق من حسابك.</string>
+    <string name="xerr_child" formatted="false">حسابك هو حساب طفل، ويجب إضافته إلى العائلة لتسجيل الدخول.</string>
+    <string name="minecraft_not_owned" formatted="false">يبدو أن هذا الحساب ليس لديه ملف تعريف Minecraft. إذا كان لديك Xbox Game Pass، يرجى تسجيل الدخول على https://minecraft.net/ و إعداده.</string>
+    <string name="xerr_not_available" formatted="false">Xbox Live غير متوفر في بلدك</string>
+    <string name="preference_enable_gyro_title" formatted="false">تمكين التحكم بالجيروسكوب</string>
+    <string name="preference_enable_gyro_description" formatted="false">هذا الخيار سيجعلك تتحرك باللعبة عن طريق تحريك هاتفك.</string>
+    <string name="preference_gyro_sensitivity_title" formatted="false">حساسية التحكم في الغيروسكوب</string>
+    <string name="preference_gyro_sensitivity_description" formatted="false">عدل حساسية تحكم الجايروسكوب.</string>
+    <string name="toast_turn_on_gyro" formatted="false">فعل الجايروسكوب اولاً!</string>
+    <string name="preference_gyro_sample_rate_title" formatted="false">معدل أخذ العينات من الجايرسكوب</string>
+    <string name="preference_gyro_sample_rate_description" formatted="false">اذا كان لديك مشاكل أداء في الجايروسكوب، زد هذا الخيار.</string>
+    <string name="microsoft_login_retry_later" formatted="false">طلبات كثيرة جداً، الرجاء المحاولة مرة أخرى لاحقاً.</string>
+    <string name="storage_required" formatted="false">يتطلب FearLauncher أن تكون وحدة التخزين الخارجية متصلة. الرجاء إعادة الاتصال بها وإعادة تشغيل التطبيق.</string>
+    <string name="mcl_setting_title_buttonallcaps" formatted="false">استخدم الأحرف الكبيرة فقط في اسماء الأزرار</string>
+    <string name="mcl_setting_subtitle_buttonallcaps" formatted="false">عطل هذا اذا كنت تريد إستخدام الأحرف الصغيرة.</string>
+    <string name="preference_shader_dump_title" formatted="false">تمكين افراغ الشادر</string>
+    <string name="preference_shader_dump_description" formatted="false">سجل الShaders المحولة داخل ملف السجل.</string>
+    <string name="percent_format" formatted="false">%d%%</string>
+    <string name="millisecond_format" formatted="false">%d جزء من الثانية</string>
+    <string name="customctrl_editor_exit_title" formatted="false">مغادرة؟</string>
+    <string name="customctrl_editor_exit_msg" formatted="false">هل أنت متأكد من أنك تريد الخروج؟</string>
+    <string name="customctrl_editor_exit" formatted="false">مغادرة المحرر</string>
+    <string name="global_save_and_exit" formatted="false">حفظ وخروج</string>
+    <string name="global_yes" formatted="false">نعم</string>
+    <string name="global_no" formatted="false">لا</string>
+    <string name="preference_controller_map_wiped" formatted="false">تم مسح إعدادات ذراع التحكم.</string>
+    <string name="preference_category_controller_settings" formatted="false">إعدادات ذراع التحكم</string>
+    <string name="preference_wipe_controller_title" formatted="false">إعادة تعيين إعدادات ذراع التحكم</string>
+    <string name="preference_wipe_controller_description" formatted="false">يسمح لك بإعادة تعيين أزرار ذراع التحكم.</string>
+    <string name="preference_deadzone_scale_title" formatted="false">مقياس كمية تحرك عصا التحكم</string>
+    <string name="preference_deadzone_scale_description" formatted="false">قم بالزيادة إذا انحدرت عصا التحكم.</string>
+    <string name="preference_force_big_core_title" formatted="false">إجبار عارض الرسوميات على تشغيل النواة الكبيرة</string>
+    <string name="preference_force_big_core_desc" formatted="false">يجبر عارض رسوميات Minecraft للعمل على نواة ذات التردد الأعلى على اقصى تردد لها.</string>
+    <string name="version_select_hint" formatted="false">إختر إصدار</string>
+    <string name="forge_dl_progress" formatted="false">تنزيل المثبت ل %s</string>
+    <string name="forge_dl_searching" formatted="false">البحث عن رقم إصدار Forge</string>
+    <string name="modloader_dl_failed_to_load_list" formatted="false">فشل تحميل قائمة الإصدارات!</string>
+    <string name="forge_dl_no_installer" formatted="false">عذراً، لكن هذا الإصدار من Forge لا يحتوي على مثبت، الذي لم يتم دعمه بعد.</string>
+    <string name="forge_dl_select_version" formatted="false">إختر إصدار Forge</string>
+    <string name="fabric_dl_progress" formatted="false">تنزيل البيانات التعريفية لمحمل %s</string>
+    <string name="fabric_dl_loader_version" formatted="false">%s إصدار المحمل</string>
+    <string name="fabric_dl_game_version" formatted="false">إصدار Minecraft</string>
+    <string name="fabric_dl_install" formatted="false">تثبيت</string>
+    <string name="fabric_dl_cant_read_meta" formatted="false">فشل قراءة البيانات التعريفية ل%s. الرجاء المحاولة في وقت لاحق.</string>
+    <string name="create_profile_vanilla_like_versions" formatted="false">الإصدارات الشبيهة بالVanilla</string>
+    <string name="create_profile_modded_versions" formatted="false">الإصدارات المعدلة</string>
+    <string name="fabric_dl_loader_title" formatted="false">حدد إصدارات</string>
+    <string name="of_dl_select_version" formatted="false">حدد إصدار OptiFine</string>
+    <string name="of_dl_failed_to_scrape" formatted="false">فشل في جمع البيانات لتثبيت OptiFine</string>
+    <string name="of_dl_progress" formatted="false">التحميل جارٍ %s</string>
+    <string name="hint_search_modpack" formatted="false">البحث عن modpack</string>
+    <string name="preference_vulkan_driver_system_title" formatted="false">استخدم Vulkan driver الخاص بالنظام</string>
+    <string name="preference_vulkan_driver_system_description" formatted="false">اجبر البرنامج على استخدام Vulkan driver الخاص بالنظام بدلاً من Turnip على Adreno GPUs، فقط يؤثر بZink و المودات المستخدمة ل Vulkan.</string>
+    <string name="generic_install" formatted="false">تثبيت</string>
+    <string name="generic_apply" formatted="false">طبّق</string>
+    <string name="generic_debug" formatted="false">Debug</string>
+    <string name="search_modpack_no_result" formatted="false">لم يتم العثور على مودباك</string>
+    <string name="search_modpack_error" formatted="false">فشل العثور على مودباك</string>
+    <string name="search_modpack_download_error" formatted="false">فشل تنزيل البيانات التعريفية للمودباك</string>
     <string name="modpack_download_downloading_metadata" formatted="false">تحميل اابيانات التعريفية للمودباك (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">تحميل المودات (%.2f MB / %.2f MB)</string>
-    <string formatted="false" name="modpack_download_downloading_mods_fc">تحميل المودات (الملف %d من %d)</string>
-    <string formatted="false" name="modpack_download_applying_overrides">تطبيق التجاوزات (%d/%d)</string>
-    <string name="modpack_install_notification_title">Fear Modpack Installerⁿ</string>
-    <string name="modpack_install_notification_success">انقر هنا لإنهاء تثبيت modpack</string>
-    <string name="modpack_install_notification_data_not_available">Не удалось загрузить информацию о загрузчике модов</string>
-    <string name="modpack_install_modloader_download_failed">فشل تنزيل ملفات محمل المودات</string>
-    <string name="modpack_install_download_failed">فشل تنزيل ملفات المودباك</string>
-    <string name="notif_error_occured">لقد حدث خطأ</string>
-    <string name="notif_error_occured_desc">انقر لمشاهدة المزيد من التفاصيل</string>
-    <string name="fabric_dl_only_stable">اظهر الإصدارات المستقرة فقط</string>
-    <string name="dl_tampered_manifest_title">تحذير التحقق من الملف</string>
-    <string name="dl_tampered_manifest"><![CDATA[إصدار اللعبة الظاهر على النسخة لا يطابق إصدار اللعبة الرسمي من Mojang، مما يعني انه تم العبث به.<br/><b> هذا ليس آمن، قد تكون معلوماتك الشخصية في خطر اذا استمريت،</b><br/>         اذا لا زلت تريد استخدام النسخة، اضغط \"عطل التحقق من النسخة\" و ابدأ التحميل مرة اخرى.<br/>        اذا ما كنت تريد إستخدام المصدر الرسمي اضغط \"بدل للمصدر الرسمي\" و إبدأ التحميل مرة اخرى.<br/>]]></string>
-    <string name="dl_turn_off_manifest_checks">اقف فحص البيانات</string>
-    <string name="dl_switch_to_official_site">قم بالتبديل إلى الموقع الرسمي</string>
-    <string name="preference_download_source_title">مصدر تحميل اللعبة</string>
-    <string name="preference_download_source_description">حدد نسخة للتحميل بدلاً من استخدام السيرفر الرئيسي</string>
-    <string name="preference_verify_manifest_title">التحقق من بيان إصدار اللعبة</string>
-    <string name="preference_verify_manifest_description">عند التفعيل، سيقوم المشغل بالتحقق من بيان إصدار اللعبة مع المكتبات.</string>
-    <string name="notif_download_finished">اللعبة جاهزة للتشغيل</string>
-    <string name="notif_download_finished_desc">اضغط هنا للبدأ!</string>
-    <string name="preference_category_gestures">الإيماءات</string>
-    <string name="preference_category_buttons">الأزرار</string>
-    <string name="preference_category_experimental_settings">أشياء تجريبية</string>
-    <string name="preference_category_java_tweaks">تعديلات جافا</string>
-    <string name="preference_category_main_categories">الفئات</string>
-    <string name="preference_category_miscellaneous">أعدادات متنوعة</string>
-    <string name="preference_category_video">إعدادات الفيديو</string>
-    <string name="notification_permission_dialog_title">طلب السماح</string>
-    <string name="notification_permission_dialog_text">FearLauncher requires a permission to post notifications to prevent game/modpack downloads from stopping when you leave the app. Without this permission, Android may shut down your downloads when you put FearLauncher in background mode.</string>
-    <string name="notification_permission_toast">O</string>
-    <string name="preference_ask_for_notification_title">السماح بالإشعارات</string>
-    <string name="preference_ask_for_notification_description">.</string>
-    <string name="preference_vsync_in_zink_title">السماح بتفعيل V-Sync مع Zink</string>
-    <string name="preference_vsync_in_zink_description">يسمع للمشغل </string>
-    <string name="exception_failed_to_unpack_jre17">فشل تثبيت JRE 17</string>
-    <string name="newdl_starting">قراءة بيانات تعريف اللعبة…</string>
-    <string name="newdl_downloading_metadata">تحميل بيانات تعريف اللعبة (%s)</string>
-    <string formatted="false" name="newdl_downloading_game_files">جاري تحميل اللعبة… (%d/%d, %.2f MB/s)</string>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">تحميل المودات (الملف %d من %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">تطبيق التجاوزات (%d/%d)</string>
+    <string name="modpack_install_notification_title" formatted="false">Fear Modpack Installerⁿ</string>
+    <string name="modpack_install_notification_success" formatted="false">انقر هنا لإنهاء تثبيت modpack</string>
+    <string name="modpack_install_notification_data_not_available" formatted="false">Не удалось загрузить информацию о загрузчике модов</string>
+    <string name="modpack_install_modloader_download_failed" formatted="false">فشل تنزيل ملفات محمل المودات</string>
+    <string name="modpack_install_download_failed" formatted="false">فشل تنزيل ملفات المودباك</string>
+    <string name="notif_error_occured" formatted="false">لقد حدث خطأ</string>
+    <string name="notif_error_occured_desc" formatted="false">انقر لمشاهدة المزيد من التفاصيل</string>
+    <string name="fabric_dl_only_stable" formatted="false">اظهر الإصدارات المستقرة فقط</string>
+    <string name="dl_tampered_manifest_title" formatted="false">تحذير التحقق من الملف</string>
+    <string name="dl_tampered_manifest" formatted="false"><![CDATA[إصدار اللعبة الظاهر على النسخة لا يطابق إصدار اللعبة الرسمي من Mojang، مما يعني انه تم العبث به.<br/><b> هذا ليس آمن، قد تكون معلوماتك الشخصية في خطر اذا استمريت،</b><br/>         اذا لا زلت تريد استخدام النسخة، اضغط \"عطل التحقق من النسخة\" و ابدأ التحميل مرة اخرى.<br/>        اذا ما كنت تريد إستخدام المصدر الرسمي اضغط \"بدل للمصدر الرسمي\" و إبدأ التحميل مرة اخرى.<br/>]]></string>
+    <string name="dl_turn_off_manifest_checks" formatted="false">اقف فحص البيانات</string>
+    <string name="dl_switch_to_official_site" formatted="false">قم بالتبديل إلى الموقع الرسمي</string>
+    <string name="preference_download_source_title" formatted="false">مصدر تحميل اللعبة</string>
+    <string name="preference_download_source_description" formatted="false">حدد نسخة للتحميل بدلاً من استخدام السيرفر الرئيسي</string>
+    <string name="preference_verify_manifest_title" formatted="false">التحقق من بيان إصدار اللعبة</string>
+    <string name="preference_verify_manifest_description" formatted="false">عند التفعيل، سيقوم المشغل بالتحقق من بيان إصدار اللعبة مع المكتبات.</string>
+    <string name="notif_download_finished" formatted="false">اللعبة جاهزة للتشغيل</string>
+    <string name="notif_download_finished_desc" formatted="false">اضغط هنا للبدأ!</string>
+    <string name="preference_category_gestures" formatted="false">الإيماءات</string>
+    <string name="preference_category_buttons" formatted="false">الأزرار</string>
+    <string name="preference_category_experimental_settings" formatted="false">أشياء تجريبية</string>
+    <string name="preference_category_java_tweaks" formatted="false">تعديلات جافا</string>
+    <string name="preference_category_main_categories" formatted="false">الفئات</string>
+    <string name="preference_category_miscellaneous" formatted="false">أعدادات متنوعة</string>
+    <string name="preference_category_video" formatted="false">إعدادات الفيديو</string>
+    <string name="notification_permission_dialog_title" formatted="false">طلب السماح</string>
+    <string name="notification_permission_dialog_text" formatted="false">FearLauncher requires a permission to post notifications to prevent game/modpack downloads from stopping when you leave the app. Without this permission, Android may shut down your downloads when you put FearLauncher in background mode.</string>
+    <string name="notification_permission_toast" formatted="false">O</string>
+    <string name="preference_ask_for_notification_title" formatted="false">السماح بالإشعارات</string>
+    <string name="preference_ask_for_notification_description" formatted="false">.</string>
+    <string name="preference_vsync_in_zink_title" formatted="false">السماح بتفعيل V-Sync مع Zink</string>
+    <string name="preference_vsync_in_zink_description" formatted="false">يسمع للمشغل </string>
+    <string name="exception_failed_to_unpack_jre17" formatted="false">فشل تثبيت JRE 17</string>
+    <string name="newdl_starting" formatted="false">قراءة بيانات تعريف اللعبة…</string>
+    <string name="newdl_downloading_metadata" formatted="false">تحميل بيانات تعريف اللعبة (%s)</string>
+    <string name="newdl_downloading_game_files" formatted="false">جاري تحميل اللعبة… (%d/%d, %.2f MB/s)</string>
     <string name="newdl_downloading_game_files_size" formatted="false">جاري تحميل اللعبة… (%.2f/%.2f MB، %.2f MB/s)</string>
-    <string name="cropper_title">اختيار منطقة الصورة</string>
-    <string name="cropper_lock_vertical">تأمين المحور العمودي</string>
-    <string name="cropper_lock_horizontal">تأمين المحور الأفقي</string>
-    <string name="cropper_reset">إعادة الضبط</string>
-    <string name="cropper_select_cancelled">تم إلغاء الاختيار</string>
-    <string name="log_view_button_scroll_off">إيقاف التمرير التلقائي\n</string>
-    <string name="log_view_button_scroll_on">إيقاف التمرير التلقائي\n</string>
-    <string name="log_view_button_output_off">المخرجات\nمتوقفة</string>
-    <string name="log_view_button_output_on">المخرجات\nمفعلة</string>
-    <string name="log_view_label_log_output">سِجل الإخراج:</string>
-    <string name="execute_jar_failed_to_read_file">فشل في قراءة ملف .jar</string>
-    <string name="execute_jar_incompatible_runtime">تنفيذ وظيفة .jar غير متوافق مع Java %d</string>
-    <string name="controller_button_a">A</string>
-    <string name="controller_button_b">B</string>
-    <string name="controller_button_x">X</string>
-    <string name="controller_button_y">Y</string>
-    <string name="controller_button_start">Start</string>
-    <string name="controller_button_select">اختر</string>
-    <string name="controller_button_trigger_left">الزناد الأيسر</string>
-    <string name="controller_button_trigger_right">الزناد الأيمن</string>
-    <string name="controller_button_shoulder_left">الكتف الأيسر</string>
-    <string name="controller_button_shoulder_right">الكتف الأيمن</string>
-    <string name="controller_direction_forward">العصا للأعلى</string>
-    <string name="controller_direction_backward">العصا للأسفل</string>
-    <string name="controller_direction_left">العصا لليسار</string>
-    <string name="controller_direction_right">العصا لليمين</string>
-    <string name="controller_stick_press_l">انقر فوق عصا الأصبع الأيسر</string>
-    <string name="controller_stick_press_r">انقر فوق عصا الأصبع الأيمن</string>
-    <string name="controller_dpad_up">D-Pad للأعلى</string>
-    <string name="controller_dpad_down">D-Pad للأسفل</string>
-    <string name="controller_dpad_left">D-Pad لليسار</string>
-    <string name="controller_dpad_right">D-Pad لليمين</string>
-    <string name="controller_remapper_exit_part1">اثبت</string>
-    <string name="controller_remapper_exit_part2">للخروج</string>
-    <string name="controller_remapper_operating_mode">الوضع الحالي</string>
-    <string name="customctrl_visibility_title">الظهور</string>
-    <string name="customctrl_visibility_ingame">داخل اللعبة</string>
-    <string name="customctrl_visibility_in_menus">في القوائم</string>
-    <string name="controller_remapper_expand_entry">قم بالتوسعة لتغيير رمز الزر</string>
-    <string name="preference_remap_controller_title">تغيير إعدادات مفاتيح التحكم</string>
-    <string name="preference_remap_controller_description">يسمح لك بتعديل المفتاح المخصص لكل زر في وحدة التحكم</string>
-    <string name="mcl_button_social_media">سيرفر الديسكورد</string>
-    <string name="ltw_render_distance_warning_msg">وحدة معالجة الرسوميات الخاصة بك غير قادرة على معالجة أكثر من 7 رندر ديستانس دون مود Sodium أو غيرها من المودات المشابهة. سيتم تخفيض الرندر ديستانس تلقائيًا عند النقر على \"موافق\".</string>
-    <string name="mcl_button_open_directory">فتح ملفات اللعبة</string>
-    <string name="local_login_bad_username_title">اسم المستخدم غير مناسب</string>
-    <string name="local_login_bad_username_text">يجب أن يكون اسم المستخدم بين 3–16 حرفاً، ويجب أن يحتوي فقط على أحرف لاتينية وأرقام 0-9 وتسطيرات سفلية.</string>
-    <string name="quick_setting_title">قائمة الإعدادات السريعة</string>
+    <string name="cropper_title" formatted="false">اختيار منطقة الصورة</string>
+    <string name="cropper_lock_vertical" formatted="false">تأمين المحور العمودي</string>
+    <string name="cropper_lock_horizontal" formatted="false">تأمين المحور الأفقي</string>
+    <string name="cropper_reset" formatted="false">إعادة الضبط</string>
+    <string name="cropper_select_cancelled" formatted="false">تم إلغاء الاختيار</string>
+    <string name="log_view_button_scroll_off" formatted="false">إيقاف التمرير التلقائي\n</string>
+    <string name="log_view_button_scroll_on" formatted="false">إيقاف التمرير التلقائي\n</string>
+    <string name="log_view_button_output_off" formatted="false">المخرجات\nمتوقفة</string>
+    <string name="log_view_button_output_on" formatted="false">المخرجات\nمفعلة</string>
+    <string name="log_view_label_log_output" formatted="false">سِجل الإخراج:</string>
+    <string name="execute_jar_failed_to_read_file" formatted="false">فشل في قراءة ملف .jar</string>
+    <string name="execute_jar_incompatible_runtime" formatted="false">تنفيذ وظيفة .jar غير متوافق مع Java %d</string>
+    <string name="controller_button_a" formatted="false">A</string>
+    <string name="controller_button_b" formatted="false">B</string>
+    <string name="controller_button_x" formatted="false">X</string>
+    <string name="controller_button_y" formatted="false">Y</string>
+    <string name="controller_button_start" formatted="false">Start</string>
+    <string name="controller_button_select" formatted="false">اختر</string>
+    <string name="controller_button_trigger_left" formatted="false">الزناد الأيسر</string>
+    <string name="controller_button_trigger_right" formatted="false">الزناد الأيمن</string>
+    <string name="controller_button_shoulder_left" formatted="false">الكتف الأيسر</string>
+    <string name="controller_button_shoulder_right" formatted="false">الكتف الأيمن</string>
+    <string name="controller_direction_forward" formatted="false">العصا للأعلى</string>
+    <string name="controller_direction_backward" formatted="false">العصا للأسفل</string>
+    <string name="controller_direction_left" formatted="false">العصا لليسار</string>
+    <string name="controller_direction_right" formatted="false">العصا لليمين</string>
+    <string name="controller_stick_press_l" formatted="false">انقر فوق عصا الأصبع الأيسر</string>
+    <string name="controller_stick_press_r" formatted="false">انقر فوق عصا الأصبع الأيمن</string>
+    <string name="controller_dpad_up" formatted="false">D-Pad للأعلى</string>
+    <string name="controller_dpad_down" formatted="false">D-Pad للأسفل</string>
+    <string name="controller_dpad_left" formatted="false">D-Pad لليسار</string>
+    <string name="controller_dpad_right" formatted="false">D-Pad لليمين</string>
+    <string name="controller_remapper_exit_part1" formatted="false">اثبت</string>
+    <string name="controller_remapper_exit_part2" formatted="false">للخروج</string>
+    <string name="controller_remapper_operating_mode" formatted="false">الوضع الحالي</string>
+    <string name="customctrl_visibility_title" formatted="false">الظهور</string>
+    <string name="customctrl_visibility_ingame" formatted="false">داخل اللعبة</string>
+    <string name="customctrl_visibility_in_menus" formatted="false">في القوائم</string>
+    <string name="controller_remapper_expand_entry" formatted="false">قم بالتوسعة لتغيير رمز الزر</string>
+    <string name="preference_remap_controller_title" formatted="false">تغيير إعدادات مفاتيح التحكم</string>
+    <string name="preference_remap_controller_description" formatted="false">يسمح لك بتعديل المفتاح المخصص لكل زر في وحدة التحكم</string>
+    <string name="mcl_button_social_media" formatted="false">سيرفر الديسكورد</string>
+    <string name="ltw_render_distance_warning_msg" formatted="false">وحدة معالجة الرسوميات الخاصة بك غير قادرة على معالجة أكثر من 7 رندر ديستانس دون مود Sodium أو غيرها من المودات المشابهة. سيتم تخفيض الرندر ديستانس تلقائيًا عند النقر على \"موافق\".</string>
+    <string name="mcl_button_open_directory" formatted="false">فتح ملفات اللعبة</string>
+    <string name="local_login_bad_username_title" formatted="false">اسم المستخدم غير مناسب</string>
+    <string name="local_login_bad_username_text" formatted="false">يجب أن يكون اسم المستخدم بين 3–16 حرفاً، ويجب أن يحتوي فقط على أحرف لاتينية وأرقام 0-9 وتسطيرات سفلية.</string>
+    <string name="quick_setting_title" formatted="false">قائمة الإعدادات السريعة</string>
 </resources>

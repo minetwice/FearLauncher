@@ -1,100 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Fear Launcher</string>
-    <string name="app_short_name">FearLauncher</string>
+    <string name="app_name" formatted="false">Fear Launcher</string>
+    <string name="app_short_name" formatted="false">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label">Кіру</string>
+    <string name="login_online_login_label" formatted="false">Кіру</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account">Бұл тіркелгі жойылады!</string>
+    <string name="warning_remove_account" formatted="false">Бұл тіркелгі жойылады!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod">Мод орнатқыш таңдау</string>
+    <string name="alerttitle_installmod" formatted="false">Мод орнатқыш таңдау</string>
     <!-- Error messages -->
-    <string name="error_fatal">FearLauncher кенет іркілді</string>
-    <string name="error_no_version">Нұсқа жоқ!</string>
-    <string name="error_show_more">Көрсету</string>
-    <string name="error_show_less">Жасыру</string>
+    <string name="error_fatal" formatted="false">FearLauncher кенет іркілді</string>
+    <string name="error_no_version" formatted="false">Нұсқа жоқ!</string>
+    <string name="error_show_more" formatted="false">Көрсету</string>
+    <string name="error_show_less" formatted="false">Жасыру</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied">Қоймадан оқу/жазу рұқсаты керек!</string>
-    <string name="toast_optifine_success">Орнату сәтті өтті</string>
+    <string name="toast_permission_denied" formatted="false">Қоймадан оқу/жазу рұқсаты керек!</string>
+    <string name="toast_optifine_success" formatted="false">Орнату сәтті өтті</string>
     <!--
-    <string name="toast_3">Exit</string>
+    <string name="toast_3" formatted="false">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache">Кәш файлдары жойылуда</string>
-    <string name="mcl_launch_downloading">%s жүктелуде</string>
+    <string name="mcl_launch_cleancache" formatted="false">Кәш файлдары жойылуда</string>
+    <string name="mcl_launch_downloading" formatted="false">%s жүктелуде</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"%s жүктелуде (%.2f МБ / %.2f МБ)"</string>
-    <string name="mcl_launch_download_assets">Ресурс жүктеуге дайындалуда</string>
-    <string name="mcl_options">Баптау</string>
-    <string name="mcl_option_customcontrol">Өңделген басқару</string>
-    <string name="mcl_setting_title_ignore_notch">Камера ойығын елемеу</string>
-    <string name="mcl_setting_title_resolution_scaler">Өлшем масштабтау</string>
-    <string name="mcl_setting_title_buttonscale">Батырма масштабы</string>
-    <string name="mcl_setting_title_mousescale">Меңзер масштабы</string>
-    <string name="mcl_setting_title_javaargs">JVM қосу аргументі</string>
-    <string name="mcl_setting_subtitle_javaargs">Абайлаңыз, мұны түсінбей баптасаңыз, ойын іркілуі мүмкін.</string>
-    <string name="mcl_setting_category_renderer">Рендерер</string>
-    <string name="mcl_setting_veroption_release">Релиз</string>
-    <string name="mcl_setting_veroption_snapshot">Снапшот</string>
-    <string name="mcl_setting_veroption_oldalpha">Ескі альфа</string>
-    <string name="mcl_setting_veroption_oldbeta">Ескі бета</string>
-    <string name="mcl_version_clone">Клондау</string>
+    <string name="mcl_launch_download_assets" formatted="false">Ресурс жүктеуге дайындалуда</string>
+    <string name="mcl_options" formatted="false">Баптау</string>
+    <string name="mcl_option_customcontrol" formatted="false">Өңделген басқару</string>
+    <string name="mcl_setting_title_ignore_notch" formatted="false">Камера ойығын елемеу</string>
+    <string name="mcl_setting_title_resolution_scaler" formatted="false">Өлшем масштабтау</string>
+    <string name="mcl_setting_title_buttonscale" formatted="false">Батырма масштабы</string>
+    <string name="mcl_setting_title_mousescale" formatted="false">Меңзер масштабы</string>
+    <string name="mcl_setting_title_javaargs" formatted="false">JVM қосу аргументі</string>
+    <string name="mcl_setting_subtitle_javaargs" formatted="false">Абайлаңыз, мұны түсінбей баптасаңыз, ойын іркілуі мүмкін.</string>
+    <string name="mcl_setting_category_renderer" formatted="false">Рендерер</string>
+    <string name="mcl_setting_veroption_release" formatted="false">Релиз</string>
+    <string name="mcl_setting_veroption_snapshot" formatted="false">Снапшот</string>
+    <string name="mcl_setting_veroption_oldalpha" formatted="false">Ескі альфа</string>
+    <string name="mcl_setting_veroption_oldbeta" formatted="false">Ескі бета</string>
+    <string name="mcl_version_clone" formatted="false">Клондау</string>
     <!-- Global strings -->
-    <string name="global_edit">Өңдеу</string>
-    <string name="global_error">Қате</string>
-    <string name="global_load">Жүктеу</string>
-    <string name="global_name">Атауы</string>
-    <string name="global_remove">Алып тастау</string>
-    <string name="global_clone">Клондау</string>
-    <string name="global_restart">Қайта жүктеу</string>
-    <string name="global_save">Сақтау</string>
-    <string name="global_unpacking">%s ашылуда</string>
-    <string name="global_error_field_empty">Бұл өріс бос бола алмайды</string>
-    <string name="global_waiting">Күте тұрыңыз</string>
+    <string name="global_edit" formatted="false">Өңдеу</string>
+    <string name="global_error" formatted="false">Қате</string>
+    <string name="global_load" formatted="false">Жүктеу</string>
+    <string name="global_name" formatted="false">Атауы</string>
+    <string name="global_remove" formatted="false">Алып тастау</string>
+    <string name="global_clone" formatted="false">Клондау</string>
+    <string name="global_restart" formatted="false">Қайта жүктеу</string>
+    <string name="global_save" formatted="false">Сақтау</string>
+    <string name="global_unpacking" formatted="false">%s ашылуда</string>
+    <string name="global_error_field_empty" formatted="false">Бұл өріс бос бола алмайды</string>
+    <string name="global_waiting" formatted="false">Күте тұрыңыз</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_confirm">Мәжбүрлеп жапқыңыз келе ме?</string>
+    <string name="mcn_exit_confirm" formatted="false">Мәжбүрлеп жапқыңыз келе ме?</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat">Чат</string>
-    <string name="control_debug">Оңдау</string>
-    <string name="control_primary">Pri</string>
-    <string name="control_secondary">Sec</string>
-    <string name="control_shift">◇</string>
-    <string name="control_inventory">Инв</string>
-    <string name="control_up">▲</string>
-    <string name="control_left">◀</string>
-    <string name="control_right">▶</string>
-    <string name="control_down">▼</string>
-    <string name="control_jump">⬛</string>
-    <string name="control_thirdperson">F5</string>
-    <string name="control_listplayers">Tab</string>
-    <string name="control_mouse">Тінтуір</string>
-    <string name="control_mouseoff">Тінтуір: өшір.</string>
-    <string name="control_mouseon">Тінтуір: қос.</string>
+    <string name="control_chat" formatted="false">Чат</string>
+    <string name="control_debug" formatted="false">Оңдау</string>
+    <string name="control_primary" formatted="false">Pri</string>
+    <string name="control_secondary" formatted="false">Sec</string>
+    <string name="control_shift" formatted="false">◇</string>
+    <string name="control_inventory" formatted="false">Инв</string>
+    <string name="control_up" formatted="false">▲</string>
+    <string name="control_left" formatted="false">◀</string>
+    <string name="control_right" formatted="false">▶</string>
+    <string name="control_down" formatted="false">▼</string>
+    <string name="control_jump" formatted="false">⬛</string>
+    <string name="control_thirdperson" formatted="false">F5</string>
+    <string name="control_listplayers" formatted="false">Tab</string>
+    <string name="control_mouse" formatted="false">Тінтуір</string>
+    <string name="control_mouseoff" formatted="false">Тінтуір: өшір.</string>
+    <string name="control_mouseon" formatted="false">Тінтуір: қос.</string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose">Мәжбүрлеп жабу</string>
-    <string name="control_viewout">Жорнал шығысы</string>
-    <string name="control_adebug">Кіріс оңдау</string>
-    <string name="control_customkey">Өзгертілген жайманы жіберу</string>
+    <string name="control_forceclose" formatted="false">Мәжбүрлеп жабу</string>
+    <string name="control_viewout" formatted="false">Жорнал шығысы</string>
+    <string name="control_adebug" formatted="false">Кіріс оңдау</string>
+    <string name="control_customkey" formatted="false">Өзгертілген жайманы жіберу</string>
     <!-- ImportControlActivity Strings -->
     <!--
-    <string name="control_more3"></string>
-    <string name="control_more4"></string>
+    <string name="control_more3" formatted="false"></string>
+    <string name="control_more4" formatted="false"></string>
 -->
-    <string name="customctrl_toggle">Ауысқыш</string>
-    <string name="customctrl_size">Көлемі</string>
-    <string name="customctrl_addbutton">Батырма қосу</string>
-    <string name="main_play">Ойнау</string>
-    <string name="autoram_info_msg">%d МБ жад берілді</string>
-    <string name="mcl_setting_check_libraries">Жүктегеннен кейін кітапханаларды тексереді</string>
-    <string name="dl_library_sha_pass">%s кітапханасы жақсы және қолдануға жарамды</string>
-    <string name="mcl_setting_title_mousespeed">Тінтуір жылдамдығы</string>
-    <string name="profiles_profile_name">Атауы</string>
-    <string name="pedit_renderer">Рендерер</string>
-    <string name="of_dl_progress">%s жүктелуде</string>
-    <string name="generic_debug">Оңдау</string>
+    <string name="customctrl_toggle" formatted="false">Ауысқыш</string>
+    <string name="customctrl_size" formatted="false">Көлемі</string>
+    <string name="customctrl_addbutton" formatted="false">Батырма қосу</string>
+    <string name="main_play" formatted="false">Ойнау</string>
+    <string name="autoram_info_msg" formatted="false">%d МБ жад берілді</string>
+    <string name="mcl_setting_check_libraries" formatted="false">Жүктегеннен кейін кітапханаларды тексереді</string>
+    <string name="dl_library_sha_pass" formatted="false">%s кітапханасы жақсы және қолдануға жарамды</string>
+    <string name="mcl_setting_title_mousespeed" formatted="false">Тінтуір жылдамдығы</string>
+    <string name="profiles_profile_name" formatted="false">Атауы</string>
+    <string name="pedit_renderer" formatted="false">Рендерер</string>
+    <string name="of_dl_progress" formatted="false">%s жүктелуде</string>
+    <string name="generic_debug" formatted="false">Оңдау</string>
 </resources>
