@@ -1,22 +1,27 @@
-name: Fix Translations
+name: Clean Translations
 
 on:
   workflow_dispatch:
 
 jobs:
-  fix:
+  clean:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Clean formatted attributes
+      - name: Remove all duplicate formatted attributes
         run: |
           find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read f; do
-            perl -pi -e 's/\s+formatted="[^"]*"//g; s/(name="[^"]+")/\1 formatted="false"/g' "$f"
+            # हर string में से सारे formatted attributes हटाओ
+            perl -pi -e 's/(name="[^"]+")\s+formatted="[^"]*"/\1/g' "$f"
+            # अब specific strings में formatted="false" डालो (जिन्हें ज़रूरत है)
+            for str in mcl_launch_downloading_progress modpack_download_downloading_metadata modpack_download_downloading_mods newdl_downloading_game_files_size memory_warning_msg; do
+              perl -pi -e "s/(name=\"$str\")/\1 formatted=\"false\"/g" "$f"
+            done
           done
-      - name: Commit
+      - name: Commit fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --staged --quiet || git commit -m "fix: remove duplicate formatted"
+          git diff --staged --quiet || git commit -m "fix: clean duplicate formatted attributes"
           git push
