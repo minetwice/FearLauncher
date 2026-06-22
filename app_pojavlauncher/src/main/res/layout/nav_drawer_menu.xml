@@ -2,20 +2,44 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_execute_jar"
-            android:icon="@drawable/ic_px_java_run"
-            android:title="@string/main_install_jar_file" />
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_px_home"
+            android:title="Home" />
         <item
-            android:id="@+id/nav_open_directory"
-            android:icon="@drawable/ic_px_folder"
-            android:title="@string/mcl_button_open_directory" />
+            android:id="@+id/nav_installations"
+            android:icon="@drawable/ic_px_java"
+            android:title="Installations" />
         <item
-            android:id="@+id/nav_share_logs"
-            android:icon="@drawable/ic_px_sharelog"
-            android:title="@string/main_share_logs" />
+            android:id="@+id/nav_mods"
+            android:icon="@drawable/ic_px_file_dl"
+            android:title="Mods" />
+        <item
+            android:id="@+id/nav_realms"
+            android:icon="@drawable/ic_px_console"
+            android:title="Realms" />
+        <item
+            android:id="@+id/nav_skins"
+            android:icon="@drawable/ic_px_edit"
+            android:title="Skins" />
         <item
             android:id="@+id/nav_custom_controls"
             android:icon="@drawable/ic_px_gamepad"
-            android:title="@string/mcl_option_customcontrol" />
+            android:title="Custom Controls" />
+        <item
+            android:id="@+id/nav_share_logs"
+            android:icon="@drawable/ic_px_sharelog"
+            android:title="Share Logs" />
+        <item
+            android:id="@+id/nav_open_directory"
+            android:icon="@drawable/ic_px_folder"
+            android:title="Open Directory" />
+        <item
+            android:id="@+id/nav_execute_jar"
+            android:icon="@drawable/ic_px_java_run"
+            android:title="Execute .jar" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_px_sliders"
+            android:title="Settings" />
     </group>
 </menu>
