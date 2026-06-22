@@ -49,45 +49,26 @@ public class MainMenuFragment extends Fragment {
                 }
             });
         }
-
-        if (versionText != null) {
-            // Set dynamic version later
-        }
     }
 
     private void updateAccountName() {
         if (accountName != null) {
+            String username = null;
             Object currentAccount = Accounts.getCurrent();
             if (currentAccount != null) {
-                // Try to get username via reflection or using known methods
-                // For PojavLauncher, Accounts.getCurrent() returns an Account object with getUsername()
+                // Try to get username using reflection (safe)
                 try {
-                    // Use reflection to call getUsername() if available
                     java.lang.reflect.Method method = currentAccount.getClass().getMethod("getUsername");
-                    String username = (String) method.invoke(currentAccount);
-                    if (username != null && !username.isEmpty()) {
-                        accountName.setText(username);
-                        return;
-                    }
-                } catch (Exception ignored) {
-                    // Fallback: use toString() or default
+                    username = (String) method.invoke(currentAccount);
+                } catch (Exception e) {
+                    // Fallback: try toString()
+                    username = currentAccount.toString();
                 }
-                // Fallback: try to get display name or something else
-                try {
-                    java.lang.reflect.Method method = currentAccount.getClass().getMethod("getDisplayName");
-                    String displayName = (String) method.invoke(currentAccount);
-                    if (displayName != null && !displayName.isEmpty()) {
-                        accountName.setText(displayName);
-                        return;
-                    }
-                } catch (Exception ignored) {
-                    // Ignore
-                }
-                // Last resort: use toString()
-                accountName.setText(currentAccount.toString());
-            } else {
-                accountName.setText("FearUser");
             }
+            if (username == null || username.isEmpty()) {
+                username = "FearUser";
+            }
+            accountName.setText(username);
         }
     }
 
