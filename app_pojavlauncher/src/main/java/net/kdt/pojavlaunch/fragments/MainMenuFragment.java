@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -17,8 +18,8 @@ import androidx.fragment.app.Fragment;
 import com.kdt.mcgui.mcVersionSpinner;
 
 import net.kdt.pojavlaunch.CustomControlsActivity;
-import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.instances.Instance;
@@ -26,12 +27,19 @@ import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.utils.FileUtils;
 
+// 🔥 यहाँ सही R import करो – App के Package के हिसाब से
+import git.artdeell.mojo.R;
+
 import java.io.File;
 
 public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
     private mcVersionSpinner mVersionSpinner;
+    private final ActivityResultLauncher<Object> mModInstallerLauncher =
+            registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
+                if (data != null) Tools.launchModInstaller(requireContext(), data);
+            });
 
     public MainMenuFragment() {
         super(R.layout.fragment_launcher);
@@ -66,11 +74,10 @@ public class MainMenuFragment extends Fragment {
 
         // 1. Settings (Top Right)
         if (settingsTopButton != null) {
-            settingsTopButton.setOnClickListener(v -> {
-                // Open settings fragment
-                // You can replace with actual settings navigation
-                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment.class, null, null);
-            });
+            settingsTopButton.setOnClickListener(v ->
+                    Tools.swapFragment(requireActivity(),
+                            net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment.class,
+                            null, null));
         }
 
         // 2. Play Button
@@ -80,35 +87,30 @@ public class MainMenuFragment extends Fragment {
 
         // 3. Installations
         if (installationsButton != null) {
-            installationsButton.setOnClickListener(v -> {
-                // Navigate to profile/installations
-                // For example, open ProfileTypeSelectFragment or similar
-                Tools.swapFragment(requireActivity(), ProfileTypeSelectFragment.class, ProfileTypeSelectFragment.TAG, null);
-            });
+            installationsButton.setOnClickListener(v ->
+                    Tools.swapFragment(requireActivity(),
+                            ProfileTypeSelectFragment.class,
+                            ProfileTypeSelectFragment.TAG, null));
         }
 
         // 4. Mods
         if (modsButton != null) {
-            modsButton.setOnClickListener(v -> {
-                // Navigate to mod search fragment
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
-            });
+            modsButton.setOnClickListener(v ->
+                    Tools.swapFragment(requireActivity(),
+                            SearchModFragment.class,
+                            SearchModFragment.TAG, null));
         }
 
-        // 5. Skins
+        // 5. Skins (Placeholder)
         if (skinsButton != null) {
-            skinsButton.setOnClickListener(v -> {
-                // Open skin management or account settings
-                // Could open the account selector or a skin picker
-                // Placeholder: open account spinner dropdown
-                // You can also launch an intent to a skin activity if exists
-                Toast.makeText(requireContext(), "Skins feature coming soon!", Toast.LENGTH_SHORT).show();
-            });
+            skinsButton.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Skins feature coming soon!", Toast.LENGTH_SHORT).show());
         }
 
         // 6. Custom Controls
         if (customControlButton != null) {
-            customControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+            customControlButton.setOnClickListener(v ->
+                    startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
         }
 
         // 7. Share Logs
@@ -123,9 +125,10 @@ public class MainMenuFragment extends Fragment {
 
         // 9. Settings (from Quick Actions)
         if (settingsButton != null) {
-            settingsButton.setOnClickListener(v -> {
-                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment.class, null, null);
-            });
+            settingsButton.setOnClickListener(v ->
+                    Tools.swapFragment(requireActivity(),
+                            net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment.class,
+                            null, null));
         }
 
         // 10. Open Directory
@@ -133,7 +136,7 @@ public class MainMenuFragment extends Fragment {
             openFilesButton.setOnClickListener(v -> openGameDirectory(requireContext()));
         }
 
-        // 11. Edit Profile (from version selector)
+        // 11. Edit Profile
         if (editProfileButton != null) {
             editProfileButton.setOnClickListener(v -> {
                 if (mVersionSpinner != null) {
@@ -142,26 +145,19 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // 12. Account Avatar – optionally open account switcher
+        // 12. Account Avatar – Placeholder
         if (accountAvatar != null) {
-            accountAvatar.setOnClickListener(v -> {
-                // Open account selection or dropdown
-                // For now, just a placeholder
-                Toast.makeText(requireContext(), "Account switcher coming soon!", Toast.LENGTH_SHORT).show();
-            });
+            accountAvatar.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Account switcher coming soon!", Toast.LENGTH_SHORT).show());
         }
-
-        // 13. Account Name – same as avatar
         if (accountName != null) {
-            accountName.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Account switcher coming soon!", Toast.LENGTH_SHORT).show();
-            });
+            accountName.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Account switcher coming soon!", Toast.LENGTH_SHORT).show());
         }
 
-        // (Optional) Set version text dynamically
+        // Optional: Set version text dynamically
         if (versionText != null) {
-            // You can set from selected instance version
-            // Example: versionText.setText("1.21.1");
+            // versionText.setText("1.21.1");
         }
     }
 
@@ -184,7 +180,7 @@ public class MainMenuFragment extends Fragment {
 
     private void runInstallerWithConfirmation() {
         if (ProgressKeeper.getTaskCount() == 0) {
-            new net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension("jar").launch(null);
+            mModInstallerLauncher.launch(null);
         } else {
             Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
         }
