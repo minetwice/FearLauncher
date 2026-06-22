@@ -64,34 +64,36 @@ public class LauncherActivity extends BaseActivity {
     private NavigationView mNavigationView;
     private static ActivityResultLauncher<String> mRequestPermissionLauncher;
 
+    // Listener for opening auth selection when needed
     private final ExtraListener<Boolean> mSelectAuthMethod = (key, value) -> {
         FragmentManager manager = getSupportFragmentManager();
-        if(!value || manager.isStateSaved()) return false;
+        if (!value || manager.isStateSaved()) return false;
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
-        if(!(fragment instanceof MainMenuFragment)) return false;
+        if (!(fragment instanceof MainMenuFragment)) return false;
         Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
         return false;
     };
 
+    // Listener for launching the game
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
-        if(mProgressLayout.hasProcesses()){
+        if (mProgressLayout.hasProcesses()) {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;
         }
         Instance selectedInstance = Instances.loadSelectedInstance();
-        if(selectedInstance == null) {
+        if (selectedInstance == null) {
             Toast.makeText(this, R.string.no_instance, Toast.LENGTH_LONG).show();
             return false;
         }
-        if(selectedInstance.installer != null) {
+        if (selectedInstance.installer != null) {
             selectedInstance.installer.start();
             return false;
         }
-        if (!Tools.isValidString(selectedInstance.versionId)){
+        if (!Tools.isValidString(selectedInstance.versionId)) {
             Toast.makeText(this, R.string.error_no_version, Toast.LENGTH_LONG).show();
             return false;
         }
-        if(Accounts.getCurrent() == null){
+        if (Accounts.getCurrent() == null) {
             Toast.makeText(this, R.string.no_saved_accounts, Toast.LENGTH_LONG).show();
             ExtraCore.setValue(ExtraConstants.SELECT_AUTH_METHOD, true);
             return false;
@@ -107,8 +109,9 @@ public class LauncherActivity extends BaseActivity {
         return false;
     };
 
+    // Prevents double launching when tasks are running
     private final TaskCountListener mDoubleLaunchPreventionListener = taskCount -> {
-        if(taskCount > 0) {
+        if (taskCount > 0) {
             Tools.runOnUiThread(() ->
                     mNotificationManager.cancel(NotificationUtils.NOTIFICATION_ID_GAME_START)
             );
@@ -131,11 +134,11 @@ public class LauncherActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pojav_launcher);
 
+        // Set environment variables
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
             Os.setenv("TMPDIR", Tools.DIR_CACHE.getAbsolutePath(), true);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -144,30 +147,48 @@ public class LauncherActivity extends BaseActivity {
         bindViews();
         setupDrawer();
 
+        // Load default fragment (Dashboard)
         if (savedInstanceState == null) {
             getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.container_fragment, new MainMenuFragment())
-                .commit();
-            mNavigationView.setCheckedItem(R.id.nav_dashboard);
+                    .beginTransaction()
+                    .replace(R.id.container_fragment, new MainMenuFragment())
+                    .commit();
+            if (mNavigationView != null) {
+                mNavigationView.setCheckedItem(R.id.nav_dashboard);
+            }
         }
 
+        // Permission launcher
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
-                    if(!isAllowed) Tools.runOnUiThread(() -> Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show());
+                    if (!isAllowed) {
+                        Tools.runOnUiThread(() ->
+                                Toast.makeText(this, R.string.notification_permission_toast, Toast.LENGTH_LONG).show()
+                        );
+                    }
                 }
         );
         checkNotificationPermission();
+
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Progress & task listeners
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
-        ProgressKeeper.addTaskCountListener((mProgressServiceKeeper = new ProgressServiceKeeper(this)));
+        mProgressServiceKeeper = new ProgressServiceKeeper(this);
+        ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
+
+        // Extra listeners
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
 
-        new AsyncVersionList().getVersionList(versions -> ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions));
+        // Load version list
+        new AsyncVersionList().getVersionList(versions ->
+                ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
+        );
 
+        // Observe progress layouts
         mProgressLayout.observe(ProgressLayout.DOWNLOAD_MINECRAFT);
         mProgressLayout.observe(ProgressLayout.UNPACK_RUNTIME);
         mProgressLayout.observe(ProgressLayout.INSTALL_MODPACK);
@@ -201,31 +222,32 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        // Close drawer if open
         if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
             mDrawerLayout.closeDrawer(mNavigationView);
             return;
         }
+        // Handle Microsoft login back
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
-        if(fragment != null){
-            if(fragment.canGoBack()){
-                fragment.goBack();
-                return;
-            }
+        if (fragment != null && fragment.canGoBack()) {
+            fragment.goBack();
+            return;
         }
         super.onBackPressed();
     }
 
     @SuppressWarnings("SameParameterValue")
-    private Fragment getVisibleFragment(String tag){
+    private Fragment getVisibleFragment(String tag) {
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
-        if(fragment != null && fragment.isVisible()) {
+        if (fragment != null && fragment.isVisible()) {
             return fragment;
         }
         return null;
     }
 
+    // Permission helpers
     public void askForPermission(int minApi, final String permission) {
-        if(Build.VERSION.SDK_INT < minApi) return;
+        if (Build.VERSION.SDK_INT < minApi) return;
         mRequestPermissionLauncher.launch(permission);
     }
 
@@ -235,12 +257,13 @@ public class LauncherActivity extends BaseActivity {
     }
 
     public boolean checkForPermissionRationale(int minApi, final String permission) {
-        return checkForPermission(minApi, permission) || ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
+        return checkForPermission(minApi, permission) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
     }
 
     private void checkNotificationPermission() {
-        if(LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
-            this.checkForPermission(33, Manifest.permission.POST_NOTIFICATIONS)) {
+        if (LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
+                checkForPermission(33, Manifest.permission.POST_NOTIFICATIONS)) {
             return;
         }
         showNotificationPermissionReasoning();
@@ -252,7 +275,7 @@ public class LauncherActivity extends BaseActivity {
                 .setMessage(R.string.notification_permission_dialog_text)
                 .setPositiveButton(android.R.string.ok, (d, w) ->
                         askForPermission(33, Manifest.permission.POST_NOTIFICATIONS))
-                .setNegativeButton(android.R.string.cancel, (d, w)-> handleNoNotificationPermission())
+                .setNegativeButton(android.R.string.cancel, (d, w) -> handleNoNotificationPermission())
                 .show();
     }
 
@@ -263,7 +286,7 @@ public class LauncherActivity extends BaseActivity {
                 .apply();
     }
 
-    private void bindViews(){
+    private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
         mProgressLayout = findViewById(R.id.progress_layout);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -271,6 +294,7 @@ public class LauncherActivity extends BaseActivity {
     }
 
     private void setupDrawer() {
+        // Hamburger button opens the drawer
         ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
         if (hamburgerButton != null) {
             hamburgerButton.setOnClickListener(v -> {
@@ -280,26 +304,28 @@ public class LauncherActivity extends BaseActivity {
             });
         }
 
+        // Handle navigation item clicks
         if (mNavigationView != null) {
             mNavigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.nav_dashboard) {
                     getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.container_fragment, new MainMenuFragment())
-                        .commit();
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new MainMenuFragment())
+                            .commit();
                 } else if (id == R.id.nav_settings) {
                     Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
                 } else if (id == R.id.nav_installations) {
                     getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.container_fragment, new InstallationsFragment())
-                        .commit();
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new InstallationsFragment())
+                            .commit();
                 } else if (id == R.id.nav_login) {
                     Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
                 }
+                // Close drawer after selection
                 if (mDrawerLayout != null) {
                     mDrawerLayout.closeDrawer(mNavigationView);
                 }
