@@ -14,6 +14,7 @@ import com.kdt.mcgui.mcVersionSpinner;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.authenticator.accounts.Account;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -36,15 +37,12 @@ public class MainMenuFragment extends Fragment {
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
         ImageButton editProfileButton = view.findViewById(R.id.edit_profile_button);
 
-        // Update account name
         updateAccountName();
 
-        // Play Button
         if (playButton != null) {
             playButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
         }
 
-        // Edit Profile
         if (editProfileButton != null) {
             editProfileButton.setOnClickListener(v -> {
                 if (mVersionSpinner != null) {
@@ -53,7 +51,6 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Version text (optional)
         if (versionText != null) {
             // Set dynamic version later
         }
@@ -61,9 +58,9 @@ public class MainMenuFragment extends Fragment {
 
     private void updateAccountName() {
         if (accountName != null) {
-            String username = Accounts.getCurrentUsername();
-            if (username != null && !username.isEmpty()) {
-                accountName.setText(username);
+            Account currentAccount = Accounts.getCurrent();
+            if (currentAccount != null && currentAccount.getUsername() != null) {
+                accountName.setText(currentAccount.getUsername());
             } else {
                 accountName.setText("FearUser");
             }
