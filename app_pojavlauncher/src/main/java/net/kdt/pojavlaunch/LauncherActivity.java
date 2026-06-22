@@ -1,6 +1,7 @@
 package net.kdt.pojavlaunch;
 
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
+
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -47,7 +48,8 @@ import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 import net.kdt.pojavlaunch.services.ProgressServiceKeeper;
 import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;
 import net.kdt.pojavlaunch.tasks.AsyncVersionList;
-import net.kdt.pojavlaunch.tasks.MinecraftDownloader;import net.kdt.pojavlaunch.utils.FileUtils;
+import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
+import net.kdt.pojavlaunch.utils.FileUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
 
@@ -58,7 +60,7 @@ public class LauncherActivity extends BaseActivity {
 
     private FragmentContainerView mFragmentView;
     private ImageButton mSettingsButton;
-    private ImageView mHamburgerIcon; // New Hamburger Icon
+    private ImageView mHamburgerIcon; // New Hamburger Icon (optional)
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
@@ -96,11 +98,12 @@ public class LauncherActivity extends BaseActivity {
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
         if(fragment instanceof MainMenuFragment){
             Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-        } else{            Tools.backToMainMenu(this);
+        } else{
+            Tools.backToMainMenu(this);
         }
     };
 
-    /* NEW: Hamburger Menu Click Listener (Opens Settings as fallback) */
+    /* NEW: Hamburger Menu Click Listener (Opens Settings as fallback) – only if you have hamburger in layout */
     private final View.OnClickListener mHamburgerClickListener = v -> {
         FragmentManager manager = getSupportFragmentManager();
         if(manager.isStateSaved()) return;
@@ -145,7 +148,8 @@ public class LauncherActivity extends BaseActivity {
     };
 
     private final TaskCountListener mDoubleLaunchPreventionListener = taskCount -> {
-        if(taskCount > 0) {            Tools.runOnUiThread(() ->
+        if(taskCount > 0) {
+            Tools.runOnUiThread(() ->
                     mNotificationManager.cancel(NotificationUtils.NOTIFICATION_ID_GAME_START)
             );
         }
@@ -170,7 +174,7 @@ public class LauncherActivity extends BaseActivity {
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
             Os.setenv("TMPDIR", Tools.DIR_CACHE.getAbsolutePath(), true);
-         }
+        }
         catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -178,8 +182,16 @@ public class LauncherActivity extends BaseActivity {
         IconCacheJanitor.runJanitor();
         getWindow().setBackgroundDrawable(null);
         bindViews();
-        
-        // Setup Hamburger Menu
+
+        // 🔥 FIX: Load default fragment if no saved state
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment, new MainMenuFragment())
+                .commit();
+        }
+
+        // Setup Hamburger Menu (safe – layout may or may not have it)
         if (mHamburgerIcon != null) {
             mHamburgerIcon.setOnClickListener(mHamburgerClickListener);
         }
@@ -243,7 +255,8 @@ public class LauncherActivity extends BaseActivity {
 
     /** Custom implementation to feel more natural when a backstack isn't present */
     @Override
-    public void onBackPressed() {        MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
+    public void onBackPressed() {
+        MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if(fragment != null){
             if(fragment.canGoBack()){
                 fragment.goBack();
@@ -266,12 +279,12 @@ public class LauncherActivity extends BaseActivity {
         if(Build.VERSION.SDK_INT < minApi) return;
         mRequestPermissionLauncher.launch(permission);
     }
-    
+
     public boolean checkForPermission(int minApi, final String permission) {
         return Build.VERSION.SDK_INT < minApi ||
                 ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_DENIED;
     }
-    
+
     public boolean checkForPermissionRationale(int minApi, final String permission) {
         return checkForPermission(minApi, permission) || ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
     }
@@ -293,6 +306,7 @@ public class LauncherActivity extends BaseActivity {
                 .setNegativeButton(android.R.string.cancel, (d, w)-> handleNoNotificationPermission())
                 .show();
     }
+
     private void handleNoNotificationPermission() {
         LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = true;
         LauncherPreferences.DEFAULT_PREF.edit()
@@ -305,8 +319,7 @@ public class LauncherActivity extends BaseActivity {
         mFragmentView = findViewById(R.id.container_fragment);
         mSettingsButton = findViewById(R.id.setting_button);
         mProgressLayout = findViewById(R.id.progress_layout);
-        
-        // Bind hamburger icon safely
+        // Hamburger icon is optional – if present in layout, it will be bound
         mHamburgerIcon = findViewById(R.id.hamburger_menu_icon);
     }
 }
