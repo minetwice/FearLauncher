@@ -433,6 +433,7 @@ If you want to use the official download source, press \"Switch to official site
     <string name="vml_fail_load_classpath" formatted="false">Failed to load the classpath. Check latestlog.txt for details</string>
     <string name="vml_fail_run_main" formatted="false">Failed to start the main class. Check latestlog.txt for details</string>
     <string name="vml_huh" formatted="false">\???</string>
+    <string name="bind_process_waiting_joystick" formatted="false">Waiting for joystick %1$s...</string>
     <string name="vml_err_ok" formatted="false">Success</string>
     <string name="vml_err_unknown" formatted="false">Unknown error</string>
     <string name="vml_err_detached" formatted="false">Thread is detached from the Java VM</string>
