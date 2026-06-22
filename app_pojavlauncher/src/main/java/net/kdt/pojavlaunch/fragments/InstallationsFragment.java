@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import java.io.File;
+
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.CustomControlsActivity;
 import net.kdt.pojavlaunch.Tools;
@@ -43,7 +45,8 @@ public class InstallationsFragment extends Fragment {
             if (Instances.loadSelectedInstance() != null) {
                 Tools.openPath(requireContext(), Instances.loadSelectedInstance().getGameDirectory(), false);
             } else {
-                Tools.openPath(requireContext(), Tools.DIR_GAME_HOME, false);
+                // 🔥 FIX: String → File conversion
+                Tools.openPath(requireContext(), new File(Tools.DIR_GAME_HOME), false);
             }
         });
     }
