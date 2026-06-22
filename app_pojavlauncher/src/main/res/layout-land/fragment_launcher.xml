@@ -15,16 +15,13 @@
         android:paddingTop="@dimen/_12sdp"
         android:paddingBottom="@dimen/_80sdp">
 
-        <!-- ========================================= -->
-        <!-- TOP HEADER: ACCOUNT AVATAR + USERNAME    -->
-        <!-- ========================================= -->
+        <!-- Account Avatar + Name -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <!-- Avatar + Name (Like Official Launcher) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -52,23 +49,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Settings Button -->
-            <ImageButton
-                android:id="@+id/setting_button_top"
-                android:layout_width="@dimen/_40sdp"
-                android:layout_height="@dimen/_40sdp"
-                android:src="@drawable/ic_px_sliders"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="@color/primary_text"
-                android:padding="@dimen/_8sdp"
-                android:scaleType="fitCenter"
-                android:contentDescription="Settings" />
-
         </LinearLayout>
 
-        <!-- ========================================= -->
-        <!-- QUICK PLAY CARD (Hero Section)           -->
-        <!-- ========================================= -->
+        <!-- Quick Play Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -109,7 +92,6 @@
                     android:textSize="@dimen/_28ssp"
                     android:textStyle="bold" />
 
-                <!-- PLAY BUTTON (Gold Accent) -->
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/play_button"
                     android:layout_width="match_parent"
@@ -125,54 +107,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- ========================================= -->
-        <!-- WHAT'S NEW CARD                          -->
-        <!-- ========================================= -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_12sdp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="@color/fear_surface_variant"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/_20sdp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="WHAT'S NEW"
-                    android:textColor="@color/secondary_text"
-                    android:textSize="@dimen/_11ssp"
-                    android:letterSpacing="0.1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="THE FUTURE OF MINECRAFT'S DEVELOPMENT"
-                    android:textColor="@color/primary_text"
-                    android:textSize="@dimen/_16ssp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="September 9, 2024"
-                    android:textColor="@color/secondary_text"
-                    android:textSize="@dimen/_11ssp" />
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- ========================================= -->
-        <!-- RECENT INSTALLATIONS                     -->
-        <!-- ========================================= -->
+        <!-- Recent Installations -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -193,7 +128,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Card 1 -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="140dp"
                     android:layout_height="100dp"
@@ -237,7 +171,6 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Card 2 -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="140dp"
                     android:layout_height="100dp"
@@ -281,7 +214,6 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Card 3 -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="140dp"
                     android:layout_height="100dp"
@@ -328,327 +260,7 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- ========================================= -->
-        <!-- QUICK ACTIONS (सारे पुराने Options यहाँ)  -->
-        <!-- ========================================= -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_24sdp"
-            android:text="QUICK ACTIONS"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/_14ssp"
-            android:textStyle="bold"
-            android:letterSpacing="0.05" />
-
-        <GridLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_12sdp"
-            android:columnCount="2"
-            android:rowCount="4">
-
-            <!-- 1. Installations -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/installations_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_java"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Installations"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 2. Mods -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/mods_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_file_dl"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Mods"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 3. Skins -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/skins_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_edit"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Skins"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 4. Custom Controls -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/custom_control_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_gamepad"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Controls"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 5. Share Logs -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/share_logs_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_sharelog"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Share Logs"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 6. Execute JAR -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/install_jar_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_java_run"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Execute JAR"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 7. Settings -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/settings_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_sliders"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Settings"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 8. Open Directory -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/open_files_button"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_columnWeight="1"
-                android:layout_margin="@dimen/_6sdp"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/fear_surface_variant"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:stateListAnimator="@animator/button_scale">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/_24sdp"
-                        android:layout_height="@dimen/_24sdp"
-                        android:src="@drawable/ic_px_folder"
-                        android:tint="#C0C0C0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:text="Open Directory"
-                        android:textColor="@color/primary_text"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-        </GridLayout>
-
-        <!-- ========================================= -->
-        <!-- VERSION SELECTOR + EDIT PROFILE           -->
-        <!-- ========================================= -->
+        <!-- Create Instance Bar (Version Spinner) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -683,9 +295,7 @@
 
         </LinearLayout>
 
-        <!-- ========================================= -->
-        <!-- FOOTER                                   -->
-        <!-- ========================================= -->
+        <!-- Footer -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
