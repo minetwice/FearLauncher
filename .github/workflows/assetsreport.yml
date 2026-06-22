@@ -1,0 +1,263 @@
+name: Generate Launcher Assets Report
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan-project:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Full Assets Report
+        run: |
+          python3 - << 'PYEOF'
+          import os
+          import re
+          import glob
+
+          RES = "app_pojavlauncher/src/main/res"
+          JAVA = "app_pojavlauncher/src/main/java"
+          report = []
+
+          def section(title):
+              report.append("\n" + "="*60)
+              report.append(f"   {title}")
+              report.append("="*60)
+
+          def subsection(title):
+              report.append(f"\n--- {title} ---")
+
+          # ──────────────────────────────────────────────
+          # 1. ALL BUTTONS & IDs in every layout XML
+          # ──────────────────────────────────────────────
+          section("SECTION 1: ALL LAYOUT FILES — BUTTONS & IDs")
+          layout_dir = os.path.join(RES, "layout")
+          layout_files = sorted(glob.glob(os.path.join(layout_dir, "*.xml")))
+
+          for filepath in layout_files:
+              filename = os.path.basename(filepath)
+              with open(filepath, "r", encoding="utf-8") as f:
+                  content = f.read()
+
+              ids = re.findall(r'android:id="@\+id/([^"]+)"', content)
+              clickable = re.findall(r'android:id="@\+id/([^"]+)"[^>]*(?:android:clickable="true"|Button|ImageButton|<Button|<ImageButton)', content)
+
+              # Find all view types with IDs
+              view_ids = re.findall(r'<(\w+)[^>]*android:id="@\+id/([^"]+)"', content)
+
+              subsection(f"FILE: {filename}")
+              report.append(f"  Path: {filepath}")
+              report.append(f"  Total IDs found: {len(ids)}")
+              report.append("")
+              report.append("  All IDs and their View types:")
+              for vtype, vid in view_ids:
+                  report.append(f"    [{vtype}]  @+id/{vid}")
+              if not view_ids:
+                  report.append("    (none)")
+
+          # ──────────────────────────────────────────────
+          # 2. DRAWABLES — PNG, SVG/Vector XMLs
+          # ──────────────────────────────────────────────
+          section("SECTION 2: DRAWABLE ASSETS")
+
+          drawable_dirs = sorted(glob.glob(os.path.join(RES, "drawable*")))
+          png_list = []
+          xml_drawable_list = []
+
+          for d in drawable_dirs:
+              dirname = os.path.basename(d)
+              pngs = sorted(glob.glob(os.path.join(d, "*.png")))
+              xmls = sorted(glob.glob(os.path.join(d, "*.xml")))
+              webps = sorted(glob.glob(os.path.join(d, "*.webp")))
+
+              if pngs or xmls or webps:
+                  subsection(f"Folder: {dirname}")
+                  for p in pngs + webps:
+                      size = os.path.getsize(p)
+                      name = os.path.basename(p)
+                      report.append(f"  PNG/WEBP: {name}  ({size} bytes)")
+                      png_list.append(name)
+                  for x in xmls:
+                      name = os.path.basename(x)
+                      report.append(f"  VECTOR XML: {name}")
+                      xml_drawable_list.append(name)
+
+          # mipmap folders (launcher icons)
+          mipmap_dirs = sorted(glob.glob(os.path.join(RES, "mipmap*")))
+          subsection("MIPMAP (App Icons)")
+          for d in mipmap_dirs:
+              dirname = os.path.basename(d)
+              files = sorted(os.listdir(d))
+              for f in files:
+                  size = os.path.getsize(os.path.join(d, f))
+                  report.append(f"  [{dirname}]  {f}  ({size} bytes)")
+
+          # ──────────────────────────────────────────────
+          # 3. WHICH DRAWABLE IS USED WHERE
+          # ──────────────────────────────────────────────
+          section("SECTION 3: DRAWABLE USAGE — WHICH FILE USES WHICH DRAWABLE")
+
+          all_layouts = glob.glob(os.path.join(layout_dir, "*.xml"))
+          drawable_usage = {}  # drawable_name -> [layout_files]
+
+          for filepath in all_layouts:
+              with open(filepath, "r", encoding="utf-8") as f:
+                  content = f.read()
+              found = re.findall(r'@drawable/(\w+)', content)
+              for d in found:
+                  if d not in drawable_usage:
+                      drawable_usage[d] = []
+                  drawable_usage[d].append(os.path.basename(filepath))
+
+          for drawable, layouts in sorted(drawable_usage.items()):
+              unique_layouts = list(dict.fromkeys(layouts))
+              report.append(f"  @drawable/{drawable}")
+              for l in unique_layouts:
+                  report.append(f"      used in: {l}")
+
+          # ──────────────────────────────────────────────
+          # 4. COLORS
+          # ──────────────────────────────────────────────
+          section("SECTION 4: ALL COLORS (values/colors.xml)")
+
+          colors_file = os.path.join(RES, "values", "colors.xml")
+          if os.path.exists(colors_file):
+              with open(colors_file, "r", encoding="utf-8") as f:
+                  content = f.read()
+              colors = re.findall(r'<color name="([^"]+)">([^<]+)</color>', content)
+              for name, val in colors:
+                  report.append(f"  {name} = {val.strip()}")
+          else:
+              report.append("  colors.xml not found")
+
+          # ──────────────────────────────────────────────
+          # 5. STRINGS used in layouts
+          # ──────────────────────────────────────────────
+          section("SECTION 5: STRINGS USED IN LAYOUTS")
+
+          strings_file = os.path.join(RES, "values", "strings.xml")
+          all_strings = {}
+          if os.path.exists(strings_file):
+              with open(strings_file, "r", encoding="utf-8") as f:
+                  content = f.read()
+              all_strings = dict(re.findall(r'<string[^>]*name="([^"]+)"[^>]*>([^<]+)</string>', content))
+
+          all_layouts = glob.glob(os.path.join(layout_dir, "*.xml"))
+          layout_strings = {}
+          for filepath in all_layouts:
+              with open(filepath, "r", encoding="utf-8") as f:
+                  content = f.read()
+              found = re.findall(r'@string/(\w+)', content)
+              for s in found:
+                  if s not in layout_strings:
+                      layout_strings[s] = []
+                  layout_strings[s].append(os.path.basename(filepath))
+
+          for sname, layouts in sorted(layout_strings.items()):
+              value = all_strings.get(sname, "(not found in strings.xml)")
+              unique_layouts = list(dict.fromkeys(layouts))
+              report.append(f"  @string/{sname} = \"{value}\"")
+              for l in unique_layouts:
+                  report.append(f"      used in: {l}")
+
+          # ──────────────────────────────────────────────
+          # 6. STYLES & DIMENS
+          # ──────────────────────────────────────────────
+          section("SECTION 6: STYLES")
+          styles_file = os.path.join(RES, "values", "styles.xml")
+          if os.path.exists(styles_file):
+              with open(styles_file, "r", encoding="utf-8") as f:
+                  content = f.read()
+              styles = re.findall(r'<style name="([^"]+)"', content)
+              for s in styles:
+                  report.append(f"  {s}")
+
+          section("SECTION 7: DIMENS")
+          dimens_file = os.path.join(RES, "values", "dimens.xml")
+          if os.path.exists(dimens_file):
+              with open(dimens_file, "r", encoding="utf-8") as f:
+                  content = f.read()
+              dimens = re.findall(r'<dimen name="([^"]+)">([^<]+)</dimen>', content)
+              for name, val in dimens:
+                  report.append(f"  {name} = {val.strip()}")
+
+          # ──────────────────────────────────────────────
+          # 7. JAVA FRAGMENTS — which IDs they use
+          # ──────────────────────────────────────────────
+          section("SECTION 8: JAVA FRAGMENTS — findViewById & feature mapping")
+
+          java_files = glob.glob(os.path.join(JAVA, "**", "*.java"), recursive=True)
+          fragment_files = [f for f in java_files if "fragment" in f.lower() or "Fragment" in f]
+
+          for filepath in sorted(fragment_files):
+              filename = os.path.basename(filepath)
+              with open(filepath, "r", encoding="utf-8") as f:
+                  content = f.read()
+
+              ids_used = re.findall(r'R\.id\.(\w+)', content)
+              layouts_used = re.findall(r'R\.layout\.(\w+)', content)
+              strings_used = re.findall(r'R\.string\.(\w+)', content)
+              imports = re.findall(r'^import (.+);', content, re.MULTILINE)
+
+              subsection(f"FILE: {filename}")
+              report.append(f"  Path: {filepath}")
+              report.append(f"  Layout used: {layouts_used}")
+              report.append(f"  IDs used (findViewById):")
+              for i in list(dict.fromkeys(ids_used)):
+                  report.append(f"    R.id.{i}")
+              report.append(f"  Strings used:")
+              for s in list(dict.fromkeys(strings_used)):
+                  val = all_strings.get(s, "(not in strings.xml)")
+                  report.append(f"    R.string.{s} = \"{val}\"")
+
+          # ──────────────────────────────────────────────
+          # 8. FONTS
+          # ──────────────────────────────────────────────
+          section("SECTION 9: FONTS")
+          font_dir = os.path.join(RES, "font")
+          if os.path.exists(font_dir):
+              for f in sorted(os.listdir(font_dir)):
+                  size = os.path.getsize(os.path.join(font_dir, f))
+                  report.append(f"  {f}  ({size} bytes)")
+          else:
+              report.append("  No font directory found")
+
+          # ──────────────────────────────────────────────
+          # 9. PNG MISSING CHECK — used in layouts but file doesn't exist
+          # ──────────────────────────────────────────────
+          section("SECTION 10: MISSING DRAWABLE CHECK")
+
+          all_drawable_files = set()
+          for d in glob.glob(os.path.join(RES, "drawable*")):
+              for f in os.listdir(d):
+                  all_drawable_files.add(os.path.splitext(f)[0])
+
+          missing = []
+          for drawable in sorted(drawable_usage.keys()):
+              if drawable not in all_drawable_files:
+                  missing.append(drawable)
+                  report.append(f"  MISSING: @drawable/{drawable}  (used in: {', '.join(set(drawable_usage[drawable]))})")
+
+          if not missing:
+              report.append("  All drawables are present!")
+
+          # ──────────────────────────────────────────────
+          # Write report
+          # ──────────────────────────────────────────────
+          output = "\n".join(report)
+          with open("LAUNCHER_FULL_REPORT.txt", "w", encoding="utf-8") as f:
+              f.write(output)
+
+          print("Report generated successfully!")
+          print(f"Total lines: {len(report)}")
+          PYEOF
+
+      - name: Upload Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: launcher-assets-report
+          path: LAUNCHER_FULL_REPORT.txt
+          retention-days: 7
