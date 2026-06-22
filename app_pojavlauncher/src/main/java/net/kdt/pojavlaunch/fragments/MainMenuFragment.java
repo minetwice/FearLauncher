@@ -14,7 +14,6 @@ import com.kdt.mcgui.mcVersionSpinner;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.authenticator.accounts.Account;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -58,9 +57,34 @@ public class MainMenuFragment extends Fragment {
 
     private void updateAccountName() {
         if (accountName != null) {
-            Account currentAccount = Accounts.getCurrent();
-            if (currentAccount != null && currentAccount.getUsername() != null) {
-                accountName.setText(currentAccount.getUsername());
+            Object currentAccount = Accounts.getCurrent();
+            if (currentAccount != null) {
+                // Try to get username via reflection or using known methods
+                // For PojavLauncher, Accounts.getCurrent() returns an Account object with getUsername()
+                try {
+                    // Use reflection to call getUsername() if available
+                    java.lang.reflect.Method method = currentAccount.getClass().getMethod("getUsername");
+                    String username = (String) method.invoke(currentAccount);
+                    if (username != null && !username.isEmpty()) {
+                        accountName.setText(username);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // Fallback: use toString() or default
+                }
+                // Fallback: try to get display name or something else
+                try {
+                    java.lang.reflect.Method method = currentAccount.getClass().getMethod("getDisplayName");
+                    String displayName = (String) method.invoke(currentAccount);
+                    if (displayName != null && !displayName.isEmpty()) {
+                        accountName.setText(displayName);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // Ignore
+                }
+                // Last resort: use toString()
+                accountName.setText(currentAccount.toString());
             } else {
                 accountName.setText("FearUser");
             }
