@@ -38,10 +38,12 @@ public class MainMenuFragment extends Fragment {
 
         updateAccountName();
 
+        // Play Button
         if (playButton != null) {
             playButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
         }
 
+        // Edit Profile (opens version selector)
         if (editProfileButton != null) {
             editProfileButton.setOnClickListener(v -> {
                 if (mVersionSpinner != null) {
@@ -49,32 +51,43 @@ public class MainMenuFragment extends Fragment {
                 }
             });
         }
+
+        // Version text (can be updated later)
+        if (versionText != null) {
+            // Optionally set dynamic version
+        }
     }
 
+    /**
+     * Updates the account name display using reflection to safely call getUsername()
+     */
     private void updateAccountName() {
-        if (accountName != null) {
-            String username = null;
-            Object currentAccount = Accounts.getCurrent();
-            if (currentAccount != null) {
-                // Try to get username using reflection (safe)
-                try {
-                    java.lang.reflect.Method method = currentAccount.getClass().getMethod("getUsername");
-                    username = (String) method.invoke(currentAccount);
-                } catch (Exception e) {
-                    // Fallback: try toString()
-                    username = currentAccount.toString();
-                }
+        if (accountName == null) return;
+
+        String username = null;
+        Object currentAccount = Accounts.getCurrent();
+
+        if (currentAccount != null) {
+            try {
+                // Try to call getUsername() via reflection
+                java.lang.reflect.Method method = currentAccount.getClass().getMethod("getUsername");
+                username = (String) method.invoke(currentAccount);
+            } catch (Exception e) {
+                // Fallback: use toString()
+                username = currentAccount.toString();
             }
-            if (username == null || username.isEmpty()) {
-                username = "FearUser";
-            }
-            accountName.setText(username);
         }
+
+        if (username == null || username.isEmpty()) {
+            username = "FearUser";
+        }
+        accountName.setText(username);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        // Refresh account spinner and account name
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
         updateAccountName();
     }
