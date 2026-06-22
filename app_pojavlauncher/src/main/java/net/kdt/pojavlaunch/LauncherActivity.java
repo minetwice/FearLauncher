@@ -312,7 +312,6 @@ public class LauncherActivity extends BaseActivity {
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
                 } else if (id == R.id.nav_account) {
-                    // ✅ "Account" button opens the authentication selection screen
                     Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
                 }
 
