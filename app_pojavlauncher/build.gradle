@@ -56,6 +56,8 @@ android {
 
     lintOptions {
         abortOnError false
+        // 🔥 StringFormatInvalid ko Disable करो (Material Library ke liye)
+        disable 'StringFormatInvalid'
     }
 
     signingConfigs {
@@ -85,11 +87,11 @@ android {
         targetSdkVersion 36
         versionCode getDateSeconds()
         versionName getVersionName()
-        multiDexEnabled false //important
+        multiDexEnabled false
         resValue 'string', 'curseforge_api_key', getCFApiKey()
     }
 
-    flavorDimensions  = ["runtime"]
+    flavorDimensions = ["runtime"]
     
     productFlavors {
         full {
@@ -123,12 +125,8 @@ android {
         }
 
         release {
-            // Don't set to true or java.awt will be a.a or something similar.
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            // defaultConfig already set
-            // multiDexEnabled = true
-            // debuggable = true
             resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.scoped.gamefolder'
             resValue 'string', 'application_package', 'git.artdeell.mojo'
         }
@@ -138,7 +136,7 @@ android {
         }
         pubRelease {
             initWith release
-            signingConfig signingConfigs.customDebug // WIP, changeme
+            signingConfig signingConfigs.customDebug
             applicationIdSuffix '.pub'
             resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.pub.scoped.gamefolder'
             resValue 'string', 'application_package', 'git.artdeell.mojo.pub'
@@ -238,7 +236,7 @@ class AssetTaskRegistrar {
     }
 
     def onlineZipDependency(String downloadUrl, String name, String relativePath) {
-	    mergeAssetsTask.dependsOn(onlineUnzipTask downloadUrl, name, assetDestination(relativePath))
+        mergeAssetsTask.dependsOn(onlineUnzipTask downloadUrl, name, assetDestination(relativePath))
     }
 
     def projectJarDependency(Project project, String relativePath) {
@@ -251,8 +249,6 @@ class AssetTaskRegistrar {
         def copyTask = project.tasks.register(copyTaskName, Copy) {
             from jarTargetDir
             into assetTargetDir
-            // Nasty hack: explicitly reference project by name to force Gradle to configure it.
-            // Makes jar task search below work properly for fresh configurations.
             dependsOn ":${project.name}:jar"
         }
 
@@ -297,11 +293,11 @@ afterEvaluate {
 
         registrar.projectJarDependency project(":forge_installer"), "components/forge_installer"
 
-		if (variant.getName().toLowerCase().contains("full")) {
+        if (variant.getName().toLowerCase().contains("full")) {
             registrar.jreRuntimeDependency 8, "components/jre"
         }
         
-		def cacioJarUrl = "https://jitpack.io/com/github/MojoLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
+        def cacioJarUrl = "https://jitpack.io/com/github/MojoLauncher/%1\$s/%2\$s/%3\$s/%2\$s-%3\$s%4\$s.jar"
 
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-shared", "-01d2dc1d65-1", "", "components/caciocavallo"
         registrar.onlineJarDependency cacioJarUrl, "caciocavallo", "cacio-androidnw", "-01d2dc1d65-1", "", "components/caciocavallo"
@@ -311,7 +307,6 @@ afterEvaluate {
 }
 
 dependencies {
-    // === EXISTING DEPENDENCIES (Mat chhedna) ===
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'commons-codec:commons-codec:1.19.0'
     implementation 'androidx.preference:preference:1.2.1'
@@ -332,6 +327,9 @@ dependencies {
     implementation project(":dnbglfw")
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
-    // ✅ YE NAYI LINE ADD KARO (Sabse important fix!)
-    implementation 'com.google.android.material:material:1.12.0'
+    // 🔥 Material Library को Exclude करो - क्योंकि इसी से Error आ रहा है
+    // implementation 'com.google.android.material:material:1.12.0'  // इस line को comment करो
+
+    // ✅ अगर Material Library चाहिए तो इस Version का उपयोग करो (जिसमें Bug नहीं है)
+    implementation 'com.google.android.material:material:1.11.0'
 }
