@@ -496,5 +496,37 @@
             android:textSize="@dimen/_10ssp"
             android:gravity="center" />
 
+        <!-- ===== VERSION SELECTOR + EDIT PROFILE ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24sdp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@color/background_bottom_bar"
+            android:padding="@dimen/_8sdp">
+
+            <com.kdt.mcgui.mcVersionSpinner
+                android:id="@+id/mc_version_spinner"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/_52sdp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:drawableEnd="@drawable/spinner_arrow"
+                app:drawableEndSize="@dimen/padding_heavy"
+                app:drawableStartIntegerScaling="true"
+                app:drawableStartSize="@dimen/_36sdp"
+                app:drawableEndPadding="@dimen/_1sdp" />
+
+            <ImageButton
+                android:id="@+id/edit_profile_button"
+                android:layout_width="@dimen/_52sdp"
+                android:layout_height="@dimen/_52sdp"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@drawable/ic_px_edit"
+                android:contentDescription="Edit Profile" />
+
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
