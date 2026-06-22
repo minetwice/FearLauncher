@@ -5,14 +5,12 @@ import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.Os;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -21,10 +19,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 
+import com.google.android.material.navigation.NavigationView;
 import com.kdt.mcgui.ProgressLayout;
 
 import git.artdeell.mojo.R;
@@ -32,6 +32,7 @@ import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.extra.ExtraListener;
+import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
@@ -49,39 +50,20 @@ import net.kdt.pojavlaunch.services.ProgressServiceKeeper;
 import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;
 import net.kdt.pojavlaunch.tasks.AsyncVersionList;
 import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
-import net.kdt.pojavlaunch.utils.FileUtils;
-import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
-
-import java.io.File;
 
 public class LauncherActivity extends BaseActivity {
     public static final String SETTING_FRAGMENT_TAG = "SETTINGS_FRAGMENT";
+    public static final String INSTALLATIONS_FRAGMENT_TAG = "INSTALLATIONS_FRAGMENT";
 
     private FragmentContainerView mFragmentView;
-    private ImageButton mSettingsButton;
-    private ImageView mHamburgerIcon; // New Hamburger Icon (optional)
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
+    private DrawerLayout mDrawerLayout;
+    private NavigationView mNavigationView;
     private static ActivityResultLauncher<String> mRequestPermissionLauncher;
 
-    /* Allows to switch from one button "type" to another */
-    private final FragmentManager.FragmentLifecycleCallbacks mFragmentCallbackListener = new FragmentManager.FragmentLifecycleCallbacks() {
-        @Override
-        public void onFragmentResumed(@NonNull FragmentManager fm, @NonNull Fragment f) {
-            mSettingsButton.setImageDrawable(ContextCompat.getDrawable(getBaseContext(), f instanceof MainMenuFragment
-                    ? R.drawable.ic_px_sliders : R.drawable.ic_px_home));
-        }
-    };
-
-    /* Listener for the back button in settings */
-    private final ExtraListener<String> mBackPreferenceListener = (key, value) -> {
-        if(value.equals("true")) onBackPressed();
-        return false;
-    };
-
-    /* Listener for the auth method selection screen */
     private final ExtraListener<Boolean> mSelectAuthMethod = (key, value) -> {
         FragmentManager manager = getSupportFragmentManager();
         if(!value || manager.isStateSaved()) return false;
@@ -89,28 +71,6 @@ public class LauncherActivity extends BaseActivity {
         if(!(fragment instanceof MainMenuFragment)) return false;
         Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
         return false;
-    };
-
-    /* Listener for the settings fragment */
-    private final View.OnClickListener mSettingButtonListener = v -> {
-        FragmentManager manager = getSupportFragmentManager();
-        if(manager.isStateSaved()) return;
-        Fragment fragment = manager.findFragmentById(mFragmentView.getId());
-        if(fragment instanceof MainMenuFragment){
-            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-        } else{
-            Tools.backToMainMenu(this);
-        }
-    };
-
-    /* NEW: Hamburger Menu Click Listener (Opens Settings as fallback) – only if you have hamburger in layout */
-    private final View.OnClickListener mHamburgerClickListener = v -> {
-        FragmentManager manager = getSupportFragmentManager();
-        if(manager.isStateSaved()) return;
-        Fragment fragment = manager.findFragmentById(mFragmentView.getId());
-        if(fragment instanceof MainMenuFragment){
-            Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-        }
     };
 
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
@@ -182,18 +142,14 @@ public class LauncherActivity extends BaseActivity {
         IconCacheJanitor.runJanitor();
         getWindow().setBackgroundDrawable(null);
         bindViews();
+        setupDrawer();
 
-        // 🔥 FIX: Load default fragment if no saved state
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.container_fragment, new MainMenuFragment())
                 .commit();
-        }
-
-        // Setup Hamburger Menu (safe – layout may or may not have it)
-        if (mHamburgerIcon != null) {
-            mHamburgerIcon.setOnClickListener(mHamburgerClickListener);
+            mNavigationView.setCheckedItem(R.id.nav_dashboard);
         }
 
         mRequestPermissionLauncher = this.registerForActivityResult(
@@ -206,9 +162,7 @@ public class LauncherActivity extends BaseActivity {
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
         ProgressKeeper.addTaskCountListener((mProgressServiceKeeper = new ProgressServiceKeeper(this)));
-        mSettingsButton.setOnClickListener(mSettingButtonListener);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
-        ExtraCore.addExtraListener(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
 
@@ -236,26 +190,21 @@ public class LauncherActivity extends BaseActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        getSupportFragmentManager().registerFragmentLifecycleCallbacks(mFragmentCallbackListener, true);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         mProgressLayout.cleanUpObservers();
         ProgressKeeper.removeTaskCountListener(mProgressLayout);
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
-        ExtraCore.removeExtraListenerFromValue(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
-        getSupportFragmentManager().unregisterFragmentLifecycleCallbacks(mFragmentCallbackListener);
     }
 
-    /** Custom implementation to feel more natural when a backstack isn't present */
     @Override
     public void onBackPressed() {
+        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
+            mDrawerLayout.closeDrawer(mNavigationView);
+            return;
+        }
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if(fragment != null){
             if(fragment.canGoBack()){
@@ -314,12 +263,48 @@ public class LauncherActivity extends BaseActivity {
                 .apply();
     }
 
-    /** Stuff all the view boilerplate here */
     private void bindViews(){
         mFragmentView = findViewById(R.id.container_fragment);
-        mSettingsButton = findViewById(R.id.setting_button);
         mProgressLayout = findViewById(R.id.progress_layout);
-        // Hamburger icon is optional – if present in layout, it will be bound
-        mHamburgerIcon = findViewById(R.id.hamburger_menu_icon);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mNavigationView = findViewById(R.id.sidebar_navigation);
+    }
+
+    private void setupDrawer() {
+        ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
+        if (hamburgerButton != null) {
+            hamburgerButton.setOnClickListener(v -> {
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.openDrawer(mNavigationView);
+                }
+            });
+        }
+
+        if (mNavigationView != null) {
+            mNavigationView.setNavigationItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_dashboard) {
+                    getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.container_fragment, new MainMenuFragment())
+                        .commit();
+                } else if (id == R.id.nav_settings) {
+                    Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
+                } else if (id == R.id.nav_installations) {
+                    getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.container_fragment, new InstallationsFragment())
+                        .commit();
+                } else if (id == R.id.nav_login) {
+                    Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+                } else if (id == R.id.nav_skins) {
+                    Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
+                }
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.closeDrawer(mNavigationView);
+                }
+                return true;
+            });
+        }
     }
 }
