@@ -1,429 +1,429 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name" formatted="false">Fear Launcher</string>
-    <string name="app_short_name" formatted="false">FearLauncher</string>
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_username_hint" formatted="false">Ім\'я користувача</string>
-    <string name="login_online_login_label" formatted="false">Увійти</string>
+    <string name="login_online_username_hint">Ім\'я користувача</string>
+    <string name="login_online_login_label">Увійти</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account" formatted="false">Вибранний аккаунт буде видалено!</string>
+    <string name="warning_remove_account">Вибранний аккаунт буде видалено!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod" formatted="false">Вибрати інсталятор моду</string>
+    <string name="alerttitle_installmod">Вибрати інсталятор моду</string>
     <!-- Error messages -->
-    <string name="error_fatal" formatted="false">FearLauncher був зупинений у результаті збою</string>
-    <string name="error_no_version" formatted="false">Версію не знайдено!</string>
-    <string name="error_show_more" formatted="false">Розгорнути</string>
-    <string name="error_show_less" formatted="false">Згорнути</string>
+    <string name="error_fatal">FearLauncher був зупинений у результаті збою</string>
+    <string name="error_no_version">Версію не знайдено!</string>
+    <string name="error_show_more">Розгорнути</string>
+    <string name="error_show_less">Згорнути</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied" formatted="false">Необхідний дозвіл на читання та запис у сховище!</string>
-    <string name="toast_optifine_success" formatted="false">Встановлення успішне</string>
+    <string name="toast_permission_denied">Необхідний дозвіл на читання та запис у сховище!</string>
+    <string name="toast_optifine_success">Встановлення успішне</string>
     <!--
-    <string name="toast_3" formatted="false">Exit</string>
+    <string name="toast_3">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki" formatted="false">Вікі</string>
+    <string name="mcl_tab_wiki">Вікі</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache" formatted="false">Очищення файлів кешу</string>
-    <string name="mcl_launch_downloading" formatted="false">Завантаження %s</string>
+    <string name="mcl_launch_cleancache">Очищення файлів кешу</string>
+    <string name="mcl_launch_downloading">Завантаження %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"Завантажено %s (%.2f Мбайт / %.2f Мбайт)"</string>
-    <string name="mcl_launch_download_assets" formatted="false">Підготовка до завантаження ресурсів</string>
-    <string name="mcl_options" formatted="false">Налаштування</string>
-    <string name="mcl_option_customcontrol" formatted="false">Кастомне керування</string>
-    <string name="mcl_setting_title_use_surface_view" formatted="false">Використовувати альтернативний візуалізатор</string>
-    <string name="mcl_setting_subtitle_use_surface_view" formatted="false">Може підвищити продуктивність в окремих сценаріях пов\'язаних з GPU. </string>
-    <string name="mcl_setting_title_ignore_notch" formatted="false">Ігнорувати виріз фронтальної камери</string>
-    <string name="mcl_setting_subtitle_ignore_notch" formatted="false">Гра буде ігнорувати виріз під фронтальну камеру. Допоможе краще зануритись в процес гри</string>
-    <string name="mcl_setting_title_resolution_scaler" formatted="false">Зменшення роздільності гри</string>
-    <string name="mcl_setting_subtitle_resolution_scaler" formatted="false">Дозволяє змінити роздільність гри. 100% — повна роздільність.</string>
-    <string name="mcl_setting_title_longpresstrigger" formatted="false">Затримка тригера при тривалому натисканні</string>
-    <string name="mcl_setting_subtitle_longpresstrigger" formatted="false">Змінити затримку тривалого натискання для ламання блоків та викидання предметів.</string>
-    <string name="mcl_setting_title_buttonscale" formatted="false">Масштабування кнопок</string>
-    <string name="mcl_setting_subtitle_buttonscale" formatted="false">Якщо кнопки вам замалі, просто збільште їх.</string>
-    <string name="mcl_setting_title_mousescale" formatted="false">Масштабування курсору</string>
-    <string name="mcl_setting_subtitle_mousescale" formatted="false">Змініть розмір віртуального курсору як вам зручно.</string>
-    <string name="mcl_setting_title_javaargs" formatted="false">Аргументи запуску JVM</string>
-    <string name="mcl_setting_subtitle_javaargs" formatted="false">УВАГА! Якщо у вас немає достатніх знань, не міняйте в цьому полі нічого. Аргументи змінюють поведінку Java</string>
-    <string name="mcl_setting_category_renderer" formatted="false">Візуалізатор</string>
-    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy GL4ES - (всі версії, швидке)</string>
-    <string name="mcl_setting_renderer_vulkan_zink" formatted="false">Zink (Vulkan) — (усі версії, повільніше)</string>
-    <string name="mcl_setting_veroption_release" formatted="false">Релізи</string>
-    <string name="mcl_setting_veroption_snapshot" formatted="false">Снапшоти</string>
-    <string name="mcl_setting_veroption_oldalpha" formatted="false">Старі альфи</string>
-    <string name="mcl_setting_veroption_oldbeta" formatted="false">Старі бети</string>
-    <string name="mcl_setting_java_sandbox" formatted="false">Виконання файлу .jar в пісочниці</string>
-    <string name="mcl_setting_java_sandbox_subtitle" formatted="false">Контролювати безпеку пісоцниці виконання .jar файлів.</string>
-    <string name="mcl_version_clone" formatted="false">Клонувати</string>
+    <string name="mcl_launch_download_assets">Підготовка до завантаження ресурсів</string>
+    <string name="mcl_options">Налаштування</string>
+    <string name="mcl_option_customcontrol">Кастомне керування</string>
+    <string name="mcl_setting_title_use_surface_view">Використовувати альтернативний візуалізатор</string>
+    <string name="mcl_setting_subtitle_use_surface_view">Може підвищити продуктивність в окремих сценаріях пов\'язаних з GPU. </string>
+    <string name="mcl_setting_title_ignore_notch">Ігнорувати виріз фронтальної камери</string>
+    <string name="mcl_setting_subtitle_ignore_notch">Гра буде ігнорувати виріз під фронтальну камеру. Допоможе краще зануритись в процес гри</string>
+    <string name="mcl_setting_title_resolution_scaler">Зменшення роздільності гри</string>
+    <string name="mcl_setting_subtitle_resolution_scaler">Дозволяє змінити роздільність гри. 100% — повна роздільність.</string>
+    <string name="mcl_setting_title_longpresstrigger">Затримка тригера при тривалому натисканні</string>
+    <string name="mcl_setting_subtitle_longpresstrigger">Змінити затримку тривалого натискання для ламання блоків та викидання предметів.</string>
+    <string name="mcl_setting_title_buttonscale">Масштабування кнопок</string>
+    <string name="mcl_setting_subtitle_buttonscale">Якщо кнопки вам замалі, просто збільште їх.</string>
+    <string name="mcl_setting_title_mousescale">Масштабування курсору</string>
+    <string name="mcl_setting_subtitle_mousescale">Змініть розмір віртуального курсору як вам зручно.</string>
+    <string name="mcl_setting_title_javaargs">Аргументи запуску JVM</string>
+    <string name="mcl_setting_subtitle_javaargs">УВАГА! Якщо у вас немає достатніх знань, не міняйте в цьому полі нічого. Аргументи змінюють поведінку Java</string>
+    <string name="mcl_setting_category_renderer">Візуалізатор</string>
+    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - (всі версії, швидке)</string>
+    <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) — (усі версії, повільніше)</string>
+    <string name="mcl_setting_veroption_release">Релізи</string>
+    <string name="mcl_setting_veroption_snapshot">Снапшоти</string>
+    <string name="mcl_setting_veroption_oldalpha">Старі альфи</string>
+    <string name="mcl_setting_veroption_oldbeta">Старі бети</string>
+    <string name="mcl_setting_java_sandbox">Виконання файлу .jar в пісочниці</string>
+    <string name="mcl_setting_java_sandbox_subtitle">Контролювати безпеку пісоцниці виконання .jar файлів.</string>
+    <string name="mcl_version_clone">Клонувати</string>
     <!-- Global strings -->
-    <string name="global_edit" formatted="false">Редагувати</string>
-    <string name="global_error" formatted="false">Помилка</string>
-    <string name="global_load" formatted="false">Завантаження</string>
-    <string name="global_name" formatted="false">Ім\'я</string>
-    <string name="global_remove" formatted="false">Видалити</string>
-    <string name="global_clone" formatted="false">Клонувати</string>
-    <string name="global_restart" formatted="false">Перезавантаження</string>
-    <string name="global_save" formatted="false">Зберегти</string>
-    <string name="global_unpacking" formatted="false">Розпакування %s</string>
-    <string name="global_error_field_empty" formatted="false">Це поле потрібно заповнити</string>
-    <string name="global_waiting" formatted="false">Зачекайте</string>
-    <string name="global_select" formatted="false">Обрати</string>
-    <string name="global_retry" formatted="false">Повторити</string>
-    <string name="global_default" formatted="false">За замовчуванням</string>
+    <string name="global_edit">Редагувати</string>
+    <string name="global_error">Помилка</string>
+    <string name="global_load">Завантаження</string>
+    <string name="global_name">Ім\'я</string>
+    <string name="global_remove">Видалити</string>
+    <string name="global_clone">Клонувати</string>
+    <string name="global_restart">Перезавантаження</string>
+    <string name="global_save">Зберегти</string>
+    <string name="global_unpacking">Розпакування %s</string>
+    <string name="global_error_field_empty">Це поле потрібно заповнити</string>
+    <string name="global_waiting">Зачекайте</string>
+    <string name="global_select">Обрати</string>
+    <string name="global_retry">Повторити</string>
+    <string name="global_default">За замовчуванням</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title" formatted="false">Програма/Гра завершилась з кодом %d, гляньте в latestlog.txt для більш детальної інформації.</string>
-    <string name="mcn_exit_confirm" formatted="false">Ви впевнені, що хочете примусово зупинити процесс?</string>
-    <string name="mcn_check_fail_vulkan_support" formatted="false">Візуалізатор Zink (Vulkan) не підтримується на цьому пристрої!</string>
+    <string name="mcn_exit_title">Програма/Гра завершилась з кодом %d, гляньте в latestlog.txt для більш детальної інформації.</string>
+    <string name="mcn_exit_confirm">Ви впевнені, що хочете примусово зупинити процесс?</string>
+    <string name="mcn_check_fail_vulkan_support">Візуалізатор Zink (Vulkan) не підтримується на цьому пристрої!</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat" formatted="false">Чат</string>
-    <string name="control_debug" formatted="false">Налагодження</string>
-    <string name="control_primary" formatted="false">ЛКМ</string>
-    <string name="control_secondary" formatted="false">ПКМ</string>
-    <string name="control_shift" formatted="false">◇</string>
-    <string name="control_inventory" formatted="false">Інв</string>
-    <string name="control_up" formatted="false">▲</string>
-    <string name="control_left" formatted="false">◀</string>
-    <string name="control_right" formatted="false">▶</string>
-    <string name="control_down" formatted="false">▼</string>
-    <string name="control_jump" formatted="false">⬛</string>
-    <string name="control_thirdperson" formatted="false">F5</string>
-    <string name="control_listplayers" formatted="false">TAB</string>
-    <string name="control_mouse" formatted="false">Миша</string>
-    <string name="control_mouseoff" formatted="false">Миша: Вимкн.</string>
-    <string name="control_mouseon" formatted="false">Миша: Увімк.</string>
+    <string name="control_chat">Чат</string>
+    <string name="control_debug">Налагодження</string>
+    <string name="control_primary">ЛКМ</string>
+    <string name="control_secondary">ПКМ</string>
+    <string name="control_shift">◇</string>
+    <string name="control_inventory">Інв</string>
+    <string name="control_up">▲</string>
+    <string name="control_left">◀</string>
+    <string name="control_right">▶</string>
+    <string name="control_down">▼</string>
+    <string name="control_jump">⬛</string>
+    <string name="control_thirdperson">F5</string>
+    <string name="control_listplayers">TAB</string>
+    <string name="control_mouse">Миша</string>
+    <string name="control_mouseoff">Миша: Вимкн.</string>
+    <string name="control_mouseon">Миша: Увімк.</string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose" formatted="false">Примусове завершення</string>
-    <string name="control_viewout" formatted="false">Журнал</string>
-    <string name="control_adebug" formatted="false">Налагодження вводу</string>
-    <string name="control_customkey" formatted="false">Поділитися кастомним керуванням</string>
+    <string name="control_forceclose">Примусове завершення</string>
+    <string name="control_viewout">Журнал</string>
+    <string name="control_adebug">Налагодження вводу</string>
+    <string name="control_customkey">Поділитися кастомним керуванням</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label" formatted="false">Імпортування керування</string>
-    <string name="import_control_invalid_file" formatted="false">Недопустимий або пошкоджений файл</string>
-    <string name="import_control_import_button" formatted="false">імпортувати керування</string>
-    <string name="import_control_verifying_file" formatted="false">Файл перевіряється; будь ласка, зачекайте та спробуйте ще раз…</string>
-    <string name="import_control_invalid_name" formatted="false">Недопустиме ім\'я файлу або файл з таким ім\'ям вже існує</string>
-    <string name="import_control_done" formatted="false">Імпортування виконано</string>
+    <string name="import_control_label">Імпортування керування</string>
+    <string name="import_control_invalid_file">Недопустимий або пошкоджений файл</string>
+    <string name="import_control_import_button">імпортувати керування</string>
+    <string name="import_control_verifying_file">Файл перевіряється; будь ласка, зачекайте та спробуйте ще раз…</string>
+    <string name="import_control_invalid_name">Недопустиме ім\'я файлу або файл з таким ім\'ям вже існує</string>
+    <string name="import_control_done">Імпортування виконано</string>
     <!--
-    <string name="control_more3" formatted="false"></string>
-    <string name="control_more4" formatted="false"></string>
+    <string name="control_more3"></string>
+    <string name="control_more4"></string>
 -->
-    <string name="customctrl_toggle" formatted="false">Перемикач</string>
-    <string name="customctrl_size" formatted="false">Розмір</string>
-    <string name="customctrl_mapping" formatted="false">Кнопки</string>
-    <string name="customctrl_orientation" formatted="false">Орієнтація</string>
-    <string name="customctrl_background_color" formatted="false">Колір фону</string>
-    <string name="customctrl_corner_radius" formatted="false">Радіус округлення</string>
-    <string name="customctrl_stroke_width" formatted="false">Товщина контуру</string>
-    <string name="customctrl_stroke_color" formatted="false">Колір контуру</string>
-    <string name="customctrl_button_opacity" formatted="false">Прозорість кнопки</string>
-    <string name="customctrl_addbutton" formatted="false">Додати кнопку</string>
-    <string name="customctrl_addbutton_drawer" formatted="false">Додати групу кнопок</string>
-    <string name="customctrl_addbutton_joystick" formatted="false">Додати джойстик</string>
-    <string name="customctrl_addsubbutton" formatted="false">Додати під-кнопку</string>
-    <string name="customctrl_selectdefault" formatted="false">Обрати стандартну</string>
-    <string name="customctrl_export" formatted="false">Експортувати розкладку</string>
-    <string name="main_share_logs" formatted="false">Поділитися журналом</string>
-    <string name="main_install_jar_file" formatted="false">Виконати .jar</string>
-    <string name="main_play" formatted="false">Грати</string>
-    <string name="autoram_info_msg" formatted="false">Виділено %d МБ ОЗП</string>
-    <string name="mcl_setting_check_libraries" formatted="false">Перевірити бібліотеки після завантаження</string>
-    <string name="mcl_setting_check_libraries_subtitle" formatted="false">Цей параметр заставляє запускач перевіряти хеш бібліотеки, якщо звісно, вона доступна. Запобігає перериванню завантаження.</string>
-    <string name="dl_library_sha_fail" formatted="false">Бібліотека %s пошкоджена та буде перезавантажена</string>
-    <string name="dl_library_sha_unknown" formatted="false">Бібліотеку %s неможливо первірити, припустимо, що з нею усе добре</string>
-    <string name="dl_library_sha_pass" formatted="false">Бібліотека %s готова і придатна для використання</string>
-    <string name="mcl_disable_gestures" formatted="false">Вимкнути жести</string>
-    <string name="mcl_disable_gestures_subtitle" formatted="false">Вимикає жести, наприклад утримування, щоб зламати блок або торкнутися щоб поставити.</string>
-    <string name="mcl_disable_swap_hand" formatted="false">Вимкнути подвійний дотик для зміни рук</string>
-    <string name="mcl_disable_swap_hand_subtitle" formatted="false">Вимикає подвійне натискання на предмет швидкої панелі для перемикання його у другій руці.</string>
-    <string name="mcl_setting_title_mousespeed" formatted="false">Чутливість миші</string>
-    <string name="mcl_setting_subtitle_mousespeed" formatted="false">Змінює чутливість віртуальної миші.</string>
-    <string name="customctrl_passthru" formatted="false">Курсор миші</string>
-    <string name="customctrl_swipeable" formatted="false">Гортаємий</string>
-    <string name="customctrl_forward_lock" formatted="false">Заблокувати ходьбу вперед</string>
-    <string name="customctrl_absolute_tracking" formatted="false">Абсолютне відстеження пальців</string>
+    <string name="customctrl_toggle">Перемикач</string>
+    <string name="customctrl_size">Розмір</string>
+    <string name="customctrl_mapping">Кнопки</string>
+    <string name="customctrl_orientation">Орієнтація</string>
+    <string name="customctrl_background_color">Колір фону</string>
+    <string name="customctrl_corner_radius">Радіус округлення</string>
+    <string name="customctrl_stroke_width">Товщина контуру</string>
+    <string name="customctrl_stroke_color">Колір контуру</string>
+    <string name="customctrl_button_opacity">Прозорість кнопки</string>
+    <string name="customctrl_addbutton">Додати кнопку</string>
+    <string name="customctrl_addbutton_drawer">Додати групу кнопок</string>
+    <string name="customctrl_addbutton_joystick">Додати джойстик</string>
+    <string name="customctrl_addsubbutton">Додати під-кнопку</string>
+    <string name="customctrl_selectdefault">Обрати стандартну</string>
+    <string name="customctrl_export">Експортувати розкладку</string>
+    <string name="main_share_logs">Поділитися журналом</string>
+    <string name="main_install_jar_file">Виконати .jar</string>
+    <string name="main_play">Грати</string>
+    <string name="autoram_info_msg">Виділено %d МБ ОЗП</string>
+    <string name="mcl_setting_check_libraries">Перевірити бібліотеки після завантаження</string>
+    <string name="mcl_setting_check_libraries_subtitle">Цей параметр заставляє запускач перевіряти хеш бібліотеки, якщо звісно, вона доступна. Запобігає перериванню завантаження.</string>
+    <string name="dl_library_sha_fail">Бібліотека %s пошкоджена та буде перезавантажена</string>
+    <string name="dl_library_sha_unknown">Бібліотеку %s неможливо первірити, припустимо, що з нею усе добре</string>
+    <string name="dl_library_sha_pass">Бібліотека %s готова і придатна для використання</string>
+    <string name="mcl_disable_gestures">Вимкнути жести</string>
+    <string name="mcl_disable_gestures_subtitle">Вимикає жести, наприклад утримування, щоб зламати блок або торкнутися щоб поставити.</string>
+    <string name="mcl_disable_swap_hand">Вимкнути подвійний дотик для зміни рук</string>
+    <string name="mcl_disable_swap_hand_subtitle">Вимикає подвійне натискання на предмет швидкої панелі для перемикання його у другій руці.</string>
+    <string name="mcl_setting_title_mousespeed">Чутливість миші</string>
+    <string name="mcl_setting_subtitle_mousespeed">Змінює чутливість віртуальної миші.</string>
+    <string name="customctrl_passthru">Курсор миші</string>
+    <string name="customctrl_swipeable">Гортаємий</string>
+    <string name="customctrl_forward_lock">Заблокувати ходьбу вперед</string>
+    <string name="customctrl_absolute_tracking">Абсолютне відстеження пальців</string>
     <string name="memory_warning_msg" formatted="false">Поточна кількість вільної оперативної пам\'яті (%d) менша, ніж виділена оперативна пам\'ять (%d), що може призвести до збоїв. Змініть кількість оперативної пам\'яті, якщо гра вилетить.</string>
-    <string name="mcl_memory_allocation" formatted="false">Виділення пам\'яті</string>
-    <string name="mcl_memory_allocation_subtitle" formatted="false">Контролює, скільки пам’яті надається Minecraft.</string>
-    <string name="multirt_runtime_corrupt" formatted="false">Java Runtime пошкоджено</string>
-    <string name="multirt_runtime_incompatiblearch" formatted="false">Несумісна архітектура: %s</string>
-    <string name="multirt_config_title" formatted="false">Середовища виконання Java</string>
-    <string name="multirt_config_add" formatted="false">Додати нове</string>
-    <string name="multirt_title" formatted="false">Менеджер Runtime</string>
-    <string name="multirt_subtitle" formatted="false">Керування встановленими середовищами Java.</string>
-    <string name="multirt_progress_caching" formatted="false">Кешування...</string>
-    <string name="multirt_config_setdefault" formatted="false">Встановити за замовчуванням</string>
-    <string name="multirt_config_setdefault_already" formatted="false">За замовчуванням</string>
-    <string name="multirt_config_removeerror_last" formatted="false">У вас має бути встановлений принаймні один Java Runtime.</string>
-    <string name="multirt_nojava8rt" formatted="false">Не вдалося знайти Java 8! Для вибору цієї опції встановіть Java 8!</string>
-    <string name="multirt_delete_runtime" formatted="false">Видалити runtime</string>
-    <string name="pvc_gameDirectory" formatted="false">Папка гри</string>
-    <string name="pvc_jvmArgs" formatted="false">Аргументи JVM</string>
-    <string name="preference_mouse_start_title" formatted="false">Запуск разом з віртуальною мишею</string>
-    <string name="preference_mouse_start_description" formatted="false">Віртуальна миша з’являється під час запуску, якщо цей параметр увімкнено.</string>
-    <string name="preference_video_title" formatted="false">Відео та візуалізатор</string>
-    <string name="preference_video_description" formatted="false">Роздільність, візуалізатор і продуктивність</string>
-    <string name="preference_control_title" formatted="false">Налаштування керування</string>
-    <string name="preference_control_description" formatted="false">Жести, кнопки та масштабування</string>
-    <string name="preference_java_title" formatted="false">Оптимізація Java</string>
-    <string name="preference_java_description" formatted="false">Java Runtimes, аргументи JVM, обсяг ОЗП та пісочниця</string>
-    <string name="preference_misc_title" formatted="false">Інші параметри</string>
-    <string name="preference_misc_description" formatted="false">Список версій та перевірка бібліотек</string>
-    <string name="preference_experimental_title" formatted="false">Експериментальні штуки</string>
-    <string name="preference_experimental_description" formatted="false">Використовуйте параметри там з обережністю, ніякої підтримки</string>
-    <string name="preference_sustained_performance_title" formatted="false">Увімкнути режим постійної продуктивности</string>
-    <string name="preference_sustained_performance_description" formatted="false">Увімкнувши цю функцію, ваш телефон не буде перегріватися, шляхом обмеження пікової продуктивності.</string>
-    <string name="preference_force_vsync_title" formatted="false">Увімкнути вертикальну синхронізацію</string>
-    <string name="preference_force_vsync_description" formatted="false">Цей параметр буде обмежувати кількість кадрів в секунду в залежності від вашої частоти екрана.</string>
-    <string name="preference_use_angle_description" formatted="false">Дозволяє використання ANGLE замість системного драйвера. Може допомогти з графічними проблемами на деяких відеочіпах</string>
-    <string name="preference_force_english_title" formatted="false">Змінити мову на англійську</string>
-    <string name="preference_force_english_description" formatted="false">Змінює поточну мову на англійську, дозволяючи побачити рядки задумані розробниками. Потребує перезапуску.</string>
-    <string name="preference_edit_controls_title" formatted="false">Редагувати елементи керування</string>
-    <string name="preference_edit_controls_summary" formatted="false">Налаштувати схему керування так як вам потрібно.</string>
-    <string name="preference_category_gyro_controls" formatted="false">Керування гіроскопом</string>
-    <string name="preference_category_virtual_mouse" formatted="false">Віртуальна миша</string>
-    <string name="preference_gyro_invert_x_axis" formatted="false">Обернути вісь X</string>
-    <string name="preference_gyro_invert_y_axis" formatted="false">Обернути вісь Y</string>
-    <string name="preference_gyro_invert_x_axis_description" formatted="false">Інвертувати вісь X.</string>
-    <string name="preference_gyro_invert_y_axis_description" formatted="false">Інвертувати вісь Y.</string>
-    <string name="preference_gyro_smoothing_title" formatted="false">Увімкнути згладжування гіроскопа</string>
-    <string name="preference_gyro_smoothing_description" formatted="false">Збільшити плавність руху камери в обмін на затримку вводу.</string>
-    <string name="preference_back_title" formatted="false">Назад</string>
-    <string name="unnamed" formatted="false">Безіменний</string>
-    <string name="profiles_latest_snapshot" formatted="false">Останній снапшот</string>
-    <string name="profiles_latest_release" formatted="false">Останній реліз</string>
-    <string name="profiles_profile_name" formatted="false">Ім\'я</string>
-    <string name="profiles_profile_version" formatted="false">Версія</string>
-    <string name="global_delete" formatted="false">Видалити</string>
-    <string name="pedit_java_runtime" formatted="false">Середовище Java</string>
-    <string name="pedit_renderer" formatted="false">Візуалізатор</string>
-    <string name="notif_channel_name" formatted="false">Загальне</string>
-    <string name="lazy_service_default_title" formatted="false">Фонова Служба Fear</string>
-    <string name="mcl_setting_veroption_installed" formatted="false">Встановлено</string>
-    <string name="use_global_default" formatted="false">(Використовувати за стандартом)</string>
-    <string name="default_control" formatted="false">Стандартне керування</string>
-    <string name="progresslayout_tasks_in_progress" formatted="false">Завдань виконується: %d</string>
-    <string name="notification_terminate" formatted="false">Завершити</string>
-    <string name="notification_game_runs" formatted="false">Гру запущено!</string>
-    <string name="folder_dialog_create" formatted="false">Створити</string>
-    <string name="folder_dialog_insert_name" formatted="false">Уведіть назву папки</string>
-    <string name="folder_fragment_create" formatted="false">Створити папку</string>
-    <string name="folder_fragment_select" formatted="false">Вибрати папку</string>
-    <string name="main_login_done" formatted="false">Вхід виконано</string>
-    <string name="main_add_account" formatted="false">Додати обл. запис</string>
-    <string name="tasks_ongoing" formatted="false">Завдання виконуються, зачекайте</string>
-    <string name="no_saved_accounts" formatted="false">Немає збережених обл. записів</string>
-    <string name="mc_download_failed" formatted="false">Не вдалося завантажити Minecraft! Це може траплятися у випадку поганого зв\'язку з мережею, неправильно розміщеними файлами, тощо</string>
-    <string name="xerr_unknown" formatted="false">Невідома помилка Xbox Live API! %d</string>
-    <string name="xerr_no_account" formatted="false">Схоже у вас немає Xbox Live аккаунту. Будь ласка, увійдіть ще раз на https://minecraft.net та спробуйте знову.</string>
-    <string name="xerr_adult_verification" formatted="false">Доросла людина має підтвердити ваш обліковий запис.</string>
-    <string name="xerr_child" formatted="false">Ваш обліковий запис є обліковим записом для дитини, і для входу в нього потрібно додати його до сім’ї.</string>
-    <string name="minecraft_not_owned" formatted="false">Схоже, цей обліковий запис не має купленої гри Minecraft. Якщо у вас є Xbox Game Pass, будь ласка, увійдіть на https://minecraft.net/ і налаштуйте його.</string>
-    <string name="xerr_not_available" formatted="false">Xbox Live недоступний у вашому регіоні</string>
-    <string name="preference_enable_gyro_title" formatted="false">Увімкнути гіроскоп</string>
-    <string name="preference_enable_gyro_description" formatted="false">Увімкнувши цю функцію, ви зможете повертатися в грі, просто повернувши телефон.</string>
-    <string name="preference_gyro_sensitivity_title" formatted="false">Чутливість гіроскопа</string>
-    <string name="preference_gyro_sensitivity_description" formatted="false">Відрегулювати чутливість гіроскопа.</string>
-    <string name="toast_turn_on_gyro" formatted="false">Спочатку увімкніть гіроскоп, щоб скористатися цією функцією!</string>
-    <string name="preference_gyro_sample_rate_title" formatted="false">Частота оновлення гіроскопа</string>
-    <string name="preference_gyro_sample_rate_description" formatted="false">Якщо у вас виникають проблеми з гіроскопом, збільште цей параметр.</string>
-    <string name="microsoft_login_retry_later" formatted="false">Занадто багато запитів, спробуйте пізніше.</string>
-    <string name="storage_required" formatted="false">FearLauncher потрібен дозвіл для доступу в сховище, дайте цей доступ та перезапустіть лаунчер</string>
-    <string name="mcl_setting_title_buttonallcaps" formatted="false">Використовувати лише великі літери в назвах кнопок</string>
-    <string name="mcl_setting_subtitle_buttonallcaps" formatted="false">Вимкніть, якщо бажаєте використовувати малі літери в елементах керування.</string>
-    <string name="create_instance" formatted="false">Створити нову версію</string>
-    <string name="preference_shader_dump_title" formatted="false">Увімкнути вивантажування шейдерів</string>
-    <string name="preference_shader_dump_description" formatted="false">Записувати дані про перетворені шейдери у файл журналу.</string>
-    <string name="percent_format" formatted="false">%d%%</string>
-    <string name="millisecond_format" formatted="false">%d мс</string>
-    <string name="customctrl_editor_exit_title" formatted="false">Вийти?</string>
-    <string name="customctrl_editor_exit_msg" formatted="false">Ви дійсно хочете вийти?</string>
-    <string name="customctrl_editor_exit" formatted="false">Вийти з редактора</string>
-    <string name="global_save_and_exit" formatted="false">Зберегти та вийти</string>
-    <string name="global_yes" formatted="false">Так</string>
-    <string name="global_no" formatted="false">Ні</string>
-    <string name="preference_controller_map_wiped" formatted="false">Налаштування геймпада було скинуто.</string>
-    <string name="preference_category_controller_settings" formatted="false">Налаштування геймпада</string>
-    <string name="preference_wipe_controller_title" formatted="false">Скинути розкладку геймпада</string>
-    <string name="preference_wipe_controller_description" formatted="false">Скидує налаштування геймпада до стандарту.</string>
-    <string name="preference_deadzone_scale_title" formatted="false">Розмір мертвої зони джойстика</string>
-    <string name="preference_deadzone_scale_description" formatted="false">Якщо джойтик зміщується, збільште її.</string>
-    <string name="preference_force_big_core_title" formatted="false">Змусити візуалізатор працювати на великому ядрі</string>
-    <string name="preference_force_big_core_desc" formatted="false">Змушує потік візуалізації Minecraft працювати на ядрі з найвищою макс. частотою.</string> <!-- Max reference!?!?!? -->
-    <string name="version_select_hint" formatted="false">Оберіть версію</string>
-    <string name="forge_dl_progress" formatted="false">Завантаження інсталятора для %s</string>
-    <string name="forge_dl_searching" formatted="false">Пошук номера версії Forge</string>
-    <string name="modloader_dl_failed_to_load_list" formatted="false">Не вдалося завантажити список версій!</string>
-    <string name="forge_dl_no_installer" formatted="false">Отакої! Ця версія Forge поки-що не має підтримуваного інсталятора.</string>
-    <string name="forge_dl_select_version" formatted="false">Вибір версії Forge</string>
-    <string name="neoforge_dl_no_installer" formatted="false">Отакої! Ця версія Neoforge поки-що не має підтримуваного інсталятора</string>
-    <string name="neoforge_dl_select_version" formatted="false">Вибір версії Neoforge</string>
-    <string name="fabric_dl_progress" formatted="false">Завантаження %s інсталятора</string>
-    <string name="fabric_dl_loader_version" formatted="false">Версія лоадера %s</string>
-    <string name="fabric_dl_game_version" formatted="false">Версія Minecraft</string>
-    <string name="fabric_dl_install" formatted="false">Встановити</string>
-    <string name="fabric_dl_cant_read_meta" formatted="false">Не вдалося зчитати метадані лоадера %s. Будь ласка, повторіть спробу пізніше.</string>
-    <string name="fabric_dl_cant_read_meta2" formatted="false">Не вдалося зчитати метадані Fabric\'а</string>
-    <string name="modloader_dl_install_fabric_instance" formatted="false">Створити версію з Fabric</string>
-    <string name="modloader_dl_install_quilt_instance" formatted="false">Створити версію з Quilt</string>
-    <string name="modloader_dl_install_forge_instance" formatted="false">Створити версію з Forge</string>
-    <string name="modloader_dl_install_neoforge_instance" formatted="false">Створити версію з Neoforge</string>
-    <string name="create_instance_vanilla" formatted="false">Створити Ванільну версію</string>
-    <string name="create_profile_vanilla_like_versions" formatted="false">Не модифіковані версії</string>
-    <string name="create_profile_modded_versions" formatted="false">Модифіковані версії</string>
-    <string name="fabric_dl_loader_title" formatted="false">Вибір версії</string>
-    <string name="of_dl_select_version" formatted="false">Вибір версії OptiFine</string>
-    <string name="of_dl_failed_to_scrape" formatted="false">Не вдалося зібрати дані для встановлення OptiFine</string>
-    <string name="of_dl_progress" formatted="false">Завантаження %s</string>
-    <string name="mod_dl_install_optifine" formatted="false">Встановити OptiFine</string>
-    <string name="hint_search_modpack" formatted="false">Пошук модпаків</string>
-    <string name="preference_vulkan_driver_system_title" formatted="false">Використовувати систений Vulkan драйвер</string>
-    <string name="preference_vulkan_driver_system_description" formatted="false">Примусово використовувати драйвер Vulkan замість Turnip на Adreno GPU. Впливає лише на Zink і моди, які використовують Vulkan.</string>
-    <string name="generic_install" formatted="false">Встановити</string>
-    <string name="generic_apply" formatted="false">Застосувати</string>
-    <string name="generic_debug" formatted="false">Налагодження</string>
-    <string name="search_modpack_no_result" formatted="false">Модпаки не знайдено</string>
-    <string name="search_modpack_error" formatted="false">Не вдалося знайти модпаки</string>
-    <string name="search_modpack_download_error" formatted="false">Не вдалося завантажити метадані модпаку</string>
+    <string name="mcl_memory_allocation">Виділення пам\'яті</string>
+    <string name="mcl_memory_allocation_subtitle">Контролює, скільки пам’яті надається Minecraft.</string>
+    <string name="multirt_runtime_corrupt">Java Runtime пошкоджено</string>
+    <string name="multirt_runtime_incompatiblearch">Несумісна архітектура: %s</string>
+    <string name="multirt_config_title">Середовища виконання Java</string>
+    <string name="multirt_config_add">Додати нове</string>
+    <string name="multirt_title">Менеджер Runtime</string>
+    <string name="multirt_subtitle">Керування встановленими середовищами Java.</string>
+    <string name="multirt_progress_caching">Кешування...</string>
+    <string name="multirt_config_setdefault">Встановити за замовчуванням</string>
+    <string name="multirt_config_setdefault_already">За замовчуванням</string>
+    <string name="multirt_config_removeerror_last">У вас має бути встановлений принаймні один Java Runtime.</string>
+    <string name="multirt_nojava8rt">Не вдалося знайти Java 8! Для вибору цієї опції встановіть Java 8!</string>
+    <string name="multirt_delete_runtime">Видалити runtime</string>
+    <string name="pvc_gameDirectory">Папка гри</string>
+    <string name="pvc_jvmArgs">Аргументи JVM</string>
+    <string name="preference_mouse_start_title">Запуск разом з віртуальною мишею</string>
+    <string name="preference_mouse_start_description">Віртуальна миша з’являється під час запуску, якщо цей параметр увімкнено.</string>
+    <string name="preference_video_title">Відео та візуалізатор</string>
+    <string name="preference_video_description">Роздільність, візуалізатор і продуктивність</string>
+    <string name="preference_control_title">Налаштування керування</string>
+    <string name="preference_control_description">Жести, кнопки та масштабування</string>
+    <string name="preference_java_title">Оптимізація Java</string>
+    <string name="preference_java_description">Java Runtimes, аргументи JVM, обсяг ОЗП та пісочниця</string>
+    <string name="preference_misc_title">Інші параметри</string>
+    <string name="preference_misc_description">Список версій та перевірка бібліотек</string>
+    <string name="preference_experimental_title">Експериментальні штуки</string>
+    <string name="preference_experimental_description">Використовуйте параметри там з обережністю, ніякої підтримки</string>
+    <string name="preference_sustained_performance_title">Увімкнути режим постійної продуктивности</string>
+    <string name="preference_sustained_performance_description">Увімкнувши цю функцію, ваш телефон не буде перегріватися, шляхом обмеження пікової продуктивності.</string>
+    <string name="preference_force_vsync_title">Увімкнути вертикальну синхронізацію</string>
+    <string name="preference_force_vsync_description">Цей параметр буде обмежувати кількість кадрів в секунду в залежності від вашої частоти екрана.</string>
+    <string name="preference_use_angle_description">Дозволяє використання ANGLE замість системного драйвера. Може допомогти з графічними проблемами на деяких відеочіпах</string>
+    <string name="preference_force_english_title">Змінити мову на англійську</string>
+    <string name="preference_force_english_description">Змінює поточну мову на англійську, дозволяючи побачити рядки задумані розробниками. Потребує перезапуску.</string>
+    <string name="preference_edit_controls_title">Редагувати елементи керування</string>
+    <string name="preference_edit_controls_summary">Налаштувати схему керування так як вам потрібно.</string>
+    <string name="preference_category_gyro_controls">Керування гіроскопом</string>
+    <string name="preference_category_virtual_mouse">Віртуальна миша</string>
+    <string name="preference_gyro_invert_x_axis">Обернути вісь X</string>
+    <string name="preference_gyro_invert_y_axis">Обернути вісь Y</string>
+    <string name="preference_gyro_invert_x_axis_description">Інвертувати вісь X.</string>
+    <string name="preference_gyro_invert_y_axis_description">Інвертувати вісь Y.</string>
+    <string name="preference_gyro_smoothing_title">Увімкнути згладжування гіроскопа</string>
+    <string name="preference_gyro_smoothing_description">Збільшити плавність руху камери в обмін на затримку вводу.</string>
+    <string name="preference_back_title">Назад</string>
+    <string name="unnamed">Безіменний</string>
+    <string name="profiles_latest_snapshot">Останній снапшот</string>
+    <string name="profiles_latest_release">Останній реліз</string>
+    <string name="profiles_profile_name">Ім\'я</string>
+    <string name="profiles_profile_version">Версія</string>
+    <string name="global_delete">Видалити</string>
+    <string name="pedit_java_runtime">Середовище Java</string>
+    <string name="pedit_renderer">Візуалізатор</string>
+    <string name="notif_channel_name">Загальне</string>
+    <string name="lazy_service_default_title">Фонова Служба Fear</string>
+    <string name="mcl_setting_veroption_installed">Встановлено</string>
+    <string name="use_global_default">(Використовувати за стандартом)</string>
+    <string name="default_control">Стандартне керування</string>
+    <string name="progresslayout_tasks_in_progress">Завдань виконується: %d</string>
+    <string name="notification_terminate">Завершити</string>
+    <string name="notification_game_runs">Гру запущено!</string>
+    <string name="folder_dialog_create">Створити</string>
+    <string name="folder_dialog_insert_name">Уведіть назву папки</string>
+    <string name="folder_fragment_create">Створити папку</string>
+    <string name="folder_fragment_select">Вибрати папку</string>
+    <string name="main_login_done">Вхід виконано</string>
+    <string name="main_add_account">Додати обл. запис</string>
+    <string name="tasks_ongoing">Завдання виконуються, зачекайте</string>
+    <string name="no_saved_accounts">Немає збережених обл. записів</string>
+    <string name="mc_download_failed">Не вдалося завантажити Minecraft! Це може траплятися у випадку поганого зв\'язку з мережею, неправильно розміщеними файлами, тощо</string>
+    <string name="xerr_unknown">Невідома помилка Xbox Live API! %d</string>
+    <string name="xerr_no_account">Схоже у вас немає Xbox Live аккаунту. Будь ласка, увійдіть ще раз на https://minecraft.net та спробуйте знову.</string>
+    <string name="xerr_adult_verification">Доросла людина має підтвердити ваш обліковий запис.</string>
+    <string name="xerr_child">Ваш обліковий запис є обліковим записом для дитини, і для входу в нього потрібно додати його до сім’ї.</string>
+    <string name="minecraft_not_owned">Схоже, цей обліковий запис не має купленої гри Minecraft. Якщо у вас є Xbox Game Pass, будь ласка, увійдіть на https://minecraft.net/ і налаштуйте його.</string>
+    <string name="xerr_not_available">Xbox Live недоступний у вашому регіоні</string>
+    <string name="preference_enable_gyro_title">Увімкнути гіроскоп</string>
+    <string name="preference_enable_gyro_description">Увімкнувши цю функцію, ви зможете повертатися в грі, просто повернувши телефон.</string>
+    <string name="preference_gyro_sensitivity_title">Чутливість гіроскопа</string>
+    <string name="preference_gyro_sensitivity_description">Відрегулювати чутливість гіроскопа.</string>
+    <string name="toast_turn_on_gyro">Спочатку увімкніть гіроскоп, щоб скористатися цією функцією!</string>
+    <string name="preference_gyro_sample_rate_title">Частота оновлення гіроскопа</string>
+    <string name="preference_gyro_sample_rate_description">Якщо у вас виникають проблеми з гіроскопом, збільште цей параметр.</string>
+    <string name="microsoft_login_retry_later">Занадто багато запитів, спробуйте пізніше.</string>
+    <string name="storage_required">FearLauncher потрібен дозвіл для доступу в сховище, дайте цей доступ та перезапустіть лаунчер</string>
+    <string name="mcl_setting_title_buttonallcaps">Використовувати лише великі літери в назвах кнопок</string>
+    <string name="mcl_setting_subtitle_buttonallcaps">Вимкніть, якщо бажаєте використовувати малі літери в елементах керування.</string>
+    <string name="create_instance">Створити нову версію</string>
+    <string name="preference_shader_dump_title">Увімкнути вивантажування шейдерів</string>
+    <string name="preference_shader_dump_description">Записувати дані про перетворені шейдери у файл журналу.</string>
+    <string name="percent_format">%d%%</string>
+    <string name="millisecond_format">%d мс</string>
+    <string name="customctrl_editor_exit_title">Вийти?</string>
+    <string name="customctrl_editor_exit_msg">Ви дійсно хочете вийти?</string>
+    <string name="customctrl_editor_exit">Вийти з редактора</string>
+    <string name="global_save_and_exit">Зберегти та вийти</string>
+    <string name="global_yes">Так</string>
+    <string name="global_no">Ні</string>
+    <string name="preference_controller_map_wiped">Налаштування геймпада було скинуто.</string>
+    <string name="preference_category_controller_settings">Налаштування геймпада</string>
+    <string name="preference_wipe_controller_title">Скинути розкладку геймпада</string>
+    <string name="preference_wipe_controller_description">Скидує налаштування геймпада до стандарту.</string>
+    <string name="preference_deadzone_scale_title">Розмір мертвої зони джойстика</string>
+    <string name="preference_deadzone_scale_description">Якщо джойтик зміщується, збільште її.</string>
+    <string name="preference_force_big_core_title">Змусити візуалізатор працювати на великому ядрі</string>
+    <string name="preference_force_big_core_desc">Змушує потік візуалізації Minecraft працювати на ядрі з найвищою макс. частотою.</string> <!-- Max reference!?!?!? -->
+    <string name="version_select_hint">Оберіть версію</string>
+    <string name="forge_dl_progress">Завантаження інсталятора для %s</string>
+    <string name="forge_dl_searching">Пошук номера версії Forge</string>
+    <string name="modloader_dl_failed_to_load_list">Не вдалося завантажити список версій!</string>
+    <string name="forge_dl_no_installer">Отакої! Ця версія Forge поки-що не має підтримуваного інсталятора.</string>
+    <string name="forge_dl_select_version">Вибір версії Forge</string>
+    <string name="neoforge_dl_no_installer">Отакої! Ця версія Neoforge поки-що не має підтримуваного інсталятора</string>
+    <string name="neoforge_dl_select_version">Вибір версії Neoforge</string>
+    <string name="fabric_dl_progress">Завантаження %s інсталятора</string>
+    <string name="fabric_dl_loader_version">Версія лоадера %s</string>
+    <string name="fabric_dl_game_version">Версія Minecraft</string>
+    <string name="fabric_dl_install">Встановити</string>
+    <string name="fabric_dl_cant_read_meta">Не вдалося зчитати метадані лоадера %s. Будь ласка, повторіть спробу пізніше.</string>
+    <string name="fabric_dl_cant_read_meta2">Не вдалося зчитати метадані Fabric\'а</string>
+    <string name="modloader_dl_install_fabric_instance">Створити версію з Fabric</string>
+    <string name="modloader_dl_install_quilt_instance">Створити версію з Quilt</string>
+    <string name="modloader_dl_install_forge_instance">Створити версію з Forge</string>
+    <string name="modloader_dl_install_neoforge_instance">Створити версію з Neoforge</string>
+    <string name="create_instance_vanilla">Створити Ванільну версію</string>
+    <string name="create_profile_vanilla_like_versions">Не модифіковані версії</string>
+    <string name="create_profile_modded_versions">Модифіковані версії</string>
+    <string name="fabric_dl_loader_title">Вибір версії</string>
+    <string name="of_dl_select_version">Вибір версії OptiFine</string>
+    <string name="of_dl_failed_to_scrape">Не вдалося зібрати дані для встановлення OptiFine</string>
+    <string name="of_dl_progress">Завантаження %s</string>
+    <string name="mod_dl_install_optifine">Встановити OptiFine</string>
+    <string name="hint_search_modpack">Пошук модпаків</string>
+    <string name="preference_vulkan_driver_system_title">Використовувати систений Vulkan драйвер</string>
+    <string name="preference_vulkan_driver_system_description">Примусово використовувати драйвер Vulkan замість Turnip на Adreno GPU. Впливає лише на Zink і моди, які використовують Vulkan.</string>
+    <string name="generic_install">Встановити</string>
+    <string name="generic_apply">Застосувати</string>
+    <string name="generic_debug">Налагодження</string>
+    <string name="search_modpack_no_result">Модпаки не знайдено</string>
+    <string name="search_modpack_error">Не вдалося знайти модпаки</string>
+    <string name="search_modpack_download_error">Не вдалося завантажити метадані модпаку</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Завантаження метаданих модпака (%.2f Мб / %.2f Мб)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Завантаження модів (%.2f Мб / %.2f Мб)</string>
-    <string name="modpack_download_downloading_mods_fc" formatted="false">Завантаження модів (Файл %d з %d)</string>
-    <string name="modpack_download_applying_overrides" formatted="false">Застосування переписів (%d/%d)</string>
-    <string name="modpack_install_notification_title" formatted="false">Інсталяція модпаку...</string>
-    <string name="modpack_install_notification_success" formatted="false">Натисніть тут, щоб завершити встановлення модпака</string>
-    <string name="modpack_install_notification_data_not_available" formatted="false">Не вдалося завантажити інформацію про модлоадер</string>
-    <string name="modpack_install_modloader_download_failed" formatted="false">Не вдалося завантажити файли модлоадера</string>
-    <string name="modpack_install_download_failed" formatted="false">Не вдалося завантажити файли модпаку</string>
-    <string name="modpack_install_instance_button" formatted="false">Створити версію з модпаком</string>
-    <string name="notif_error_occured" formatted="false">Сталася помилка</string>
-    <string name="notif_error_occured_desc" formatted="false">Натисніть, щоб побачити подробиці</string>
-    <string name="fabric_dl_only_stable" formatted="false">Показувати лише стабільні версії</string>
-    <string name="dl_tampered_manifest_title" formatted="false">Попередження щодо перевірки файлу</string>
-    <string name="dl_tampered_manifest" formatted="false"><![CDATA[Версія маніфесту гри у дзеркалі не збігається з офіціальною версією від Mojang, можливо, воно підроблене.<br/>
+    <string name="modpack_download_downloading_mods_fc">Завантаження модів (Файл %d з %d)</string>
+    <string name="modpack_download_applying_overrides">Застосування переписів (%d/%d)</string>
+    <string name="modpack_install_notification_title">Інсталяція модпаку...</string>
+    <string name="modpack_install_notification_success">Натисніть тут, щоб завершити встановлення модпака</string>
+    <string name="modpack_install_notification_data_not_available">Не вдалося завантажити інформацію про модлоадер</string>
+    <string name="modpack_install_modloader_download_failed">Не вдалося завантажити файли модлоадера</string>
+    <string name="modpack_install_download_failed">Не вдалося завантажити файли модпаку</string>
+    <string name="modpack_install_instance_button">Створити версію з модпаком</string>
+    <string name="notif_error_occured">Сталася помилка</string>
+    <string name="notif_error_occured_desc">Натисніть, щоб побачити подробиці</string>
+    <string name="fabric_dl_only_stable">Показувати лише стабільні версії</string>
+    <string name="dl_tampered_manifest_title">Попередження щодо перевірки файлу</string>
+    <string name="dl_tampered_manifest"><![CDATA[Версія маніфесту гри у дзеркалі не збігається з офіціальною версією від Mojang, можливо, воно підроблене.<br/>
         <b>Це небезпечно. Якщо Ви продовжите, Ваші персональні дані можуть бути під загрозою.</b><br/>
         Якщо Ви все ще хочете використати дзеркальне посилання, натисніть \"Вимкнути перевірки маніфесту\", і знову почніть завантаження.<br/>
         Якщо хочете використати офіціальне джерело, натисніть \"Перейти на офіційний сайт\", і знову почніть завантаження.<br/>]]></string>
-    <string name="dl_turn_off_manifest_checks" formatted="false">Вимкнути перевірку маніфесту</string>
-    <string name="dl_switch_to_official_site" formatted="false">Перейти на офіційний сайт</string>
-    <string name="preference_download_source_title" formatted="false">Джерело завантаження гри</string>
-    <string name="preference_download_source_description" formatted="false">Оберіть дзеркало завантаження замість офіційного сервера завантаження</string>
-    <string name="preference_verify_manifest_title" formatted="false">Перевірити маніфест гри</string>
-    <string name="preference_verify_manifest_description" formatted="false">Якщо увімкнено, лаунчер перевірятиме маніфест гри разом з бібліотеками.</string>
-    <string name="notif_download_finished" formatted="false">Гра готова до запуску</string>
-    <string name="notif_download_finished_desc" formatted="false">Натисніть, щоб закінчити встановлення!</string>
-    <string name="preference_category_gestures" formatted="false">Жести</string>
-    <string name="preference_category_buttons" formatted="false">Кнопки</string>
-    <string name="preference_category_experimental_settings" formatted="false">Експериментальні налаштування</string>
-    <string name="preference_category_java_tweaks" formatted="false">Оптимізація Java</string>
-    <string name="preference_category_main_categories" formatted="false">Категорії</string>
-    <string name="preference_category_miscellaneous" formatted="false">Інші параметри</string>
-    <string name="preference_category_video" formatted="false">Налаштування відео</string>
-    <string name="notification_permission_dialog_title" formatted="false">Запит на дозвіл</string>
-    <string name="notification_permission_dialog_text" formatted="false">FearLauncher попросить дозвіл на сповіщення, це потрібно щоб Android не закривав лаунчер у фоновому режимі, щоб не перервати завантаження.</string>
-    <string name="notification_permission_toast" formatted="false">Ви завжди зможете змінити це в налаштуваннях</string>
-    <string name="preference_ask_for_notification_title" formatted="false">Дозволити сповіщення</string>
-    <string name="preference_ask_for_notification_description" formatted="false">Натисніть, щоб повторно запитати дозвіл на сповіщення, необхідний для коректної роботи фонових завантажень гри/модпаку.</string>
-    <string name="preference_vsync_in_zink_title" formatted="false">Вертикальна синхронізація із Zink</string>
-    <string name="preference_vsync_in_zink_description" formatted="false">Дозволяє лаунчеру використовувати внутрішні системні API для увімкнення вертикальної синхронізації для Zink. Вимкніть, якщо після оновлення системи лаунчер вилітає разом із Zink.</string>
-    <string name="exception_failed_to_unpack_jre17" formatted="false">Не вдалося установити JRE 17</string>
-    <string name="newdl_starting" formatted="false">Зчитування метаданих гри…</string>
-    <string name="newdl_downloading_metadata" formatted="false">Завантаження метаданих гри (%s)</string>
-    <string name="execute_jar_incompatible_runtime" formatted="false">Виконання .jar неможливе з Java %d</string>
-    <string name="controller_button_a" formatted="false">A</string>
-    <string name="controller_button_b" formatted="false">B</string>
-    <string name="controller_button_x" formatted="false">X</string>
-    <string name="controller_button_y" formatted="false">Y</string>
-    <string name="controller_button_start" formatted="false">Почати</string>
-    <string name="controller_button_select" formatted="false">Обрати</string>
-    <string name="controller_remapper_operating_mode" formatted="false">Поточний режим</string>
-    <string name="customctrl_visibility_title" formatted="false">Прозорість</string>
-    <string name="instance_shared_data" formatted="false">Спільні данні (нажміть щоб змінити)</string>
-    <string name="instance_shared_data_on" formatted="false">Зберігати данні гри в спільній папці</string>
-    <string name="preference_use_angle_title" formatted="false">Використовуати ANGLE</string>
-    <string name="newdl_downloading_game_files" formatted="false">Завантаження файлів гри... (%d/%d, %.2f MB/s)</string>
+    <string name="dl_turn_off_manifest_checks">Вимкнути перевірку маніфесту</string>
+    <string name="dl_switch_to_official_site">Перейти на офіційний сайт</string>
+    <string name="preference_download_source_title">Джерело завантаження гри</string>
+    <string name="preference_download_source_description">Оберіть дзеркало завантаження замість офіційного сервера завантаження</string>
+    <string name="preference_verify_manifest_title">Перевірити маніфест гри</string>
+    <string name="preference_verify_manifest_description">Якщо увімкнено, лаунчер перевірятиме маніфест гри разом з бібліотеками.</string>
+    <string name="notif_download_finished">Гра готова до запуску</string>
+    <string name="notif_download_finished_desc">Натисніть, щоб закінчити встановлення!</string>
+    <string name="preference_category_gestures">Жести</string>
+    <string name="preference_category_buttons">Кнопки</string>
+    <string name="preference_category_experimental_settings">Експериментальні налаштування</string>
+    <string name="preference_category_java_tweaks">Оптимізація Java</string>
+    <string name="preference_category_main_categories">Категорії</string>
+    <string name="preference_category_miscellaneous">Інші параметри</string>
+    <string name="preference_category_video">Налаштування відео</string>
+    <string name="notification_permission_dialog_title">Запит на дозвіл</string>
+    <string name="notification_permission_dialog_text">FearLauncher попросить дозвіл на сповіщення, це потрібно щоб Android не закривав лаунчер у фоновому режимі, щоб не перервати завантаження.</string>
+    <string name="notification_permission_toast">Ви завжди зможете змінити це в налаштуваннях</string>
+    <string name="preference_ask_for_notification_title">Дозволити сповіщення</string>
+    <string name="preference_ask_for_notification_description">Натисніть, щоб повторно запитати дозвіл на сповіщення, необхідний для коректної роботи фонових завантажень гри/модпаку.</string>
+    <string name="preference_vsync_in_zink_title">Вертикальна синхронізація із Zink</string>
+    <string name="preference_vsync_in_zink_description">Дозволяє лаунчеру використовувати внутрішні системні API для увімкнення вертикальної синхронізації для Zink. Вимкніть, якщо після оновлення системи лаунчер вилітає разом із Zink.</string>
+    <string name="exception_failed_to_unpack_jre17">Не вдалося установити JRE 17</string>
+    <string name="newdl_starting">Зчитування метаданих гри…</string>
+    <string name="newdl_downloading_metadata">Завантаження метаданих гри (%s)</string>
+    <string name="execute_jar_incompatible_runtime">Виконання .jar неможливе з Java %d</string>
+    <string name="controller_button_a">A</string>
+    <string name="controller_button_b">B</string>
+    <string name="controller_button_x">X</string>
+    <string name="controller_button_y">Y</string>
+    <string name="controller_button_start">Почати</string>
+    <string name="controller_button_select">Обрати</string>
+    <string name="controller_remapper_operating_mode">Поточний режим</string>
+    <string name="customctrl_visibility_title">Прозорість</string>
+    <string name="instance_shared_data">Спільні данні (нажміть щоб змінити)</string>
+    <string name="instance_shared_data_on">Зберігати данні гри в спільній папці</string>
+    <string name="preference_use_angle_title">Використовуати ANGLE</string>
+    <string name="newdl_downloading_game_files">Завантаження файлів гри... (%d/%d, %.2f MB/s)</string>
     <string name="newdl_downloading_game_files_size" formatted="false">Завантаження файлів гри... (%.2f/%.2f MB, %.2f MB/s)</string>
-    <string name="cropper_title" formatted="false">Виберіть частину зображення</string>
-    <string name="cropper_lock_vertical" formatted="false">Верт. блокування</string>
-    <string name="cropper_lock_horizontal" formatted="false">Гориз. блокування</string>
-    <string name="cropper_reset" formatted="false">Скинути</string>
-    <string name="cropper_select_cancelled" formatted="false">Вибір відмінено</string>
-    <string name="log_view_button_scroll_off" formatted="false">Автоскролл[...]</string>
-    <string name="log_view_button_scroll_on" formatted="false">Автоскролл[...]</string>
-    <string name="log_view_button_output_off" formatted="false">Вивід[...]</string>
-    <string name="log_view_button_output_on" formatted="false">Вивід[...]</string>
-    <string name="log_view_label_log_output" formatted="false">Вивід журнала:</string>
-    <string name="execute_jar_failed_to_read_file" formatted="false">Не вдалось прочитати .jar файл</string>
-    <string name="controller_button_trigger_left" formatted="false">Правий триггер</string>
-    <string name="controller_button_trigger_right" formatted="false">Лівий триггер</string>
-    <string name="controller_button_shoulder_left" formatted="false">Ліва кнопка</string>
-    <string name="controller_button_shoulder_right" formatted="false">Права кнопка</string>
-    <string name="controller_direction_forward" formatted="false">Стік вверх</string>
-    <string name="controller_direction_backward" formatted="false">Стік вниз</string>
-    <string name="controller_direction_left" formatted="false">Стік вліво</string>
-    <string name="controller_direction_right" formatted="false">Стік вправо</string>
-    <string name="controller_stick_press_l" formatted="false">Лівий стік (клік)</string>
-    <string name="controller_stick_press_r" formatted="false">Правий стік (клік)</string>
-    <string name="controller_dpad_up" formatted="false">Хрестовина вверх</string>
-    <string name="controller_dpad_down" formatted="false">Хрестовина вниз</string>
-    <string name="controller_dpad_left" formatted="false">Хрестовина вліво</string>
-    <string name="controller_dpad_right" formatted="false">Хрестовина вправо</string>
-    <string name="controller_remapper_exit_part1" formatted="false">Затриммати</string>
-    <string name="controller_remapper_exit_part2" formatted="false">щоб вийти</string>
-    <string name="customctrl_visibility_ingame" formatted="false">У грі</string>
-    <string name="customctrl_visibility_in_menus" formatted="false">В меню</string>
-    <string name="controller_remapper_expand_entry" formatted="false">Розкрити для зміни назначень</string>
-    <string name="preference_remap_controller_title" formatted="false">Змінити назначення контролера</string>
-    <string name="preference_remap_controller_description" formatted="false">Дозволяє змінити назначення кнопок контролера</string>
-    <string name="mcl_button_social_media" formatted="false">Telegram</string>
-    <string name="ltw_render_distance_warning_msg" formatted="false">Ваше відеоядро не може візуалізовувати більше 7 чанків без Sodium чи йому подібних модів. Дистанція промальовкий</string>
-    <string name="mcl_button_open_directory" formatted="false">Відкрити папку гри</string>
-    <string name="social_media_invite" formatted="false">https://t.me/fearlauncher</string>
-    <string name="local_login_bad_username_title" formatted="false">Недопустиме ім\'я користувача</string>
-    <string name="local_login_bad_username_text" formatted="false">Ім\'я користувача має мати як мінімум від 3-х до 16 символів, і має мати лише латинські літери, цифри 0-9 і нижнє підкреслення</string>
-    <string name="quick_setting_title" formatted="false">Швидкі налаштування</string>
-    <string name="create_bta_instance" formatted="false">Створити версію \"Better Than Adventure\"</string>
-    <string name="select_bta_version" formatted="false">Вибір версії \"Better Than Adventure\"</string>
-    <string name="bta_installer_available_versions" formatted="false">Підтримуванні версії BTA</string>
-    <string name="bta_installer_untested_versions" formatted="false">Не перевірені версії BTA</string>
-    <string name="bta_installer_nightly_versions" formatted="false">Нічні релізи BTA</string>
-    <string name="newdl_extracting_native_libraries" formatted="false">Розпаковка нативних бібліотек (%d/%d)</string>
-    <string name="compat_version_not_supported" formatted="false">Ваш пристрій не може запустити цю версію бо LTW не підтримується на вашому пристрої</string>
-    <string name="compat_sodium_not_supported" formatted="false">Ваш пристрій не може працювати з Sodium бо LTW не підтримуються на вашому пристрої</string>
-    <string name="oauth_unknown_error" formatted="false">Невідома помилка аутентифікації!</string>
-    <string name="oauth_web_complete" formatted="false">Аутентифікація...</string>
-    <string name="auth_select_microsoft" formatted="false">Аккаунт Microsoft</string>
-    <string name="auth_select_elyby" formatted="false">Аккаунт Ely.by</string>
-    <string name="auth_select_local" formatted="false">Локальний аккаунт</string>
-    <string name="instance_dir_missing" formatted="false">Версії не знайдено</string>
-    <string name="gamedir_open_failed" formatted="false">Не вдалося відкрити папку версії</string>
-    <string name="newerdl_inserting_metadata" formatted="false">Пошук метаданих файлів...</string>
-    <string name="newerdl_inserting_metadata_count" formatted="false">Пошук метаданих файлів... (%d/%d)</string>
-    <string name="newerdl_downloading_files_count" formatted="false">Завантаження файлів</string>
-    <string name="newerdl_downloading_files_size" formatted="false">Завантаження файлів</string>
-    <string name="preference_verify_game_files_title" formatted="false">Перевірити файли гри</string>
-    <string name="preference_verify_game_files_description" formatted="false">"Перевіряє завантажені файли гри по контрольній сумі та вазі встановлених в метаданих. JSON файли метаданних перевіряються не зважаючи на це налаштування "</string>
-    <string name="preference_go_vroom_title" formatted="false">Швидки запуск гри</string>
-    <string name="preference_go_vroom_description" formatted="false">Не перевіряти файли при повторних запусках. Запускає гру набагато швидше</string>
-    <string name="vml_fail_load_runtime" formatted="false">Не вдалось завантажити віртуальне середовище Java: %s</string>
-    <string name="vml_fail_create_runtime" formatted="false">Не вдалось створити віртуальне середовище Java: %s</string>
-    <string name="vml_fail_find_hooks_native" formatted="false">Не вдалось найти нативні хуки.</string>
-    <string name="vml_fail_find_hooks" formatted="false">Не вдалось знайти цілі хуків. Перевірте latestlog.txt для подробиць</string>
-    <string name="vml_fail_insert_hooks" formatted="false">Не вдалось встановити хуки: %s</string>
-    <string name="vml_fail_load_classpath" formatted="false">Не вдалось завантажити шлях классу. Перевірте latestlog.txt для подробиць</string>
-    <string name="vml_fail_run_main" formatted="false">Не вдалось запустити головний клас. Перевірте latestlog.txt для подробиць</string>
-    <string name="vml_huh" formatted="false">\???</string>
-    <string name="vml_err_ok" formatted="false">Успішно</string>
-    <string name="vml_err_unknown" formatted="false">Невідома помилка</string>
-    <string name="vml_err_detached" formatted="false">Цей потік не прив\'язаний до віртуального середовища Java</string>
-    <string name="vml_err_version" formatted="false">Несумісна версія JNI</string>
-    <string name="vml_err_nomem" formatted="false">Недостатьньо ОЗП</string>
-    <string name="vml_err_exists" formatted="false">Віртуальне середовище вже завантажено</string>
-    <string name="vml_err_inval" formatted="false">Неправильні аргументи</string>
-    <string name="gr_err_renderer_load_Failed" formatted="false">Не вдалось завантажити бібліотеку візуалізатора</string>
-    <string name="ltw_4x_msaa_warning_msg" formatted="false">"Виглядає так наче ви вімкнули налаштування \"Увімкнути 4x MSAA\" у налаштуваннях розробника. Будь ласка, вимкніть це налаштування "</string>
-    <string name="modloader_dl_install_legacy_fabric_instance" formatted="false">"Створити версію Legacy Fabric"</string>
-    <string name="instance_delete" formatted="false">Видалити версію</string>
-    <string name="instance_delete_confirmation" formatted="false">Ви впенені що хочете видалити цю версію? Це НАЗАВЖДИ видалить всі світи, моди, ресурси та інші данні в папці версії. Ця дія НЕ може відмінена в майбутньому</string>
+    <string name="cropper_title">Виберіть частину зображення</string>
+    <string name="cropper_lock_vertical">Верт. блокування</string>
+    <string name="cropper_lock_horizontal">Гориз. блокування</string>
+    <string name="cropper_reset">Скинути</string>
+    <string name="cropper_select_cancelled">Вибір відмінено</string>
+    <string name="log_view_button_scroll_off">Автоскролл[...]</string>
+    <string name="log_view_button_scroll_on">Автоскролл[...]</string>
+    <string name="log_view_button_output_off">Вивід[...]</string>
+    <string name="log_view_button_output_on">Вивід[...]</string>
+    <string name="log_view_label_log_output">Вивід журнала:</string>
+    <string name="execute_jar_failed_to_read_file">Не вдалось прочитати .jar файл</string>
+    <string name="controller_button_trigger_left">Правий триггер</string>
+    <string name="controller_button_trigger_right">Лівий триггер</string>
+    <string name="controller_button_shoulder_left">Ліва кнопка</string>
+    <string name="controller_button_shoulder_right">Права кнопка</string>
+    <string name="controller_direction_forward">Стік вверх</string>
+    <string name="controller_direction_backward">Стік вниз</string>
+    <string name="controller_direction_left">Стік вліво</string>
+    <string name="controller_direction_right">Стік вправо</string>
+    <string name="controller_stick_press_l">Лівий стік (клік)</string>
+    <string name="controller_stick_press_r">Правий стік (клік)</string>
+    <string name="controller_dpad_up">Хрестовина вверх</string>
+    <string name="controller_dpad_down">Хрестовина вниз</string>
+    <string name="controller_dpad_left">Хрестовина вліво</string>
+    <string name="controller_dpad_right">Хрестовина вправо</string>
+    <string name="controller_remapper_exit_part1">Затриммати</string>
+    <string name="controller_remapper_exit_part2">щоб вийти</string>
+    <string name="customctrl_visibility_ingame">У грі</string>
+    <string name="customctrl_visibility_in_menus">В меню</string>
+    <string name="controller_remapper_expand_entry">Розкрити для зміни назначень</string>
+    <string name="preference_remap_controller_title">Змінити назначення контролера</string>
+    <string name="preference_remap_controller_description">Дозволяє змінити назначення кнопок контролера</string>
+    <string name="mcl_button_social_media">Telegram</string>
+    <string name="ltw_render_distance_warning_msg">Ваше відеоядро не може візуалізовувати більше 7 чанків без Sodium чи йому подібних модів. Дистанція промальовкий</string>
+    <string name="mcl_button_open_directory">Відкрити папку гри</string>
+    <string name="social_media_invite">https://t.me/fearlauncher</string>
+    <string name="local_login_bad_username_title">Недопустиме ім\'я користувача</string>
+    <string name="local_login_bad_username_text">Ім\'я користувача має мати як мінімум від 3-х до 16 символів, і має мати лише латинські літери, цифри 0-9 і нижнє підкреслення</string>
+    <string name="quick_setting_title">Швидкі налаштування</string>
+    <string name="create_bta_instance">Створити версію \"Better Than Adventure\"</string>
+    <string name="select_bta_version">Вибір версії \"Better Than Adventure\"</string>
+    <string name="bta_installer_available_versions">Підтримуванні версії BTA</string>
+    <string name="bta_installer_untested_versions">Не перевірені версії BTA</string>
+    <string name="bta_installer_nightly_versions">Нічні релізи BTA</string>
+    <string name="newdl_extracting_native_libraries">Розпаковка нативних бібліотек (%d/%d)</string>
+    <string name="compat_version_not_supported">Ваш пристрій не може запустити цю версію бо LTW не підтримується на вашому пристрої</string>
+    <string name="compat_sodium_not_supported">Ваш пристрій не може працювати з Sodium бо LTW не підтримуються на вашому пристрої</string>
+    <string name="oauth_unknown_error">Невідома помилка аутентифікації!</string>
+    <string name="oauth_web_complete">Аутентифікація...</string>
+    <string name="auth_select_microsoft">Аккаунт Microsoft</string>
+    <string name="auth_select_elyby">Аккаунт Ely.by</string>
+    <string name="auth_select_local">Локальний аккаунт</string>
+    <string name="instance_dir_missing">Версії не знайдено</string>
+    <string name="gamedir_open_failed">Не вдалося відкрити папку версії</string>
+    <string name="newerdl_inserting_metadata">Пошук метаданих файлів...</string>
+    <string name="newerdl_inserting_metadata_count">Пошук метаданих файлів... (%d/%d)</string>
+    <string name="newerdl_downloading_files_count">Завантаження файлів</string>
+    <string name="newerdl_downloading_files_size">Завантаження файлів</string>
+    <string name="preference_verify_game_files_title">Перевірити файли гри</string>
+    <string name="preference_verify_game_files_description">"Перевіряє завантажені файли гри по контрольній сумі та вазі встановлених в метаданих. JSON файли метаданних перевіряються не зважаючи на це налаштування "</string>
+    <string name="preference_go_vroom_title">Швидки запуск гри</string>
+    <string name="preference_go_vroom_description">Не перевіряти файли при повторних запусках. Запускає гру набагато швидше</string>
+    <string name="vml_fail_load_runtime">Не вдалось завантажити віртуальне середовище Java: %s</string>
+    <string name="vml_fail_create_runtime">Не вдалось створити віртуальне середовище Java: %s</string>
+    <string name="vml_fail_find_hooks_native">Не вдалось найти нативні хуки.</string>
+    <string name="vml_fail_find_hooks">Не вдалось знайти цілі хуків. Перевірте latestlog.txt для подробиць</string>
+    <string name="vml_fail_insert_hooks">Не вдалось встановити хуки: %s</string>
+    <string name="vml_fail_load_classpath">Не вдалось завантажити шлях классу. Перевірте latestlog.txt для подробиць</string>
+    <string name="vml_fail_run_main">Не вдалось запустити головний клас. Перевірте latestlog.txt для подробиць</string>
+    <string name="vml_huh">\???</string>
+    <string name="vml_err_ok">Успішно</string>
+    <string name="vml_err_unknown">Невідома помилка</string>
+    <string name="vml_err_detached">Цей потік не прив\'язаний до віртуального середовища Java</string>
+    <string name="vml_err_version">Несумісна версія JNI</string>
+    <string name="vml_err_nomem">Недостатьньо ОЗП</string>
+    <string name="vml_err_exists">Віртуальне середовище вже завантажено</string>
+    <string name="vml_err_inval">Неправильні аргументи</string>
+    <string name="gr_err_renderer_load_Failed">Не вдалось завантажити бібліотеку візуалізатора</string>
+    <string name="ltw_4x_msaa_warning_msg">"Виглядає так наче ви вімкнули налаштування \"Увімкнути 4x MSAA\" у налаштуваннях розробника. Будь ласка, вимкніть це налаштування "</string>
+    <string name="modloader_dl_install_legacy_fabric_instance">"Створити версію Legacy Fabric"</string>
+    <string name="instance_delete">Видалити версію</string>
+    <string name="instance_delete_confirmation">Ви впенені що хочете видалити цю версію? Це НАЗАВЖДИ видалить всі світи, моди, ресурси та інші данні в папці версії. Ця дія НЕ може відмінена в майбутньому</string>
 </resources>

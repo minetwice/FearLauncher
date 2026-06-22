@@ -10,7 +10,7 @@
     <!-- Error messages -->
     <!-- Toast messages -->
     <!--
-    <string name="toast_3" formatted="false">Exit</string>
+    <string name="toast_3">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
@@ -21,7 +21,7 @@
     <!-- MainActivity: Menu advanced controls -->
     <!-- ImportControlActivity Strings -->
     <!--
-    <string name="control_more3" formatted="false"></string>
-    <string name="control_more4" formatted="false"></string>
+    <string name="control_more3"></string>
+    <string name="control_more4"></string>
 -->
 </resources>

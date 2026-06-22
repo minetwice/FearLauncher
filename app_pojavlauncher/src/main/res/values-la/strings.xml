@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name" formatted="false">Fear Launcher</string>
-    <string name="app_short_name" formatted="false">FearLauncher</string>
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label" formatted="false">Login</string>
+    <string name="login_online_login_label">Login</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account" formatted="false">Et ob hoc remotus!</string>
+    <string name="warning_remove_account">Et ob hoc remotus!</string>
     <!-- AlertDialog title -->
     <!-- Error messages -->
-    <string name="error_fatal" formatted="false">Fear launcher crashed subito</string>
+    <string name="error_fatal">Fear launcher crashed subito</string>
     <!-- Toast messages -->
     <!--
-    <string name="toast_3" formatted="false">Exit</string>
+    <string name="toast_3">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
@@ -24,10 +24,10 @@
     <!-- MainActivity: strings -->
     <!-- MainActivity: Control buttons -->
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_viewout" formatted="false">Log output</string>
+    <string name="control_viewout">Log output</string>
     <!-- ImportControlActivity Strings -->
     <!--
-    <string name="control_more3" formatted="false"></string>
-    <string name="control_more4" formatted="false"></string>
+    <string name="control_more3"></string>
+    <string name="control_more4"></string>
 -->
 </resources>

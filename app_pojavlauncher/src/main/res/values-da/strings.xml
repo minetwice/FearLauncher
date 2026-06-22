@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name" formatted="false">Fear Launcher</string>
-    <string name="app_short_name" formatted="false">FearLauncher</string>
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
     <!-- Hint -->
     <!-- Warnings -->
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod" formatted="false">Vælg et mod-installationsprogram</string>
+    <string name="alerttitle_installmod">Vælg et mod-installationsprogram</string>
     <!-- Error messages -->
     <!-- Toast messages -->
     <!--
-    <string name="toast_3" formatted="false">Exit</string>
+    <string name="toast_3">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
     <string name="mcl_launch_downloading_progress" formatted="false">"Henter %s (%.2f MB / %.2f MB)"</string>
-    <string name="mcl_setting_title_use_surface_view" formatted="false">Brug alternativ overflade rendering</string>
-    <string name="mcl_setting_title_ignore_notch" formatted="false">Ignorer kamerahak</string>
+    <string name="mcl_setting_title_use_surface_view">Brug alternativ overflade rendering</string>
+    <string name="mcl_setting_title_ignore_notch">Ignorer kamerahak</string>
     <!-- Global strings -->
     <!-- MainActivity: strings -->
     <!-- MainActivity: Control buttons -->
     <!-- MainActivity: Menu advanced controls -->
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_invalid_file" formatted="false">Filen er ugyldig eller beskadiget</string>
+    <string name="import_control_invalid_file">Filen er ugyldig eller beskadiget</string>
     <!--
-    <string name="control_more3" formatted="false"></string>
-    <string name="control_more4" formatted="false"></string>
+    <string name="control_more3"></string>
+    <string name="control_more4"></string>
 -->
-    <string name="customctrl_size" formatted="false">Størrelse</string>
-    <string name="customctrl_orientation" formatted="false">Orientering</string>
-    <string name="customctrl_background_color" formatted="false">Baggrundsfarve</string>
+    <string name="customctrl_size">Størrelse</string>
+    <string name="customctrl_orientation">Orientering</string>
+    <string name="customctrl_background_color">Baggrundsfarve</string>
 </resources>

@@ -1,318 +1,318 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name" formatted="false">Fear Launcher</string>
-    <string name="app_short_name" formatted="false">FearLauncher</string>
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
-    <string name="login_online_login_label" formatted="false">Prihlásiť</string>
+    <string name="login_online_login_label">Prihlásiť</string>
     <!-- Hint -->
     <!-- Warnings -->
-    <string name="warning_remove_account" formatted="false">Tento účet bude odstránený!</string>
+    <string name="warning_remove_account">Tento účet bude odstránený!</string>
     <!-- AlertDialog title -->
-    <string name="alerttitle_installmod" formatted="false">Vybrať installer módu</string>
+    <string name="alerttitle_installmod">Vybrať installer módu</string>
     <!-- Error messages -->
-    <string name="error_fatal" formatted="false">FearLauncher neočakávane spadol</string>
-    <string name="error_no_version" formatted="false">Žiadne verzie!</string>
-    <string name="error_show_more" formatted="false">Zobraziť viac</string>
-    <string name="error_show_less" formatted="false">Zobraziť menej</string>
+    <string name="error_fatal">FearLauncher neočakávane spadol</string>
+    <string name="error_no_version">Žiadne verzie!</string>
+    <string name="error_show_more">Zobraziť viac</string>
+    <string name="error_show_less">Zobraziť menej</string>
     <!-- Toast messages -->
-    <string name="toast_permission_denied" formatted="false">Je vyžadované oprávnenie pre čítanie/zápis do úložiska!</string>
-    <string name="toast_optifine_success" formatted="false">Inštalácia prebehla úspešne</string>
+    <string name="toast_permission_denied">Je vyžadované oprávnenie pre čítanie/zápis do úložiska!</string>
+    <string name="toast_optifine_success">Inštalácia prebehla úspešne</string>
     <!--
-    <string name="toast_3" formatted="false">Exit</string>
+    <string name="toast_3">Exit</string>
     -->
     <!-- MCLauncherActivity: Tabs -->
-    <string name="mcl_tab_wiki" formatted="false">Wiki</string>
+    <string name="mcl_tab_wiki">Wiki</string>
     <!-- MCLauncherActivity: Account status -->
     <!-- MCLauncherActivity: Strings -->
-    <string name="mcl_launch_cleancache" formatted="false">Čistí sa vyrovnávacia pamäť</string>
-    <string name="mcl_launch_downloading" formatted="false">Sťahuje sa %s</string>
+    <string name="mcl_launch_cleancache">Čistí sa vyrovnávacia pamäť</string>
+    <string name="mcl_launch_downloading">Sťahuje sa %s</string>
     <string name="mcl_launch_downloading_progress" formatted="false">"Sťahovanie %s (%.2f MB / %.2f MB)"</string>
-    <string name="mcl_launch_download_assets" formatted="false">Príprava na stiahnutie resources</string>
-    <string name="mcl_options" formatted="false">Možnosti</string>
-    <string name="mcl_option_customcontrol" formatted="false">Vlastné ovládacie prvky</string>
-    <string name="mcl_setting_title_use_surface_view" formatted="false">Použiť alternatívne vykresľovanie (SurfaceView)</string>
-    <string name="mcl_setting_subtitle_use_surface_view" formatted="false">Môže zvýšiť výkon pri záťažových situáciách pre GPU.</string>
-    <string name="mcl_setting_title_ignore_notch" formatted="false">Ignorovať výrez</string>
-    <string name="mcl_setting_subtitle_ignore_notch" formatted="false">Ignoruje výrez a rozšíri cezeň obrazovku.</string>
-    <string name="mcl_setting_title_resolution_scaler" formatted="false">Rozlíšenie obrazovky</string>
-    <string name="mcl_setting_subtitle_resolution_scaler" formatted="false">Možnosť znížiť rozlíšenie hry. 100% je maximálne rozlíšenie.</string>
-    <string name="mcl_setting_title_longpresstrigger" formatted="false">Oneskorenie pridŕžania</string>
-    <string name="mcl_setting_subtitle_longpresstrigger" formatted="false">Možnosť zmeniť oneskorenie pridŕžania pre vykopávanie kociek a vyhadzovanie vecí.</string>
-    <string name="mcl_setting_title_buttonscale" formatted="false">Veľkosť ovládacích prvkov</string>
-    <string name="mcl_setting_subtitle_buttonscale" formatted="false">Možnosť zväčšiť tlačidlá, ak sú príliš malé.</string>
-    <string name="mcl_setting_title_mousescale" formatted="false">Veľkosť kurzora</string>
-    <string name="mcl_setting_subtitle_mousescale" formatted="false">Možnosť zmeniť veľkosť virtuálnej myši.</string>
-    <string name="mcl_setting_title_javaargs" formatted="false">Spúštacie argumenty pre JVM</string>
-    <string name="mcl_setting_subtitle_javaargs" formatted="false">Pozor! Zmena JVM argumentov môže spôsobiť pád hry ak neviete, čo robíte.</string>
-    <string name="mcl_setting_category_renderer" formatted="false">Vykresľovač</string>
-    <string name="mcl_setting_renderer_gles2_4" formatted="false">Holy GL4ES - (všetky verzie, rýchly)</string>
-    <string name="mcl_setting_renderer_vulkan_zink" formatted="false">Zink - (všetky verzie, priemerný)</string>
-    <string name="mcl_setting_veroption_release" formatted="false">Vydanie</string>
-    <string name="mcl_setting_veroption_snapshot" formatted="false">Snapshot</string>
-    <string name="mcl_setting_veroption_oldalpha" formatted="false">Stará alfa</string>
-    <string name="mcl_setting_veroption_oldbeta" formatted="false">Stará beta</string>
-    <string name="mcl_setting_java_sandbox" formatted="false">Sandbox spúšťania .jar súborov</string>
-    <string name="mcl_setting_java_sandbox_subtitle" formatted="false">Možnosť zmeniť prítomnosť sandbox zabezpečenia pri spustení .jar súboru.</string>
-    <string name="mcl_version_clone" formatted="false">Duplikovať</string>
+    <string name="mcl_launch_download_assets">Príprava na stiahnutie resources</string>
+    <string name="mcl_options">Možnosti</string>
+    <string name="mcl_option_customcontrol">Vlastné ovládacie prvky</string>
+    <string name="mcl_setting_title_use_surface_view">Použiť alternatívne vykresľovanie (SurfaceView)</string>
+    <string name="mcl_setting_subtitle_use_surface_view">Môže zvýšiť výkon pri záťažových situáciách pre GPU.</string>
+    <string name="mcl_setting_title_ignore_notch">Ignorovať výrez</string>
+    <string name="mcl_setting_subtitle_ignore_notch">Ignoruje výrez a rozšíri cezeň obrazovku.</string>
+    <string name="mcl_setting_title_resolution_scaler">Rozlíšenie obrazovky</string>
+    <string name="mcl_setting_subtitle_resolution_scaler">Možnosť znížiť rozlíšenie hry. 100% je maximálne rozlíšenie.</string>
+    <string name="mcl_setting_title_longpresstrigger">Oneskorenie pridŕžania</string>
+    <string name="mcl_setting_subtitle_longpresstrigger">Možnosť zmeniť oneskorenie pridŕžania pre vykopávanie kociek a vyhadzovanie vecí.</string>
+    <string name="mcl_setting_title_buttonscale">Veľkosť ovládacích prvkov</string>
+    <string name="mcl_setting_subtitle_buttonscale">Možnosť zväčšiť tlačidlá, ak sú príliš malé.</string>
+    <string name="mcl_setting_title_mousescale">Veľkosť kurzora</string>
+    <string name="mcl_setting_subtitle_mousescale">Možnosť zmeniť veľkosť virtuálnej myši.</string>
+    <string name="mcl_setting_title_javaargs">Spúštacie argumenty pre JVM</string>
+    <string name="mcl_setting_subtitle_javaargs">Pozor! Zmena JVM argumentov môže spôsobiť pád hry ak neviete, čo robíte.</string>
+    <string name="mcl_setting_category_renderer">Vykresľovač</string>
+    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - (všetky verzie, rýchly)</string>
+    <string name="mcl_setting_renderer_vulkan_zink">Zink - (všetky verzie, priemerný)</string>
+    <string name="mcl_setting_veroption_release">Vydanie</string>
+    <string name="mcl_setting_veroption_snapshot">Snapshot</string>
+    <string name="mcl_setting_veroption_oldalpha">Stará alfa</string>
+    <string name="mcl_setting_veroption_oldbeta">Stará beta</string>
+    <string name="mcl_setting_java_sandbox">Sandbox spúšťania .jar súborov</string>
+    <string name="mcl_setting_java_sandbox_subtitle">Možnosť zmeniť prítomnosť sandbox zabezpečenia pri spustení .jar súboru.</string>
+    <string name="mcl_version_clone">Duplikovať</string>
     <!-- Global strings -->
-    <string name="global_edit" formatted="false">Upraviť</string>
-    <string name="global_error" formatted="false">Chyba</string>
-    <string name="global_load" formatted="false">Otvoriť</string>
-    <string name="global_name" formatted="false">Názov</string>
-    <string name="global_remove" formatted="false">Odstrániť</string>
-    <string name="global_clone" formatted="false">Duplikovať</string>
-    <string name="global_restart" formatted="false">Reštartovať</string>
-    <string name="global_save" formatted="false">Uložiť</string>
-    <string name="global_unpacking" formatted="false">Rozbaľovanie %s</string>
-    <string name="global_error_field_empty" formatted="false">Toto pole nesmie byť prázdne</string>
-    <string name="global_waiting" formatted="false">Čakajte</string>
-    <string name="global_select" formatted="false">Vyber</string>
-    <string name="global_retry" formatted="false">Skúsiť znova</string>
-    <string name="global_default" formatted="false">Predvolené</string>
+    <string name="global_edit">Upraviť</string>
+    <string name="global_error">Chyba</string>
+    <string name="global_load">Otvoriť</string>
+    <string name="global_name">Názov</string>
+    <string name="global_remove">Odstrániť</string>
+    <string name="global_clone">Duplikovať</string>
+    <string name="global_restart">Reštartovať</string>
+    <string name="global_save">Uložiť</string>
+    <string name="global_unpacking">Rozbaľovanie %s</string>
+    <string name="global_error_field_empty">Toto pole nesmie byť prázdne</string>
+    <string name="global_waiting">Čakajte</string>
+    <string name="global_select">Vyber</string>
+    <string name="global_retry">Skúsiť znova</string>
+    <string name="global_default">Predvolené</string>
     <!-- MainActivity: strings -->
-    <string name="mcn_exit_title" formatted="false">Hra spadla. Skontroluj latestlog.txt pre viac podrobností.</string>
-    <string name="mcn_exit_confirm" formatted="false">Ste si istí, že chcete ukončiť hru?</string>
-    <string name="mcn_check_fail_vulkan_support" formatted="false">Zink (Vulkan) vykresľovač nie je podporovaný na tomto zariadení!</string>
+    <string name="mcn_exit_title">Hra spadla. Skontroluj latestlog.txt pre viac podrobností.</string>
+    <string name="mcn_exit_confirm">Ste si istí, že chcete ukončiť hru?</string>
+    <string name="mcn_check_fail_vulkan_support">Zink (Vulkan) vykresľovač nie je podporovaný na tomto zariadení!</string>
     <!-- MainActivity: Control buttons -->
-    <string name="control_chat" formatted="false">Čet</string>
-    <string name="control_debug" formatted="false">Debug</string>
-    <string name="control_primary" formatted="false">Pri</string>
-    <string name="control_secondary" formatted="false">Sec</string>
-    <string name="control_shift" formatted="false">◇</string>
-    <string name="control_inventory" formatted="false">Inv</string>
-    <string name="control_up" formatted="false">▲</string>
-    <string name="control_left" formatted="false">◀</string>
-    <string name="control_right" formatted="false">▶</string>
-    <string name="control_down" formatted="false">▼</string>
-    <string name="control_jump" formatted="false">⬛</string>
-    <string name="control_thirdperson" formatted="false">F5</string>
-    <string name="control_listplayers" formatted="false">Tab</string>
-    <string name="control_mouse" formatted="false">Myš</string>
-    <string name="control_mouseoff" formatted="false">Myš vypnutá</string>
-    <string name="control_mouseon" formatted="false">Myš zapnutá</string>
+    <string name="control_chat">Čet</string>
+    <string name="control_debug">Debug</string>
+    <string name="control_primary">Pri</string>
+    <string name="control_secondary">Sec</string>
+    <string name="control_shift">◇</string>
+    <string name="control_inventory">Inv</string>
+    <string name="control_up">▲</string>
+    <string name="control_left">◀</string>
+    <string name="control_right">▶</string>
+    <string name="control_down">▼</string>
+    <string name="control_jump">⬛</string>
+    <string name="control_thirdperson">F5</string>
+    <string name="control_listplayers">Tab</string>
+    <string name="control_mouse">Myš</string>
+    <string name="control_mouseoff">Myš vypnutá</string>
+    <string name="control_mouseon">Myš zapnutá</string>
     <!-- MainActivity: Menu advanced controls -->
-    <string name="control_forceclose" formatted="false">Vynútené ukončenie</string>
-    <string name="control_viewout" formatted="false">Záznam logu</string>
-    <string name="control_adebug" formatted="false">Debug vstupov</string>
-    <string name="control_customkey" formatted="false">Poslať vlastný kláves</string>
+    <string name="control_forceclose">Vynútené ukončenie</string>
+    <string name="control_viewout">Záznam logu</string>
+    <string name="control_adebug">Debug vstupov</string>
+    <string name="control_customkey">Poslať vlastný kláves</string>
     <!-- ImportControlActivity Strings -->
-    <string name="import_control_label" formatted="false">Importovať ovládacie prvky</string>
-    <string name="import_control_invalid_file" formatted="false">Neplatný alebo poškodený súbor</string>
-    <string name="import_control_import_button" formatted="false">Importovať ovládacie prvky</string>
-    <string name="import_control_verifying_file" formatted="false">Súbor sa overuje, počkajte a skúste to znova…</string>
-    <string name="import_control_invalid_name" formatted="false">Neexistujúci názov súboru alebo názov súboru už existuje</string>
-    <string name="import_control_done" formatted="false">Import ovládacích prvkov bol dokončený</string>
+    <string name="import_control_label">Importovať ovládacie prvky</string>
+    <string name="import_control_invalid_file">Neplatný alebo poškodený súbor</string>
+    <string name="import_control_import_button">Importovať ovládacie prvky</string>
+    <string name="import_control_verifying_file">Súbor sa overuje, počkajte a skúste to znova…</string>
+    <string name="import_control_invalid_name">Neexistujúci názov súboru alebo názov súboru už existuje</string>
+    <string name="import_control_done">Import ovládacích prvkov bol dokončený</string>
     <!--
-    <string name="control_more3" formatted="false"></string>
-    <string name="control_more4" formatted="false"></string>
+    <string name="control_more3"></string>
+    <string name="control_more4"></string>
 -->
-    <string name="customctrl_toggle" formatted="false">Prepínateľné (toggle)</string>
-    <string name="customctrl_size" formatted="false">Veľkosť</string>
-    <string name="customctrl_mapping" formatted="false">Bindy</string>
-    <string name="customctrl_orientation" formatted="false">Orientácia</string>
-    <string name="customctrl_background_color" formatted="false">Farba pozadia tlačidla</string>
-    <string name="customctrl_corner_radius" formatted="false">Zaoblenie rohu tlačidla</string>
-    <string name="customctrl_stroke_width" formatted="false">Šírka obrysu tlačidla</string>
-    <string name="customctrl_stroke_color" formatted="false">Farba obrysu tlačidla</string>
-    <string name="customctrl_button_opacity" formatted="false">Priehľadnosť tlačidla</string>
-    <string name="customctrl_addbutton" formatted="false">Pridať tlačidlo</string>
-    <string name="customctrl_addbutton_drawer" formatted="false">Pridať priečinok tlačidiel</string>
-    <string name="customctrl_addbutton_joystick" formatted="false">Pridať joystick</string>
-    <string name="customctrl_addsubbutton" formatted="false">Pridať podtlačidlo</string>
-    <string name="customctrl_selectdefault" formatted="false">Vybrať predvolené kontrolky</string>
-    <string name="customctrl_export" formatted="false">Exportovať kontrolky</string>
-    <string name="main_share_logs" formatted="false">Zdieľať log</string>
-    <string name="main_install_jar_file" formatted="false">Spustiť .jar</string>
-    <string name="main_play" formatted="false">Hrať</string>
-    <string name="autoram_info_msg" formatted="false">RAM bola nastavená na %d MB</string>
-    <string name="mcl_setting_check_libraries" formatted="false">Skontrolovať knižnice po stiahnutí</string>
-    <string name="mcl_setting_check_libraries_subtitle" formatted="false">Táto možnosť núti launcher skontrolovať hash knižnice, ak je k dispozícii. Predchádza poškodeným stiahnutiam.</string>
-    <string name="dl_library_sha_fail" formatted="false">Knižnica %s je poškodená a bude znovu stiahnutá</string>
-    <string name="dl_library_sha_unknown" formatted="false">Knižnica %s nemohla byť skontrolovaná, musíme predpokladať, že je v poriadku</string>
-    <string name="dl_library_sha_pass" formatted="false">Knižnica %s je v poriadku a použiteľná</string>
-    <string name="mcl_disable_gestures" formatted="false">Zakázať gestá</string>
-    <string name="mcl_disable_gestures_subtitle" formatted="false">Zakáže gestá, ako napríklad podržanie pre rozbitie bloku.</string>
-    <string name="mcl_disable_swap_hand" formatted="false">Vypnutie dvojitého ťuknutia na výmenu rúk</string>
-    <string name="mcl_disable_swap_hand_subtitle" formatted="false">Zakazuje zmenu na offhand po dvojitom kliknutí na hotbar v hre.</string>
-    <string name="mcl_setting_title_mousespeed" formatted="false">Rychlosť myši</string>
-    <string name="mcl_setting_subtitle_mousespeed" formatted="false">Možnosť zmeniť rýchlosť virtuálnej myši.</string>
-    <string name="customctrl_passthru" formatted="false">Mierenie tlačidlom</string>
-    <string name="customctrl_swipeable" formatted="false">Posunovateľné</string>
-    <string name="customctrl_forward_lock" formatted="false">Zámok chodenia vpred</string>
-    <string name="customctrl_absolute_tracking" formatted="false">Absolútne nasledovanie prsta</string>
+    <string name="customctrl_toggle">Prepínateľné (toggle)</string>
+    <string name="customctrl_size">Veľkosť</string>
+    <string name="customctrl_mapping">Bindy</string>
+    <string name="customctrl_orientation">Orientácia</string>
+    <string name="customctrl_background_color">Farba pozadia tlačidla</string>
+    <string name="customctrl_corner_radius">Zaoblenie rohu tlačidla</string>
+    <string name="customctrl_stroke_width">Šírka obrysu tlačidla</string>
+    <string name="customctrl_stroke_color">Farba obrysu tlačidla</string>
+    <string name="customctrl_button_opacity">Priehľadnosť tlačidla</string>
+    <string name="customctrl_addbutton">Pridať tlačidlo</string>
+    <string name="customctrl_addbutton_drawer">Pridať priečinok tlačidiel</string>
+    <string name="customctrl_addbutton_joystick">Pridať joystick</string>
+    <string name="customctrl_addsubbutton">Pridať podtlačidlo</string>
+    <string name="customctrl_selectdefault">Vybrať predvolené kontrolky</string>
+    <string name="customctrl_export">Exportovať kontrolky</string>
+    <string name="main_share_logs">Zdieľať log</string>
+    <string name="main_install_jar_file">Spustiť .jar</string>
+    <string name="main_play">Hrať</string>
+    <string name="autoram_info_msg">RAM bola nastavená na %d MB</string>
+    <string name="mcl_setting_check_libraries">Skontrolovať knižnice po stiahnutí</string>
+    <string name="mcl_setting_check_libraries_subtitle">Táto možnosť núti launcher skontrolovať hash knižnice, ak je k dispozícii. Predchádza poškodeným stiahnutiam.</string>
+    <string name="dl_library_sha_fail">Knižnica %s je poškodená a bude znovu stiahnutá</string>
+    <string name="dl_library_sha_unknown">Knižnica %s nemohla byť skontrolovaná, musíme predpokladať, že je v poriadku</string>
+    <string name="dl_library_sha_pass">Knižnica %s je v poriadku a použiteľná</string>
+    <string name="mcl_disable_gestures">Zakázať gestá</string>
+    <string name="mcl_disable_gestures_subtitle">Zakáže gestá, ako napríklad podržanie pre rozbitie bloku.</string>
+    <string name="mcl_disable_swap_hand">Vypnutie dvojitého ťuknutia na výmenu rúk</string>
+    <string name="mcl_disable_swap_hand_subtitle">Zakazuje zmenu na offhand po dvojitom kliknutí na hotbar v hre.</string>
+    <string name="mcl_setting_title_mousespeed">Rychlosť myši</string>
+    <string name="mcl_setting_subtitle_mousespeed">Možnosť zmeniť rýchlosť virtuálnej myši.</string>
+    <string name="customctrl_passthru">Mierenie tlačidlom</string>
+    <string name="customctrl_swipeable">Posunovateľné</string>
+    <string name="customctrl_forward_lock">Zámok chodenia vpred</string>
+    <string name="customctrl_absolute_tracking">Absolútne nasledovanie prsta</string>
     <string name="memory_warning_msg" formatted="false">Aktuálne množstvo voľnej RAM (%d) je nižšia ako pridelená RAM (%d), čo môže viesť k pádu. Zmeňte alokáciu, ak hra spadne.</string>
-    <string name="mcl_memory_allocation" formatted="false">Pridelenie pamäte</string>
-    <string name="mcl_memory_allocation_subtitle" formatted="false">Určite, koľko pamäti bude dané Minecraftu.</string>
-    <string name="multirt_runtime_corrupt" formatted="false">Poškodená Java Runtime</string>
-    <string name="multirt_runtime_incompatiblearch" formatted="false">Nekompatibilná architektúra: %s</string>
-    <string name="multirt_config_title" formatted="false">Inštalácie Javy</string>
-    <string name="multirt_config_add" formatted="false">Pridať nový</string>
-    <string name="multirt_title" formatted="false">Runtime Manažer</string>
-    <string name="multirt_subtitle" formatted="false">Spravovať nainštalované Java inštalácie.</string>
-    <string name="multirt_progress_caching" formatted="false">Caching...</string>
-    <string name="multirt_config_setdefault" formatted="false">Nastaviť predvolené</string>
-    <string name="multirt_config_setdefault_already" formatted="false">Predvolené</string>
-    <string name="multirt_config_removeerror_last" formatted="false">Musíte mať aspoň jednu inštaláciu Javy.</string>
-    <string name="multirt_nojava8rt" formatted="false">Nebolo možné nájsť Javu 8. Ak chceš používať túto možnosť, musíš nainštalovať Javu 8.</string>
-    <string name="multirt_delete_runtime" formatted="false">Vymaž runtime</string>
-    <string name="pvc_gameDirectory" formatted="false">Zložka hry</string>
-    <string name="pvc_jvmArgs" formatted="false">JVM argumenty</string>
-    <string name="preference_mouse_start_title" formatted="false">Spustiť so zapnutou virtuálnou myškou</string>
-    <string name="preference_mouse_start_description" formatted="false">Virtuálna myš sa objaví pri štarte hry, ak je táto možnosť zapnutá.</string>
-    <string name="preference_video_title" formatted="false">Video a vykresľovač</string>
-    <string name="preference_video_description" formatted="false">Rozlíšenie, vykresľovač a výkon</string>
-    <string name="preference_control_title" formatted="false">Ovládanie</string>
-    <string name="preference_control_description" formatted="false">Gestá, tlačidlá a ich veľkosť</string>
-    <string name="preference_java_title" formatted="false">Nastavenia Javy</string>
-    <string name="preference_java_description" formatted="false">Inštalácie Javy, JVM Argumenty, Pamäť a sandbox</string>
-    <string name="preference_misc_title" formatted="false">Iné nastavenia</string>
-    <string name="preference_misc_description" formatted="false">Zoznam verzií a kontrola knižníc</string>
-    <string name="preference_experimental_title" formatted="false">Experimentálne nastavenia</string>
-    <string name="preference_experimental_description" formatted="false">Používajte tieto veci s uvážením, nepodporujeme</string>
-    <string name="preference_sustained_performance_title" formatted="false">Zapnúť režim trvalého výkonu</string>
-    <string name="preference_sustained_performance_description" formatted="false">Umožňuje pokles teploty zariadenia limitovaním výkonu.</string>
-    <string name="preference_force_vsync_title" formatted="false">Vynútiť VSync</string>
-    <string name="preference_force_vsync_description" formatted="false">Umožňuje pokles teploty zariadenia limitovaním výkonu.</string>
-    <string name="preference_force_english_title" formatted="false">Vynútiť angličtinu</string>
-    <string name="preference_force_english_description" formatted="false">Umožňuje vidieť pôvodné názvy tlačidiel navrhnuté vývojármi. Na nastavenie je nutný reštart aplikácie.</string>
-    <string name="preference_edit_controls_title" formatted="false">Vlastné ovládacie prvky</string>
-    <string name="preference_edit_controls_summary" formatted="false">Prispôsobte si kontrolky podľa svojich predstáv.</string>
-    <string name="preference_category_gyro_controls" formatted="false">Ovládanie gyroskopom</string>
-    <string name="preference_gyro_invert_x_axis" formatted="false">Invertovať os X</string>
-    <string name="preference_gyro_invert_y_axis" formatted="false">Invertovať os Y</string>
-    <string name="preference_gyro_invert_x_axis_description" formatted="false">Invertovať vodorovnú os.</string>
-    <string name="preference_gyro_invert_y_axis_description" formatted="false">Invertovať výškovú os.</string>
-    <string name="preference_gyro_smoothing_title" formatted="false">Vyhladzovanie pohybu gyroskopu</string>
-    <string name="preference_gyro_smoothing_description" formatted="false">Stabilizuje pohyby gyroskopom ale oneskoruje ich.</string>
-    <string name="preference_back_title" formatted="false">Späť na poslednú stránku</string>
-    <string name="unnamed" formatted="false">Nepomenované</string>
-    <string name="profiles_latest_snapshot" formatted="false">Najnovší snapshot</string>
-    <string name="profiles_latest_release" formatted="false">Najnovšie vydanie (release)</string>
-    <string name="profiles_profile_name" formatted="false">Názov</string>
-    <string name="profiles_profile_version" formatted="false">Verzia</string>
-    <string name="global_delete" formatted="false">Vymazať</string>
-    <string name="pedit_java_runtime" formatted="false">Java Runtime</string>
-    <string name="pedit_renderer" formatted="false">Vykresľovač</string>
-    <string name="notif_channel_name" formatted="false">Všeobecné nastavenia notifikácií</string>
-    <string name="lazy_service_default_title" formatted="false">Fear Foreground Service</string>
-    <string name="use_global_default" formatted="false">(Použiť predvolené nastavenie)</string>
-    <string name="default_control" formatted="false">Predvolené kontrolky</string>
-    <string name="progresslayout_tasks_in_progress" formatted="false">Počet prebiehajúcich operácií: %d</string>
-    <string name="notification_terminate" formatted="false">Ukončiť</string>
-    <string name="notification_game_runs" formatted="false">Hra je spustená.</string>
-    <string name="folder_dialog_create" formatted="false">Vytvoriť</string>
-    <string name="folder_dialog_insert_name" formatted="false">Vytvoriť názov priečinka</string>
-    <string name="folder_fragment_create" formatted="false">Nový priečinok</string>
-    <string name="folder_fragment_select" formatted="false">Vybrať priečinok</string>
-    <string name="main_login_done" formatted="false">Prihlásenie bolo dokončené</string>
-    <string name="main_add_account" formatted="false">Pridať účet</string>
-    <string name="tasks_ongoing" formatted="false">Operácie stále prebiehajú, prosím počkajte</string>
-    <string name="no_saved_accounts" formatted="false">Žiadne prihlásené účty</string>
-    <string name="mc_download_failed" formatted="false">Nepodarilo sa stiahnuť Minecraft. Pre viac informácií klikni \"Zobraziť viac\".</string>
-    <string name="xerr_unknown" formatted="false">Xbox Live API Error %d</string>
-    <string name="xerr_no_account" formatted="false">Zdá sa, že nemáš Xbox Live účet. Prosím, prihlás sa do https://minecraft.net/ a skús to znova.</string>
-    <string name="xerr_adult_verification" formatted="false">Váš Minecraft účet musí overiť dospelá osoba.</string>
-    <string name="xerr_child" formatted="false">Vaše konto je detské konto a na prihlásenie je potrebné pridať ho do rodiny v rámci Microsoftu.</string>
-    <string name="minecraft_not_owned" formatted="false">Zdá sa, že toto konto nemá profil Minecraft. Ak máte službu Xbox Game Pass, prihláste sa na stránke https://minecraft.net/ a nastavte si účet.</string>
-    <string name="xerr_not_available" formatted="false">Služba Xbox Live nie je dostupná vo vašej krajine</string>
-    <string name="preference_enable_gyro_title" formatted="false">Ovládanie gyroskopom</string>
-    <string name="preference_enable_gyro_description" formatted="false">Povolením tohto sa budete môcť otáčať v hre otáčaním mobilu.</string>
-    <string name="preference_gyro_sensitivity_title" formatted="false">Citlivosť gyroskopu</string>
-    <string name="preference_gyro_sensitivity_description" formatted="false">Upravte si citlivosť gyroskopu na otáčanie.</string>
-    <string name="toast_turn_on_gyro" formatted="false">Zapnite ovládanie gyroskopom pred použitím tohto nastavenia!</string>
-    <string name="preference_gyro_sample_rate_title" formatted="false">Obnovovacia frekvencia gyroskopu</string>
-    <string name="preference_gyro_sample_rate_description" formatted="false">Ak máte problémy s výkonom pri používaní ovládania gyroskopom, zvýšte toto.</string>
-    <string name="microsoft_login_retry_later" formatted="false">Príliš veľa žiadostí. Skúste to neskôr, prosím.</string>
-    <string name="storage_required" formatted="false">FearLauncher vyžaduje pripojené externé úložisko. Pripojte ho a reštartujte aplikáciu.</string>
-    <string name="mcl_setting_title_buttonallcaps" formatted="false">V označeniach tlačidiel používať len veľké písmená</string>
-    <string name="mcl_setting_subtitle_buttonallcaps" formatted="false">Ak chcete v ovládacích prvkoch používať malé písmená, vypnite toto.</string>
-    <string name="preference_shader_dump_title" formatted="false">Povolenie shader dumpingu</string>
-    <string name="preference_shader_dump_description" formatted="false">Všetky konvertované shadery sa vypíšu do logu.</string>
-    <string name="percent_format" formatted="false">%d%%</string>
-    <string name="customctrl_editor_exit_title" formatted="false">Koniec?</string>
-    <string name="customctrl_editor_exit_msg" formatted="false">Ste si istí, že chcete odísť?</string>
-    <string name="customctrl_editor_exit" formatted="false">Opustiť editor</string>
-    <string name="global_save_and_exit" formatted="false">Uložiť a ukončiť</string>
-    <string name="global_yes" formatted="false">Áno</string>
-    <string name="global_no" formatted="false">Nie</string>
-    <string name="preference_controller_map_wiped" formatted="false">Konfigurácia ovládača bola vymazaná.</string>
-    <string name="preference_category_controller_settings" formatted="false">Nastavenia ovládača</string>
-    <string name="preference_wipe_controller_title" formatted="false">Resetovanie bindov ovládača</string>
-    <string name="preference_wipe_controller_description" formatted="false">Umožňuje prebindovať tlačidlá ovládača.</string>
-    <string name="preference_deadzone_scale_title" formatted="false">Nulová zóna joysticku</string>
-    <string name="preference_deadzone_scale_description" formatted="false">Zvýšte ju, ak sa joystick posúva sám od seba.</string>
-    <string name="preference_force_big_core_title" formatted="false">Vynútiť, aby vykresľovač bežal na najrýchlejšom jadre</string>
-    <string name="preference_force_big_core_desc" formatted="false">Núti vykresľovací proces Minecraftu, aby bežal na jadre s najväčšou frekvenciou.</string>
-    <string name="version_select_hint" formatted="false">Vyberte verziu</string>
-    <string name="forge_dl_progress" formatted="false">Sťahuje sa inštalačný súbor pre %s</string>
-    <string name="forge_dl_searching" formatted="false">Hľadajú sa čísla verzií Forge</string>
-    <string name="modloader_dl_failed_to_load_list" formatted="false">Nepodarilo sa načítať zoznam verzií!</string>
-    <string name="forge_dl_no_installer" formatted="false">Táto verzia Forge nemá inštalačný súbor, tento typ inštalácie zatiaľ nie je podporovaný.</string>
-    <string name="forge_dl_select_version" formatted="false">Vyberte verziu Forge</string>
-    <string name="fabric_dl_progress" formatted="false">Sťahovanie metadát pre loader %s</string>
-    <string name="fabric_dl_loader_version" formatted="false">%s verzia loaderu</string>
-    <string name="fabric_dl_game_version" formatted="false">Verzia Minecraftu</string>
-    <string name="fabric_dl_install" formatted="false">Inštalovať</string>
-    <string name="fabric_dl_cant_read_meta" formatted="false">Nepodarilo sa prečítať %s metadáta loaderu. Skúste to neskôr prosím.</string>
-    <string name="create_profile_vanilla_like_versions" formatted="false">Vanilla verzie</string>
-    <string name="create_profile_modded_versions" formatted="false">Módované verzie</string>
-    <string name="fabric_dl_loader_title" formatted="false">Vyberte verziu</string>
-    <string name="of_dl_select_version" formatted="false">Vyberte OptiFine verziu</string>
-    <string name="of_dl_failed_to_scrape" formatted="false">Nepodarilo sa získať údaje pre OptiFine inštaláciu</string>
-    <string name="of_dl_progress" formatted="false">Sťahuje sa %s</string>
-    <string name="hint_search_modpack" formatted="false">Vyhľadať modpacky</string>
-    <string name="preference_vulkan_driver_system_title" formatted="false">Použiť systémový Vulkan ovládač</string>
-    <string name="preference_vulkan_driver_system_description" formatted="false">Núti launcher používať systémový Vulkan ovládač namiesto Turnipu na Adreno grafických čipoch. Ovplyvňuje len Zink a módy, ktoré používajú Vulkan.</string>
-    <string name="generic_install" formatted="false">Inštalovať</string>
-    <string name="generic_apply" formatted="false">Použiť</string>
-    <string name="generic_debug" formatted="false">Debug</string>
-    <string name="search_modpack_no_result" formatted="false">Neboli nájdené žiadne modpacky</string>
-    <string name="search_modpack_error" formatted="false">Nebolo možné nájsť modpacky</string>
-    <string name="search_modpack_download_error" formatted="false">Nebolo možné stiahnuť metadáta modpacku</string>
+    <string name="mcl_memory_allocation">Pridelenie pamäte</string>
+    <string name="mcl_memory_allocation_subtitle">Určite, koľko pamäti bude dané Minecraftu.</string>
+    <string name="multirt_runtime_corrupt">Poškodená Java Runtime</string>
+    <string name="multirt_runtime_incompatiblearch">Nekompatibilná architektúra: %s</string>
+    <string name="multirt_config_title">Inštalácie Javy</string>
+    <string name="multirt_config_add">Pridať nový</string>
+    <string name="multirt_title">Runtime Manažer</string>
+    <string name="multirt_subtitle">Spravovať nainštalované Java inštalácie.</string>
+    <string name="multirt_progress_caching">Caching...</string>
+    <string name="multirt_config_setdefault">Nastaviť predvolené</string>
+    <string name="multirt_config_setdefault_already">Predvolené</string>
+    <string name="multirt_config_removeerror_last">Musíte mať aspoň jednu inštaláciu Javy.</string>
+    <string name="multirt_nojava8rt">Nebolo možné nájsť Javu 8. Ak chceš používať túto možnosť, musíš nainštalovať Javu 8.</string>
+    <string name="multirt_delete_runtime">Vymaž runtime</string>
+    <string name="pvc_gameDirectory">Zložka hry</string>
+    <string name="pvc_jvmArgs">JVM argumenty</string>
+    <string name="preference_mouse_start_title">Spustiť so zapnutou virtuálnou myškou</string>
+    <string name="preference_mouse_start_description">Virtuálna myš sa objaví pri štarte hry, ak je táto možnosť zapnutá.</string>
+    <string name="preference_video_title">Video a vykresľovač</string>
+    <string name="preference_video_description">Rozlíšenie, vykresľovač a výkon</string>
+    <string name="preference_control_title">Ovládanie</string>
+    <string name="preference_control_description">Gestá, tlačidlá a ich veľkosť</string>
+    <string name="preference_java_title">Nastavenia Javy</string>
+    <string name="preference_java_description">Inštalácie Javy, JVM Argumenty, Pamäť a sandbox</string>
+    <string name="preference_misc_title">Iné nastavenia</string>
+    <string name="preference_misc_description">Zoznam verzií a kontrola knižníc</string>
+    <string name="preference_experimental_title">Experimentálne nastavenia</string>
+    <string name="preference_experimental_description">Používajte tieto veci s uvážením, nepodporujeme</string>
+    <string name="preference_sustained_performance_title">Zapnúť režim trvalého výkonu</string>
+    <string name="preference_sustained_performance_description">Umožňuje pokles teploty zariadenia limitovaním výkonu.</string>
+    <string name="preference_force_vsync_title">Vynútiť VSync</string>
+    <string name="preference_force_vsync_description">Umožňuje pokles teploty zariadenia limitovaním výkonu.</string>
+    <string name="preference_force_english_title">Vynútiť angličtinu</string>
+    <string name="preference_force_english_description">Umožňuje vidieť pôvodné názvy tlačidiel navrhnuté vývojármi. Na nastavenie je nutný reštart aplikácie.</string>
+    <string name="preference_edit_controls_title">Vlastné ovládacie prvky</string>
+    <string name="preference_edit_controls_summary">Prispôsobte si kontrolky podľa svojich predstáv.</string>
+    <string name="preference_category_gyro_controls">Ovládanie gyroskopom</string>
+    <string name="preference_gyro_invert_x_axis">Invertovať os X</string>
+    <string name="preference_gyro_invert_y_axis">Invertovať os Y</string>
+    <string name="preference_gyro_invert_x_axis_description">Invertovať vodorovnú os.</string>
+    <string name="preference_gyro_invert_y_axis_description">Invertovať výškovú os.</string>
+    <string name="preference_gyro_smoothing_title">Vyhladzovanie pohybu gyroskopu</string>
+    <string name="preference_gyro_smoothing_description">Stabilizuje pohyby gyroskopom ale oneskoruje ich.</string>
+    <string name="preference_back_title">Späť na poslednú stránku</string>
+    <string name="unnamed">Nepomenované</string>
+    <string name="profiles_latest_snapshot">Najnovší snapshot</string>
+    <string name="profiles_latest_release">Najnovšie vydanie (release)</string>
+    <string name="profiles_profile_name">Názov</string>
+    <string name="profiles_profile_version">Verzia</string>
+    <string name="global_delete">Vymazať</string>
+    <string name="pedit_java_runtime">Java Runtime</string>
+    <string name="pedit_renderer">Vykresľovač</string>
+    <string name="notif_channel_name">Všeobecné nastavenia notifikácií</string>
+    <string name="lazy_service_default_title">Fear Foreground Service</string>
+    <string name="use_global_default">(Použiť predvolené nastavenie)</string>
+    <string name="default_control">Predvolené kontrolky</string>
+    <string name="progresslayout_tasks_in_progress">Počet prebiehajúcich operácií: %d</string>
+    <string name="notification_terminate">Ukončiť</string>
+    <string name="notification_game_runs">Hra je spustená.</string>
+    <string name="folder_dialog_create">Vytvoriť</string>
+    <string name="folder_dialog_insert_name">Vytvoriť názov priečinka</string>
+    <string name="folder_fragment_create">Nový priečinok</string>
+    <string name="folder_fragment_select">Vybrať priečinok</string>
+    <string name="main_login_done">Prihlásenie bolo dokončené</string>
+    <string name="main_add_account">Pridať účet</string>
+    <string name="tasks_ongoing">Operácie stále prebiehajú, prosím počkajte</string>
+    <string name="no_saved_accounts">Žiadne prihlásené účty</string>
+    <string name="mc_download_failed">Nepodarilo sa stiahnuť Minecraft. Pre viac informácií klikni \"Zobraziť viac\".</string>
+    <string name="xerr_unknown">Xbox Live API Error %d</string>
+    <string name="xerr_no_account">Zdá sa, že nemáš Xbox Live účet. Prosím, prihlás sa do https://minecraft.net/ a skús to znova.</string>
+    <string name="xerr_adult_verification">Váš Minecraft účet musí overiť dospelá osoba.</string>
+    <string name="xerr_child">Vaše konto je detské konto a na prihlásenie je potrebné pridať ho do rodiny v rámci Microsoftu.</string>
+    <string name="minecraft_not_owned">Zdá sa, že toto konto nemá profil Minecraft. Ak máte službu Xbox Game Pass, prihláste sa na stránke https://minecraft.net/ a nastavte si účet.</string>
+    <string name="xerr_not_available">Služba Xbox Live nie je dostupná vo vašej krajine</string>
+    <string name="preference_enable_gyro_title">Ovládanie gyroskopom</string>
+    <string name="preference_enable_gyro_description">Povolením tohto sa budete môcť otáčať v hre otáčaním mobilu.</string>
+    <string name="preference_gyro_sensitivity_title">Citlivosť gyroskopu</string>
+    <string name="preference_gyro_sensitivity_description">Upravte si citlivosť gyroskopu na otáčanie.</string>
+    <string name="toast_turn_on_gyro">Zapnite ovládanie gyroskopom pred použitím tohto nastavenia!</string>
+    <string name="preference_gyro_sample_rate_title">Obnovovacia frekvencia gyroskopu</string>
+    <string name="preference_gyro_sample_rate_description">Ak máte problémy s výkonom pri používaní ovládania gyroskopom, zvýšte toto.</string>
+    <string name="microsoft_login_retry_later">Príliš veľa žiadostí. Skúste to neskôr, prosím.</string>
+    <string name="storage_required">FearLauncher vyžaduje pripojené externé úložisko. Pripojte ho a reštartujte aplikáciu.</string>
+    <string name="mcl_setting_title_buttonallcaps">V označeniach tlačidiel používať len veľké písmená</string>
+    <string name="mcl_setting_subtitle_buttonallcaps">Ak chcete v ovládacích prvkoch používať malé písmená, vypnite toto.</string>
+    <string name="preference_shader_dump_title">Povolenie shader dumpingu</string>
+    <string name="preference_shader_dump_description">Všetky konvertované shadery sa vypíšu do logu.</string>
+    <string name="percent_format">%d%%</string>
+    <string name="customctrl_editor_exit_title">Koniec?</string>
+    <string name="customctrl_editor_exit_msg">Ste si istí, že chcete odísť?</string>
+    <string name="customctrl_editor_exit">Opustiť editor</string>
+    <string name="global_save_and_exit">Uložiť a ukončiť</string>
+    <string name="global_yes">Áno</string>
+    <string name="global_no">Nie</string>
+    <string name="preference_controller_map_wiped">Konfigurácia ovládača bola vymazaná.</string>
+    <string name="preference_category_controller_settings">Nastavenia ovládača</string>
+    <string name="preference_wipe_controller_title">Resetovanie bindov ovládača</string>
+    <string name="preference_wipe_controller_description">Umožňuje prebindovať tlačidlá ovládača.</string>
+    <string name="preference_deadzone_scale_title">Nulová zóna joysticku</string>
+    <string name="preference_deadzone_scale_description">Zvýšte ju, ak sa joystick posúva sám od seba.</string>
+    <string name="preference_force_big_core_title">Vynútiť, aby vykresľovač bežal na najrýchlejšom jadre</string>
+    <string name="preference_force_big_core_desc">Núti vykresľovací proces Minecraftu, aby bežal na jadre s najväčšou frekvenciou.</string>
+    <string name="version_select_hint">Vyberte verziu</string>
+    <string name="forge_dl_progress">Sťahuje sa inštalačný súbor pre %s</string>
+    <string name="forge_dl_searching">Hľadajú sa čísla verzií Forge</string>
+    <string name="modloader_dl_failed_to_load_list">Nepodarilo sa načítať zoznam verzií!</string>
+    <string name="forge_dl_no_installer">Táto verzia Forge nemá inštalačný súbor, tento typ inštalácie zatiaľ nie je podporovaný.</string>
+    <string name="forge_dl_select_version">Vyberte verziu Forge</string>
+    <string name="fabric_dl_progress">Sťahovanie metadát pre loader %s</string>
+    <string name="fabric_dl_loader_version">%s verzia loaderu</string>
+    <string name="fabric_dl_game_version">Verzia Minecraftu</string>
+    <string name="fabric_dl_install">Inštalovať</string>
+    <string name="fabric_dl_cant_read_meta">Nepodarilo sa prečítať %s metadáta loaderu. Skúste to neskôr prosím.</string>
+    <string name="create_profile_vanilla_like_versions">Vanilla verzie</string>
+    <string name="create_profile_modded_versions">Módované verzie</string>
+    <string name="fabric_dl_loader_title">Vyberte verziu</string>
+    <string name="of_dl_select_version">Vyberte OptiFine verziu</string>
+    <string name="of_dl_failed_to_scrape">Nepodarilo sa získať údaje pre OptiFine inštaláciu</string>
+    <string name="of_dl_progress">Sťahuje sa %s</string>
+    <string name="hint_search_modpack">Vyhľadať modpacky</string>
+    <string name="preference_vulkan_driver_system_title">Použiť systémový Vulkan ovládač</string>
+    <string name="preference_vulkan_driver_system_description">Núti launcher používať systémový Vulkan ovládač namiesto Turnipu na Adreno grafických čipoch. Ovplyvňuje len Zink a módy, ktoré používajú Vulkan.</string>
+    <string name="generic_install">Inštalovať</string>
+    <string name="generic_apply">Použiť</string>
+    <string name="generic_debug">Debug</string>
+    <string name="search_modpack_no_result">Neboli nájdené žiadne modpacky</string>
+    <string name="search_modpack_error">Nebolo možné nájsť modpacky</string>
+    <string name="search_modpack_download_error">Nebolo možné stiahnuť metadáta modpacku</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Sťahujú sa metadáta modpacku (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Sťahujú sa módy (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc" formatted="false">Sťahujú sa módy (Súbor %d z %d)</string>
-    <string name="modpack_download_applying_overrides" formatted="false">Aplikovanie overridov (%d/%d)</string>
-    <string name="modpack_install_notification_title" formatted="false">Fear inštalátor modpackov</string>
-    <string name="modpack_install_notification_success" formatted="false">Ťuknite sem na dokončenie inštalácie modpacku</string>
-    <string name="modpack_install_notification_data_not_available" formatted="false">Nebolo možné stiahnuť informácie o mod loaderi</string>
-    <string name="modpack_install_modloader_download_failed" formatted="false">Nebolo možné stiahnuť súbory mod loaderu</string>
-    <string name="modpack_install_download_failed" formatted="false">Nebolo možné stiahnuť súbory modpacku</string>
-    <string name="notif_error_occured" formatted="false">Vyskytla sa chyba</string>
-    <string name="notif_error_occured_desc" formatted="false">Ťuknutím zobrazíte detaily</string>
-    <string name="fabric_dl_only_stable" formatted="false">Ukazovať iba stabilné verzie</string>
-    <string name="dl_tampered_manifest_title" formatted="false">Upozornenie na problém s overením súboru</string>
-    <string name="dl_tampered_manifest" formatted="false"><![CDATA[Manifest verzie hry na mirrore sa nezhoduje s oficiálnym manifestom od Mojangu, čo znamená, že mohol byť modifikovaný.<br/>
+    <string name="modpack_download_downloading_mods_fc">Sťahujú sa módy (Súbor %d z %d)</string>
+    <string name="modpack_download_applying_overrides">Aplikovanie overridov (%d/%d)</string>
+    <string name="modpack_install_notification_title">Fear inštalátor modpackov</string>
+    <string name="modpack_install_notification_success">Ťuknite sem na dokončenie inštalácie modpacku</string>
+    <string name="modpack_install_notification_data_not_available">Nebolo možné stiahnuť informácie o mod loaderi</string>
+    <string name="modpack_install_modloader_download_failed">Nebolo možné stiahnuť súbory mod loaderu</string>
+    <string name="modpack_install_download_failed">Nebolo možné stiahnuť súbory modpacku</string>
+    <string name="notif_error_occured">Vyskytla sa chyba</string>
+    <string name="notif_error_occured_desc">Ťuknutím zobrazíte detaily</string>
+    <string name="fabric_dl_only_stable">Ukazovať iba stabilné verzie</string>
+    <string name="dl_tampered_manifest_title">Upozornenie na problém s overením súboru</string>
+    <string name="dl_tampered_manifest"><![CDATA[Manifest verzie hry na mirrore sa nezhoduje s oficiálnym manifestom od Mojangu, čo znamená, že mohol byť modifikovaný.<br/>
         <b>Toto nie je bezpečné. Ak budete pokračovať, vaše osobné údaje môžu byť ohrozené..</b><br/>
         Ak chcete tento mirror napriek tomu použiť, stlačte \"Vypnúť kontrolu manifestov\" a znova spustite sťahovanie.<br/>
         Ak chcete použiť oficiálny zdroj sťahovania, stlačte \"Prepnúť na oficiálnu stránku\" a znova spustite sťahovanie.<br/>]]></string>
-    <string name="dl_turn_off_manifest_checks" formatted="false">Vypnúť kontrolu manifestov</string>
-    <string name="dl_switch_to_official_site" formatted="false">Prepnúť na oficiálnu stránku</string>
-    <string name="preference_download_source_title" formatted="false">Zdroj sťahovania hry</string>
-    <string name="preference_download_source_description" formatted="false">Namiesto použitia oficiálneho servera na sťahovanie vyberte mirror</string>
-    <string name="preference_verify_manifest_title" formatted="false">Overiť manifest verzie hry</string>
-    <string name="preference_verify_manifest_description" formatted="false">Keď je táto možnosť povolená, launcher skontroluje manifest verzie hry spolu s knižnicami.</string>
-    <string name="notif_download_finished" formatted="false">Hra je pripravená na spustenie</string>
-    <string name="notif_download_finished_desc" formatted="false">Kliknite sem na spustenie hry!</string>
-    <string name="preference_category_gestures" formatted="false">Gestá</string>
-    <string name="preference_category_buttons" formatted="false">Tlačidlá</string>
-    <string name="preference_category_experimental_settings" formatted="false">Experimentálne nastavenia</string>
-    <string name="preference_category_java_tweaks" formatted="false">Nastavenia Javy</string>
-    <string name="preference_category_main_categories" formatted="false">Kategórie</string>
-    <string name="preference_category_miscellaneous" formatted="false">Iné nastavenia</string>
-    <string name="preference_category_video" formatted="false">Video a vykresľovač</string>
-    <string name="notification_permission_dialog_title" formatted="false">Vyžaduje sa povolenie</string>
-    <string name="notification_permission_dialog_text" formatted="false">FearLauncher vyžaduje povolenie na ukazovanie upozornení, aby sa zabránilo zastaveniu sťahovania hry/modpackov, keď opustíte aplikáciu. Bez tohto povolenia môže Android zastaviť sťahovanie, keď pošlete FearLauncher do pozadia.</string>
-    <string name="notification_permission_toast" formatted="false">Toto povolenie môžete kedykoľvek zmeniť v nastaveniach</string>
-    <string name="preference_ask_for_notification_title" formatted="false">Povoliť upozornenia</string>
-    <string name="preference_ask_for_notification_description" formatted="false">Kliknutím znova požiadate o povolenie upozornení, ktoré je potrebné na správne fungovanie sťahovania hier/modpackov na pozadí.</string>
-    <string name="preference_vsync_in_zink_title" formatted="false">Povoliť V-Sync so Zinkom</string>
-    <string name="preference_vsync_in_zink_description" formatted="false">Umožňuje spúšťaču používať interné systémové API pre povolenie V-Syncu pre Zink. Vypnite túto možnosť, ak váš spúšťač náhle po aktualizácii systému spadne so Zinkom.</string>
-    <string name="exception_failed_to_unpack_jre17" formatted="false">Nepodarilo sa nainštalovať Javu 17</string>
-    <string name="newdl_starting" formatted="false">Čítanie metadát hry…</string>
-    <string name="newdl_downloading_metadata" formatted="false">Sťahovanie metadát hry (%s)</string>
-    <string name="controller_button_select" formatted="false">Vyber</string>
+    <string name="dl_turn_off_manifest_checks">Vypnúť kontrolu manifestov</string>
+    <string name="dl_switch_to_official_site">Prepnúť na oficiálnu stránku</string>
+    <string name="preference_download_source_title">Zdroj sťahovania hry</string>
+    <string name="preference_download_source_description">Namiesto použitia oficiálneho servera na sťahovanie vyberte mirror</string>
+    <string name="preference_verify_manifest_title">Overiť manifest verzie hry</string>
+    <string name="preference_verify_manifest_description">Keď je táto možnosť povolená, launcher skontroluje manifest verzie hry spolu s knižnicami.</string>
+    <string name="notif_download_finished">Hra je pripravená na spustenie</string>
+    <string name="notif_download_finished_desc">Kliknite sem na spustenie hry!</string>
+    <string name="preference_category_gestures">Gestá</string>
+    <string name="preference_category_buttons">Tlačidlá</string>
+    <string name="preference_category_experimental_settings">Experimentálne nastavenia</string>
+    <string name="preference_category_java_tweaks">Nastavenia Javy</string>
+    <string name="preference_category_main_categories">Kategórie</string>
+    <string name="preference_category_miscellaneous">Iné nastavenia</string>
+    <string name="preference_category_video">Video a vykresľovač</string>
+    <string name="notification_permission_dialog_title">Vyžaduje sa povolenie</string>
+    <string name="notification_permission_dialog_text">FearLauncher vyžaduje povolenie na ukazovanie upozornení, aby sa zabránilo zastaveniu sťahovania hry/modpackov, keď opustíte aplikáciu. Bez tohto povolenia môže Android zastaviť sťahovanie, keď pošlete FearLauncher do pozadia.</string>
+    <string name="notification_permission_toast">Toto povolenie môžete kedykoľvek zmeniť v nastaveniach</string>
+    <string name="preference_ask_for_notification_title">Povoliť upozornenia</string>
+    <string name="preference_ask_for_notification_description">Kliknutím znova požiadate o povolenie upozornení, ktoré je potrebné na správne fungovanie sťahovania hier/modpackov na pozadí.</string>
+    <string name="preference_vsync_in_zink_title">Povoliť V-Sync so Zinkom</string>
+    <string name="preference_vsync_in_zink_description">Umožňuje spúšťaču používať interné systémové API pre povolenie V-Syncu pre Zink. Vypnite túto možnosť, ak váš spúšťač náhle po aktualizácii systému spadne so Zinkom.</string>
+    <string name="exception_failed_to_unpack_jre17">Nepodarilo sa nainštalovať Javu 17</string>
+    <string name="newdl_starting">Čítanie metadát hry…</string>
+    <string name="newdl_downloading_metadata">Sťahovanie metadát hry (%s)</string>
+    <string name="controller_button_select">Vyber</string>
 </resources>
