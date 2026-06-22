@@ -6,19 +6,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import net.kdt.pojavlaunch.CustomControlsActivity;
+import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension;
+import net.kdt.pojavlaunch.instances.Instances;
+
 import java.io.File;
 
 import git.artdeell.mojo.R;
-import net.kdt.pojavlaunch.CustomControlsActivity;
-import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.instances.Instances;
 
 public class InstallationsFragment extends Fragment {
     public static final String TAG = "InstallationsFragment";
+
+    private final ActivityResultLauncher<Object> mModInstallerLauncher =
+            registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
+                if (data != null) Tools.launchModInstaller(requireContext(), data);
+            });
 
     @Nullable
     @Override
@@ -29,8 +37,10 @@ public class InstallationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        // Execute JAR – uses ActivityResultLauncher
         view.findViewById(R.id.execute_jar_button).setOnClickListener(v ->
-                Tools.launchModInstaller(requireContext(), null));
+                mModInstallerLauncher.launch(null)
+        );
 
         view.findViewById(R.id.custom_controls_button).setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
@@ -45,7 +55,6 @@ public class InstallationsFragment extends Fragment {
             if (Instances.loadSelectedInstance() != null) {
                 Tools.openPath(requireContext(), Instances.loadSelectedInstance().getGameDirectory(), false);
             } else {
-                // 🔥 FIX: String → File conversion
                 Tools.openPath(requireContext(), new File(Tools.DIR_GAME_HOME), false);
             }
         });
