@@ -1,27 +1,50 @@
-name: Fix Translations
+name: Fix Duplicate Formatted Attributes
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manually trigger karo jab chahiye
 
 jobs:
-  fix:
+  fix-strings:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Clean all translations
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fix duplicate formatted attributes in all strings.xml
         run: |
-          find app_pojavlauncher/src/main/res/values* -name "strings.xml" -type f | while read f; do
-            # Remove all existing formatted attributes
-            perl -pi -e 's/\s+formatted="[^"]*"//g' "$f"
-            # Add formatted="false" to specific strings
-            for str in mcl_launch_downloading_progress modpack_download_downloading_metadata modpack_download_downloading_mods newdl_downloading_game_files_size memory_warning_msg; do
-              perl -pi -e "s/(name=\"$str\")/\1 formatted=\"false\"/g" "$f"
-            done
-          done
-      - name: Commit fixes
+          python3 - <<'EOF'
+          import os, re, glob
+
+          res_dir = "app_pojavlauncher/src/main/res"
+          xml_files = glob.glob(os.path.join(res_dir, "**", "strings.xml"), recursive=True)
+
+          fixed_count = 0
+          for path in sorted(xml_files):
+              with open(path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              original = content
+              for _ in range(3):
+                  content = re.sub(
+                      r'(<string\b[^>]*?)\bformatted="(false|true)"([^>]*?)\bformatted="(false|true)"',
+                      r'\1formatted="\2"\3',
+                      content
+                  )
+              if content != original:
+                  with open(path, 'w', encoding='utf-8') as f:
+                      f.write(content)
+                  print(f"FIXED: {path}")
+                  fixed_count += 1
+              else:
+                  print(f"OK:    {path}")
+
+          print(f"\nTotal fixed: {fixed_count}/{len(xml_files)} files")
+          EOF
+
+      - name: Commit and Push fixes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_pojavlauncher/src/main/res/values*/strings.xml
-          git diff --staged --quiet || git commit -m "fix: clean duplicate formatted attributes"
+          git add app_pojavlauncher/src/main/res/**/strings.xml
+          git diff --cached --quiet || git commit -m "fix: remove duplicate formatted attribute from strings.xml"
           git push
