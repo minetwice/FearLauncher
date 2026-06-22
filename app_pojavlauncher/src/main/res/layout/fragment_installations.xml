@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/background_app">
+
+    <Button
+        android:id="@+id/execute_jar_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Execute JAR"
+        android:backgroundTint="#FFAA00"
+        android:textColor="@color/primary_text"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/custom_controls_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Custom Controls"
+        android:backgroundTint="#FFAA00"
+        android:textColor="@color/primary_text"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/mods_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mods"
+        android:backgroundTint="#FFAA00"
+        android:textColor="@color/primary_text"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/share_logs_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Share Logs"
+        android:backgroundTint="#FFAA00"
+        android:textColor="@color/primary_text"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/open_directory_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open Directory"
+        android:backgroundTint="#FFAA00"
+        android:textColor="@color/primary_text" />
+
+</LinearLayout>
