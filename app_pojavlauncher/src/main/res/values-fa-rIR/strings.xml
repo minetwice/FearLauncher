@@ -237,8 +237,8 @@
     <string name="search_modpack_download_error">ناموفق در دانلود metadata مادپک</string>
     <string name="modpack_download_downloading_metadata" formatted="false">در حال دانلود metadata مادپک (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">درحال دانلود مادها (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">درحال دانلود ماد ها (File %d out of %d)</string>
-    <string name="modpack_download_applying_overrides">اعمال جایگزین ها (%d/%d)</string>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">درحال دانلود ماد ها (File %d out of %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">اعمال جایگزین ها (%d/%d)</string>
     <string name="modpack_install_notification_title">نصب کننده مادپک پوجاو</string>
     <string name="modpack_install_notification_success">برای اتمام نصب مادپک اینجا کلیک کنید</string>
     <string name="modpack_install_notification_data_not_available">ناموفق در دانلود اطلاعات اجرا کننده ماد</string>

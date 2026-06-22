@@ -228,8 +228,8 @@
     <string name="search_modpack_download_error">Downloaden van modpack metadata mislukt</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Modpack metadata downloaden (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Mods downloaden (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Mods downloaden (File %d van de %d)</string>
-    <string name="modpack_download_applying_overrides">Toepassen van overrides (%d/%d)</string>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">Mods downloaden (File %d van de %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">Toepassen van overrides (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear Modpack Installer</string>
     <string name="modpack_install_notification_success">Klik hier om de installatie van modpack te voltooien</string>
     <string name="modpack_install_notification_data_not_available">Downloaden van mod loader gegevens mislukt</string>

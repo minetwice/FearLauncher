@@ -274,8 +274,8 @@
     <string name="search_modpack_download_error">Nebolo možné stiahnuť metadáta modpacku</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Sťahujú sa metadáta modpacku (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Sťahujú sa módy (%.2f MB / %.2f MB)</string>
-    <string name="modpack_download_downloading_mods_fc">Sťahujú sa módy (Súbor %d z %d)</string>
-    <string name="modpack_download_applying_overrides">Aplikovanie overridov (%d/%d)</string>
+    <string name="modpack_download_downloading_mods_fc" formatted="false">Sťahujú sa módy (Súbor %d z %d)</string>
+    <string name="modpack_download_applying_overrides" formatted="false">Aplikovanie overridov (%d/%d)</string>
     <string name="modpack_install_notification_title">Fear inštalátor modpackov</string>
     <string name="modpack_install_notification_success">Ťuknite sem na dokončenie inštalácie modpacku</string>
     <string name="modpack_install_notification_data_not_available">Nebolo možné stiahnuť informácie o mod loaderi</string>
