@@ -36,6 +36,7 @@ import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
+import net.kdt.pojavlaunch.fragments.SearchModFragment;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.InstanceInstaller;
 import net.kdt.pojavlaunch.instances.Instances;
@@ -64,7 +65,6 @@ public class LauncherActivity extends BaseActivity {
     private NavigationView mNavigationView;
     private static ActivityResultLauncher<String> mRequestPermissionLauncher;
 
-    // Listener for opening auth selection when needed
     private final ExtraListener<Boolean> mSelectAuthMethod = (key, value) -> {
         FragmentManager manager = getSupportFragmentManager();
         if (!value || manager.isStateSaved()) return false;
@@ -74,7 +74,6 @@ public class LauncherActivity extends BaseActivity {
         return false;
     };
 
-    // Listener for launching the game
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
         if (mProgressLayout.hasProcesses()) {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
@@ -109,7 +108,6 @@ public class LauncherActivity extends BaseActivity {
         return false;
     };
 
-    // Prevents double launching when tasks are running
     private final TaskCountListener mDoubleLaunchPreventionListener = taskCount -> {
         if (taskCount > 0) {
             Tools.runOnUiThread(() ->
@@ -134,7 +132,6 @@ public class LauncherActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pojav_launcher);
 
-        // Set environment variables
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
             Os.setenv("TMPDIR", Tools.DIR_CACHE.getAbsolutePath(), true);
@@ -147,7 +144,6 @@ public class LauncherActivity extends BaseActivity {
         bindViews();
         setupDrawer();
 
-        // Load default fragment (Dashboard)
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -158,7 +154,6 @@ public class LauncherActivity extends BaseActivity {
             }
         }
 
-        // Permission launcher
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isAllowed -> {
@@ -173,22 +168,18 @@ public class LauncherActivity extends BaseActivity {
 
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Progress & task listeners
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
         mProgressServiceKeeper = new ProgressServiceKeeper(this);
         ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
 
-        // Extra listeners
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
 
-        // Load version list
         new AsyncVersionList().getVersionList(versions ->
                 ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
         );
 
-        // Observe progress layouts
         mProgressLayout.observe(ProgressLayout.DOWNLOAD_MINECRAFT);
         mProgressLayout.observe(ProgressLayout.UNPACK_RUNTIME);
         mProgressLayout.observe(ProgressLayout.INSTALL_MODPACK);
@@ -222,12 +213,10 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        // Close drawer if open
         if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
             mDrawerLayout.closeDrawer(mNavigationView);
             return;
         }
-        // Handle Microsoft login back
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if (fragment != null && fragment.canGoBack()) {
             fragment.goBack();
@@ -245,7 +234,6 @@ public class LauncherActivity extends BaseActivity {
         return null;
     }
 
-    // Permission helpers
     public void askForPermission(int minApi, final String permission) {
         if (Build.VERSION.SDK_INT < minApi) return;
         mRequestPermissionLauncher.launch(permission);
@@ -294,41 +282,45 @@ public class LauncherActivity extends BaseActivity {
     }
 
     private void setupDrawer() {
-    ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
-    if (hamburgerButton != null) {
-        hamburgerButton.setOnClickListener(v -> {
-            if (mDrawerLayout != null) {
-                mDrawerLayout.openDrawer(mNavigationView);
-            }
-        });
-    }
+        ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
+        if (hamburgerButton != null) {
+            hamburgerButton.setOnClickListener(v -> {
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.openDrawer(mNavigationView);
+                }
+            });
+        }
 
-    if (mNavigationView != null) {
-        mNavigationView.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_dashboard) {
-                getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container_fragment, new MainMenuFragment())
-                    .commit();
-            } else if (id == R.id.nav_settings) {
-                Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-            } else if (id == R.id.nav_installations) {
-                getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container_fragment, new InstallationsFragment())
-                    .commit();
-            } else if (id == R.id.nav_login) {
-                Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
-            } else if (id == R.id.nav_mods) {
-                Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
-            } else if (id == R.id.nav_skins) {
-                Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
-            }
-            if (mDrawerLayout != null) {
-                mDrawerLayout.closeDrawer(mNavigationView);
-            }
-            return true;
-        });
+        if (mNavigationView != null) {
+            mNavigationView.setNavigationItemSelectedListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.nav_dashboard) {
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new MainMenuFragment())
+                            .commit();
+                } else if (id == R.id.nav_settings) {
+                    Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
+                } else if (id == R.id.nav_installations) {
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new InstallationsFragment())
+                            .commit();
+                } else if (id == R.id.nav_mods) {
+                    Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
+                } else if (id == R.id.nav_skins) {
+                    Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.nav_account) {
+                    // ✅ "Account" button opens the authentication selection screen
+                    Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+                }
+
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.closeDrawer(mNavigationView);
+                }
+                return true;
+            });
+        }
     }
-    }
+}
