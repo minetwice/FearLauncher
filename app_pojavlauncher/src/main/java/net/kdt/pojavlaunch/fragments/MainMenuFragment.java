@@ -1,29 +1,45 @@
 package net.kdt.pojavlaunch.fragments;
 
+import static net.kdt.pojavlaunch.Tools.openPath;
+import static net.kdt.pojavlaunch.Tools.shareLog;
+
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import net.kdt.pojavlaunch.R;
-import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.extra.ExtraConstants;
-import net.kdt.pojavlaunch.extra.ExtraCore;
-
 import com.kdt.mcgui.mcVersionSpinner;
 
-public class MainMenuFragment extends Fragment {
+import net.kdt.pojavlaunch.CustomControlsActivity;
+import git.artdeell.mojo.R;
 
+import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension;
+import net.kdt.pojavlaunch.extra.ExtraConstants;
+import net.kdt.pojavlaunch.extra.ExtraCore;
+import net.kdt.pojavlaunch.instances.Instance;
+import net.kdt.pojavlaunch.instances.Instances;
+import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
+import net.kdt.pojavlaunch.utils.FileUtils;
+
+import java.io.File;
+
+public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
+
     private mcVersionSpinner mVersionSpinner;
+
+    private final ActivityResultLauncher<Object> mModInstallerLauncher =
+            registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
+                if (data != null) Tools.launchModInstaller(requireContext(), data);
+            });
 
     public MainMenuFragment() {
         super(R.layout.fragment_launcher);
@@ -31,88 +47,89 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Play button
-        Button playButton = view.findViewById(R.id.play_button);
-
-        // Menu buttons
-        View customControlButton = view.findViewById(R.id.custom_control_button);
-        View shareLogsButton = view.findViewById(R.id.share_logs_button);
-        View newsButton = view.findViewById(R.id.news_button);
-        View socialMediaButton = view.findViewById(R.id.social_media_button);
-        View installJarButton = view.findViewById(R.id.install_jar_button);
-        View openFilesButton = view.findViewById(R.id.open_files_button);
+        // Quick Action buttons (LinearLayout IDs in new XML)
+        View mNewsButton = view.findViewById(R.id.news_button);
+        View mDiscordButton = view.findViewById(R.id.social_media_button);
+        View mCustomControlButton = view.findViewById(R.id.custom_control_button);
+        View mShareLogsButton = view.findViewById(R.id.share_logs_button);
 
         // Bottom bar
-        ImageButton editProfileButton = view.findViewById(R.id.edit_profile_button);
+        ImageButton mEditProfileButton = view.findViewById(R.id.edit_profile_button);
+        View mPlayButton = view.findViewById(R.id.play_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
 
-        // Hamburger menu — ID is hamburger_menu_icon in layout (ImageView)
-        ImageView hamburgerMenuButton = view.findViewById(R.id.hamburger_menu_icon);
+        // Hamburger menu — ID in XML is hamburger_menu_button (ImageButton)
+        ImageButton mHamburgerButton = view.findViewById(R.id.hamburger_menu_button);
 
-        // --- Click Listeners ---
+        // install_jar and open_files — present in new XML
+        View mInstallJarButton = view.findViewById(R.id.install_jar_button);
+        View mOpenDirectoryButton = view.findViewById(R.id.open_files_button);
 
-        playButton.setOnClickListener(v -> {
-            if (mVersionSpinner.getProfileAdapter() == null ||
-                    mVersionSpinner.getProfileAdapter().getCount() == 0) {
-                Toast.makeText(requireContext(), R.string.no_instance, Toast.LENGTH_LONG).show();
-                return;
-            }
-            ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
+        // --- Click listeners ---
+        mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
+
+        mDiscordButton.setOnClickListener(v ->
+                Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
+
+        mCustomControlButton.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+
+        mShareLogsButton.setOnClickListener(v -> shareLog(requireContext()));
+
+        mEditProfileButton.setOnClickListener(v ->
+                mVersionSpinner.openProfileEditor(requireActivity()));
+
+        mPlayButton.setOnClickListener(v ->
+                ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
+
+        if (mHamburgerButton != null) {
+            mHamburgerButton.setOnClickListener(v ->
+                    Tools.swapFragment(requireActivity(),
+                            GamepadMapperFragment.class,
+                            GamepadMapperFragment.TAG, null));
+        }
+
+        if (mInstallJarButton != null) {
+            mInstallJarButton.setOnClickListener(v -> runInstallerWithConfirmation());
+        }
+
+        if (mOpenDirectoryButton != null) {
+            mOpenDirectoryButton.setOnClickListener(v -> openGameDirectory(v.getContext()));
+        }
+
+        mNewsButton.setOnLongClickListener(v -> {
+            Tools.swapFragment(requireActivity(),
+                    GamepadMapperFragment.class,
+                    GamepadMapperFragment.TAG, null);
+            return true;
         });
+    }
 
-        customControlButton.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(),
-                        ControlButtonFragment.class,
-                        ControlButtonFragment.TAG, null));
+    private void openGameDirectory(Context context) {
+        Instance instance = Instances.loadSelectedInstance();
+        if (instance == null) {
+            Toast.makeText(context, R.string.no_instance, Toast.LENGTH_LONG).show();
+            return;
+        }
+        File gameDirectory = instance.getGameDirectory();
+        if (FileUtils.ensureDirectorySilently(gameDirectory)) {
+            openPath(context, gameDirectory, false);
+        } else {
+            Toast.makeText(context, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
+        }
+    }
 
-        shareLogsButton.setOnClickListener(v ->
-                Tools.shareLog(requireContext()));
+    @Override
+    public void onResume() {
+        super.onResume();
+        ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+    }
 
-        editProfileButton.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(),
-                        ProfileEditorFragment.class,
-                        ProfileEditorFragment.TAG, null));
-
-        hamburgerMenuButton.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(),
-                        SettingsFragment.class,
-                        SettingsFragment.TAG, null));
-
-        newsButton.setOnClickListener(v -> {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://minecraft.wiki"));
-            startActivity(browserIntent);
-        });
-
-        socialMediaButton.setOnClickListener(v -> {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse(getString(R.string.social_media_invite)));
-            startActivity(browserIntent);
-        });
-
-        installJarButton.setOnClickListener(v -> {
-            if (ExtraCore.getValue(ExtraConstants.LAUNCH_GAME) == Boolean.TRUE) {
-                Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (mVersionSpinner.getProfileAdapter() == null ||
-                    mVersionSpinner.getProfileAdapter().getCount() == 0) {
-                Toast.makeText(requireContext(), R.string.no_instance, Toast.LENGTH_LONG).show();
-                return;
-            }
-            Tools.installJarFile(requireActivity());
-        });
-
-        openFilesButton.setOnClickListener(v -> {
-            boolean opened = Tools.openGameDirectory(requireContext());
-            if (!opened) {
-                Toast.makeText(requireContext(), R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
-            }
-        });
-
-        mVersionSpinner.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(),
-                        ProfileEditorFragment.class,
-                        ProfileEditorFragment.TAG, null));
+    private void runInstallerWithConfirmation() {
+        if (ProgressKeeper.getTaskCount() == 0) {
+            mModInstallerLauncher.launch(null);
+        } else {
+            Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
+        }
     }
 }
