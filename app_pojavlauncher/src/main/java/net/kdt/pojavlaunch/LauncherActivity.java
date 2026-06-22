@@ -294,43 +294,41 @@ public class LauncherActivity extends BaseActivity {
     }
 
     private void setupDrawer() {
-        // Hamburger button opens the drawer
-        ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
-        if (hamburgerButton != null) {
-            hamburgerButton.setOnClickListener(v -> {
-                if (mDrawerLayout != null) {
-                    mDrawerLayout.openDrawer(mNavigationView);
-                }
-            });
-        }
-
-        // Handle navigation item clicks
-        if (mNavigationView != null) {
-            mNavigationView.setNavigationItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_dashboard) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.container_fragment, new MainMenuFragment())
-                            .commit();
-                } else if (id == R.id.nav_settings) {
-                    Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-                } else if (id == R.id.nav_installations) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.container_fragment, new InstallationsFragment())
-                            .commit();
-                } else if (id == R.id.nav_login) {
-                    Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
-                } else if (id == R.id.nav_skins) {
-                    Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
-                }
-                // Close drawer after selection
-                if (mDrawerLayout != null) {
-                    mDrawerLayout.closeDrawer(mNavigationView);
-                }
-                return true;
-            });
-        }
+    ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
+    if (hamburgerButton != null) {
+        hamburgerButton.setOnClickListener(v -> {
+            if (mDrawerLayout != null) {
+                mDrawerLayout.openDrawer(mNavigationView);
+            }
+        });
     }
-}
+
+    if (mNavigationView != null) {
+        mNavigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_dashboard) {
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container_fragment, new MainMenuFragment())
+                    .commit();
+            } else if (id == R.id.nav_settings) {
+                Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
+            } else if (id == R.id.nav_installations) {
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container_fragment, new InstallationsFragment())
+                    .commit();
+            } else if (id == R.id.nav_login) {
+                Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+            } else if (id == R.id.nav_mods) {
+                Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
+            } else if (id == R.id.nav_skins) {
+                Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
+            }
+            if (mDrawerLayout != null) {
+                mDrawerLayout.closeDrawer(mNavigationView);
+            }
+            return true;
+        });
+    }
+    }
