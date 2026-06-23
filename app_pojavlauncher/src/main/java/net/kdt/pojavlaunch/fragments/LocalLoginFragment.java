@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.authenticator.accounts.Account;
+import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -43,8 +43,8 @@ public class LocalLoginFragment extends Fragment {
 
             String username = mUsernameEditText.getText().toString().trim();
 
-            // ✅ Create and save local account
-            Account account = new Account(username, "local");
+            // ✅ Create and save local account using MinecraftAccount
+            MinecraftAccount account = new MinecraftAccount(username, "local");
             Accounts.addAccount(account);
             Accounts.setCurrentAccount(account);
 
