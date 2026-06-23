@@ -17,12 +17,15 @@ import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
+import net.kdt.pojavlaunch.instances.Instance;
+import net.kdt.pojavlaunch.instances.Instances;
 
 public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
     private mcVersionSpinner mVersionSpinner;
     private TextView accountName;
+    private TextView versionText;
 
     public MainMenuFragment() {
         super(R.layout.fragment_launcher);
@@ -31,12 +34,13 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         accountName = view.findViewById(R.id.account_name);
-        TextView versionText = view.findViewById(R.id.version_text);
+        versionText = view.findViewById(R.id.version_text);
         Button playButton = view.findViewById(R.id.play_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
         ImageButton editProfileButton = view.findViewById(R.id.edit_profile_button);
 
         updateAccountName();
+        updateVersionText();
 
         // Play Button
         if (playButton != null) {
@@ -50,11 +54,6 @@ public class MainMenuFragment extends Fragment {
                     mVersionSpinner.openProfileEditor(requireActivity());
                 }
             });
-        }
-
-        // Version text (can be updated later)
-        if (versionText != null) {
-            // Optionally set dynamic version
         }
     }
 
@@ -84,11 +83,26 @@ public class MainMenuFragment extends Fragment {
         accountName.setText(username);
     }
 
+    /**
+     * Updates the version text based on the selected instance
+     */
+    private void updateVersionText() {
+        if (versionText == null) return;
+
+        Instance instance = Instances.loadSelectedInstance();
+        if (instance != null && instance.versionId != null && !instance.versionId.isEmpty()) {
+            versionText.setText(instance.versionId);
+        } else {
+            versionText.setText("1.21.1"); // fallback default
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh account spinner and account name
+        // Refresh account spinner, account name, and version text
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
         updateAccountName();
+        updateVersionText();
     }
 }
