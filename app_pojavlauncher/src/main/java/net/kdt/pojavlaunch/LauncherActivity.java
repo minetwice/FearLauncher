@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.Os;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -292,6 +293,28 @@ public class LauncherActivity extends BaseActivity {
         }
 
         if (mNavigationView != null) {
+            // 🔥 DYNAMIC MENU – XML ko ignore karo, direct code se menu banate hain
+            Menu menu = mNavigationView.getMenu();
+            menu.clear();
+
+            // Add items programmatically (order maintained)
+            menu.add(0, R.id.nav_dashboard, 0, "Home")
+                    .setIcon(R.drawable.ic_px_home);
+            menu.add(0, R.id.nav_installations, 1, "Installations")
+                    .setIcon(R.drawable.ic_px_java);
+            menu.add(0, R.id.nav_mods, 2, "Mods")
+                    .setIcon(R.drawable.ic_px_file_dl);
+            menu.add(0, R.id.nav_account, 3, "Account")
+                    .setIcon(R.drawable.ic_px_edit);
+            menu.add(0, R.id.nav_skins, 4, "Skins")
+                    .setIcon(R.drawable.ic_px_edit);
+            menu.add(0, R.id.nav_settings, 5, "Settings")
+                    .setIcon(R.drawable.ic_px_sliders);
+
+            // Set checked item (Dashboard by default)
+            menu.findItem(R.id.nav_dashboard).setChecked(true);
+
+            // Set listener
             mNavigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
 
