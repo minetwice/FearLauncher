@@ -3,7 +3,6 @@ package net.kdt.pojavlaunch.fragments;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,8 +13,6 @@ import java.util.regex.Pattern;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
-import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 
@@ -41,17 +38,11 @@ public class LocalLoginFragment extends Fragment {
                 return;
             }
 
-            String username = mUsernameEditText.getText().toString().trim();
+            // ✅ Original PojavLauncher method – triggers account creation via MainActivity
+            ExtraCore.setValue(ExtraConstants.MOJANG_LOGIN_TODO, new String[]{
+                    mUsernameEditText.getText().toString(), "" });
 
-            // ✅ Create and save local account using MinecraftAccount
-            MinecraftAccount account = new MinecraftAccount(username, "local");
-            Accounts.addAccount(account);
-            Accounts.setCurrentAccount(account);
-
-            Toast.makeText(requireContext(), R.string.main_login_done, Toast.LENGTH_SHORT).show();
-
-            // Refresh UI and go back to main menu
-            ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+            // Go back to main menu – account will be automatically saved
             Tools.backToMainMenu(requireActivity());
         });
     }
