@@ -174,8 +174,25 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
 
+        // ================================
+        // 🔥 MAIN EXTRAS LISTENERS
+        // ================================
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
+
+        // 🔥 NEW: Handle local login (MOJANG_LOGIN_TODO)
+        ExtraCore.addExtraListener(ExtraConstants.MOJANG_LOGIN_TODO, (key, value) -> {
+            if (value instanceof String[]) {
+                String[] loginData = (String[]) value;
+                String username = loginData[0];
+                // Account creation is handled by LocalLoginFragment, just refresh UI
+                Tools.runOnUiThread(() -> {
+                    Toast.makeText(this, "Account saved: " + username, Toast.LENGTH_SHORT).show();
+                    ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+                });
+            }
+            return false;
+        });
 
         new AsyncVersionList().getVersionList(versions ->
                 ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
