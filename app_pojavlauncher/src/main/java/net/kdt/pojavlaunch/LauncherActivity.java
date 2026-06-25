@@ -174,18 +174,14 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
         ProgressKeeper.addTaskCountListener(mProgressLayout);
 
-        // ================================
-        // 🔥 MAIN EXTRAS LISTENERS
-        // ================================
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
 
-        // 🔥 NEW: Handle local login (MOJANG_LOGIN_TODO)
+        // Local login listener
         ExtraCore.addExtraListener(ExtraConstants.MOJANG_LOGIN_TODO, (key, value) -> {
             if (value instanceof String[]) {
                 String[] loginData = (String[]) value;
                 String username = loginData[0];
-                // Account creation is handled by LocalLoginFragment, just refresh UI
                 Tools.runOnUiThread(() -> {
                     Toast.makeText(this, "Account saved: " + username, Toast.LENGTH_SHORT).show();
                     ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
@@ -310,31 +306,26 @@ public class LauncherActivity extends BaseActivity {
         }
 
         if (mNavigationView != null) {
-            // 🔥 DYNAMIC MENU – XML ko ignore karo, direct code se menu banate hain
             Menu menu = mNavigationView.getMenu();
             menu.clear();
 
-            // Add items programmatically (order maintained)
+            // ✅ Add items WITHOUT "Account"
             menu.add(0, R.id.nav_dashboard, 0, "Home")
                     .setIcon(R.drawable.ic_px_home);
             menu.add(0, R.id.nav_installations, 1, "Installations")
                     .setIcon(R.drawable.ic_px_java);
             menu.add(0, R.id.nav_mods, 2, "Mods")
                     .setIcon(R.drawable.ic_px_file_dl);
-            menu.add(0, R.id.nav_account, 3, "Account")
+            // "Account" item REMOVED – no more nav_account
+            menu.add(0, R.id.nav_skins, 3, "Skins")
                     .setIcon(R.drawable.ic_px_edit);
-            menu.add(0, R.id.nav_skins, 4, "Skins")
-                    .setIcon(R.drawable.ic_px_edit);
-            menu.add(0, R.id.nav_settings, 5, "Settings")
+            menu.add(0, R.id.nav_settings, 4, "Settings")
                     .setIcon(R.drawable.ic_px_sliders);
 
-            // Set checked item (Dashboard by default)
             menu.findItem(R.id.nav_dashboard).setChecked(true);
 
-            // Set listener
             mNavigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
-
                 if (id == R.id.nav_dashboard) {
                     getSupportFragmentManager()
                             .beginTransaction()
@@ -351,9 +342,8 @@ public class LauncherActivity extends BaseActivity {
                     Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
-                } else if (id == R.id.nav_account) {
-                    Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
                 }
+                // No nav_account handling
 
                 if (mDrawerLayout != null) {
                     mDrawerLayout.closeDrawer(mNavigationView);
