@@ -1,50 +1,109 @@
-name: Save Checkpoint
+name: Generate Launcher Full Report
 
 on:
-  workflow_dispatch:
-    inputs:
-      checkpoint_name:
-        description: 'Checkpoint name (e.g., "after-fixes")'
-        required: false
-        default: 'auto-save'
-
-permissions:
-  contents: write
+  workflow_dispatch:  # Manually run from Actions tab
 
 jobs:
-  save:
-    runs-on: ubuntu-22.04
+  generate-report:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create report directory
+        run: mkdir report_output
+
+      - name: Collect layout files
+        run: |
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      LAYOUT FILES (res/layout/)            " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          find app_pojavlauncher/src/main/res/layout -name "*.xml" -type f | while read file; do
+            echo "" >> report_output/full_report.txt
+            echo "--- FILE: $(basename $file) ---" >> report_output/full_report.txt
+            echo "Path: $file" >> report_output/full_report.txt
+            echo "Content:" >> report_output/full_report.txt
+            cat "$file" >> report_output/full_report.txt
+          done
+
+      - name: Collect menu files
+        run: |
+          echo "" >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      MENU FILES (res/menu/)               " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          find app_pojavlauncher/src/main/res/menu -name "*.xml" -type f | while read file; do
+            echo "" >> report_output/full_report.txt
+            echo "--- FILE: $(basename $file) ---" >> report_output/full_report.txt
+            echo "Path: $file" >> report_output/full_report.txt
+            echo "Content:" >> report_output/full_report.txt
+            cat "$file" >> report_output/full_report.txt
+          done
+
+      - name: Collect drawable files (vector XML only)
+        run: |
+          echo "" >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      DRAWABLE VECTOR FILES (res/drawable/) " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          find app_pojavlauncher/src/main/res/drawable -name "*.xml" -type f | while read file; do
+            echo "" >> report_output/full_report.txt
+            echo "--- FILE: $(basename $file) ---" >> report_output/full_report.txt
+            echo "Path: $file" >> report_output/full_report.txt
+            echo "Content:" >> report_output/full_report.txt
+            cat "$file" >> report_output/full_report.txt
+          done
+
+      - name: Collect values files (colors, strings, styles, dimens)
+        run: |
+          echo "" >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      VALUES FILES (res/values/)            " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          for f in colors.xml strings.xml styles.xml dimens.xml; do
+            file="app_pojavlauncher/src/main/res/values/$f"
+            if [ -f "$file" ]; then
+              echo "" >> report_output/full_report.txt
+              echo "--- FILE: $f ---" >> report_output/full_report.txt
+              echo "Path: $file" >> report_output/full_report.txt
+              echo "Content:" >> report_output/full_report.txt
+              cat "$file" >> report_output/full_report.txt
+            fi
+          done
+
+      - name: Collect fragment Java files
+        run: |
+          echo "" >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      FRAGMENT JAVA FILES                   " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          find app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/fragments -name "*.java" -type f | while read file; do
+            echo "" >> report_output/full_report.txt
+            echo "--- FILE: $(basename $file) ---" >> report_output/full_report.txt
+            echo "Path: $file" >> report_output/full_report.txt
+            echo "Content:" >> report_output/full_report.txt
+            cat "$file" >> report_output/full_report.txt
+          done
+
+      - name: Collect main Activity Java files
+        run: |
+          echo "" >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          echo "      MAIN ACTIVITY JAVA FILES              " >> report_output/full_report.txt
+          echo "=============================================" >> report_output/full_report.txt
+          for f in LauncherActivity.java BaseActivity.java; do
+            file="app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/$f"
+            if [ -f "$file" ]; then
+              echo "" >> report_output/full_report.txt
+              echo "--- FILE: $f ---" >> report_output/full_report.txt
+              echo "Path: $file" >> report_output/full_report.txt
+              echo "Content:" >> report_output/full_report.txt
+              cat "$file" >> report_output/full_report.txt
+            fi
+          done
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
-
-      - name: Archive repository state
-        run: |
-          # Use a temporary name to avoid self-inclusion
-          TMP_ARCHIVE="/tmp/checkpoint.tar.gz"
-          tar --exclude='.git' \
-              --exclude='build' \
-              --exclude='app_pojavlauncher/build' \
-              --exclude='dnbglfw/build' \
-              --exclude='*.iml' \
-              --exclude='.idea' \
-              --exclude='.gradle' \
-              --exclude='local.properties' \
-              --exclude='checkpoint.tar.gz' \
-              -czf "$TMP_ARCHIVE" .
-          mv "$TMP_ARCHIVE" ./checkpoint.tar.gz
-          echo "✅ Archive created: checkpoint.tar.gz"
-
-      - name: Create or update GitHub Release with checkpoint
-        run: |
-          if gh release view checkpoint > /dev/null 2>&1; then
-            echo "Updating existing checkpoint release..."
-            gh release delete checkpoint --yes
-          fi
-          gh release create checkpoint \
-            --title "Checkpoint: ${{ github.event.inputs.checkpoint_name || 'auto-save' }}" \
-            --notes "Saved on $(date -u +'%Y-%m-%d %H:%M:%S UTC') from commit ${{ github.sha }}. Triggered by ${{ github.actor }}." \
-            checkpoint.tar.gz
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: full-launcher-report
+          path: report_output/full_report.txt
