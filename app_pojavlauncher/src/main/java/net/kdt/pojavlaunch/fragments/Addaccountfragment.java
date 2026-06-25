@@ -20,7 +20,7 @@ import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.authenticator.AuthType;
-import net.kdt.pojavlaunch.authenticator.MicrosoftLoginActivity;
+import net.kdt.pojavlaunch.Tools;
 
 public class AddAccountFragment extends BottomSheetDialogFragment {
     public static final String TAG = "AddAccountFragment";
@@ -63,22 +63,19 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
         // Default: Microsoft tab selected
         selectTab(true);
 
-        // Tab switching
         if (mTabMicrosoft != null) mTabMicrosoft.setOnClickListener(v -> selectTab(true));
         if (mTabLocal != null)     mTabLocal.setOnClickListener(v -> selectTab(false));
-
-        // Close button
-        if (btnClose != null) btnClose.setOnClickListener(v -> dismiss());
+        if (btnClose != null)      btnClose.setOnClickListener(v -> dismiss());
 
         // ── Microsoft Login ───────────────────────────────────────────
         if (btnMs != null) {
             btnMs.setOnClickListener(v -> {
-                // Launch Microsoft OAuth login
-                // This uses the existing MicrosoftLoginActivity or however your launcher handles it
-                android.content.Intent intent = new android.content.Intent(
-                        requireContext(), MicrosoftLoginActivity.class);
-                startActivity(intent);
                 dismiss();
+                // Open Microsoft login fragment (it exists as fragment_microsoft_login.xml)
+                // Use Tools.swapFragment to navigate to the Microsoft login fragment
+                Tools.swapFragment(requireActivity(),
+                        MicrosoftLoginFragment.class,
+                        MicrosoftLoginFragment.TAG, null);
             });
         }
 
@@ -88,7 +85,6 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
                 if (inputUsername == null) return;
                 String username = inputUsername.getText().toString().trim();
 
-                // Validation
                 if (TextUtils.isEmpty(username)) {
                     showError(errorText, "Username cannot be empty");
                     return;
@@ -106,17 +102,15 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
                     return;
                 }
 
-                // Hide error
                 if (errorText != null) errorText.setVisibility(View.GONE);
 
-                // Create local account
                 final String finalUsername = username;
                 try {
                     MinecraftAccount account = Accounts.create(acc -> {
-                        acc.username = finalUsername;
-                        acc.authType = AuthType.LOCAL;
+                        acc.username    = finalUsername;
+                        acc.authType    = AuthType.LOCAL;
                         acc.accessToken = "0";
-                        acc.profileId = "00000000-0000-0000-0000-000000000000";
+                        acc.profileId   = "00000000-0000-0000-0000-000000000000";
                         acc.refreshToken = "0";
                     });
                     Accounts.setCurrent(account);
@@ -135,8 +129,6 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
         if (mPanelMicrosoft == null || mPanelLocal == null) return;
         mPanelMicrosoft.setVisibility(microsoft ? View.VISIBLE : View.GONE);
         mPanelLocal.setVisibility(microsoft ? View.GONE : View.VISIBLE);
-
-        // Update tab backgrounds
         if (mTabMicrosoft != null)
             mTabMicrosoft.setBackgroundResource(microsoft
                     ? R.drawable.tab_selected_bg : R.drawable.tab_unselected_bg);
