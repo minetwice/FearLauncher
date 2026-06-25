@@ -25,33 +25,28 @@
     </style>
 
     <!-- ========================================== -->
-    <!-- SILVER + BLACK PREFERENCE THEME (Settings) -->
+    <!-- PREFERENCE THEME – Simple & Safe           -->
     <!-- ========================================== -->
     <style name="FearPreferenceTheme" parent="@style/PreferenceThemeOverlay.v14.Material">
-        <!-- Background -->
+        <!-- Background for the preference screen -->
         <item name="android:colorBackground">@color/background_app</item>
-        <item name="android:background">@color/fear_surface</item>
         
-        <!-- Divider Color (Silver) – will be added via Java code, but define anyway -->
-        <item name="android:listDivider">@color/silver_dark</item>
-        <item name="android:dividerHeight">1dp</item>
-        
-        <!-- Category Style -->
+        <!-- Category style -->
         <item name="android:preferenceCategoryStyle">@style/FearPreferenceCategory</item>
         
-        <!-- Preference Item Style (Gradient Background + Border) -->
+        <!-- Preference item style -->
         <item name="android:preferenceStyle">@style/FearPreferenceItem</item>
         
-        <!-- Preference Screen Style (simple) -->
-        <item name="android:preferenceScreenStyle">@style/FearPreferenceScreen</item>
+        <!-- Divider color (will also be set programmatically) -->
+        <item name="android:listDivider">@color/silver_dark</item>
+        <item name="android:dividerHeight">1dp</item>
     </style>
 
-    <!-- Preference Category -->
+    <!-- Preference Category – Silver, Bold, Shadow -->
     <style name="FearPreferenceCategory" parent="@style/Preference.Category.Material">
         <item name="android:textColor">@color/silver_light</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <!-- Shadow for readability -->
         <item name="android:shadowColor">#80000000</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
@@ -59,32 +54,23 @@
         <item name="android:padding">16dp</item>
     </style>
 
-    <!-- Preference Item – Gradient Background, Border, Shadow -->
+    <!-- Preference Item – Gradient Background + Border + Shadow -->
     <style name="FearPreferenceItem" parent="@style/Preference.Material">
-        <!-- Background: Gradient + Border (from drawable) -->
+        <!-- Background drawable (gradient + border) -->
         <item name="android:background">@drawable/preference_background</item>
-        <!-- Elevation for Shadow -->
+        <!-- Elevation for shadow -->
         <item name="android:elevation">4dp</item>
         <!-- Spacing -->
         <item name="android:padding">12dp</item>
         <item name="android:layout_margin">8dp</item>
         
-        <!-- Icon Color (Silver) -->
+        <!-- Icon color (silver) -->
         <item name="android:colorAccent">@color/silver_main</item>
         <item name="android:iconTint">@color/silver_main</item>
-        
-        <!-- Text colors inherit from Theme.FearLauncher (primary_text & secondary_text) -->
-        <!-- No need to set textAppearance here – will be white with shadow due to theme -->
-    </style>
-
-    <!-- Preference Screen Background -->
-    <style name="FearPreferenceScreen" parent="@style/PreferenceScreen.Material">
-        <item name="android:background">@color/background_app</item>
-        <item name="android:padding">8dp</item>
     </style>
 
     <!-- ========================================== -->
-    <!-- HELPER STYLES (for general UI)              -->
+    <!-- HELPER STYLES (General UI)                 -->
     <!-- ========================================== -->
     <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
         <item name="android:background">?android:attr/selectableItemBackground</item>
