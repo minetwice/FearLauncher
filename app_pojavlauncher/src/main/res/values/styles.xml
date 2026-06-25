@@ -68,17 +68,15 @@
     <!-- PREFERENCE ITEM (Shiny Gradient + Border)  -->
     <!-- ========================================== -->
     <style name="FearPreferenceItem" parent="Preference.Material">
-        <item name="android:background">@drawable/preference_background</item>
-        <item name="android:elevation">6dp</item>
-        <item name="android:padding">16dp</item>
-        <item name="android:layout_margin">10dp</item>
-        <item name="android:colorAccent">@color/silver_main</item>
-        <item name="android:iconTint">@color/silver_main</item>
-        <!-- Title text -->
-        <item name="android:textAppearance">@style/FearPreferenceTitle</item>
-        <!-- Summary text -->
-        <item name="android:textAppearanceSmall">@style/FearPreferenceSummary</item>
-    </style>
+    <item name="android:background">@drawable/preference_background_selector</item>
+    <item name="android:elevation">6dp</item>
+    <item name="android:padding">16dp</item>
+    <item name="android:layout_margin">10dp</item>
+    <item name="android:colorAccent">@color/silver_main</item>
+    <item name="android:iconTint">@color/silver_main</item>
+    <item name="android:textAppearance">@style/FearPreferenceTitle</item>
+    <item name="android:textAppearanceSmall">@style/FearPreferenceSummary</item>
+</style>
 
     <!-- Title Text (White + Shadow) -->
     <style name="FearPreferenceTitle" parent="@android:style/TextAppearance.DeviceDefault">
