@@ -1,37 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Existing (Game logic) -->
-    <color name="control_button_color">#4CC4C4C4</color>
-    <color name="control_button_pressed_color">#4D000000</color>
-    <color name="minebutton_color">#91dffb</color>
-
-    <!-- BACKGROUNDS (All required) -->
+    <!-- Black / Dark Backgrounds -->
     <color name="background_app">#0A0A0A</color>
     <color name="background_status_bar">#1A1A1A</color>
     <color name="background_bottom_bar">#1A1A1A</color>
     <color name="background_overlay">#464646</color>
-    <color name="divider">#464646</color>
+    <color name="fear_surface">#121212</color>
+    <color name="fear_surface_variant">#1E1E1E</color>
+    <color name="sidebar_bg">#0A0A0A</color>
+    <color name="top_bar_bg">#121212</color>
 
-    <!-- Sidebar & Top bar -->
-    <color name="sidebar_bg">#1A1A1A</color>
-    <color name="top_bar_bg">#1A1A1A</color>
+    <!-- Silver Palette -->
+    <color name="silver_main">#C0C0C0</color>         <!-- Main Silver -->
+    <color name="silver_light">#E0E0E0</color>        <!-- Light Silver (Categories) -->
+    <color name="silver_dark">#808080</color>         <!-- Dark Silver (Secondary) -->
 
-    <!-- Text -->
-    <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#B0B0B0</color>
-    <color name="icon_outline_color">#FFFFFF</color>
+    <!-- Text Colors (White with soft variation) -->
+    <color name="primary_text">#FFFFFF</color>        <!-- Pure White -->
+    <color name="secondary_text">#C8C8C8</color>      <!-- Soft Silver-White -->
 
-    <!-- Fear Brand (Silver/Black theme) -->
-    <color name="fear_primary">#C0C0C0</color>
+    <!-- Accents (Keeping Silver as primary) -->
+    <color name="fear_primary">#C0C0C0</color>        <!-- Silver -->
     <color name="fear_on_primary">#0A0A0A</color>
-    <color name="fear_secondary">#00E676</color>
-    <color name="fear_tertiary">#FFAA00</color>      <!-- Gold accent -->
-    <color name="fear_surface">#1A1A1A</color>
-    <color name="fear_surface_variant">#242424</color>
+    <color name="fear_secondary">#00E676</color>      <!-- Neon Green (Status) -->
+    <color name="fear_tertiary">#FFAA00</color>       <!-- Gold (Accent) -->
+    
+    <!-- Legacy / Other -->
+    <color name="control_button_color">#4CC4C4C4</color>
+    <color name="control_button_pressed_color">#4D000000</color>
+    <color name="minebutton_color">#91dffb</color>
+    <color name="divider">#464646</color>
+    <color name="icon_outline_color">#FFFFFF</color>
     <color name="fear_surface_container">#141414</color>
     <color name="fear_glass_bg">#CC181818</color>
-
-    <!-- Extra -->
     <color name="mc_official_green">#3C8527</color>
     <color name="carousel_card_bg">#3A3A3A</color>
 </resources>
