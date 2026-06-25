@@ -35,6 +35,8 @@
         android:theme="@style/Theme.FearLauncher"
         android:networkSecurityConfig="@xml/netconfig"
         android:enableOnBackInvokedCallback="false"
+        android:hardwareAccelerated="true"          <!-- ✅ Added for smooth UI -->
+        android:supportsRtl="true"                  <!-- ✅ Added for future RTL support -->
         tools:ignore="UnusedAttribute">
 
         <!-- Storage Check Activity -->
@@ -47,7 +49,8 @@
             android:name="android.max_aspect"
             android:value="ratio_float" />
 
-        <!-- MAIN ENTRY POINT (Locked to Landscape) -->        <activity
+        <!-- MAIN ENTRY POINT (Locked to Landscape) -->
+        <activity
             android:name="net.kdt.pojavlaunch.TestStorageActivity"
             android:exported="true"
             android:label="Fear Launcher"
@@ -96,7 +99,8 @@
             android:theme="@style/Theme.AppCompat.DayNight.Dialog" />
             
         <activity 
-            android:name="net.kdt.pojavlaunch.ShowErrorActivity"            android:configChanges="keyboardHidden|orientation|screenSize|keyboard|navigation"
+            android:name="net.kdt.pojavlaunch.ShowErrorActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize|keyboard|navigation"
             android:theme="@style/Theme.AppCompat.DayNight.Dialog" />
             
         <activity
@@ -145,7 +149,8 @@
 
         <!-- BACKGROUND SERVICES -->
         <service 
-            android:name="net.kdt.pojavlaunch.services.ProgressService"            android:foregroundServiceType="dataSync"/>
+            android:name="net.kdt.pojavlaunch.services.ProgressService"
+            android:foregroundServiceType="dataSync"/>
             
         <service 
             android:name="net.kdt.pojavlaunch.services.GameService" 
