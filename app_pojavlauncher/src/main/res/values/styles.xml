@@ -36,32 +36,73 @@
         <item name="android:preferenceStyle">@style/FearPreferenceItem</item>
         <item name="android:listDivider">@color/silver_dark</item>
         <item name="android:dividerHeight">1dp</item>
+        <!-- SeekBar styling (for RAM & Resolution) -->
+        <item name="android:progressBarStyleHorizontal">@style/FearSeekBar</item>
     </style>
 
-    <!-- Category Style -->
+    <!-- ========================================== -->
+    <!-- SEEK BAR STYLE (Cyan → Silver Gradient)    -->
+    <!-- ========================================== -->
+    <style name="FearSeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressDrawable">@drawable/seekbar_progress</item>
+        <item name="android:thumb">@drawable/seekbar_thumb</item>
+        <item name="android:minHeight">8dp</item>
+        <item name="android:maxHeight">8dp</item>
+    </style>
+
+    <!-- ========================================== -->
+    <!-- PREFERENCE CATEGORY (Silver, Bold, Shadow) -->
+    <!-- ========================================== -->
     <style name="FearPreferenceCategory" parent="Preference.Category.Material">
         <item name="android:textColor">@color/silver_light</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:shadowColor">#80000000</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
         <item name="android:shadowRadius">4</item>
-        <item name="android:padding">16dp</item>
-    </style>
-
-    <!-- Preference Item Style -->
-    <style name="FearPreferenceItem" parent="Preference.Material">
-        <item name="android:background">@drawable/preference_background</item>
-        <item name="android:elevation">4dp</item>
-        <item name="android:padding">12dp</item>
-        <item name="android:layout_margin">8dp</item>
-        <item name="android:colorAccent">@color/silver_main</item>
-        <item name="android:iconTint">@color/silver_main</item>
+        <item name="android:padding">20dp</item>
     </style>
 
     <!-- ========================================== -->
-    <!-- HELPER STYLES                              -->
+    <!-- PREFERENCE ITEM (Shiny Gradient + Border)  -->
+    <!-- ========================================== -->
+    <style name="FearPreferenceItem" parent="Preference.Material">
+        <item name="android:background">@drawable/preference_background</item>
+        <item name="android:elevation">6dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:colorAccent">@color/silver_main</item>
+        <item name="android:iconTint">@color/silver_main</item>
+        <!-- Title text -->
+        <item name="android:textAppearance">@style/FearPreferenceTitle</item>
+        <!-- Summary text -->
+        <item name="android:textAppearanceSmall">@style/FearPreferenceSummary</item>
+    </style>
+
+    <!-- Title Text (White + Shadow) -->
+    <style name="FearPreferenceTitle" parent="@android:style/TextAppearance.DeviceDefault">
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">3</item>
+    </style>
+
+    <!-- Summary Text (Silver‑White + Shadow) -->
+    <style name="FearPreferenceSummary" parent="@android:style/TextAppearance.DeviceDefault.Small">
+        <item name="android:textColor">@color/secondary_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
+    <!-- ========================================== -->
+    <!-- HELPER STYLES (General UI)                 -->
     <!-- ========================================== -->
     <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
         <item name="android:background">?android:attr/selectableItemBackground</item>
