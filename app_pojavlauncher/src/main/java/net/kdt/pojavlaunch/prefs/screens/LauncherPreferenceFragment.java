@@ -19,35 +19,26 @@ import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.LauncherActivity;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
-/**
- * Preference for the main screen, any sub-screen should inherit this class for consistent behavior,
- * overriding only onCreatePreferences
- * 
- * Updated with Silver+Black theme and custom styling.
- */
 public class LauncherPreferenceFragment extends PreferenceFragmentCompat
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     protected Runnable mVisibilityUpdater = () -> {};
 
-    // ==========================================
-    // APPLY CUSTOM THEME BEFORE INFLATING
-    // ==========================================
     @NonNull
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // 🔥 Force apply Silver+Black Preference Theme
+        // Apply custom preference theme
         getActivity().setTheme(R.style.FearPreferenceTheme);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Set background color (Deep Black)
+        // Background
         view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
 
-        // Set divider (Silver) for the ListView
+        // Divider (Silver)
         ListView listView = getListView();
         if (listView != null) {
             listView.setDivider(ContextCompat.getDrawable(requireContext(), R.drawable.divider_silver));
@@ -62,16 +53,6 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat
         mVisibilityUpdater = this::updateVisibility;
         addPreferencesFromResource(R.xml.pref_main);
         setupNotificationRequestPreference();
-        applyThemeToPreferences(); // Additional theming if needed
-    }
-
-    // ==========================================
-    // THEME APPLICATION TO PREFERENCES (Optional)
-    // ==========================================
-    private void applyThemeToPreferences() {
-        // If any preference needs dynamic theming, add here.
-        // For example, set icon tint or summary color programmatically.
-        // Currently handled by the theme.
     }
 
     private void updateVisibility() {
