@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,7 +63,7 @@ public class MainMenuFragment extends Fragment {
         View installJarButton     = view.findViewById(R.id.install_jar_button);
         View shareLogsButton      = view.findViewById(R.id.share_logs_button);
         View openFilesButton      = view.findViewById(R.id.open_files_button);
-        ImageButton hamburgerBtn  = view.findViewById(R.id.hamburger_menu_button);
+        ImageView hamburgerBtn   = view.findViewById(R.id.hamburger_menu_icon);
         ImageButton editProfileBtn= view.findViewById(R.id.edit_profile_button);
         mVersionSpinner           = view.findViewById(R.id.mc_version_spinner);
 
