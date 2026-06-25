@@ -15,19 +15,27 @@
         android:paddingTop="@dimen/_12sdp"
         android:paddingBottom="@dimen/_80sdp">
 
-        <!-- Account Avatar + Name -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TOP BAR: Account + Hamburger               -->
+        <!-- ═══════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
+            <!-- ACCOUNT SECTION (clickable → opens account manager) -->
             <LinearLayout
+                android:id="@+id/account_section"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="@dimen/_4sdp">
 
                 <ImageView
                     android:id="@+id/account_avatar"
@@ -36,22 +44,59 @@
                     android:src="@drawable/ic_account_circle"
                     android:background="@drawable/avatar_bg"
                     android:padding="@dimen/_4sdp"
-                    android:contentDescription="Account Avatar" />
+                    android:contentDescription="Account Avatar"/>
 
-                <TextView
-                    android:id="@+id/account_name"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_12sdp"
-                    android:text="FearUser"
-                    android:textColor="@color/primary_text"
-                    android:textSize="@dimen/_16ssp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical"
+                    android:layout_marginStart="@dimen/_10sdp">
+
+                    <TextView
+                        android:id="@+id/account_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add Account"
+                        android:textColor="@color/primary_text"
+                        android:textSize="@dimen/_15ssp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/account_type_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tap to manage"
+                        android:textColor="@color/secondary_text"
+                        android:textSize="@dimen/_11ssp"/>
+
+                </LinearLayout>
+
+                <!-- Dropdown arrow -->
+                <ImageView
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:layout_marginStart="@dimen/_6sdp"
+                    android:src="@drawable/spinner_arrow"
+                    android:tint="@color/secondary_text"/>
+
             </LinearLayout>
+
+            <!-- Hamburger Menu Button -->
+            <ImageView
+                android:id="@+id/hamburger_menu_icon"
+                android:layout_width="@dimen/_44sdp"
+                android:layout_height="@dimen/_44sdp"
+                android:padding="@dimen/_10sdp"
+                android:src="@drawable/ic_px_sliders"
+                android:tint="@color/primary_text"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Menu"/>
 
         </LinearLayout>
 
-        <!-- Quick Play Card -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- QUICK PLAY CARD                             -->
+        <!-- ═══════════════════════════════════════════ -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -72,7 +117,7 @@
                     android:text="QUICK PLAY"
                     android:textColor="@color/secondary_text"
                     android:textSize="@dimen/_11ssp"
-                    android:letterSpacing="0.1" />
+                    android:letterSpacing="0.1"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -81,7 +126,7 @@
                     android:text="Latest release"
                     android:textColor="@color/primary_text"
                     android:textSize="@dimen/_16ssp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:id="@+id/version_text"
@@ -90,7 +135,7 @@
                     android:text="1.21.1"
                     android:textColor="#FFAA00"
                     android:textSize="@dimen/_28ssp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/play_button"
@@ -102,12 +147,14 @@
                     android:textSize="@dimen/_16ssp"
                     android:textColor="@color/fear_on_primary"
                     android:backgroundTint="#FFAA00"
-                    android:stateListAnimator="@animator/button_scale" />
+                    android:stateListAnimator="@animator/button_scale"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Recent Installations -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- RECENT INSTALLATIONS                        -->
+        <!-- ═══════════════════════════════════════════ -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -115,7 +162,7 @@
             android:text="Recent Installations"
             android:textColor="@color/primary_text"
             android:textSize="@dimen/_16ssp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -134,24 +181,21 @@
                     android:layout_marginEnd="@dimen/_12sdp"
                     app:cardCornerRadius="12dp"
                     app:cardBackgroundColor="@color/fear_surface_variant"
-                    app:cardElevation="0dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
+                    app:cardElevation="0dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="@dimen/_12sdp">
-
+                        android:padding="@dimen/_12sdp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
                         <ImageView
                             android:layout_width="@dimen/_32sdp"
                             android:layout_height="@dimen/_32sdp"
                             android:src="@drawable/ic_px_java"
-                            android:tint="#C0C0C0" />
-
+                            android:tint="#C0C0C0"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -159,15 +203,13 @@
                             android:text="Fear Vanilla"
                             android:textColor="@color/primary_text"
                             android:textSize="@dimen/_12ssp"
-                            android:textStyle="bold" />
-
+                            android:textStyle="bold"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="1.20.4"
                             android:textColor="@color/secondary_text"
-                            android:textSize="@dimen/_10ssp" />
-
+                            android:textSize="@dimen/_10ssp"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -177,24 +219,21 @@
                     android:layout_marginEnd="@dimen/_12sdp"
                     app:cardCornerRadius="12dp"
                     app:cardBackgroundColor="@color/fear_surface_variant"
-                    app:cardElevation="0dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
+                    app:cardElevation="0dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="@dimen/_12sdp">
-
+                        android:padding="@dimen/_12sdp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
                         <ImageView
                             android:layout_width="@dimen/_32sdp"
                             android:layout_height="@dimen/_32sdp"
                             android:src="@drawable/ic_px_file_dl"
-                            android:tint="#C0C0C0" />
-
+                            android:tint="#C0C0C0"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -202,15 +241,13 @@
                             android:text="Fear Modded"
                             android:textColor="@color/primary_text"
                             android:textSize="@dimen/_12ssp"
-                            android:textStyle="bold" />
-
+                            android:textStyle="bold"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="1.19.2"
                             android:textColor="@color/secondary_text"
-                            android:textSize="@dimen/_10ssp" />
-
+                            android:textSize="@dimen/_10ssp"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -220,24 +257,21 @@
                     android:layout_marginEnd="@dimen/_12sdp"
                     app:cardCornerRadius="12dp"
                     app:cardBackgroundColor="@color/fear_surface_variant"
-                    app:cardElevation="0dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
+                    app:cardElevation="0dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="@dimen/_12sdp">
-
+                        android:padding="@dimen/_12sdp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
                         <ImageView
                             android:layout_width="@dimen/_32sdp"
                             android:layout_height="@dimen/_32sdp"
                             android:src="@drawable/ic_px_home"
-                            android:tint="#C0C0C0" />
-
+                            android:tint="#C0C0C0"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -245,22 +279,22 @@
                             android:text="Fear SMP"
                             android:textColor="@color/primary_text"
                             android:textSize="@dimen/_12ssp"
-                            android:textStyle="bold" />
-
+                            android:textStyle="bold"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="1.20.1"
                             android:textColor="@color/secondary_text"
-                            android:textSize="@dimen/_10ssp" />
-
+                            android:textSize="@dimen/_10ssp"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Create Instance Bar (Version Spinner) -->
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- VERSION SPINNER + EDIT PROFILE             -->
+        <!-- ═══════════════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -269,8 +303,7 @@
             android:gravity="center_vertical"
             android:background="@color/background_bottom_bar"
             android:padding="@dimen/_8sdp"
-            android:paddingHorizontal="@dimen/_12sdp"
-            android:paddingVertical="@dimen/_4sdp">
+            android:paddingHorizontal="@dimen/_12sdp">
 
             <com.kdt.mcgui.mcVersionSpinner
                 android:id="@+id/mc_version_spinner"
@@ -282,7 +315,7 @@
                 app:drawableEndSize="@dimen/padding_heavy"
                 app:drawableStartIntegerScaling="true"
                 app:drawableStartSize="@dimen/_36sdp"
-                app:drawableEndPadding="@dimen/_1sdp" />
+                app:drawableEndPadding="@dimen/_1sdp"/>
 
             <ImageButton
                 android:id="@+id/edit_profile_button"
@@ -291,7 +324,7 @@
                 android:background="?android:attr/selectableItemBackground"
                 android:src="@drawable/ic_px_edit"
                 android:tint="@color/primary_text"
-                android:contentDescription="Edit Profile" />
+                android:contentDescription="Edit Profile"/>
 
         </LinearLayout>
 
@@ -303,7 +336,7 @@
             android:text="Fear Launcher v1.0.0"
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/_11ssp"
-            android:gravity="center" />
+            android:gravity="center"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -312,25 +345,7 @@
             android:text="Made with ❤️ by Fear Team"
             android:textColor="@color/secondary_text"
             android:textSize="@dimen/_10ssp"
-            android:gravity="center" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_16sdp"
-            android:text="No tasks running"
-            android:textColor="#00E676"
-            android:textSize="@dimen/_12ssp"
-            android:gravity="center"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Everything is up to date!"
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_10ssp"
-            android:gravity="center" />
+            android:gravity="center"/>
 
     </LinearLayout>
 </ScrollView>
