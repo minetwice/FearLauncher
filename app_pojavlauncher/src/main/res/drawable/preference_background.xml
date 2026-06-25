@@ -11,7 +11,7 @@
         android:color="#E0E0E0" />
     <!-- Rounded Corners -->
     <corners android:radius="12dp" />
-    <!-- Padding to give space inside -->
+    <!-- Padding -->
     <padding
         android:left="16dp"
         android:top="14dp"
