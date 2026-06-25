@@ -18,6 +18,10 @@
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#C8C8C8</color>
 
+    <color name="seekbar_progress_start">#00E5FF</color>   <!-- Cyan -->
+<color name="seekbar_progress_end">#C0C0C0</color>    <!-- Silver -->
+<color name="seekbar_thumb_glow">#80C0C0C0</color>
+
     <!-- Others -->
     <color name="fear_primary">#C0C0C0</color>
     <color name="fear_on_primary">#0A0A0A</color>
