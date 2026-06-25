@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <size android:width="20dp" android:height="20dp" />
+    <gradient
+        android:startColor="#E0E0E0"
+        android:endColor="#C0C0C0"
+        android:angle="135" />
+    <stroke
+        android:width="2dp"
+        android:color="#FFFFFF" />
+    <solid android:color="@color/silver_main" />
+    <padding
+        android:left="2dp"
+        android:top="2dp"
+        android:right="2dp"
+        android:bottom="2dp" />
+    <!-- Glow effect via elevation (applied in style) -->
+</shape>
