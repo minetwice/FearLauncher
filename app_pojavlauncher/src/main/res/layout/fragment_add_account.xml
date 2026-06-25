@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Add Account Bottom Sheet — Fear style, replaces MojoLauncher style -->
+<!-- Place at: res/layout/fragment_add_account.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/background_card"
+    android:paddingBottom="@dimen/_32sdp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_4sdp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:background="@color/background_overlay"/>
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingTop="@dimen/_16sdp"
+        android:paddingBottom="@dimen/_20sdp">
+
+        <ImageView
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
+            android:src="@drawable/ic_account_circle"
+            android:tint="#FF4500"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:text="Add Account"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold"/>
+
+        <ImageButton
+            android:id="@+id/btn_close_add_account"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:tint="@color/secondary_text"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"/>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/background_overlay"
+        android:layout_marginHorizontal="@dimen/_16sdp"/>
+
+    <!-- Account Type Tabs -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingTop="@dimen/_16sdp"
+        android:paddingBottom="@dimen/_8sdp">
+
+        <!-- Microsoft Tab -->
+        <LinearLayout
+            android:id="@+id/tab_microsoft"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/tab_selected_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="@dimen/_6sdp">
+
+            <ImageView
+                android:layout_width="@dimen/_18sdp"
+                android:layout_height="@dimen/_18sdp"
+                android:src="@drawable/ic_auth_ms"
+                android:layout_marginEnd="@dimen/_6sdp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Microsoft"
+                android:textColor="@color/primary_text"
+                android:textSize="@dimen/_13ssp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <!-- Local Tab -->
+        <LinearLayout
+            android:id="@+id/tab_local"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/tab_unselected_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="@dimen/_6sdp">
+
+            <ImageView
+                android:layout_width="@dimen/_18sdp"
+                android:layout_height="@dimen/_18sdp"
+                android:src="@drawable/ic_account_circle"
+                android:tint="@color/secondary_text"
+                android:layout_marginEnd="@dimen/_6sdp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Local"
+                android:textColor="@color/secondary_text"
+                android:textSize="@dimen/_13ssp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── MICROSOFT LOGIN PANEL ── -->
+    <LinearLayout
+        android:id="@+id/panel_microsoft"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingTop="@dimen/_8sdp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with your Microsoft account to play online."
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_13ssp"
+            android:layout_marginBottom="@dimen/_16sdp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_microsoft_login"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_52sdp"
+            android:text="Sign in with Microsoft"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            app:backgroundTint="#FF4500"
+            app:cornerRadius="10dp"
+            app:icon="@drawable/ic_auth_ms"
+            app:iconTint="@color/primary_text"
+            app:iconGravity="textStart"
+            app:iconPadding="@dimen/_8sdp"/>
+
+        <!-- Progress bar (hidden by default) -->
+        <LinearLayout
+            android:id="@+id/ms_login_progress_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:id="@+id/ms_login_progress"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressTint="#FF4500"
+                android:progressBackgroundTint="@color/background_overlay"
+                android:max="100"/>
+
+            <TextView
+                android:id="@+id/ms_login_progress_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="Signing in..."
+                android:textColor="@color/secondary_text"
+                android:textSize="@dimen/_12ssp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── LOCAL ACCOUNT PANEL ── -->
+    <LinearLayout
+        android:id="@+id/panel_local"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingTop="@dimen/_8sdp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_12ssp"
+            android:layout_marginBottom="@dimen/_6sdp"/>
+
+        <com.kdt.mcgui.MineEditText
+            android:id="@+id/local_username_input"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_48sdp"
+            android:hint="Enter your username"
+            android:inputType="text"
+            android:textSize="@dimen/_14ssp"
+            android:imeOptions="actionDone|flagNoExtractUi"/>
+
+        <!-- Error message -->
+        <TextView
+            android:id="@+id/local_error_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_6sdp"
+            android:textColor="#FF6B6B"
+            android:textSize="@dimen/_12ssp"
+            android:visibility="gone"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_local_login"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_52sdp"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:text="Add Local Account"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            app:backgroundTint="#FF4500"
+            app:cornerRadius="10dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
