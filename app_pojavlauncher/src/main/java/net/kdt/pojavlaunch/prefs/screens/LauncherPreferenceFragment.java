@@ -7,13 +7,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.RecyclerView;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.LauncherActivity;
@@ -38,11 +39,13 @@ public class LauncherPreferenceFragment extends PreferenceFragmentCompat
         // Background
         view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
 
-        // Divider (Silver)
-        ListView listView = getListView();
-        if (listView != null) {
-            listView.setDivider(ContextCompat.getDrawable(requireContext(), R.drawable.divider_silver));
-            listView.setDividerHeight(1);
+        // ✅ Divider for RecyclerView (silver)
+        RecyclerView recyclerView = getListView();
+        if (recyclerView != null) {
+            DividerItemDecoration divider = new DividerItemDecoration(requireContext(),
+                    DividerItemDecoration.VERTICAL);
+            divider.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.divider_silver));
+            recyclerView.addItemDecoration(divider);
         }
 
         super.onViewCreated(view, savedInstanceState);
