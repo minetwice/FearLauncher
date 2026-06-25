@@ -25,28 +25,21 @@
     </style>
 
     <!-- ========================================== -->
-    <!-- SILVER + BLACK PREFERENCE THEME (Settings)  -->
+    <!-- PREFERENCE THEME (Settings) – Minimal      -->
     <!-- ========================================== -->
     <style name="FearPreferenceTheme" parent="@style/PreferenceThemeOverlay.v14.Material">
-        <!-- Background -->
+        <!-- Background for the preference screen -->
         <item name="android:colorBackground">@color/background_app</item>
-        <item name="android:background">@color/fear_surface</item>
         
-        <!-- Divider Color (Silver) -->
-        <item name="android:listDivider">@color/silver_light</item>
-        <item name="android:dividerHeight">1dp</item>
-        
-        <!-- Category Style -->
+        <!-- Category style with custom text color -->
         <item name="android:preferenceCategoryStyle">@style/FearPreferenceCategory</item>
         
-        <!-- Preference Item Style -->
-        <item name="android:preferenceStyle">@style/FearPreferenceItem</item>
-        
-        <!-- Preference Screen -->
-        <item name="android:preferenceScreenStyle">@style/FearPreferenceScreen</item>
+        <!-- Divider color -->
+        <item name="android:listDivider">@color/silver_dark</item>
+        <item name="android:dividerHeight">1dp</item>
     </style>
 
-    <!-- Preference Category -->
+    <!-- Preference Category – Silver text + Shadow -->
     <style name="FearPreferenceCategory" parent="@style/Preference.Category.Material">
         <item name="android:textColor">@color/silver_light</item>
         <item name="android:textSize">14sp</item>
@@ -55,22 +48,6 @@
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">1</item>
         <item name="android:shadowRadius">2</item>
-    </style>
-
-    <!-- Preference Item (Title + Summary) - Removed problematic text appearances -->
-    <style name="FearPreferenceItem" parent="@style/Preference.Material">
-        <!-- Icon Color (Silver) -->
-        <item name="android:colorAccent">@color/silver_main</item>
-        <item name="android:iconTint">@color/silver_main</item>
-        <!-- Background (Black) -->
-        <item name="android:background">?android:attr/selectableItemBackground</item>
-        <!-- Title and Summary colors will be inherited from Theme.FearLauncher -->
-    </style>
-
-    <!-- Preference Screen Background -->
-    <style name="FearPreferenceScreen" parent="@style/PreferenceScreen.Material">
-        <item name="android:background">@color/background_app</item>
-        <item name="android:padding">0dp</item>
     </style>
 
     <!-- ========================================== -->
