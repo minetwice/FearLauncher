@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single account row in the list -->
+<!-- Place at: res/layout/item_account.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="@dimen/_20sdp"
+    android:paddingVertical="@dimen/_12sdp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Avatar -->
+    <FrameLayout
+        android:layout_width="@dimen/_44sdp"
+        android:layout_height="@dimen/_44sdp">
+
+        <ImageView
+            android:id="@+id/account_avatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_account_circle"
+            android:scaleType="centerCrop"/>
+
+        <!-- Online/Active indicator dot -->
+        <View
+            android:id="@+id/account_active_dot"
+            android:layout_width="@dimen/_12sdp"
+            android:layout_height="@dimen/_12sdp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/dot_active"
+            android:visibility="gone"/>
+
+    </FrameLayout>
+
+    <!-- Name + Type -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="@dimen/_12sdp">
+
+        <TextView
+            android:id="@+id/account_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/account_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Microsoft"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/_12ssp"/>
+
+    </LinearLayout>
+
+    <!-- Selected checkmark -->
+    <ImageView
+        android:id="@+id/account_selected_check"
+        android:layout_width="@dimen/_20sdp"
+        android:layout_height="@dimen/_20sdp"
+        android:src="@drawable/ic_fear_full"
+        android:tint="#FF4500"
+        android:visibility="gone"/>
+
+    <!-- Delete button -->
+    <ImageButton
+        android:id="@+id/account_delete_btn"
+        android:layout_width="@dimen/_32sdp"
+        android:layout_height="@dimen/_32sdp"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:src="@drawable/ic_px_trash"
+        android:tint="@color/secondary_text"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Delete account"/>
+
+</LinearLayout>
