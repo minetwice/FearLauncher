@@ -50,10 +50,13 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         super.onViewCreated(view, savedInstanceState);
     }
 
+    // No need for programmatic background – style will apply via theme
+    // But we keep a fallback to ensure consistency
     @Override
     public void onResume() {
         super.onResume();
-        getListView().post(this::applyBackgroundToAllPreferences);
+        // Optionally, we can still apply the background to be safe
+        getListView().post(() -> applyBackgroundToAllPreferences());
     }
 
     private void applyBackgroundToAllPreferences() {
@@ -68,7 +71,8 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
 
     private void applyBackgroundToView(View view) {
         if (view instanceof LinearLayout) {
-            view.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.preference_background));
+            // Use selector so pressed state works
+            view.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.preference_background_selector));
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
             params.setMargins(16, 8, 16, 8);
             view.setLayoutParams(params);
