@@ -32,17 +32,17 @@
         <item name="android:colorBackground">@color/background_app</item>
         <item name="android:background">@color/fear_surface</item>
         
-        <!-- Divider Color (Silver) – will be added via Java code -->
+        <!-- Divider Color (Silver) – will be added via Java code, but define anyway -->
         <item name="android:listDivider">@color/silver_dark</item>
         <item name="android:dividerHeight">1dp</item>
         
-        <!-- Category Style (Silver + Bold + Shadow) -->
+        <!-- Category Style -->
         <item name="android:preferenceCategoryStyle">@style/FearPreferenceCategory</item>
         
         <!-- Preference Item Style (Gradient Background + Border) -->
         <item name="android:preferenceStyle">@style/FearPreferenceItem</item>
         
-        <!-- Preference Screen -->
+        <!-- Preference Screen Style (simple) -->
         <item name="android:preferenceScreenStyle">@style/FearPreferenceScreen</item>
     </style>
 
@@ -51,6 +51,7 @@
         <item name="android:textColor">@color/silver_light</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
+        <!-- Shadow for readability -->
         <item name="android:shadowColor">#80000000</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
@@ -58,13 +59,13 @@
         <item name="android:padding">16dp</item>
     </style>
 
-    <!-- Preference Item (Title + Summary) with Gradient Background -->
+    <!-- Preference Item – Gradient Background, Border, Shadow -->
     <style name="FearPreferenceItem" parent="@style/Preference.Material">
-        <!-- Background: Gradient + Border -->
+        <!-- Background: Gradient + Border (from drawable) -->
         <item name="android:background">@drawable/preference_background</item>
         <!-- Elevation for Shadow -->
         <item name="android:elevation">4dp</item>
-        <!-- Padding to make it look spaced -->
+        <!-- Spacing -->
         <item name="android:padding">12dp</item>
         <item name="android:layout_margin">8dp</item>
         
@@ -72,31 +73,8 @@
         <item name="android:colorAccent">@color/silver_main</item>
         <item name="android:iconTint">@color/silver_main</item>
         
-        <!-- Title Text Appearance with Shadow -->
-        <item name="android:titleTextAppearance">@style/FearPreferenceTitleText</item>
-        <!-- Summary Text Appearance with Shadow -->
-        <item name="android:summaryTextAppearance">@style/FearPreferenceSummaryText</item>
-    </style>
-
-    <!-- Title Text (White + Shadow) -->
-    <style name="FearPreferenceTitleText" parent="@android:style/TextAppearance.DeviceDefault">
-        <item name="android:textColor">@color/primary_text</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:shadowColor">#80000000</item>
-        <item name="android:shadowDx">0</item>
-        <item name="android:shadowDy">2</item>
-        <item name="android:shadowRadius">4</item>
-    </style>
-
-    <!-- Summary Text (Silver-White + Shadow) -->
-    <style name="FearPreferenceSummaryText" parent="@android:style/TextAppearance.DeviceDefault.Small">
-        <item name="android:textColor">@color/secondary_text</item>
-        <item name="android:textSize">13sp</item>
-        <item name="android:shadowColor">#80000000</item>
-        <item name="android:shadowDx">0</item>
-        <item name="android:shadowDy">1</item>
-        <item name="android:shadowRadius">3</item>
+        <!-- Text colors inherit from Theme.FearLauncher (primary_text & secondary_text) -->
+        <!-- No need to set textAppearance here – will be white with shadow due to theme -->
     </style>
 
     <!-- Preference Screen Background -->
