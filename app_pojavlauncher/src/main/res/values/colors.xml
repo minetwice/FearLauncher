@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Black / Dark Backgrounds -->
     <color name="background_app">#0A0A0A</color>
     <color name="background_status_bar">#1A1A1A</color>
     <color name="background_bottom_bar">#1A1A1A</color>
@@ -11,21 +10,19 @@
     <color name="top_bar_bg">#121212</color>
 
     <!-- Silver Palette -->
-    <color name="silver_main">#C0C0C0</color>         <!-- Main Silver -->
-    <color name="silver_light">#E0E0E0</color>        <!-- Light Silver (Categories) -->
-    <color name="silver_dark">#808080</color>         <!-- Dark Silver (Secondary) -->
+    <color name="silver_main">#C0C0C0</color>
+    <color name="silver_light">#E0E0E0</color>
+    <color name="silver_dark">#808080</color>
 
-    <!-- Text Colors (White with soft variation) -->
-    <color name="primary_text">#FFFFFF</color>        <!-- Pure White -->
-    <color name="secondary_text">#C8C8C8</color>      <!-- Soft Silver-White -->
+    <!-- Text Colors -->
+    <color name="primary_text">#FFFFFF</color>
+    <color name="secondary_text">#C8C8C8</color>
 
-    <!-- Accents (Keeping Silver as primary) -->
-    <color name="fear_primary">#C0C0C0</color>        <!-- Silver -->
+    <!-- Others -->
+    <color name="fear_primary">#C0C0C0</color>
     <color name="fear_on_primary">#0A0A0A</color>
-    <color name="fear_secondary">#00E676</color>      <!-- Neon Green (Status) -->
-    <color name="fear_tertiary">#FFAA00</color>       <!-- Gold (Accent) -->
-    
-    <!-- Legacy / Other -->
+    <color name="fear_secondary">#00E676</color>
+    <color name="fear_tertiary">#FFAA00</color>
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
     <color name="minebutton_color">#91dffb</color>
