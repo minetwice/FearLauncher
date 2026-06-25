@@ -15,27 +15,30 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import git.artdeell.mojo.R;
 
-/**
- * Base class for all preference fragments.
- * Applies FearPreferenceTheme and ensures all items have gradient background.
- */
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getActivity() != null) {
+            getActivity().setTheme(R.style.FearPreferenceTheme);
+        }
+    }
 
     @NonNull
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // 🔥 Apply theme BEFORE inflating
-        getActivity().setTheme(R.style.FearPreferenceTheme);
+        if (getActivity() != null) {
+            getActivity().setTheme(R.style.FearPreferenceTheme);
+        }
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Background
         view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
 
-        // Silver divider
         RecyclerView recyclerView = getListView();
         if (recyclerView != null) {
             DividerItemDecoration divider = new DividerItemDecoration(requireContext(),
@@ -50,7 +53,6 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     @Override
     public void onResume() {
         super.onResume();
-        // Apply gradient background to each preference item after list is ready
         getListView().post(this::applyBackgroundToAllPreferences);
     }
 
