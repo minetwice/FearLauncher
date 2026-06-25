@@ -14,10 +14,6 @@ import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.LauncherActivity;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
-/**
- * Main Settings screen – extends BasePreferenceFragment for consistent Silver+Black theme.
- * All UI/background logic is now handled by BasePreferenceFragment.
- */
 public class LauncherPreferenceFragment extends BasePreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -25,10 +21,7 @@ public class LauncherPreferenceFragment extends BasePreferenceFragment
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Base class handles background, divider, and item backgrounds.
-        // No need to duplicate code here.
         super.onViewCreated(view, savedInstanceState);
-        // Additional UI tweaks if needed
     }
 
     @Override
