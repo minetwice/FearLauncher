@@ -52,9 +52,9 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
 
         // Load accounts
         List<MinecraftAccount> accountList = loadAccounts();
-        String currentAccountName = "";
+        final String currentAccountName;
         MinecraftAccount current = Accounts.getCurrent();
-        if (current != null) currentAccountName = current.mSaveLocation.getName();
+        currentAccountName = (current != null) ? current.mSaveLocation.getName() : "";
 
         mAdapter = new AccountAdapter(accountList, currentAccountName,
                 // On select
