@@ -1,23 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Outer stroke glow -->
-    <item>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed state – slightly lighter gradient -->
+    <item android:state_pressed="true">
         <shape>
+            <gradient
+                android:startColor="#D0D0D0"
+                android:endColor="#606060"
+                android:angle="135" />
             <stroke
                 android:width="2dp"
-                android:color="#60E0E0E0" /> <!-- Semi-transparent silver -->
+                android:color="#FFFFFF" />
             <corners android:radius="14dp" />
-            <solid android:color="#00000000" />
         </shape>
     </item>
-    <!-- Inner gradient background -->
-    <item android:bottom="2dp" android:left="2dp" android:right="2dp" android:top="2dp">
+    <!-- Focused state – same as normal but with glow -->
+    <item android:state_focused="true">
         <shape>
             <gradient
                 android:startColor="#C0C0C0"
                 android:endColor="#404040"
                 android:angle="135" />
-            <corners android:radius="12dp" />
+            <stroke
+                android:width="2dp"
+                android:color="#E0E0E0" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+    <!-- Normal state – silver gradient with border -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#C0C0C0"
+                android:endColor="#404040"
+                android:angle="135" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#E0E0E0" />
+            <corners android:radius="14dp" />
             <padding
                 android:left="16dp"
                 android:top="14dp"
@@ -25,4 +44,4 @@
                 android:bottom="14dp" />
         </shape>
     </item>
-</layer-list>
+</selector>
