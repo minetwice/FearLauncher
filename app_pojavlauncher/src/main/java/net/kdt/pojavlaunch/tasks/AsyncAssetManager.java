@@ -42,7 +42,10 @@ public class AsyncAssetManager {
         String exactJREName = MultiRTUtils.getExactJreName(8);
         if(current_rt_version == null && exactJREName != null && !exactJREName.equals("Internal")/*this clause is for when the internal runtime is goofed*/) return;
         if(rt_version == null) return;
-        if(rt_version.equals(current_rt_version)) return;
+        if(rt_version.equals(current_rt_version)) {
+            sExecutorService.execute(() -> NewJREUtil.checkAllInternalRuntimes(am));
+            return;
+        }
 
         // Install the runtime in an async manner, hope for the best
         String finalRt_version = rt_version;
@@ -54,6 +57,7 @@ public class AsyncAssetManager {
                         am.open("components/jre/bin-" + archAsString(Tools.DEVICE_ARCHITECTURE) + ".tar.xz"),
                         "Internal", finalRt_version);
                 MultiRTUtils.postPrepare("Internal");
+                NewJREUtil.checkAllInternalRuntimes(am);
             }catch (IOException e) {
                 Log.e("JREAuto", "Internal JRE unpack failed", e);
             }
