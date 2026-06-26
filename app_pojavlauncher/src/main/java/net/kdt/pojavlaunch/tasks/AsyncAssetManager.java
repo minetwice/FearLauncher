@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.kdt.mcgui.ProgressLayout;
 
+import net.kdt.pojavlaunch.NewJREUtil;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
 
