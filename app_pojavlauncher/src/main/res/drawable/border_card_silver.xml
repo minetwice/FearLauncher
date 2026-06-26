@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/border_card_silver.xml — Silver-border card for settings rows -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="#404040"
+                android:endColor="#606060"/>
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+    <item android:top="1dp" android:left="1dp" android:right="1dp" android:bottom="1dp">
+        <shape>
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="#181818"
+                android:endColor="#222222"/>
+            <corners android:radius="11dp"/>
+        </shape>
+    </item>
+</layer-list>
