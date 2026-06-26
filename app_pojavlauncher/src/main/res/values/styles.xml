@@ -1,123 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/styles.xml - Full updated version -->
 <resources>
-    <!-- ========================================== -->
-    <!-- MAIN THEME                                 -->
-    <!-- ========================================== -->
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- APP THEME                                       -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:statusBarColor">@color/background_status_bar</item>
+        <item name="android:navigationBarColor">@color/background_app</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <!-- FIX: All text white by default -->
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textColorHint">@color/secondary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+    </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- FEAR MATERIAL THEME                             -->
+    <!-- ═══════════════════════════════════════════════ -->
     <style name="Theme.FearLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">@color/background_status_bar</item>
         <item name="android:navigationBarColor">@color/background_app</item>
         <item name="android:windowLightStatusBar">false</item>
-        
         <item name="colorPrimary">@color/fear_primary</item>
         <item name="colorOnPrimary">@color/fear_on_primary</item>
         <item name="colorSecondary">@color/fear_secondary</item>
         <item name="colorTertiary">@color/fear_tertiary</item>
-        
         <item name="android:colorBackground">@color/background_app</item>
         <item name="colorSurface">@color/fear_surface</item>
         <item name="colorSurfaceVariant">@color/fear_surface_variant</item>
-        
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:textSize">@dimen/_12ssp</item>
-        <item name="android:textColorPrimary">@color/primary_text</item>
-        <item name="android:textColorSecondary">@color/secondary_text</item>
-        <item name="android:textColorHint">@color/secondary_text</item>
-        
-        <!-- Ensure preference theme points to our custom one -->
-        <item name="preferenceTheme">@style/FearPreferenceTheme</item>
-    </style>
-
-    <!-- ========================================== -->
-    <!-- PREFERENCE THEME (Settings)                -->
-    <!-- ========================================== -->
-    <style name="FearPreferenceTheme" parent="PreferenceThemeOverlay.v14.Material">
-        <item name="android:colorBackground">@color/background_app</item>
-        <item name="android:preferenceCategoryStyle">@style/FearPreferenceCategory</item>
-        <item name="android:preferenceStyle">@style/FearPreferenceItem</item>
-        <item name="android:listDivider">@color/silver_dark</item>
-        <item name="android:dividerHeight">1dp</item>
-        <!-- SeekBar styling (for RAM & Resolution) -->
-        <item name="android:progressBarStyleHorizontal">@style/FearSeekBar</item>
-    </style>
-
-    <!-- ========================================== -->
-    <!-- SEEK BAR STYLE (Cyan → Silver Gradient)    -->
-    <!-- ========================================== -->
-    <style name="FearSeekBar" parent="Widget.AppCompat.SeekBar">
-        <item name="android:progressDrawable">@drawable/seekbar_progress</item>
-        <item name="android:thumb">@drawable/seekbar_thumb</item>
-        <item name="android:minHeight">8dp</item>
-        <item name="android:maxHeight">8dp</item>
-    </style>
-
-    <!-- ========================================== -->
-    <!-- PREFERENCE CATEGORY (Silver, Bold, Shadow) -->
-    <!-- ========================================== -->
-    <style name="FearPreferenceCategory" parent="Preference.Category.Material">
-        <item name="android:textColor">@color/silver_light</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:shadowColor">#80000000</item>
-        <item name="android:shadowDx">0</item>
-        <item name="android:shadowDy">2</item>
-        <item name="android:shadowRadius">4</item>
-        <item name="android:padding">20dp</item>
-    </style>
-
-    <!-- ========================================== -->
-    <!-- PREFERENCE ITEM (Shiny Gradient + Border)  -->
-    <!-- ========================================== -->
-    <style name="FearPreferenceItem" parent="Preference.Material">
-    <item name="android:background">@drawable/preference_background_selector</item>
-    <item name="android:elevation">6dp</item>
-    <item name="android:padding">16dp</item>
-    <item name="android:layout_margin">10dp</item>
-    <item name="android:colorAccent">@color/silver_main</item>
-    <item name="android:iconTint">@color/silver_main</item>
-    <item name="android:textAppearance">@style/FearPreferenceTitle</item>
-    <item name="android:textAppearanceSmall">@style/FearPreferenceSummary</item>
-</style>
-
-    <!-- Title Text (White + Shadow) -->
-    <style name="FearPreferenceTitle" parent="@android:style/TextAppearance.DeviceDefault">
+        <!-- FIX: Text colors -->
         <item name="android:textColor">@color/primary_text</item>
-        <item name="android:textSize">17sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:shadowColor">#80000000</item>
-        <item name="android:shadowDx">0</item>
-        <item name="android:shadowDy">1</item>
-        <item name="android:shadowRadius">3</item>
+        <item name="android:textColorHint">@color/secondary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+        <!-- FIX: Bottom sheets dark bg -->
+        <item name="bottomSheetDialogTheme">@style/BottomSheet.Fear</item>
     </style>
 
-    <!-- Summary Text (Silver‑White + Shadow) -->
-    <style name="FearPreferenceSummary" parent="@android:style/TextAppearance.DeviceDefault.Small">
-        <item name="android:textColor">@color/secondary_text</item>
-        <item name="android:textSize">13sp</item>
-        <item name="android:shadowColor">#80000000</item>
-        <item name="android:shadowDx">0</item>
-        <item name="android:shadowDy">1</item>
-        <item name="android:shadowRadius">2</item>
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- BOTTOM SHEET — Dark Fear Theme                  -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <style name="BottomSheet.Fear" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheet.Fear.Style</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 
-    <!-- ========================================== -->
-    <!-- HELPER STYLES (General UI)                 -->
-    <!-- ========================================== -->
+    <style name="BottomSheet.Fear.Style" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/background_card</item>
+    </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- LAUNCHER MENU BUTTONS                           -->
+    <!-- ═══════════════════════════════════════════════ -->
     <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
         <item name="android:background">?android:attr/selectableItemBackground</item>
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:textSize">@dimen/_14ssp</item>
     </style>
+
     <style name="LauncherMenuButton.Universal" parent="LauncherMenuButton">
         <item name="android:layout_height">@dimen/_66sdp</item>
     </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- DIVIDERS                                        -->
+    <!-- ═══════════════════════════════════════════════ -->
     <style name="LauncherFragment_Divider">
         <item name="android:layout_width">@dimen/padding_tiny</item>
         <item name="android:layout_height">0dp</item>
         <item name="android:background">@color/divider</item>
     </style>
+
     <style name="ThickDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/_1sdp</item>
-        <item name="android:background">?android:attr/listDivider</item>
+        <!-- FIX: Use Fear divider color instead of system listDivider -->
+        <item name="android:background">@color/background_overlay</item>
     </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- TEXT STYLES                                     -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <style name="TextAppearance.AppCompat.Title" parent="Base.TextAppearance.AppCompat.Title">
+        <!-- FIX: Title text white, not default gray -->
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- DIMENSION + MISC                                -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <item name="dimension_tracker" type="id" />
+    <style name="DimensionTracker">
+        <item name="android:id">@id/dimension_tracker</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- FEAR CARDS AND BUTTONS                          -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <style name="FearCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/fear_surface_variant</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/background_overlay</item>
+    </style>
+
+    <style name="FearPlayButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">64dp</item>
+        <item name="cornerRadius">32dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="backgroundTint">@color/fear_primary</item>
+        <item name="android:textColor">@color/fear_on_primary</item>
+    </style>
+
 </resources>
