@@ -34,7 +34,7 @@
             android:src="@drawable/ic_px_edit"
             android:tint="@color/fear_primary"
             android:background="@drawable/background_icon_edit"
-            android:layout_marginStart="-@dimen/_12sdp"
+            android:layout_marginStart="0dp"
             android:layout_marginTop="@dimen/_20sdp"/>
 
         <LinearLayout
