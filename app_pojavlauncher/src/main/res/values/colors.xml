@@ -60,4 +60,5 @@
 <color name="silver_dark">#808080</color>
 <color name="seekbar_progress_start">#FF4500</color>
 <color name="seekbar_progress_end">#FF6A00</color>
+    <color name="silver_light">#E0E0E0</color>
 </resources>
