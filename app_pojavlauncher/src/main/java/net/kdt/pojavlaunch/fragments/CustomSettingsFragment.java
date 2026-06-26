@@ -1,5 +1,6 @@
 package net.kdt.pojavlaunch.fragments;
 
+import android.Manifest;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,10 +19,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import git.artdeell.mojo.R;
+import net.kdt.pojavlaunch.LauncherActivity;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceControlFragment;
+import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceExperimentalFragment;
+import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment;
+import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceMiscellaneousFragment;
 import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceVideoFragment;
 
 public class CustomSettingsFragment extends Fragment {
@@ -180,7 +188,6 @@ public class CustomSettingsFragment extends Fragment {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             if (viewType == TYPE_CATEGORY) {
                 View v = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
-                // We'll customize in onBind
                 return new CategoryViewHolder(v);
             } else if (viewType == TYPE_SWITCH) {
                 View v = inflater.inflate(R.layout.item_setting_switch, parent, false);
@@ -216,7 +223,7 @@ public class CustomSettingsFragment extends Fragment {
                 vh.title.setText(switchItem.title);
                 vh.summary.setText(switchItem.summary);
                 vh.switchView.setChecked(switchItem.checked);
-                vh.switchView.setOnCheckedChangeListener(null); // clear previous
+                vh.switchView.setOnCheckedChangeListener(null);
                 vh.switchView.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     switchItem.onToggle.accept(isChecked);
                 });
@@ -228,19 +235,18 @@ public class CustomSettingsFragment extends Fragment {
                 vh.summary.setText(sliderItem.summary);
                 vh.seekBar.setMax(sliderItem.max);
                 vh.seekBar.setProgress(sliderItem.currentValue);
-                vh.valueText.setText(sliderItem.formatter.format(sliderItem.currentValue));
-                // Animate when seekbar changes
+                vh.valueText.setText(sliderItem.formatter.apply(sliderItem.currentValue));
+
                 vh.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         if (fromUser) {
                             // Animate the text update
                             vh.valueText.animate().alpha(0.3f).setDuration(100).withEndAction(() -> {
-                                vh.valueText.setText(sliderItem.formatter.format(progress));
+                                vh.valueText.setText(sliderItem.formatter.apply(progress));
                                 vh.valueText.animate().alpha(1f).setDuration(100).start();
                             });
                             sliderItem.onValueChanged.accept(progress);
-                            // You could also animate the seekbar thumb if needed
                         }
                     }
                     @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -306,39 +312,40 @@ public class CustomSettingsFragment extends Fragment {
     }
 
     // ---------- Data classes ----------
-    abstract static class SettingItem {}
-    static class Category extends SettingItem {
-        String title;
-        Category(String title) { this.title = title; }
-    }
-    static class Normal extends SettingItem {
-        String title, summary;
-        int iconRes;
-        Runnable onClick;
-        Normal(String title, String summary, int iconRes, Runnable onClick) {
-            this.title = title; this.summary = summary; this.iconRes = iconRes; this.onClick = onClick;
+    abstract static class SettingItem {
+        static class Category extends SettingItem {
+            String title;
+            Category(String title) { this.title = title; }
         }
-    }
-    static class SwitchItem extends SettingItem {
-        String title, summary;
-        int iconRes;
-        boolean checked;
-        java.util.function.Consumer<Boolean> onToggle;
-        SwitchItem(String title, String summary, int iconRes, boolean checked, java.util.function.Consumer<Boolean> onToggle) {
-            this.title = title; this.summary = summary; this.iconRes = iconRes; this.checked = checked; this.onToggle = onToggle;
+        static class Normal extends SettingItem {
+            String title, summary;
+            int iconRes;
+            Runnable onClick;
+            Normal(String title, String summary, int iconRes, Runnable onClick) {
+                this.title = title; this.summary = summary; this.iconRes = iconRes; this.onClick = onClick;
+            }
         }
-    }
-    static class SliderItem extends SettingItem {
-        String title, summary;
-        int iconRes, currentValue, min, max, step;
-        java.util.function.Consumer<Integer> onValueChanged;
-        java.util.function.Function<Integer, String> formatter;
-        SliderItem(String title, String summary, int iconRes, int currentValue, int min, int max, int step,
-                   java.util.function.Consumer<Integer> onValueChanged,
-                   java.util.function.Function<Integer, String> formatter) {
-            this.title = title; this.summary = summary; this.iconRes = iconRes;
-            this.currentValue = currentValue; this.min = min; this.max = max; this.step = step;
-            this.onValueChanged = onValueChanged; this.formatter = formatter;
+        static class SwitchItem extends SettingItem {
+            String title, summary;
+            int iconRes;
+            boolean checked;
+            Consumer<Boolean> onToggle;
+            SwitchItem(String title, String summary, int iconRes, boolean checked, Consumer<Boolean> onToggle) {
+                this.title = title; this.summary = summary; this.iconRes = iconRes; this.checked = checked; this.onToggle = onToggle;
+            }
+        }
+        static class SliderItem extends SettingItem {
+            String title, summary;
+            int iconRes, currentValue, min, max, step;
+            Consumer<Integer> onValueChanged;
+            Function<Integer, String> formatter;
+            SliderItem(String title, String summary, int iconRes, int currentValue, int min, int max, int step,
+                       Consumer<Integer> onValueChanged,
+                       Function<Integer, String> formatter) {
+                this.title = title; this.summary = summary; this.iconRes = iconRes;
+                this.currentValue = currentValue; this.min = min; this.max = max; this.step = step;
+                this.onValueChanged = onValueChanged; this.formatter = formatter;
+            }
         }
     }
 }
