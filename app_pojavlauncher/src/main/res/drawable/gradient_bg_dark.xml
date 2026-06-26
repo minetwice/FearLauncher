@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/gradient_bg_dark.xml — Main app background gradient -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="#0D0D0D"
+        android:centerColor="#1A1818"
+        android:endColor="#242424"
+        android:centerX="0.5"
+        android:centerY="0.5"/>
+</shape>
