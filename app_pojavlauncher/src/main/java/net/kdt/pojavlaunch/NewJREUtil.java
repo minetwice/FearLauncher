@@ -150,6 +150,16 @@ public class NewJREUtil {
     }
 
 
+    public static void checkAllInternalRuntimes(AssetManager assetManager) {
+        for (InternalRuntime internalRuntime : InternalRuntime.values()) {
+            try {
+                checkInternalRuntime(assetManager, internalRuntime);
+            } catch (RuntimeSelectionException e) {
+                Log.e("NewJreUtil", "Failed to check internal runtime " + internalRuntime.name, e);
+            }
+        }
+    }
+
     public static void installNewJreIfNeeded(AssetManager assetManager, JMinecraftVersionList.Version versionInfo) throws IOException, RuntimeSelectionException {
         //Now we have the reliable information to check if our runtime settings are good enough
         if (versionInfo.javaVersion == null || versionInfo.javaVersion.component.equalsIgnoreCase("jre-legacy")) return;
@@ -215,6 +225,7 @@ public class NewJREUtil {
 
     private enum InternalRuntime {
         JRE_17(17, "Internal-17", "components/jre-new"),
+        JRE_18(18, "Internal-18", "components/jre-18"),
         JRE_21(21, "Internal-21", "components/jre-21"),
         JRE_25(25, "Internal-25", "components/jre-25");
         public final int majorVersion;
