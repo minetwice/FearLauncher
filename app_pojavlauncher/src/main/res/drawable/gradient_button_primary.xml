@@ -1,42 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- res/drawable/gradient_button_primary.xml — Orange gradient button -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Pressed state -->
     <item android:state_pressed="true">
-        <layer-list>
-            <item>
-                <shape>
-                    <gradient
-                        android:type="linear"
-                        android:angle="90"
-                        android:startColor="#CC3600"
-                        android:endColor="#E84000"/>
-                    <corners android:radius="12dp"/>
-                </shape>
-            </item>
-        </layer-list>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#E63E00"
+                android:endColor="#CC3700"
+                android:angle="45" />
+            <corners android:radius="12dp" />
+            <stroke android:width="1dp" android:color="#FFFFFF" />
+        </shape>
     </item>
-    <!-- Normal state -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#404040" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
     <item>
-        <layer-list>
-            <!-- Glow shadow layer -->
-            <item android:top="2dp">
-                <shape>
-                    <solid android:color="#66FF4500"/>
-                    <corners android:radius="12dp"/>
-                </shape>
-            </item>
-            <!-- Main button gradient -->
-            <item android:bottom="2dp">
-                <shape>
-                    <gradient
-                        android:type="linear"
-                        android:angle="90"
-                        android:startColor="#FF6A00"
-                        android:endColor="#FF4500"/>
-                    <corners android:radius="12dp"/>
-                </shape>
-            </item>
-        </layer-list>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#FF4500"
+                android:endColor="#FF6A00"
+                android:angle="45" />
+            <corners android:radius="12dp" />
+            <stroke android:width="1dp" android:color="#C0C0C0" />
+        </shape>
     </item>
 </selector>

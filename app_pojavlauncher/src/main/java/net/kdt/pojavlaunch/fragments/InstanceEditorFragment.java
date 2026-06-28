@@ -205,7 +205,7 @@ public class InstanceEditorFragment extends Fragment implements CropperUtils.Cro
         if(mInstance.jvmArgs.isEmpty()) mInstance.jvmArgs = null;
 
         Runtime selectedRuntime = (Runtime) mDefaultRuntime.getSelectedItem();
-        mInstance.selectedRuntime = (selectedRuntime.name.equals("<Default>") || selectedRuntime.versionString == null)
+        mInstance.selectedRuntime = (selectedRuntime.name.equals("<Default>"))
                 ? null : selectedRuntime.name;
 
         if(mDefaultRenderer.getSelectedItemPosition() == mRenderNames.size()) mInstance.renderer = null;

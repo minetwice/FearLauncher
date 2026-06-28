@@ -189,15 +189,21 @@ public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAd
                 mFullJavaVersionTextView.setTextColor(mDefaultColors);
                 mDeleteButton.setVisibility(View.GONE);
                 mSetDefaultButton.setVisibility(View.VISIBLE);
-                mSetDefaultButton.setText(R.string.mcl_launch_downloading);
+                mSetDefaultButton.setText(mContext.getString(R.string.mcl_launch_downloading, internal.majorVersion + ""));
                 mSetDefaultButton.setEnabled(true);
                 mSetDefaultButton.setOnClickListener(v -> {
+                    mSetDefaultButton.setEnabled(false);
+                    mSetDefaultButton.setText(R.string.global_waiting);
                     sExecutorService.execute(() -> {
                         try {
                             NewJREUtil.checkAllInternalRuntimes(mContext.getAssets());
                             Tools.runOnUiThread(RTRecyclerViewAdapter.this::refreshRuntimes);
                         } catch (Exception e) {
                             Tools.showError(mContext, e);
+                            Tools.runOnUiThread(() -> {
+                                mSetDefaultButton.setEnabled(true);
+                                mSetDefaultButton.setText(mContext.getString(R.string.mcl_launch_downloading, internal.majorVersion + ""));
+                            });
                         }
                     });
                 });

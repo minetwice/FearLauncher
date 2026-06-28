@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/background_card"
+    android:background="@drawable/premium_gradient_bg"
     android:paddingBottom="@dimen/_32sdp">
 
     <!-- Drag Handle -->
@@ -16,7 +16,7 @@
         android:layout_height="@dimen/_4sdp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="@dimen/_10sdp"
-        android:background="@color/background_overlay"/>
+        android:background="@drawable/premium_gradient_bg"/>
 
     <!-- Header -->
     <LinearLayout
@@ -50,7 +50,7 @@
             android:layout_height="@dimen/_32sdp"
             android:src="@drawable/ic_px_arrow_left"
             android:tint="@color/secondary_text"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/premium_gradient_bg"
             android:contentDescription="Close"/>
 
     </LinearLayout>
@@ -59,7 +59,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/background_overlay"
+        android:background="@drawable/premium_gradient_bg"
         android:layout_marginHorizontal="@dimen/_16sdp"/>
 
     <!-- Account Type Tabs -->
@@ -79,7 +79,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/tab_selected_bg"
+            android:background="@drawable/premium_gradient_bg"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginEnd="@dimen/_6sdp">
@@ -108,7 +108,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/tab_unselected_bg"
+            android:background="@drawable/premium_gradient_bg"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginStart="@dimen/_6sdp">

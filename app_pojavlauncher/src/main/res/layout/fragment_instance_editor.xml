@@ -6,14 +6,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_bg_dark"
+    android:background="@drawable/premium_gradient_bg"
     android:orientation="vertical">
 
     <!-- ══ TOP BAR ══ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/gradient_header"
+        android:background="@drawable/premium_gradient_bg"
         android:paddingHorizontal="@dimen/_16sdp"
         android:paddingVertical="@dimen/_14sdp"
         android:gravity="center_vertical"
@@ -23,7 +23,7 @@
             android:id="@+id/vprof_editor_instance_icon"
             android:layout_width="@dimen/_40sdp"
             android:layout_height="@dimen/_40sdp"
-            android:background="@drawable/border_card_silver"
+            android:background="@drawable/premium_gradient_bg"
             android:padding="@dimen/_6sdp"
             tools:src="@tools:sample/avatars"/>
 
@@ -33,7 +33,7 @@
             android:layout_height="@dimen/_14sdp"
             android:src="@drawable/ic_px_edit"
             android:tint="@color/fear_primary"
-            android:background="@drawable/background_icon_edit"
+            android:background="@drawable/premium_gradient_bg"
             android:layout_marginStart="0dp"
             android:layout_marginTop="@dimen/_20sdp"/>
 
@@ -93,7 +93,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_16sdp"
@@ -126,7 +126,7 @@
                     android:id="@+id/vprof_editor_instance_name"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
-                    android:background="@drawable/gradient_button_silver"
+                    android:background="@drawable/premium_gradient_bg"
                     android:textSize="@dimen/_13ssp"
                     android:textColor="@color/primary_text"
                     android:hint="@string/unnamed"
@@ -150,7 +150,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_16sdp"
@@ -191,7 +191,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/_8sdp"
-                        android:background="@drawable/gradient_button_silver"
+                        android:background="@drawable/premium_gradient_bg"
                         android:hint="@string/version_select_hint"
                         android:textColorHint="@color/secondary_text"
                         android:textColor="@color/primary_text"
@@ -203,7 +203,7 @@
                         android:id="@+id/vprof_editor_version_button"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_button_primary"
+                        android:background="@drawable/premium_gradient_bg"
                         android:text="@string/global_select"
                         android:textColor="@color/primary_text"
                         android:textSize="@dimen/_12ssp"
@@ -226,7 +226,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_16sdp"
@@ -267,7 +267,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/_8sdp"
-                        android:background="@drawable/gradient_button_silver"
+                        android:background="@drawable/premium_gradient_bg"
                         android:hint="@string/use_global_default"
                         android:textColorHint="@color/secondary_text"
                         android:textColor="@color/primary_text"
@@ -279,7 +279,7 @@
                         android:id="@+id/vprof_editor_ctrl_button"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_button_primary"
+                        android:background="@drawable/premium_gradient_bg"
                         android:text="@string/global_select"
                         android:textColor="@color/primary_text"
                         android:textSize="@dimen/_12ssp"
@@ -302,7 +302,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_16sdp"
@@ -335,7 +335,7 @@
                     android:id="@+id/vprof_editor_data_checkbox_container"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
-                    android:background="@drawable/gradient_button_silver"
+                    android:background="@drawable/premium_gradient_bg"
                     android:paddingHorizontal="@dimen/_12sdp"
                     android:button="@null"
                     android:text="@string/instance_shared_data_off"
@@ -358,7 +358,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_8sdp"
@@ -391,7 +391,7 @@
                     android:id="@+id/vprof_editor_jre_args"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
-                    android:background="@drawable/gradient_button_silver"
+                    android:background="@drawable/premium_gradient_bg"
                     android:hint="@string/use_global_default"
                     android:textColorHint="@color/secondary_text"
                     android:textColor="@color/primary_text"
@@ -405,7 +405,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_8sdp"
@@ -439,14 +439,14 @@
                     android:layout_height="@dimen/_44sdp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/gradient_button_silver">
+                    android:background="@drawable/premium_gradient_bg">
 
                     <Spinner
                         android:id="@+id/vprof_editor_spinner_runtime"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@android:color/transparent"
+                        android:background="@drawable/premium_gradient_bg"
                         android:paddingHorizontal="@dimen/_12sdp"/>
 
                     <ImageView
@@ -464,7 +464,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_card_silver"
+                android:background="@drawable/premium_gradient_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_24sdp"
@@ -498,14 +498,14 @@
                     android:layout_height="@dimen/_44sdp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/gradient_button_silver">
+                    android:background="@drawable/premium_gradient_bg">
 
                     <Spinner
                         android:id="@+id/vprof_editor_instance_renderer"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@android:color/transparent"
+                        android:background="@drawable/premium_gradient_bg"
                         android:dropDownWidth="match_parent"
                         android:paddingHorizontal="@dimen/_12sdp"/>
 
@@ -528,7 +528,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/gradient_header"
+        android:background="@drawable/premium_gradient_bg"
         android:paddingHorizontal="@dimen/_16sdp"
         android:paddingVertical="@dimen/_12sdp"
         android:elevation="8dp">
@@ -539,7 +539,7 @@
             android:layout_height="@dimen/_52sdp"
             android:layout_weight="1"
             android:layout_marginEnd="@dimen/_6sdp"
-            android:background="@drawable/gradient_button_primary"
+            android:background="@drawable/premium_gradient_bg"
             android:text="@string/global_save"
             android:textColor="@color/primary_text"
             android:textStyle="bold"/>
@@ -550,7 +550,7 @@
             android:layout_height="@dimen/_52sdp"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/_6sdp"
-            android:background="@drawable/gradient_button_silver"
+            android:background="@drawable/premium_gradient_bg"
             android:text="@string/global_delete"
             android:textColor="#FF6B6B"/>
 

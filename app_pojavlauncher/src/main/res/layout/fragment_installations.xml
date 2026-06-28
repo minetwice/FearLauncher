@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/background_app">
+    android:background="@drawable/premium_gradient_bg">
 
     <Button
         android:id="@+id/execute_jar_button"

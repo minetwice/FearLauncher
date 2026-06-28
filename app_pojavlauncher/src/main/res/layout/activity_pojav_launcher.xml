@@ -12,14 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/background_app">
+        android:animateLayoutChanges="true"
+        android:background="@drawable/premium_gradient_bg">
 
         <!-- Toolbar with Hamburger -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/top_bar_bg"
+            android:background="#121212"
             android:elevation="4dp"
             app:titleTextColor="@color/primary_text"
             app:title="Fear Launcher">

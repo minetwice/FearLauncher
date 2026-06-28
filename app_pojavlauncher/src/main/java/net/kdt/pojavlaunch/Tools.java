@@ -363,6 +363,12 @@ public final class Tools {
 
         Runnable runnable = () -> {
             final String errMsg = showMore ? printToString(e) : rolledMessage != null ? rolledMessage : e.getMessage();
+
+            // Advancement style for "Critical Problem" if it's a runtime error or from remote
+            if (ctx instanceof Activity && !showMore) {
+                 net.kdt.pojavlaunch.utils.AdvancementsUtil.showAdvancement((Activity)ctx, "Critical Problem!", errMsg);
+            }
+
             AlertDialog.Builder builder = new AlertDialog.Builder(ctx)
                     .setTitle(titleId)
                     .setMessage(errMsg)
@@ -677,7 +683,7 @@ public final class Tools {
         String runtime = LauncherPreferences.PREF_DEFAULT_RUNTIME;
         String profileRuntime = instance.selectedRuntime;
         if(profileRuntime != null) {
-            if(MultiRTUtils.forceReread(profileRuntime).versionString != null) {
+            if(MultiRTUtils.forceReread(profileRuntime).versionString != null || profileRuntime.startsWith("Internal-")) {
                 runtime = profileRuntime;
             }
         }
@@ -749,8 +755,13 @@ public final class Tools {
     public static void swapFragment(FragmentActivity fragmentActivity , Class<? extends Fragment> fragmentClass,
                                     @Nullable String fragmentTag, @Nullable Bundle bundle) {
         // When people tab out, it might happen
-        //TODO handle custom animations
         fragmentActivity.getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                )
                 .setReorderingAllowed(true)
                 .addToBackStack(fragmentClass.getName())
                 .replace(R.id.container_fragment, fragmentClass, bundle, fragmentTag).commit();

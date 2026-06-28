@@ -20,6 +20,18 @@ public class RTSpinnerAdapter implements SpinnerAdapter {
     final List<Runtime> mRuntimes;
     public RTSpinnerAdapter(@NonNull Context context, List<Runtime> runtimes) {
         mRuntimes = runtimes;
+        for (net.kdt.pojavlaunch.NewJREUtil.InternalRuntime internal : net.kdt.pojavlaunch.NewJREUtil.InternalRuntime.values()) {
+            boolean found = false;
+            for (Runtime r : runtimes) {
+                if (r.name.equals(internal.name)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                mRuntimes.add(new Runtime(internal.name));
+            }
+        }
         Runtime runtime = new Runtime("<Default>", "", null, 0);
         mRuntimes.add(runtime);
         mContext = context;

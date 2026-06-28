@@ -118,8 +118,10 @@
         android:id="@+id/edit_profile_button"
         android:layout_width="@dimen/_52sdp"
         android:layout_height="@dimen/_52sdp"
-        android:background="?android:attr/selectableItemBackground"
+        android:layout_marginEnd="@dimen/padding_large"
+        android:background="@drawable/premium_edit_bg"
         android:src="@drawable/ic_px_edit"
+        app:tint="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="@+id/mc_version_spinner"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mc_version_spinner" />
@@ -142,7 +144,7 @@
         android:textAllCaps="true"
         android:text="@string/main_play"
         android:background="@drawable/premium_button_bg"
-        android:textColor="@color/background_app"
+        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
