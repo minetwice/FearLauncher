@@ -5,7 +5,8 @@
     android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app">
+    android:background="@drawable/premium_gradient_bg"
+    android:animateLayoutChanges="true">
 
     <!-- HAMBURGER MENU ICON (New Addition for Navigation) -->
     <ImageView
@@ -140,6 +141,8 @@
         android:layout_marginBottom="@dimen/_15sdp"
         android:textAllCaps="true"
         android:text="@string/main_play"
+        android:background="@drawable/premium_button_bg"
+        android:textColor="@color/background_app"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

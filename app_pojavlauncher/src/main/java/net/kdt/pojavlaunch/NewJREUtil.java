@@ -223,7 +223,7 @@ public class NewJREUtil {
         instance.write();
     }
 
-    private enum InternalRuntime {
+    public enum InternalRuntime {
         JRE_17(17, "Internal-17", "components/jre-new"),
         JRE_18(18, "Internal-18", "components/jre-18"),
         JRE_21(21, "Internal-21", "components/jre-21"),

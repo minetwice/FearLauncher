@@ -23,11 +23,39 @@ import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import net.kdt.pojavlaunch.NewJREUtil;
 
 public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAdapter.RTViewHolder> {
 
     private boolean mIsDeleting = false;
+    private final List<Runtime> mRuntimes = new ArrayList<>();
+
+    public RTRecyclerViewAdapter() {
+        refreshRuntimes();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void refreshRuntimes() {
+        mRuntimes.clear();
+        List<Runtime> installed = MultiRTUtils.getRuntimes();
+        mRuntimes.addAll(installed);
+        for (NewJREUtil.InternalRuntime internal : NewJREUtil.InternalRuntime.values()) {
+            boolean found = false;
+            for (Runtime r : installed) {
+                if (r.name.equals(internal.name)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                mRuntimes.add(new Runtime(internal.name));
+            }
+        }
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -38,13 +66,12 @@ public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAd
 
     @Override
     public void onBindViewHolder(@NonNull RTViewHolder holder, int position) {
-        final List<Runtime> runtimes = MultiRTUtils.getRuntimes();
-        holder.bindRuntime(runtimes.get(position),position);
+        holder.bindRuntime(mRuntimes.get(position),position);
     }
 
     @Override
     public int getItemCount() {
-        return MultiRTUtils.getRuntimes().size();
+        return mRuntimes.size();
     }
 
     public boolean isDefaultRuntime(Runtime rt) {
@@ -129,6 +156,13 @@ public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAd
             });
         }
 
+        private NewJREUtil.InternalRuntime getInternalRuntime(Runtime runtime) {
+            for(NewJREUtil.InternalRuntime internal : NewJREUtil.InternalRuntime.values()) {
+                if(internal.name.equals(runtime.name)) return internal;
+            }
+            return null;
+        }
+
         public void bindRuntime(Runtime runtime, int pos) {
             mCurrentRuntime = runtime;
             mCurrentPosition = pos;
@@ -148,6 +182,28 @@ public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAd
             }
 
             // Problematic runtime moment, force propose deletion
+            NewJREUtil.InternalRuntime internal = getInternalRuntime(runtime);
+            if (runtime.versionString == null && internal != null) {
+                mJavaVersionTextView.setText(runtime.name.replace("Internal-", "Java "));
+                mFullJavaVersionTextView.setText(R.string.global_waiting);
+                mFullJavaVersionTextView.setTextColor(mDefaultColors);
+                mDeleteButton.setVisibility(View.GONE);
+                mSetDefaultButton.setVisibility(View.VISIBLE);
+                mSetDefaultButton.setText(R.string.mcl_launch_downloading);
+                mSetDefaultButton.setEnabled(true);
+                mSetDefaultButton.setOnClickListener(v -> {
+                    sExecutorService.execute(() -> {
+                        try {
+                            NewJREUtil.checkAllInternalRuntimes(mContext.getAssets());
+                            Tools.runOnUiThread(RTRecyclerViewAdapter.this::refreshRuntimes);
+                        } catch (Exception e) {
+                            Tools.showError(mContext, e);
+                        }
+                    });
+                });
+                return;
+            }
+
             mDeleteButton.setVisibility(View.VISIBLE);
             if(runtime.versionString == null){
                 mFullJavaVersionTextView.setText(R.string.multirt_runtime_corrupt);
