@@ -61,92 +61,86 @@ public class CustomSettingsFragment extends Fragment {
     private List<SettingItem> buildSettingsList() {
         List<SettingItem> list = new ArrayList<>();
 
-        // Category: Video
-        list.add(new SettingItem.Category("Video & Performance"));
+        // Category: Video & Graphics
+        list.add(new SettingItem.Category("GRAPHICS & DISPLAY"));
         list.add(new SettingItem.Normal(
-                "Video",
-                "Resolution, renderer, VSync",
+                "VIDEO",
+                "Internal Engine & Renderer",
                 R.drawable.ic_px_image,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceVideoFragment.class, "video", null)
         ));
 
-        // Category: Controls
-        list.add(new SettingItem.Category("Game Controls"));
-        list.add(new SettingItem.Normal(
-                "Controls",
-                "Gestures, buttons, mouse",
-                R.drawable.ic_px_gamepad,
-                () -> Tools.swapFragment(requireActivity(), LauncherPreferenceControlFragment.class, "controls", null)
+        int currentRes = LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100);
+        list.add(new SettingItem.SliderItem(
+                "RESOLUTION SCALER",
+                "Scale game resolution for performance",
+                R.drawable.ic_px_resolution,
+                currentRes,
+                25, 100, 5,
+                (progress) -> LauncherPreferences.DEFAULT_PREF.edit().putInt("resolutionRatio", progress).apply(),
+                (progress) -> progress + "%"
         ));
 
-        // Category: Java
-        list.add(new SettingItem.Category("Java Engine"));
+        // Category: Java & Engine
+        list.add(new SettingItem.Category("ENGINE & RUNTIME"));
         list.add(new SettingItem.Normal(
-                "Java",
-                "Runtime, memory, JVM args",
+                "JAVA",
+                "JVM Tweaks & Sandbox",
                 R.drawable.ic_px_java,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceJavaFragment.class, "java", null)
         ));
 
-        // Category: Tools
-        list.add(new SettingItem.Category("Advanced Tools"));
+        int currentMem = LauncherPreferences.DEFAULT_PREF.getInt("allocation", 1024);
+        list.add(new SettingItem.SliderItem(
+                "MEMORY ALLOCATION",
+                "RAM allocated for Minecraft process",
+                R.drawable.ic_px_ram,
+                currentMem,
+                256, 4096, 64,
+                (progress) -> LauncherPreferences.DEFAULT_PREF.edit().putInt("allocation", progress).apply(),
+                (progress) -> progress + " MB"
+        ));
+
+        // Category: Controls
+        list.add(new SettingItem.Category("INPUT & CONTROLS"));
         list.add(new SettingItem.Normal(
-                "Tools",
-                "Download source, file checks",
+                "CONTROLS",
+                "Gestures, Buttons & Mouse",
+                R.drawable.ic_px_gamepad,
+                () -> Tools.swapFragment(requireActivity(), LauncherPreferenceControlFragment.class, "controls", null)
+        ));
+
+        // Category: Tools
+        list.add(new SettingItem.Category("SYSTEM & GENERAL"));
+        list.add(new SettingItem.Normal(
+                "TOOLS",
+                "Downloads & File Checks",
                 R.drawable.ic_px_alt_sliders,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceMiscellaneousFragment.class, "misc", null)
         ));
 
-        // Category: Experiments
-        list.add(new SettingItem.Category("Experimental Labs"));
-        list.add(new SettingItem.Normal(
-                "Experiments",
-                "Bleeding-edge features",
-                R.drawable.ic_px_experiment,
-                () -> Tools.swapFragment(requireActivity(), LauncherPreferenceExperimentalFragment.class, "experiment", null)
-        ));
-
-        // Switch: Force English
         list.add(new SettingItem.SwitchItem(
-                "Force English",
-                "See original strings, restart required",
+                "FORCE ENGLISH",
+                "Use system default strings",
                 R.drawable.ic_px_translate,
                 LauncherPreferences.DEFAULT_PREF.getBoolean("force_english", false),
                 (checked) -> LauncherPreferences.DEFAULT_PREF.edit().putBoolean("force_english", checked).apply()
         ));
 
-        // Slider: Memory allocation (example)
-        int currentMem = LauncherPreferences.DEFAULT_PREF.getInt("allocation", 1024);
-        list.add(new SettingItem.SliderItem(
-                "Memory Allocation",
-                "Controls how much RAM Minecraft uses",
-                R.drawable.ic_px_ram,
-                currentMem,
-                256, 4096, 64,
-                (progress) -> {
-                    LauncherPreferences.DEFAULT_PREF.edit().putInt("allocation", progress).apply();
-                },
-                (progress) -> progress + " MB"
-        ));
-
-        // Slider: Resolution (example)
-        int currentRes = LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100);
-        list.add(new SettingItem.SliderItem(
-                "Resolution Scaler",
-                "Decrease resolution for performance",
-                R.drawable.ic_px_resolution,
-                currentRes,
-                25, 100, 5,
-                (progress) -> {
-                    LauncherPreferences.DEFAULT_PREF.edit().putInt("resolutionRatio", progress).apply();
-                },
-                (progress) -> progress + "%"
-        ));
-
-        // Notification permission (just a normal item with click)
+        // Category: Experiments
+        list.add(new SettingItem.Category("ADVANCED LABS"));
         list.add(new SettingItem.Normal(
-                "Notification Permission",
-                "Request notification permission",
+                "EXPERIMENTS",
+                "Bleeding-edge Features",
+                R.drawable.ic_px_experiment,
+                () -> Tools.swapFragment(requireActivity(), LauncherPreferenceExperimentalFragment.class, "experiment", null)
+        ));
+
+        // Bottom Items
+        list.add(new SettingItem.Category("PERMISSIONS"));
+        list.add(new SettingItem.Normal(
+                "NOTIFICATIONS",
+                "Request Alerts Permission",
                 R.drawable.ic_px_bell,
                 () -> {
                     if (getActivity() instanceof LauncherActivity) {
@@ -167,7 +161,7 @@ public class CustomSettingsFragment extends Fragment {
         private static final int TYPE_SWITCH = 2;
         private static final int TYPE_SLIDER = 3;
 
-        private List<SettingItem> items;
+        private final List<SettingItem> items;
 
         SettingsAdapter(List<SettingItem> items) {
             this.items = items;
@@ -207,8 +201,9 @@ public class CustomSettingsFragment extends Fragment {
             if (holder instanceof CategoryViewHolder) {
                 CategoryViewHolder vh = (CategoryViewHolder) holder;
                 vh.textView.setText(((SettingItem.Category) item).title);
-                vh.textView.setTextColor(getResources().getColor(R.color.silver_light));
-                vh.textView.setShadowLayer(4, 0, 2, 0x80000000);
+                vh.textView.setTextColor(getResources().getColor(R.color.silver_main));
+                vh.textView.setAllCaps(true);
+                vh.textView.setLetterSpacing(0.1f);
             } else if (holder instanceof NormalViewHolder) {
                 NormalViewHolder vh = (NormalViewHolder) holder;
                 SettingItem.Normal normal = (SettingItem.Normal) item;
@@ -241,11 +236,7 @@ public class CustomSettingsFragment extends Fragment {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         if (fromUser) {
-                            // Animate the text update
-                            vh.valueText.animate().alpha(0.3f).setDuration(100).withEndAction(() -> {
-                                vh.valueText.setText(sliderItem.formatter.apply(progress));
-                                vh.valueText.animate().alpha(1f).setDuration(100).start();
-                            });
+                            vh.valueText.setText(sliderItem.formatter.apply(progress));
                             sliderItem.onValueChanged.accept(progress);
                         }
                     }
@@ -266,9 +257,9 @@ public class CustomSettingsFragment extends Fragment {
             CategoryViewHolder(View v) {
                 super(v);
                 textView = (TextView) v;
-                textView.setPadding(32, 16, 16, 16);
-                textView.setTextSize(18);
-                textView.setTypeface(null, android.graphics.Typeface.BOLD);
+                textView.setPadding(48, 48, 16, 12);
+                textView.setTextSize(14);
+                textView.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
             }
         }
 
