@@ -5,29 +5,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/background_line"
-    android:paddingHorizontal="@dimen/_2sdp"
-    android:paddingVertical="@dimen/_2sdp"
+    android:background="@drawable/premium_glass_bg"
+    android:paddingHorizontal="@dimen/_4sdp"
+    android:paddingVertical="@dimen/_4sdp"
     android:layout_marginVertical="@dimen/padding_medium"
     >
 
-    <ImageView
-        android:id="@+id/mod_thumbnail_imageview"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/mod_image_container"
         android:layout_width="@dimen/_65sdp"
         android:layout_height="@dimen/_65sdp"
-
+        app:cardCornerRadius="8dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        tools:src="@mipmap/ic_launcher_foreground"
-        />
+        <ImageView
+            android:id="@+id/mod_thumbnail_imageview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:src="@mipmap/ic_launcher_foreground"
+            />
+    </androidx.cardview.widget.CardView>
 
     <ImageView
         android:id="@+id/mod_source_imageview"
         android:layout_width="@dimen/_13sdp"
         android:layout_height="@dimen/_13sdp"
         android:layout_marginTop="3dp"
-
         android:layout_marginEnd="3dp"
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,10 +49,11 @@
         android:maxLines="1"
         android:layout_marginStart="@dimen/padding_moderate"
         android:ellipsize="end"
-
+        android:textColor="@color/primary_text"
+        android:textStyle="bold"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintEnd_toStartOf="@+id/mod_source_imageview"
-        app:layout_constraintStart_toEndOf="@+id/mod_thumbnail_imageview"
+        app:layout_constraintStart_toEndOf="@+id/mod_image_container"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Feed the beast - Reforged" />
 
@@ -58,7 +66,8 @@
         android:layout_marginEnd="@dimen/padding_medium"
         android:ellipsize="end"
         android:maxLines="3"
-
+        android:textColor="@color/secondary_text"
+        android:textSize="@dimen/_10ssp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/mod_title_textview"
@@ -67,18 +76,11 @@
         app:layout_constraintVertical_bias="0.0"
         tools:text="Feed the beast - Reforged is a machine and magic focused modpack, with no respect for the minimum requirements of minecraft. Very long text" />
 
-
-    <!--
-        When clicked for the first time, the view is extended with more information.
-        Inflating later is cheaper, hence the stub
-     -->
     <ViewStub
         android:id="@+id/mod_limited_state_stub"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout="@layout/view_mod_extended"
-        app:layout_constraintTop_toBottomOf="@id/mod_thumbnail_imageview"/>
-
-
+        app:layout_constraintTop_toBottomOf="@id/mod_image_container"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

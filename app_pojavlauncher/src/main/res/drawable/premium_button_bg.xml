@@ -1,12 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:startColor="#F0F0F0"
-        android:centerColor="#C0C0C0"
-        android:endColor="#E0E0E0"
-        android:angle="135" />
-    <corners android:radius="12dp" />
-    <stroke
-        android:width="2dp"
-        android:color="#FF4500" />
-</shape>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item android:id="@android:id/mask">
+        <shape>
+            <corners android:radius="12dp" />
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <item>
+        <selector>
+            <item android:state_pressed="true">
+                <shape>
+                    <gradient
+                        android:startColor="#E0E0E0"
+                        android:centerColor="#B0B0B0"
+                        android:endColor="#D0D0D0"
+                        android:angle="135" />
+                    <corners android:radius="12dp" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="#FFFFFF" />
+                </shape>
+            </item>
+            <item>
+                <layer-list>
+                    <item>
+                        <shape>
+                            <gradient
+                                android:startColor="#F0F0F0"
+                                android:centerColor="#C0C0C0"
+                                android:endColor="#E0E0E0"
+                                android:angle="135" />
+                            <corners android:radius="12dp" />
+                            <stroke
+                                android:width="2dp"
+                                android:color="#A0A0A0" />
+                        </shape>
+                    </item>
+                    <!-- Shine overlay -->
+                    <item android:top="2dp" android:left="2dp" android:right="2dp">
+                        <shape>
+                            <gradient
+                                android:startColor="#80FFFFFF"
+                                android:endColor="#00FFFFFF"
+                                android:angle="270" />
+                            <corners android:radius="10dp" />
+                        </shape>
+                    </item>
+                </layer-list>
+            </item>
+        </selector>
+    </item>
+</ripple>

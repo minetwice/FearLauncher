@@ -757,10 +757,10 @@ public final class Tools {
         // When people tab out, it might happen
         fragmentActivity.getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out,
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out
+                        R.anim.fragment_enter,
+                        R.anim.fragment_exit,
+                        R.anim.fragment_pop_enter,
+                        R.anim.fragment_pop_exit
                 )
                 .setReorderingAllowed(true)
                 .addToBackStack(fragmentClass.getName())

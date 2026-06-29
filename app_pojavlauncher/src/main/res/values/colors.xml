@@ -8,7 +8,7 @@
     <color name="control_button_pressed_color">#4D000000</color>
 
     <!-- FIX: MineButton text visible on dark bg -->
-    <color name="minebutton_color">#FF4500</color>
+    <color name="minebutton_color">@color/silver_main</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- BACKGROUNDS                                     -->
@@ -38,7 +38,7 @@
     <!-- ═══════════════════════════════════════════════ -->
     <!-- FEAR BRAND ACCENTS                              -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#FF4500</color>
+    <color name="fear_primary">@color/silver_main</color>
     <color name="fear_on_primary">#FFFFFF</color>
     <color name="fear_secondary">#00E676</color>
     <color name="fear_tertiary">#2979FF</color>
@@ -59,6 +59,6 @@
     <color name="silver_main">#C0C0C0</color>
     <color name="silver_dark">#808080</color>
     <color name="silver_light">#E0E0E0</color>
-    <color name="seekbar_progress_start">#FF4500</color>
-    <color name="seekbar_progress_end">#FF6A00</color>
+    <color name="seekbar_progress_start">@color/silver_light</color>
+    <color name="seekbar_progress_end">@color/silver_dark</color>
 </resources>
