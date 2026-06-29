@@ -162,6 +162,7 @@ public class JavaRunner {
     public static File findVmPath(File runtimeHomeDir, String runtimeArch) {
         File finalPath;
         if((finalPath = findVmForArch(runtimeHomeDir, null)) != null) return finalPath;
+        if (runtimeArch == null) return null;
         switch (runtimeArch) {
             case "i386": case "i486": case "i586":
                 if((finalPath = findVmForArch(runtimeHomeDir, "i386")) != null) return finalPath;
