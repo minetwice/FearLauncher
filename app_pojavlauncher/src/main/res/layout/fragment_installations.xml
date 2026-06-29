@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -11,8 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Execute JAR"
-        android:backgroundTint="#FFAA00"
-        android:textColor="@color/primary_text"
+        android:background="@drawable/premium_button_bg"
+        app:backgroundTint="@null"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="12dp" />
 
     <Button
@@ -20,8 +22,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Custom Controls"
-        android:backgroundTint="#FFAA00"
-        android:textColor="@color/primary_text"
+        android:background="@drawable/premium_button_bg"
+        app:backgroundTint="@null"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="12dp" />
 
     <Button
@@ -29,8 +32,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Mods"
-        android:backgroundTint="#FFAA00"
-        android:textColor="@color/primary_text"
+        android:background="@drawable/premium_button_bg"
+        app:backgroundTint="@null"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="12dp" />
 
     <Button
@@ -38,8 +42,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Share Logs"
-        android:backgroundTint="#FFAA00"
-        android:textColor="@color/primary_text"
+        android:background="@drawable/premium_button_bg"
+        app:backgroundTint="@null"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="12dp" />
 
     <Button
@@ -47,7 +52,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Open Directory"
-        android:backgroundTint="#FFAA00"
-        android:textColor="@color/primary_text" />
+        android:background="@drawable/premium_button_bg"
+        app:backgroundTint="@null"
+        android:textColor="#FFFFFF" />
 
 </LinearLayout>

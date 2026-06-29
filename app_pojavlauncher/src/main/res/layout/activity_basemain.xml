@@ -6,7 +6,7 @@
     android:id="@+id/main_drawer_options"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app"
+    android:background="@drawable/premium_gradient_bg"
     android:keepScreenOn="true">
 
     <!-- GAME CONTENT FRAME -->
