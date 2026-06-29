@@ -67,8 +67,8 @@ public class MainMenuFragment extends Fragment {
         View installJarButton    = view.findViewById(R.id.install_jar_button);
         View shareLogsButton     = view.findViewById(R.id.share_logs_button);
         View openFilesButton     = view.findViewById(R.id.open_files_button);
-        ImageView hamburgerBtn   = view.findViewById(R.id.hamburger_menu_icon);
-        ImageButton editBtn      = view.findViewById(R.id.edit_profile_button);
+        View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
+        View editBtn             = view.findViewById(R.id.edit_profile_button);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
         // Refresh UI
