@@ -10,7 +10,7 @@
         android:id="@+id/settings_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/top_bar_bg"
+        android:background="@drawable/premium_gradient_bg"
         android:elevation="4dp"
         android:title="Settings"
         android:titleTextColor="@color/primary_text"

@@ -225,6 +225,7 @@ public class NewJREUtil {
 
     public enum InternalRuntime {
         JRE_17(17, "Internal-17", "components/jre-new"),
+        JRE_18(18, "Internal-18", "components/jre-18"),
         JRE_21(21, "Internal-21", "components/jre-21"),
         JRE_25(25, "Internal-25", "components/jre-25");
         public final int majorVersion;

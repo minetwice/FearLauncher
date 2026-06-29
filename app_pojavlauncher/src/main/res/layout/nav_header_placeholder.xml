@@ -4,28 +4,30 @@
     android:layout_height="@dimen/_140sdp"
     android:background="@drawable/premium_gradient_bg"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="@dimen/_16sdp">
 
     <ImageView
-        android:layout_width="@dimen/_48sdp"
-        android:layout_height="@dimen/_48sdp"
+        android:layout_width="@dimen/_52sdp"
+        android:layout_height="@dimen/_52sdp"
         android:src="@drawable/ic_fear_full" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_8sdp"
-        android:text="FEAR"
-        android:textColor="@color/fear_primary"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:text="FEAR PREMIUM"
+        android:textColor="#C0C0C0"
         android:textSize="@dimen/_18ssp"
         android:textStyle="bold"
-        android:fontFamily="@font/minecraft_ten" />
+        android:letterSpacing="0.1" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Launcher"
-        android:textColor="@color/secondary_text"
-        android:textSize="@dimen/_11ssp" />
+        android:text="The Ultimate Minecraft Mobile Experience"
+        android:textColor="#808080"
+        android:textSize="@dimen/_9ssp"
+        android:gravity="center" />
 
 </LinearLayout>

@@ -85,7 +85,7 @@
         android:layout_width="240dp"
         android:layout_height="match_parent"
         android:layout_gravity="right"
-        android:background="@color/fear_surface"
+        android:background="@drawable/premium_gradient_bg"
         android:fitsSystemWindows="false"
         android:divider="@color/background_overlay"
         android:dividerHeight="1dp" />

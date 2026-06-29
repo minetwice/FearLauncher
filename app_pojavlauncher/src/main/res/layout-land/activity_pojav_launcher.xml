@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/background_app">
+        android:background="@drawable/premium_gradient_bg">
 
         <!-- Toolbar with Hamburger & App Title -->
         <androidx.appcompat.widget.Toolbar
@@ -60,7 +60,7 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/sidebar_bg"
+        android:background="@drawable/premium_gradient_bg"
         app:menu="@menu/nav_drawer_menu"
         app:itemIconTint="@color/primary_text"
         app:itemTextColor="@color/primary_text"

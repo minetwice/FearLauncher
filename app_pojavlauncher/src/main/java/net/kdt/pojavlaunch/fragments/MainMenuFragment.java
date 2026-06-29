@@ -62,7 +62,7 @@ public class MainMenuFragment extends Fragment {
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
         View newsButton          = view.findViewById(R.id.news_button);
-        View discordButton       = view.findViewById(R.id.social_media_button);
+        View discordButton       = null; // view.findViewById(R.id.social_media_button);
         View customControlButton = view.findViewById(R.id.custom_control_button);
         View installJarButton    = view.findViewById(R.id.install_jar_button);
         View shareLogsButton     = view.findViewById(R.id.share_logs_button);

@@ -22,8 +22,8 @@
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT COLORS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="primary_text">#C0C0C0</color>
-    <color name="secondary_text">#808080</color>
+    <color name="primary_text">#E0E0E0</color>
+    <color name="secondary_text">#A0A0A0</color>
     <color name="icon_outline_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->

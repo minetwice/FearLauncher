@@ -20,11 +20,11 @@
     </style>
 
     <style name="FearPreferenceTheme" parent="PreferenceThemeOverlay.v14.Material">
-    <item name="android:textColor">@color/primary_text</item>
-    <item name="android:background">@color/background_app</item>
-    <item name="android:colorBackground">@color/background_app</item>
-    <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
-</style>
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:background">@drawable/premium_gradient_bg</item>
+        <item name="android:colorBackground">@color/background_app</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+    </style>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- FEAR MATERIAL THEME                             -->

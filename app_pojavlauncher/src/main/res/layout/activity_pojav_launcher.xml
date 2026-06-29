@@ -20,7 +20,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#121212"
+            android:background="@color/top_bar_bg"
             android:elevation="4dp"
             app:titleTextColor="@color/primary_text"
             app:title="Fear Launcher">
@@ -60,7 +60,7 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/sidebar_bg"
+        android:background="@drawable/premium_gradient_bg"
         app:menu="@menu/nav_drawer_menu"
         app:itemIconTint="@color/primary_text"
         app:itemTextColor="@color/primary_text"
