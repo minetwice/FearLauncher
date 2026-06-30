@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -61,11 +62,9 @@ public class MainMenuFragment extends Fragment {
 
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
-        View newsButton          = view.findViewById(R.id.news_button);
-        View discordButton       = null; // view.findViewById(R.id.social_media_button);
         View customControlButton = view.findViewById(R.id.custom_control_button);
         View installJarButton    = view.findViewById(R.id.install_jar_button);
-        View shareLogsButton     = view.findViewById(R.id.share_logs_button);
+        View shareLogsButton     = view.findViewById(R.id.share_logs_button_tray);
         View openFilesButton     = view.findViewById(R.id.open_files_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         View editBtn             = view.findViewById(R.id.edit_profile_button);
@@ -75,98 +74,76 @@ public class MainMenuFragment extends Fragment {
         refreshAccountUI();
         updateVersionText();
 
-        // ── Account Section Click → Open Account Manager ───────────────
         if (accountSection != null) {
             accountSection.setOnClickListener(v -> openAccountManager());
         }
 
-        // ── Play ───────────────────────────────────────────────────────
         if (playButton != null) {
             playButton.setOnClickListener(v -> handlePlayButton());
         }
 
-        // ── News ───────────────────────────────────────────────────────
-        if (newsButton != null) {
-            newsButton.setOnClickListener(v ->
-                    Tools.openURL(requireActivity(), Tools.URL_HOME));
-            newsButton.setOnLongClickListener(v -> {
-                Tools.swapFragment(requireActivity(),
-                        GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
-                return true;
-            });
-        }
-
-        // ── Discord ────────────────────────────────────────────────────
-        if (discordButton != null) {
-            discordButton.setOnClickListener(v ->
-                    Tools.openURL(requireActivity(), getString(R.string.social_media_invite)));
-        }
-
-        // ── Custom Controls ────────────────────────────────────────────
         if (customControlButton != null) {
             customControlButton.setOnClickListener(v ->
                     startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
         }
 
-        // ── Install JAR ────────────────────────────────────────────────
         if (installJarButton != null) {
             installJarButton.setOnClickListener(v -> runInstallerWithConfirmation());
         }
 
-        // ── Share Logs ─────────────────────────────────────────────────
-        if (shareLogsButton != null) {
-            shareLogsButton.setOnClickListener(v -> shareLog(requireContext()));
-        }
-
-        // ── Open Game Directory ────────────────────────────────────────
         if (openFilesButton != null) {
             openFilesButton.setOnClickListener(v -> openGameDirectory(v.getContext()));
         }
 
-        // ── Hamburger ──────────────────────────────────────────────────
-        if (hamburgerBtn != null) {
-            hamburgerBtn.setOnClickListener(v ->
-                    Tools.swapFragment(requireActivity(),
-                            GamepadMapperFragment.class, GamepadMapperFragment.TAG, null));
-        }
-
-        // ── Edit Profile ───────────────────────────────────────────────
         if (editBtn != null) {
             editBtn.setOnClickListener(v -> {
                 if (mVersionSpinner != null)
                     mVersionSpinner.openProfileEditor(requireActivity());
             });
         }
+
+        // TRAY LOGIC
+        View settingsTray = view.findViewById(R.id.settings_tray);
+        if (hamburgerBtn != null && settingsTray != null) {
+            hamburgerBtn.setOnClickListener(v -> {
+                settingsTray.setVisibility(View.VISIBLE);
+                settingsTray.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_in));
+            });
+
+            view.findViewById(R.id.tray_close).setOnClickListener(v -> {
+                settingsTray.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_out));
+                settingsTray.postDelayed(() -> settingsTray.setVisibility(View.GONE), 300);
+            });
+
+            view.findViewById(R.id.tray_settings).setOnClickListener(v ->
+                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
+
+            view.findViewById(R.id.tray_runtime).setOnClickListener(v ->
+                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment.class, "java", null));
+
+            view.findViewById(R.id.tray_accounts).setOnClickListener(v -> openAccountManager());
+
+            if (shareLogsButton != null) {
+                shareLogsButton.setOnClickListener(v -> shareLog(requireContext()));
+            }
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Opens Account Manager bottom sheet
-    // ─────────────────────────────────────────────────────────────────────────
     private void openAccountManager() {
-        // AccountManagerFragment is a BottomSheetDialogFragment
-        // It handles account list, selection, add, delete
         AccountManagerFragment sheet = new AccountManagerFragment();
         sheet.setOnAccountSelectedListener(account -> {
-            // When user selects an account, set it as current and refresh UI
             Accounts.setCurrent(account);
             refreshAccountUI();
         });
         sheet.show(getChildFragmentManager(), AccountManagerFragment.TAG);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Refreshes account name + type label in the top bar
-    // ─────────────────────────────────────────────────────────────────────────
     public void refreshAccountUI() {
         if (mAccountName == null) return;
-
         MinecraftAccount current = Accounts.getCurrent();
-
         if (current != null && current.username != null
                 && !current.username.isEmpty() && !current.username.equals("0")) {
             mAccountName.setText(current.username);
-
-            // Account type
             String typeLabel = "Local Account";
             if (current.authType != null) {
                 switch (current.authType) {
@@ -182,31 +159,21 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Play button: checks account + instance before launching
-    // ─────────────────────────────────────────────────────────────────────────
     private void handlePlayButton() {
         MinecraftAccount current = Accounts.getCurrent();
         if (current == null) {
-            // No account — open account manager instead of just showing toast
-            Toast.makeText(requireContext(),
-                    "Please add an account first!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please add an account first!", Toast.LENGTH_SHORT).show();
             openAccountManager();
             return;
         }
-
         Instance instance = Instances.loadSelectedInstance();
         if (instance == null) {
             Toast.makeText(requireContext(), R.string.no_instance, Toast.LENGTH_LONG).show();
             return;
         }
-
         ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Updates version text from selected instance
-    // ─────────────────────────────────────────────────────────────────────────
     private void updateVersionText() {
         if (mVersionText == null) return;
         Instance instance = Instances.loadSelectedInstance();

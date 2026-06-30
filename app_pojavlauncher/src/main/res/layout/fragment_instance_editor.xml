@@ -552,7 +552,7 @@
             android:layout_marginStart="@dimen/_6sdp"
             android:background="@drawable/premium_gradient_bg"
             android:text="@string/global_delete"
-            android:textColor="#FF6B6B"/>
+            android:textColor="#FFFFFF"/>
 
     </LinearLayout>
 

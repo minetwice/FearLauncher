@@ -4,15 +4,19 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:background="@drawable/preference_background_selector"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp"
-    android:gravity="center_vertical">
+    android:elevation="4dp"
+    android:layout_margin="8dp"
+    android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <ImageView
         android:id="@+id/item_icon"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/ic_px_image"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_px_translate"
         android:tint="@color/silver_main" />
 
     <LinearLayout
@@ -29,7 +33,11 @@
             android:text="Title"
             android:textColor="@color/primary_text"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:shadowColor="#80000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3" />
 
         <TextView
             android:id="@+id/item_summary"
@@ -37,13 +45,19 @@
             android:layout_height="wrap_content"
             android:text="Summary"
             android:textColor="@color/secondary_text"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="2" />
     </LinearLayout>
 
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/item_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:theme="@style/FearSwitchTheme" />
+        android:layout_gravity="center_vertical"
+        android:thumbTint="@color/silver_main"
+        android:trackTint="#606060" />
 
 </LinearLayout>

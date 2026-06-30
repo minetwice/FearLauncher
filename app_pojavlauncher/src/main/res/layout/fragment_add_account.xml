@@ -228,7 +228,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_6sdp"
-            android:textColor="#FF6B6B"
+            android:textColor="#FFFFFF"
             android:textSize="@dimen/_12ssp"
             android:visibility="gone"/>
 

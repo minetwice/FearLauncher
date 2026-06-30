@@ -1,22 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Pressed state -->
+    <!-- Pressed state – lighter silver -->
     <item android:state_pressed="true">
         <shape>
-            <solid android:color="#33FFFFFF" />
-            <corners android:radius="16dp" />
+            <gradient
+                android:startColor="#D0D0D0"
+                android:endColor="#606060"
+                android:angle="135" />
+            <stroke
+                android:width="2dp"
+                android:color="#FFFFFF" />
+            <corners android:radius="14dp" />
         </shape>
     </item>
-    <!-- Normal state - Fully transparent to remove box-like background -->
+    <!-- Focused state -->
+    <item android:state_focused="true">
+        <shape>
+            <gradient
+                android:startColor="#C0C0C0"
+                android:endColor="#404040"
+                android:angle="135" />
+            <stroke
+                android:width="2dp"
+                android:color="#E0E0E0" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+    <!-- Normal state – silver gradient with border -->
     <item>
         <shape>
-            <solid android:color="@android:color/transparent" />
-            <corners android:radius="16dp" />
+            <gradient
+                android:startColor="#C0C0C0"
+                android:endColor="#404040"
+                android:angle="135" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#E0E0E0" />
+            <corners android:radius="14dp" />
             <padding
                 android:left="16dp"
-                android:top="12dp"
+                android:top="14dp"
                 android:right="16dp"
-                android:bottom="12dp" />
+                android:bottom="14dp" />
         </shape>
     </item>
 </selector>

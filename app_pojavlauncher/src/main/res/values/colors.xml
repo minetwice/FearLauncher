@@ -40,14 +40,14 @@
     <!-- ═══════════════════════════════════════════════ -->
     <color name="fear_primary">@color/silver_main</color>
     <color name="fear_on_primary">#FFFFFF</color>
-    <color name="fear_secondary">#00E676</color>
+    <color name="fear_secondary">#C0C0C0</color>
     <color name="fear_tertiary">#2979FF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="status_error">#FF6B6B</color>
-    <color name="status_success">#00E676</color>
+    <color name="status_success">#C0C0C0</color>
     <color name="status_warning">#FFA500</color>
 
     <!-- ═══════════════════════════════════════════════ -->

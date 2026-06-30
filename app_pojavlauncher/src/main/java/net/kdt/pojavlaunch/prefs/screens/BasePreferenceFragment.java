@@ -37,7 +37,7 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        view.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
 
         RecyclerView recyclerView = getListView();
         if (recyclerView != null) {
