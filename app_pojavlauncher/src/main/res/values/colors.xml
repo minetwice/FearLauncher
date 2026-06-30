@@ -1,64 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- res/values/colors.xml - Full updated version -->
 <resources>
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- GAME CONTROLS (Do NOT change these)            -->
+    <!-- GAME CONTROLS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="control_button_color">#4CC4C4C4</color>
-    <color name="control_button_pressed_color">#4D000000</color>
+    <color name="control_button_pressed_color">#4DFF0000</color>
 
-    <!-- FIX: MineButton text visible on dark bg -->
-    <color name="minebutton_color">@color/silver_main</color>
+    <!-- MineButton text visible on dark bg -->
+    <color name="minebutton_color">#E53935</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- BACKGROUNDS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="background_app">#0D0D0D</color>
-    <color name="background_overlay">#464646</color>
-    <color name="background_status_bar">#0D0D0D</color>
-    <color name="background_bottom_bar">#1A1A1A</color>
-    <color name="divider">@color/background_overlay</color>
+    <color name="background_app">#000000</color>
+    <color name="background_overlay">#1A1A1A</color>
+    <color name="background_status_bar">#000000</color>
+    <color name="background_bottom_bar">#0D0D0D</color>
+    <color name="divider">#1A1A1A</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT COLORS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="primary_text">#E0E0E0</color>
-    <color name="secondary_text">#A0A0A0</color>
+    <color name="primary_text">#FFFFFF</color>
+    <color name="secondary_text">#BDBDBD</color>
     <color name="icon_outline_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- FEAR SURFACES                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_surface">#1A1A1A</color>
-    <color name="fear_surface_variant">#242424</color>
-    <color name="fear_surface_container">#141414</color>
-    <color name="sidebar_bg">#0D0D0D</color>
-    <color name="top_bar_bg">#121212</color>
+    <color name="fear_surface">#0A0A0A</color>
+    <color name="fear_surface_variant">#121212</color>
+    <color name="fear_surface_container">#050505</color>
+    <color name="sidebar_bg">#000000</color>
+    <color name="top_bar_bg">#000000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- FEAR BRAND ACCENTS                              -->
+    <!-- FEAR BRAND ACCENTS (High-Shine Red & Black)     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">@color/silver_main</color>
+    <color name="fear_primary">#E53935</color>
     <color name="fear_on_primary">#FFFFFF</color>
-    <color name="fear_secondary">#C0C0C0</color>
-    <color name="fear_tertiary">#2979FF</color>
+    <color name="fear_secondary">#B71C1C</color>
+    <color name="fear_tertiary">#D32F2F</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="status_error">#FF6B6B</color>
-    <color name="status_success">#C0C0C0</color>
-    <color name="status_warning">#FFA500</color>
+    <color name="status_error">#FF1744</color>
+    <color name="status_success">#E53935</color>
+    <color name="status_warning">#FF5252</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- MISC                                            -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#CC181818</color>
+    <color name="fear_glass_bg">#CC0A0A0A</color>
     <color name="mc_official_green">#3C8527</color>
-    <color name="carousel_card_bg">#3A3A3A</color>
-    <color name="silver_main">#C0C0C0</color>
-    <color name="silver_dark">#808080</color>
-    <color name="silver_light">#E0E0E0</color>
-    <color name="seekbar_progress_start">@color/silver_light</color>
-    <color name="seekbar_progress_end">@color/silver_dark</color>
+    <color name="carousel_card_bg">#121212</color>
+    <color name="silver_main">@color/fear_primary</color>
+    <color name="silver_dark">@color/fear_secondary</color>
+    <color name="silver_light">#EF5350</color>
+    <color name="seekbar_progress_start">#E53935</color>
+    <color name="seekbar_progress_end">#B71C1C</color>
 </resources>
