@@ -3,61 +3,61 @@
     <!-- ═══════════════════════════════════════════════ -->
     <!-- GAME CONTROLS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="control_button_color">#4CC4C4C4</color>
-    <color name="control_button_pressed_color">#4DFF0000</color>
+    <color name="control_button_color">#60FF0000</color>
+    <color name="control_button_pressed_color">#90FF0000</color>
 
     <!-- MineButton text visible on dark bg -->
-    <color name="minebutton_color">#E53935</color>
+    <color name="minebutton_color">#FF0000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- BACKGROUNDS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="background_app">#000000</color>
-    <color name="background_overlay">#1A1A1A</color>
+    <color name="background_overlay">#0A0A0A</color>
     <color name="background_status_bar">#000000</color>
-    <color name="background_bottom_bar">#0D0D0D</color>
-    <color name="divider">#1A1A1A</color>
+    <color name="background_bottom_bar">#050505</color>
+    <color name="divider">#1A0000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT COLORS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#BDBDBD</color>
-    <color name="icon_outline_color">#FFFFFF</color>
+    <color name="secondary_text">#E0E0E0</color>
+    <color name="icon_outline_color">#FF0000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- FEAR SURFACES                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_surface">#0A0A0A</color>
-    <color name="fear_surface_variant">#121212</color>
-    <color name="fear_surface_container">#050505</color>
+    <color name="fear_surface">#000000</color>
+    <color name="fear_surface_variant">#0F0000</color>
+    <color name="fear_surface_container">#050000</color>
     <color name="sidebar_bg">#000000</color>
     <color name="top_bar_bg">#000000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- FEAR BRAND ACCENTS (High-Shine Red & Black)     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#E53935</color>
+    <color name="fear_primary">#FF0000</color>
     <color name="fear_on_primary">#FFFFFF</color>
-    <color name="fear_secondary">#B71C1C</color>
-    <color name="fear_tertiary">#D32F2F</color>
+    <color name="fear_secondary">#8B0000</color>
+    <color name="fear_tertiary">#FF4D4D</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="status_error">#FF1744</color>
-    <color name="status_success">#E53935</color>
-    <color name="status_warning">#FF5252</color>
+    <color name="status_error">#FF0000</color>
+    <color name="status_success">#FF0000</color>
+    <color name="status_warning">#FF4500</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- MISC                                            -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#CC0A0A0A</color>
+    <color name="fear_glass_bg">#99000000</color>
     <color name="mc_official_green">#3C8527</color>
-    <color name="carousel_card_bg">#121212</color>
+    <color name="carousel_card_bg">#000000</color>
     <color name="silver_main">@color/fear_primary</color>
     <color name="silver_dark">@color/fear_secondary</color>
-    <color name="silver_light">#EF5350</color>
-    <color name="seekbar_progress_start">#E53935</color>
-    <color name="seekbar_progress_end">#B71C1C</color>
+    <color name="silver_light">#FF6666</color>
+    <color name="seekbar_progress_start">#FF0000</color>
+    <color name="seekbar_progress_end">#8B0000</color>
 </resources>

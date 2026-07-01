@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#40FFFFFF">
+    android:color="#40FF0000">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="12dp" />
@@ -12,14 +12,14 @@
             <item android:state_pressed="true">
                 <shape>
                     <gradient
-                        android:startColor="#E0E0E0"
-                        android:centerColor="#B0B0B0"
-                        android:endColor="#D0D0D0"
+                        android:startColor="#8B0000"
+                        android:centerColor="#FF0000"
+                        android:endColor="#8B0000"
                         android:angle="135" />
                     <corners android:radius="12dp" />
                     <stroke
                         android:width="2dp"
-                        android:color="#FFFFFF" />
+                        android:color="#FF4D4D" />
                 </shape>
             </item>
             <item>
@@ -27,21 +27,22 @@
                     <item>
                         <shape>
                             <gradient
-                                android:startColor="#F0F0F0"
-                                android:centerColor="#C0C0C0"
-                                android:endColor="#E0E0E0"
+                                android:startColor="#FF0000"
+                                android:centerColor="#8B0000"
+                                android:endColor="#000000"
                                 android:angle="135" />
                             <corners android:radius="12dp" />
                             <stroke
-                                android:width="2dp"
-                                android:color="#A0A0A0" />
+                                android:width="2.5dp"
+                                android:color="#FF0000" />
                         </shape>
                     </item>
-                    <!-- Shine overlay -->
+                    <!-- Glossy Shine overlay -->
                     <item android:top="2dp" android:left="2dp" android:right="2dp">
                         <shape>
                             <gradient
-                                android:startColor="#80FFFFFF"
+                                android:startColor="#A0FF4D4D"
+                                android:centerColor="#30FFFFFF"
                                 android:endColor="#00FFFFFF"
                                 android:angle="270" />
                             <corners android:radius="10dp" />

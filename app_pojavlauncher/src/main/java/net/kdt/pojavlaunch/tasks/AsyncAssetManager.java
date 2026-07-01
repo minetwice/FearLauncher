@@ -41,8 +41,9 @@ public class AsyncAssetManager {
             Log.e("JREAuto", "JRE was not included on this APK.", e);
         }
         String exactJREName = MultiRTUtils.getExactJreName(8);
-        if(current_rt_version == null && exactJREName != null && !exactJREName.equals("Internal")/*this clause is for when the internal runtime is goofed*/) return;
         sExecutorService.execute(() -> NewJREUtil.checkAllInternalRuntimes(am));
+
+        if(current_rt_version == null && exactJREName != null && !exactJREName.equals("Internal")/*this clause is for when the internal runtime is goofed*/) return;
         if(rt_version == null) return;
         if(rt_version.equals(current_rt_version)) {
             return;

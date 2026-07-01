@@ -55,7 +55,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Local Account"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#BDBDBD"
                     android:textSize="@dimen/_8ssp" />
             </LinearLayout>
         </LinearLayout>
@@ -66,17 +66,19 @@
             android:layout_height="@dimen/_36sdp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_px_sliders"
-            app:tint="@color/primary_text" />
+            app:tint="@color/fear_primary" />
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/quick_play_card"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/_24sdp"
+        android:layout_marginHorizontal="@dimen/_40sdp"
         app:cardCornerRadius="24dp"
-        app:cardElevation="12dp"
+        app:cardElevation="16dp"
         app:cardBackgroundColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/top_bar"
         app:layout_constraintBottom_toTopOf="@id/bottom_controls">
 
@@ -91,28 +93,31 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BATTLE READY"
-                android:textColor="@color/silver_main"
-                android:textSize="@dimen/_9ssp"
+                android:text="FEAR LAUNCHER"
+                android:textColor="@color/fear_primary"
+                android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
-                android:letterSpacing="0.3" />
+                android:letterSpacing="0.4" />
 
             <TextView
                 android:id="@+id/version_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="1.21.1"
+                android:layout_marginTop="12dp"
+                android:text="FABRIC 1.21.1"
                 android:textColor="#FFFFFF"
-                android:textSize="@dimen/_32ssp"
+                android:textSize="@dimen/_20ssp"
                 android:textStyle="bold" />
 
             <com.kdt.mcgui.MineButton
                 android:id="@+id/play_button"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_56sdp"
-                android:layout_marginTop="@dimen/_16sdp"
-                android:text="LAUNCH GAME"
+                android:layout_height="@dimen/_52sdp"
+                android:layout_marginTop="@dimen/_20sdp"
+                android:text="PLAY"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_16ssp"
+                android:textStyle="bold"
                 android:background="@drawable/premium_button_bg" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -131,30 +136,30 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/premium_glass_bg"
-            android:padding="4dp">
+            android:padding="6dp">
 
             <com.kdt.mcgui.mcVersionSpinner
                 android:id="@+id/mc_version_spinner"
                 android:layout_width="0dp"
-                android:layout_height="@dimen/_48sdp"
+                android:layout_height="@dimen/_44sdp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:paddingHorizontal="12dp" />
 
             <ImageButton
                 android:id="@+id/edit_profile_button"
-                android:layout_width="@dimen/_40sdp"
-                android:layout_height="@dimen/_40sdp"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/premium_button_bg"
                 android:src="@drawable/ic_px_edit"
-                app:tint="#000000" />
+                app:tint="#FFFFFF" />
         </LinearLayout>
 
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:columnCount="3">
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -162,7 +167,7 @@
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="0dp"
                 android:layout_columnWeight="1"
-                android:text="MODS"
+                android:text="JAVA MODS"
                 android:drawableStart="@drawable/ic_px_java_run" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -170,7 +175,7 @@
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="0dp"
                 android:layout_columnWeight="1"
-                android:text="INPUT"
+                android:text="CONTROLS"
                 android:drawableStart="@drawable/ic_px_gamepad" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -178,7 +183,7 @@
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="0dp"
                 android:layout_columnWeight="1"
-                android:text="FILES"
+                android:text="STORAGE"
                 android:drawableStart="@drawable/ic_px_folder" />
 
         </GridLayout>
@@ -205,7 +210,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="COMMAND CENTER"
-                android:textColor="@color/silver_main"
+                android:textColor="@color/fear_primary"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.2"
@@ -215,7 +220,7 @@
                 android:id="@+id/tray_settings"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:text="SYSTEM SETTINGS"
+                android:text="SETTINGS"
                 android:drawableStart="@drawable/ic_px_sliders" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -229,7 +234,7 @@
                 android:id="@+id/tray_accounts"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:text="USER ACCOUNTS"
+                android:text="ACCOUNTS"
                 android:drawableStart="@drawable/ic_account_circle" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -248,7 +253,7 @@
                 android:id="@+id/tray_close"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_40sdp"
-                android:text="DISMISS"
+                android:text="CLOSE"
                 android:background="@drawable/premium_button_bg" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
