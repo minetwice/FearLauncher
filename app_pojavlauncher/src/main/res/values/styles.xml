@@ -61,7 +61,7 @@
     </style>
 
     <style name="BottomSheet.Fear.Style" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@drawable/background_card</item>
+        <item name="android:background">@drawable/premium_glass_bg</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->

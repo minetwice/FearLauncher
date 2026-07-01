@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/_200sdp"
 
-        android:background="@drawable/background_card"
+        android:background="@drawable/premium_glass_bg"
         android:translationZ="-1dp"
 
         app:layout_constraintBottom_toBottomOf="parent"
@@ -56,7 +56,9 @@
         android:onClick="loginMC"
         android:text="@string/login_online_login_label"
 
-        android:textColor="@android:color/white"
+        android:background="@drawable/premium_button_bg"
+        android:textColor="#000000"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/login_edit_email" />

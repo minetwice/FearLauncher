@@ -40,7 +40,8 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:paddingHorizontal="@dimen/padding_large"
-
+        android:background="@drawable/menu_button_bg"
+        android:textColor="@color/fear_primary"
         android:text="@string/global_select"
 
         app:layout_constraintBottom_toBottomOf="@+id/search_mod_selected_mc_version_textview"
@@ -48,11 +49,13 @@
         app:layout_constraintTop_toTopOf="@+id/search_mod_selected_mc_version_textview" />
 
     <!-- Apply -->
-    <com.kdt.mcgui.MineButton
+    <Button
         android:id="@+id/search_mod_apply_filters"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/generic_apply"
+        android:background="@drawable/premium_button_bg"
+        android:textColor="@color/fear_on_primary"
         android:layout_marginVertical="@dimen/padding_large"
 
         app:layout_constraintTop_toBottomOf="@id/search_mod_selected_mc_version_textview"

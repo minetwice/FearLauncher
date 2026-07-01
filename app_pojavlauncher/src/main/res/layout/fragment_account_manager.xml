@@ -44,9 +44,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="+ Add"
-            android:textColor="@color/primary_text"
+            android:textColor="#000000"
             android:textSize="@dimen/_13ssp"
-            app:backgroundTint="#FF4500"
+            app:backgroundTint="@color/fear_primary"
             app:cornerRadius="8dp"/>
 
     </LinearLayout>

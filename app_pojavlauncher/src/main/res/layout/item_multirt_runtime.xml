@@ -44,10 +44,10 @@
         android:id="@+id/multirt_view_removebtn"
         android:layout_width="@dimen/_35sdp"
         android:layout_height="0dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/menu_button_bg"
         android:paddingVertical="@dimen/padding_heavy"
         android:scaleType="fitCenter"
-
+        android:tint="@color/fear_primary"
         android:src="@drawable/ic_px_trash"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -60,8 +60,8 @@
         android:id="@+id/multirt_view_setdefaultbtn"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/premium_button_bg"
+        android:textColor="@color/fear_on_primary"
         android:text="@string/multirt_config_setdefault"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
