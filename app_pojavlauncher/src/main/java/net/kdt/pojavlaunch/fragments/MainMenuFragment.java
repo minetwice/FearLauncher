@@ -70,6 +70,12 @@ public class MainMenuFragment extends Fragment {
         View editBtn             = view.findViewById(R.id.edit_profile_button);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
+        // Rail Tabs
+        View tabHome = view.findViewById(R.id.tab_home);
+        View tabInstallations = view.findViewById(R.id.tab_installations);
+        View tabSkin = view.findViewById(R.id.tab_skin);
+        View tabSettings = view.findViewById(R.id.tab_settings_icon);
+
         // Refresh UI
         refreshAccountUI();
         updateVersionText();
@@ -102,6 +108,21 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        if (tabHome != null) {
+            tabHome.setOnClickListener(v -> Toast.makeText(getContext(), "Java Edition", Toast.LENGTH_SHORT).show());
+        }
+        if (tabInstallations != null) {
+            tabInstallations.setOnClickListener(v ->
+                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment.class, "java", null));
+        }
+        if (tabSkin != null) {
+            tabSkin.setOnClickListener(v -> openAccountManager());
+        }
+        if (tabSettings != null) {
+            tabSettings.setOnClickListener(v ->
+                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
+        }
+
         // TRAY LOGIC
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
@@ -120,8 +141,6 @@ public class MainMenuFragment extends Fragment {
 
             view.findViewById(R.id.tray_runtime).setOnClickListener(v ->
                 Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment.class, "java", null));
-
-            view.findViewById(R.id.tray_accounts).setOnClickListener(v -> openAccountManager());
 
             if (shareLogsButton != null) {
                 shareLogsButton.setOnClickListener(v -> shareLog(requireContext()));

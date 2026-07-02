@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#40FFB74D">
+    android:color="#40FFFFFF">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="8dp" />
@@ -12,8 +12,8 @@
             <item android:state_pressed="true">
                 <shape>
                     <gradient
-                        android:startColor="#F57C00"
-                        android:endColor="#FFB74D"
+                        android:startColor="#2F691E"
+                        android:endColor="#3C8527"
                         android:angle="135" />
                     <corners android:radius="8dp" />
                 </shape>
@@ -23,18 +23,18 @@
                     <item>
                         <shape>
                             <gradient
-                                android:startColor="#FFB74D"
-                                android:centerColor="#FF9800"
-                                android:endColor="#F57C00"
+                                android:startColor="#3C8527"
+                                android:centerColor="#47A131"
+                                android:endColor="#2F691E"
                                 android:angle="135" />
                             <corners android:radius="8dp" />
                         </shape>
                     </item>
-                    <!-- Gloss overlay -->
+                    <!-- Subtle Gloss overlay -->
                     <item android:top="1dp" android:left="1dp" android:right="1dp">
                         <shape>
                             <gradient
-                                android:startColor="#60FFFFFF"
+                                android:startColor="#30FFFFFF"
                                 android:endColor="#00FFFFFF"
                                 android:angle="270" />
                             <corners android:radius="7dp" />
