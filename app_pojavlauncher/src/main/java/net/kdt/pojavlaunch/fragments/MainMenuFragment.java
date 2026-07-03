@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -123,17 +122,27 @@ public class MainMenuFragment extends Fragment {
                 Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
         }
 
-        // TRAY LOGIC
-        View settingsTray = view.findViewById(R.id.settings_tray);
+        // TRAY LOGIC (Replaced AnimationUtils with ViewPropertyAnimator to avoid resource parsing errors)
+        final View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 settingsTray.setVisibility(View.VISIBLE);
-                settingsTray.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_in));
+                settingsTray.setAlpha(0f);
+                settingsTray.setTranslationX(settingsTray.getWidth() > 0 ? settingsTray.getWidth() : 1000f);
+                settingsTray.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(400)
+                        .start();
             });
 
             view.findViewById(R.id.tray_close).setOnClickListener(v -> {
-                settingsTray.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_out));
-                settingsTray.postDelayed(() -> settingsTray.setVisibility(View.GONE), 300);
+                settingsTray.animate()
+                        .translationX(settingsTray.getWidth())
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(() -> settingsTray.setVisibility(View.GONE))
+                        .start();
             });
 
             view.findViewById(R.id.tray_settings).setOnClickListener(v ->
