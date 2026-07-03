@@ -1,28 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/premium_gradient_bg">
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="@dimen/_12sdp">
 
-    <!-- Toolbar / Header -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/settings_toolbar"
+    <!-- New Header with custom title -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/premium_gradient_bg"
-        android:elevation="4dp"
-        android:title="Settings"
-        android:titleTextColor="@color/primary_text"
-        android:navigationIcon="@drawable/ic_px_arrow_left"
-        android:navigationContentDescription="Back" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_16sdp">
 
-    <!-- RecyclerView for settings -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/settings_recycler"
+        <ImageButton
+            android:id="@+id/settings_back"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/fear_primary"
+            android:layout_centerVertical="true" />
+
+        <TextView
+            android:id="@+id/settings_title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/settings_back"
+            android:layout_marginStart="@dimen/_12sdp"
+            android:text="LAUNCHER SETTINGS"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_centerVertical="true" />
+    </RelativeLayout>
+
+    <!-- Transformed Settings Container with Border -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:background="@drawable/settings_border_bg"
+        android:padding="2dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/settings_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
+    </FrameLayout>
 
 </LinearLayout>

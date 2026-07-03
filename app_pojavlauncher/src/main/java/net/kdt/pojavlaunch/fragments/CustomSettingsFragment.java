@@ -2,6 +2,7 @@ package net.kdt.pojavlaunch.fragments;
 
 import android.Manifest;
 import android.os.Bundle;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,8 +45,10 @@ public class CustomSettingsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_custom_settings, container, false);
 
-        Toolbar toolbar = view.findViewById(R.id.settings_toolbar);
-        toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
+        View backBtn = view.findViewById(R.id.settings_back);
+        if (backBtn != null) {
+            backBtn.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        }
 
         recyclerView = view.findViewById(R.id.settings_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -215,7 +217,13 @@ public class CustomSettingsFragment extends Fragment {
                 vh.icon.setImageResource(normal.iconRes);
                 vh.title.setText(normal.title);
                 vh.summary.setText(normal.summary);
-                vh.itemView.setOnClickListener(v -> normal.onClick.run());
+                vh.itemView.setOnClickListener(v -> {
+                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                    v.animate().scaleX(0.98f).scaleY(0.98f).setDuration(50).withEndAction(() -> {
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(50).start();
+                        normal.onClick.run();
+                    }).start();
+                });
             } else if (holder instanceof SwitchViewHolder) {
                 SwitchViewHolder vh = (SwitchViewHolder) holder;
                 SettingItem.SwitchItem switchItem = (SettingItem.SwitchItem) item;
@@ -225,6 +233,7 @@ public class CustomSettingsFragment extends Fragment {
                 vh.switchView.setChecked(switchItem.checked);
                 vh.switchView.setOnCheckedChangeListener(null);
                 vh.switchView.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    buttonView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                     switchItem.onToggle.accept(isChecked);
                 });
             } else if (holder instanceof SliderViewHolder) {
@@ -241,6 +250,9 @@ public class CustomSettingsFragment extends Fragment {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         if (fromUser) {
+                            if (progress % 5 == 0) {
+                                seekBar.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                            }
                             // Animate the text update
                             vh.valueText.animate().alpha(0.3f).setDuration(100).withEndAction(() -> {
                                 vh.valueText.setText(sliderItem.formatter.apply(progress));
