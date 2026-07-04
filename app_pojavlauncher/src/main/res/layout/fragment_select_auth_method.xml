@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="@dimen/_400sdp"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/_500sdp"
+        android:layout_height="@dimen/_280sdp"
         android:layout_gravity="center"
         android:background="@drawable/premium_glass_black_bg"
-        android:padding="@dimen/_30sdp">
+        android:padding="@dimen/_24sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
-            android:id="@+id/auth_title"
+            android:id="@+id/add_account_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CORE IDENTITY ACCESS"
@@ -21,34 +26,52 @@
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
-            android:layout_marginBottom="@dimen/_30sdp"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/auth_method_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_30sdp"
+            app:layout_constraintTop_toBottomOf="@id/add_account_title"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintWidth_percent="0.5">
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/button_microsoft_authentication"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44sdp"
-            android:text="MICROSOFT ACCOUNT"
-            android:layout_marginTop="@dimen/_20sdp"
-            app:layout_constraintTop_toBottomOf="@id/auth_title" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_microsoft_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:text="MICROSOFT ACCOUNT"
+                android:drawableStart="@drawable/ic_auth_ms" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/button_local_authentication"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44sdp"
-            android:text="LOCAL IDENTITY"
-            android:layout_marginTop="@dimen/_12sdp"
-            app:layout_constraintTop_toBottomOf="@id/button_microsoft_authentication" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_local_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="LOCAL IDENTITY"
+                android:drawableStart="@drawable/ic_mc_skull" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/button_elyby_authentication"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44sdp"
-            android:text="ELY.BY NETWORK"
-            android:layout_marginTop="@dimen/_12sdp"
-            app:layout_constraintTop_toBottomOf="@id/button_local_authentication" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_elyby_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="ELY.BY NETWORK"
+                android:drawableStart="@drawable/ic_auth_elyby" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="@dimen/_180sdp"
+            android:layout_height="@dimen/_180sdp"
+            android:src="@drawable/ic_px_zap"
+            app:tint="#4DFF9800"
+            android:alpha="0.3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

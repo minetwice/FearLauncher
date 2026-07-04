@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Add Account Bottom Sheet — Fear style, replaces MojoLauncher style -->
-<!-- Place at: res/layout/fragment_add_account.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/premium_gradient_bg"
+    android:background="@drawable/premium_glass_black_bg"
     android:paddingBottom="@dimen/_32sdp">
-
-    <!-- Drag Handle -->
-    <View
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_4sdp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:background="@drawable/premium_gradient_bg"/>
 
     <!-- Header -->
     <LinearLayout
@@ -25,42 +15,35 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_16sdp"
+        android:paddingTop="@dimen/_24sdp"
         android:paddingBottom="@dimen/_20sdp">
 
         <ImageView
             android:layout_width="@dimen/_28sdp"
             android:layout_height="@dimen/_28sdp"
-            android:src="@drawable/ic_account_circle"
-            android:tint="#FF4500"/>
+            android:src="@drawable/ic_mc_skull"
+            app:tint="#FF9800"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/_10sdp"
-            android:text="Add Account"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/_18ssp"
-            android:textStyle="bold"/>
+            android:text="IDENTITY PROTOCOL"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"/>
 
         <ImageButton
             android:id="@+id/btn_close_add_account"
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
             android:src="@drawable/ic_px_arrow_left"
-            android:tint="@color/secondary_text"
-            android:background="@drawable/premium_gradient_bg"
-            android:contentDescription="Close"/>
+            app:tint="#B3FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@drawable/premium_gradient_bg"
-        android:layout_marginHorizontal="@dimen/_16sdp"/>
 
     <!-- Account Type Tabs -->
     <LinearLayout
@@ -68,8 +51,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_16sdp"
-        android:paddingBottom="@dimen/_8sdp">
+        android:paddingBottom="@dimen/_16sdp">
 
         <!-- Microsoft Tab -->
         <LinearLayout
@@ -79,7 +61,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/premium_gradient_bg"
+            android:background="@drawable/preference_background_selector"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginEnd="@dimen/_6sdp">
@@ -94,8 +76,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Microsoft"
-                android:textColor="@color/primary_text"
-                android:textSize="@dimen/_13ssp"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"/>
 
         </LinearLayout>
@@ -108,7 +90,7 @@
             android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/premium_gradient_bg"
+            android:background="@drawable/preference_background_selector"
             android:clickable="true"
             android:focusable="true"
             android:layout_marginStart="@dimen/_6sdp">
@@ -117,15 +99,15 @@
                 android:layout_width="@dimen/_18sdp"
                 android:layout_height="@dimen/_18sdp"
                 android:src="@drawable/ic_account_circle"
-                android:tint="@color/secondary_text"
+                app:tint="#B3FFFFFF"
                 android:layout_marginEnd="@dimen/_6sdp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Local"
-                android:textColor="@color/secondary_text"
-                android:textSize="@dimen/_13ssp"/>
+                android:textColor="#B3FFFFFF"
+                android:textSize="@dimen/_12ssp"/>
 
         </LinearLayout>
 
@@ -137,61 +119,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_8sdp">
+        android:paddingHorizontal="@dimen/_20sdp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sign in with your Microsoft account to play online."
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_13ssp"
+            android:text="Authenticate through the global network."
+            android:textColor="#B3FFFFFF"
+            android:textSize="@dimen/_11ssp"
             android:layout_marginBottom="@dimen/_16sdp"/>
 
-        <com.google.android.material.button.MaterialButton
+        <com.kdt.mcgui.MineButton
             android:id="@+id/btn_microsoft_login"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_52sdp"
-            android:text="Sign in with Microsoft"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/_14ssp"
-            android:textStyle="bold"
-            app:backgroundTint="#FF4500"
-            app:cornerRadius="10dp"
-            app:icon="@drawable/ic_auth_ms"
-            app:iconTint="@color/primary_text"
-            app:iconGravity="textStart"
-            app:iconPadding="@dimen/_8sdp"/>
-
-        <!-- Progress bar (hidden by default) -->
-        <LinearLayout
-            android:id="@+id/ms_login_progress_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_marginTop="@dimen/_16sdp"
-            android:visibility="gone">
-
-            <ProgressBar
-                android:id="@+id/ms_login_progress"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:progressTint="#FF4500"
-                android:progressBackgroundTint="@color/background_overlay"
-                android:max="100"/>
-
-            <TextView
-                android:id="@+id/ms_login_progress_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:text="Signing in..."
-                android:textColor="@color/secondary_text"
-                android:textSize="@dimen/_12ssp"/>
-
-        </LinearLayout>
+            android:layout_height="@dimen/_48sdp"
+            android:text="SIGN IN WITH MICROSOFT" />
 
     </LinearLayout>
 
@@ -202,47 +144,34 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_8sdp"
         android:visibility="gone">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Username"
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_12ssp"
-            android:layout_marginBottom="@dimen/_6sdp"/>
 
         <com.kdt.mcgui.MineEditText
             android:id="@+id/local_username_input"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_48sdp"
-            android:hint="Enter your username"
-            android:inputType="text"
-            android:textSize="@dimen/_14ssp"
+            android:layout_height="@dimen/_44sdp"
+            android:background="@drawable/premium_edit_bg"
+            android:hint="Username"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#40FFFFFF"
+            android:paddingHorizontal="16dp"
             android:imeOptions="actionDone|flagNoExtractUi"/>
 
-        <!-- Error message -->
         <TextView
             android:id="@+id/local_error_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_6sdp"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_12ssp"
+            android:textColor="#FF5252"
+            android:textSize="@dimen/_10ssp"
             android:visibility="gone"/>
 
-        <com.google.android.material.button.MaterialButton
+        <com.kdt.mcgui.MineButton
             android:id="@+id/btn_local_login"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_52sdp"
+            android:layout_height="@dimen/_44sdp"
             android:layout_marginTop="@dimen/_16sdp"
-            android:text="Add Local Account"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/_14ssp"
-            android:textStyle="bold"
-            app:backgroundTint="#FF4500"
-            app:cornerRadius="10dp"/>
+            android:text="CREATE LOCAL IDENTITY" />
 
     </LinearLayout>
 

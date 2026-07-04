@@ -6,18 +6,30 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- Elements/Particles placeholder -->
+    <!-- Flame Particles (Rengoku Ability Style) -->
     <ImageView
-        android:id="@+id/splash_particles"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:id="@+id/flame_1"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
         android:src="@drawable/ic_mc_skull"
         android:alpha="0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#4DFF9800" />
+        app:tint="#FF4500" />
+
+    <ImageView
+        android:id="@+id/flame_2"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:src="@drawable/ic_mc_skull"
+        android:alpha="0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#FF8C00" />
 
     <ImageView
         android:id="@+id/splash_logo"
@@ -34,12 +46,12 @@
 
     <View
         android:id="@+id/shine_line"
-        android:layout_width="100dp"
+        android:layout_width="150dp"
         android:layout_height="match_parent"
         android:background="@drawable/premium_button_bg"
-        android:rotation="20"
-        android:translationX="-500dp"
-        android:alpha="0.3"
+        android:rotation="25"
+        android:translationX="-600dp"
+        android:alpha="0.4"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

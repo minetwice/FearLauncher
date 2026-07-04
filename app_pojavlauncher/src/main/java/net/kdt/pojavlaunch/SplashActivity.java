@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AnticipateInterpolator;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,37 +22,36 @@ public class SplashActivity extends AppCompatActivity {
 
         final View root = findViewById(R.id.splash_root);
         final ImageView logo = findViewById(R.id.splash_logo);
-        final ImageView particles = findViewById(R.id.splash_particles);
+        final ImageView flame1 = findViewById(R.id.flame_1);
+        final ImageView flame2 = findViewById(R.id.flame_2);
         final View shine = findViewById(R.id.shine_line);
 
-        // 1. Particle Round Animation & Pulse
-        particles.animate()
-                .alpha(1f)
-                .rotation(360f)
-                .scaleX(1.5f)
-                .scaleY(1.5f)
-                .setDuration(1000)
-                .setInterpolator(new AccelerateDecelerateInterpolator())
-                .withEndAction(() -> {
-                    // 2. Blast & Logo Show
-                    particles.animate().scaleX(5f).scaleY(5f).alpha(0f).setDuration(300).start();
-                    logo.animate()
-                            .alpha(1f)
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(500)
-                            .setInterpolator(new AccelerateDecelerateInterpolator())
-                            .withEndAction(() -> {
-                                // 3. Shine Line Effect
-                                shine.animate()
-                                        .translationX(root.getWidth() + 500f)
-                                        .setDuration(800)
-                                        .withEndAction(() -> {
-                                            // 4. Blur/Fade out and Start Launcher
-                                            root.animate().alpha(0f).setDuration(500).withEndAction(this::startLauncher).start();
-                                        }).start();
-                            }).start();
-                }).start();
+        // Flame Animation Sequence (Rengoku Style)
+        flame1.animate().alpha(0.6f).scaleX(1.2f).scaleY(1.2f).rotation(180).setDuration(600).start();
+        flame2.animate().alpha(0.8f).scaleX(1.1f).scaleY(1.1f).rotation(-180).setDuration(800).withEndAction(() -> {
+
+            // Flame Burst
+            flame1.animate().scaleX(4f).scaleY(4f).alpha(0f).setDuration(400).setInterpolator(new AnticipateInterpolator()).start();
+            flame2.animate().scaleX(3.5f).scaleY(3.5f).alpha(0f).setDuration(500).setInterpolator(new AnticipateInterpolator()).start();
+
+            // Logo Reveal
+            logo.animate()
+                    .alpha(1f)
+                    .scaleX(1.1f)
+                    .scaleY(1.1f)
+                    .setDuration(400)
+                    .withEndAction(() -> {
+                        logo.animate().scaleX(1f).scaleY(1f).setDuration(200).start();
+
+                        // Shine Sweep
+                        shine.animate()
+                                .translationX(root.getWidth() + 600f)
+                                .setDuration(700)
+                                .withEndAction(() -> {
+                                    root.animate().alpha(0f).setDuration(400).withEndAction(this::startLauncher).start();
+                                }).start();
+                    }).start();
+        }).start();
     }
 
     private void startLauncher() {

@@ -7,90 +7,138 @@
     android:background="@drawable/premium_gradient_bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="@dimen/_450sdp"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/_500sdp"
+        android:layout_height="@dimen/_280sdp"
         android:layout_gravity="center"
         android:background="@drawable/premium_glass_black_bg"
-        android:padding="@dimen/_24sdp"
+        android:padding="@dimen/_20sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/login_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="FEAR LAUNCHER"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_24ssp"
-            android:textStyle="bold"
+        <!-- Left Side: Login Form -->
+        <LinearLayout
+            android:id="@+id/login_form_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="start|center_vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline_center"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
-            android:id="@+id/login_hint"
+            <TextView
+                android:id="@+id/login_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FEAR LAUNCHER"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_22ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="@dimen/_24sdp" />
+
+            <com.kdt.mcgui.MineEditText
+                android:id="@+id/login_edit_email"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_36sdp"
+                android:background="@drawable/premium_edit_bg"
+                android:hint="Login"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#40FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="@dimen/_12ssp"
+                android:imeOptions="flagNoExtractUi" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/login_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="Sign in"
+                android:background="@drawable/premium_button_bg" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/_12sdp">
+
+                <CheckBox
+                    android:id="@+id/save_password"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save password"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_10ssp"
+                    android:buttonTint="#FF9800"
+                    android:minHeight="0dp"
+                    android:padding="0dp" />
+
+                <CheckBox
+                    android:id="@+id/auto_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto Login"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_10ssp"
+                    android:buttonTint="#FF9800"
+                    android:minHeight="0dp"
+                    android:padding="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Login"
-            android:textColor="#40FFFFFF"
-            android:textSize="@dimen/_10ssp"
-            android:layout_marginTop="@dimen/_20sdp"
-            app:layout_constraintTop_toBottomOf="@id/login_title"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.55" />
 
-        <com.kdt.mcgui.MineEditText
-            android:id="@+id/login_edit_email"
-            android:layout_width="@dimen/_200sdp"
-            android:layout_height="@dimen/_40sdp"
-            android:background="@drawable/premium_edit_bg"
-            android:hint="Email or Username"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#40FFFFFF"
-            android:paddingHorizontal="16dp"
-            android:imeOptions="flagNoExtractUi"
-            app:layout_constraintTop_toBottomOf="@id/login_hint"
-            app:layout_constraintStart_toStartOf="parent" />
+        <!-- Right Side: Graphic & Type Select -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toEndOf="@id/guideline_center"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/login_button"
-            android:layout_width="@dimen/_200sdp"
-            android:layout_height="@dimen/_44sdp"
-            android:layout_marginTop="@dimen/_16sdp"
-            android:text="SIGN IN"
-            app:layout_constraintTop_toBottomOf="@id/login_edit_email"
-            app:layout_constraintStart_toStartOf="parent" />
+            <!-- Atom-like Cube Graphic (Placeholder) -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_150sdp"
+                android:src="@drawable/ic_mc_skull"
+                android:alpha="0.4"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <CheckBox
-            android:id="@+id/save_password"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save password"
-            android:textColor="#FFFFFF"
-            android:buttonTint="#FF9800"
-            android:layout_marginTop="@dimen/_8sdp"
-            app:layout_constraintTop_toBottomOf="@id/login_button"
-            app:layout_constraintStart_toStartOf="parent" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-        <CheckBox
-            android:id="@+id/auto_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Auto Login"
-            android:textColor="#FFFFFF"
-            android:buttonTint="#FF9800"
-            app:layout_constraintTop_toBottomOf="@id/save_password"
-            app:layout_constraintStart_toStartOf="parent" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Default"
+                    android:checked="true"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
 
-        <!-- Reference Graphics Placeholder -->
-        <ImageView
-            android:layout_width="@dimen/_150sdp"
-            android:layout_height="@dimen/_150sdp"
-            android:src="@drawable/ic_mc_skull"
-            android:alpha="0.5"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Microsoft"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
