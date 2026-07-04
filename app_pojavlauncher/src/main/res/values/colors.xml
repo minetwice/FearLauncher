@@ -10,51 +10,51 @@
     <color name="minebutton_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- NEW UNIQUE THEME BACKGROUNDS                     -->
+    <!-- GLASS BLACK THEME COLORS                         -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="background_app">#0F0F0F</color>
-    <color name="background_overlay">#1A1A1A</color>
-    <color name="background_status_bar">#0A0A0A</color>
-    <color name="background_bottom_bar">#121212</color>
-    <color name="divider">#333333</color>
+    <color name="background_app">#000000</color>
+    <color name="background_overlay">#CC000000</color> <!-- Glass Black -->
+    <color name="background_status_bar">#000000</color>
+    <color name="background_bottom_bar">#0D0D0D</color>
+    <color name="divider">#26FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT COLORS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#CCCCCC</color>
-    <color name="icon_outline_color">#FFB74D</color>
+    <color name="secondary_text">#B3FFFFFF</color>
+    <color name="icon_outline_color">#FF9800</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- NEW GRADIENT ACCENTS                             -->
+    <!-- ACCENT COLORS (ORANGE & WHITE)                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#4CAF50</color> <!-- Green -->
-    <color name="fear_secondary">#FF9800</color> <!-- Orange -->
-    <color name="fear_tertiary">#FFEB3B</color> <!-- Yellow -->
+    <color name="fear_primary">#FF9800</color> <!-- Orange -->
+    <color name="fear_secondary">#F57C00</color> <!-- Darker Orange -->
+    <color name="fear_tertiary">#FFFFFF</color> <!-- White instead of Yellow -->
 
-    <color name="fear_on_primary">#FFFFFF</color>
+    <color name="fear_on_primary">#000000</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="status_error">#FF5252</color>
-    <color name="status_success">#4CAF50</color>
-    <color name="status_warning">#FFC107</color>
+    <color name="status_success">#FF9800</color> <!-- Success is now Orange themed -->
+    <color name="status_warning">#FFA726</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- MISC                                            -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#BF1A1A1A</color>
-    <color name="mc_official_green">#3C8527</color>
-    <color name="carousel_card_bg">#252525</color>
+    <color name="fear_glass_bg">#99000000</color>
+    <color name="mc_official_green">#FF9800</color> <!-- Overridden to Orange -->
+    <color name="carousel_card_bg">#1AFFFFFF</color>
 
     <!-- Legacy Mappings (to avoid breaking XMLs until fully purged) -->
 
-    <color name="seekbar_progress_start">#4CAF50</color>
-    <color name="seekbar_progress_end">#FF9800</color>
-    <color name="fear_surface">#1A1A1A</color>
-    <color name="fear_surface_variant">#252525</color>
-    <color name="fear_surface_container">#0A0A0A</color>
-    <color name="top_bar_bg">#1A1A1A</color>
-    <color name="sidebar_bg">#121212</color>
+    <color name="seekbar_progress_start">#FF9800</color>
+    <color name="seekbar_progress_end">#F57C00</color>
+    <color name="fear_surface">#0A0A0A</color>
+    <color name="fear_surface_variant">#121212</color>
+    <color name="fear_surface_container">#000000</color>
+    <color name="top_bar_bg">#CC000000</color>
+    <color name="sidebar_bg">#CC000000</color>
 </resources>
