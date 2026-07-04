@@ -13,8 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.widget.Button;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.button.MaterialButton;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
@@ -54,8 +54,8 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
         mTabMicrosoft   = view.findViewById(R.id.tab_microsoft);
         mTabLocal       = view.findViewById(R.id.tab_local);
 
-        MaterialButton btnMs    = view.findViewById(R.id.btn_microsoft_login);
-        MaterialButton btnLocal = view.findViewById(R.id.btn_local_login);
+        View btnMs    = view.findViewById(R.id.btn_microsoft_login);
+        View btnLocal = view.findViewById(R.id.btn_local_login);
         EditText inputUsername  = view.findViewById(R.id.local_username_input);
         TextView errorText      = view.findViewById(R.id.local_error_text);
         View btnClose           = view.findViewById(R.id.btn_close_add_account);
