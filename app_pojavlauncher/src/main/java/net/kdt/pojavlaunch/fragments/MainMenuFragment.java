@@ -137,10 +137,11 @@ public class MainMenuFragment extends Fragment {
         if (moreSettingsToggle != null && moreSettingsLayout != null) {
             moreSettingsToggle.setOnClickListener(v -> {
                 if (moreSettingsLayout.getVisibility() == View.VISIBLE) {
+                    animateItemsSequentially(moreSettingsLayout, false);
                     moreSettingsLayout.setVisibility(View.GONE);
                 } else {
                     moreSettingsLayout.setVisibility(View.VISIBLE);
-                    animateItemsSequentially(moreSettingsLayout);
+                    animateItemsSequentially(moreSettingsLayout, true);
                 }
             });
         }
@@ -149,12 +150,14 @@ public class MainMenuFragment extends Fragment {
         final View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
+                final ViewGroup container = view.findViewById(R.id.tray_container);
                 if (settingsTray.getVisibility() == View.VISIBLE) {
                     // Close menu
+                    if (container != null) animateItemsSequentially(container, false);
                     settingsTray.animate()
                             .translationX(-settingsTray.getWidth())
                             .alpha(0f)
-                            .setDuration(300)
+                            .setDuration(400)
                             .withEndAction(() -> settingsTray.setVisibility(View.GONE))
                             .start();
                 } else {
@@ -167,31 +170,32 @@ public class MainMenuFragment extends Fragment {
                             .alpha(1f)
                             .setDuration(400)
                             .withEndAction(() -> {
-                                ViewGroup container = view.findViewById(R.id.tray_container);
-                                if (container != null) animateItemsSequentially(container);
+                                if (container != null) animateItemsSequentially(container, true);
                             })
                             .start();
                 }
             });
 
             view.findViewById(R.id.tray_close).setOnClickListener(v -> {
+                final ViewGroup container = view.findViewById(R.id.tray_container);
+                if (container != null) animateItemsSequentially(container, false);
                 settingsTray.animate()
                         .translationX(-settingsTray.getWidth())
                         .alpha(0f)
-                        .setDuration(300)
+                        .setDuration(400)
                         .withEndAction(() -> settingsTray.setVisibility(View.GONE))
                         .start();
             });
         }
     }
 
-    private void animateItemsSequentially(ViewGroup container) {
+    private void animateItemsSequentially(ViewGroup container, boolean show) {
         int count = container.getChildCount();
         for (int i = 0; i < count; i++) {
-            View child = container.getChildAt(i);
-            if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView) {
-                Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.item_fade_in);
-                anim.setStartOffset(i * 100L);
+            final View child = container.getChildAt(i);
+            if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView || child instanceof LinearLayout) {
+                Animation anim = AnimationUtils.loadAnimation(requireContext(), show ? R.anim.item_fade_in : R.anim.item_fade_out);
+                anim.setStartOffset(i * 50L);
                 child.startAnimation(anim);
             }
         }

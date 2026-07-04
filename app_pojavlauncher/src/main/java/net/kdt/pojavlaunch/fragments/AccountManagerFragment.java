@@ -160,7 +160,6 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             boolean isSelected = acc.mSaveLocation != null
                     && acc.mSaveLocation.getName().equals(mCurrentName);
             h.check.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-            h.activeDot.setVisibility(isSelected ? View.VISIBLE : View.GONE);
 
             h.itemView.setOnClickListener(v -> mOnSelect.onClick(acc));
             h.deleteBtn.setOnClickListener(v -> mOnDelete.onClick(acc));
@@ -170,13 +169,12 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
 
         static class VH extends RecyclerView.ViewHolder {
             TextView username, type;
-            View check, activeDot, deleteBtn;
+            View check, deleteBtn;
             VH(@NonNull View v) {
                 super(v);
                 username  = v.findViewById(R.id.account_username);
                 type      = v.findViewById(R.id.account_type);
                 check     = v.findViewById(R.id.account_selected_check);
-                activeDot = v.findViewById(R.id.account_active_dot);
                 deleteBtn = v.findViewById(R.id.account_delete_btn);
             }
         }

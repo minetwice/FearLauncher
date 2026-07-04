@@ -2,65 +2,95 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
-    android:paddingHorizontal="@dimen/fragment_padding_medium"
-    >
+    android:background="@drawable/premium_gradient_bg">
 
-    <View
-        android:id="@+id/login_menu"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_200sdp"
-
-        android:background="@drawable/premium_glass_bg"
-        android:translationZ="-1dp"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-    <TextView
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="@dimen/_450sdp"
         android:layout_height="wrap_content"
-        android:text="@string/login_online_username_hint"
-
-        app:layout_constraintBottom_toTopOf="@+id/login_edit_email"
-        app:layout_constraintStart_toStartOf="@+id/login_edit_email" />
-
-
-    <com.kdt.mcgui.MineEditText
-        android:id="@+id/login_edit_email"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/_37sdp"
-
-        android:layout_marginHorizontal="@dimen/_25sdp"
-
-        android:layout_marginTop="@dimen/_60sdp"
-        android:imeOptions="flagNoExtractUi"
-        android:inputType="textEmailAddress"
-        android:textSize="@dimen/_16ssp"
-
-        app:layout_constraintEnd_toEndOf="@+id/login_menu"
-        app:layout_constraintStart_toStartOf="@+id/login_menu"
-        app:layout_constraintTop_toTopOf="@+id/login_menu"
-        app:layout_constraintVertical_bias="0.251" />
-
-    <com.kdt.mcgui.MineButton
-        android:id="@+id/login_button"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/_42sdp"
-        android:layout_marginHorizontal="@dimen/_25sdp"
-        android:layout_marginTop="@dimen/padding_heavy"
-        android:onClick="loginMC"
-        android:text="@string/login_online_login_label"
-
-        android:background="@drawable/premium_button_bg"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_gravity="center"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_24sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_edit_email" />
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <TextView
+            android:id="@+id/login_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEAR LAUNCHER"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_24ssp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/login_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login"
+            android:textColor="#40FFFFFF"
+            android:textSize="@dimen/_10ssp"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:layout_constraintTop_toBottomOf="@id/login_title"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.kdt.mcgui.MineEditText
+            android:id="@+id/login_edit_email"
+            android:layout_width="@dimen/_200sdp"
+            android:layout_height="@dimen/_40sdp"
+            android:background="@drawable/premium_edit_bg"
+            android:hint="Email or Username"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#40FFFFFF"
+            android:paddingHorizontal="16dp"
+            android:imeOptions="flagNoExtractUi"
+            app:layout_constraintTop_toBottomOf="@id/login_hint"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/login_button"
+            android:layout_width="@dimen/_200sdp"
+            android:layout_height="@dimen/_44sdp"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:text="SIGN IN"
+            app:layout_constraintTop_toBottomOf="@id/login_edit_email"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <CheckBox
+            android:id="@+id/save_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save password"
+            android:textColor="#FFFFFF"
+            android:buttonTint="#FF9800"
+            android:layout_marginTop="@dimen/_8sdp"
+            app:layout_constraintTop_toBottomOf="@id/login_button"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <CheckBox
+            android:id="@+id/auto_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto Login"
+            android:textColor="#FFFFFF"
+            android:buttonTint="#FF9800"
+            app:layout_constraintTop_toBottomOf="@id/save_password"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Reference Graphics Placeholder -->
+        <ImageView
+            android:layout_width="@dimen/_150sdp"
+            android:layout_height="@dimen/_150sdp"
+            android:src="@drawable/ic_mc_skull"
+            android:alpha="0.5"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

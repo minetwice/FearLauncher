@@ -20,43 +20,36 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getActivity() != null) {
-            getActivity().setTheme(R.style.FearPreferenceTheme);
-        }
     }
 
     @NonNull
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        if (getActivity() != null) {
-            getActivity().setTheme(R.style.FearPreferenceTheme);
-        }
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
+        // Transparent background so the activity background shows through
+        view.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
         RecyclerView recyclerView = getListView();
         if (recyclerView != null) {
-            DividerItemDecoration divider = new DividerItemDecoration(requireContext(),
-                    DividerItemDecoration.VERTICAL);
-            divider.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.background_line));
-            recyclerView.addItemDecoration(divider);
+            recyclerView.setPadding(32, 32, 32, 32);
+            recyclerView.setClipToPadding(false);
+            // No divider needed for the card style
         }
 
         super.onViewCreated(view, savedInstanceState);
     }
 
-    // No need for programmatic background – style will apply via theme
-    // But we keep a fallback to ensure consistency
     @Override
     public void onResume() {
         super.onResume();
-        // Optionally, we can still apply the background to be safe
-        getListView().post(() -> applyBackgroundToAllPreferences());
+        if (getListView() != null) {
+            getListView().post(this::applyBackgroundToAllPreferences);
+        }
     }
 
     private void applyBackgroundToAllPreferences() {
@@ -70,17 +63,20 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     }
 
     private void applyBackgroundToView(View view) {
-        if (view instanceof LinearLayout) {
-            // Use selector so pressed state works
-            view.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.preference_background_selector));
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-            params.setMargins(16, 8, 16, 8);
-            view.setLayoutParams(params);
-        }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                applyBackgroundToView(group.getChildAt(i));
+            // Check if it's a preference item (usually has a title)
+            if (group.findViewById(android.R.id.title) != null) {
+                view.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.preference_background_selector));
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                if (params != null) {
+                    params.setMargins(0, 12, 0, 12);
+                    view.setLayoutParams(params);
+                }
+            } else {
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    applyBackgroundToView(group.getChildAt(i));
+                }
             }
         }
     }

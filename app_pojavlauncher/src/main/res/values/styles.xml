@@ -24,6 +24,13 @@
         <item name="android:background">@drawable/premium_gradient_bg</item>
         <item name="android:colorBackground">#000000</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="alertDialogTheme">@style/FearAlertDialogTheme</item>
+    </style>
+
+    <style name="FearAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/premium_glass_black_bg</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="colorAccent">#FF9800</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->

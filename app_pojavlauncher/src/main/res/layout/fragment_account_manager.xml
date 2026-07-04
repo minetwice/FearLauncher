@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom Sheet: Account Manager -->
-<!-- Place at: res/layout/fragment_account_manager.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/premium_gradient_bg"
+    android:background="@drawable/premium_glass_black_bg"
     android:paddingBottom="@dimen/_24sdp">
-
-    <!-- Drag Handle -->
-    <View
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_4sdp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:background="@drawable/premium_gradient_bg"
-        android:layout_marginBottom="@dimen/_8sdp"/>
 
     <!-- Header -->
     <LinearLayout
@@ -26,48 +15,39 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_8sdp"
+        android:paddingTop="@dimen/_20sdp"
         android:paddingBottom="@dimen/_16sdp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Accounts"
-            android:textColor="@color/primary_text"
+            android:text="CORE IDENTITIES"
+            android:textColor="#FF9800"
             android:textSize="@dimen/_18ssp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:letterSpacing="0.1"/>
 
-        <!-- Add Account Button -->
-        <com.google.android.material.button.MaterialButton
+        <com.kdt.mcgui.MineButton
             android:id="@+id/btn_add_account"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="+ Add"
-            android:textColor="#000000"
-            android:textSize="@dimen/_13ssp"
-            app:backgroundTint="@color/fear_primary"
-            app:cornerRadius="8dp"/>
+            android:layout_height="@dimen/_36sdp"
+            android:text="ADD NEW"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_10ssp"
+            android:background="@drawable/premium_button_bg"/>
 
     </LinearLayout>
 
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@drawable/premium_gradient_bg"
-        android:layout_marginHorizontal="@dimen/_16sdp"/>
-
-    <!-- Account List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/account_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxHeight="300dp"
         android:nestedScrollingEnabled="false"
+        android:paddingHorizontal="@dimen/_16sdp"
         android:paddingTop="@dimen/_8sdp"/>
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/empty_account_state"
         android:layout_width="match_parent"
@@ -80,25 +60,16 @@
         <ImageView
             android:layout_width="@dimen/_48sdp"
             android:layout_height="@dimen/_48sdp"
-            android:src="@drawable/ic_account_circle"
-            android:tint="@color/secondary_text"/>
+            android:src="@drawable/ic_mc_skull"
+            app:tint="#40FFFFFF"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_8sdp"
-            android:text="No accounts added yet"
-            android:textColor="@color/secondary_text"
+            android:text="No identities detected"
+            android:textColor="#B3FFFFFF"
             android:textSize="@dimen/_14ssp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_4sdp"
-            android:text="Tap '+ Add' to add your account"
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_12ssp"/>
-
     </LinearLayout>
 
 </LinearLayout>
