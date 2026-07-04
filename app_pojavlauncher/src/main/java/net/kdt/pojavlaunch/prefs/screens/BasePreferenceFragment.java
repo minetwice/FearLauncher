@@ -43,7 +43,7 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         if (recyclerView != null) {
             DividerItemDecoration divider = new DividerItemDecoration(requireContext(),
                     DividerItemDecoration.VERTICAL);
-            divider.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.divider_silver));
+            divider.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.background_line));
             recyclerView.addItemDecoration(divider);
         }
 

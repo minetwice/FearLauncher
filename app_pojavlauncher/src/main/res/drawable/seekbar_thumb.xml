@@ -9,7 +9,7 @@
     <stroke
         android:width="2dp"
         android:color="#FFFFFF" />
-    <solid android:color="@color/silver_main" />
+    <solid android:color="@color/fear_primary" />
     <padding
         android:left="2dp"
         android:top="2dp"

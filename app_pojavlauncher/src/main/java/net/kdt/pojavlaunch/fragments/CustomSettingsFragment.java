@@ -209,7 +209,7 @@ public class CustomSettingsFragment extends Fragment {
             if (holder instanceof CategoryViewHolder) {
                 CategoryViewHolder vh = (CategoryViewHolder) holder;
                 vh.textView.setText(((SettingItem.Category) item).title);
-                vh.textView.setTextColor(getResources().getColor(R.color.silver_light));
+                vh.textView.setTextColor(getResources().getColor(R.color.fear_tertiary));
                 vh.textView.setShadowLayer(4, 0, 2, 0x80000000);
             } else if (holder instanceof NormalViewHolder) {
                 NormalViewHolder vh = (NormalViewHolder) holder;

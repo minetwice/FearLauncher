@@ -20,7 +20,7 @@
 
 
         android:layout_marginHorizontal="@dimen/_15sdp"
-        android:background="@drawable/menu_background"
+        android:background="@drawable/premium_gradient_bg"
         android:paddingVertical="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"

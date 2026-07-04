@@ -7,8 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +46,10 @@ public class MainMenuFragment extends Fragment {
     private TextView mAccountTypeLabel;
     private TextView mVersionText;
 
+    // Display views for the new layout
+    private TextView mAccountNameDisplay;
+    private TextView mVersionTextDisplay;
+
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
             registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
                 if (data != null) Tools.launchModInstaller(requireContext(), data);
@@ -53,106 +61,131 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Account section
+        // Logic bindings (invisible dummies)
         mAccountName      = view.findViewById(R.id.account_name);
         mAccountTypeLabel = view.findViewById(R.id.account_type_label);
         mVersionText      = view.findViewById(R.id.version_text);
-        View accountSection = view.findViewById(R.id.account_section);
+
+        // Display bindings
+        mAccountNameDisplay = view.findViewById(R.id.account_name_display);
+        mVersionTextDisplay = view.findViewById(R.id.version_text_display);
 
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
-        View customControlButton = view.findViewById(R.id.custom_control_button);
-        View installJarButton    = view.findViewById(R.id.install_jar_button);
-        View shareLogsButton     = view.findViewById(R.id.share_logs_button_tray);
-        View openFilesButton     = view.findViewById(R.id.open_files_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
-        View editBtn             = view.findViewById(R.id.edit_profile_button);
+        View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
-        // Rail Tabs
-        View tabHome = view.findViewById(R.id.tab_home);
-        View tabInstallations = view.findViewById(R.id.tab_installations);
-        View tabSkin = view.findViewById(R.id.tab_skin);
-        View tabSettings = view.findViewById(R.id.tab_settings_icon);
+        // Sidebar Items
+        View traySettingsBtn = view.findViewById(R.id.tray_settings_btn);
+        View trayExecuteJarBtn = view.findViewById(R.id.tray_execute_jar_btn);
+        View traySkinBtn = view.findViewById(R.id.tray_skin_btn);
+        View trayAccountBtn = view.findViewById(R.id.tray_account_btn);
+        View moreSettingsToggle = view.findViewById(R.id.more_settings_toggle);
+        LinearLayout moreSettingsLayout = view.findViewById(R.id.more_settings_layout);
+
+        // More Sidebar Sub-items
+        View trayControlsBtn = view.findViewById(R.id.tray_controls_btn);
+        View trayModsBtn = view.findViewById(R.id.tray_mods_btn);
+        View trayLogsBtn = view.findViewById(R.id.tray_logs_btn);
+        View trayOpenDirBtn = view.findViewById(R.id.tray_open_dir_btn);
 
         // Refresh UI
         refreshAccountUI();
         updateVersionText();
 
-        if (accountSection != null) {
-            accountSection.setOnClickListener(v -> openAccountManager());
-        }
-
         if (playButton != null) {
             playButton.setOnClickListener(v -> handlePlayButton());
         }
 
-        if (customControlButton != null) {
-            customControlButton.setOnClickListener(v ->
-                    startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
-        }
-
-        if (installJarButton != null) {
-            installJarButton.setOnClickListener(v -> runInstallerWithConfirmation());
-        }
-
-        if (openFilesButton != null) {
-            openFilesButton.setOnClickListener(v -> openGameDirectory(v.getContext()));
-        }
-
-        if (editBtn != null) {
-            editBtn.setOnClickListener(v -> {
+        if (editBtnMain != null) {
+            editBtnMain.setOnClickListener(v -> {
                 if (mVersionSpinner != null)
                     mVersionSpinner.openProfileEditor(requireActivity());
             });
         }
 
-        if (tabHome != null) {
-            tabHome.setOnClickListener(v -> Toast.makeText(getContext(), "Java Edition", Toast.LENGTH_SHORT).show());
-        }
-        if (tabInstallations != null) {
-            tabInstallations.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment.class, "java", null));
-        }
-        if (tabSkin != null) {
-            tabSkin.setOnClickListener(v -> openAccountManager());
-        }
-        if (tabSettings != null) {
-            tabSettings.setOnClickListener(v ->
+        // Sidebar Actions
+        if (traySettingsBtn != null) {
+            traySettingsBtn.setOnClickListener(v ->
                 Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
         }
 
-        // TRAY LOGIC (Replaced AnimationUtils with ViewPropertyAnimator to avoid resource parsing errors)
+        if (trayExecuteJarBtn != null) {
+            trayExecuteJarBtn.setOnClickListener(v -> runInstallerWithConfirmation());
+        }
+
+        if (traySkinBtn != null || trayAccountBtn != null) {
+            View.OnClickListener accountListener = v -> openAccountManager();
+            if (traySkinBtn != null) traySkinBtn.setOnClickListener(accountListener);
+            if (trayAccountBtn != null) trayAccountBtn.setOnClickListener(accountListener);
+        }
+
+        if (trayControlsBtn != null) {
+            trayControlsBtn.setOnClickListener(v ->
+                    startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+        }
+
+        if (trayModsBtn != null) {
+            trayModsBtn.setOnClickListener(v -> Toast.makeText(getContext(), "Mods Menu Coming Soon", Toast.LENGTH_SHORT).show());
+        }
+
+        if (trayLogsBtn != null) {
+            trayLogsBtn.setOnClickListener(v -> shareLog(requireContext()));
+        }
+
+        if (trayOpenDirBtn != null) {
+            trayOpenDirBtn.setOnClickListener(v -> openGameDirectory(v.getContext()));
+        }
+
+        if (moreSettingsToggle != null && moreSettingsLayout != null) {
+            moreSettingsToggle.setOnClickListener(v -> {
+                if (moreSettingsLayout.getVisibility() == View.VISIBLE) {
+                    moreSettingsLayout.setVisibility(View.GONE);
+                } else {
+                    moreSettingsLayout.setVisibility(View.VISIBLE);
+                    animateItemsSequentially(moreSettingsLayout);
+                }
+            });
+        }
+
+        // TRAY SLIDE LOGIC
         final View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 settingsTray.setVisibility(View.VISIBLE);
                 settingsTray.setAlpha(0f);
-                settingsTray.setTranslationX(settingsTray.getWidth() > 0 ? settingsTray.getWidth() : 1000f);
+                settingsTray.setTranslationX(-settingsTray.getWidth());
                 settingsTray.animate()
                         .translationX(0f)
                         .alpha(1f)
                         .setDuration(400)
+                        .withEndAction(() -> {
+                            ViewGroup container = (ViewGroup) ((ViewGroup) settingsTray).getChildAt(0);
+                            animateItemsSequentially(container);
+                        })
                         .start();
             });
 
             view.findViewById(R.id.tray_close).setOnClickListener(v -> {
                 settingsTray.animate()
-                        .translationX(settingsTray.getWidth())
+                        .translationX(-settingsTray.getWidth())
                         .alpha(0f)
                         .setDuration(300)
                         .withEndAction(() -> settingsTray.setVisibility(View.GONE))
                         .start();
             });
+        }
+    }
 
-            view.findViewById(R.id.tray_settings).setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
-
-            view.findViewById(R.id.tray_runtime).setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceJavaFragment.class, "java", null));
-
-            if (shareLogsButton != null) {
-                shareLogsButton.setOnClickListener(v -> shareLog(requireContext()));
+    private void animateItemsSequentially(ViewGroup container) {
+        int count = container.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View child = container.getChildAt(i);
+            if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView) {
+                Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.item_fade_in);
+                anim.setStartOffset(i * 100L);
+                child.startAnimation(anim);
             }
         }
     }
@@ -167,12 +200,13 @@ public class MainMenuFragment extends Fragment {
     }
 
     public void refreshAccountUI() {
-        if (mAccountName == null) return;
         MinecraftAccount current = Accounts.getCurrent();
+        String username = "Add Account";
+        String typeLabel = "Tap to manage";
+
         if (current != null && current.username != null
                 && !current.username.isEmpty() && !current.username.equals("0")) {
-            mAccountName.setText(current.username);
-            String typeLabel = "Local Account";
+            username = current.username;
             if (current.authType != null) {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
@@ -180,11 +214,12 @@ public class MainMenuFragment extends Fragment {
                     default:        typeLabel = "Local Account";     break;
                 }
             }
-            if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
-        } else {
-            mAccountName.setText("Add Account");
-            if (mAccountTypeLabel != null) mAccountTypeLabel.setText("Tap to manage");
         }
+
+        if (mAccountName != null) mAccountName.setText(username);
+        if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
+
+        if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
     }
 
     private void handlePlayButton() {
@@ -203,13 +238,14 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void updateVersionText() {
-        if (mVersionText == null) return;
         Instance instance = Instances.loadSelectedInstance();
+        String version = "No version selected";
         if (instance != null && instance.versionId != null && !instance.versionId.isEmpty()) {
-            mVersionText.setText(instance.versionId);
-        } else {
-            mVersionText.setText("No version selected");
+            version = instance.versionId;
         }
+
+        if (mVersionText != null) mVersionText.setText(version);
+        if (mVersionTextDisplay != null) mVersionTextDisplay.setText(version);
     }
 
     private void openGameDirectory(Context context) {

@@ -4,60 +4,57 @@
     <!-- GAME CONTROLS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="control_button_color">#4CFFFFFF</color>
-    <color name="control_button_pressed_color">#4D3C8527</color>
+    <color name="control_button_pressed_color">#4DFF9800</color>
 
     <!-- MineButton text -->
-    <color name="minebutton_color">#3C8527</color>
+    <color name="minebutton_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- MINECRAFT THEME BACKGROUNDS                     -->
+    <!-- NEW UNIQUE THEME BACKGROUNDS                     -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="background_app">#1E1E1E</color>
-    <color name="background_overlay">#252525</color>
-    <color name="background_status_bar">#181818</color>
-    <color name="background_bottom_bar">#2E2E2E</color>
-    <color name="divider">#3E3E3E</color>
+    <color name="background_app">#0F0F0F</color>
+    <color name="background_overlay">#1A1A1A</color>
+    <color name="background_status_bar">#0A0A0A</color>
+    <color name="background_bottom_bar">#121212</color>
+    <color name="divider">#333333</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT COLORS                                     -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#B9BBBE</color>
-    <color name="icon_outline_color">#3C8527</color>
+    <color name="secondary_text">#CCCCCC</color>
+    <color name="icon_outline_color">#FFB74D</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- MINECRAFT SURFACES                              -->
+    <!-- NEW GRADIENT ACCENTS                             -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_surface">#2E2E2E</color>
-    <color name="fear_surface_variant">#3E3E3E</color>
-    <color name="fear_surface_container">#181818</color>
-    <color name="sidebar_bg">#2E2E2E</color>
-    <color name="top_bar_bg">#2E2E2E</color>
+    <color name="fear_primary">#4CAF50</color> <!-- Green -->
+    <color name="fear_secondary">#FF9800</color> <!-- Orange -->
+    <color name="fear_tertiary">#FFEB3B</color> <!-- Yellow -->
 
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- MINECRAFT ACCENTS (Official Green)              -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#3C8527</color>
     <color name="fear_on_primary">#FFFFFF</color>
-    <color name="fear_secondary">#47A131</color>
-    <color name="fear_tertiary">#2F691E</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="status_error">#FF5252</color>
-    <color name="status_success">#3C8527</color>
+    <color name="status_success">#4CAF50</color>
     <color name="status_warning">#FFC107</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- MISC                                            -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#E61E1E1E</color>
+    <color name="fear_glass_bg">#BF1A1A1A</color>
     <color name="mc_official_green">#3C8527</color>
-    <color name="carousel_card_bg">#2E2E2E</color>
-    <color name="silver_main">@color/fear_primary</color>
-    <color name="silver_dark">@color/fear_tertiary</color>
-    <color name="silver_light">#E0E0E0</color>
-    <color name="seekbar_progress_start">#3C8527</color>
-    <color name="seekbar_progress_end">#47A131</color>
+    <color name="carousel_card_bg">#252525</color>
+
+    <!-- Legacy Mappings (to avoid breaking XMLs until fully purged) -->
+
+    <color name="seekbar_progress_start">#4CAF50</color>
+    <color name="seekbar_progress_end">#FF9800</color>
+    <color name="fear_surface">#1A1A1A</color>
+    <color name="fear_surface_variant">#252525</color>
+    <color name="fear_surface_container">#0A0A0A</color>
+    <color name="top_bar_bg">#1A1A1A</color>
+    <color name="sidebar_bg">#121212</color>
 </resources>

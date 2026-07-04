@@ -40,7 +40,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:paddingHorizontal="@dimen/padding_large"
-        android:background="@drawable/menu_button_bg"
+        android:background="@drawable/premium_button_bg"
         android:textColor="@color/fear_primary"
         android:text="@string/global_select"
 

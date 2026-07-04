@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- res/drawable/gradient_card.xml — Card background with silver border -->
+<!-- res/drawable/gradient_card.xml — Card background with unique_gradient border -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Silver border layer -->
     <item>

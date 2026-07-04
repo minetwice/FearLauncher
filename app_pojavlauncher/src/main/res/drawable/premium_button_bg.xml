@@ -3,7 +3,7 @@
     android:color="#40FFFFFF">
     <item android:id="@android:id/mask">
         <shape>
-            <corners android:radius="8dp" />
+            <corners android:radius="12dp" />
             <solid android:color="#FFFFFF" />
         </shape>
     </item>
@@ -12,10 +12,10 @@
             <item android:state_pressed="true">
                 <shape>
                     <gradient
-                        android:startColor="#2F691E"
-                        android:endColor="#3C8527"
+                        android:startColor="#FF9800"
+                        android:endColor="#4CAF50"
                         android:angle="135" />
-                    <corners android:radius="8dp" />
+                    <corners android:radius="12dp" />
                 </shape>
             </item>
             <item>
@@ -23,21 +23,22 @@
                     <item>
                         <shape>
                             <gradient
-                                android:startColor="#3C8527"
-                                android:centerColor="#47A131"
-                                android:endColor="#2F691E"
+                                android:startColor="#4CAF50"
+                                android:centerColor="#FF9800"
+                                android:endColor="#FFEB3B"
                                 android:angle="135" />
-                            <corners android:radius="8dp" />
+                            <corners android:radius="12dp" />
                         </shape>
                     </item>
-                    <!-- Subtle Gloss overlay -->
-                    <item android:top="1dp" android:left="1dp" android:right="1dp">
+                    <!-- Shine line effect -->
+                    <item android:top="2dp" android:left="2dp" android:right="2dp">
                         <shape>
                             <gradient
-                                android:startColor="#30FFFFFF"
+                                android:startColor="#80FFFFFF"
+                                android:centerColor="#00FFFFFF"
                                 android:endColor="#00FFFFFF"
                                 android:angle="270" />
-                            <corners android:radius="7dp" />
+                            <corners android:radius="10dp" />
                         </shape>
                     </item>
                 </layer-list>

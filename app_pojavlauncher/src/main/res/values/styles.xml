@@ -68,7 +68,7 @@
     <!-- LAUNCHER MENU BUTTONS                           -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/menu_button_bg</item>
+        <item name="android:background">@drawable/premium_button_bg</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">@dimen/_14ssp</item>
         <item name="android:layout_margin">@dimen/padding_small</item>
