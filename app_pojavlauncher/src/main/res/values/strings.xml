@@ -179,13 +179,13 @@
     <string name="preference_mouse_start_description">The virtual mouse appears at startup when this option is on.</string>
     <string name="preference_video_title">Video and renderer</string>
     <string name="preference_video_description">Resolution, renderer and performance</string>
-    <string name="preference_control_title">Control customization</string>
+    <string name="preference_control_title">INPUT MAPPING</string>
     <string name="preference_control_description">Gestures, buttons and scaling</string>
     <string name="preference_java_title">Java Tweaks</string>
     <string name="preference_java_description">Java Runtimes, JVM Arguments, RAM amount and sandbox</string>
-    <string name="preference_misc_title">Miscellaneous settings</string>
+    <string name="preference_misc_title">CORE UTILS settings</string>
     <string name="preference_misc_description">Version list and libraries check</string>
-    <string name="preference_experimental_title">Experimental Stuff</string>
+    <string name="preference_experimental_title">LABS Stuff</string>
     <string name="preference_experimental_description">Use things there with consideration, no support</string>
     <string name="preference_sustained_performance_title">Enable sustained performance mode</string>
     <string name="preference_sustained_performance_description">Limit thermal throttling by limiting peak performance.</string>
@@ -337,11 +337,11 @@ If you want to use the official download source, press \"Switch to official site
     <string name="notif_download_finished_desc">Click here to start it!</string>
     <string name="preference_category_gestures">Gestures</string>
     <string name="preference_category_buttons">Buttons</string>
-    <string name="preference_category_experimental_settings">Experimental fuckury</string>
+    <string name="preference_category_experimental_settings">LABS fuckury</string>
     <string name="preference_category_java_tweaks">Java Tweaks</string>
     <string name="preference_category_main_categories">Categories</string>
-    <string name="preference_category_miscellaneous">Miscellaneous settings</string>
-    <string name="preference_category_video">Video settings</string>    <string name="notification_permission_dialog_title">Permission request</string>
+    <string name="preference_category_miscellaneous">CORE UTILS settings</string>
+    <string name="preference_category_video">VISUAL ENGINE</string>    <string name="notification_permission_dialog_title">Permission request</string>
     <string name="notification_permission_dialog_text">FearLauncher requires a permission to post notifications to prevent game/modpack downloads from stopping when you leave the app. Without this permission, Android may shut down your downloads when you put FearLauncher in background mode.</string>
     <string name="notification_permission_toast">You can always change your mind later by going into Settings</string>
     <string name="preference_ask_for_notification_title">Allow notifications</string>

@@ -41,7 +41,7 @@ public class AsyncAssetManager {
             Log.e("JREAuto", "JRE was not included on this APK.", e);
         }
         String exactJREName = MultiRTUtils.getExactJreName(8);
-        sExecutorService.execute(() -> NewJREUtil.checkAllInternalRuntimes(am));
+        if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_ALLOW_JRE_DOWNLOAD) sExecutorService.execute(() -> NewJREUtil.checkAllInternalRuntimes(am));
 
         if(current_rt_version == null && exactJREName != null && !exactJREName.equals("Internal")/*this clause is for when the internal runtime is goofed*/) return;
         if(rt_version == null) return;
@@ -59,7 +59,7 @@ public class AsyncAssetManager {
                         am.open("components/jre/bin-" + archAsString(Tools.DEVICE_ARCHITECTURE) + ".tar.xz"),
                         "Internal", finalRt_version);
                 MultiRTUtils.postPrepare("Internal");
-                NewJREUtil.checkAllInternalRuntimes(am);
+                if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_ALLOW_JRE_DOWNLOAD) NewJREUtil.checkAllInternalRuntimes(am);
             }catch (IOException e) {
                 Log.e("JREAuto", "Internal JRE unpack failed", e);
             }

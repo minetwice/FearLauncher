@@ -69,18 +69,22 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
                     accountList.remove(account);
                     mAdapter.notifyDataSetChanged();
                     updateEmptyState(accountList);
+        View btnDone = view.findViewById(R.id.account_manager_done);
+        if (btnDone != null) btnDone.setOnClickListener(v -> dismiss());
                     // If deleted account was current, refresh parent
                     if (mListener != null && current != null
                             && account.mSaveLocation.getName().equals(currentAccountName)) {
                         mListener.onAccountSelected(null);
                     }
-                    Toast.makeText(requireContext(), "Account removed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Identity Removed", Toast.LENGTH_SHORT).show();
                 }
         );
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(mAdapter);
         updateEmptyState(accountList);
+        View btnDone = view.findViewById(R.id.account_manager_done);
+        if (btnDone != null) btnDone.setOnClickListener(v -> dismiss());
 
         // Add account button → opens AddAccountFragment
         if (btnAddAccount != null) {
@@ -182,3 +186,4 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         }
     }
 }
+    // Add logic for account_manager_done button in onViewCreated

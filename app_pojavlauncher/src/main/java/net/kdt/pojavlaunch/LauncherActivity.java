@@ -154,6 +154,7 @@ public class LauncherActivity extends BaseActivity {
                 }
         );
         checkNotificationPermission();
+        showJreDownloadPermissionDialog();
 
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -233,8 +234,8 @@ public class LauncherActivity extends BaseActivity {
         return checkForPermission(minApi, permission) ||
                 ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
     }
-
     private void checkNotificationPermission() {
+
         if (LauncherPreferences.PREF_SKIP_NOTIFICATION_PERMISSION_CHECK ||
                 checkForPermission(33, Manifest.permission.POST_NOTIFICATIONS)) {
             return;
@@ -262,5 +263,25 @@ public class LauncherActivity extends BaseActivity {
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
         mProgressLayout = findViewById(R.id.progress_layout);
+    }
+    private void showJreDownloadPermissionDialog() {
+        if (LauncherPreferences.PREF_ALLOW_JRE_DOWNLOAD) return;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_jre_permission, null);
+        androidx.appcompat.widget.SwitchCompat downloadSwitch = dialogView.findViewById(R.id.jre_download_switch);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Runtime Components")
+                .setView(dialogView)
+                .setPositiveButton("Proceed", (d, w) -> {
+                    boolean isAllowed = downloadSwitch.isChecked();
+                    LauncherPreferences.PREF_ALLOW_JRE_DOWNLOAD = isAllowed;
+                    LauncherPreferences.DEFAULT_PREF.edit().putBoolean("allow_jre_download", isAllowed).apply();
+                    if (isAllowed) {
+                        net.kdt.pojavlaunch.tasks.AsyncAssetManager.unpackRuntime(getAssets());
+                    }
+                })
+                .setCancelable(false)
+                .show();
     }
 }

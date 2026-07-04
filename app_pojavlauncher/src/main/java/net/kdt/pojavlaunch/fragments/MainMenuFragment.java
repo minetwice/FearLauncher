@@ -48,7 +48,6 @@ public class MainMenuFragment extends Fragment {
 
     // Display views for the new layout
     private TextView mAccountNameDisplay;
-    private TextView mVersionTextDisplay;
 
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
             registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
@@ -68,12 +67,11 @@ public class MainMenuFragment extends Fragment {
 
         // Display bindings
         mAccountNameDisplay = view.findViewById(R.id.account_name_display);
-        mVersionTextDisplay = view.findViewById(R.id.version_text_display);
 
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
-        View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
+        View accountSectionMain  = view.findViewById(R.id.account_section_main);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
         // Sidebar Items
@@ -98,11 +96,8 @@ public class MainMenuFragment extends Fragment {
             playButton.setOnClickListener(v -> handlePlayButton());
         }
 
-        if (editBtnMain != null) {
-            editBtnMain.setOnClickListener(v -> {
-                if (mVersionSpinner != null)
-                    mVersionSpinner.openProfileEditor(requireActivity());
-            });
+        if (accountSectionMain != null) {
+            accountSectionMain.setOnClickListener(v -> openAccountManager());
         }
 
         // Sidebar Actions
@@ -144,32 +139,45 @@ public class MainMenuFragment extends Fragment {
                     moreSettingsLayout.setVisibility(View.GONE);
                 } else {
                     moreSettingsLayout.setVisibility(View.VISIBLE);
-                    animateItemsSequentially(moreSettingsLayout);
+                    animateItemsSequentially(moreSettingsLayout, R.anim.item_fade_in);
                 }
             });
         }
 
-        // TRAY SLIDE LOGIC
+        // TRAY SLIDE LOGIC (Right to Left)
         final View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
-                settingsTray.setVisibility(View.VISIBLE);
-                settingsTray.setAlpha(0f);
-                settingsTray.setTranslationX(-settingsTray.getWidth());
-                settingsTray.animate()
-                        .translationX(0f)
-                        .alpha(1f)
-                        .setDuration(400)
-                        .withEndAction(() -> {
-                            ViewGroup container = (ViewGroup) ((ViewGroup) settingsTray).getChildAt(0);
-                            animateItemsSequentially(container);
-                        })
-                        .start();
+                if (settingsTray.getVisibility() == View.VISIBLE) {
+                    // Close animation: Down to Up
+                    animateItemsSequentially((ViewGroup) ((ViewGroup) settingsTray).getChildAt(0), R.anim.item_slide_out_up);
+                    settingsTray.animate()
+                            .translationX(settingsTray.getWidth())
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction(() -> settingsTray.setVisibility(View.GONE))
+                            .start();
+                } else {
+                    // Open animation: Right to Left
+                    settingsTray.setVisibility(View.VISIBLE);
+                    settingsTray.setAlpha(0f);
+                    settingsTray.setTranslationX(settingsTray.getWidth() > 0 ? settingsTray.getWidth() : 1000f);
+                    settingsTray.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(400)
+                            .withEndAction(() -> {
+                                ViewGroup container = (ViewGroup) ((ViewGroup) settingsTray).getChildAt(0);
+                                animateItemsSequentially(container, R.anim.item_fade_in);
+                            })
+                            .start();
+                }
             });
 
             view.findViewById(R.id.tray_close).setOnClickListener(v -> {
-                settingsTray.animate()
-                        .translationX(-settingsTray.getWidth())
+                 animateItemsSequentially((ViewGroup) ((ViewGroup) settingsTray).getChildAt(0), R.anim.item_slide_out_up);
+                 settingsTray.animate()
+                        .translationX(settingsTray.getWidth())
                         .alpha(0f)
                         .setDuration(300)
                         .withEndAction(() -> settingsTray.setVisibility(View.GONE))
@@ -178,13 +186,13 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    private void animateItemsSequentially(ViewGroup container) {
+    private void animateItemsSequentially(ViewGroup container, int animRes) {
         int count = container.getChildCount();
         for (int i = 0; i < count; i++) {
             View child = container.getChildAt(i);
             if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView) {
-                Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.item_fade_in);
-                anim.setStartOffset(i * 100L);
+                Animation anim = AnimationUtils.loadAnimation(requireContext(), animRes);
+                anim.setStartOffset(i * 50L);
                 child.startAnimation(anim);
             }
         }
@@ -201,12 +209,12 @@ public class MainMenuFragment extends Fragment {
 
     public void refreshAccountUI() {
         MinecraftAccount current = Accounts.getCurrent();
-        String username = "Add Account";
+        String username = "ADD ACCOUNT";
         String typeLabel = "Tap to manage";
 
         if (current != null && current.username != null
                 && !current.username.isEmpty() && !current.username.equals("0")) {
-            username = current.username;
+            username = current.username.toUpperCase();
             if (current.authType != null) {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
@@ -239,13 +247,12 @@ public class MainMenuFragment extends Fragment {
 
     private void updateVersionText() {
         Instance instance = Instances.loadSelectedInstance();
-        String version = "No version selected";
+        String version = "1.21.1";
         if (instance != null && instance.versionId != null && !instance.versionId.isEmpty()) {
             version = instance.versionId;
         }
 
         if (mVersionText != null) mVersionText.setText(version);
-        if (mVersionTextDisplay != null) mVersionTextDisplay.setText(version);
     }
 
     private void openGameDirectory(Context context) {

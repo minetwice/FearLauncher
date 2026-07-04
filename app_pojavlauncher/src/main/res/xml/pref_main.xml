@@ -54,6 +54,11 @@
             android:icon="@drawable/ic_px_experiment"/>
     </PreferenceCategory>
 
+    <androidx.preference.SwitchPreferenceCompat
+        android:title="Allow Component Downloads"
+        android:summary="Enable automatic downloading of JRE and runtime components"
+        android:key="allow_jre_download"
+        android:icon="@drawable/ic_px_file_dl"/>
     <SwitchPreference
         android:title="@string/preference_force_english_title"
         android:key="force_english"

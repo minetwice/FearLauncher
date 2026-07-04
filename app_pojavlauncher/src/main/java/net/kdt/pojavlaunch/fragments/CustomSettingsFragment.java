@@ -67,7 +67,7 @@ public class CustomSettingsFragment extends Fragment {
         list.add(new SettingItem.Category("Video & Performance"));
         list.add(new SettingItem.Normal(
                 "Video",
-                "Resolution, renderer, VSync",
+                "OPTIMIZE RENDERING AND PERFORMANCE",
                 R.drawable.ic_px_image,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceVideoFragment.class, "video", null)
         ));
@@ -76,7 +76,7 @@ public class CustomSettingsFragment extends Fragment {
         list.add(new SettingItem.Category("Game Controls"));
         list.add(new SettingItem.Normal(
                 "Controls",
-                "Gestures, buttons, mouse",
+                "ADJUST INPUT AND CONTROL LAYOUTS",
                 R.drawable.ic_px_gamepad,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceControlFragment.class, "controls", null)
         ));
@@ -85,7 +85,7 @@ public class CustomSettingsFragment extends Fragment {
         list.add(new SettingItem.Category("Java Engine"));
         list.add(new SettingItem.Normal(
                 "Java",
-                "Runtime, memory, JVM args",
+                "CONFIGURE JAVA AND VM ARGS",
                 R.drawable.ic_px_java,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceJavaFragment.class, "java", null)
         ));
@@ -94,7 +94,7 @@ public class CustomSettingsFragment extends Fragment {
         list.add(new SettingItem.Category("Advanced Tools"));
         list.add(new SettingItem.Normal(
                 "Tools",
-                "Download source, file checks",
+                "MANAGE INTERNAL SYSTEM TOOLS",
                 R.drawable.ic_px_alt_sliders,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceMiscellaneousFragment.class, "misc", null)
         ));
@@ -103,7 +103,7 @@ public class CustomSettingsFragment extends Fragment {
         list.add(new SettingItem.Category("Experimental Labs"));
         list.add(new SettingItem.Normal(
                 "Experiments",
-                "Bleeding-edge features",
+                "UNSTABLE RESEARCH FEATURES",
                 R.drawable.ic_px_experiment,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceExperimentalFragment.class, "experiment", null)
         ));

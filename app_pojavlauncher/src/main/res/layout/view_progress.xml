@@ -3,24 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Progress Bar Container with Dark Surface Background -->
+    <!-- White Background Progress Bar with Black Border -->
     <LinearLayout
+        android:id="@+id/progress_status_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingVertical="@dimen/_6sdp"
-        android:background="@drawable/premium_gradient_bg">
+        android:paddingVertical="@dimen/_8sdp"
+        android:background="@drawable/progress_bar_white_bg"
+        android:layout_margin="4dp">
 
-        <!-- Spinner/Progress Indicator -->
         <ProgressBar
             android:id="@+id/progress_generic_progressbar"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:indeterminateTint="@color/fear_secondary" />
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:indeterminateTint="#000000" />
 
-        <!-- Status Text (White for Readability) -->
         <TextView
             android:id="@+id/progress_textview"
             android:layout_width="0dp"
@@ -28,22 +28,22 @@
             android:layout_weight="1"
             android:layout_marginStart="@dimen/_8sdp"
             android:gravity="start|center_vertical"
-            android:textSize="@dimen/_12ssp"
-            android:textColor="@color/primary_text"
+            android:textSize="@dimen/_11ssp"
+            android:textColor="#000000"
+            android:textStyle="bold"
             android:maxLines="1"
             android:ellipsize="end"
-            tools:text="Downloading assets... 5 tasks in progress" />
+            tools:text="Syncing metadata..." />
 
-        <!-- Expand/Collapse Arrow -->
         <ImageView
             android:id="@+id/progress_flip_arrow"
-            android:layout_width="@dimen/_16sdp"
-            android:layout_height="@dimen/_16sdp"
+            android:layout_width="@dimen/_14sdp"
+            android:layout_height="@dimen/_14sdp"
             android:src="@drawable/spinner_arrow"
-            app:tint="@color/secondary_text" />
+            app:tint="#000000" />
     </LinearLayout>
 
-    <!-- Expanded Details Layout (Hidden by default) -->
+    <!-- Expanded Line-by-Line Detail Dashboard -->
     <LinearLayout
         android:id="@+id/progress_linear_layout"
         android:layout_width="match_parent"
@@ -51,9 +51,18 @@
         android:orientation="vertical"
         android:visibility="gone"
         android:padding="@dimen/_12sdp"
-        android:background="@drawable/premium_gradient_bg"
-        tools:visibility="visible">
-        <!-- Dynamic content gets added here via Java code -->
+        android:background="@drawable/premium_glass_bg"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ACTIVE DOWNLOADS"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_10ssp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
     </LinearLayout>
 
 </merge>

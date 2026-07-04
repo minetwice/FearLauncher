@@ -1,104 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom Sheet: Account Manager -->
-<!-- Place at: res/layout/fragment_account_manager.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/premium_gradient_bg"
-    android:paddingBottom="@dimen/_24sdp">
-
-    <!-- Drag Handle -->
-    <View
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_4sdp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:background="@drawable/premium_gradient_bg"
-        android:layout_marginBottom="@dimen/_8sdp"/>
+    android:padding="@dimen/_16sdp">
 
     <!-- Header -->
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_8sdp"
-        android:paddingBottom="@dimen/_16sdp">
+        android:layout_marginBottom="@dimen/_20sdp">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Accounts"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/_18ssp"
-            android:textStyle="bold"/>
+            android:text="IDENTITY HUB"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
 
-        <!-- Add Account Button -->
-        <com.google.android.material.button.MaterialButton
+        <ImageButton
             android:id="@+id/btn_add_account"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="+ Add"
-            android:textColor="#000000"
-            android:textSize="@dimen/_13ssp"
-            app:backgroundTint="@color/fear_primary"
-            app:cornerRadius="8dp"/>
+            android:layout_width="@dimen/_36sdp"
+            android:layout_height="@dimen/_36sdp"
+            android:src="@drawable/ic_add"
+            android:background="@drawable/premium_button_bg"
+            app:tint="#FFFFFF"
+            android:layout_alignParentEnd="true" />
+    </RelativeLayout>
 
-    </LinearLayout>
-
-    <!-- Divider -->
-    <View
+    <!-- Account List Box -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@drawable/premium_gradient_bg"
-        android:layout_marginHorizontal="@dimen/_16sdp"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/settings_border_bg"
+        android:padding="4dp">
 
-    <!-- Account List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/account_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="300dp"
-        android:nestedScrollingEnabled="false"
-        android:paddingTop="@dimen/_8sdp"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/account_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false" />
 
-    <!-- Empty State -->
-    <LinearLayout
-        android:id="@+id/empty_account_state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="@dimen/_24sdp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="@dimen/_48sdp"
-            android:layout_height="@dimen/_48sdp"
-            android:src="@drawable/ic_account_circle"
-            android:tint="@color/secondary_text"/>
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/empty_account_state"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:text="No accounts added yet"
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_14ssp"/>
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_4sdp"
-            android:text="Tap '+ Add' to add your account"
-            android:textColor="@color/secondary_text"
-            android:textSize="@dimen/_12ssp"/>
+            <ImageView
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
+                android:src="@drawable/ic_account_circle"
+                app:tint="@color/secondary_text" />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="No identities found."
+                android:textColor="@color/secondary_text"
+                android:textSize="@dimen/_12ssp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Bottom Actions -->
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/account_manager_done"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_44sdp"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:text="CONFIRM SELECTION"
+        android:background="@drawable/premium_button_bg" />
 
 </LinearLayout>
