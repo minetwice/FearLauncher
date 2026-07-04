@@ -1,5 +1,7 @@
 package com.kdt.mcgui;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -32,6 +34,11 @@ public class LauncherMenuButton extends ExtendedButton {
 
     /** Set style stuff */
     private void setSettings(){
+        // Loop Animation
+        Animator pulse = AnimatorInflater.loadAnimator(getContext(), R.animator.button_loop_pulse);
+        pulse.setTarget(this);
+        pulse.start();
+
         Resources resources = getContext().getResources();
 
         int padding = resources.getDimensionPixelSize(R.dimen._22sdp);

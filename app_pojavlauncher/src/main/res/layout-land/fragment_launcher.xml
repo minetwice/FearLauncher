@@ -6,71 +6,101 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+    <!-- Hamburger Icon (Top Left) - Minecraft Skull -->
+    <ImageButton
+        android:id="@+id/hamburger_menu_icon"
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_margin="@dimen/_16sdp"
+        android:src="@drawable/ic_mc_skull"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Info Section -->
+    <!-- Main Content Area (Landscape Infumia Style) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Info Card (Center) -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="@dimen/_300sdp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/premium_glass_black_bg"
             android:orientation="vertical"
             android:padding="@dimen/_20sdp"
-            android:gravity="center_vertical">
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
                 android:layout_width="@dimen/_60sdp"
                 android:layout_height="@dimen/_60sdp"
                 android:src="@mipmap/ic_launcher_foreground"
-                android:layout_marginBottom="@dimen/_20sdp" />
+                android:layout_marginBottom="@dimen/_10sdp" />
 
             <TextView
-                android:id="@+id/version_text"
+                android:id="@+id/account_name_display"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Guest"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_18ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/version_text_display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_32ssp"
-                android:textStyle="bold" />
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_12ssp"
+                android:layout_marginBottom="@dimen/_20sdp" />
 
-            <com.kdt.mcgui.MineButton
-                android:id="@+id/play_button"
-                android:layout_width="@dimen/_180sdp"
-                android:layout_height="@dimen/_50sdp"
-                android:layout_marginTop="@dimen/_20sdp"
-                android:text="PLAY"
-                android:background="@drawable/premium_button_bg" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <com.kdt.mcgui.mcVersionSpinner
+                    android:id="@+id/mc_version_spinner"
+                    android:layout_width="@dimen/_120sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:background="@drawable/premium_glass_bg" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/play_button"
+                    android:layout_width="@dimen/_120sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:text="PLAY"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_12ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Right Side Control -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.8"
-            android:gravity="end|top"
-            android:padding="@dimen/_16sdp">
+        <!-- Dummy views for logic -->
+        <View android:id="@+id/edit_profile_button_main" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ImageButton
-                android:id="@+id/hamburger_menu_icon"
-                android:layout_width="@dimen/_48sdp"
-                android:layout_height="@dimen/_48sdp"
-                android:src="@drawable/ic_hamburger"
-                android:background="@drawable/premium_button_bg"
-                app:tint="#FFFFFF" />
-        </LinearLayout>
-    </LinearLayout>
+    <!-- UI Logic Dummies -->
+    <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="@+id/account_type_label" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="@+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/account_section" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/edit_profile_button" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_home" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_installations" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <com.kdt.mcgui.mcVersionSpinner
-        android:id="@+id/mc_version_spinner"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Sidebar Tray for Landscape -->
+    <!-- GLASS SIDEBAR TRAY -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
         android:layout_width="@dimen/_240sdp"
@@ -79,45 +109,104 @@
         app:cardBackgroundColor="#CC000000"
         app:cardCornerRadius="0dp"
         app:cardElevation="32dp"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
+            android:id="@+id/tray_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="@dimen/_20sdp"
-            android:background="@drawable/premium_gradient_bg">
+            android:background="@drawable/premium_glass_black_bg">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MENU"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_14ssp"
+                android:text="PREMIUM MENU"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_16ssp"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/_20sdp" />
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="@dimen/_24sdp" />
 
             <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/tray_settings"
+                android:id="@+id/tray_settings_btn"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_44sdp"
-                android:text="SETTING"
+                android:text="SETTINGS ENGINE"
                 android:drawableStart="@drawable/ic_px_sliders"
                 android:layout_marginBottom="8dp" />
 
             <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/install_jar_button"
+                android:id="@+id/tray_execute_jar_btn"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_44sdp"
-                android:text="EXECUTE JAR"
+                android:text="RUN EXECUTABLE"
                 android:drawableStart="@drawable/ic_px_java_run"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Hidden for Landscape Logic Stability -->
-            <View android:id="@+id/account_section" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-            <View android:id="@+id/edit_profile_button" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-            <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-            <TextView android:id="@+id/account_type_label" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/tray_skin_btn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:text="SKIN CUSTOMIZER"
+                android:drawableStart="@drawable/ic_account_circle"
+                android:layout_marginBottom="8dp" />
+
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/tray_account_btn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:text="CORE IDENTITY"
+                android:drawableStart="@drawable/ic_px_edit"
+                android:layout_marginBottom="8dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="12dp"
+                android:background="#40FFFFFF" />
+
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/more_settings_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:text="ADVANCED TOOLS"
+                android:drawableStart="@drawable/ic_px_alt_sliders" />
+
+            <LinearLayout
+                android:id="@+id/more_settings_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="8dp"
+                android:paddingStart="16dp">
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_controls_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="INPUT MAPPING"
+                    android:textSize="@dimen/_10ssp"
+                    android:layout_marginBottom="4dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_mods_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="MODIFICATIONS"
+                    android:textSize="@dimen/_10ssp"
+                    android:layout_marginBottom="4dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_logs_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="DATA STREAM"
+                    android:textSize="@dimen/_10ssp"
+                    android:layout_marginBottom="4dp" />
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -128,7 +217,7 @@
                 android:id="@+id/tray_close"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_40sdp"
-                android:text="DONE"
+                android:text="COLLAPSE"
                 android:background="@drawable/premium_button_bg" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>

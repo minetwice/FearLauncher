@@ -9,8 +9,8 @@
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:statusBarColor">@color/background_status_bar</item>
-        <item name="android:navigationBarColor">@color/background_app</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
         <item name="android:textSize">@dimen/_12ssp</item>
         <!-- FIX: All text white by default -->
@@ -22,7 +22,7 @@
     <style name="FearPreferenceTheme" parent="PreferenceThemeOverlay.v14.Material">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:background">@drawable/premium_gradient_bg</item>
-        <item name="android:colorBackground">@color/background_app</item>
+        <item name="android:colorBackground">#000000</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
     </style>
 
@@ -30,16 +30,16 @@
     <!-- FEAR MATERIAL THEME                             -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="Theme.FearLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@color/background_status_bar</item>
-        <item name="android:navigationBarColor">@color/background_app</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="colorPrimary">@color/fear_primary</item>
         <item name="colorOnPrimary">@color/fear_on_primary</item>
         <item name="colorSecondary">@color/fear_secondary</item>
         <item name="colorTertiary">@color/fear_tertiary</item>
-        <item name="android:colorBackground">@color/background_app</item>
-        <item name="colorSurface">@color/fear_surface</item>
-        <item name="colorSurfaceVariant">@color/fear_surface_variant</item>
+        <item name="android:colorBackground">#000000</item>
+        <item name="colorSurface">#0A0A0A</item>
+        <item name="colorSurfaceVariant">#121212</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:textSize">@dimen/_12ssp</item>
         <!-- FIX: Text colors -->
@@ -61,7 +61,7 @@
     </style>
 
     <style name="BottomSheet.Fear.Style" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@drawable/premium_glass_bg</item>
+        <item name="android:background">@drawable/premium_glass_black_bg</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->
@@ -117,11 +117,11 @@
     <!-- FEAR CARDS AND BUTTONS                          -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="FearCard" parent="Widget.MaterialComponents.CardView">
-        <item name="cardBackgroundColor">@color/fear_surface_variant</item>
+        <item name="cardBackgroundColor">#1AFFFFFF</item>
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="strokeWidth">1dp</item>
-        <item name="strokeColor">@color/background_overlay</item>
+        <item name="strokeColor">#4DFFFFFF</item>
     </style>
 
     <style name="FearPlayButton" parent="Widget.MaterialComponents.Button">
@@ -129,7 +129,7 @@
         <item name="cornerRadius">32dp</item>
         <item name="android:textSize">18sp</item>
         <item name="backgroundTint">@color/fear_primary</item>
-        <item name="android:textColor">@color/fear_on_primary</item>
+        <item name="android:textColor">#FFFFFF</item>
     </style>
 
 </resources>

@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<set xmlns:android="http://schemas.android.com/apk/res/android">
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="together">
     <objectAnimator
-        android:duration="400"
         android:propertyName="alpha"
+        android:duration="400"
         android:valueFrom="1.0"
         android:valueTo="0.0" />
     <objectAnimator
+        android:propertyName="translationX"
         android:duration="400"
-        android:propertyName="scaleX"
-        android:valueFrom="1.0"
-        android:valueTo="0.95" />
-    <objectAnimator
-        android:duration="400"
-        android:propertyName="scaleY"
-        android:valueFrom="1.0"
-        android:valueTo="0.95" />
+        android:valueFrom="0"
+        android:valueTo="-100"
+        android:valueType="floatType"/>
 </set>

@@ -14,30 +14,6 @@
         android:orientation="vertical"
         android:background="@drawable/premium_gradient_bg">
 
-        <!-- Toolbar with Hamburger & App Title -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/top_bar_bg"
-            android:elevation="4dp"
-            app:titleTextColor="@color/primary_text"
-            app:title="Fear Launcher">
-
-            <!-- Hamburger Button (Left) -->
-            <ImageButton
-                android:id="@+id/hamburger_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_hamburger"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp"
-                android:layout_gravity="start"
-                android:tint="@color/primary_text"
-                android:contentDescription="Menu" />
-
-        </androidx.appcompat.widget.Toolbar>
-
         <!-- Fragment Container -->
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/container_fragment"
@@ -54,12 +30,13 @@
 
     </LinearLayout>
 
-    <!-- Navigation Drawer -->
+    <!-- Navigation Drawer (Hidden for Landscape Clean UI) -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/sidebar_navigation"
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:visibility="gone"
         android:background="@drawable/premium_gradient_bg"
         app:menu="@menu/nav_drawer_menu"
         app:itemIconTint="@color/primary_text"

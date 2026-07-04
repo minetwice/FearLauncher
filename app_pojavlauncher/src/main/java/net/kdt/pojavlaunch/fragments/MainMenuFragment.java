@@ -88,7 +88,6 @@ public class MainMenuFragment extends Fragment {
         View trayControlsBtn = view.findViewById(R.id.tray_controls_btn);
         View trayModsBtn = view.findViewById(R.id.tray_mods_btn);
         View trayLogsBtn = view.findViewById(R.id.tray_logs_btn);
-        View trayOpenDirBtn = view.findViewById(R.id.tray_open_dir_btn);
 
         // Refresh UI
         refreshAccountUI();
@@ -134,9 +133,6 @@ public class MainMenuFragment extends Fragment {
             trayLogsBtn.setOnClickListener(v -> shareLog(requireContext()));
         }
 
-        if (trayOpenDirBtn != null) {
-            trayOpenDirBtn.setOnClickListener(v -> openGameDirectory(v.getContext()));
-        }
 
         if (moreSettingsToggle != null && moreSettingsLayout != null) {
             moreSettingsToggle.setOnClickListener(v -> {
@@ -149,22 +145,33 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // TRAY SLIDE LOGIC
+        // TRAY SLIDE LOGIC (Toggle Switch)
         final View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
-                settingsTray.setVisibility(View.VISIBLE);
-                settingsTray.setAlpha(0f);
-                settingsTray.setTranslationX(-settingsTray.getWidth());
-                settingsTray.animate()
-                        .translationX(0f)
-                        .alpha(1f)
-                        .setDuration(400)
-                        .withEndAction(() -> {
-                            ViewGroup container = (ViewGroup) ((ViewGroup) settingsTray).getChildAt(0);
-                            animateItemsSequentially(container);
-                        })
-                        .start();
+                if (settingsTray.getVisibility() == View.VISIBLE) {
+                    // Close menu
+                    settingsTray.animate()
+                            .translationX(-settingsTray.getWidth())
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction(() -> settingsTray.setVisibility(View.GONE))
+                            .start();
+                } else {
+                    // Open menu
+                    settingsTray.setVisibility(View.VISIBLE);
+                    settingsTray.setAlpha(0f);
+                    settingsTray.setTranslationX(-settingsTray.getWidth());
+                    settingsTray.animate()
+                            .translationX(0f)
+                            .alpha(1f)
+                            .setDuration(400)
+                            .withEndAction(() -> {
+                                ViewGroup container = view.findViewById(R.id.tray_container);
+                                if (container != null) animateItemsSequentially(container);
+                            })
+                            .start();
+                }
             });
 
             view.findViewById(R.id.tray_close).setOnClickListener(v -> {

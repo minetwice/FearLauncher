@@ -64,54 +64,54 @@ public class CustomSettingsFragment extends Fragment {
         List<SettingItem> list = new ArrayList<>();
 
         // Category: Video
-        list.add(new SettingItem.Category("Video & Performance"));
+        list.add(new SettingItem.Category("VISUAL ARCHITECTURE"));
         list.add(new SettingItem.Normal(
-                "Video",
-                "Resolution, renderer, VSync",
+                "GRAPHICS ENGINE",
+                "Configure rendering pipelines, resolutions, and visual stability.",
                 R.drawable.ic_px_image,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceVideoFragment.class, "video", null)
         ));
 
         // Category: Controls
-        list.add(new SettingItem.Category("Game Controls"));
+        list.add(new SettingItem.Category("NEURAL INTERFACE"));
         list.add(new SettingItem.Normal(
-                "Controls",
-                "Gestures, buttons, mouse",
+                "INPUT MAPPING",
+                "Calibrate touch gestures, button layouts, and peripheral synchronization.",
                 R.drawable.ic_px_gamepad,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceControlFragment.class, "controls", null)
         ));
 
         // Category: Java
-        list.add(new SettingItem.Category("Java Engine"));
+        list.add(new SettingItem.Category("CORE RUNTIME"));
         list.add(new SettingItem.Normal(
-                "Java",
-                "Runtime, memory, JVM args",
+                "JAVA VIRTUAL MACHINE",
+                "Optimize memory allocation, runtime versions, and execution arguments.",
                 R.drawable.ic_px_java,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceJavaFragment.class, "java", null)
         ));
 
         // Category: Tools
-        list.add(new SettingItem.Category("Advanced Tools"));
+        list.add(new SettingItem.Category("SYSTEM PROTOCOLS"));
         list.add(new SettingItem.Normal(
-                "Tools",
-                "Download source, file checks",
+                "UTILITIES & LOGS",
+                "Access file integrity checks, data streams, and external assets.",
                 R.drawable.ic_px_alt_sliders,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceMiscellaneousFragment.class, "misc", null)
         ));
 
         // Category: Experiments
-        list.add(new SettingItem.Category("Experimental Labs"));
+        list.add(new SettingItem.Category("EXPERIMENTAL LABS"));
         list.add(new SettingItem.Normal(
-                "Experiments",
-                "Bleeding-edge features",
+                "ALPHA FEATURES",
+                "Enable bleeding-edge technologies and experimental performance patches.",
                 R.drawable.ic_px_experiment,
                 () -> Tools.swapFragment(requireActivity(), LauncherPreferenceExperimentalFragment.class, "experiment", null)
         ));
 
         // Switch: Force English
         list.add(new SettingItem.SwitchItem(
-                "Force English",
-                "See original strings, restart required",
+                "UNIVERSAL LINGUISTICS",
+                "Override local translations to maintain original technical strings.",
                 R.drawable.ic_px_translate,
                 LauncherPreferences.DEFAULT_PREF.getBoolean("force_english", false),
                 (checked) -> LauncherPreferences.DEFAULT_PREF.edit().putBoolean("force_english", checked).apply()
@@ -120,8 +120,8 @@ public class CustomSettingsFragment extends Fragment {
         // Slider: Memory allocation (example)
         int currentMem = LauncherPreferences.DEFAULT_PREF.getInt("allocation", 1024);
         list.add(new SettingItem.SliderItem(
-                "Memory Allocation",
-                "Controls how much RAM Minecraft uses",
+                "MEMORY SYNCHRONIZER",
+                "Regulate the amount of volatile memory assigned to the game core.",
                 R.drawable.ic_px_ram,
                 currentMem,
                 256, 4096, 64,
@@ -134,8 +134,8 @@ public class CustomSettingsFragment extends Fragment {
         // Slider: Resolution (example)
         int currentRes = LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100);
         list.add(new SettingItem.SliderItem(
-                "Resolution Scaler",
-                "Decrease resolution for performance",
+                "PIXEL DENSITY",
+                "Scale the internal render resolution for enhanced performance ratios.",
                 R.drawable.ic_px_resolution,
                 currentRes,
                 25, 100, 5,
@@ -147,8 +147,8 @@ public class CustomSettingsFragment extends Fragment {
 
         // Notification permission (just a normal item with click)
         list.add(new SettingItem.Normal(
-                "Notification Permission",
-                "Request notification permission",
+                "SECURE NOTIFICATIONS",
+                "Enable system-level alerts for critical background processes.",
                 R.drawable.ic_px_bell,
                 () -> {
                     if (getActivity() instanceof LauncherActivity) {
@@ -209,7 +209,7 @@ public class CustomSettingsFragment extends Fragment {
             if (holder instanceof CategoryViewHolder) {
                 CategoryViewHolder vh = (CategoryViewHolder) holder;
                 vh.textView.setText(((SettingItem.Category) item).title);
-                vh.textView.setTextColor(getResources().getColor(R.color.fear_tertiary));
+                vh.textView.setTextColor(getResources().getColor(R.color.fear_primary));
                 vh.textView.setShadowLayer(4, 0, 2, 0x80000000);
             } else if (holder instanceof NormalViewHolder) {
                 NormalViewHolder vh = (NormalViewHolder) holder;

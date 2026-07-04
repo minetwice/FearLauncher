@@ -47,8 +47,9 @@
             android:name="android.max_aspect"
             android:value="ratio_float" />
 
-        <!-- MAIN ENTRY POINT (Locked to Landscape) -->        <activity
-            android:name="net.kdt.pojavlaunch.TestStorageActivity"
+        <!-- MAIN ENTRY POINT (Locked to Landscape) -->
+        <activity
+            android:name="net.kdt.pojavlaunch.SplashActivity"
             android:exported="true"
             android:label="Fear Launcher"
             android:launchMode="singleTop"
@@ -59,6 +60,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="net.kdt.pojavlaunch.TestStorageActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
         <!-- LAUNCHER HOME SCREEN (Locked to Landscape) -->
         <activity
