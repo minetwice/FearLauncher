@@ -9,9 +9,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.Os;
-import android.view.Menu;
 import android.view.View;
-import android.widget.ImageButton;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -20,12 +19,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 
-import com.google.android.material.navigation.NavigationView;
 import com.kdt.mcgui.ProgressLayout;
 
 import git.artdeell.mojo.R;
@@ -33,11 +30,9 @@ import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.extra.ExtraListener;
-import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
-import net.kdt.pojavlaunch.fragments.SearchModFragment;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.InstanceInstaller;
 import net.kdt.pojavlaunch.instances.Instances;
@@ -45,7 +40,6 @@ import net.kdt.pojavlaunch.lifecycle.ContextAwareDoneListener;
 import net.kdt.pojavlaunch.lifecycle.ContextExecutor;
 import net.kdt.pojavlaunch.modloaders.modpacks.imagecache.IconCacheJanitor;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
-import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 import net.kdt.pojavlaunch.services.ProgressServiceKeeper;
@@ -55,22 +49,16 @@ import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
 
 public class LauncherActivity extends BaseActivity {
-    public static final String SETTING_FRAGMENT_TAG = "SETTINGS_FRAGMENT";
-    public static final String INSTALLATIONS_FRAGMENT_TAG = "INSTALLATIONS_FRAGMENT";
 
     private FragmentContainerView mFragmentView;
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
-    private DrawerLayout mDrawerLayout;
-    private NavigationView mNavigationView;
-    private static ActivityResultLauncher<String> mRequestPermissionLauncher;
+    private ActivityResultLauncher<String> mRequestPermissionLauncher;
 
     private final ExtraListener<Boolean> mSelectAuthMethod = (key, value) -> {
         FragmentManager manager = getSupportFragmentManager();
         if (!value || manager.isStateSaved()) return false;
-        Fragment fragment = manager.findFragmentById(mFragmentView.getId());
-        if (!(fragment instanceof MainMenuFragment)) return false;
         Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
         return false;
     };
@@ -133,6 +121,10 @@ public class LauncherActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pojav_launcher);
 
+        // App Open Animation
+        View rootView = findViewById(android.R.id.content);
+        rootView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.app_open));
+
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
             Os.setenv("TMPDIR", Tools.DIR_CACHE.getAbsolutePath(), true);
@@ -143,16 +135,12 @@ public class LauncherActivity extends BaseActivity {
         IconCacheJanitor.runJanitor();
         getWindow().setBackgroundDrawable(null);
         bindViews();
-        setupDrawer();
 
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container_fragment, new MainMenuFragment())
                     .commit();
-            if (mNavigationView != null) {
-                mNavigationView.setCheckedItem(R.id.nav_dashboard);
-            }
         }
 
         mRequestPermissionLauncher = this.registerForActivityResult(
@@ -176,19 +164,6 @@ public class LauncherActivity extends BaseActivity {
 
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
-
-        // Local login listener
-        ExtraCore.addExtraListener(ExtraConstants.MOJANG_LOGIN_TODO, (key, value) -> {
-            if (value instanceof String[]) {
-                String[] loginData = (String[]) value;
-                String username = loginData[0];
-                Tools.runOnUiThread(() -> {
-                    Toast.makeText(this, "Account saved: " + username, Toast.LENGTH_SHORT).show();
-                    ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
-                });
-            }
-            return false;
-        });
 
         new AsyncVersionList().getVersionList(versions ->
                 ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
@@ -227,10 +202,6 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
-            mDrawerLayout.closeDrawer(mNavigationView);
-            return;
-        }
         MicrosoftLoginFragment fragment = (MicrosoftLoginFragment) getVisibleFragment(MicrosoftLoginFragment.TAG);
         if (fragment != null && fragment.canGoBack()) {
             fragment.goBack();
@@ -291,65 +262,5 @@ public class LauncherActivity extends BaseActivity {
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
         mProgressLayout = findViewById(R.id.progress_layout);
-        mDrawerLayout = findViewById(R.id.drawer_layout);
-        mNavigationView = findViewById(R.id.sidebar_navigation);
-    }
-
-    private void setupDrawer() {
-        ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
-        if (hamburgerButton != null) {
-            hamburgerButton.setOnClickListener(v -> {
-                if (mDrawerLayout != null) {
-                    mDrawerLayout.openDrawer(mNavigationView);
-                }
-            });
-        }
-
-        if (mNavigationView != null) {
-            Menu menu = mNavigationView.getMenu();
-            menu.clear();
-
-            // ✅ Add items WITHOUT "Account"
-            menu.add(0, R.id.nav_dashboard, 0, "Home")
-                    .setIcon(R.drawable.ic_px_home);
-            menu.add(0, R.id.nav_installations, 1, "Installations")
-                    .setIcon(R.drawable.ic_px_java);
-            menu.add(0, R.id.nav_mods, 2, "Mods")
-                    .setIcon(R.drawable.ic_px_file_dl);
-            // "Account" item REMOVED – no more nav_account
-            menu.add(0, R.id.nav_skins, 3, "Skins")
-                    .setIcon(R.drawable.ic_px_edit);
-            menu.add(0, R.id.nav_settings, 4, "Settings")
-                    .setIcon(R.drawable.ic_px_sliders);
-
-            menu.findItem(R.id.nav_dashboard).setChecked(true);
-
-            mNavigationView.setNavigationItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_dashboard) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.container_fragment, new MainMenuFragment())
-                            .commit();
-                } else if (id == R.id.nav_settings) {
-                    Tools.swapFragment(this, LauncherPreferenceFragment.class, SETTING_FRAGMENT_TAG, null);
-                } else if (id == R.id.nav_installations) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.container_fragment, new InstallationsFragment())
-                            .commit();
-                } else if (id == R.id.nav_mods) {
-                    Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
-                } else if (id == R.id.nav_skins) {
-                    Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
-                }
-                // No nav_account handling
-
-                if (mDrawerLayout != null) {
-                    mDrawerLayout.closeDrawer(mNavigationView);
-                }
-                return true;
-            });
-        }
     }
 }

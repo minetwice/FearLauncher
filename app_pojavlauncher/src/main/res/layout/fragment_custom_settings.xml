@@ -7,7 +7,7 @@
     android:background="@drawable/premium_gradient_bg"
     android:padding="@dimen/_12sdp">
 
-    <!-- New Header with custom title -->
+    <!-- Header -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,8 +18,8 @@
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
             android:src="@drawable/ic_px_arrow_left"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/fear_primary"
+            android:background="@drawable/premium_button_bg"
+            app:tint="#FFFFFF"
             android:layout_centerVertical="true" />
 
         <TextView
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/settings_back"
             android:layout_marginStart="@dimen/_12sdp"
-            android:text="LAUNCHER SETTINGS"
+            android:text="SYSTEM DASHBOARD"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_14ssp"
             android:textStyle="bold"
@@ -36,18 +36,18 @@
             android:layout_centerVertical="true" />
     </RelativeLayout>
 
-    <!-- Transformed Settings Container with Border -->
+    <!-- Settings Container -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/settings_border_bg"
-        android:padding="2dp">
+        android:padding="4dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/settings_recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="4dp"
+            android:padding="8dp"
             android:clipToPadding="false"
             android:scrollbars="vertical" />
     </FrameLayout>

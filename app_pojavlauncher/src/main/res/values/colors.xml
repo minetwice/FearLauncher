@@ -1,60 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- GAME CONTROLS                                   -->
+    <!-- BLACK GLASS THEME                               -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="control_button_color">#4CFFFFFF</color>
-    <color name="control_button_pressed_color">#4DFF9800</color>
+    <color name="background_app">#000000</color>
+    <color name="background_status_bar">#000000</color>
+    <color name="background_bottom_bar">#000000</color>
+    <color name="divider">#1AFFFFFF</color>
 
-    <!-- MineButton text -->
-    <color name="minebutton_color">#FFFFFF</color>
+    <!-- Glass Components -->
+    <color name="fear_glass_bg">#99000000</color>
+    <color name="fear_glass_stroke">#33FFFFFF</color>
+    <color name="fear_glass_glow">#4DFFFFFF</color>
 
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- NEW UNIQUE THEME BACKGROUNDS                     -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <color name="background_app">#0F0F0F</color>
-    <color name="background_overlay">#1A1A1A</color>
-    <color name="background_status_bar">#0A0A0A</color>
-    <color name="background_bottom_bar">#121212</color>
-    <color name="divider">#333333</color>
-
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- TEXT COLORS                                     -->
-    <!-- ═══════════════════════════════════════════════ -->
+    <!-- Text Colors -->
     <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#CCCCCC</color>
-    <color name="icon_outline_color">#FFB74D</color>
+    <color name="secondary_text">#B3FFFFFF</color>
+    <color name="hint_text">#66FFFFFF</color>
 
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- NEW GRADIENT ACCENTS                             -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#4CAF50</color> <!-- Green -->
-    <color name="fear_secondary">#FF9800</color> <!-- Orange -->
-    <color name="fear_tertiary">#FFEB3B</color> <!-- Yellow -->
+    <!-- Theme Accents (Monochrome/Glass) -->
+    <color name="fear_primary">#FFFFFF</color>
+    <color name="fear_secondary">#E6FFFFFF</color>
+    <color name="fear_tertiary">#FFFFFF</color>
+    <color name="fear_on_primary">#000000</color>
 
-    <color name="fear_on_primary">#FFFFFF</color>
-
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- STATUS COLORS                                   -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <color name="status_error">#FF5252</color>
-    <color name="status_success">#4CAF50</color>
-    <color name="status_warning">#FFC107</color>
-
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- MISC                                            -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#BF1A1A1A</color>
-    <color name="mc_official_green">#3C8527</color>
-    <color name="carousel_card_bg">#252525</color>
-
-    <!-- Legacy Mappings (to avoid breaking XMLs until fully purged) -->
-
-    <color name="seekbar_progress_start">#4CAF50</color>
-    <color name="seekbar_progress_end">#FF9800</color>
+    <!-- Surface States -->
     <color name="fear_surface">#1A1A1A</color>
-    <color name="fear_surface_variant">#252525</color>
-    <color name="fear_surface_container">#0A0A0A</color>
-    <color name="top_bar_bg">#1A1A1A</color>
-    <color name="sidebar_bg">#121212</color>
+    <color name="fear_surface_variant">#262626</color>
+    <color name="fear_surface_container">#0D0D0D</color>
+    <color name="sidebar_bg">#CC000000</color>
+    <color name="top_bar_bg">#CC000000</color>
+
+    <!-- Status Colors -->
+    <color name="status_error">#FF4B4B</color>
+    <color name="status_success">#4BFF4B</color>
+    <color name="status_warning">#FFFFFF</color>
+
+    <!-- Logic Dummies (Remapped to white/grey to avoid crashes) -->
+    <color name="control_button_color">#4CFFFFFF</color>
+    <color name="control_button_pressed_color">#80FFFFFF</color>
+    <color name="minebutton_color">#FFFFFF</color>
+    <color name="mc_official_green">#FFFFFF</color>
+    <color name="carousel_card_bg">#1AFFFFFF</color>
+    <color name="seekbar_progress_start">#FFFFFF</color>
+    <color name="seekbar_progress_end">#B3FFFFFF</color>
+    <color name="background_overlay">#0A0A0A</color>
+    <color name="icon_outline_color">#FFFFFF</color>
 </resources>

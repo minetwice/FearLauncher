@@ -21,7 +21,7 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getActivity() != null) {
-            getActivity().setTheme(R.style.FearPreferenceTheme);
+            getActivity().setTheme(R.style.AppTheme);
         }
     }
 
@@ -30,19 +30,20 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         if (getActivity() != null) {
-            getActivity().setTheme(R.style.FearPreferenceTheme);
+            getActivity().setTheme(R.style.AppTheme);
         }
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_app));
+        view.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
         RecyclerView recyclerView = getListView();
         if (recyclerView != null) {
             DividerItemDecoration divider = new DividerItemDecoration(requireContext(),
                     DividerItemDecoration.VERTICAL);
+            divider.setDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             divider.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.background_line));
             recyclerView.addItemDecoration(divider);
         }
