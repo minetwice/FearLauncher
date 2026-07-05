@@ -201,7 +201,7 @@ public class mcVersionSpinner extends ExtendedTextView {
         }
     }
 
-    class ExtraAttachListener implements OnAttachStateChangeListener, ExtraListener<Void> {
+    class ExtraAttachListener implements OnAttachStateChangeListener, ExtraListener<Object> {
         @Override
         public void onViewAttachedToWindow(@NonNull View view) {
             reloadProfiles();
@@ -214,7 +214,7 @@ public class mcVersionSpinner extends ExtendedTextView {
         }
 
         @Override
-        public boolean onValueSet(String key, @NonNull Void value) {
+        public boolean onValueSet(String key, @NonNull Object value) {
             post(mcVersionSpinner.this::reloadProfiles);
             ExtraCore.consumeValue(key);
             return false;

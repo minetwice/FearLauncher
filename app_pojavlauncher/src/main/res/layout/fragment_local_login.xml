@@ -7,51 +7,58 @@
     android:background="@drawable/premium_gradient_bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="@dimen/_500sdp"
+        android:layout_width="@dimen/_520sdp"
         android:layout_height="@dimen/_280sdp"
-        android:layout_gravity="center"
         android:background="@drawable/premium_glass_black_bg"
-        android:padding="@dimen/_20sdp"
+        android:padding="@dimen/_24sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Left Side: Login Form -->
-        <LinearLayout
-            android:id="@+id/login_form_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="start|center_vertical"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/guideline_center"
+        <!-- Header -->
+        <TextView
+            android:id="@+id/login_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ACCOUNT ACCESS"
+            android:textColor="#FF9800"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Left Side: Login Form (Atom Style) -->
+        <LinearLayout
+            android:id="@+id/login_input_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_32sdp"
+            app:layout_constraintTop_toBottomOf="@id/login_header_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.45">
 
             <TextView
-                android:id="@+id/login_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="FEAR LAUNCHER"
                 android:textColor="#FFFFFF"
-                android:textSize="@dimen/_22ssp"
+                android:textSize="@dimen/_20ssp"
                 android:textStyle="bold"
-                android:letterSpacing="0.05"
-                android:layout_marginBottom="@dimen/_24sdp" />
+                android:layout_marginBottom="@dimen/_16sdp" />
 
             <com.kdt.mcgui.MineEditText
                 android:id="@+id/login_edit_email"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_36sdp"
                 android:background="@drawable/premium_edit_bg"
-                android:hint="Login"
+                android:hint="Username / Email"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#40FFFFFF"
                 android:paddingHorizontal="16dp"
-                android:textSize="@dimen/_12ssp"
-                android:imeOptions="flagNoExtractUi" />
+                android:textSize="@dimen/_11ssp" />
 
             <com.kdt.mcgui.MineButton
                 android:id="@+id/login_button"
@@ -59,24 +66,24 @@
                 android:layout_height="@dimen/_40sdp"
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="Sign in"
+                android:textColor="#FFFFFF"
                 android:background="@drawable/premium_button_bg" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:layout_marginTop="@dimen/_12sdp">
 
                 <CheckBox
                     android:id="@+id/save_password"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Save password"
+                    android:text="Save"
                     android:textColor="#B3FFFFFF"
-                    android:textSize="@dimen/_10ssp"
+                    android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FF9800"
-                    android:minHeight="0dp"
-                    android:padding="0dp" />
+                    android:paddingEnd="12dp" />
 
                 <CheckBox
                     android:id="@+id/auto_login"
@@ -84,34 +91,51 @@
                     android:layout_height="wrap_content"
                     android:text="Auto Login"
                     android:textColor="#B3FFFFFF"
-                    android:textSize="@dimen/_10ssp"
-                    android:buttonTint="#FF9800"
-                    android:minHeight="0dp"
-                    android:padding="0dp" />
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
             </LinearLayout>
         </LinearLayout>
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.55" />
+        <!-- Vertical Divider (Subtle) -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="@dimen/_160sdp"
+            android:background="#1AFFFFFF"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintEnd_toStartOf="@+id/right_visual_container"
+            app:layout_constraintTop_toTopOf="@id/login_input_group"
+            app:layout_constraintBottom_toBottomOf="@id/login_input_group" />
 
-        <!-- Right Side: Graphic & Type Select -->
+        <!-- Right Side: Graphic and Auth Mode Selection -->
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/right_visual_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            app:layout_constraintStart_toEndOf="@id/guideline_center"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginTop="@dimen/_20sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintWidth_percent="0.45">
 
-            <!-- Atom-like Cube Graphic (Placeholder) -->
+            <!-- Logo (Will be logo.png) -->
+            <com.kdt.mcgui.HinokamiSpiralView
+                android:id="@+id/login_spiral_anim"
+                android:layout_width="@dimen/_160sdp"
+                android:layout_height="@dimen/_160sdp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
             <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_150sdp"
-                android:src="@drawable/ic_mc_skull"
-                android:alpha="0.4"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:id="@+id/login_logo_visual"
+                android:layout_width="@dimen/_100sdp"
+                android:layout_height="@dimen/_100sdp"
+                android:src="@mipmap/ic_launcher_foreground"
+                android:alpha="0.9"
+                app:layout_constraintTop_toTopOf="@id/login_spiral_anim"
+                app:layout_constraintBottom_toBottomOf="@id/login_spiral_anim"
+                app:layout_constraintStart_toStartOf="@id/login_spiral_anim"
+                app:layout_constraintEnd_toEndOf="@id/login_spiral_anim" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -122,22 +146,25 @@
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <RadioButton
+                    android:id="@+id/radio_local"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Default"
+                    android:text="Local Auth"
                     android:checked="true"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FF9800" />
 
                 <RadioButton
+                    android:id="@+id/radio_microsoft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Microsoft"
+                    android:text="Microsoft Auth"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FF9800" />
             </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

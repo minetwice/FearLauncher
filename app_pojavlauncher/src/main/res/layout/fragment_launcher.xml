@@ -6,22 +6,26 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Hamburger Icon (Top Left) - Minecraft Skull -->
+    <!-- Hamburger Icon (Top Right) - Using logo.png (fallback to foreground) -->
     <ImageButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_40sdp"
         android:layout_margin="@dimen/_16sdp"
-        android:src="@drawable/ic_mc_skull"
+        android:src="@mipmap/ic_launcher_foreground"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Main Content Area -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <com.kdt.mcgui.GlassParticleView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.3" />
 
         <ImageView
             android:layout_width="@dimen/_80sdp"
@@ -118,7 +122,7 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- GLASS SIDEBAR TRAY -->
+    <!-- GLASS SIDEBAR TRAY (Slides from Right) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
         android:layout_width="@dimen/_240sdp"
@@ -127,7 +131,7 @@
         app:cardBackgroundColor="#CC000000"
         app:cardCornerRadius="0dp"
         app:cardElevation="32dp"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -184,9 +188,9 @@
                     android:id="@+id/tray_account_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
-                    android:text="CORE IDENTITY"
+                    android:text="ACCOUNT"
                     android:drawableStart="@drawable/ic_px_edit"
-                android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="8dp" />
 
                 <View

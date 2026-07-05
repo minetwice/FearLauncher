@@ -1,153 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.kdt.DefocusableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg">
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="@dimen/_16sdp">
 
-    <LinearLayout
+    <!-- Header -->
+    <TextView
+        android:id="@+id/title_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DEPLOYMENT PROTOCOL"
+        android:textColor="#FF9800"
+        android:textSize="@dimen/_20ssp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select the architecture for your new instance."
+        android:textColor="#B3FFFFFF"
+        android:textSize="@dimen/_10ssp"
+        app:layout_constraintTop_toBottomOf="@id/title_textview"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/_24sdp"
+        app:layout_constraintTop_toBottomOf="@id/subtitle"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        android:paddingHorizontal="@dimen/fragment_padding_medium"
-        android:orientation="vertical">
-
-
-
-        <!-- Vanilla like version -->
-
-        <TextView
-            android:id="@+id/title_textview"
-            style="@style/TextAppearance.AppCompat.Title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/create_profile_vanilla_like_versions"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.497"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline2" />
-
-        <View
-            android:id="@+id/view"
-            style="@style/ThickDivider"
-            android:layout_width="match_parent"
-            android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/title_textview"
-            />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/vanilla_profile"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:text="@string/create_instance_vanilla"
-            android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
+            android:orientation="vertical">
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/optifine_profile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:text="@string/mod_dl_install_optifine"
-            android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
+            <!-- Category: Pure -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="STABLE BUILDS"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/_12sdp" />
 
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:layout_marginBottom="@dimen/_24sdp">
 
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/vanilla_profile"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_60sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="VANILLA"
+                    android:drawableStart="@drawable/ic_vanilla"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <!-- Modded versions -->
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/optifine_profile"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_60sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="OPTIFINE"
+                    android:drawableStart="@drawable/ic_px_zap"
+                    android:background="@drawable/premium_glass_black_bg" />
+            </GridLayout>
 
-        <TextView
-            android:id="@+id/title_modded_textview"
-            style="@style/TextAppearance.AppCompat.Title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/padding_extra_extra_large"
-            android:text="@string/create_profile_modded_versions"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline" />
+            <!-- Category: Modded -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MODIFICATION ENGINES"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/_12sdp" />
 
-        <View
-            android:id="@+id/view_modded"
-            style="@style/ThickDivider"
-            android:layout_width="match_parent"
-            android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/title_modded_textview"
-            />
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2">
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_fabric"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_fabric_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_fabric"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="FABRIC"
+                    android:drawableStart="@drawable/ic_fabric"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_quilt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_quilt_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_forge"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="FORGE"
+                    android:drawableStart="@drawable/ic_forge"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_legacy_fabric"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_legacy_fabric_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_quilt"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="QUILT"
+                    android:drawableStart="@drawable/ic_quilt"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_forge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_forge_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_neoforge"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="NEOFORGE"
+                    android:drawableStart="@drawable/ic_neoforge"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_neoforge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_neoforge_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_modpack"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="MODPACKS"
+                    android:drawableStart="@drawable/ic_px_file_dl"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_modpack"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modpack_install_instance_button" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_bta"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="BTA ENGINE"
+                    android:drawableStart="@drawable/ic_px_experiment"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/modded_profile_bta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/create_bta_instance" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_legacy_fabric"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_50sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="LEGACY FABRIC"
+                    android:drawableStart="@drawable/ic_fabric"
+                    android:background="@drawable/premium_glass_black_bg" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.55" />
+            </GridLayout>
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.25" />
-    </LinearLayout>
-</com.kdt.DefocusableScrollView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
+</androidx.constraintlayout.widget.ConstraintLayout>

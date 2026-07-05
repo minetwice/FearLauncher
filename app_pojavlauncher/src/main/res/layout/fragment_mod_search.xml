@@ -1,66 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:paddingHorizontal="@dimen/fragment_padding_medium"
-    >
+    android:padding="@dimen/_16sdp">
 
-
-
-    <!--
-        Cosmetic layout to have a better scrolling separation
-     -->
+    <!-- Header Overlay -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_mod_overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:translationZ="10dp"
-        android:background="@drawable/premium_gradient_bg"
-        android:paddingHorizontal="@dimen/padding_medium"
-        android:paddingVertical="@dimen/padding_medium"
-        android:layout_marginTop="@dimen/fragment_padding_medium"
-        android:layout_marginHorizontal="@dimen/fragment_padding_medium"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent">
 
-        app:layout_constraintTop_toTopOf="parent"
-
-
-        >
-        <!-- Search text -->
-        <EditText
+        <com.kdt.mcgui.MineEditText
             android:id="@+id/search_mod_edittext"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/background_line"
-            android:textSize="@dimen/_13ssp"
-            android:translationZ="2dp"
-
-            android:ems="10"
-            android:hint="@string/hint_search_modpack"
-            android:inputType="textPersonName"
-            android:paddingHorizontal="@dimen/padding_heavy"
-            app:layout_constraintTop_toTopOf="parent"
+            android:layout_height="@dimen/_36sdp"
+            android:background="@drawable/premium_edit_bg"
+            android:hint="SEARCH PROTOCOL..."
+            android:textColor="#FFFFFF"
+            android:textColorHint="#40FFFFFF"
+            android:paddingHorizontal="@dimen/_12sdp"
+            app:layout_constraintEnd_toStartOf="@+id/search_mod_filter"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/search_mod_filter"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/search_mod_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:minWidth="@dimen/_38sdp"
+            android:layout_width="@dimen/_36sdp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_filter"
-
-            android:paddingHorizontal="@dimen/padding_medium"
-
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/search_mod_edittext"
-            app:layout_constraintBottom_toBottomOf="@id/search_mod_edittext"
-
-            />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#FFFFFF" />
 
         <ProgressBar
             android:id="@+id/search_mod_progressbar"
@@ -68,35 +46,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:indeterminate="true"
+            android:progressDrawable="@drawable/view_text_progressbar"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/search_mod_edittext"
-            tools:layout_editor_absoluteX="13dp" />
-
+            android:layout_marginTop="8dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/search_mod_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingTop="@dimen/_15sdp"
-        android:clipToPadding="false"
-
-        app:layout_constraintBottom_toTopOf="@id/mineButton_import_local_modpack"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginBottom="@dimen/padding_moderate"
-        />
+        android:layout_marginTop="@dimen/_12sdp"
+        android:layout_marginBottom="@dimen/_12sdp"
+        app:layout_constraintTop_toBottomOf="@id/search_mod_overlay"
+        app:layout_constraintBottom_toTopOf="@+id/mineButton_import_local_modpack" />
 
     <TextView
         android:id="@+id/search_mod_status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:text="NO DATA STREAMS FOUND"
+        android:textColor="#40FFFFFF"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/search_mod_list"
         app:layout_constraintEnd_toEndOf="@+id/search_mod_list"
@@ -105,16 +76,11 @@
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/mineButton_import_local_modpack"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:enabled="false"
-        android:layout_marginTop="@dimen/padding_moderate"
-        android:layout_marginBottom="@dimen/padding_moderate"
-        android:text="@string/import_local_modpack"
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_44sdp"
+        android:text="IMPORT EXTERNAL MODPACK"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/premium_button_bg"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

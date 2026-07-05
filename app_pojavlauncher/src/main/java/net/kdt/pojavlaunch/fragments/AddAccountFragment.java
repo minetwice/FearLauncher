@@ -26,10 +26,6 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
     public static final String TAG = "AddAccountFragment";
 
     private OnAccountAddedListener mListener;
-    private LinearLayout mPanelMicrosoft;
-    private LinearLayout mPanelLocal;
-    private LinearLayout mTabMicrosoft;
-    private LinearLayout mTabLocal;
 
     public interface OnAccountAddedListener {
         void onAccountAdded(MinecraftAccount account);
@@ -49,39 +45,25 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        mPanelMicrosoft = view.findViewById(R.id.panel_microsoft);
-        mPanelLocal     = view.findViewById(R.id.panel_local);
-        mTabMicrosoft   = view.findViewById(R.id.tab_microsoft);
-        mTabLocal       = view.findViewById(R.id.tab_local);
-
-        View btnMs    = view.findViewById(R.id.btn_microsoft_login);
-        View btnLocal = view.findViewById(R.id.btn_local_login);
         EditText inputUsername  = view.findViewById(R.id.local_username_input);
         TextView errorText      = view.findViewById(R.id.local_error_text);
+        View btnLogin           = view.findViewById(R.id.btn_login);
         View btnClose           = view.findViewById(R.id.btn_close_add_account);
+        android.widget.RadioButton radioMs = view.findViewById(R.id.radio_microsoft);
+        android.widget.RadioButton radioLocal = view.findViewById(R.id.radio_local);
 
-        // Default: Microsoft tab selected
-        selectTab(true);
+        if (btnClose != null) btnClose.setOnClickListener(v -> dismiss());
 
-        if (mTabMicrosoft != null) mTabMicrosoft.setOnClickListener(v -> selectTab(true));
-        if (mTabLocal != null)     mTabLocal.setOnClickListener(v -> selectTab(false));
-        if (btnClose != null)      btnClose.setOnClickListener(v -> dismiss());
+        if (btnLogin != null) {
+            btnLogin.setOnClickListener(v -> {
+                if (radioMs != null && radioMs.isChecked()) {
+                    dismiss();
+                    Tools.swapFragment(requireActivity(),
+                            MicrosoftLoginFragment.class,
+                            MicrosoftLoginFragment.TAG, null);
+                    return;
+                }
 
-        // ── Microsoft Login ───────────────────────────────────────────
-        if (btnMs != null) {
-            btnMs.setOnClickListener(v -> {
-                dismiss();
-                // Open Microsoft login fragment (it exists as fragment_microsoft_login.xml)
-                // Use Tools.swapFragment to navigate to the Microsoft login fragment
-                Tools.swapFragment(requireActivity(),
-                        MicrosoftLoginFragment.class,
-                        MicrosoftLoginFragment.TAG, null);
-            });
-        }
-
-        // ── Local Account ─────────────────────────────────────────────
-        if (btnLocal != null) {
-            btnLocal.setOnClickListener(v -> {
                 if (inputUsername == null) return;
                 String username = inputUsername.getText().toString().trim();
 
@@ -123,18 +105,24 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
                 }
             });
         }
-    }
 
-    private void selectTab(boolean microsoft) {
-        if (mPanelMicrosoft == null || mPanelLocal == null) return;
-        mPanelMicrosoft.setVisibility(microsoft ? View.VISIBLE : View.GONE);
-        mPanelLocal.setVisibility(microsoft ? View.GONE : View.VISIBLE);
-        if (mTabMicrosoft != null)
-            mTabMicrosoft.setBackgroundResource(microsoft
-                    ? R.drawable.tab_selected_bg : R.drawable.tab_unselected_bg);
-        if (mTabLocal != null)
-            mTabLocal.setBackgroundResource(microsoft
-                    ? R.drawable.tab_unselected_bg : R.drawable.tab_selected_bg);
+        // Toggle input visibility based on auth type
+        if (radioMs != null) {
+            radioMs.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && inputUsername != null) {
+                    inputUsername.setAlpha(0.5f);
+                    inputUsername.setEnabled(false);
+                }
+            });
+        }
+        if (radioLocal != null) {
+            radioLocal.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && inputUsername != null) {
+                    inputUsername.setAlpha(1.0f);
+                    inputUsername.setEnabled(true);
+                }
+            });
+        }
     }
 
     private void showError(TextView errorView, String message) {

@@ -1,178 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/premium_glass_black_bg"
-    android:paddingBottom="@dimen/_32sdp">
+    android:layout_height="match_parent"
+    android:background="@drawable/premium_gradient_bg">
 
-    <!-- Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_24sdp"
-        android:paddingBottom="@dimen/_20sdp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/login_card"
+        android:layout_width="@dimen/_520sdp"
+        android:layout_height="@dimen/_280sdp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_24sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
-            android:src="@drawable/ic_mc_skull"
-            app:tint="#FF9800"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:text="IDENTITY PROTOCOL"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_16ssp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"/>
-
+        <!-- Close Button (Top Right) -->
         <ImageButton
             android:id="@+id/btn_close_add_account"
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
-            android:src="@drawable/ic_px_arrow_left"
-            app:tint="#B3FFFFFF"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:src="@drawable/ic_px_trash"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#40FFFFFF"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-    </LinearLayout>
+        <!-- Header -->
+        <TextView
+            android:id="@+id/login_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ACCOUNT ACCESS"
+            android:textColor="#FF9800"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Account Type Tabs -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingBottom="@dimen/_16sdp">
-
-        <!-- Microsoft Tab -->
+        <!-- Left Side: Login Form (Atom Style) -->
         <LinearLayout
-            android:id="@+id/tab_microsoft"
+            android:id="@+id/login_input_group"
             android:layout_width="0dp"
-            android:layout_height="@dimen/_40sdp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:background="@drawable/preference_background_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginEnd="@dimen/_6sdp">
-
-            <ImageView
-                android:layout_width="@dimen/_18sdp"
-                android:layout_height="@dimen/_18sdp"
-                android:src="@drawable/ic_auth_ms"
-                android:layout_marginEnd="@dimen/_6sdp"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_32sdp"
+            app:layout_constraintTop_toBottomOf="@id/login_header_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.45">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Microsoft"
+                android:text="FEAR LAUNCHER"
                 android:textColor="#FFFFFF"
-                android:textSize="@dimen/_12ssp"
-                android:textStyle="bold"/>
+                android:textSize="@dimen/_20ssp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/_16sdp" />
 
-        </LinearLayout>
-
-        <!-- Local Tab -->
-        <LinearLayout
-            android:id="@+id/tab_local"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_40sdp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:background="@drawable/preference_background_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginStart="@dimen/_6sdp">
-
-            <ImageView
-                android:layout_width="@dimen/_18sdp"
-                android:layout_height="@dimen/_18sdp"
-                android:src="@drawable/ic_account_circle"
-                app:tint="#B3FFFFFF"
-                android:layout_marginEnd="@dimen/_6sdp"/>
+            <com.kdt.mcgui.MineEditText
+                android:id="@+id/local_username_input"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_36sdp"
+                android:background="@drawable/premium_edit_bg"
+                android:hint="Username / Email"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#40FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="@dimen/_11ssp" />
 
             <TextView
+                android:id="@+id/local_error_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FF5252"
+                android:textSize="@dimen/_9ssp"
+                android:visibility="gone"
+                android:layout_marginTop="4dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="Sign in"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_button_bg" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Local"
-                android:textColor="#B3FFFFFF"
-                android:textSize="@dimen/_12ssp"/>
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/_12sdp">
 
+                <CheckBox
+                    android:id="@+id/save_password"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800"
+                    android:paddingEnd="12dp" />
+
+                <CheckBox
+                    android:id="@+id/auto_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto Login"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
+            </LinearLayout>
         </LinearLayout>
 
-    </LinearLayout>
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="@dimen/_160sdp"
+            android:background="#1AFFFFFF"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintEnd_toStartOf="@+id/right_visual_container"
+            app:layout_constraintTop_toTopOf="@id/login_input_group"
+            app:layout_constraintBottom_toBottomOf="@id/login_input_group" />
 
-    <!-- ── MICROSOFT LOGIN PANEL ── -->
-    <LinearLayout
-        android:id="@+id/panel_microsoft"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="@dimen/_20sdp">
+        <!-- Right Side: Graphic and Auth Mode Selection -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/right_visual_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintWidth_percent="0.45">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Authenticate through the global network."
-            android:textColor="#B3FFFFFF"
-            android:textSize="@dimen/_11ssp"
-            android:layout_marginBottom="@dimen/_16sdp"/>
+            <ImageView
+                android:id="@+id/login_logo_visual"
+                android:layout_width="@dimen/_120sdp"
+                android:layout_height="@dimen/_120sdp"
+                android:src="@mipmap/ic_launcher_foreground"
+                android:alpha="0.8"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/btn_microsoft_login"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_48sdp"
-            android:text="SIGN IN WITH MICROSOFT" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-    </LinearLayout>
+                <RadioButton
+                    android:id="@+id/radio_local"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Local Auth"
+                    android:checked="true"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
 
-    <!-- ── LOCAL ACCOUNT PANEL ── -->
-    <LinearLayout
-        android:id="@+id/panel_local"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:visibility="gone">
+                <RadioButton
+                    android:id="@+id/radio_microsoft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Microsoft Auth"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:buttonTint="#FF9800" />
+            </LinearLayout>
 
-        <com.kdt.mcgui.MineEditText
-            android:id="@+id/local_username_input"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44sdp"
-            android:background="@drawable/premium_edit_bg"
-            android:hint="Username"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#40FFFFFF"
-            android:paddingHorizontal="16dp"
-            android:imeOptions="actionDone|flagNoExtractUi"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <TextView
-            android:id="@+id/local_error_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_6sdp"
-            android:textColor="#FF5252"
-            android:textSize="@dimen/_10ssp"
-            android:visibility="gone"/>
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/btn_local_login"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_44sdp"
-            android:layout_marginTop="@dimen/_16sdp"
-            android:text="CREATE LOCAL IDENTITY" />
-
-    </LinearLayout>
-
-</LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

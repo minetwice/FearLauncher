@@ -1,75 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/premium_glass_black_bg"
-    android:paddingBottom="@dimen/_24sdp">
+    android:layout_height="match_parent"
+    android:background="#99000000"
+    android:clickable="true"
+    android:focusable="true">
 
-    <!-- Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:paddingTop="@dimen/_20sdp"
-        android:paddingBottom="@dimen/_16sdp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="@dimen/_480sdp"
+        android:layout_height="@dimen/_300sdp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_20sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Close Button -->
+        <ImageButton
+            android:id="@+id/btn_close_account_manager"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_px_trash"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="#40FFFFFF" />
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/manager_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="CORE IDENTITIES"
+            android:text="ACCOUNT DASHBOARD"
             android:textColor="#FF9800"
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"/>
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/btn_add_account"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/_36sdp"
-            android:text="ADD NEW"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_10ssp"
-            android:background="@drawable/premium_button_bg"/>
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/account_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="300dp"
-        android:nestedScrollingEnabled="false"
-        android:paddingHorizontal="@dimen/_16sdp"
-        android:paddingTop="@dimen/_8sdp"/>
-
-    <LinearLayout
-        android:id="@+id/empty_account_state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="@dimen/_24sdp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="@dimen/_48sdp"
-            android:layout_height="@dimen/_48sdp"
-            android:src="@drawable/ic_mc_skull"
-            app:tint="#40FFFFFF"/>
+            android:letterSpacing="0.1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
+            android:id="@+id/manager_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:text="No identities detected"
+            android:text="Manage your identities and switch between accounts smoothly."
             android:textColor="#B3FFFFFF"
-            android:textSize="@dimen/_14ssp"/>
-    </LinearLayout>
+            android:textSize="@dimen/_9ssp"
+            app:layout_constraintTop_toBottomOf="@id/manager_title"
+            app:layout_constraintStart_toStartOf="parent" />
 
-</LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/account_list"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:layout_marginEnd="@dimen/_16sdp"
+            app:layout_constraintTop_toBottomOf="@id/manager_desc"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/manager_actions" />
+
+        <LinearLayout
+            android:id="@+id/manager_actions"
+            android:layout_width="@dimen/_120sdp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/manager_desc"
+            android:layout_marginTop="@dimen/_16sdp">
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/btn_add_account"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:text="ADD NEW"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:background="@drawable/premium_button_bg" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="SECURITY"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your data is stored locally and encrypted."
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_7ssp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/empty_account_state"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/account_list"
+            app:layout_constraintBottom_toBottomOf="@id/account_list"
+            app:layout_constraintStart_toStartOf="@id/account_list"
+            app:layout_constraintEnd_toEndOf="@id/account_list">
+
+            <ImageView
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
+                android:src="@drawable/ic_mc_skull"
+                app:tint="#20FFFFFF"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="No accounts found"
+                android:textColor="#40FFFFFF"
+                android:textSize="@dimen/_12ssp"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

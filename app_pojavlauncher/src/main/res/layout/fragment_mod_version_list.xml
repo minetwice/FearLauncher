@@ -1,78 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:background="@drawable/premium_gradient_bg"
-    android:paddingHorizontal="@dimen/fragment_padding_medium">
+    android:padding="@dimen/_16sdp">
 
-
+    <!-- Header -->
     <TextView
         android:id="@+id/title_textview"
-        style="@style/TextAppearance.AppCompat.Title"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:gravity="center"
-        android:layout_marginTop="@dimen/padding_large"
-        android:text="@string/forge_dl_select_version" />
-
-    <View
-        android:id="@+id/view"
-        style="@style/ThickDivider"
-        android:layout_width="match_parent"
-        android:layout_marginTop="@dimen/padding_large"
-        app:layout_constraintTop_toBottomOf="@+id/title_textview"
-        android:paddingBottom="@dimen/fragment_padding_medium"
-        />
+        android:text="VERSION DEPLOYMENT"
+        android:textColor="#FF9800"
+        android:textSize="@dimen/_20ssp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text=""
-        android:textColor="@color/primary_text" />
+        android:text="Select the specific build protocol for initialization."
+        android:textColor="#B3FFFFFF"
+        android:textSize="@dimen/_10ssp"
+        app:layout_constraintTop_toBottomOf="@id/title_textview"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <ExpandableListView
-        android:scrollbarThumbVertical="@color/minebutton_color"
-        android:id="@+id/mod_dl_expandable_version_list"
+    <!-- Version List Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/list_card"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_marginBottom="@dimen/_16sdp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toBottomOf="@id/subtitle"
+        app:layout_constraintBottom_toTopOf="@+id/mod_dl_list_progress">
 
-    </ExpandableListView>
+        <ExpandableListView
+            android:id="@+id/mod_dl_expandable_version_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:scrollbars="vertical" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/mod_dl_retry_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="@dimen/fragment_padding_medium"
-        android:paddingBottom="@dimen/fragment_padding_medium"
-        android:visibility="gone">
-
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/mod_dl_list_progress">
         <TextView
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:text="@string/modloader_dl_failed_to_load_list"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
-
+            android:text="METADATA SYNC ERROR"
+            android:textColor="#FF5252" />
         <Button
             android:id="@+id/forge_installer_retry_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/global_retry" />
+            android:text="RETRY" />
     </LinearLayout>
 
     <ProgressBar
         android:id="@+id/mod_dl_list_progress"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:indeterminate="true" />
-</LinearLayout>
+        android:indeterminate="true"
+        android:progressDrawable="@drawable/view_text_progressbar"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

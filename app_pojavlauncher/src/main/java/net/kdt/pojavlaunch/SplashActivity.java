@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateInterpolator;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,36 +23,31 @@ public class SplashActivity extends AppCompatActivity {
 
         final View root = findViewById(R.id.splash_root);
         final ImageView logo = findViewById(R.id.splash_logo);
-        final ImageView flame1 = findViewById(R.id.flame_1);
-        final ImageView flame2 = findViewById(R.id.flame_2);
+        final TextView fearText = findViewById(R.id.splash_text);
         final View shine = findViewById(R.id.shine_line);
+        final ImageView aura = findViewById(R.id.glow_aura);
+        final View reflection = findViewById(R.id.glass_reflection_bg);
 
-        // Flame Animation Sequence (Rengoku Style)
-        flame1.animate().alpha(0.6f).scaleX(1.2f).scaleY(1.2f).rotation(180).setDuration(600).start();
-        flame2.animate().alpha(0.8f).scaleX(1.1f).scaleY(1.1f).rotation(-180).setDuration(800).withEndAction(() -> {
+        // 3-Second Glow & Shine Sequence [Point 3]
+        logo.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(1000).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+        aura.animate().alpha(0.3f).scaleX(1.5f).scaleY(1.5f).setDuration(1500).start();
 
-            // Flame Burst
-            flame1.animate().scaleX(4f).scaleY(4f).alpha(0f).setDuration(400).setInterpolator(new AnticipateInterpolator()).start();
-            flame2.animate().scaleX(3.5f).scaleY(3.5f).alpha(0f).setDuration(500).setInterpolator(new AnticipateInterpolator()).start();
+        fearText.setTranslationY(30f);
+        fearText.animate().alpha(1f).translationY(0f).setDuration(1200).setStartDelay(500).start();
 
-            // Logo Reveal
-            logo.animate()
-                    .alpha(1f)
-                    .scaleX(1.1f)
-                    .scaleY(1.1f)
-                    .setDuration(400)
-                    .withEndAction(() -> {
-                        logo.animate().scaleX(1f).scaleY(1f).setDuration(200).start();
-
-                        // Shine Sweep
-                        shine.animate()
-                                .translationX(root.getWidth() + 600f)
-                                .setDuration(700)
-                                .withEndAction(() -> {
-                                    root.animate().alpha(0f).setDuration(400).withEndAction(this::startLauncher).start();
-                                }).start();
-                    }).start();
+        // Continuous Background Reflection
+        reflection.animate().alpha(0.4f).setDuration(1500).setUpdateListener(animation -> {
+            reflection.setRotation((float)animation.getAnimatedValue() * 5f);
         }).start();
+
+        // 3s Shine Glow Animation
+        shine.animate()
+                .translationX(root.getWidth() + 1000f)
+                .setDuration(3000)
+                .setInterpolator(new AccelerateDecelerateInterpolator())
+                .withEndAction(() -> {
+                    root.animate().alpha(0f).setDuration(500).withEndAction(this::startLauncher).start();
+                }).start();
     }
 
     private void startLauncher() {

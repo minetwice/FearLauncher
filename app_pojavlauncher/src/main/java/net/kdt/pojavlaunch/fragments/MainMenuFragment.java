@@ -152,19 +152,19 @@ public class MainMenuFragment extends Fragment {
             hamburgerBtn.setOnClickListener(v -> {
                 final ViewGroup container = view.findViewById(R.id.tray_container);
                 if (settingsTray.getVisibility() == View.VISIBLE) {
-                    // Close menu
+                    // Close menu (Slide out to Right)
                     if (container != null) animateItemsSequentially(container, false);
                     settingsTray.animate()
-                            .translationX(-settingsTray.getWidth())
+                            .translationX(settingsTray.getWidth())
                             .alpha(0f)
                             .setDuration(400)
                             .withEndAction(() -> settingsTray.setVisibility(View.GONE))
                             .start();
                 } else {
-                    // Open menu
+                    // Open menu (Slide in from Right)
                     settingsTray.setVisibility(View.VISIBLE);
                     settingsTray.setAlpha(0f);
-                    settingsTray.setTranslationX(-settingsTray.getWidth());
+                    settingsTray.setTranslationX(settingsTray.getWidth());
                     settingsTray.animate()
                             .translationX(0f)
                             .alpha(1f)
@@ -180,7 +180,7 @@ public class MainMenuFragment extends Fragment {
                 final ViewGroup container = view.findViewById(R.id.tray_container);
                 if (container != null) animateItemsSequentially(container, false);
                 settingsTray.animate()
-                        .translationX(-settingsTray.getWidth())
+                        .translationX(settingsTray.getWidth())
                         .alpha(0f)
                         .setDuration(400)
                         .withEndAction(() -> settingsTray.setVisibility(View.GONE))

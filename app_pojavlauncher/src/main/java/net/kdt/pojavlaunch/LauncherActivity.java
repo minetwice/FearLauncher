@@ -200,6 +200,24 @@ public class LauncherActivity extends BaseActivity {
         mProgressLayout.observe(ProgressLayout.AUTHENTICATE);
         mProgressLayout.observe(ProgressLayout.DOWNLOAD_VERSION_LIST);
         mProgressLayout.observe(ProgressLayout.INSTANCE_INSTALL);
+
+        // Auto-reload listener
+        ProgressKeeper.addTaskCountListener(tc -> {
+            if (tc == 0) {
+                Tools.runOnUiThread(() -> {
+                    // Refresh dash components
+                    ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+                    ExtraCore.setValue(ExtraConstants.REFRESH_VERSION_SPINNER, "REFRESH");
+
+                    // Specific logic for instance list refresh if needed
+                    Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container_fragment);
+                    if (fragment instanceof MainMenuFragment) {
+                        ((MainMenuFragment) fragment).refreshAccountUI();
+                    }
+                });
+            }
+            return false;
+        });
     }
 
     @Override

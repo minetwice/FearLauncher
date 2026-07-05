@@ -49,6 +49,9 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         RecyclerView recyclerView = view.findViewById(R.id.account_list);
         mEmptyState = view.findViewById(R.id.empty_account_state);
         View btnAddAccount = view.findViewById(R.id.btn_add_account);
+        View btnClose = view.findViewById(R.id.btn_close_account_manager);
+
+        if (btnClose != null) btnClose.setOnClickListener(v -> dismiss());
 
         // Load accounts
         List<MinecraftAccount> accountList = loadAccounts();

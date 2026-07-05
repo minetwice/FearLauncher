@@ -58,7 +58,10 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
     private final ArrayList<LayoutProgressListener> mMap = new ArrayList<>();
     private LinearLayout mLinearLayout;
     private TextView mTaskNumberDisplayer;
-    private ImageView mFlipArrow;
+    private TextView mTotalSpeedText;
+    private TextView mTotalRemainingText;
+    private View mDashboardRoot;
+    private View mStatusRoot;
 
 
 
@@ -81,9 +84,15 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         inflate(getContext(), R.layout.view_progress, this);
         mLinearLayout = findViewById(R.id.progress_linear_layout);
         mTaskNumberDisplayer = findViewById(R.id.progress_textview);
-        mFlipArrow = findViewById(R.id.progress_flip_arrow);
-        setBackgroundColor(getResources().getColor(R.color.background_bottom_bar));
-        setOnClickListener(this);
+        mTotalSpeedText = findViewById(R.id.total_speed_text);
+        mTotalRemainingText = findViewById(R.id.total_remaining_text);
+        mDashboardRoot = findViewById(R.id.download_dashboard_root);
+        mStatusRoot = findViewById(R.id.progress_bar_status_root);
+
+        View closeBtn = findViewById(R.id.btn_close_dashboard);
+        if (closeBtn != null) closeBtn.setOnClickListener(v -> toggleDashboard(false));
+
+        if (mStatusRoot != null) mStatusRoot.setOnClickListener(this);
     }
 
 
@@ -109,18 +118,33 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-        mLinearLayout.setVisibility(mLinearLayout.getVisibility() == GONE ? VISIBLE : GONE);
-        mFlipArrow.setRotation(mLinearLayout.getVisibility() == GONE? 0 : 180);
+        toggleDashboard(true);
+    }
+
+    private void toggleDashboard(boolean show) {
+        if (mDashboardRoot != null) {
+            mDashboardRoot.setVisibility(show ? VISIBLE : GONE);
+            if (show) {
+                mDashboardRoot.setAlpha(0f);
+                mDashboardRoot.animate().alpha(1f).setDuration(300).start();
+            }
+        }
     }
 
     @Override
     public boolean onUpdateTaskCount(int tc) {
         post(()->{
             if(tc > 0) {
-                mTaskNumberDisplayer.setText(getContext().getString(R.string.progresslayout_tasks_in_progress, tc));
+                if (mTaskNumberDisplayer != null)
+                    mTaskNumberDisplayer.setText(getContext().getString(R.string.progresslayout_tasks_in_progress, tc));
+                if (mTotalRemainingText != null)
+                    mTotalRemainingText.setText("Remaining: " + tc + " active streams");
                 setVisibility(VISIBLE);
-            }else
+            }else {
                 setVisibility(GONE);
+                toggleDashboard(false);
+                // Auto-reload logic trigger if needed?
+            }
         });
         return false;
     }

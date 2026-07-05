@@ -31,6 +31,7 @@
         <item name="android:windowBackground">@drawable/premium_glass_black_bg</item>
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="colorAccent">#FF9800</item>
+        <item name="android:background">#CC000000</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->
@@ -55,6 +56,7 @@
         <item name="android:textColorSecondary">@color/secondary_text</item>
         <!-- FIX: Bottom sheets dark bg -->
         <item name="bottomSheetDialogTheme">@style/BottomSheet.Fear</item>
+        <item name="alertDialogTheme">@style/FearAlertDialogTheme</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->

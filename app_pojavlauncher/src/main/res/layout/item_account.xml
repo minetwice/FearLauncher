@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingHorizontal="@dimen/_16sdp"
-    android:paddingVertical="@dimen/_12sdp"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/preference_background_selector"
+    android:layout_marginBottom="@dimen/_10sdp"
+    android:background="@drawable/premium_glass_black_bg"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:padding="@dimen/_12sdp">
 
     <ImageView
         android:id="@+id/account_avatar"
-        android:layout_width="@dimen/_36sdp"
-        android:layout_height="@dimen/_36sdp"
-        android:src="@drawable/ic_mc_skull"
-        app:tint="#FFFFFF"/>
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:src="@mipmap/ic_launcher_foreground"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_marginStart="@dimen/_12sdp"
         android:orientation="vertical"
-        android:layout_marginStart="@dimen/_12sdp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/account_selected_check"
+        app:layout_constraintStart_toEndOf="@id/account_avatar"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/account_username"
@@ -34,33 +36,47 @@
             android:text="Username"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_14ssp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/account_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Microsoft"
+            android:text="Microsoft Account"
             android:textColor="#B3FFFFFF"
-            android:textSize="@dimen/_10ssp"/>
+            android:textSize="@dimen/_9ssp" />
 
     </LinearLayout>
 
     <ImageView
         android:id="@+id/account_selected_check"
-        android:layout_width="@dimen/_20sdp"
-        android:layout_height="@dimen/_20sdp"
-        android:src="@drawable/ic_mc_skull"
-        app:tint="#FF9800"
-        android:visibility="gone"/>
+        android:layout_width="@dimen/_18sdp"
+        android:layout_height="@dimen/_18sdp"
+        android:layout_marginEnd="@dimen/_8sdp"
+        android:src="@drawable/ic_px_zap"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/account_delete_btn"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#FF9800" />
 
     <ImageButton
         android:id="@+id/account_delete_btn"
         android:layout_width="@dimen/_32sdp"
         android:layout_height="@dimen/_32sdp"
-        android:layout_marginStart="@dimen/_8sdp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_px_trash"
-        app:tint="#4DFFFFFF"
-        android:background="?attr/selectableItemBackgroundBorderless" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#4DFFFFFF" />
 
-</LinearLayout>
+    <!-- Shine Overlay (Animated in code or via loop animation if possible) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/button_shine_line"
+        android:alpha="0.1"
+        android:visibility="gone" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,17 +6,16 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Hamburger Icon (Top Left) - Minecraft Skull -->
+    <!-- Hamburger Icon (Top Right) - Moved from left -->
     <ImageButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_40sdp"
         android:layout_margin="@dimen/_16sdp"
-        android:src="@drawable/ic_mc_skull"
+        android:src="@mipmap/ic_launcher_foreground"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Main Content Area (Landscape Infumia Style) -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -100,7 +99,7 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- GLASS SIDEBAR TRAY -->
+    <!-- GLASS SIDEBAR TRAY (Slides from Right) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
         android:layout_width="@dimen/_240sdp"
@@ -109,7 +108,7 @@
         app:cardBackgroundColor="#CC000000"
         app:cardCornerRadius="0dp"
         app:cardElevation="32dp"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -141,7 +140,7 @@
                     android:layout_height="@dimen/_44sdp"
                     android:text="SETTINGS ENGINE"
                     android:drawableStart="@drawable/ic_px_sliders"
-                android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="8dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -150,7 +149,7 @@
                     android:layout_height="@dimen/_44sdp"
                     android:text="RUN EXECUTABLE"
                     android:drawableStart="@drawable/ic_px_java_run"
-                android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="8dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -159,16 +158,16 @@
                     android:layout_height="@dimen/_44sdp"
                     android:text="SKIN CUSTOMIZER"
                     android:drawableStart="@drawable/ic_account_circle"
-                android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="8dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_account_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
-                    android:text="CORE IDENTITY"
+                    android:text="ACCOUNT"
                     android:drawableStart="@drawable/ic_px_edit"
-                android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="8dp" />
 
                 <View
@@ -182,8 +181,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
                     android:text="ADVANCED TOOLS"
-                android:drawableStart="@drawable/ic_px_alt_sliders"
-                android:background="@drawable/tray_button_bg" />
+                    android:drawableStart="@drawable/ic_px_alt_sliders"
+                    android:background="@drawable/tray_button_bg" />
 
                 <LinearLayout
                     android:id="@+id/more_settings_layout"
@@ -200,7 +199,7 @@
                         android:layout_height="@dimen/_36sdp"
                         android:text="INPUT MAPPING"
                         android:textSize="@dimen/_10ssp"
-                    android:background="@drawable/tray_button_bg"
+                        android:background="@drawable/tray_button_bg"
                         android:layout_marginBottom="4dp" />
 
                     <com.kdt.mcgui.LauncherMenuButton
@@ -209,7 +208,7 @@
                         android:layout_height="@dimen/_36sdp"
                         android:text="MODIFICATIONS"
                         android:textSize="@dimen/_10ssp"
-                    android:background="@drawable/tray_button_bg"
+                        android:background="@drawable/tray_button_bg"
                         android:layout_marginBottom="4dp" />
 
                     <com.kdt.mcgui.LauncherMenuButton
@@ -218,7 +217,7 @@
                         android:layout_height="@dimen/_36sdp"
                         android:text="DATA STREAM"
                         android:textSize="@dimen/_10ssp"
-                    android:background="@drawable/tray_button_bg"
+                        android:background="@drawable/tray_button_bg"
                         android:layout_marginBottom="4dp" />
                 </LinearLayout>
 

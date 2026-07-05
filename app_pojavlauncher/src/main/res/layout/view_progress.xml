@@ -3,57 +3,168 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Progress Bar Container with Dark Surface Background -->
-    <LinearLayout
+    <!-- Status Bar Component (Compact) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/progress_bar_status_root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:background="@drawable/premium_glass_black_bg"
+        android:clickable="true"
+        android:focusable="true"
         android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingVertical="@dimen/_6sdp"
-        android:background="@drawable/premium_gradient_bg">
+        android:paddingVertical="@dimen/_8sdp">
 
-        <!-- Spinner/Progress Indicator -->
+        <!-- Dragon Loading Animation Placeholder (Wavy effect) -->
         <ProgressBar
             android:id="@+id/progress_generic_progressbar"
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"
-            android:indeterminateTint="@color/fear_secondary" />
+            android:indeterminateDrawable="@drawable/loading_dragon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Status Text (White for Readability) -->
         <TextView
             android:id="@+id/progress_textview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/_8sdp"
-            android:gravity="start|center_vertical"
-            android:textSize="@dimen/_12ssp"
-            android:textColor="@color/primary_text"
-            android:maxLines="1"
-            android:ellipsize="end"
-            tools:text="Downloading assets... 5 tasks in progress" />
+            android:layout_marginStart="@dimen/_12sdp"
+            android:layout_marginEnd="@dimen/_12sdp"
+            android:text="5 Tasks in queue..."
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_10ssp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/progress_generic_progressbar"
+            app:layout_constraintEnd_toStartOf="@+id/progress_expand_hint"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Expand/Collapse Arrow -->
-        <ImageView
-            android:id="@+id/progress_flip_arrow"
-            android:layout_width="@dimen/_16sdp"
-            android:layout_height="@dimen/_16sdp"
-            android:src="@drawable/spinner_arrow"
-            app:tint="@color/secondary_text" />
-    </LinearLayout>
+        <TextView
+            android:id="@+id/progress_expand_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="VIEW DASHBOARD"
+            android:textColor="#4DFFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Expanded Details Layout (Hidden by default) -->
-    <LinearLayout
-        android:id="@+id/progress_linear_layout"
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- FULL SCREEN DOWNLOAD DASHBOARD -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/download_dashboard_root"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
         android:visibility="gone"
-        android:padding="@dimen/_12sdp"
-        android:background="@drawable/premium_gradient_bg"
-        tools:visibility="visible">
-        <!-- Dynamic content gets added here via Java code -->
-    </LinearLayout>
+        android:clickable="true"
+        android:focusable="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/_24sdp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:padding="@dimen/_24sdp">
+
+            <!-- Header -->
+            <TextView
+                android:id="@+id/dash_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DOWNLOAD COMMANDER"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_20ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/dash_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monitoring real-time data streams and asset acquisition."
+                android:textColor="#B3FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                app:layout_constraintTop_toBottomOf="@id/dash_title"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <ImageButton
+                android:id="@+id/btn_close_dashboard"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:src="@drawable/ic_px_trash"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#4DFFFFFF"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Active Downloads List -->
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/_20sdp"
+                android:layout_marginBottom="@dimen/_12sdp"
+                app:layout_constraintTop_toBottomOf="@id/dash_subtitle"
+                app:layout_constraintBottom_toTopOf="@+id/dash_footer">
+
+                <LinearLayout
+                    android:id="@+id/progress_linear_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <!-- Dynamic items added here -->
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- Footer Stats -->
+            <LinearLayout
+                android:id="@+id/dash_footer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/total_speed_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bandwidth: 0.0 MB/s"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_10ssp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/total_remaining_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Remaining: 0 files"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="@dimen/_8ssp" />
+                </LinearLayout>
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/btn_pause_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="PAUSE ALL"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:background="@drawable/premium_button_bg" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </merge>
