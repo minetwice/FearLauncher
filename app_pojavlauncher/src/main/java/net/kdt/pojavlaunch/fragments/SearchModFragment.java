@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.math.MathUtils;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.kdt.mcgui.ProgressLayout;
@@ -138,7 +138,15 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
 
         mDefaultTextColor = mStatusTextView.getTextColors();
 
-        mRecyclerview.setLayoutManager(new LinearLayoutManager(getContext()));
+        int spanCount = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), spanCount);
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return mModItemAdapter.getItemViewType(position) == 1 ? spanCount : 1; // 1 is VIEW_TYPE_LOADING
+            }
+        });
+        mRecyclerview.setLayoutManager(gridLayoutManager);
         mRecyclerview.setAdapter(mModItemAdapter);
 
         mRecyclerview.addOnScrollListener(mOverlayPositionListener);

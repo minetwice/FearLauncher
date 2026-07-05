@@ -11,6 +11,7 @@ import android.view.animation.AnimationUtils;
 import androidx.core.content.res.ResourcesCompat;
 
 import git.artdeell.mojo.R;
+import net.kdt.pojavlaunch.SoundManager;
 
 public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 	
@@ -40,6 +41,7 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 				case MotionEvent.ACTION_DOWN:
 					Animation pressAnim = AnimationUtils.loadAnimation(getContext(), R.anim.button_press);
 					v.startAnimation(pressAnim);
+					SoundManager.playClick();
 					break;
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_CANCEL:

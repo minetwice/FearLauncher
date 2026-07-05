@@ -144,6 +144,8 @@ public class LauncherActivity extends BaseActivity {
         getWindow().setBackgroundDrawable(null);
         bindViews();
         setupDrawer();
+        SoundManager.init(this);
+        SoundManager.startMusic(this);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager()

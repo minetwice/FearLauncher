@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="DEPLOYMENT PROTOCOL"
-        android:textColor="#FF9800"
+        android:textColor="#FFFF00"
         android:textSize="@dimen/_20ssp"
         android:textStyle="bold"
         android:letterSpacing="0.1"
@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="STABLE BUILDS"
-                android:textColor="#FF9800"
+                android:textColor="#FFFF00"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/_12sdp" />
@@ -84,7 +84,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MODIFICATION ENGINES"
-                android:textColor="#FF9800"
+                android:textColor="#FFFF00"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/_12sdp" />

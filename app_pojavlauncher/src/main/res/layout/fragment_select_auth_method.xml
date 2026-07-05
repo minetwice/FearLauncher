@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ACCOUNT ACCESS"
-            android:textColor="#FF9800"
+            android:textColor="#FFFF00"
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
