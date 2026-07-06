@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="DEPLOYMENT PROTOCOL"
-        android:textColor="#FFFF00"
+        android:textColor="#FF9800"
         android:textSize="@dimen/_20ssp"
         android:textStyle="bold"
         android:letterSpacing="0.1"
@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="STABLE BUILDS"
-                android:textColor="#FFFF00"
+                android:textColor="#FF9800"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/_12sdp" />
@@ -65,7 +65,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="VANILLA"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_vanilla"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -75,7 +77,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="OPTIFINE"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_zap"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
             </GridLayout>
 
@@ -84,7 +88,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MODIFICATION ENGINES"
-                android:textColor="#FFFF00"
+                android:textColor="#FF9800"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/_12sdp" />
@@ -101,7 +105,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="FABRIC"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_fabric"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -111,7 +117,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="FORGE"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_forge"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -121,7 +129,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="QUILT"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_quilt"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -131,7 +141,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="NEOFORGE"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_neoforge"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -141,7 +153,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="MODPACKS"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_file_dl"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -151,7 +165,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="BTA ENGINE"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_experiment"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
@@ -161,7 +177,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="4dp"
                     android:text="LEGACY FABRIC"
+                    android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_fabric"
+                    android:drawablePadding="12dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
             </GridLayout>

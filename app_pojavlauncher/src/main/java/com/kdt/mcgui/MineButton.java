@@ -9,6 +9,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import androidx.core.content.res.ResourcesCompat;
+import android.graphics.drawable.Drawable;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.SoundManager;
@@ -27,6 +28,16 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 	public void init() {
 		setTypeface(ResourcesCompat.getFont(getContext(), R.font.noto_sans_bold));
 		setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.premium_button_bg, null));
+
+		// Scale the icons to prevent them from becoming "Big" and taking up the whole button
+		Drawable[] drawables = getCompoundDrawables();
+		int iconSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 28, getResources().getDisplayMetrics());
+		for (Drawable d : drawables) {
+			if (d != null) {
+				d.setBounds(0, 0, iconSize, iconSize);
+			}
+		}
+		setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawables[3]);
 		setTextColor(Color.WHITE);
 		setAllCaps(true);
 		setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));

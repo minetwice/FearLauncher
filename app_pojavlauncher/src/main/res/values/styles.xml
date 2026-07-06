@@ -30,7 +30,7 @@
     <style name="FearAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="android:windowBackground">@drawable/premium_glass_black_bg</item>
         <item name="android:textColorPrimary">#FFFFFF</item>
-        <item name="colorAccent">#FFFF00</item>
+        <item name="colorAccent">#FF9800</item>
         <item name="android:background">#CC000000</item>
     </style>
 

@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ACCOUNT ACCESS"
-            android:textColor="#FFFF00"
+            android:textColor="#FF9800"
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -82,7 +82,7 @@
                     android:text="Save"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FFFF00"
+                    android:buttonTint="#FF9800"
                     android:paddingEnd="12dp" />
 
                 <CheckBox
@@ -92,7 +92,7 @@
                     android:text="Auto Login"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FFFF00" />
+                    android:buttonTint="#FF9800" />
             </LinearLayout>
         </LinearLayout>
 
@@ -153,7 +153,7 @@
                     android:checked="true"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FFFF00" />
+                    android:buttonTint="#FF9800" />
 
                 <RadioButton
                     android:id="@+id/radio_microsoft"
@@ -162,7 +162,7 @@
                     android:text="Microsoft Auth"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FFFF00" />
+                    android:buttonTint="#FF9800" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

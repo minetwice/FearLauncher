@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/_60sdp"
     android:paddingHorizontal="@dimen/padding_medium"
+    android:background="@drawable/preference_background_selector"
+    android:layout_margin="4dp"
     >
 
     <TextView
@@ -16,6 +18,8 @@
 
         android:layout_marginEnd="@dimen/_8sdp"
         android:textSize="@dimen/_12ssp"
+        android:textColor="@color/primary_text"
+        android:textStyle="bold"
 
 
         app:layout_constraintBottom_toBottomOf="parent"
@@ -35,6 +39,7 @@
 
         android:layout_marginTop="8dp"
         android:textSize="@dimen/_10ssp"
+        android:textColor="@color/secondary_text"
 
         app:layout_constraintStart_toStartOf="@+id/multirt_view_java_version"
         app:layout_constraintTop_toBottomOf="@+id/multirt_view_java_version"

@@ -7,4 +7,9 @@
     android:ellipsize="marquee"
     android:textAlignment="inherit"
     android:gravity="center"
-    android:minHeight="48dp"/>
+    android:minHeight="48dp"
+    android:textColor="#000000"
+    android:textStyle="bold"
+    android:background="@drawable/orange_scrollbar"
+    android:layout_margin="4dp"
+    android:padding="8dp"/>

@@ -23,7 +23,7 @@
             android:layout_height="32dp"
             android:layout_gravity="center_vertical"
             android:src="@drawable/ic_fear_full"
-            app:tint="#FFD700" />
+            app:tint="#F57C00" />
 
         <LinearLayout
             android:layout_width="match_parent"

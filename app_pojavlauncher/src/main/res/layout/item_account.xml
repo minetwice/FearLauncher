@@ -58,7 +58,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/account_delete_btn"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFF00" />
+        app:tint="#FF9800" />
 
     <ImageButton
         android:id="@+id/account_delete_btn"

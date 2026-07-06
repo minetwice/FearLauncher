@@ -4,7 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="@dimen/_52sdp"
     android:layout_width="match_parent"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:background="@drawable/orange_scrollbar"
+    android:layout_margin="4dp">
 
     <fr.spse.extended_view.ExtendedTextView
         android:id="@+id/account_item"
@@ -18,6 +20,8 @@
         android:paddingStart="@dimen/_8sdp"
         app:drawableStartSize="@dimen/_30sdp"
         app:drawableEndSize="@dimen/_30sdp"
+        android:textColor="#000000"
+        android:textStyle="bold"
 
         tools:text="HELLO THERE"
         tools:drawableStart="@mipmap/ic_launcher"
@@ -32,9 +36,8 @@
         android:layout_height="match_parent"
         android:background="?attr/selectableItemBackground"
         android:src="@drawable/ic_px_trash"
-
+        android:tint="#000000"
         android:padding="@dimen/padding_moderate"
         />
 
 </LinearLayout>
-
