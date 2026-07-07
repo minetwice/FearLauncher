@@ -80,7 +80,29 @@ public class InstanceEditorFragment extends Fragment implements CropperUtils.Cro
         List<String> renderList = new ArrayList<>(renderersList.rendererDisplayNames.length + 1);
         renderList.addAll(Arrays.asList(renderersList.rendererDisplayNames));
         renderList.add(view.getContext().getString(R.string.global_default));
-        mDefaultRenderer.setAdapter(new ArrayAdapter<>(view.getContext(), R.layout.item_simple_list_1, renderList));
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(view.getContext(), R.layout.item_renderer_select, android.R.id.text1, renderList) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                View check = v.findViewById(R.id.item_check);
+                if (check != null) check.setVisibility(View.GONE); // Hide zap in collapsed view
+                return v;
+            }
+
+            @Override
+            public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View v = super.getDropDownView(position, convertView, parent);
+                View check = v.findViewById(R.id.item_check);
+                if (check != null) {
+                    // Show zap only if this is the currently selected item in the spinner
+                    check.setVisibility(position == mDefaultRenderer.getSelectedItemPosition() ? View.VISIBLE : View.INVISIBLE);
+                }
+                return v;
+            }
+        };
+        adapter.setDropDownViewResource(R.layout.item_renderer_select);
+        mDefaultRenderer.setAdapter(adapter);
 
         // Set up behaviors
         mSaveButton.setOnClickListener(v -> {

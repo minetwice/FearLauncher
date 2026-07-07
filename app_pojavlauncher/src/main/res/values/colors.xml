@@ -15,7 +15,7 @@
     <color name="background_app">#000000</color>
     <color name="background_overlay">#CC000000</color> <!-- Glass Black -->
     <color name="background_status_bar">#000000</color>
-    <color name="background_bottom_bar">#0D0D0D</color>
+    <color name="background_bottom_bar">#000000</color>
     <color name="divider">#26FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
@@ -29,7 +29,7 @@
     <!-- ACCENT COLORS (ORANGE & BLACK)                  -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="fear_primary">#FF9800</color> <!-- Pure Orange -->
-    <color name="fear_secondary">#F57C00</color> <!-- Darker Orange -->
+    <color name="fear_secondary">#FF9800</color>
     <color name="fear_tertiary">#000000</color> <!-- Black -->
 
     <color name="fear_on_primary">#000000</color>
@@ -37,7 +37,7 @@
     <!-- ═══════════════════════════════════════════════ -->
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="status_error">#FF0000</color>
+    <color name="status_error">#FF4444</color>
     <color name="status_success">#FF9800</color> <!-- Success is now Orange themed -->
     <color name="status_warning">#FF9800</color>
 
@@ -51,9 +51,9 @@
     <!-- Legacy Mappings (to avoid breaking XMLs until fully purged) -->
 
     <color name="seekbar_progress_start">#FF9800</color>
-    <color name="seekbar_progress_end">#F57C00</color>
-    <color name="fear_surface">#0A0A0A</color>
-    <color name="fear_surface_variant">#121212</color>
+    <color name="seekbar_progress_end">#FF9800</color>
+    <color name="fear_surface">#000000</color>
+    <color name="fear_surface_variant">#000000</color>
     <color name="fear_surface_container">#000000</color>
     <color name="top_bar_bg">#CC000000</color>
     <color name="sidebar_bg">#CC000000</color>

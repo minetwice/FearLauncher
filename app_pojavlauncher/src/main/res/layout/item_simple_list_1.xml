@@ -8,6 +8,6 @@
     android:textColor="#FFFFFF"
     android:textSize="@dimen/_13ssp"
     android:gravity="center_vertical"
-    android:background="@drawable/premium_glass_black_bg"
+    android:background="#00000000"
     tools:text="Renderer Name"
     />

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="12dp"
+    android:padding="16dp"
     android:layout_marginBottom="8dp"
     android:background="@drawable/premium_glass_black_bg">
 
@@ -51,12 +51,15 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginStart="8dp" />
+
     </LinearLayout>
 
     <SeekBar
         android:id="@+id/item_seekbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="12dp"
+        android:progressDrawable="@drawable/orange_scrollbar"
+        android:thumbTint="@color/fear_primary" />
 
 </LinearLayout>

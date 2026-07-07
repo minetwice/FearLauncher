@@ -4,7 +4,16 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
@@ -65,6 +74,41 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         Activity activity = getActivity();
         if(activity != null) {
             requirePreference("ignoreNotch").setVisible(LauncherPreferences.hasNotch(activity));
+        }
+    }
+
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+        if ("renderer".equals(preference.getKey())) {
+            ListPreference lp = (ListPreference) preference;
+            CharSequence[] entries = lp.getEntries();
+            int selectedIndex = lp.findIndexOfValue(lp.getValue());
+
+            ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(getContext(), R.layout.item_renderer_select, android.R.id.text1, entries) {
+                @NonNull
+                @Override
+                public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                    View v = super.getView(position, convertView, parent);
+                    View check = v.findViewById(R.id.item_check);
+                    if (check != null) {
+                        check.setVisibility(position == selectedIndex ? View.VISIBLE : View.INVISIBLE);
+                    }
+                    return v;
+                }
+            };
+
+            new AlertDialog.Builder(requireContext(), R.style.FearAlertDialogTheme)
+                    .setTitle(lp.getDialogTitle() != null ? lp.getDialogTitle() : lp.getTitle())
+                    .setAdapter(adapter, (dialog, which) -> {
+                        String value = lp.getEntryValues()[which].toString();
+                        if (lp.callChangeListener(value)) {
+                            lp.setValue(value);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        } else {
+            super.onDisplayPreferenceDialog(preference);
         }
     }
 
