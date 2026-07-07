@@ -17,22 +17,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Close Button (Top Right) -->
+        <!-- Close Button (Back Arrow) -->
         <ImageButton
             android:id="@+id/btn_close_add_account"
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
-            android:src="@drawable/ic_px_trash"
+            android:src="@drawable/ic_px_arrow_left"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#40FFFFFF"
+            app:tint="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <!-- Header -->
         <TextView
             android:id="@+id/login_header_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_40sdp"
             android:text="ACCOUNT ACCESS"
             android:textColor="#FF9800"
             android:textSize="@dimen/_16ssp"

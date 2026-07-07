@@ -189,7 +189,7 @@ public class CustomSettingsFragment extends Fragment {
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             if (viewType == TYPE_CATEGORY) {
-                View v = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+                View v = inflater.inflate(R.layout.item_simple_list_1, parent, false);
                 return new CategoryViewHolder(v);
             } else if (viewType == TYPE_SWITCH) {
                 View v = inflater.inflate(R.layout.item_setting_switch, parent, false);
@@ -278,8 +278,10 @@ public class CustomSettingsFragment extends Fragment {
             CategoryViewHolder(View v) {
                 super(v);
                 textView = (TextView) v;
-                textView.setPadding(32, 16, 16, 16);
-                textView.setTextSize(18);
+                textView.setPadding(32, 48, 16, 8);
+                textView.setTextSize(14);
+                textView.setAllCaps(true);
+                textView.setLetterSpacing(0.2f);
                 textView.setTypeface(null, android.graphics.Typeface.BOLD);
             }
         }

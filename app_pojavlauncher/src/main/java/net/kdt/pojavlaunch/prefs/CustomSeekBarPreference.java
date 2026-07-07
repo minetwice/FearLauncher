@@ -65,7 +65,12 @@ public class CustomSeekBarPreference extends SeekBarPreference {
 
         mTextView = (TextView) view.findViewById(R.id.seekbar_value);
         mTextView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+        mTextView.setTextColor(Color.parseColor("#FF9800"));
         SeekBar seekBar = (SeekBar) view.findViewById(R.id.seekbar);
+
+        seekBar.setProgressDrawable(getContext().getDrawable(R.drawable.seekbar_progress));
+        seekBar.setThumb(getContext().getDrawable(R.drawable.seekbar_thumb));
+        seekBar.setSplitTrack(false);
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 

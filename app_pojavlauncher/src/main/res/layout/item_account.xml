@@ -69,7 +69,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#4DFFFFFF" />
+        app:tint="#FF9800" />
 
     <!-- Shine Overlay (Animated in code or via loop animation if possible) -->
     <View

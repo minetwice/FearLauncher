@@ -18,19 +18,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Close Button -->
+        <!-- Close Button (Back Arrow) -->
         <ImageButton
             android:id="@+id/btn_close_account_manager"
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_px_trash"
+            android:src="@drawable/ic_px_arrow_left"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:tint="#40FFFFFF" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:tint="#FFFFFF" />
 
         <TextView
             android:id="@+id/manager_title"
+            android:layout_marginStart="@dimen/_40sdp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ACCOUNT DASHBOARD"

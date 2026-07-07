@@ -59,7 +59,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:progressDrawable="@drawable/orange_scrollbar"
-        android:thumbTint="@color/fear_primary" />
+        android:progressDrawable="@drawable/seekbar_progress"
+        android:thumb="@drawable/seekbar_thumb"
+        android:splitTrack="false" />
 
 </LinearLayout>
