@@ -1,7 +1,7 @@
 package net.kdt.pojavlaunch.multirt;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.widget.Button;
 

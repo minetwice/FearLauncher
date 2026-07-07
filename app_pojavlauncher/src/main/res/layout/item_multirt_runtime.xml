@@ -29,7 +29,7 @@
         app:layout_constraintTop_toTopOf="parent"
 
         app:layout_constraintVertical_bias="0.28"
-        tools:text="Java 8" />
+        tools:text="Java 17" />
 
     <TextView
         android:id="@+id/multirt_view_java_version_full"
@@ -43,7 +43,7 @@
 
         app:layout_constraintStart_toStartOf="@+id/multirt_view_java_version"
         app:layout_constraintTop_toBottomOf="@+id/multirt_view_java_version"
-        tools:text="1.8.0_292" />
+        tools:text="Internal 17" />
 
     <ImageButton
         android:id="@+id/multirt_view_removebtn"
@@ -61,13 +61,13 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <Button
+    <com.kdt.mcgui.MineButton
         android:id="@+id/multirt_view_setdefaultbtn"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:background="@drawable/premium_button_bg"
-        android:textColor="@color/fear_on_primary"
-        android:text="@string/multirt_config_setdefault"
+        android:textColor="@color/primary_text"
+        android:text="SET DEFAULT"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

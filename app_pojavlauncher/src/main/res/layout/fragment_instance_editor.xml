@@ -439,21 +439,21 @@
                     android:layout_height="@dimen/_44sdp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/premium_gradient_bg">
+                    android:background="@drawable/orange_scrollbar">
 
                     <Spinner
                         android:id="@+id/vprof_editor_spinner_runtime"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/premium_gradient_bg"
+                        android:background="@android:color/transparent"
                         android:paddingHorizontal="@dimen/_12sdp"/>
 
                     <ImageView
                         android:layout_width="@dimen/_16sdp"
                         android:layout_height="@dimen/_16sdp"
                         android:src="@drawable/spinner_arrow"
-                        android:tint="@color/secondary_text"
+                        android:tint="#000000"
                         android:rotation="180"
                         android:layout_marginEnd="@dimen/_12sdp"/>
 
@@ -464,7 +464,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/premium_gradient_bg"
+                android:background="@drawable/premium_glass_black_bg"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_24sdp"
@@ -498,14 +498,14 @@
                     android:layout_height="@dimen/_44sdp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/premium_gradient_bg">
+                    android:background="@drawable/orange_scrollbar">
 
                     <Spinner
                         android:id="@+id/vprof_editor_instance_renderer"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/premium_gradient_bg"
+                        android:background="@android:color/transparent"
                         android:dropDownWidth="match_parent"
                         android:paddingHorizontal="@dimen/_12sdp"/>
 
@@ -513,7 +513,7 @@
                         android:layout_width="@dimen/_16sdp"
                         android:layout_height="@dimen/_16sdp"
                         android:src="@drawable/spinner_arrow"
-                        android:tint="@color/secondary_text"
+                        android:tint="#000000"
                         android:rotation="180"
                         android:layout_marginEnd="@dimen/_12sdp"/>
 

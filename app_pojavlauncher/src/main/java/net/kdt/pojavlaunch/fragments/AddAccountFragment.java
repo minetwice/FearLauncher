@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.widget.Button;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import git.artdeell.mojo.R;
@@ -48,10 +49,12 @@ public class AddAccountFragment extends BottomSheetDialogFragment {
         TextView errorText      = view.findViewById(R.id.local_error_text);
         View btnLogin           = view.findViewById(R.id.btn_login);
         View btnClose           = view.findViewById(R.id.btn_close_add_account);
+        View btnBack            = view.findViewById(R.id.btn_back_add_account);
         android.widget.RadioButton radioMs = view.findViewById(R.id.radio_microsoft);
         android.widget.RadioButton radioLocal = view.findViewById(R.id.radio_local);
 
         if (btnClose != null) btnClose.setOnClickListener(v -> dismiss());
+        if (btnBack != null) btnBack.setOnClickListener(v -> dismiss());
 
         if (btnLogin != null) {
             btnLogin.setOnClickListener(v -> {

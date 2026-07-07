@@ -100,7 +100,7 @@ public class RTRecyclerViewAdapter extends RecyclerView.Adapter<RTRecyclerViewAd
         final TextView mJavaVersionTextView;
         final TextView mFullJavaVersionTextView;
         final ColorStateList mDefaultColors;
-        final Button mSetDefaultButton;
+        final com.kdt.mcgui.MineButton mSetDefaultButton;
         final ImageButton mDeleteButton;
         final Context mContext;
         Runtime mCurrentRuntime;

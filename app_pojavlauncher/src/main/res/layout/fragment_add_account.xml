@@ -17,14 +17,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Close Button (Top Right) -->
+        <!-- Back Arrow Button (Top Left) -->
         <ImageButton
-            android:id="@+id/btn_close_add_account"
+            android:id="@+id/btn_back_add_account"
             android:layout_width="@dimen/_32sdp"
             android:layout_height="@dimen/_32sdp"
-            android:src="@drawable/ic_px_trash"
+            android:src="@drawable/ic_px_arrow_left"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#40FFFFFF"
+            app:tint="@color/fear_primary"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Drum Type Delete/Close Button (Top Right) -->
+        <ImageButton
+            android:id="@+id/btn_close_add_account"
+            android:layout_width="@dimen/_36sdp"
+            android:layout_height="@dimen/_36sdp"
+            android:src="@drawable/ic_px_trash"
+            android:background="@drawable/premium_button_bg"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -38,8 +51,10 @@
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_marginStart="@dimen/_12sdp"
+            app:layout_constraintTop_toTopOf="@id/btn_back_add_account"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back_add_account"
+            app:layout_constraintStart_toEndOf="@id/btn_back_add_account" />
 
         <!-- Left Side: Login Form (Atom Style) -->
         <LinearLayout
