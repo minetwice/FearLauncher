@@ -130,7 +130,7 @@
                 android:id="@+id/login_logo_visual"
                 android:layout_width="@dimen/_100sdp"
                 android:layout_height="@dimen/_100sdp"
-                android:src="@mipmap/ic_launcher_foreground"
+                android:src="@drawable/ic_app_logo"
                 android:alpha="0.9"
                 app:layout_constraintTop_toTopOf="@id/login_spiral_anim"
                 app:layout_constraintBottom_toBottomOf="@id/login_spiral_anim"

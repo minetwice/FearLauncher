@@ -12,7 +12,7 @@
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_40sdp"
         android:layout_margin="@dimen/_16sdp"
-        android:src="@mipmap/ic_launcher_foreground"
+        android:src="@drawable/ic_app_logo"
         android:background="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -38,7 +38,7 @@
             <ImageView
                 android:layout_width="@dimen/_60sdp"
                 android:layout_height="@dimen/_60sdp"
-                android:src="@mipmap/ic_launcher_foreground"
+                android:src="@drawable/ic_app_logo"
                 android:layout_marginBottom="@dimen/_10sdp" />
 
             <TextView

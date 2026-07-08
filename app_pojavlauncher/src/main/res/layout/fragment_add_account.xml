@@ -142,7 +142,7 @@
                 android:id="@+id/login_logo_visual"
                 android:layout_width="@dimen/_120sdp"
                 android:layout_height="@dimen/_120sdp"
-                android:src="@mipmap/ic_launcher_foreground"
+                android:src="@drawable/ic_app_logo"
                 android:alpha="0.8"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
