@@ -29,8 +29,9 @@ public class SplashActivity extends AppCompatActivity {
         final View reflection = findViewById(R.id.glass_reflection_bg);
 
         // 3-Second Glow & Shine Sequence [Point 3]
-        logo.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(1000).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-        aura.animate().alpha(0.3f).scaleX(1.5f).scaleY(1.5f).setDuration(1500).start();
+        logo.setRotation(-10f);
+        logo.animate().alpha(1f).scaleX(1f).scaleY(1f).rotation(0f).setDuration(1200).setInterpolator(new AnticipateInterpolator()).start();
+        aura.animate().alpha(0.4f).scaleX(2.0f).scaleY(2.0f).setDuration(2000).start();
 
         fearText.setTranslationY(30f);
         fearText.animate().alpha(1f).translationY(0f).setDuration(1200).setStartDelay(500).start();

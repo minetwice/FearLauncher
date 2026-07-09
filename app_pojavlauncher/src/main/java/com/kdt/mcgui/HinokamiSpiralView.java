@@ -18,11 +18,13 @@ public class HinokamiSpiralView extends View {
     public HinokamiSpiralView(Context context) { super(context); init(); }
     public HinokamiSpiralView(Context context, @Nullable AttributeSet attrs) { super(context, attrs); init(); }
 
+    private float[] mSpeeds = {4f, -3f, 6f};
+    private float[] mAlphas = {1f, 1f, 1f};
+
     private void init() {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(8f);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
@@ -31,20 +33,34 @@ public class HinokamiSpiralView extends View {
         super.onDraw(canvas);
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
-        float radius = Math.min(cx, cy) - 20f;
-        mRect.set(cx - radius, cy - radius, cx + radius, cy + radius);
+        float maxRadius = Math.min(cx, cy) - 20f;
 
         for (int i = 0; i < 3; i++) {
-            mPaint.setColor(i == 0 ? 0xFFFF4500 : (i == 1 ? 0xFFFFD700 : 0xFFFF8C00));
-            mPaint.setStrokeWidth(12f - (i * 3f));
+            float radius = maxRadius - (i * 25f);
+            mRect.set(cx - radius, cy - radius, cx + radius, cy + radius);
+
+            // Fire/Sun colors for Hinokami Kagura
+            int color = i == 0 ? 0xFFFF4500 : (i == 1 ? 0xFFFFD700 : 0xFFFF8C00);
+            mPaint.setColor(color);
+            mPaint.setAlpha((int)(mAlphas[i] * 255));
+            mPaint.setStrokeWidth(15f - (i * 4f));
+
             canvas.save();
-            canvas.rotate(mRotation + (i * 120f), cx, cy);
-            canvas.drawArc(mRect, 0, 90, false, mPaint);
-            canvas.drawArc(mRect, 180, 45, false, mPaint);
+            canvas.rotate(mRotation * mSpeeds[i], cx, cy);
+
+            // Draw dual arcs for a "slashing" ability effect
+            canvas.drawArc(mRect, 0, 120, false, mPaint);
+            canvas.drawArc(mRect, 180, 90, false, mPaint);
+
+            // Add a glowing tip
+            mPaint.setAlpha(255);
+            mPaint.setStrokeWidth(20f - (i * 4f));
+            canvas.drawArc(mRect, 115, 5, false, mPaint);
+
             canvas.restore();
         }
 
-        mRotation += 5f;
+        mRotation += 1.5f;
         invalidate();
     }
 }

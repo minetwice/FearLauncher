@@ -64,6 +64,16 @@
                 android:text="1.21.1"
                 android:textColor="#FF9800"
                 android:textSize="@dimen/_10ssp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="POWERED BY FEAR ENGINE [PRO]"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:letterSpacing="0.1"
+                android:alpha="0.6"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Bottom Launcher Control -->

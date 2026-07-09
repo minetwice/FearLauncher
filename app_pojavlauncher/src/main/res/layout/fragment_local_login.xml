@@ -137,7 +137,25 @@
                 app:layout_constraintStart_toStartOf="@id/login_spiral_anim"
                 app:layout_constraintEnd_toEndOf="@id/login_spiral_anim" />
 
+            <!-- Fear Engine Status -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FEAR ENGINE [ACTIVE]"
+                android:textColor="#FF9800"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.2"
+                android:alpha="0.8"
+                android:background="@drawable/premium_edit_bg"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toTopOf="@+id/auth_selection_layout"
+                app:layout_constraintEnd_toEndOf="parent" />
+
             <LinearLayout
+                android:id="@+id/auth_selection_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
