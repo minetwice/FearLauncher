@@ -22,7 +22,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_fear_full"
+            android:src="@drawable/ic_app_logo"
             app:tint="#F57C00" />
 
         <LinearLayout

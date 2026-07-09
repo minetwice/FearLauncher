@@ -11,7 +11,7 @@
         android:id="@+id/glass_reflection_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/premium_glass_bg"
+        android:background="@drawable/premium_glass_black_bg"
         android:alpha="0.2" />
 
     <!-- Animated Particles/Glow -->

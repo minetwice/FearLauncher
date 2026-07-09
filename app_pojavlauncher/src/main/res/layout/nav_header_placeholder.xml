@@ -10,7 +10,7 @@
     <ImageView
         android:layout_width="@dimen/_52sdp"
         android:layout_height="@dimen/_52sdp"
-        android:src="@drawable/ic_fear_full" />
+        android:src="@drawable/ic_app_logo" />
 
     <TextView
         android:layout_width="wrap_content"
