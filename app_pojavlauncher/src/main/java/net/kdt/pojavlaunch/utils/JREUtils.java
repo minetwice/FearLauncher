@@ -102,6 +102,19 @@ public class JREUtils {
     // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "fear_engine":
+                // Aggressive optimizations for Fear Render Engine
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_SHRINK", "1");
+                envMap.put("LIBGL_FASTEDID", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+                break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
@@ -264,6 +277,11 @@ public class JREUtils {
         boolean preloadVk = true;
         int glesVersion;
         switch (renderer){
+            case "fear_engine":
+                renderLibrary = "libGLFear.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
             case "freedreno_kgsl":
                 preloadVk = false;
             case "vulkan_zink":

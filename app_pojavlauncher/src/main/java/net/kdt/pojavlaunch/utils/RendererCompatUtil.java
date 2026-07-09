@@ -43,6 +43,11 @@ public class RendererCompatUtil {
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
+            if(rendererId.equals("fear_engine")) {
+                rendererIds.add(rendererId);
+                rendererNames.add(defaultRendererNames[i]);
+                continue;
+            }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             // freedreno is available only on Adreno GPUs
