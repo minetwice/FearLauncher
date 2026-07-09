@@ -104,6 +104,7 @@ public class JREUtils {
         switch(renderer) {
             case "fear_engine":
                 // FEAR MANUFACTURED ENGINE - High Performance Zink-based Pipeline
+                Logger.appendToLog("[FEAR ENGINE] MANUFACTURED PRO BOOTING...");
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("ZINK_DESCRIPTORS", "lazy"); // High speed descriptor management
@@ -113,6 +114,8 @@ public class JREUtils {
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("ZINK_DEBUG", "nir"); // Optimized shader compilation
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_texture_filter_anisotropic GL_ARB_gpu_shader5");
+                envMap.put("MESA_VK_WSI_DEBUG", "display");
+                envMap.put("ZINK_DEBUG", "compat,nir");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -277,7 +280,7 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                renderLibrary = "libFearEngine.so";
+                renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;

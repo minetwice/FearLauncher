@@ -27,6 +27,7 @@ public class SplashActivity extends AppCompatActivity {
         final View shine = findViewById(R.id.shine_line);
         final ImageView aura = findViewById(R.id.glow_aura);
         final View reflection = findViewById(R.id.glass_reflection_bg);
+        final View flash = findViewById(R.id.ability_flash);
 
         // 3-Second Glow & Shine Sequence [Point 3]
         logo.setRotation(-10f);
@@ -35,6 +36,11 @@ public class SplashActivity extends AppCompatActivity {
 
         fearText.setTranslationY(30f);
         fearText.animate().alpha(1f).translationY(0f).setDuration(1200).setStartDelay(500).start();
+
+        // Anime Flash Ability Effect
+        flash.animate().alpha(0.8f).setDuration(100).setStartDelay(2000).withEndAction(() -> {
+            flash.animate().alpha(0f).setDuration(600).start();
+        }).start();
 
         // Continuous Background Reflection
         reflection.animate().alpha(0.4f).setDuration(1500).setUpdateListener(animation -> {

@@ -71,4 +71,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Anime Ability Flash Overlay -->
+    <View
+        android:id="@+id/ability_flash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:alpha="0"
+        android:translationZ="100dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
