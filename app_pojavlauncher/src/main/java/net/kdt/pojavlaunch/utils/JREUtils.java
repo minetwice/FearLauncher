@@ -104,7 +104,7 @@ public class JREUtils {
         switch(renderer) {
             case "fear_engine":
                 // FEAR CORE INDEPENDENT ENGINE - Custom GLES3 Pipeline
-                Logger.appendToLog("[FEAR CORE] INDEPENDENT MANUFACTURED PRO BOOTING...");
+                Logger.appendToLog("[FEAR CORE] MANUFACTURED PRO BOOTING...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -117,6 +117,10 @@ public class JREUtils {
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_OBJ", "1"); // Performance: Vertex Object support
+                envMap.put("LIBGL_VAO", "1"); // Performance: Vertex Array Object support
+                envMap.put("LIBGL_MDI", "1"); // Performance: Multi-Draw Indirect emulation
+                envMap.put("LIBGL_FB", "1");  // FBO support
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
             case "vulkan_zink":
