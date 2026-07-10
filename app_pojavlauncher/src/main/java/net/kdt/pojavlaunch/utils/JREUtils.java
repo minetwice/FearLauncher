@@ -103,19 +103,18 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR MANUFACTURED ENGINE - High Performance Zink-based Pipeline
-                Logger.appendToLog("[FEAR ENGINE] MANUFACTURED PRO BOOTING...");
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("ZINK_DESCRIPTORS", "lazy"); // High speed descriptor management
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                // FEAR CORE INDEPENDENT ENGINE - Custom GLES3 Pipeline
+                Logger.appendToLog("[FEAR CORE] INDEPENDENT MANUFACTURED PRO BOOTING...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_SHRINK", "0");
+                envMap.put("LIBGL_FASTEDID", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "430");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.3");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                envMap.put("ZINK_DEBUG", "nir"); // Optimized shader compilation
-                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_texture_filter_anisotropic GL_ARB_gpu_shader5");
-                envMap.put("MESA_VK_WSI_DEBUG", "display");
-                envMap.put("ZINK_DEBUG", "compat,nir");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -280,11 +279,9 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                renderLibrary = "libEGL_mesa.so";
-                useGles = false;
-                bypassNamespace = true;
+                renderLibrary = "libFearCore.so";
+                useGles = true;
                 glesVersion = 3;
-                preloadVulkan();
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;
