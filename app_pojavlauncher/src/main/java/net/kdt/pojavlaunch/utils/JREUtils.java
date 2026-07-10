@@ -112,8 +112,11 @@ public class JREUtils {
                 envMap.put("LIBGL_FASTEDID", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "430");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.3");
+                envMap.put("LIBGL_GL", "33"); // Force report GL 3.3
+                envMap.put("LIBGL_VERSION", "3.3");
+                envMap.put("LIBGL_NOTEXTURERECT", "1");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_GLSL", "1");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
             case "vulkan_zink":

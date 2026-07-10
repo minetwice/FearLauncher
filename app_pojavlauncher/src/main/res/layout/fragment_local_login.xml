@@ -141,7 +141,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FEAR CORE INDEPENDENT v2.0"
+                android:text="FEAR CORE FULL INDEPENDENT v2.0"
                 android:textColor="#FF9800"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
