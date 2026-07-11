@@ -103,24 +103,25 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR CORE INDEPENDENT ENGINE - Custom GLES3 Pipeline
-                Logger.appendToLog("[FEAR CORE] MANUFACTURED PRO BOOTING...");
-                envMap.put("LIBGL_ES", "3");
+                // FEAR MIXTURE ENGINE - Hybrid High-Performance Pipeline
+                Logger.appendToLog("[FEAR MIXTURE] CORE STACK INITIALIZED...");
+                envMap.put("LIBGL_ES", "2"); // Stability: use GLES2 backend
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
                 envMap.put("LIBGL_SHRINK", "0");
                 envMap.put("LIBGL_FASTEDID", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "33"); // Force report GL 3.3
+                envMap.put("LIBGL_GL", "33"); // Compatibility: report GL 3.3
                 envMap.put("LIBGL_VERSION", "3.3");
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_OBJ", "1"); // Performance: Vertex Object support
-                envMap.put("LIBGL_VAO", "1"); // Performance: Vertex Array Object support
-                envMap.put("LIBGL_MDI", "1"); // Performance: Multi-Draw Indirect emulation
-                envMap.put("LIBGL_FB", "1");  // FBO support
+                envMap.put("LIBGL_EXTIT", "1"); // Enable additional GL extensions
+                envMap.put("LIBGL_OBJ", "1");
+                envMap.put("LIBGL_VAO", "1");
+                envMap.put("LIBGL_MDI", "1");
+                envMap.put("LIBGL_FB", "1");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
             case "vulkan_zink":
@@ -288,7 +289,7 @@ public class JREUtils {
             case "fear_engine":
                 renderLibrary = "libFearCore.so";
                 useGles = true;
-                glesVersion = 3;
+                glesVersion = 2;
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;

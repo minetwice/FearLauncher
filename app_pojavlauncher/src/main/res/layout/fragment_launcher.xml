@@ -7,14 +7,15 @@
     android:background="@drawable/premium_gradient_bg">
 
     <!-- Consolidated Premium Menu Trigger (Top Right) -->
-    <com.kdt.mcgui.LauncherMenuButton
+    <ImageButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_44sdp"
         android:layout_height="@dimen/_44sdp"
         android:layout_margin="@dimen/_12sdp"
         android:src="@drawable/ic_hamburger"
         android:background="@drawable/premium_button_bg"
-        android:padding="8dp"
+        android:padding="@dimen/_8sdp"
+        android:scaleType="centerInside"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
