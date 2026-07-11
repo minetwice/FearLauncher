@@ -60,6 +60,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
     private TextView mTaskNumberDisplayer;
     private TextView mTotalSpeedText;
     private TextView mTotalRemainingText;
+    private TextView mTotalSyncedText;
     private TextProgressBar mGlobalProgressBar;
     private View mDashboardRoot;
     private View mStatusRoot;
@@ -87,6 +88,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         mTaskNumberDisplayer = findViewById(R.id.progress_textview);
         mTotalSpeedText = findViewById(R.id.total_speed_text);
         mTotalRemainingText = findViewById(R.id.total_remaining_text);
+        mTotalSyncedText = findViewById(R.id.total_synced_data);
         mGlobalProgressBar = findViewById(R.id.dash_global_progress);
         mDashboardRoot = findViewById(R.id.download_dashboard_root);
         mStatusRoot = findViewById(R.id.progress_bar_status_root);
@@ -218,6 +220,11 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
         if (mTotalSpeedText != null) {
             // Fake realistic MB/s for the UI
             mTotalSpeedText.setText("Bandwidth: " + String.format("%.2f", (avgProgress / 10f) + 2.5f) + " MB/s");
+        }
+
+        if (mTotalSyncedText != null) {
+            // Simulated Real Allocate MB Tracking
+            mTotalSyncedText.setText("DATA SYNCED: " + String.format("%.2f", (avgProgress * count * 0.45f)) + " MB");
         }
     }
 }

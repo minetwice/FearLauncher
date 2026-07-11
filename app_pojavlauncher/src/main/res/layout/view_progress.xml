@@ -160,6 +160,16 @@
                         android:text="Remaining: 0 files"
                         android:textColor="#80FFFFFF"
                         android:textSize="@dimen/_8ssp" />
+
+                    <TextView
+                        android:id="@+id/total_synced_data"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DATA SYNCED: 0.00 MB"
+                        android:textColor="#FF9800"
+                        android:textSize="@dimen/_8ssp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="2dp" />
                 </LinearLayout>
 
                 <com.kdt.mcgui.MineButton

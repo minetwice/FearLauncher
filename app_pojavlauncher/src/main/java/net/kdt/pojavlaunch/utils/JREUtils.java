@@ -103,9 +103,9 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR MIXTURE ENGINE - Hybrid High-Performance Pipeline
-                Logger.appendToLog("[FEAR MIXTURE] CORE STACK INITIALIZED...");
-                envMap.put("LIBGL_ES", "2"); // Stability: use GLES2 backend
+                // FEAR MIXTURE ENGINE V3.0 - Optimized Hybrid Pipeline
+                Logger.appendToLog("[FEAR MIXTURE] V3.0 CORE STACK INITIALIZED...");
+                envMap.put("LIBGL_ES", "3"); // Use GLES3 backend for better feature mapping
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
                 envMap.put("LIBGL_SHRINK", "0");
@@ -117,7 +117,8 @@ public class JREUtils {
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_EXTIT", "1"); // Enable additional GL extensions
+                envMap.put("LIBGL_ALWAYSCURRENT", "1"); // Fix: No context is current
+                envMap.put("LIBGL_SURFACELESS", "1");
                 envMap.put("LIBGL_OBJ", "1");
                 envMap.put("LIBGL_VAO", "1");
                 envMap.put("LIBGL_MDI", "1");
@@ -289,7 +290,7 @@ public class JREUtils {
             case "fear_engine":
                 renderLibrary = "libFearCore.so";
                 useGles = true;
-                glesVersion = 2;
+                glesVersion = 3;
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;
