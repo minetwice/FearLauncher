@@ -30,20 +30,25 @@ public class JREUtils {
             public void run() {
                 try {
                     if (logcatPb == null) {
-                        // No filtering by tag anymore as that relied on incorrect log levels set in log.h
-                        logcatPb = new ProcessBuilder().command("logcat", /* "-G", "1mb", */ "-v", "brief", "-s", "jrelog", "LIBGL", "NativeInput").redirectErrorStream(true);
+                        // Increase log buffer size to 4MB to prevent "Unexpected EOF"
+                        try {
+                            new ProcessBuilder().command("logcat", "-G", "4m").start().waitFor();
+                        } catch (Exception e) {
+                            Log.w("jrelog-logcat", "Failed to set log buffer size", e);
+                        }
+
+                        logcatPb = new ProcessBuilder().command("logcat", "-v", "brief", "jrelog:V", "LIBGL:V", "NativeInput:V", "*:S").redirectErrorStream(true);
                     }
 
                     Log.i("jrelog-logcat","Clearing logcat");
-                    new ProcessBuilder().command("logcat", "-c").redirectErrorStream(true).start();
+                    new ProcessBuilder().command("logcat", "-c").redirectErrorStream(true).start().waitFor();
                     Log.i("jrelog-logcat","Starting logcat");
                     java.lang.Process p = logcatPb.start();
 
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = p.getInputStream().read(buf)) != -1) {
-                        String currStr = new String(buf, 0, len);
-                        Logger.appendToLog(currStr);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), 8192);
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Logger.appendToLog(line + "\n");
                     }
 
                     if (p.waitFor() != 0) {
@@ -123,6 +128,8 @@ public class JREUtils {
                 envMap.put("LIBGL_VAO", "1");
                 envMap.put("LIBGL_MDI", "1");
                 envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1"); // Use FPE for shader stability
+                envMap.put("LIBGL_GAMMA", "1.0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
             case "vulkan_zink":
