@@ -30,25 +30,18 @@ public class JREUtils {
             public void run() {
                 try {
                     if (logcatPb == null) {
-                        // Increase log buffer size to 4MB to prevent "Unexpected EOF"
-                        try {
-                            new ProcessBuilder().command("logcat", "-G", "4m").start().waitFor();
-                        } catch (Exception e) {
-                            Log.w("jrelog-logcat", "Failed to set log buffer size", e);
-                        }
-
-                        logcatPb = new ProcessBuilder().command("logcat", "-v", "brief", "jrelog:V", "LIBGL:V", "NativeInput:V", "*:S").redirectErrorStream(true);
+                        // Robust logcat parameters: Use -T 1 to avoid reading old logs and avoid clearing/resizing which can fail.
+                        logcatPb = new ProcessBuilder().command("logcat", "-v", "brief", "-T", "1", "jrelog:V", "LIBGL:V", "NativeInput:V", "FEAR_ENGINE:V", "*:S").redirectErrorStream(true);
                     }
 
-                    Log.i("jrelog-logcat","Clearing logcat");
-                    new ProcessBuilder().command("logcat", "-c").redirectErrorStream(true).start().waitFor();
-                    Log.i("jrelog-logcat","Starting logcat");
+                    Log.i("jrelog-logcat","Starting FEAR LOG STREAM...");
                     java.lang.Process p = logcatPb.start();
 
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), 8192);
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        Logger.appendToLog(line + "\n");
+                    InputStream is = p.getInputStream();
+                    byte[] buffer = new byte[16384];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        Logger.appendToLog(new String(buffer, 0, bytesRead));
                     }
 
                     if (p.waitFor() != 0) {
@@ -108,27 +101,27 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR MIXTURE ENGINE V3.0 - Optimized Hybrid Pipeline
-                Logger.appendToLog("[FEAR MIXTURE] V3.0 CORE STACK INITIALIZED...");
-                envMap.put("LIBGL_ES", "3"); // Use GLES3 backend for better feature mapping
+                // FEAR MIXTURE ENGINE V3.0 [ULTRA STABLE]
+                Logger.appendToLog("[FEAR MIXTURE] V3.0 [ULTRA STABLE] INITIALIZED...");
+                envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
-                envMap.put("LIBGL_SHRINK", "0");
+                envMap.put("LIBGL_SHRINK", "1"); // Reduce memory for low-end Mali (G52)
                 envMap.put("LIBGL_FASTEDID", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "33"); // Compatibility: report GL 3.3
+                envMap.put("LIBGL_GL", "33");
                 envMap.put("LIBGL_VERSION", "3.3");
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_ALWAYSCURRENT", "1"); // Fix: No context is current
+                envMap.put("LIBGL_ALWAYSCURRENT", "1");
                 envMap.put("LIBGL_SURFACELESS", "1");
                 envMap.put("LIBGL_OBJ", "1");
                 envMap.put("LIBGL_VAO", "1");
                 envMap.put("LIBGL_MDI", "1");
                 envMap.put("LIBGL_FB", "1");
-                envMap.put("LIBGL_FPE", "1"); // Use FPE for shader stability
+                envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_GAMMA", "1.0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
