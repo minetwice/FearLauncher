@@ -22,46 +22,38 @@ import net.kdt.pojavlaunch.prefs.*;
 
 public class JREUtils {
     public static void redirectAndPrintJRELog() {
-        Log.v("jrelog","Log starts here");
-        new Thread(new Runnable(){
-            int failTime = 0;
-            ProcessBuilder logcatPb;
-            @Override
-            public void run() {
+        Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
+        new Thread(() -> {
+            int failCount = 0;
+            while (failCount < 15) {
                 try {
-                    if (logcatPb == null) {
-                        // Robust logcat parameters: Use -T 1 to avoid reading old logs and avoid clearing/resizing which can fail.
-                        logcatPb = new ProcessBuilder().command("logcat", "-v", "brief", "-T", "1", "jrelog:V", "LIBGL:V", "NativeInput:V", "FEAR_ENGINE:V", "*:S").redirectErrorStream(true);
-                    }
+                    // Optimized high-speed log retrieval: no filtering at process level to avoid buffer backup
+                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
+                    java.lang.Process p = pb.start();
 
-                    Log.i("jrelog-logcat","Starting FEAR LOG STREAM...");
-                    java.lang.Process p = logcatPb.start();
-
-                    InputStream is = p.getInputStream();
-                    byte[] buffer = new byte[16384];
-                    int bytesRead;
-                    while ((bytesRead = is.read(buffer)) != -1) {
-                        Logger.appendToLog(new String(buffer, 0, bytesRead));
-                    }
-
-                    if (p.waitFor() != 0) {
-                        Log.e("jrelog-logcat", "Logcat exited with code " + p.exitValue());
-                        failTime++;
-                        Log.i("jrelog-logcat", (failTime <= 10 ? "Restarting logcat" : "Too many restart fails") + " (attempt " + failTime + "/10");
-                        if (failTime <= 10) {
-                            run();
-                        } else {
-                            Logger.appendToLog("ERROR: Unable to get more log.");
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            // Filter lines in-memory for speed and "Manufactured" feel
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("Mesa")) {
+                                Logger.appendToLog(line + "\n");
+                            }
                         }
                     }
-                } catch (Throwable e) {
-                    Log.e("jrelog-logcat", "Exception on logging thread", e);
-                    Logger.appendToLog("Exception on logging thread:\n" + Log.getStackTraceString(e));
+
+                    int exitCode = p.waitFor();
+                    if (exitCode != 0) {
+                        Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
+                        failCount++;
+                        Thread.sleep(500 * failCount); // Exponential backoff
+                    }
+                } catch (Exception e) {
+                    Log.e("jrelog-logcat", "Log stream error", e);
+                    failCount++;
                 }
             }
+            Logger.appendToLog("[FEAR LOG] FATAL: STREAMING DISCONNECTED PERMANENTLY.");
         }).start();
-        Log.i("jrelog-logcat","Logcat thread started");
-
     }
 
     private static void overrideEnvVars(Map<String, String> envMap) throws IOException {
