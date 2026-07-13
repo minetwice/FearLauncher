@@ -122,6 +122,15 @@ public class JREUtils {
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("force_glsl_extensions_warn", "true");
+
+                // High performance optimizations, caching, frame stability & low heat mitigation:
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "1024MB");
+                envMap.put("vblank_mode", "0"); // Disable vblank syncing to boost FPS beyond 150+
+                envMap.put("force_s3tc_enable", "true"); // Compress textures in hardware to reduce memory/heat
+                envMap.put("glsl_zero_init", "true"); // Clean GPU memory state to mitigate rendering/shader glitches
+                envMap.put("allow_multisample_filter", "false"); // Disable heavy filters to reduce thermals
+                envMap.put("always_use_fast_path", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
