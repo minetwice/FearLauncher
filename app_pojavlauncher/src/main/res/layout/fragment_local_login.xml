@@ -141,7 +141,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FEAR ULTRA-CORE v4.0 [PRO]"
+                android:text="FEAR STABLE ENGINE [READY]"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"

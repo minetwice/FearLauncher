@@ -93,28 +93,16 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO]
-                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED...");
-                envMap.put("LIBGL_ES", "3");
+                // FEAR STABLE ENGINE - Verified Stability Core
+                Logger.appendToLog("[FEAR ENGINE] INITIALIZING STABLE CORE...");
+                envMap.put("LIBGL_ES", "2"); // Highest compatibility
+                envMap.put("LIBGL_GL", "33"); // Report 3.3 for mods
+                envMap.put("LIBGL_VERSION", "3.3 FEAR CORE");
+                envMap.put("LIBGL_ALWAYSCURRENT", "1"); // Fix context loss
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
-                envMap.put("LIBGL_SHRINK", "0");
-                envMap.put("LIBGL_FASTEDID", "1");
-                envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "33");
-                envMap.put("LIBGL_VERSION", "3.3 FEAR CORE");
-                envMap.put("LIBGL_NOTEXTURERECT", "1");
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
-                envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_ALWAYSCURRENT", "1");
-                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1"); // Prevent context loss
-                envMap.put("LIBGL_OBJ", "1");
-                envMap.put("LIBGL_VAO", "1");
-                envMap.put("LIBGL_MDI", "1");
-                envMap.put("LIBGL_FB", "2"); // Optimized FBO mode
-                envMap.put("LIBGL_FPE", "1");
-                envMap.put("LIBGL_GAMMA", "1.0");
+                envMap.put("LIBGL_FB", "1");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
             case "vulkan_zink":
@@ -280,9 +268,9 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                renderLibrary = "libFearCore.so";
+                renderLibrary = "libgl4es_114.so";
                 useGles = true;
-                glesVersion = 3;
+                glesVersion = 2; // Most stable backend
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;

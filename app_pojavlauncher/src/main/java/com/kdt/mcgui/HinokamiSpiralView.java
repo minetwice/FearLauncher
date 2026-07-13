@@ -39,8 +39,8 @@ public class HinokamiSpiralView extends View {
             float radius = maxRadius - (i * 25f);
             mRect.set(cx - radius, cy - radius, cx + radius, cy + radius);
 
-            // Fire/Sun colors for Hinokami Kagura
-            int color = i == 0 ? 0xFFFF4500 : (i == 1 ? 0xFFFFD700 : 0xFFFF8C00);
+            // Energy/Spirit colors (Blue/Cyan/White) for the Pure White theme
+            int color = i == 0 ? 0xFF00B0FF : (i == 1 ? 0xFFFFFFFF : 0xFF00E5FF);
             mPaint.setColor(color);
             mPaint.setAlpha((int)(mAlphas[i] * 255));
             mPaint.setStrokeWidth(15f - (i * 4f));

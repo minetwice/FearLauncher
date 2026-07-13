@@ -55,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
-                android:textColor="#FF9800"
+                android:textColor="#FFFFFF"
                 android:textSize="@dimen/_12ssp"
                 android:layout_marginBottom="@dimen/_20sdp" />
 
@@ -128,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="PREMIUM MENU"
-                    android:textColor="#FF9800"
+                    android:textColor="#FFFFFF"
                     android:textSize="@dimen/_16ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"
