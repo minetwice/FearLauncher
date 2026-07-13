@@ -58,7 +58,7 @@
             android:onClick="startImport"
 
             android:text="@string/import_control_import_button"
-            android:textColor="@android:color/white"
+            android:textColor="#000000"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/editText_import_control_file_name"
 

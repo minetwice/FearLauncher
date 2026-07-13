@@ -129,7 +129,7 @@
                 android:layout_height="@dimen/_50sdp"
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="PLAY"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:textSize="@dimen/_16ssp"
                 android:textStyle="bold"
                 android:background="@drawable/premium_button_bg" />
@@ -279,6 +279,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_40sdp"
                     android:text="COLLAPSE"
+                    android:textColor="#000000"
                     android:background="@drawable/premium_button_bg" />
             </LinearLayout>
         </ScrollView>

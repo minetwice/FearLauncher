@@ -25,9 +25,22 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 		init();
 	}
 
+	private boolean mIsGlassBlack = false;
+
 	public void init() {
 		setTypeface(ResourcesCompat.getFont(getContext(), R.font.noto_sans_bold));
-		setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.premium_button_bg, null));
+
+		// If background is not set, set premium_button_bg
+		if (getBackground() == null) {
+			setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.premium_button_bg, null));
+		} else {
+			// We can check if it is premium_glass_black_bg
+			try {
+				// Some layouts use premium_glass_black_bg as button background which has black/translucent base
+				// We want to keep white text on premium_glass_black_bg and black text on premium_button_bg
+				mIsGlassBlack = true;
+			} catch (Exception e) {}
+		}
 
 		// Scale the icons to prevent them from becoming "Big" and taking up the whole button
 		Drawable[] drawables = getCompoundDrawables();
@@ -38,7 +51,13 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 			}
 		}
 		setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawables[3]);
-		setTextColor(Color.WHITE);
+
+		// If the background is glass black/translucent, keep text color white; otherwise, set to black for high contrast against the silver/white button!
+		if (mIsGlassBlack) {
+			setTextColor(Color.WHITE);
+		} else {
+			setTextColor(Color.BLACK);
+		}
 		setAllCaps(true);
 		setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));
 

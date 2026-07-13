@@ -93,8 +93,8 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO]
-                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED...");
+                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with LTW Library
+                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED with LTW ENGINE...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -103,7 +103,7 @@ public class JREUtils {
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "33");
-                envMap.put("LIBGL_VERSION", "3.3 FEAR CORE");
+                envMap.put("LIBGL_VERSION", "3.3 FEAR LTW CORE");
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
@@ -116,6 +116,12 @@ public class JREUtils {
                 envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_GAMMA", "1.0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+                // Shaders (Iris, etc.) permissions and crash mitigation parameters:
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("allow_higher_compat_version", "true");
+                envMap.put("force_glsl_extensions_warn", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -280,7 +286,8 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                renderLibrary = "libFearCore.so";
+                // Use the ultra-fast libltw.so library for maximum FPS and smooth gameplay with shaders!
+                renderLibrary = "libltw.so";
                 useGles = true;
                 glesVersion = 3;
                 break;

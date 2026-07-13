@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#40FFFFFF">
+    android:color="#40D0D0D0">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="8dp" />
@@ -11,28 +11,43 @@
         <selector>
             <item android:state_pressed="true">
                 <shape>
-                    <solid android:color="#F57C00" />
+                    <solid android:color="#D0D0D0" />
                     <corners android:radius="8dp" />
                 </shape>
             </item>
             <item>
                 <layer-list>
+                    <!-- Base silver/white button background -->
                     <item>
                         <shape>
-                            <solid android:color="#FFFFFF" />
+                            <gradient
+                                android:startColor="#FFFFFF"
+                                android:endColor="#E6E6E6"
+                                android:angle="270" />
                             <corners android:radius="8dp" />
-                            <stroke android:width="1.5dp" android:color="#4D000000" />
+                            <stroke android:width="1.5dp" android:color="#909090" />
                         </shape>
                     </item>
-                    <!-- Gloss effect -->
+                    <!-- Silver shine gloss effect -->
                     <item android:top="1dp" android:left="1dp" android:right="1dp">
                         <shape>
                             <gradient
-                                android:startColor="#99FFFFFF"
+                                android:startColor="#B0FFFFFF"
                                 android:centerColor="#00FFFFFF"
                                 android:endColor="#00FFFFFF"
                                 android:angle="270" />
                             <corners android:radius="7dp" />
+                        </shape>
+                    </item>
+                    <!-- Elegant horizontal shining line across the button -->
+                    <item android:top="6dp" android:bottom="6dp" android:left="2dp" android:right="2dp">
+                        <shape>
+                            <gradient
+                                android:angle="45"
+                                android:startColor="#00FFFFFF"
+                                android:centerColor="#B0C0C0C0"
+                                android:endColor="#00FFFFFF"
+                                android:type="linear" />
                         </shape>
                     </item>
                 </layer-list>
