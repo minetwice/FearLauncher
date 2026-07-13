@@ -93,26 +93,26 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR MIXTURE ENGINE V3.0 [ULTRA STABLE]
-                Logger.appendToLog("[FEAR MIXTURE] V3.0 [ULTRA STABLE] INITIALIZED...");
+                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO]
+                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
-                envMap.put("LIBGL_SHRINK", "1"); // Reduce memory for low-end Mali (G52)
+                envMap.put("LIBGL_SHRINK", "0");
                 envMap.put("LIBGL_FASTEDID", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "33");
-                envMap.put("LIBGL_VERSION", "3.3");
+                envMap.put("LIBGL_VERSION", "3.3 FEAR CORE");
                 envMap.put("LIBGL_NOTEXTURERECT", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_ALWAYSCURRENT", "1");
-                envMap.put("LIBGL_SURFACELESS", "1");
+                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1"); // Prevent context loss
                 envMap.put("LIBGL_OBJ", "1");
                 envMap.put("LIBGL_VAO", "1");
                 envMap.put("LIBGL_MDI", "1");
-                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FB", "2"); // Optimized FBO mode
                 envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_GAMMA", "1.0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");

@@ -9,7 +9,7 @@
                 android:angle="135" />
             <stroke
                 android:width="2dp"
-                android:color="#FF9800" />
+                android:color="#FFFFFF" />
             <corners android:radius="14dp" />
         </shape>
     </item>
@@ -22,7 +22,7 @@
                 android:angle="135" />
             <stroke
                 android:width="2dp"
-                android:color="#FF9800" />
+                android:color="#FFFFFF" />
             <corners android:radius="14dp" />
         </shape>
     </item>

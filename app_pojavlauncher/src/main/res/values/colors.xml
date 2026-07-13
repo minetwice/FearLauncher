@@ -4,7 +4,7 @@
     <!-- GAME CONTROLS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="control_button_color">#4CFFFFFF</color>
-    <color name="control_button_pressed_color">#4DFF9800</color>
+    <color name="control_button_pressed_color">#4DFFFFFF</color>
 
     <!-- MineButton text -->
     <color name="minebutton_color">#FFFFFF</color>
@@ -23,13 +23,13 @@
     <!-- ═══════════════════════════════════════════════ -->
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#B3FFFFFF</color>
-    <color name="icon_outline_color">#FF9800</color>
+    <color name="icon_outline_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- ACCENT COLORS (ORANGE & BLACK)                  -->
+    <!-- ACCENT COLORS (WHITE & BLACK)                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#FF9800</color> <!-- Pure Orange -->
-    <color name="fear_secondary">#FF9800</color>
+    <color name="fear_primary">#FFFFFF</color> <!-- Pure White -->
+    <color name="fear_secondary">#E0E0E0</color>
     <color name="fear_tertiary">#000000</color> <!-- Black -->
 
     <color name="fear_on_primary">#000000</color>
@@ -38,20 +38,20 @@
     <!-- STATUS COLORS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="status_error">#FF4444</color>
-    <color name="status_success">#FF9800</color> <!-- Success is now Orange themed -->
-    <color name="status_warning">#FF9800</color>
+    <color name="status_success">#FFFFFF</color> <!-- Success is now White themed -->
+    <color name="status_warning">#E0E0E0</color>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- MISC                                            -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="fear_glass_bg">#CC000000</color>
-    <color name="mc_official_green">#FF9800</color> <!-- Overridden to Orange -->
-    <color name="carousel_card_bg">#1AFF9800</color>
+    <color name="mc_official_green">#FFFFFF</color> <!-- Overridden to White -->
+    <color name="carousel_card_bg">#1AFFFFFF</color>
 
     <!-- Legacy Mappings (to avoid breaking XMLs until fully purged) -->
 
-    <color name="seekbar_progress_start">#FF9800</color>
-    <color name="seekbar_progress_end">#FF9800</color>
+    <color name="seekbar_progress_start">#FFFFFF</color>
+    <color name="seekbar_progress_end">#FFFFFF</color>
     <color name="fear_surface">#000000</color>
     <color name="fear_surface_variant">#000000</color>
     <color name="fear_surface_container">#000000</color>

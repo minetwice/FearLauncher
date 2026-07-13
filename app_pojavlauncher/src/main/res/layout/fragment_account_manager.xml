@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ACCOUNT DASHBOARD"
-            android:textColor="#FF9800"
+            android:textColor="#FFFFFF"
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="SECURITY"
-                android:textColor="#FF9800"
+                android:textColor="#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold" />
 

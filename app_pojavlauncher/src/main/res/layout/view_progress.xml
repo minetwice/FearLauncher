@@ -76,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DOWNLOAD COMMANDER"
-                android:textColor="#FF9800"
+                android:textColor="#FFFFFF"
                 android:textSize="@dimen/_20ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
@@ -166,10 +166,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="DATA SYNCED: 0.00 MB"
-                        android:textColor="#FF9800"
+                        android:textColor="#FFFFFF"
                         android:textSize="@dimen/_8ssp"
                         android:textStyle="bold"
                         android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SYSTEM INTEGRITY: OPTIMIZED"
+                        android:textColor="#4DFFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <com.kdt.mcgui.MineButton

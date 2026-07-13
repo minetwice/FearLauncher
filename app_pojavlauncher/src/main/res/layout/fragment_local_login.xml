@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ACCOUNT ACCESS"
-            android:textColor="#FF9800"
+            android:textColor="#FFFFFF"
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -82,7 +82,7 @@
                     android:text="Save"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FF9800"
+                    android:buttonTint="#FFFFFF"
                     android:paddingEnd="12dp" />
 
                 <CheckBox
@@ -92,7 +92,7 @@
                     android:text="Auto Login"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FF9800" />
+                    android:buttonTint="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -141,8 +141,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FEAR CORE FULL INDEPENDENT v2.0"
-                android:textColor="#FF9800"
+                android:text="FEAR ULTRA-CORE v4.0 [PRO]"
+                android:textColor="#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.2"
@@ -171,7 +171,7 @@
                     android:checked="true"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FF9800" />
+                    android:buttonTint="#FFFFFF" />
 
                 <RadioButton
                     android:id="@+id/radio_microsoft"
@@ -180,7 +180,7 @@
                     android:text="Microsoft Auth"
                     android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
-                    android:buttonTint="#FF9800" />
+                    android:buttonTint="#FFFFFF" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
