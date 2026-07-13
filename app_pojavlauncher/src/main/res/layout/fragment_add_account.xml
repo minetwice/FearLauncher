@@ -88,7 +88,7 @@
                 android:layout_height="@dimen/_40sdp"
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="Sign in"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:background="@drawable/premium_button_bg" />
 
             <LinearLayout

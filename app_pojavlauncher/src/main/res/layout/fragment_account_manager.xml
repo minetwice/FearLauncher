@@ -77,7 +77,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_40sdp"
                 android:text="ADD NEW"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:textSize="@dimen/_10ssp"
                 android:background="@drawable/premium_button_bg" />
 

@@ -79,7 +79,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/_44sdp"
         android:text="IMPORT EXTERNAL MODPACK"
-        android:textColor="#FFFFFF"
+        android:textColor="#000000"
         android:background="@drawable/premium_button_bg"
         app:layout_constraintBottom_toBottomOf="parent" />
 

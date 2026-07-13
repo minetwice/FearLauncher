@@ -55,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
-                android:textColor="#FF9800"
+                android:textColor="#E0E0E0"
                 android:textSize="@dimen/_12ssp"
                 android:layout_marginBottom="@dimen/_20sdp" />
 
@@ -77,7 +77,7 @@
                     android:layout_height="@dimen/_40sdp"
                     android:layout_marginStart="@dimen/_10sdp"
                     android:text="PLAY"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#000000"
                     android:textSize="@dimen/_12ssp"
                     android:textStyle="bold"
                     android:background="@drawable/premium_button_bg" />
@@ -128,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="PREMIUM MENU"
-                    android:textColor="#FF9800"
+                    android:textColor="#FFFFFF"
                     android:textSize="@dimen/_16ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"
@@ -230,6 +230,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_40sdp"
                     android:text="COLLAPSE"
+                    android:textColor="#000000"
                     android:background="@drawable/premium_button_bg" />
             </LinearLayout>
         </ScrollView>
