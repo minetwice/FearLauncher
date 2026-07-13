@@ -69,7 +69,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FEAR STABLE ENGINE ACTIVE"
+                android:text="FEAR LTW-CORE v5.0 ACTIVE"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"

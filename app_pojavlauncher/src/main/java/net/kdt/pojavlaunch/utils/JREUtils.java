@@ -93,15 +93,16 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR STABLE ENGINE - Verified Stability Core
-                Logger.appendToLog("[FEAR ENGINE] INITIALIZING STABLE CORE...");
-                envMap.put("LIBGL_ES", "2"); // Highest compatibility
-                envMap.put("LIBGL_GL", "33"); // Report 3.3 for mods
-                envMap.put("LIBGL_VERSION", "3.3 FEAR CORE");
-                envMap.put("LIBGL_ALWAYSCURRENT", "1"); // Fix context loss
+                // FEAR ENGINE - LTW-CORE HIGH PERFORMANCE
+                Logger.appendToLog("[FEAR ENGINE] LTW-CORE INITIALIZED...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_GL", "33"); // Report 3.3 for iris/shaders
+                envMap.put("LIBGL_VERSION", "3.3 FEAR-LTW");
+                envMap.put("LIBGL_ALWAYSCURRENT", "1");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
                 envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_FB", "1");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 break;
@@ -268,9 +269,9 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                renderLibrary = "libgl4es_114.so";
+                renderLibrary = "libltw.so"; // FEAR powered by LTW
                 useGles = true;
-                glesVersion = 2; // Most stable backend
+                glesVersion = 3;
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;
