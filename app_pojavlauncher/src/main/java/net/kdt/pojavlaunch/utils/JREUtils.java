@@ -104,7 +104,7 @@ public class JREUtils {
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "33");
                 envMap.put("LIBGL_VERSION", "3.3 FEAR LTW CORE");
-                envMap.put("LIBGL_NOTEXTURERECT", "1");
+                envMap.put("LIBGL_NOTEXTURERECT", "0"); // Set to 0 to enable correct non-power-of-two sampler lookups in modern shaders
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_ALWAYSCURRENT", "1");
@@ -112,7 +112,7 @@ public class JREUtils {
                 envMap.put("LIBGL_OBJ", "1");
                 envMap.put("LIBGL_VAO", "1");
                 envMap.put("LIBGL_MDI", "1");
-                envMap.put("LIBGL_FB", "2"); // Optimized FBO mode
+                envMap.put("LIBGL_FB", "1"); // Use depth-precision standard FBO mode (fixes borders/sea fog rendering mismatches)
                 envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_GAMMA", "1.0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
@@ -131,6 +131,12 @@ public class JREUtils {
                 envMap.put("glsl_zero_init", "true"); // Clean GPU memory state to mitigate rendering/shader glitches
                 envMap.put("allow_multisample_filter", "false"); // Disable heavy filters to reduce thermals
                 envMap.put("always_use_fast_path", "true");
+
+                // Mitigate PVP, entity loading, and cursor focus fog glitches:
+                envMap.put("LIBGL_RESCALE_NORMAL", "1"); // Ensure correct lighting/fog vectors when transforming view matrix
+                envMap.put("MESA_NO_MINMAX_CACHE", "1"); // Skip heavy minmax operations during active item swapping in PvP
+                envMap.put("LIBGL_CLIPPED", "1"); // Enable aggressive hardware frustum clipping to stop rendering out-of-view entities
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
