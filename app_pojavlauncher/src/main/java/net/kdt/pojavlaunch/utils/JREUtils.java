@@ -143,7 +143,7 @@ public class JREUtils {
                 envMap.put("allow_glsl_builtin_const_expression", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("glsl_correct_derivatives_after_discard", "true");
-                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4");
+                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 envMap.put("LIBGL_DEPTH", "24"); // Force high-fidelity depth buffers for shaders across all screen configurations
                 envMap.put("allow_higher_compat_version", "true");
 
@@ -158,6 +158,15 @@ public class JREUtils {
                 envMap.put("LIBGL_ES", "3"); // Force minimum GLES v3 API translation
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("glsl_correct_derivatives_after_discard", "true");
+
+                // MediaTek Dimensity Octa-Core High-Thread Compiler & Extension Emulations:
+                envMap.put("pan_shader_compile_threads", "4"); // Utilize 4xA78 High Performance Cores for compiling shader programs
+                envMap.put("mali_debug", "nocluster"); // Stabilize shader dispatching across Mali octa-core threads
+                envMap.put("glsl_compiler_options", "relaxed");
+                envMap.put("LIBGL_ALLOW_INDEXED_DRAWS", "1");
+                envMap.put("force_s3tc_enable", "true");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
