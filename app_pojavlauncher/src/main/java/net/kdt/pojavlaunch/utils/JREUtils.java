@@ -143,9 +143,15 @@ public class JREUtils {
                 envMap.put("allow_glsl_builtin_const_expression", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("glsl_correct_derivatives_after_discard", "true");
-                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3");
+                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation");
                 envMap.put("LIBGL_DEPTH", "24"); // Force high-fidelity depth buffers for shaders across all screen configurations
                 envMap.put("allow_higher_compat_version", "true");
+
+                // Explicitly strip or replace non-supported NV features/keywords on non-compatible hardware:
+                envMap.put("glsl_ignore_unsupported_extensions", "true");
+                envMap.put("glsl_ignore_noperspective", "true");
+                envMap.put("LIBGL_GLSL_STRIP", "noperspective"); // Force GL4ES / LTW backend parser to ignore 'noperspective'
+                envMap.put("LIBGL_GLSL_REPLACE", "noperspective=flat"); // Map noperspective to standard flat interpolation fallback if parsed
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
