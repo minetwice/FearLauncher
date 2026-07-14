@@ -143,7 +143,7 @@ public class JREUtils {
                 envMap.put("allow_glsl_builtin_const_expression", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("glsl_correct_derivatives_after_discard", "true");
-                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation");
+                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4");
                 envMap.put("LIBGL_DEPTH", "24"); // Force high-fidelity depth buffers for shaders across all screen configurations
                 envMap.put("allow_higher_compat_version", "true");
 
@@ -152,6 +152,12 @@ public class JREUtils {
                 envMap.put("glsl_ignore_noperspective", "true");
                 envMap.put("LIBGL_GLSL_STRIP", "noperspective"); // Force GL4ES / LTW backend parser to ignore 'noperspective'
                 envMap.put("LIBGL_GLSL_REPLACE", "noperspective=flat"); // Map noperspective to standard flat interpolation fallback if parsed
+
+                // Mali and Low-End GPU Emulation Overrides:
+                envMap.put("LIBGL_NO_VBO_BOUNDS", "1"); // Avoid hardware out-of-bounds pointer crashes on older Mali drivers
+                envMap.put("LIBGL_ES", "3"); // Force minimum GLES v3 API translation
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("glsl_correct_derivatives_after_discard", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
