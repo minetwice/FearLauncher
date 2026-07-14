@@ -167,6 +167,14 @@ public class JREUtils {
                 envMap.put("force_s3tc_enable", "true");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+
+                // Advanced G-Buffer, MRT Emulation & Desktop Shader Transpilation patches:
+                envMap.put("LIBGL_GLSL_STRIP", "noperspective");
+                envMap.put("LIBGL_GLSL_PATCH", "1"); // Enable automatic highp precision qualifiers on-the-fly for G-Buffers
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8"); // Enable Multi-Render Targets (MRT) up to 8 attachments (gcolor, gnormal, etc.)
+                envMap.put("gl_draw_buffers_override", "true");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F"); // High-fidelity floats matching desktop specifications
+                envMap.put("glsl_force_highp", "true"); // Guarantee high precision floats in shaders on all ARM architectures
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
