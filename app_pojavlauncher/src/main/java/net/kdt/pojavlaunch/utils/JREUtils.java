@@ -137,6 +137,15 @@ public class JREUtils {
                 envMap.put("MESA_NO_MINMAX_CACHE", "1"); // Skip heavy minmax operations during active item swapping in PvP
                 envMap.put("LIBGL_CLIPPED", "1"); // Enable aggressive hardware frustum clipping to stop rendering out-of-view entities
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
+
+                // Universal SoC compatibility layers (Snapdragon Adreno, Moto Edge, MediaTek Dimensity, Mali GPUs):
+                envMap.put("allow_glsl_layout_qualifier_override", "true");
+                envMap.put("allow_glsl_builtin_const_expression", "true");
+                envMap.put("allow_glsl_relaxed_es", "true");
+                envMap.put("glsl_correct_derivatives_after_discard", "true");
+                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3");
+                envMap.put("LIBGL_DEPTH", "24"); // Force high-fidelity depth buffers for shaders across all screen configurations
+                envMap.put("allow_higher_compat_version", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");

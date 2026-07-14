@@ -42,14 +42,34 @@ public class TextProgressBar extends ProgressBar {
         mTextPaint.setAntiAlias(true);
     }
 
+    private float mAnimatedProgress = 0f;
+
     @Override
     protected synchronized void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        mTextPaint.setTextSize((float) ((getHeight()- getPaddingBottom() - getPaddingTop()) * 0.55));
-        int xPos = (int) Math.max(Math.min((getProgress() * getWidth() / getMax()) + mTextPadding, getWidth() - mTextPaint.measureText(mText) - mTextPadding) , mTextPadding);
-        int yPos = (int) ((getHeight() / 2) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2)) ;
 
-        canvas.drawText(mText, xPos, yPos, mTextPaint);
+        // Ensure progress is animated smoothly and percentage text updates dynamically in real-time
+        int targetProgress = getProgress();
+        if (Math.abs(mAnimatedProgress - targetProgress) > 0.1f) {
+            mAnimatedProgress += (targetProgress - mAnimatedProgress) * 0.25f;
+            postInvalidateDelayed(16);
+        } else {
+            mAnimatedProgress = targetProgress;
+        }
+
+        mTextPaint.setTextSize((float) ((getHeight() - getPaddingBottom() - getPaddingTop()) * 0.55));
+
+        // Dynamically append current progress percentage for proper status reporting
+        String displayMessage = mText;
+        if (displayMessage == null) displayMessage = "";
+        if (!displayMessage.contains("%") && getMax() > 0) {
+            displayMessage = displayMessage + " (" + (int)((mAnimatedProgress / getMax()) * 100) + "%)";
+        }
+
+        int xPos = (int) Math.max(Math.min((mAnimatedProgress * getWidth() / getMax()) + mTextPadding, getWidth() - mTextPaint.measureText(displayMessage) - mTextPadding), mTextPadding);
+        int yPos = (int) ((getHeight() / 2) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
+
+        canvas.drawText(displayMessage, xPos, yPos, mTextPaint);
     }
 
 
