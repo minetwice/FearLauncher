@@ -93,14 +93,8 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_engine":
-                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with Vulkan/LTW Library
-                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED with VULKAN/LTW ENGINE...");
-
-                // If Vulkan is supported on device, run via Zink (Vulkan), else fall back to optimized LTW (GLES3)
-                if (GLInfoUtils.getGlInfo().glesMajorVersion >= 3) {
-                    envMap.put("GALLIUM_DRIVER", "zink");
-                    envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                }
+                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with custom Shader Translation Engine
+                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED with custom Shader Translation Engine...");
 
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
@@ -346,18 +340,13 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "fear_engine":
-                // Automatically join Vulkan/Zink capabilities if supported, falling back to LTW on older chips!
-                if (GLInfoUtils.getGlInfo().glesMajorVersion >= 3) {
-                    renderLibrary = "libEGL_mesa.so";
-                    useGles = false;
-                    bypassNamespace = true;
-                    glesVersion = 3;
-                    preloadVulkan();
-                } else {
-                    renderLibrary = "libltw.so";
-                    useGles = true;
-                    glesVersion = 3;
-                }
+                // Completely removed Zink/Vulkan fallback to prevent game crashes.
+                // Load the custom, high-performance 'libFearCore.so' to handle translation of PC shaders on Adreno/Mali.
+                // Set useGles = true and glesVersion = 3 so that EGL initializes a GLES 3 context,
+                // enabling libFearCore.so to emulate OpenGL 3.3/Desktop GL capabilities (including glGenSamplers) on top of GLES3.
+                renderLibrary = "libFearCore.so";
+                useGles = true;
+                glesVersion = 3;
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;
