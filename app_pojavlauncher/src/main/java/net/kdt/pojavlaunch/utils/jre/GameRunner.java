@@ -186,7 +186,7 @@ public class GameRunner {
         }
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("fear_engine");
+        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("fear_engine") || rendererName.equals("mh_drive");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;

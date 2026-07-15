@@ -21,6 +21,7 @@ import java.io.IOException;
 import git.artdeell.mojo.R;
 
 public class LauncherPreferences {
+    public static final String RENDERER_MH_DRIVE = "mh_drive";
     public static final String PREF_KEY_CURRENT_INSTANCE = "currentInstance";
     public static final String PREF_KEY_SKIP_NOTIFICATION_CHECK = "skipNotificationPermissionCheck";
 

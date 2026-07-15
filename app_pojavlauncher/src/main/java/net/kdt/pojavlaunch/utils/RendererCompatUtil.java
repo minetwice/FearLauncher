@@ -43,7 +43,7 @@ public class RendererCompatUtil {
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
-            if(rendererId.equals("fear_engine")) {
+            if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
                 continue;

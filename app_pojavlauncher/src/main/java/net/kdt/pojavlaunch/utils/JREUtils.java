@@ -92,6 +92,33 @@ public class JREUtils {
     // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "mh_drive":
+                // MH DRIVE (Mali Hybrid Optimization Engine)
+                Logger.appendToLog("[MH DRIVE] MULTI-TRACK MALI ENGINE INITIALIZED...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_SHRINK", "0");
+                envMap.put("LIBGL_FASTEDID", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_VERSION", "4.6 Compatibility Profile MH DRIVE");
+                envMap.put("LIBGL_NOTEXTURERECT", "0");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_ALWAYSCURRENT", "1");
+                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("allow_higher_compat_version", "true");
+                envMap.put("allow_glsl_relaxed_es", "true");
+                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
+                envMap.put("LIBGL_NO_VBO_BOUNDS", "1");
+                break;
             case "fear_engine":
                 // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with High-Compatibility LTW Engine (Vulkan-Free)
                 Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED with HIGH-COMPATIBILITY LTW ENGINE...");
@@ -339,6 +366,18 @@ public class JREUtils {
         boolean preloadVk = true;
         int glesVersion;
         switch (renderer){
+            case "mh_drive":
+                // Map to dynamic linking wrapper containing MH DRIVE Track 1 and integrated GLES/Vulkan overrides
+                renderLibrary = "libltw.so";
+                useGles = true;
+                glesVersion = 3;
+                try {
+                    System.loadLibrary("mh_drive_gl_wrapper");
+                    System.loadLibrary("mh_drive_vulkan_mesa");
+                } catch (UnsatisfiedLinkError e) {
+                    Log.w("JREUtils", "MH DRIVE specific native wrapper layers omitted or pre-installed inside system path.");
+                }
+                break;
             case "fear_engine":
                 // Lock to the highly-compatible and universally supported libltw.so to avoid Vulkan/Zink EGL driver initialization crashes!
                 renderLibrary = "libltw.so";
