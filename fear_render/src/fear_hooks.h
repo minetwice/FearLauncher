@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-// Initialize the hooks and load the underlying libltw.so wrapper
+// Initialize the hooks and load the underlying libFearCore.so library
 void init_fear_hooks();
 
 // Dynamic interception function mapping
