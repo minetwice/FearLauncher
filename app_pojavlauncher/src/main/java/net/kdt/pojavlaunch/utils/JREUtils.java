@@ -342,8 +342,10 @@ public class JREUtils {
             case "fear_engine":
                 // Completely removed Zink/Vulkan fallback to prevent game crashes.
                 // Always load the custom libFearCore.so which handles shader translation for all device SoCs (Adreno & Mali).
+                // Set useGles = false to ensure GLFW/LWJGL binds to the standard OpenGL Desktop context instead of GLES context,
+                // which prevents 'No context is current or a function that is not available' (e.g. glGenSamplers) crashes.
                 renderLibrary = "libFearCore.so";
-                useGles = true;
+                useGles = false;
                 glesVersion = 3;
                 break;
             case "freedreno_kgsl":
