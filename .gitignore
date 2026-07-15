@@ -11,3 +11,5 @@ dnbglfw/.cxx/
 .vs/
 /curseforge_key.txt
 /app_pojavlauncher/libs/ltw-release.aar
+/fear_render/libs/
+/fear_render/obj/
