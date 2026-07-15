@@ -103,8 +103,8 @@ public class JREUtils {
                 envMap.put("LIBGL_FASTEDID", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "33");
-                envMap.put("LIBGL_VERSION", "3.3 FEAR LTW CORE");
+                envMap.put("LIBGL_GL", "46"); // Signal full Desktop OpenGL 4.6 core compatibility
+                envMap.put("LIBGL_VERSION", "4.6 Compatibility Profile FEAR LTW CORE"); // Fake desktop GL profile for Complementary/Solas
                 envMap.put("LIBGL_NOTEXTURERECT", "0"); // Set to 0 to enable correct non-power-of-two sampler lookups in modern shaders
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
