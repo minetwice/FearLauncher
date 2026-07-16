@@ -73,6 +73,67 @@ public class LoggerView extends ConstraintLayout {
         ImageButton cancelButton = findViewById(R.id.log_view_cancel);
         cancelButton.setOnClickListener(view -> LoggerView.this.setVisibility(GONE));
 
+        // Share to McLo.gs Feature Implementation (Copper Launcher premium function)
+        com.kdt.mcgui.MineButton shareBtn = findViewById(R.id.btn_share_mclogs);
+        if (shareBtn != null) {
+            shareBtn.setOnClickListener(view -> {
+                final String logText = mLogTextView.getText().toString();
+                if (logText.trim().isEmpty()) {
+                    android.widget.Toast.makeText(getContext(), "Log content is empty!", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                shareBtn.setEnabled(false);
+                shareBtn.setText("UPLOADING...");
+                new Thread(() -> {
+                    try {
+                        java.net.URL url = new java.net.URL("https://api.mclo.gs/1/log");
+                        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setDoOutput(true);
+                        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+                        String postData = "content=" + java.net.URLEncoder.encode(logText, "UTF-8");
+                        try (java.io.OutputStream os = conn.getOutputStream()) {
+                            os.write(postData.getBytes("UTF-8"));
+                        }
+
+                        int responseCode = conn.getResponseCode();
+                        if (responseCode == 200) {
+                            try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                                StringBuilder response = new StringBuilder();
+                                String line;
+                                while ((line = br.readLine()) != null) {
+                                    response.append(line);
+                                }
+                                // Parse {"success":true,"url":"https://mclo.gs/xxxxx"}
+                                String resStr = response.toString();
+                                int urlIdx = resStr.indexOf("\"url\":\"");
+                                if (urlIdx != -1) {
+                                    String sharedUrl = resStr.substring(urlIdx + 7, resStr.indexOf("\"", urlIdx + 7));
+                                    post(() -> {
+                                        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                                        android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Log Link", sharedUrl);
+                                        clipboard.setPrimaryClip(clip);
+                                        android.widget.Toast.makeText(getContext(), "Log URL Copied: " + sharedUrl, android.widget.Toast.LENGTH_LONG).show();
+                                        shareBtn.setEnabled(true);
+                                        shareBtn.setText("SHARE LOGS (MCLO.GS)");
+                                    });
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    post(() -> {
+                        android.widget.Toast.makeText(getContext(), "Failed to upload log to mclo.gs!", android.widget.Toast.LENGTH_SHORT).show();
+                        shareBtn.setEnabled(true);
+                        shareBtn.setText("SHARE LOGS (MCLO.GS)");
+                    });
+                }).start();
+            });
+        }
+
         // Set the scroll view
         mScrollView = findViewById(R.id.content_log_scroll);
         mScrollView.setKeepFocusing(true);
