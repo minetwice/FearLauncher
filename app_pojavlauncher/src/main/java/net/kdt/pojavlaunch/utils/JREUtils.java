@@ -118,6 +118,14 @@ public class JREUtils {
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 envMap.put("LIBGL_NO_VBO_BOUNDS", "1");
+
+                // High-precision float depth and color attachments to fix shadow and ray color glitches:
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_DEPTH", "24");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 break;
             case "fear_engine":
                 // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with High-Compatibility LTW Engine (Vulkan-Free)
@@ -203,6 +211,12 @@ public class JREUtils {
                 envMap.put("gl_draw_buffers_override", "true");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F"); // High-fidelity floats matching desktop specifications
                 envMap.put("glsl_force_highp", "true"); // Guarantee high precision floats in shaders on all ARM architectures
+
+                // High-precision float depth and color attachments to fix shadow and ray color glitches under FEAR Engine:
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_DEPTH", "24");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
