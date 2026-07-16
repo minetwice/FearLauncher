@@ -28,6 +28,59 @@ void glMemoryBarrierEXT(unsigned int barriers) {
     glMemoryBarrier(barriers);
 }
 
+// Hook glShaderSource directly inside MH DRIVE to translate shader sources on low-end Mali chips
+void glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
+    typedef void (*glShaderSource_pfn)(unsigned int, int, const char* const*, const int*);
+    static glShaderSource_pfn real_glShaderSource = nullptr;
+    if (!real_glShaderSource) {
+        real_glShaderSource = (glShaderSource_pfn)dlsym(RTLD_NEXT, "glShaderSource");
+    }
+
+    if (!real_glShaderSource) {
+        return;
+    }
+
+    if (count <= 0 || !string || !string[0]) {
+        real_glShaderSource(shader, count, string, length);
+        return;
+    }
+
+    std::string full_source = "";
+    for (int i = 0; i < count; i++) {
+        if (string[i]) {
+            if (length && length[i] >= 0) {
+                full_source.append(string[i], length[i]);
+            } else {
+                full_source.append(string[i]);
+            }
+        }
+    }
+
+    size_t pos;
+    while ((pos = full_source.find("noperspective")) != std::string::npos) {
+        full_source.replace(pos, 13, "flat");
+    }
+
+    while ((pos = full_source.find("layout(location = 0) out vec4 fragColor;")) != std::string::npos) {
+        full_source.replace(pos, 40, "out vec4 fragColor;");
+    }
+    while ((pos = full_source.find("layout(location = 0) out vec4 out_Color;")) != std::string::npos) {
+        full_source.replace(pos, 40, "out vec4 out_Color;");
+    }
+
+    if (full_source.find("#version 330") != std::string::npos || full_source.find("#version 150") != std::string::npos) {
+        pos = full_source.find("#version");
+        if (pos != std::string::npos) {
+            size_t end_line = full_source.find("\n", pos);
+            full_source.replace(pos, end_line - pos, "#version 320 es\nprecision highp float;\nprecision highp int;");
+        }
+    }
+
+    const char* translated_cstr = full_source.c_str();
+    real_glShaderSource(shader, 1, &translated_cstr, nullptr);
+    __android_log_print(ANDROID_LOG_INFO, "MH_DRIVE", "glShaderSource intercepted and compiled dynamically on Mali.");
+}
+
 const char* mh_drive_preprocess_shader_ast(const char* glsl_source) {
     if (!glsl_source) return nullptr;
 
