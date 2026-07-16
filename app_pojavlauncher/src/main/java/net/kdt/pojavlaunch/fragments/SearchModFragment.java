@@ -136,6 +136,61 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mStatusTextView = view.findViewById(R.id.search_mod_status_text);
         mFilterButton = view.findViewById(R.id.search_mod_filter);
 
+        // Map Segment Control Tabs dynamically
+        com.kdt.mcgui.MineButton btnMods = view.findViewById(R.id.tab_mods);
+        com.kdt.mcgui.MineButton btnRes = view.findViewById(R.id.tab_resourcepacks);
+        com.kdt.mcgui.MineButton btnShaders = view.findViewById(R.id.tab_shaders);
+
+        if (btnMods != null && btnRes != null && btnShaders != null) {
+            btnMods.setOnClickListener(v -> {
+                btnMods.setBackgroundResource(R.drawable.premium_button_bg);
+                btnMods.setTextColor(Color.BLACK);
+                btnRes.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnRes.setTextColor(Color.WHITE);
+                btnShaders.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnShaders.setTextColor(Color.WHITE);
+
+                // Set Modrinth parameters to query mods
+                mSearchFilters.isModpack = false;
+                mSearchFilters.isMod = true;
+                mSearchFilters.isResourcePack = false;
+                mSearchFilters.isShaderPack = false;
+                searchMods(mSearchEditText.getText().toString());
+            });
+
+            btnRes.setOnClickListener(v -> {
+                btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnMods.setTextColor(Color.WHITE);
+                btnRes.setBackgroundResource(R.drawable.premium_button_bg);
+                btnRes.setTextColor(Color.BLACK);
+                btnShaders.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnShaders.setTextColor(Color.WHITE);
+
+                // Set Modrinth parameters to query resource packs
+                mSearchFilters.isModpack = false;
+                mSearchFilters.isMod = false;
+                mSearchFilters.isResourcePack = true;
+                mSearchFilters.isShaderPack = false;
+                searchMods(mSearchEditText.getText().toString());
+            });
+
+            btnShaders.setOnClickListener(v -> {
+                btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnMods.setTextColor(Color.WHITE);
+                btnRes.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnRes.setTextColor(Color.WHITE);
+                btnShaders.setBackgroundResource(R.drawable.premium_button_bg);
+                btnShaders.setTextColor(Color.BLACK);
+
+                // Set Modrinth parameters to query shader packs
+                mSearchFilters.isModpack = false;
+                mSearchFilters.isMod = false;
+                mSearchFilters.isResourcePack = false;
+                mSearchFilters.isShaderPack = true;
+                searchMods(mSearchEditText.getText().toString());
+            });
+        }
+
         mDefaultTextColor = mStatusTextView.getTextColors();
 
         int spanCount = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;

@@ -50,7 +50,21 @@ public class ModrinthApi implements ModpackApi{
         HashMap<String, Object> params = new HashMap<>();
         StringBuilder facetString = new StringBuilder();
         facetString.append("[");
-        facetString.append(String.format("[\"project_type:%s\"]", searchFilters.isModpack ? "modpack" : "mod"));
+
+        String projType = "modpack";
+        if (searchFilters.isMod) {
+            projType = "mod";
+        } else if (searchFilters.isResourcePack) {
+            projType = "resourcepack";
+        } else if (searchFilters.isShaderPack) {
+            projType = "shader";
+        } else if (searchFilters.isModpack) {
+            projType = "modpack";
+        } else {
+            projType = "mod"; // Fallback default
+        }
+
+        facetString.append(String.format("[\"project_type:%s\"]", projType));
         if(searchFilters.mcVersion != null && !searchFilters.mcVersion.isEmpty())
             facetString.append(String.format(",[\"versions:%s\"]", searchFilters.mcVersion));
         facetString.append("]");
@@ -117,7 +131,55 @@ public class ModrinthApi implements ModpackApi{
 
     @Override
     public ModLoader installModpack(ModDetail modDetail, int selectedVersion) throws IOException{
-        //TODO considering only modpacks for now
+        // Check if the item being installed is a standard Mod, Resource Pack, or Shader Pack
+        if (modDetail != null && !modDetail.isModpack) {
+            String projType = "mods";
+            if (modDetail.imageUrl != null && modDetail.imageUrl.contains("shader")) {
+                projType = "shaderpacks";
+            } else if (modDetail.imageUrl != null && modDetail.imageUrl.contains("resourcepack")) {
+                projType = "resourcepacks";
+            } else {
+                // Secondary check inside name descriptions or fallbacks
+                String title = modDetail.title.toLowerCase();
+                if (title.contains("shader") || title.contains("complementary") || title.contains("solas")) {
+                    projType = "shaderpacks";
+                } else if (title.contains("resource") || title.contains("pack") || title.contains("textures")) {
+                    projType = "resourcepacks";
+                }
+            }
+
+            net.kdt.pojavlaunch.instances.Instance currentInstance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (currentInstance == null) {
+                throw new IOException("No Minecraft Instance currently selected to download items into!");
+            }
+
+            File destFolder = new File(currentInstance.getGameDirectory(), projType);
+            if (!destFolder.exists()) {
+                destFolder.mkdirs();
+            }
+
+            String versionUrl = modDetail.versionUrls[selectedVersion];
+            String file_name = versionUrl.substring(versionUrl.lastIndexOf('/') + 1);
+            File destFile = new File(destFolder, file_name);
+
+            byte[] buffer = new byte[8192];
+            ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, 0, "DOWNLOADING TO " + projType.toUpperCase() + "...");
+            net.kdt.pojavlaunch.utils.DownloadUtils.downloadFileMonitored(versionUrl, destFile, buffer,
+                    new net.kdt.pojavlaunch.progresskeeper.DownloaderProgressWrapper(R.string.modpack_download_downloading_metadata, ProgressLayout.INSTALL_MODPACK)
+            );
+
+            ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, 100, "INSTALLATION COMPLETE!");
+            try { Thread.sleep(800); } catch (Exception e) {}
+            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
+            return new ModLoader(ModLoader.MOD_LOADER_FABRIC, "0.15.11", "1.21.1") {
+                @Override
+                public boolean requiresGuiInstallation() { return false; }
+                @Override
+                public String installHeadlessly() { return "1.21.1-fabric-0.15.11"; }
+            };
+        }
+
+        // Default: download and install full modpack
         return ModpackInstaller.downloadModpack(modDetail, selectedVersion, this::installMrpack);
     }
 
