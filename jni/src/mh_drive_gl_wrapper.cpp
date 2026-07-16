@@ -7,7 +7,26 @@
 #define TAG "MH_DRIVE"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 
+#include <dlfcn.h>
+
 extern "C" {
+
+// Export glMemoryBarrier to prevent server lobby world rendering crashes under MH DRIVE
+void glMemoryBarrier(unsigned int barriers) {
+    typedef void (*glFlush_pfn)();
+    static glFlush_pfn real_glFlush = nullptr;
+    if (!real_glFlush) {
+        real_glFlush = (glFlush_pfn)dlsym(RTLD_NEXT, "glFlush");
+    }
+    if (real_glFlush) {
+        real_glFlush();
+    }
+    __android_log_print(ANDROID_LOG_INFO, "MH_DRIVE", "glMemoryBarrier intercepted and flushed safely (Barriers: %u)", barriers);
+}
+
+void glMemoryBarrierEXT(unsigned int barriers) {
+    glMemoryBarrier(barriers);
+}
 
 const char* mh_drive_preprocess_shader_ast(const char* glsl_source) {
     if (!glsl_source) return nullptr;
