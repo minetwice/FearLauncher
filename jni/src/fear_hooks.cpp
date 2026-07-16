@@ -76,6 +76,33 @@ const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
     return (const unsigned char*)"";
 }
 
+// Export the dynamic symbols exactly so LWJGL binds directly to them
+void glMemoryBarrier(unsigned int barriers) {
+    typedef void (*glFlush_pfn)();
+    static glFlush_pfn real_glFlush = nullptr;
+    if (!real_glFlush) {
+        real_glFlush = (glFlush_pfn)dlsym(RTLD_NEXT, "glFlush");
+    }
+    if (real_glFlush) {
+        real_glFlush();
+    }
+    LOGI("glMemoryBarrier intercepted and flushed safely to prevent world rendering crash (Barriers: %u)", barriers);
+}
+
+void glMemoryBarrierEXT(unsigned int barriers) {
+    glMemoryBarrier(barriers);
+}
+
+// Hook and stub glMemoryBarrier to prevent JVM crashes on server lobbies
+void fear_glMemoryBarrier(unsigned int barriers) {
+    glMemoryBarrier(barriers);
+}
+
+// Intercept and bypass glMemoryBarrierEXT
+void fear_glMemoryBarrierEXT(unsigned int barriers) {
+    glMemoryBarrier(barriers);
+}
+
 } // extern "C"
 
 void initialize_fear_hooks() {
