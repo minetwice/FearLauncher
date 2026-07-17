@@ -170,14 +170,19 @@ void glShaderSource(unsigned int shader, int count, const char* const* string, c
         }
     }
 
-    // Step A: Strip unsupported desktop "noperspective" qualifiers
-    replace_all(full_source, "noperspective", "flat");
+    // Step A: Strip unsupported GLSL extension warnings or direct requests for non-supported features
+    replace_all(full_source, "#extension GL_NV_shader_noperspective_interpolation : enable", "// #extension GL_NV_shader_noperspective_interpolation : enable");
+    replace_all(full_source, "#extension GL_NV_shader_noperspective_interpolation : require", "// #extension GL_NV_shader_noperspective_interpolation : require");
 
-    // Step B: Downscale heavy layout and output variables for GLES 3.2 compatibility
+    // Step B: Strip unsupported desktop "noperspective" qualifiers to flat or default (to eliminate P0003 warning and reservation error)
+    replace_all(full_source, "noperspective ", "flat ");
+    replace_all(full_source, "noperspective", "");
+
+    // Step C: Downscale heavy layout and output variables for GLES 3.2 compatibility
     replace_all(full_source, "layout(location = 0) out vec4 fragColor;", "out vec4 fragColor;");
     replace_all(full_source, "layout(location = 0) out vec4 out_Color;", "out vec4 out_Color;");
 
-    // Step C: Transpile desktop versions (e.g. #version 330 compatibility, #version 460 core) into mobile-safe headers
+    // Step D: Transpile desktop versions (e.g. #version 330 compatibility, #version 460 core) into mobile-safe headers
     if (full_source.find("#version 330") != std::string::npos ||
         full_source.find("#version 150") != std::string::npos ||
         full_source.find("#version 400") != std::string::npos ||
@@ -193,12 +198,12 @@ void glShaderSource(unsigned int shader, int count, const char* const* string, c
         }
     }
 
-    // Step D: Downscale and optimize complex sampler structures & sampler2DShadow arrays
+    // Step E: Downscale and optimize complex sampler structures & sampler2DShadow arrays
     // Used heavily in Complementary/Solas Shaders to bypass thermal throttling on mobile
     replace_all(full_source, "sampler2DShadow shadow0[2]", "sampler2DShadow shadow0[1]");
     replace_all(full_source, "sampler2DShadow shadow1[2]", "sampler2DShadow shadow1[1]");
 
-    // Step E: Convert desktop double precision types (double, dvec2, dvec3, dvec4) to mobile-safe floats
+    // Step F: Convert desktop double precision types (double, dvec2, dvec3, dvec4) to mobile-safe floats
     replace_all(full_source, "double ", "float ");
     replace_all(full_source, "dvec2 ", "vec2 ");
     replace_all(full_source, "dvec3 ", "vec3 ");
