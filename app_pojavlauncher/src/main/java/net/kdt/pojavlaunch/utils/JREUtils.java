@@ -103,7 +103,7 @@ public class JREUtils {
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "46");
-                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 550.00");
                 envMap.put("LIBGL_NOTEXTURERECT", "0");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
@@ -111,8 +111,14 @@ public class JREUtils {
                 envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
                 envMap.put("LIBGL_FB", "1");
                 envMap.put("LIBGL_FPE", "1");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+
+                // Route graphics through translation layer library (LD_PRELOAD & LD_LIBRARY_PATH)
+                envMap.put("LD_PRELOAD", "libmh_drive_gl_wrapper.so:libmh_drive_vulkan_mesa.so");
+                envMap.put("LD_LIBRARY_PATH", Tools.NATIVE_LIB_DIR);
+                envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
