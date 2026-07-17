@@ -17,20 +17,33 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/detail_done_btn"
+        android:layout_width="72dp"
+        android:layout_height="32dp"
+        android:text="DONE"
+        android:textColor="#000000"
+        android:textSize="@dimen/_8ssp"
+        android:textStyle="bold"
+        android:background="@drawable/premium_button_bg"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <TextView
         android:id="@+id/detail_header_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="SPECIFICATION TELEMETRY"
         android:textColor="#80FFFFFF"
-        android:textSize="@dimen/_10ssp"
+        android:textSize="@dimen/_9ssp"
         android:textStyle="bold"
         android:letterSpacing="0.1"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintTop_toTopOf="@id/detail_close_btn"
         app:layout_constraintBottom_toBottomOf="@id/detail_close_btn"
         app:layout_constraintStart_toEndOf="@id/detail_close_btn"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/detail_done_btn" />
 
     <!-- Top Specifications & Installation Row -->
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -169,12 +169,24 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(view);
             mViewHolderSet.add(this);
             view.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 android.content.Context context = v.getContext();
                 android.app.Dialog dialog = new android.app.Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
                 dialog.setContentView(R.layout.dialog_mod_detail_fullscreen);
 
                 View closeBtn = dialog.findViewById(R.id.detail_close_btn);
-                closeBtn.setOnClickListener(v2 -> dialog.dismiss());
+                closeBtn.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    dialog.dismiss();
+                });
+
+                View doneBtn = dialog.findViewById(R.id.detail_done_btn);
+                if (doneBtn != null) {
+                    doneBtn.setOnClickListener(v2 -> {
+                        v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        dialog.dismiss();
+                    });
+                }
 
                 ImageView detailIcon = dialog.findViewById(R.id.detail_icon);
                 if (mThumbnailBitmap != null) {
@@ -366,6 +378,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                             detailSpinner.setSelection(0); // auto pre-select matching recommended
                                             installBtn.setEnabled(true);
                                             installBtn.setOnClickListener(v3 -> {
+                                                v3.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                                                 int spinnerPos = detailSpinner.getSelectedItemPosition();
                                                 if (spinnerPos >= 0 && spinnerPos < combinedIndices.size()) {
                                                     int finalOrigIdx = combinedIndices.get(spinnerPos);
