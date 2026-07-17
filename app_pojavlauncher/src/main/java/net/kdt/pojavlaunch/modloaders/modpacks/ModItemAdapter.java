@@ -193,14 +193,25 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 detailDesc.setText(mModItem.description);
 
                 androidx.appcompat.widget.AppCompatSpinner detailSpinner = dialog.findViewById(R.id.detail_version_spinner);
+                androidx.appcompat.widget.AppCompatSpinner loaderSpinner = dialog.findViewById(R.id.detail_modloader_spinner);
                 TextView errorText = dialog.findViewById(R.id.detail_error_text);
                 Button installBtn = dialog.findViewById(R.id.detail_install_btn);
 
-                // Version filters segment tabs
-                Button btnAll = dialog.findViewById(R.id.filter_type_all);
-                Button btnRelease = dialog.findViewById(R.id.filter_type_release);
-                Button btnBeta = dialog.findViewById(R.id.filter_type_beta);
-                Button btnAlpha = dialog.findViewById(R.id.filter_type_alpha);
+                // Populate loaders dropdown spinner based on item type (Shader vs Mod/Pack)
+                boolean isShader = false;
+                if (mModItem.itemType != null && mModItem.itemType.equals("shader")) {
+                    isShader = true;
+                } else if (mModItem.title != null && (mModItem.title.toLowerCase().contains("shader") || mModItem.title.toLowerCase().contains("complementary") || mModItem.title.toLowerCase().contains("solas"))) {
+                    isShader = true;
+                }
+
+                final boolean finalIsShader = isShader;
+                final String[] loadersList = isShader ?
+                    new String[]{"All Engines", "OptiFine", "Iris"} :
+                    new String[]{"All Loaders", "Fabric", "Forge", "NeoForge", "Quilt"};
+
+                com.kdt.SimpleArrayAdapter<String> loaderAdapter = new com.kdt.SimpleArrayAdapter<>(java.util.Arrays.asList(loadersList));
+                loaderSpinner.setAdapter(loaderAdapter);
 
                 installBtn.setEnabled(false);
                 detailSpinner.setAdapter(mLoadingAdapter);
@@ -233,9 +244,23 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                 });
                             }
 
+                            // Clean description string to ensure proper line format and spacing
+                            String richText = mModDetail.fullDescription;
+                            if (richText != null) {
+                                richText = richText.replaceAll("(?m)^###\\s+(.*)$", "<b>$1</b>");
+                                richText = richText.replaceAll("(?m)^##\\s+(.*)$", "<b>$1</b>");
+                                richText = richText.replaceAll("(?m)^#\\s+(.*)$", "<b><font size=\"5\">$1</font></b>");
+                                richText = richText.replaceAll("(?m)^\\s*-\\s+(.*)$", "• $1<br/>");
+                                richText = richText.replaceAll("(?m)^\\s*\\*\\s+(.*)$", "• $1<br/>");
+                                richText = richText.replaceAll("\r\n", "\n");
+                                richText = richText.replaceAll("\n\n", "<p></p>");
+                                richText = richText.replaceAll("\n", "<br/>");
+                            }
+                            final String finalRichText = richText;
+
                             // Dynamic filtering, pinning and recommendation helper
                             final class VersionFilterHelper {
-                                private String currentFilter = "all";
+                                private String chosenLoader = "All";
 
                                 void applyFilterAndPopulate() {
                                     String instanceMcVersion = "";
@@ -253,12 +278,19 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                     java.util.ArrayList<Integer> otherIndices = new java.util.ArrayList<>();
 
                                     for (int i = 0; i < mModDetail.versionNames.length; i++) {
-                                        String vType = mModDetail.versionTypes[i];
-                                        if (vType == null) vType = "release";
+                                        String vName = mModDetail.versionNames[i] != null ? mModDetail.versionNames[i].toLowerCase() : "";
+                                        String vUrl = mModDetail.versionUrls[i] != null ? mModDetail.versionUrls[i].toLowerCase() : "";
 
-                                        // Apply filter matching
-                                        if (!currentFilter.equals("all") && !vType.equalsIgnoreCase(currentFilter)) {
-                                            continue;
+                                        // Apply loader filter matching
+                                        if (!chosenLoader.equals("All")) {
+                                            String target = chosenLoader.toLowerCase();
+                                            // Handle special case: do not mix up forge and neoforge
+                                            if (target.equals("forge") && vName.contains("neoforge")) {
+                                                continue;
+                                            }
+                                            if (!vName.contains(target) && !vUrl.contains(target)) {
+                                                continue;
+                                            }
                                         }
 
                                         String mcVer = mModDetail.mcVersionNames[i];
@@ -286,7 +318,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                                     Tools.runOnUiThread(() -> {
                                         if (dispNames.length == 0) {
-                                            com.kdt.SimpleArrayAdapter<String> emptyAdapter = new com.kdt.SimpleArrayAdapter<>(java.util.Collections.singletonList("No available versions for this category"));
+                                            com.kdt.SimpleArrayAdapter<String> emptyAdapter = new com.kdt.SimpleArrayAdapter<>(java.util.Collections.singletonList("No versions match filter criteria"));
                                             detailSpinner.setAdapter(emptyAdapter);
                                             installBtn.setEnabled(false);
                                         } else {
@@ -309,46 +341,40 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                         }
                                     });
                                 }
-
-                                void updateTabStyles(String activeFilter) {
-                                    currentFilter = activeFilter;
-                                    Tools.runOnUiThread(() -> {
-                                        btnAll.setBackgroundResource(activeFilter.equals("all") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-                                        btnAll.setTextColor(activeFilter.equals("all") ? 0xFF000000 : 0xFFFFFFFF);
-
-                                        btnRelease.setBackgroundResource(activeFilter.equals("release") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-                                        btnRelease.setTextColor(activeFilter.equals("release") ? 0xFF000000 : 0xFFFFFFFF);
-
-                                        btnBeta.setBackgroundResource(activeFilter.equals("beta") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-                                        btnBeta.setTextColor(activeFilter.equals("beta") ? 0xFF000000 : 0xFFFFFFFF);
-
-                                        btnAlpha.setBackgroundResource(activeFilter.equals("alpha") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-                                        btnAlpha.setTextColor(activeFilter.equals("alpha") ? 0xFF000000 : 0xFFFFFFFF);
-                                    });
-                                    applyFilterAndPopulate();
-                                }
                             }
 
                             final VersionFilterHelper filterHelper = new VersionFilterHelper();
 
                             Tools.runOnUiThread(() -> {
-                                // Set rich HTML text to the description
-                                if (mModDetail.fullDescription != null && !mModDetail.fullDescription.isEmpty()) {
+                                // Set clean rich HTML text to the description
+                                if (finalRichText != null && !finalRichText.isEmpty()) {
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                                        detailDesc.setText(android.text.Html.fromHtml(mModDetail.fullDescription, android.text.Html.FROM_HTML_MODE_COMPACT));
+                                        detailDesc.setText(android.text.Html.fromHtml(finalRichText, android.text.Html.FROM_HTML_MODE_COMPACT));
                                     } else {
-                                        detailDesc.setText(android.text.Html.fromHtml(mModDetail.fullDescription));
+                                        detailDesc.setText(android.text.Html.fromHtml(finalRichText));
                                     }
                                 }
 
-                                btnAll.setOnClickListener(vTab -> filterHelper.updateTabStyles("all"));
-                                btnRelease.setOnClickListener(vTab -> filterHelper.updateTabStyles("release"));
-                                btnBeta.setOnClickListener(vTab -> filterHelper.updateTabStyles("beta"));
-                                btnAlpha.setOnClickListener(vTab -> filterHelper.updateTabStyles("alpha"));
+                                // Wire up loader spinner selection listener
+                                loaderSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                                        String sel = loadersList[position];
+                                        if (sel.startsWith("All")) {
+                                            filterHelper.chosenLoader = "All";
+                                        } else {
+                                            filterHelper.chosenLoader = sel;
+                                        }
+                                        filterHelper.applyFilterAndPopulate();
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                                });
                             });
 
                             // Default populate
-                            filterHelper.updateTabStyles("all");
+                            filterHelper.applyFilterAndPopulate();
 
                         } else {
                             Tools.runOnUiThread(() -> {
