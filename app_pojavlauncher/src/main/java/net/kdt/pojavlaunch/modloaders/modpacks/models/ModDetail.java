@@ -14,6 +14,7 @@ public class ModDetail extends ModItem {
     public String[] versionHashes;
     public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes) {
         super(item.apiSource, item.isModpack, item.id, item.title, item.description, item.imageUrl);
+        this.itemType = item.itemType;
         this.versionNames = versionNames;
         this.mcVersionNames = mcVersionNames;
         this.versionUrls = versionUrls;

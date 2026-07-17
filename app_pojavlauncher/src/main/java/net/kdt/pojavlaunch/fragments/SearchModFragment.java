@@ -137,12 +137,32 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mFilterButton = view.findViewById(R.id.search_mod_filter);
 
         // Map Segment Control Tabs dynamically
+        com.kdt.mcgui.MineButton btnModpacks = view.findViewById(R.id.tab_modpacks);
         com.kdt.mcgui.MineButton btnMods = view.findViewById(R.id.tab_mods);
         com.kdt.mcgui.MineButton btnRes = view.findViewById(R.id.tab_resourcepacks);
         com.kdt.mcgui.MineButton btnShaders = view.findViewById(R.id.tab_shaders);
 
-        if (btnMods != null && btnRes != null && btnShaders != null) {
+        if (btnModpacks != null && btnMods != null && btnRes != null && btnShaders != null) {
+            btnModpacks.setOnClickListener(v -> {
+                btnModpacks.setBackgroundResource(R.drawable.premium_button_bg);
+                btnModpacks.setTextColor(Color.BLACK);
+                btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnMods.setTextColor(Color.WHITE);
+                btnRes.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnRes.setTextColor(Color.WHITE);
+                btnShaders.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnShaders.setTextColor(Color.WHITE);
+
+                mSearchFilters.isModpack = true;
+                mSearchFilters.isMod = false;
+                mSearchFilters.isResourcePack = false;
+                mSearchFilters.isShaderPack = false;
+                searchMods(mSearchEditText.getText().toString());
+            });
+
             btnMods.setOnClickListener(v -> {
+                btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_button_bg);
                 btnMods.setTextColor(Color.BLACK);
                 btnRes.setBackgroundResource(R.drawable.premium_glass_black_bg);
@@ -150,7 +170,6 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 btnShaders.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnShaders.setTextColor(Color.WHITE);
 
-                // Set Modrinth parameters to query mods
                 mSearchFilters.isModpack = false;
                 mSearchFilters.isMod = true;
                 mSearchFilters.isResourcePack = false;
@@ -159,6 +178,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
             });
 
             btnRes.setOnClickListener(v -> {
+                btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnMods.setTextColor(Color.WHITE);
                 btnRes.setBackgroundResource(R.drawable.premium_button_bg);
@@ -166,7 +187,6 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 btnShaders.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnShaders.setTextColor(Color.WHITE);
 
-                // Set Modrinth parameters to query resource packs
                 mSearchFilters.isModpack = false;
                 mSearchFilters.isMod = false;
                 mSearchFilters.isResourcePack = true;
@@ -175,6 +195,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
             });
 
             btnShaders.setOnClickListener(v -> {
+                btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnMods.setTextColor(Color.WHITE);
                 btnRes.setBackgroundResource(R.drawable.premium_glass_black_bg);
@@ -182,7 +204,6 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 btnShaders.setBackgroundResource(R.drawable.premium_button_bg);
                 btnShaders.setTextColor(Color.BLACK);
 
-                // Set Modrinth parameters to query shader packs
                 mSearchFilters.isModpack = false;
                 mSearchFilters.isMod = false;
                 mSearchFilters.isResourcePack = false;

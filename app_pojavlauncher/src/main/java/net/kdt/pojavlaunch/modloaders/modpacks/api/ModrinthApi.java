@@ -83,14 +83,16 @@ public class ModrinthApi implements ModpackApi{
         ModItem[] items = new ModItem[responseHits.size()];
         for(int i=0; i<responseHits.size(); ++i){
             JsonObject hit = responseHits.get(i).getAsJsonObject();
+            String pType = hit.has("project_type") && !hit.get("project_type").isJsonNull() ? hit.get("project_type").getAsString() : "mod";
             items[i] = new ModItem(
                     Constants.SOURCE_MODRINTH,
-                    hit.get("project_type").getAsString().equals("modpack"),
+                    pType.equals("modpack"),
                     hit.get("project_id").getAsString(),
                     hit.get("title").getAsString(),
                     hit.get("description").getAsString(),
-                    hit.get("icon_url").getAsString()
+                    hit.has("icon_url") && !hit.get("icon_url").isJsonNull() ? hit.get("icon_url").getAsString() : ""
             );
+            items[i].itemType = pType;
         }
         if(modrinthSearchResult == null) modrinthSearchResult = new ModrinthSearchResult();
         modrinthSearchResult.previousOffset += responseHits.size();
@@ -134,17 +136,24 @@ public class ModrinthApi implements ModpackApi{
         // Check if the item being installed is a standard Mod, Resource Pack, or Shader Pack
         if (modDetail != null && !modDetail.isModpack) {
             String projType = "mods";
-            if (modDetail.imageUrl != null && modDetail.imageUrl.contains("shader")) {
+            if ("shader".equals(modDetail.itemType)) {
                 projType = "shaderpacks";
-            } else if (modDetail.imageUrl != null && modDetail.imageUrl.contains("resourcepack")) {
+            } else if ("resourcepack".equals(modDetail.itemType)) {
                 projType = "resourcepacks";
+            } else if ("mod".equals(modDetail.itemType)) {
+                projType = "mods";
             } else {
-                // Secondary check inside name descriptions or fallbacks
-                String title = modDetail.title.toLowerCase();
-                if (title.contains("shader") || title.contains("complementary") || title.contains("solas")) {
+                if (modDetail.imageUrl != null && modDetail.imageUrl.contains("shader")) {
                     projType = "shaderpacks";
-                } else if (title.contains("resource") || title.contains("pack") || title.contains("textures")) {
+                } else if (modDetail.imageUrl != null && modDetail.imageUrl.contains("resourcepack")) {
                     projType = "resourcepacks";
+                } else {
+                    String title = modDetail.title.toLowerCase();
+                    if (title.contains("shader") || title.contains("complementary") || title.contains("solas")) {
+                        projType = "shaderpacks";
+                    } else if (title.contains("resource") || title.contains("pack") || title.contains("textures")) {
+                        projType = "resourcepacks";
+                    }
                 }
             }
 
@@ -160,6 +169,9 @@ public class ModrinthApi implements ModpackApi{
 
             String versionUrl = modDetail.versionUrls[selectedVersion];
             String file_name = versionUrl.substring(versionUrl.lastIndexOf('/') + 1);
+            if (file_name.contains("?")) {
+                file_name = file_name.substring(0, file_name.indexOf('?'));
+            }
             File destFile = new File(destFolder, file_name);
 
             byte[] buffer = new byte[8192];

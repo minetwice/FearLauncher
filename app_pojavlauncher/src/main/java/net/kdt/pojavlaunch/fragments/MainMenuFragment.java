@@ -126,7 +126,9 @@ public class MainMenuFragment extends Fragment {
         }
 
         if (trayModsBtn != null) {
-            trayModsBtn.setOnClickListener(v -> Toast.makeText(getContext(), "Mods Menu Coming Soon", Toast.LENGTH_SHORT).show());
+            trayModsBtn.setOnClickListener(v -> {
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
+            });
         }
 
         if (trayLogsBtn != null) {

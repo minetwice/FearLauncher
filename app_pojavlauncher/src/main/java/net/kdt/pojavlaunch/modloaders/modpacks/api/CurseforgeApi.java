@@ -10,6 +10,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.kdt.mcgui.ProgressLayout;
 
+import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.downloader.AcquireableTaskMetadata;
 import net.kdt.pojavlaunch.downloader.Downloader;
@@ -58,7 +59,15 @@ public class CurseforgeApi implements ModpackApi{
 
         HashMap<String, Object> params = new HashMap<>();
         params.put("gameId", CURSEFORGE_MINECRAFT_GAME_ID);
-        params.put("classId", searchFilters.isModpack ? CURSEFORGE_MODPACK_CLASS_ID : CURSEFORGE_MOD_CLASS_ID);
+        int classId = CURSEFORGE_MOD_CLASS_ID;
+        if (searchFilters.isModpack) {
+            classId = CURSEFORGE_MODPACK_CLASS_ID;
+        } else if (searchFilters.isResourcePack) {
+            classId = 12;
+        } else if (searchFilters.isShaderPack) {
+            classId = 6552;
+        }
+        params.put("classId", classId);
         params.put("searchFilter", searchFilters.name);
         params.put("sortField", CURSEFORGE_SORT_RELEVANCY);
         params.put("sortOrder", "desc");
@@ -82,12 +91,26 @@ public class CurseforgeApi implements ModpackApi{
                 Log.i("CurseforgeApi", "Skipping modpack "+dataElement.get("name").getAsString() + " because curseforge sucks");
                 continue;
             }
+            String itemType = "mod";
+            if (searchFilters.isModpack) itemType = "modpack";
+            else if (searchFilters.isResourcePack) itemType = "resourcepack";
+            else if (searchFilters.isShaderPack) itemType = "shader";
+
+            String thumbUrl = "";
+            if (dataElement.has("logo") && !dataElement.get("logo").isJsonNull()) {
+                JsonObject logoObj = dataElement.getAsJsonObject("logo");
+                if (logoObj.has("thumbnailUrl") && !logoObj.get("thumbnailUrl").isJsonNull()) {
+                    thumbUrl = logoObj.get("thumbnailUrl").getAsString();
+                }
+            }
+
             ModItem modItem = new ModItem(Constants.SOURCE_CURSEFORGE,
                     searchFilters.isModpack,
                     dataElement.get("id").getAsString(),
                     dataElement.get("name").getAsString(),
                     dataElement.get("summary").getAsString(),
-                    dataElement.getAsJsonObject("logo").get("thumbnailUrl").getAsString());
+                    thumbUrl);
+            modItem.itemType = itemType;
             modItemList.add(modItem);
         }
         if(curseforgeSearchResult == null) curseforgeSearchResult = new CurseforgeSearchResult();
@@ -136,7 +159,62 @@ public class CurseforgeApi implements ModpackApi{
 
     @Override
     public ModLoader installModpack(ModDetail modDetail, int selectedVersion) throws IOException{
-        //TODO considering only modpacks for now
+        if (modDetail != null && !modDetail.isModpack) {
+            String projType = "mods";
+            if ("shader".equals(modDetail.itemType)) {
+                projType = "shaderpacks";
+            } else if ("resourcepack".equals(modDetail.itemType)) {
+                projType = "resourcepacks";
+            } else if ("mod".equals(modDetail.itemType)) {
+                projType = "mods";
+            } else {
+                if (modDetail.imageUrl != null && modDetail.imageUrl.contains("shader")) {
+                    projType = "shaderpacks";
+                } else if (modDetail.imageUrl != null && modDetail.imageUrl.contains("resourcepack")) {
+                    projType = "resourcepacks";
+                } else {
+                    String title = modDetail.title.toLowerCase();
+                    if (title.contains("shader") || title.contains("complementary") || title.contains("solas")) {
+                        projType = "shaderpacks";
+                    } else if (title.contains("resource") || title.contains("pack") || title.contains("textures")) {
+                        projType = "resourcepacks";
+                    }
+                }
+            }
+
+            net.kdt.pojavlaunch.instances.Instance currentInstance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (currentInstance == null) {
+                throw new IOException("No Minecraft Instance currently selected to download items into!");
+            }
+
+            File destFolder = new File(currentInstance.getGameDirectory(), projType);
+            if (!destFolder.exists()) {
+                destFolder.mkdirs();
+            }
+
+            String versionUrl = modDetail.versionUrls[selectedVersion];
+            String file_name = versionUrl.substring(versionUrl.lastIndexOf('/') + 1);
+            if (file_name.contains("?")) {
+                file_name = file_name.substring(0, file_name.indexOf('?'));
+            }
+            File destFile = new File(destFolder, file_name);
+
+            byte[] buffer = new byte[8192];
+            ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, 0, "DOWNLOADING TO " + projType.toUpperCase() + "...");
+            net.kdt.pojavlaunch.utils.DownloadUtils.downloadFileMonitored(versionUrl, destFile, buffer,
+                    new net.kdt.pojavlaunch.progresskeeper.DownloaderProgressWrapper(R.string.modpack_download_downloading_metadata, ProgressLayout.INSTALL_MODPACK)
+            );
+
+            ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, 100, "INSTALLATION COMPLETE!");
+            try { Thread.sleep(800); } catch (Exception e) {}
+            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
+            return new ModLoader(ModLoader.MOD_LOADER_FABRIC, "0.15.11", "1.21.1") {
+                @Override
+                public boolean requiresGuiInstallation() { return false; }
+                @Override
+                public String installHeadlessly() { return "1.21.1-fabric-0.15.11"; }
+            };
+        }
         return ModpackInstaller.downloadModpack(modDetail, selectedVersion, this::installCurseforgeZip);
     }
 
