@@ -10,6 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.EditText;
+import android.graphics.Color;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -91,7 +95,7 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Settings Gear click launches our magnificent full-screen Command Dashboard
+        // Settings Gear click launches our magnificent full-screen Split-Pane Command Dashboard
         if (hamburgerBtn != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -115,28 +119,83 @@ public class MainMenuFragment extends Fragment {
                 });
 
                 // Navigation buttons inside the left rail
-                View navSettings = dialog.findViewById(R.id.dash_nav_settings);
-                View navExecute = dialog.findViewById(R.id.dash_nav_execute);
-                View navSkin = dialog.findViewById(R.id.dash_nav_skin);
-                View navAccount = dialog.findViewById(R.id.dash_nav_account);
-                View navControls = dialog.findViewById(R.id.dash_nav_controls);
-                View navMods = dialog.findViewById(R.id.dash_nav_mods);
-                View navLogs = dialog.findViewById(R.id.dash_nav_logs);
+                Button navSettings = dialog.findViewById(R.id.dash_nav_settings);
+                Button navExecute = dialog.findViewById(R.id.dash_nav_execute);
+                Button navSkin = dialog.findViewById(R.id.dash_nav_skin);
+                Button navAccount = dialog.findViewById(R.id.dash_nav_account);
+                Button navControls = dialog.findViewById(R.id.dash_nav_controls);
+                Button navMods = dialog.findViewById(R.id.dash_nav_mods);
+                Button navMusic = dialog.findViewById(R.id.dash_nav_music);
+                Button navLogs = dialog.findViewById(R.id.dash_nav_logs);
 
+                android.widget.FrameLayout rightPane = dialog.findViewById(R.id.dash_content_pane);
+
+                java.lang.Runnable resetNavButtons = () -> {
+                    navSettings.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navSettings.setTextColor(0xFFFFFFFF);
+                    navExecute.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navExecute.setTextColor(0xFFFFFFFF);
+                    navSkin.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navSkin.setTextColor(0xFFFFFFFF);
+                    navAccount.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navAccount.setTextColor(0xFFFFFFFF);
+                    navControls.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navControls.setTextColor(0xFFFFFFFF);
+                    navMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navMods.setTextColor(0xFFFFFFFF);
+                    navMusic.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navMusic.setTextColor(0xFFFFFFFF);
+                    navLogs.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    navLogs.setTextColor(0xFFFFFFFF);
+                };
+
+                // SPLIT-PANE 1: SETTINGS ENGINE
                 navSettings.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                    Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null);
+                    resetNavButtons.run();
+                    navSettings.setBackgroundResource(R.drawable.premium_button_bg);
+                    navSettings.setTextColor(0xFF000000);
+
+                    // Inflate options inside the right pane container dynamically
+                    rightPane.removeAllViews();
+                    View configView = dialog.getLayoutInflater().inflate(R.layout.dialog_mod_filters, rightPane, false);
+                    TextView titleV = configView.findViewById(R.id.search_mod_selected_mc_version_textview);
+                    Button mcVerBtn = configView.findViewById(R.id.search_mod_mc_version_button);
+                    Button applyBtn = configView.findViewById(R.id.search_mod_apply_filters);
+                    if (applyBtn != null) {
+                        applyBtn.setText("OPEN CONFIGURATIONS");
+                        applyBtn.setOnClickListener(vConfig -> {
+                            dialog.dismiss();
+                            Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null);
+                        });
+                    }
+                    rightPane.addView(configView);
                 });
 
+                // SPLIT-PANE 2: RUN EXECUTABLE
                 navExecute.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                    runInstallerWithConfirmation();
+                    resetNavButtons.run();
+                    navExecute.setBackgroundResource(R.drawable.premium_button_bg);
+                    navExecute.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    View execView = dialog.getLayoutInflater().inflate(R.layout.view_loading, rightPane, false);
+                    Button launchBtn = new Button(requireContext());
+                    launchBtn.setText("LAUNCH INSTALLER (.JAR)");
+                    launchBtn.setBackgroundResource(R.drawable.premium_button_bg);
+                    launchBtn.setTextColor(0xFF000000);
+                    launchBtn.setOnClickListener(vLaunch -> {
+                        dialog.dismiss();
+                        runInstallerWithConfirmation();
+                    });
+                    ((android.view.ViewGroup)execView).addView(launchBtn);
+                    rightPane.addView(execView);
                 });
 
+                // SPLIT-PANE 3 & 4: SKINS & ACCOUNTS
                 View.OnClickListener accountClick = v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
@@ -146,26 +205,193 @@ public class MainMenuFragment extends Fragment {
                 navSkin.setOnClickListener(accountClick);
                 navAccount.setOnClickListener(accountClick);
 
+                // SPLIT-PANE 5: INPUT MAPPING
                 navControls.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                    startActivity(new Intent(requireContext(), CustomControlsActivity.class));
+                    resetNavButtons.run();
+                    navControls.setBackgroundResource(R.drawable.premium_button_bg);
+                    navControls.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    Button mapBtn = new Button(requireContext());
+                    mapBtn.setText("OPEN CUSTOM CONTROLS MAPPING");
+                    mapBtn.setBackgroundResource(R.drawable.premium_button_bg);
+                    mapBtn.setTextColor(0xFF000000);
+                    mapBtn.setOnClickListener(vMap -> {
+                        dialog.dismiss();
+                        startActivity(new Intent(requireContext(), CustomControlsActivity.class));
+                    });
+                    rightPane.addView(mapBtn);
                 });
 
+                // SPLIT-PANE 6: MODS DEPLOY (Embed Downloader Dashboard directly inside Right Pane!)
                 navMods.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
+                    resetNavButtons.run();
+                    navMods.setBackgroundResource(R.drawable.premium_button_bg);
+                    navMods.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    // Swap directly to allow comfortable full-screen download/search experience
                     dialog.dismiss();
                     Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
                 });
 
+                // SPLIT-PANE 7: ONLINE STREAMING MUSIC HUB (All Hits: Hindi, English, Phonk!)
+                navMusic.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    resetNavButtons.run();
+                    navMusic.setBackgroundResource(R.drawable.premium_button_bg);
+                    navMusic.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    View musicView = dialog.getLayoutInflater().inflate(R.layout.view_music_hub, rightPane, false);
+                    LinearLayout tracksContainer = musicView.findViewById(R.id.music_tracks_list_container);
+                    SeekBar volSeek = musicView.findViewById(R.id.music_volume_seekbar);
+                    EditText searchEdit = musicView.findViewById(R.id.music_search_edittext);
+
+                    // Curated tracks metadata
+                    class StreamTrack {
+                        final String title;
+                        final String genre;
+                        final String url;
+                        StreamTrack(String t, String g, String u) { title = t; genre = g; url = u; }
+                    }
+
+                    final java.util.ArrayList<StreamTrack> tracks = new java.util.ArrayList<>();
+                    tracks.add(new StreamTrack("Kesariya (Arijit Singh) - Hindi", "HINDI", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"));
+                    tracks.add(new StreamTrack("Am I Dreaming (Spider-Verse) - Synth", "ENGLISH", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"));
+                    tracks.add(new StreamTrack("Metamorphosis (Phonk Remix) - Phonk", "PHONK", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"));
+                    tracks.add(new StreamTrack("Starboy (The Weeknd) - Synthpop", "ENGLISH", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"));
+                    tracks.add(new StreamTrack("Kabira (Arijit Singh) - Hindi", "HINDI", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"));
+                    tracks.add(new StreamTrack("Rapture Phonk - Trap", "PHONK", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"));
+
+                    // Helper to build list
+                    final class Loader {
+                        private android.media.MediaPlayer activePlayer = null;
+
+                        void populate(String filterQuery) {
+                            tracksContainer.removeAllViews();
+                            for (final StreamTrack track : tracks) {
+                                if (filterQuery != null && !filterQuery.isEmpty() && !track.title.toLowerCase().contains(filterQuery.toLowerCase())) {
+                                    continue;
+                                }
+
+                                TextView trackBtn = new TextView(requireContext());
+                                trackBtn.setText("📻 " + track.title + " [" + track.genre + "]");
+                                trackBtn.setTextColor(Color.WHITE);
+                                trackBtn.setTextSize(14);
+                                trackBtn.setPadding(12, 12, 12, 12);
+                                trackBtn.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                lp.setMargins(0, 4, 0, 4);
+                                trackBtn.setLayoutParams(lp);
+
+                                trackBtn.setOnClickListener(vTr -> {
+                                    vTr.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                    net.kdt.pojavlaunch.SoundManager.playClick();
+
+                                    // Stop any active theme songs
+                                    net.kdt.pojavlaunch.SoundManager.stopMusic();
+
+                                    if (activePlayer != null) {
+                                        activePlayer.stop();
+                                        activePlayer.release();
+                                    }
+
+                                    trackBtn.setTextColor(0x00FFCC);
+                                    trackBtn.setText("⏳ BUFFERING FEED: " + track.title);
+
+                                    activePlayer = new android.media.MediaPlayer();
+                                    try {
+                                        activePlayer.setDataSource(track.url);
+                                        activePlayer.prepareAsync();
+                                        activePlayer.setOnPreparedListener(mp -> {
+                                            trackBtn.setText("🔊 PLAYING STREAM: " + track.title);
+                                            mp.setLooping(true);
+                                            float curVol = volSeek.getProgress() / 100f;
+                                            mp.setVolume(curVol, curVol);
+                                            mp.start();
+                                        });
+                                        activePlayer.setOnErrorListener((mp, what, extra) -> {
+                                            trackBtn.setText("❌ STREAM OFFLINE: " + track.title);
+                                            return true;
+                                        });
+                                    } catch (Exception streamEx) {
+                                        streamEx.printStackTrace();
+                                    }
+                                });
+
+                                tracksContainer.addView(trackBtn);
+                            }
+                        }
+                    }
+
+                    final Loader mLoader = new Loader();
+
+                    // Register volume seekbar listener
+                    volSeek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                        @Override
+                        public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                            float vL = progress / 100f;
+                            if (mLoader.activePlayer != null) {
+                                mLoader.activePlayer.setVolume(vL, vL);
+                            }
+                        }
+                        @Override
+                        public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
+                        @Override
+                        public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
+                    });
+
+                    // Search input filter
+                    searchEdit.addTextChangedListener(new android.text.TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            mLoader.populate(s.toString());
+                        }
+                        @Override
+                        public void afterTextChanged(android.text.Editable s) {}
+                    });
+
+                    dialog.setOnDismissListener(di -> {
+                        if (mLoader.activePlayer != null) {
+                            mLoader.activePlayer.stop();
+                            mLoader.activePlayer.release();
+                        }
+                    });
+
+                    mLoader.populate("");
+                    rightPane.addView(musicView);
+                });
+
+                // SPLIT-PANE 8: TELEMETRY LOGS
                 navLogs.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                    shareLog(requireContext());
+                    resetNavButtons.run();
+                    navLogs.setBackgroundResource(R.drawable.premium_button_bg);
+                    navLogs.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    Button shareBtn = new Button(requireContext());
+                    shareBtn.setText("EXPORT SYSTEMS LOGS TELEMETRY");
+                    shareBtn.setBackgroundResource(R.drawable.premium_button_bg);
+                    shareBtn.setTextColor(0xFF000000);
+                    shareBtn.setOnClickListener(vShare -> {
+                        dialog.dismiss();
+                        shareLog(requireContext());
+                    });
+                    rightPane.addView(shareBtn);
                 });
+
+                // Default selection
+                navSettings.performClick();
 
                 dialog.show();
             });

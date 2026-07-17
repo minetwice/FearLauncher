@@ -335,8 +335,9 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                             continue;
                                         }
 
-                                        // 2. Apply loader filter matching
-                                        if (!chosenLoader.equals("All")) {
+                                        // 2. Apply loader filter matching (independent for Shaders and Resource packs)
+                                        boolean skipLoaderFilter = finalIsShader || (mModItem.itemType != null && mModItem.itemType.equals("resourcepack"));
+                                        if (!chosenLoader.equals("All") && !skipLoaderFilter) {
                                             String target = chosenLoader.toLowerCase();
                                             // Handle special case: do not mix up forge and neoforge
                                             if (target.equals("forge") && vName.contains("neoforge")) {
