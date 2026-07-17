@@ -172,12 +172,65 @@
 
     </LinearLayout>
 
+    <!-- Release Type Tabs / Filters (Aligned perfectly directly below dropdowns) -->
+    <LinearLayout
+        android:id="@+id/detail_type_filters"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_28sdp"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/detail_selector_hud">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/filter_type_all"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="ALL"
+            android:textSize="@dimen/_8ssp"
+            android:textColor="#000000"
+            android:background="@drawable/premium_button_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/filter_type_release"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.2"
+            android:text="RELEASE"
+            android:textSize="@dimen/_8ssp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/filter_type_beta"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="BETA"
+            android:textSize="@dimen/_8ssp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/filter_type_alpha"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.2"
+            android:text="SNAPSHOT"
+            android:textSize="@dimen/_8ssp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/premium_glass_black_bg" />
+    </LinearLayout>
+
     <!-- Details Content Scroll Area -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/detail_selector_hud"
+        app:layout_constraintTop_toBottomOf="@id/detail_type_filters"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
