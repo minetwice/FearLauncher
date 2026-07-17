@@ -6,13 +6,13 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Consolidated Premium Menu Trigger (Top Right) -->
+    <!-- Settings Gear Menu Trigger (Top Right) -->
     <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_44sdp"
         android:layout_height="@dimen/_44sdp"
         android:layout_margin="@dimen/_12sdp"
-        android:src="@drawable/ic_hamburger"
+        android:src="@drawable/ic_sharp_settings_24"
         android:background="@drawable/premium_button_bg"
         android:padding="@dimen/_10sdp"
         app:layout_constraintTop_toTopOf="parent"

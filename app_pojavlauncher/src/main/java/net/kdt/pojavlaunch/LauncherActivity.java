@@ -227,12 +227,14 @@ public class LauncherActivity extends BaseActivity {
         super.onResume();
         ContextExecutor.setActivity(this);
         InstanceInstaller.postInstallCheck(this);
+        SoundManager.startMusic(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         ContextExecutor.clearActivity();
+        SoundManager.stopMusic();
     }
 
     @Override

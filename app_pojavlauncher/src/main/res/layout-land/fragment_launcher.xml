@@ -6,14 +6,15 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Hamburger Icon (Top Right) - Moved from left -->
-    <ImageButton
+    <!-- Settings Gear Menu Trigger (Top Right) -->
+    <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_40sdp"
         android:layout_margin="@dimen/_16sdp"
-        android:src="@drawable/ic_app_logo"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_sharp_settings_24"
+        android:background="@drawable/premium_button_bg"
+        android:padding="@dimen/_8sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -76,19 +76,6 @@ public class MainMenuFragment extends Fragment {
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
-        // Sidebar Items
-        View traySettingsBtn = view.findViewById(R.id.tray_settings_btn);
-        View trayExecuteJarBtn = view.findViewById(R.id.tray_execute_jar_btn);
-        View traySkinBtn = view.findViewById(R.id.tray_skin_btn);
-        View trayAccountBtn = view.findViewById(R.id.tray_account_btn);
-        View moreSettingsToggle = view.findViewById(R.id.more_settings_toggle);
-        LinearLayout moreSettingsLayout = view.findViewById(R.id.more_settings_layout);
-
-        // More Sidebar Sub-items
-        View trayControlsBtn = view.findViewById(R.id.tray_controls_btn);
-        View trayModsBtn = view.findViewById(R.id.tray_mods_btn);
-        View trayLogsBtn = view.findViewById(R.id.tray_logs_btn);
-
         // Refresh UI
         refreshAccountUI();
         updateVersionText();
@@ -104,89 +91,83 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Sidebar Actions
-        if (traySettingsBtn != null) {
-            traySettingsBtn.setOnClickListener(v ->
-                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null));
-        }
-
-        if (trayExecuteJarBtn != null) {
-            trayExecuteJarBtn.setOnClickListener(v -> runInstallerWithConfirmation());
-        }
-
-        if (traySkinBtn != null || trayAccountBtn != null) {
-            View.OnClickListener accountListener = v -> openAccountManager();
-            if (traySkinBtn != null) traySkinBtn.setOnClickListener(accountListener);
-            if (trayAccountBtn != null) trayAccountBtn.setOnClickListener(accountListener);
-        }
-
-        if (trayControlsBtn != null) {
-            trayControlsBtn.setOnClickListener(v ->
-                    startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
-        }
-
-        if (trayModsBtn != null) {
-            trayModsBtn.setOnClickListener(v -> {
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
-            });
-        }
-
-        if (trayLogsBtn != null) {
-            trayLogsBtn.setOnClickListener(v -> shareLog(requireContext()));
-        }
-
-
-        if (moreSettingsToggle != null && moreSettingsLayout != null) {
-            moreSettingsToggle.setOnClickListener(v -> {
-                if (moreSettingsLayout.getVisibility() == View.VISIBLE) {
-                    animateItemsSequentially(moreSettingsLayout, false);
-                    moreSettingsLayout.setVisibility(View.GONE);
-                } else {
-                    moreSettingsLayout.setVisibility(View.VISIBLE);
-                    animateItemsSequentially(moreSettingsLayout, true);
-                }
-            });
-        }
-
-        // TRAY SLIDE LOGIC (Toggle Switch)
-        final View settingsTray = view.findViewById(R.id.settings_tray);
-        if (hamburgerBtn != null && settingsTray != null) {
+        // Settings Gear click launches our magnificent full-screen Command Dashboard
+        if (hamburgerBtn != null) {
             hamburgerBtn.setOnClickListener(v -> {
-                final ViewGroup container = view.findViewById(R.id.tray_container);
-                if (settingsTray.getVisibility() == View.VISIBLE) {
-                    // Close menu (Slide out to Right)
-                    if (container != null) animateItemsSequentially(container, false);
-                    settingsTray.animate()
-                            .translationX(settingsTray.getWidth())
-                            .alpha(0f)
-                            .setDuration(400)
-                            .withEndAction(() -> settingsTray.setVisibility(View.GONE))
-                            .start();
-                } else {
-                    // Open menu (Slide in from Right)
-                    settingsTray.setVisibility(View.VISIBLE);
-                    settingsTray.setAlpha(0f);
-                    settingsTray.setTranslationX(settingsTray.getWidth());
-                    settingsTray.animate()
-                            .translationX(0f)
-                            .alpha(1f)
-                            .setDuration(400)
-                            .withEndAction(() -> {
-                                if (container != null) animateItemsSequentially(container, true);
-                            })
-                            .start();
-                }
-            });
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
 
-            view.findViewById(R.id.tray_close).setOnClickListener(v -> {
-                final ViewGroup container = view.findViewById(R.id.tray_container);
-                if (container != null) animateItemsSequentially(container, false);
-                settingsTray.animate()
-                        .translationX(settingsTray.getWidth())
-                        .alpha(0f)
-                        .setDuration(400)
-                        .withEndAction(() -> settingsTray.setVisibility(View.GONE))
-                        .start();
+                android.app.Dialog dialog = new android.app.Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.dialog_premium_settings_dashboard);
+
+                View backBtn = dialog.findViewById(R.id.dash_back_btn);
+                View doneBtn = dialog.findViewById(R.id.dash_done_btn);
+
+                backBtn.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                });
+                doneBtn.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                });
+
+                // Navigation buttons inside the left rail
+                View navSettings = dialog.findViewById(R.id.dash_nav_settings);
+                View navExecute = dialog.findViewById(R.id.dash_nav_execute);
+                View navSkin = dialog.findViewById(R.id.dash_nav_skin);
+                View navAccount = dialog.findViewById(R.id.dash_nav_account);
+                View navControls = dialog.findViewById(R.id.dash_nav_controls);
+                View navMods = dialog.findViewById(R.id.dash_nav_mods);
+                View navLogs = dialog.findViewById(R.id.dash_nav_logs);
+
+                navSettings.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null);
+                });
+
+                navExecute.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    runInstallerWithConfirmation();
+                });
+
+                View.OnClickListener accountClick = v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    openAccountManager();
+                };
+                navSkin.setOnClickListener(accountClick);
+                navAccount.setOnClickListener(accountClick);
+
+                navControls.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    startActivity(new Intent(requireContext(), CustomControlsActivity.class));
+                });
+
+                navMods.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
+                });
+
+                navLogs.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                    shareLog(requireContext());
+                });
+
+                dialog.show();
             });
         }
     }
