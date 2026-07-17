@@ -136,6 +136,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         if (btnModpacks != null && btnMods != null && btnRes != null && btnShaders != null) {
             btnModpacks.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 btnModpacks.setBackgroundResource(R.drawable.premium_button_bg);
                 btnModpacks.setTextColor(Color.BLACK);
                 btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
@@ -154,6 +155,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
 
             btnMods.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_button_bg);
@@ -172,6 +174,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
 
             btnRes.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
@@ -190,6 +193,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
 
             btnShaders.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 btnModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
                 btnModpacks.setTextColor(Color.WHITE);
                 btnMods.setBackgroundResource(R.drawable.premium_glass_black_bg);

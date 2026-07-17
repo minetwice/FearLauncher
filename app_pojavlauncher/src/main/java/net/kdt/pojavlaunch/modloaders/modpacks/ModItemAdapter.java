@@ -170,6 +170,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mViewHolderSet.add(this);
             view.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 android.content.Context context = v.getContext();
                 android.app.Dialog dialog = new android.app.Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
                 dialog.setContentView(R.layout.dialog_mod_detail_fullscreen);
@@ -177,6 +178,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 View closeBtn = dialog.findViewById(R.id.detail_close_btn);
                 closeBtn.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
                     dialog.dismiss();
                 });
 
@@ -184,6 +186,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 if (doneBtn != null) {
                     doneBtn.setOnClickListener(v2 -> {
                         v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
                         dialog.dismiss();
                     });
                 }
@@ -379,6 +382,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                             installBtn.setEnabled(true);
                                             installBtn.setOnClickListener(v3 -> {
                                                 v3.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                                net.kdt.pojavlaunch.SoundManager.playClick();
                                                 int spinnerPos = detailSpinner.getSelectedItemPosition();
                                                 if (spinnerPos >= 0 && spinnerPos < combinedIndices.size()) {
                                                     int finalOrigIdx = combinedIndices.get(spinnerPos);

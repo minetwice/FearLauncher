@@ -21,23 +21,30 @@ public class SoundManager {
                 .setAudioAttributes(audioAttributes)
                 .build();
 
-        // Load sounds if they exist in res/raw (placeholders for now)
-        // sClickSound = sSoundPool.load(context, R.raw.ui_click, 1);
+        try {
+            sClickSound = sSoundPool.load(context, R.raw.ui_click, 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void playClick() {
         if (sSoundPool != null && sClickSound != 0) {
-            sSoundPool.play(sClickSound, 1, 1, 0, 0, 1);
+            sSoundPool.play(sClickSound, 0.8f, 0.8f, 0, 0, 1.0f);
         }
     }
 
     public static void startMusic(Context context) {
-        // Placeholder for background music
-        // sBackgroundMusic = MediaPlayer.create(context, R.raw.background_music);
-        // if (sBackgroundMusic != null) {
-        //     sBackgroundMusic.setLooping(true);
-        //     sBackgroundMusic.start();
-        // }
+        try {
+            sBackgroundMusic = MediaPlayer.create(context, R.raw.background_music);
+            if (sBackgroundMusic != null) {
+                sBackgroundMusic.setLooping(true);
+                sBackgroundMusic.setVolume(0.3f, 0.3f);
+                sBackgroundMusic.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void stopMusic() {
