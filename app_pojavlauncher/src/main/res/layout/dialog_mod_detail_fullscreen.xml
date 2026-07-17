@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E6000000"
+    android:padding="16dp">
+
+    <!-- Header / Close button -->
+    <ImageButton
+        android:id="@+id/detail_close_btn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_px_arrow_left"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/detail_header_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="ITEM SPECIFICATION"
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/_14ssp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toTopOf="@id/detail_close_btn"
+        app:layout_constraintBottom_toBottomOf="@id/detail_close_btn"
+        app:layout_constraintStart_toEndOf="@id/detail_close_btn"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Details Container -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/detail_close_btn"
+        app:layout_constraintBottom_toTopOf="@+id/detail_action_container">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="8dp">
+
+            <!-- App Logo/Thumbnail of item -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@android:color/transparent">
+                <ImageView
+                    android:id="@+id/detail_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/detail_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_16ssp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="16dp" />
+
+            <!-- Source Info -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+                <ImageView
+                    android:id="@+id/detail_source_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp" />
+                <TextView
+                    android:id="@+id/detail_source_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="100dp"
+                android:layout_height="2dp"
+                android:background="#4DFFFFFF"
+                android:layout_marginVertical="16dp" />
+
+            <!-- Description Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DESCRIPTION / MEMO"
+                android:textColor="#B0FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Description body -->
+            <TextView
+                android:id="@+id/detail_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#E0E0E0"
+                android:textSize="@dimen/_11ssp"
+                android:lineSpacingMultiplier="1.2" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Actions Area -->
+    <LinearLayout
+        android:id="@+id/detail_action_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Error Warning if any -->
+        <TextView
+            android:id="@+id/detail_error_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FF4D4D"
+            android:textSize="@dimen/_10ssp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CHOOSE DEPLOYMENT VERSION:"
+            android:textColor="#B0FFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Spinner -->
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:id="@+id/detail_version_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:background="@drawable/premium_edit_bg"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Install Button -->
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/detail_install_btn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="DEPLOY TO SELECTED INSTANCE"
+            android:textColor="#000000"
+            android:textSize="@dimen/_12ssp"
+            android:textStyle="bold"
+            android:background="@drawable/premium_button_bg" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

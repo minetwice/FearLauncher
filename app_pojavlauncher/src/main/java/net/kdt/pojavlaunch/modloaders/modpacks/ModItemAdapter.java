@@ -169,57 +169,101 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(view);
             mViewHolderSet.add(this);
             view.setOnClickListener(v -> {
-                if(!hasExtended()){
-                    // Inflate the ViewStub
-                    mExtendedLayout = ((ViewStub)v.findViewById(R.id.mod_limited_state_stub)).inflate();
-                    mExtendedButton = mExtendedLayout.findViewById(R.id.mod_extended_select_version_button);
-                    mExtendedSpinner = mExtendedLayout.findViewById(R.id.mod_extended_version_spinner);
-                    mExtendedErrorTextView = mExtendedLayout.findViewById(R.id.mod_extended_error_textview);
+                android.content.Context context = v.getContext();
+                android.app.Dialog dialog = new android.app.Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.dialog_mod_detail_fullscreen);
 
-                    mExtendedButton.setOnClickListener(v1 -> mModpackApi.handleModpackInstallation(
-                            mExtendedButton.getContext().getApplicationContext(),
-                            mModDetail,
-                            mExtendedSpinner.getSelectedItemPosition()));
-                    mExtendedSpinner.setAdapter(mLoadingAdapter);
-                } else {
-                    if(isExtended()) closeDetailedView();
-                    else openDetailedView();
+                View closeBtn = dialog.findViewById(R.id.detail_close_btn);
+                closeBtn.setOnClickListener(v2 -> dialog.dismiss());
+
+                ImageView detailIcon = dialog.findViewById(R.id.detail_icon);
+                if (mThumbnailBitmap != null) {
+                    detailIcon.setImageBitmap(mThumbnailBitmap);
                 }
 
-                if(isExtended() && mModDetail == null && mExtensionFuture == null) { // only reload if no reloads are in progress
-                    setDetailedStateDefault();
-                    /*
-                     * Why do we do this?
-                     * The reason is simple: multithreading is difficult as hell to manage
-                     * Let me explain:
-                     */
-                    mExtensionFuture = new SelfReferencingFuture(myFuture -> {
-                        /*
-                         * While we are sitting in the function below doing networking, the view might have already gotten recycled.
-                         * If we didn't use a Future, we would have extended a ViewHolder with completely unrelated content
-                         * or with an error that has never actually happened
-                         */
+                TextView detailTitle = dialog.findViewById(R.id.detail_title);
+                detailTitle.setText(mModItem.title);
+
+                ImageView sourceIcon = dialog.findViewById(R.id.detail_source_icon);
+                TextView sourceText = dialog.findViewById(R.id.detail_source_text);
+                sourceIcon.setImageResource(getSourceDrawable(mModItem.apiSource));
+                sourceText.setText(mModItem.apiSource == Constants.SOURCE_MODRINTH ? "MODRINTH ENGINE" : "CURSEFORGE DATA STREAM");
+
+                TextView detailDesc = dialog.findViewById(R.id.detail_desc);
+                detailDesc.setText(mModItem.description);
+
+                androidx.appcompat.widget.AppCompatSpinner detailSpinner = dialog.findViewById(R.id.detail_version_spinner);
+                TextView errorText = dialog.findViewById(R.id.detail_error_text);
+                Button installBtn = dialog.findViewById(R.id.detail_install_btn);
+
+                installBtn.setEnabled(false);
+                detailSpinner.setAdapter(mLoadingAdapter);
+
+                dialog.show();
+
+                PojavApplication.sExecutorService.execute(() -> {
+                    try {
                         mModDetail = mModpackApi.getModDetails(mModItem);
-                        System.out.println(mModDetail);
+                        if (mModDetail != null) {
+                            String instanceMcVersion = "";
+                            net.kdt.pojavlaunch.instances.Instance currentInstance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+                            if (currentInstance != null && currentInstance.versionId != null) {
+                                instanceMcVersion = currentInstance.versionId;
+                                int dashIdx = instanceMcVersion.indexOf('-');
+                                if (dashIdx > 0) {
+                                    instanceMcVersion = instanceMcVersion.substring(0, dashIdx);
+                                }
+                            }
+
+                            String[] dispNames = new String[mModDetail.versionNames.length];
+                            int bestIndex = 0;
+                            boolean foundBest = false;
+
+                            for (int i = 0; i < mModDetail.versionNames.length; i++) {
+                                String mcVer = mModDetail.mcVersionNames[i];
+                                if (mcVer != null && !instanceMcVersion.isEmpty() && (mcVer.equals(instanceMcVersion) || mcVer.contains(instanceMcVersion) || instanceMcVersion.contains(mcVer))) {
+                                    dispNames[i] = "⭐ [RECOMMENDED] " + mModDetail.versionNames[i];
+                                    if (!foundBest) {
+                                        bestIndex = i;
+                                        foundBest = true;
+                                    }
+                                } else {
+                                    dispNames[i] = "  " + mModDetail.versionNames[i];
+                                }
+                            }
+
+                            final String[] finalDispNames = dispNames;
+                            final int finalBestIndex = bestIndex;
+
+                            Tools.runOnUiThread(() -> {
+                                com.kdt.SimpleArrayAdapter<String> adapter = new com.kdt.SimpleArrayAdapter<>(java.util.Arrays.asList(finalDispNames));
+                                detailSpinner.setAdapter(adapter);
+                                detailSpinner.setSelection(finalBestIndex);
+
+                                installBtn.setEnabled(true);
+                                installBtn.setOnClickListener(v3 -> {
+                                    dialog.dismiss();
+                                    mModpackApi.handleModpackInstallation(
+                                        context.getApplicationContext(),
+                                        mModDetail,
+                                        detailSpinner.getSelectedItemPosition()
+                                    );
+                                });
+                            });
+                        } else {
+                            Tools.runOnUiThread(() -> {
+                                errorText.setVisibility(View.VISIBLE);
+                                errorText.setText("FAILED TO RESOLVE METADATA CHANNELS.");
+                            });
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                         Tools.runOnUiThread(() -> {
-                            /*
-                             * Once we enter here, the state we're in is already defined - no view shuffling can happen on the UI
-                             * thread while we are on the UI thread ourselves. If we were cancelled, this means that the future
-                             * we were supposed to have no longer makes sense, so we return and do not alter the state (since we might
-                             * alter the state of an unrelated item otherwise)
-                             */
-                            if(myFuture.isCancelled()) return;
-                            /*
-                             * We do not null the future before returning since this field might already belong to a different item with its
-                             * own Future, which we don't want to interfere with.
-                             * But if the future is not cancelled, it is the right one for this ViewHolder, and we don't need it anymore, so
-                             * let's help GC clean it up once we exit!
-                             */
-                            mExtensionFuture = null;
-                            setStateDetailed(mModDetail);
+                            errorText.setVisibility(View.VISIBLE);
+                            errorText.setText("METADATA NETWORK ERROR: " + e.getMessage());
                         });
-                    }).startOnExecutor(PojavApplication.sExecutorService);
-                }
+                    }
+                });
             });
 
             // Define click listener for the ViewHolder's View
