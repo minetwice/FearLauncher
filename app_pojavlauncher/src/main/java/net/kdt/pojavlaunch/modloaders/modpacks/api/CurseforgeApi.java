@@ -123,6 +123,36 @@ public class CurseforgeApi implements ModpackApi{
 
     @Override
     public ModDetail getModDetails(ModItem item) {
+        String fullDesc = item.description;
+        String previewUrl = "";
+
+        try {
+            JsonObject descObj = mApiHandler.get(String.format("mods/%s/description", item.id), JsonObject.class);
+            if (descObj != null && descObj.has("data") && !descObj.get("data").isJsonNull()) {
+                fullDesc = descObj.get("data").getAsString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            JsonObject modObj = mApiHandler.get(String.format("mods/%s", item.id), JsonObject.class);
+            if (modObj != null && modObj.has("data") && !modObj.get("data").isJsonNull()) {
+                JsonObject data = modObj.getAsJsonObject("data");
+                if (data.has("screenshots") && !data.get("screenshots").isJsonNull()) {
+                    JsonArray screenshots = data.getAsJsonArray("screenshots");
+                    if (screenshots != null && screenshots.size() > 0) {
+                        JsonObject firstSc = screenshots.get(0).getAsJsonObject();
+                        if (firstSc.has("url") && !firstSc.get("url").isJsonNull()) {
+                            previewUrl = firstSc.get("url").getAsString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         ArrayList<JsonObject> allModDetails = new ArrayList<>();
         int index = 0;
         while(index != CURSEFORGE_PAGINATION_END_REACHED &&
@@ -135,26 +165,41 @@ public class CurseforgeApi implements ModpackApi{
         String[] mcVersionNames = new String[length];
         String[] versionUrls = new String[length];
         String[] hashes = new String[length];
+        String[] types = new String[length];
+
         for(int i = 0; i < allModDetails.size(); i++) {
             JsonObject modDetail = allModDetails.get(i);
             versionNames[i] = modDetail.get("displayName").getAsString();
 
             JsonElement downloadUrl = modDetail.get("downloadUrl");
-            versionUrls[i] = downloadUrl.getAsString();
+            versionUrls[i] = downloadUrl.isJsonNull() ? "" : downloadUrl.getAsString();
 
             JsonArray gameVersions = modDetail.getAsJsonArray("gameVersions");
+            String mcVersion = "any";
             for(JsonElement jsonElement : gameVersions) {
                 String gameVersion = jsonElement.getAsString();
                 if(!sMcVersionPattern.matcher(gameVersion).matches()) {
                     continue;
                 }
-                mcVersionNames[i] = gameVersion;
+                mcVersion = gameVersion;
                 break;
             }
+            mcVersionNames[i] = mcVersion;
+
+            String vType = "release";
+            if (modDetail.has("releaseType") && !modDetail.get("releaseType").isJsonNull()) {
+                int rType = modDetail.get("releaseType").getAsInt();
+                if (rType == 2) {
+                    vType = "beta";
+                } else if (rType == 3) {
+                    vType = "alpha";
+                }
+            }
+            types[i] = vType;
 
             hashes[i] = getSha1FromModData(modDetail);
         }
-        return new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes);
+        return new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes, fullDesc, previewUrl, types);
     }
 
     @Override

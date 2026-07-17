@@ -103,6 +103,28 @@ public class ModrinthApi implements ModpackApi{
 
     @Override
     public ModDetail getModDetails(ModItem item) {
+        String fullDesc = item.description;
+        String previewUrl = "";
+
+        try {
+            JsonObject projectDetails = mApiHandler.get(String.format("project/%s", item.id), JsonObject.class);
+            if (projectDetails != null) {
+                if (projectDetails.has("body") && !projectDetails.get("body").isJsonNull()) {
+                    fullDesc = projectDetails.get("body").getAsString();
+                }
+                if (projectDetails.has("gallery") && !projectDetails.get("gallery").isJsonNull()) {
+                    JsonArray gallery = projectDetails.getAsJsonArray("gallery");
+                    if (gallery != null && gallery.size() > 0) {
+                        JsonObject firstImg = gallery.get(0).getAsJsonObject();
+                        if (firstImg.has("url") && !firstImg.get("url").isJsonNull()) {
+                            previewUrl = firstImg.get("url").getAsString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JsonArray response = mApiHandler.get(String.format("project/%s/version", item.id), JsonArray.class);
         if(response == null) return null;
@@ -111,12 +133,29 @@ public class ModrinthApi implements ModpackApi{
         String[] mcNames = new String[response.size()];
         String[] urls = new String[response.size()];
         String[] hashes = new String[response.size()];
+        String[] types = new String[response.size()];
 
         for (int i=0; i<response.size(); ++i) {
             JsonObject version = response.get(i).getAsJsonObject();
             names[i] = version.get("name").getAsString();
-            mcNames[i] = version.get("game_versions").getAsJsonArray().get(0).getAsString();
+
+            String mcNameStr = "any";
+            if (version.has("game_versions") && !version.get("game_versions").isJsonNull()) {
+                JsonArray gv = version.getAsJsonArray("game_versions");
+                if (gv.size() > 0) {
+                    mcNameStr = gv.get(0).getAsString();
+                }
+            }
+            mcNames[i] = mcNameStr;
+
             urls[i] = version.get("files").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
+
+            String vType = "release";
+            if (version.has("version_type") && !version.get("version_type").isJsonNull()) {
+                vType = version.get("version_type").getAsString();
+            }
+            types[i] = vType;
+
             // Assume there may not be hashes, in case the API changes
             JsonObject hashesMap = version.getAsJsonArray("files").get(0).getAsJsonObject()
                     .get("hashes").getAsJsonObject();
@@ -128,7 +167,7 @@ public class ModrinthApi implements ModpackApi{
             hashes[i] = hashesMap.get("sha1").getAsString();
         }
 
-        return new ModDetail(item, names, mcNames, urls, hashes);
+        return new ModDetail(item, names, mcNames, urls, hashes, fullDesc, previewUrl, types);
     }
 
     @Override

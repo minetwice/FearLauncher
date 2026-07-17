@@ -12,6 +12,11 @@ public class ModDetail extends ModItem {
     public String[] versionUrls;
     /* SHA 1 hashes, null if a hash is unavailable */
     public String[] versionHashes;
+
+    public String fullDescription;
+    public String previewImageUrl;
+    public String[] versionTypes; // "release", "beta", "alpha"
+
     public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes) {
         super(item.apiSource, item.isModpack, item.id, item.title, item.description, item.imageUrl);
         this.itemType = item.itemType;
@@ -19,10 +24,35 @@ public class ModDetail extends ModItem {
         this.mcVersionNames = mcVersionNames;
         this.versionUrls = versionUrls;
         this.versionHashes = hashes;
+        this.fullDescription = item.description;
+        this.previewImageUrl = "";
+        this.versionTypes = new String[versionNames.length];
+        java.util.Arrays.fill(this.versionTypes, "release");
 
         // Add the mc version to the version model
         for (int i=0; i<versionNames.length; i++){
             if (!versionNames[i].contains(mcVersionNames[i]))
+                versionNames[i] += " - " + mcVersionNames[i];
+        }
+    }
+
+    public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes, String fullDescription, String previewImageUrl, String[] versionTypes) {
+        super(item.apiSource, item.isModpack, item.id, item.title, item.description, item.imageUrl);
+        this.itemType = item.itemType;
+        this.versionNames = versionNames;
+        this.mcVersionNames = mcVersionNames;
+        this.versionUrls = versionUrls;
+        this.versionHashes = hashes;
+        this.fullDescription = fullDescription != null ? fullDescription : item.description;
+        this.previewImageUrl = previewImageUrl != null ? previewImageUrl : "";
+        this.versionTypes = versionTypes != null ? versionTypes : new String[versionNames.length];
+        if (versionTypes == null) {
+            java.util.Arrays.fill(this.versionTypes, "release");
+        }
+
+        // Add the mc version to the version model
+        for (int i=0; i<versionNames.length; i++){
+            if (versionNames[i] != null && mcVersionNames[i] != null && !versionNames[i].contains(mcVersionNames[i]))
                 versionNames[i] += " - " + mcVersionNames[i];
         }
     }

@@ -196,6 +196,12 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 TextView errorText = dialog.findViewById(R.id.detail_error_text);
                 Button installBtn = dialog.findViewById(R.id.detail_install_btn);
 
+                // Version filters segment tabs
+                Button btnAll = dialog.findViewById(R.id.filter_type_all);
+                Button btnRelease = dialog.findViewById(R.id.filter_type_release);
+                Button btnBeta = dialog.findViewById(R.id.filter_type_beta);
+                Button btnAlpha = dialog.findViewById(R.id.filter_type_alpha);
+
                 installBtn.setEnabled(false);
                 detailSpinner.setAdapter(mLoadingAdapter);
 
@@ -205,51 +211,145 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     try {
                         mModDetail = mModpackApi.getModDetails(mModItem);
                         if (mModDetail != null) {
-                            String instanceMcVersion = "";
-                            net.kdt.pojavlaunch.instances.Instance currentInstance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
-                            if (currentInstance != null && currentInstance.versionId != null) {
-                                instanceMcVersion = currentInstance.versionId;
-                                int dashIdx = instanceMcVersion.indexOf('-');
-                                if (dashIdx > 0) {
-                                    instanceMcVersion = instanceMcVersion.substring(0, dashIdx);
-                                }
-                            }
-
-                            String[] dispNames = new String[mModDetail.versionNames.length];
-                            int bestIndex = 0;
-                            boolean foundBest = false;
-
-                            for (int i = 0; i < mModDetail.versionNames.length; i++) {
-                                String mcVer = mModDetail.mcVersionNames[i];
-                                if (mcVer != null && !instanceMcVersion.isEmpty() && (mcVer.equals(instanceMcVersion) || mcVer.contains(instanceMcVersion) || instanceMcVersion.contains(mcVer))) {
-                                    dispNames[i] = "⭐ [RECOMMENDED] " + mModDetail.versionNames[i];
-                                    if (!foundBest) {
-                                        bestIndex = i;
-                                        foundBest = true;
+                            // Fetch full preview image if available
+                            if (mModDetail.previewImageUrl != null && !mModDetail.previewImageUrl.isEmpty()) {
+                                PojavApplication.sExecutorService.execute(() -> {
+                                    try {
+                                        java.io.InputStream in = new java.net.URL(mModDetail.previewImageUrl).openStream();
+                                        final android.graphics.Bitmap bmp = android.graphics.BitmapFactory.decodeStream(in);
+                                        if (bmp != null) {
+                                            Tools.runOnUiThread(() -> {
+                                                androidx.cardview.widget.CardView previewCard = dialog.findViewById(R.id.detail_preview_card);
+                                                ImageView previewImage = dialog.findViewById(R.id.detail_preview_image);
+                                                if (previewCard != null && previewImage != null) {
+                                                    previewCard.setVisibility(View.VISIBLE);
+                                                    previewImage.setImageBitmap(bmp);
+                                                }
+                                            });
+                                        }
+                                    } catch (Exception imgEx) {
+                                        imgEx.printStackTrace();
                                     }
-                                } else {
-                                    dispNames[i] = "  " + mModDetail.versionNames[i];
+                                });
+                            }
+
+                            // Dynamic filtering, pinning and recommendation helper
+                            final class VersionFilterHelper {
+                                private String currentFilter = "all";
+
+                                void applyFilterAndPopulate() {
+                                    String instanceMcVersion = "";
+                                    net.kdt.pojavlaunch.instances.Instance currentInstance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+                                    if (currentInstance != null && currentInstance.versionId != null) {
+                                        instanceMcVersion = currentInstance.versionId;
+                                        int dashIdx = instanceMcVersion.indexOf('-');
+                                        if (dashIdx > 0) {
+                                            instanceMcVersion = instanceMcVersion.substring(0, dashIdx);
+                                        }
+                                    }
+
+                                    // Classify into recommended indices and other indices
+                                    java.util.ArrayList<Integer> recommendedIndices = new java.util.ArrayList<>();
+                                    java.util.ArrayList<Integer> otherIndices = new java.util.ArrayList<>();
+
+                                    for (int i = 0; i < mModDetail.versionNames.length; i++) {
+                                        String vType = mModDetail.versionTypes[i];
+                                        if (vType == null) vType = "release";
+
+                                        // Apply filter matching
+                                        if (!currentFilter.equals("all") && !vType.equalsIgnoreCase(currentFilter)) {
+                                            continue;
+                                        }
+
+                                        String mcVer = mModDetail.mcVersionNames[i];
+                                        if (mcVer != null && !instanceMcVersion.isEmpty() && (mcVer.equals(instanceMcVersion) || mcVer.contains(instanceMcVersion) || instanceMcVersion.contains(mcVer))) {
+                                            recommendedIndices.add(i);
+                                        } else {
+                                            otherIndices.add(i);
+                                        }
+                                    }
+
+                                    // Combine: recommendedIndices go absolute top (Pinned!)
+                                    final java.util.ArrayList<Integer> combinedIndices = new java.util.ArrayList<>();
+                                    combinedIndices.addAll(recommendedIndices);
+                                    combinedIndices.addAll(otherIndices);
+
+                                    final String[] dispNames = new String[combinedIndices.size()];
+                                    for (int j = 0; j < combinedIndices.size(); j++) {
+                                        int originalIdx = combinedIndices.get(j);
+                                        if (j < recommendedIndices.size()) {
+                                            dispNames[j] = "⭐ [RECOMMENDED] " + mModDetail.versionNames[originalIdx];
+                                        } else {
+                                            dispNames[j] = "  " + mModDetail.versionNames[originalIdx];
+                                        }
+                                    }
+
+                                    Tools.runOnUiThread(() -> {
+                                        if (dispNames.length == 0) {
+                                            com.kdt.SimpleArrayAdapter<String> emptyAdapter = new com.kdt.SimpleArrayAdapter<>(java.util.Collections.singletonList("No available versions for this category"));
+                                            detailSpinner.setAdapter(emptyAdapter);
+                                            installBtn.setEnabled(false);
+                                        } else {
+                                            com.kdt.SimpleArrayAdapter<String> adapter = new com.kdt.SimpleArrayAdapter<>(java.util.Arrays.asList(dispNames));
+                                            detailSpinner.setAdapter(adapter);
+                                            detailSpinner.setSelection(0); // auto pre-select matching recommended
+                                            installBtn.setEnabled(true);
+                                            installBtn.setOnClickListener(v3 -> {
+                                                int spinnerPos = detailSpinner.getSelectedItemPosition();
+                                                if (spinnerPos >= 0 && spinnerPos < combinedIndices.size()) {
+                                                    int finalOrigIdx = combinedIndices.get(spinnerPos);
+                                                    dialog.dismiss();
+                                                    mModpackApi.handleModpackInstallation(
+                                                        context.getApplicationContext(),
+                                                        mModDetail,
+                                                        finalOrigIdx
+                                                    );
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+
+                                void updateTabStyles(String activeFilter) {
+                                    currentFilter = activeFilter;
+                                    Tools.runOnUiThread(() -> {
+                                        btnAll.setBackgroundResource(activeFilter.equals("all") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                                        btnAll.setTextColor(activeFilter.equals("all") ? 0xFF000000 : 0xFFFFFFFF);
+
+                                        btnRelease.setBackgroundResource(activeFilter.equals("release") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                                        btnRelease.setTextColor(activeFilter.equals("release") ? 0xFF000000 : 0xFFFFFFFF);
+
+                                        btnBeta.setBackgroundResource(activeFilter.equals("beta") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                                        btnBeta.setTextColor(activeFilter.equals("beta") ? 0xFF000000 : 0xFFFFFFFF);
+
+                                        btnAlpha.setBackgroundResource(activeFilter.equals("alpha") ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                                        btnAlpha.setTextColor(activeFilter.equals("alpha") ? 0xFF000000 : 0xFFFFFFFF);
+                                    });
+                                    applyFilterAndPopulate();
                                 }
                             }
 
-                            final String[] finalDispNames = dispNames;
-                            final int finalBestIndex = bestIndex;
+                            final VersionFilterHelper filterHelper = new VersionFilterHelper();
 
                             Tools.runOnUiThread(() -> {
-                                com.kdt.SimpleArrayAdapter<String> adapter = new com.kdt.SimpleArrayAdapter<>(java.util.Arrays.asList(finalDispNames));
-                                detailSpinner.setAdapter(adapter);
-                                detailSpinner.setSelection(finalBestIndex);
+                                // Set rich HTML text to the description
+                                if (mModDetail.fullDescription != null && !mModDetail.fullDescription.isEmpty()) {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                                        detailDesc.setText(android.text.Html.fromHtml(mModDetail.fullDescription, android.text.Html.FROM_HTML_MODE_COMPACT));
+                                    } else {
+                                        detailDesc.setText(android.text.Html.fromHtml(mModDetail.fullDescription));
+                                    }
+                                }
 
-                                installBtn.setEnabled(true);
-                                installBtn.setOnClickListener(v3 -> {
-                                    dialog.dismiss();
-                                    mModpackApi.handleModpackInstallation(
-                                        context.getApplicationContext(),
-                                        mModDetail,
-                                        detailSpinner.getSelectedItemPosition()
-                                    );
-                                });
+                                btnAll.setOnClickListener(vTab -> filterHelper.updateTabStyles("all"));
+                                btnRelease.setOnClickListener(vTab -> filterHelper.updateTabStyles("release"));
+                                btnBeta.setOnClickListener(vTab -> filterHelper.updateTabStyles("beta"));
+                                btnAlpha.setOnClickListener(vTab -> filterHelper.updateTabStyles("alpha"));
                             });
+
+                            // Default populate
+                            filterHelper.updateTabStyles("all");
+
                         } else {
                             Tools.runOnUiThread(() -> {
                                 errorText.setVisibility(View.VISIBLE);
