@@ -6,15 +6,16 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Settings Gear Menu Trigger (Top Right) -->
+    <!-- Settings Gear Menu Trigger (Top Right - Premium Black Gear) -->
     <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_44sdp"
         android:layout_height="@dimen/_44sdp"
         android:layout_margin="@dimen/_12sdp"
         android:src="@drawable/ic_sharp_settings_24"
-        android:background="@drawable/premium_button_bg"
+        android:background="@drawable/premium_glass_black_bg"
         android:padding="@dimen/_10sdp"
+        app:tint="#FFFFFF"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

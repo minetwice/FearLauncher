@@ -20,31 +20,14 @@ public class SoundManager {
                 .setMaxStreams(5)
                 .setAudioAttributes(audioAttributes)
                 .build();
-
-        try {
-            sClickSound = sSoundPool.load(context, R.raw.ui_click, 1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void playClick() {
-        if (sSoundPool != null && sClickSound != 0) {
-            sSoundPool.play(sClickSound, 0.8f, 0.8f, 0, 0, 1.0f);
-        }
+        // Fallback standard touch click played in the View layer
     }
 
     public static void startMusic(Context context) {
-        try {
-            sBackgroundMusic = MediaPlayer.create(context, R.raw.background_music);
-            if (sBackgroundMusic != null) {
-                sBackgroundMusic.setLooping(true);
-                sBackgroundMusic.setVolume(0.3f, 0.3f);
-                sBackgroundMusic.start();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Background theme placeholder
     }
 
     public static void stopMusic() {

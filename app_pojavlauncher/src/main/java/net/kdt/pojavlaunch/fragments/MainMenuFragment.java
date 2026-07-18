@@ -125,7 +125,6 @@ public class MainMenuFragment extends Fragment {
                 Button navAccount = dialog.findViewById(R.id.dash_nav_account);
                 Button navControls = dialog.findViewById(R.id.dash_nav_controls);
                 Button navMods = dialog.findViewById(R.id.dash_nav_mods);
-                Button navMusic = dialog.findViewById(R.id.dash_nav_music);
                 Button navLogs = dialog.findViewById(R.id.dash_nav_logs);
 
                 android.widget.FrameLayout rightPane = dialog.findViewById(R.id.dash_content_pane);
@@ -143,8 +142,6 @@ public class MainMenuFragment extends Fragment {
                     navControls.setTextColor(0xFFFFFFFF);
                     navMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
                     navMods.setTextColor(0xFFFFFFFF);
-                    navMusic.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                    navMusic.setTextColor(0xFFFFFFFF);
                     navLogs.setBackgroundResource(R.drawable.premium_glass_black_bg);
                     navLogs.setTextColor(0xFFFFFFFF);
                 };
@@ -195,15 +192,151 @@ public class MainMenuFragment extends Fragment {
                     rightPane.addView(execView);
                 });
 
-                // SPLIT-PANE 3 & 4: SKINS & ACCOUNTS
-                View.OnClickListener accountClick = v2 -> {
+                // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adaptive)
+                navSkin.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                    openAccountManager();
-                };
-                navSkin.setOnClickListener(accountClick);
-                navAccount.setOnClickListener(accountClick);
+                    resetNavButtons.run();
+                    navSkin.setBackgroundResource(R.drawable.premium_button_bg);
+                    navSkin.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    LinearLayout skinLayout = new LinearLayout(requireContext());
+                    skinLayout.setOrientation(LinearLayout.VERTICAL);
+                    skinLayout.setPadding(16, 16, 16, 16);
+
+                    TextView titleSkin = new TextView(requireContext());
+                    titleSkin.setText("SKIN CUSTOMIZER & BODY COMPONENT");
+                    titleSkin.setTextColor(Color.WHITE);
+                    titleSkin.setTextSize(14);
+                    titleSkin.setGravity(android.view.Gravity.CENTER);
+                    titleSkin.setPadding(0, 0, 0, 16);
+
+                    // Steve/Alex body type select
+                    LinearLayout bodySelect = new LinearLayout(requireContext());
+                    bodySelect.setOrientation(LinearLayout.HORIZONTAL);
+                    bodySelect.setGravity(android.view.Gravity.CENTER);
+
+                    Button btnSteve = new Button(requireContext());
+                    btnSteve.setText("Steve (4-px)");
+                    btnSteve.setBackgroundResource(R.drawable.premium_button_bg);
+                    btnSteve.setTextColor(Color.BLACK);
+
+                    Button btnAlex = new Button(requireContext());
+                    btnAlex.setText("Alex (3-px)");
+                    btnAlex.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    btnAlex.setTextColor(Color.WHITE);
+
+                    btnSteve.setOnClickListener(vS -> {
+                        vS.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        btnSteve.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnSteve.setTextColor(Color.BLACK);
+                        btnAlex.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        btnAlex.setTextColor(Color.WHITE);
+                        Toast.makeText(requireContext(), "Body type Steve selected", Toast.LENGTH_SHORT).show();
+                    });
+
+                    btnAlex.setOnClickListener(vA -> {
+                        vA.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        btnSteve.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        btnSteve.setTextColor(Color.WHITE);
+                        btnAlex.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnAlex.setTextColor(Color.BLACK);
+                        Toast.makeText(requireContext(), "Body type Alex selected", Toast.LENGTH_SHORT).show();
+                    });
+
+                    LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                    btnLp.setMargins(8, 8, 8, 8);
+                    bodySelect.addView(btnSteve, btnLp);
+                    bodySelect.addView(btnAlex, btnLp);
+
+                    // Import file btn
+                    Button btnImport = new Button(requireContext());
+                    btnImport.setText("LOAD CUSTOM SKIN (.PNG)");
+                    btnImport.setBackgroundResource(R.drawable.premium_button_bg);
+                    btnImport.setTextColor(Color.BLACK);
+                    btnImport.setOnClickListener(vI -> {
+                        vI.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        Toast.makeText(requireContext(), "Loading skin database...", Toast.LENGTH_SHORT).show();
+                    });
+
+                    skinLayout.addView(titleSkin);
+                    skinLayout.addView(bodySelect);
+
+                    View space = new View(requireContext());
+                    skinLayout.addView(space, new LinearLayout.LayoutParams(1, 24));
+                    skinLayout.addView(btnImport, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                    rightPane.addView(skinLayout);
+                });
+
+                // SPLIT-PANE 4: ACCOUNT HUB (Offline Local login panel side-by-side)
+                navAccount.setOnClickListener(v2 -> {
+                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    resetNavButtons.run();
+                    navAccount.setBackgroundResource(R.drawable.premium_button_bg);
+                    navAccount.setTextColor(0xFF000000);
+
+                    rightPane.removeAllViews();
+                    LinearLayout accLayout = new LinearLayout(requireContext());
+                    accLayout.setOrientation(LinearLayout.VERTICAL);
+                    accLayout.setPadding(16, 16, 16, 16);
+
+                    TextView titleAcc = new TextView(requireContext());
+                    titleAcc.setText("ADD OFFLINE LOCAL ACCOUNT");
+                    titleAcc.setTextColor(Color.WHITE);
+                    titleAcc.setTextSize(14);
+                    titleAcc.setPadding(0, 0, 0, 12);
+
+                    final EditText inputUser = new EditText(requireContext());
+                    inputUser.setHint("ENTER USERNAME...");
+                    inputUser.setTextColor(Color.WHITE);
+                    inputUser.setHintTextColor(0x80FFFFFF);
+                    inputUser.setBackgroundResource(R.drawable.premium_edit_bg);
+                    inputUser.setPadding(12, 12, 12, 12);
+
+                    Button btnLogin = new Button(requireContext());
+                    btnLogin.setText("LOG IN");
+                    btnLogin.setBackgroundResource(R.drawable.premium_button_bg);
+                    btnLogin.setTextColor(Color.BLACK);
+                    btnLogin.setOnClickListener(vL -> {
+                        vL.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        String name = inputUser.getText().toString().trim();
+                        if (name.isEmpty()) {
+                            Toast.makeText(requireContext(), "Please enter a valid username", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        try {
+                            net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(account -> {
+                                account.username = name;
+                                account.profileId = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes()).toString();
+                                account.accessToken = "0";
+                                account.refreshToken = "0";
+                                account.authType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
+                            });
+                            net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(acc);
+                            refreshAccountUI();
+                            Toast.makeText(requireContext(), "Successfully logged in as " + name, Toast.LENGTH_LONG).show();
+                            dialog.dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(requireContext(), "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    accLayout.addView(titleAcc);
+                    accLayout.addView(inputUser, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    View space2 = new View(requireContext());
+                    accLayout.addView(space2, new LinearLayout.LayoutParams(1, 16));
+                    accLayout.addView(btnLogin, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                    rightPane.addView(accLayout);
+                });
 
                 // SPLIT-PANE 5: INPUT MAPPING
                 navControls.setOnClickListener(v2 -> {
@@ -239,136 +372,6 @@ public class MainMenuFragment extends Fragment {
                     Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
                 });
 
-                // SPLIT-PANE 7: ONLINE STREAMING MUSIC HUB (All Hits: Hindi, English, Phonk!)
-                navMusic.setOnClickListener(v2 -> {
-                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    resetNavButtons.run();
-                    navMusic.setBackgroundResource(R.drawable.premium_button_bg);
-                    navMusic.setTextColor(0xFF000000);
-
-                    rightPane.removeAllViews();
-                    View musicView = dialog.getLayoutInflater().inflate(R.layout.view_music_hub, rightPane, false);
-                    LinearLayout tracksContainer = musicView.findViewById(R.id.music_tracks_list_container);
-                    SeekBar volSeek = musicView.findViewById(R.id.music_volume_seekbar);
-                    EditText searchEdit = musicView.findViewById(R.id.music_search_edittext);
-
-                    // Curated tracks metadata
-                    class StreamTrack {
-                        final String title;
-                        final String genre;
-                        final String url;
-                        StreamTrack(String t, String g, String u) { title = t; genre = g; url = u; }
-                    }
-
-                    final java.util.ArrayList<StreamTrack> tracks = new java.util.ArrayList<>();
-                    tracks.add(new StreamTrack("Kesariya (Arijit Singh) - Hindi", "HINDI", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"));
-                    tracks.add(new StreamTrack("Am I Dreaming (Spider-Verse) - Synth", "ENGLISH", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"));
-                    tracks.add(new StreamTrack("Metamorphosis (Phonk Remix) - Phonk", "PHONK", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"));
-                    tracks.add(new StreamTrack("Starboy (The Weeknd) - Synthpop", "ENGLISH", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"));
-                    tracks.add(new StreamTrack("Kabira (Arijit Singh) - Hindi", "HINDI", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"));
-                    tracks.add(new StreamTrack("Rapture Phonk - Trap", "PHONK", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"));
-
-                    // Helper to build list
-                    final class Loader {
-                        private android.media.MediaPlayer activePlayer = null;
-
-                        void populate(String filterQuery) {
-                            tracksContainer.removeAllViews();
-                            for (final StreamTrack track : tracks) {
-                                if (filterQuery != null && !filterQuery.isEmpty() && !track.title.toLowerCase().contains(filterQuery.toLowerCase())) {
-                                    continue;
-                                }
-
-                                TextView trackBtn = new TextView(requireContext());
-                                trackBtn.setText("📻 " + track.title + " [" + track.genre + "]");
-                                trackBtn.setTextColor(Color.WHITE);
-                                trackBtn.setTextSize(14);
-                                trackBtn.setPadding(12, 12, 12, 12);
-                                trackBtn.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                lp.setMargins(0, 4, 0, 4);
-                                trackBtn.setLayoutParams(lp);
-
-                                trackBtn.setOnClickListener(vTr -> {
-                                    vTr.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                    net.kdt.pojavlaunch.SoundManager.playClick();
-
-                                    // Stop any active theme songs
-                                    net.kdt.pojavlaunch.SoundManager.stopMusic();
-
-                                    if (activePlayer != null) {
-                                        activePlayer.stop();
-                                        activePlayer.release();
-                                    }
-
-                                    trackBtn.setTextColor(0x00FFCC);
-                                    trackBtn.setText("⏳ BUFFERING FEED: " + track.title);
-
-                                    activePlayer = new android.media.MediaPlayer();
-                                    try {
-                                        activePlayer.setDataSource(track.url);
-                                        activePlayer.prepareAsync();
-                                        activePlayer.setOnPreparedListener(mp -> {
-                                            trackBtn.setText("🔊 PLAYING STREAM: " + track.title);
-                                            mp.setLooping(true);
-                                            float curVol = volSeek.getProgress() / 100f;
-                                            mp.setVolume(curVol, curVol);
-                                            mp.start();
-                                        });
-                                        activePlayer.setOnErrorListener((mp, what, extra) -> {
-                                            trackBtn.setText("❌ STREAM OFFLINE: " + track.title);
-                                            return true;
-                                        });
-                                    } catch (Exception streamEx) {
-                                        streamEx.printStackTrace();
-                                    }
-                                });
-
-                                tracksContainer.addView(trackBtn);
-                            }
-                        }
-                    }
-
-                    final Loader mLoader = new Loader();
-
-                    // Register volume seekbar listener
-                    volSeek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-                        @Override
-                        public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
-                            float vL = progress / 100f;
-                            if (mLoader.activePlayer != null) {
-                                mLoader.activePlayer.setVolume(vL, vL);
-                            }
-                        }
-                        @Override
-                        public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
-                        @Override
-                        public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
-                    });
-
-                    // Search input filter
-                    searchEdit.addTextChangedListener(new android.text.TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            mLoader.populate(s.toString());
-                        }
-                        @Override
-                        public void afterTextChanged(android.text.Editable s) {}
-                    });
-
-                    dialog.setOnDismissListener(di -> {
-                        if (mLoader.activePlayer != null) {
-                            mLoader.activePlayer.stop();
-                            mLoader.activePlayer.release();
-                        }
-                    });
-
-                    mLoader.populate("");
-                    rightPane.addView(musicView);
-                });
 
                 // SPLIT-PANE 8: TELEMETRY LOGS
                 navLogs.setOnClickListener(v2 -> {
