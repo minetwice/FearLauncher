@@ -235,7 +235,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:columnCount="2"
-                    android:rowCount="3"
+                    android:rowCount="2"
                     android:alignmentMode="alignBounds"
                     android:layout_marginBottom="12dp">
 
@@ -262,62 +262,6 @@
                             android:text="60.0 FPS"
                             android:textColor="#00FFCC"
                             android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: CPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CORE CHIPSET"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_cpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="OCTA-CORE"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: GPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="GRAPHICS CORE"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_gpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="ADRENO GPU"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
                             android:textStyle="bold" />
                     </LinearLayout>
 
