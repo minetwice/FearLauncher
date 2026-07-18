@@ -73,7 +73,7 @@
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_three_dots"
+            android:src="@drawable/ic_hamburger"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="#FFFFFF" />
 
@@ -224,16 +224,16 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Right - Step 7) -->
+    <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Step 7 Redesign) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
-        android:layout_width="@dimen/_240sdp"
+        android:layout_width="@dimen/_280sdp"
         android:layout_height="match_parent"
         android:visibility="gone"
         app:cardBackgroundColor="#F2000000"
         app:cardCornerRadius="0dp"
         app:cardElevation="32dp"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintStart_toStartOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
