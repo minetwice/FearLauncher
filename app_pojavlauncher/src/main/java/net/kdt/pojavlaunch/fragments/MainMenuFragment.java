@@ -187,7 +187,7 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Sliding Drawer (settings_tray) bindings and trigger logic
+        // The reference-aligned home no longer exposes a right-side tray; route the menu into the dashboard.
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null) {
             hamburgerBtn.setOnClickListener(v -> {
