@@ -6,48 +6,100 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Three-Dot Menu Trigger (Top Right - Premium Glass Three-Dot) -->
-    <com.kdt.mcgui.LauncherMenuButton
-        android:id="@+id/hamburger_menu_icon"
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_40sdp"
-        android:layout_margin="@dimen/_16sdp"
-        android:src="@drawable/ic_three_dots"
-        android:background="@drawable/premium_glass_black_bg"
-        android:padding="@dimen/_8sdp"
-        app:tint="#FFFFFF"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <!-- Floating Particles Layer -->
+    <com.kdt.mcgui.GlassParticleView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.3" />
 
-    <!-- Main Content Area (Landscape Infumia Style) -->
+    <!-- Top Header Bar (Step 6 Alignment Requirements) -->
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/_16sdp"
+        android:paddingVertical="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Top Left: Logo & Launcher Name -->
+        <ImageView
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
+            android:src="@drawable/ic_app_logo" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="FEAR LAUNCHER"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_13ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginStart="@dimen/_8sdp" />
+
+        <!-- Top Right: Avatar, Notification, Three Dot Menu -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/header_avatar_card"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            app:cardCornerRadius="@dimen/_12sdp"
+            app:cardBackgroundColor="#20FFFFFF"
+            app:cardElevation="0dp"
+            android:foreground="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:layout_marginEnd="@dimen/_10sdp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_app_logo"
+                android:padding="@dimen/_4sdp" />
+        </androidx.cardview.widget.CardView>
+
+        <ImageButton
+            android:id="@+id/header_notification_btn"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:src="@drawable/ic_px_bell"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="@dimen/_10sdp" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/hamburger_menu_icon"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:src="@drawable/ic_three_dots"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF" />
+
+    </LinearLayout>
+
+    <!-- Main Content Area -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <com.kdt.mcgui.GlassParticleView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.3" />
-
-        <!-- Info Card (Center) -->
+        <!-- Center Card (Step 8 Layout and spacing upgrades) -->
         <LinearLayout
             android:layout_width="@dimen/_300sdp"
             android:layout_height="wrap_content"
             android:background="@drawable/premium_glass_black_bg"
             android:orientation="vertical"
-            android:padding="@dimen/_20sdp"
+            android:padding="@dimen/_18sdp"
             android:gravity="center"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <ImageView
-                android:layout_width="@dimen/_50sdp"
-                android:layout_height="@dimen/_50sdp"
-                android:src="@drawable/ic_app_logo"
-                android:layout_marginBottom="@dimen/_6sdp" />
-
+            <!-- Subcard Header details -->
             <TextView
                 android:id="@+id/account_name_display"
                 android:layout_width="wrap_content"
@@ -55,69 +107,110 @@
                 android:text="Guest"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_16ssp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:letterSpacing="0.02" />
 
             <TextView
                 android:id="@+id/version_text_display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
-                android:textColor="#E0E0E0"
+                android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_10ssp"
-                android:layout_marginBottom="@dimen/_4sdp" />
+                android:layout_marginTop="2dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FEAR ULTRA-CORE v4.0 [MANUFACTURED]"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_8ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:alpha="0.9"
-                android:layout_marginTop="2dp"
-                android:shadowColor="#FFFFFF"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="8" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="CORE STABILITY: LOCKED"
-                android:textColor="#00FFCC"
-                android:textSize="@dimen/_6ssp"
-                android:textStyle="bold"
-                android:alpha="0.8"
-                android:layout_marginBottom="@dimen/_12sdp" />
-
+            <!-- Core System Info / Runtime and Loader -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center">
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/card_runtime_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="JVM: INTERNAL"
+                    android:textColor="#00FFCC"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="#2000FFCC"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/card_loader_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LOADER: AUTO"
+                    android:textColor="#00F0FF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="#2000F0FF"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp" />
+            </LinearLayout>
+
+            <!-- Spacing and divider line -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1AFFFFFF"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Selector and Edit / Settings -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="14dp">
 
                 <com.kdt.mcgui.mcVersionSpinner
                     android:id="@+id/mc_version_spinner"
-                    android:layout_width="@dimen/_120sdp"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="@dimen/_40sdp"
                     android:background="@drawable/premium_glass_black_bg" />
 
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/play_button"
-                    android:layout_width="@dimen/_120sdp"
+                <ImageButton
+                    android:id="@+id/edit_profile_button_main"
+                    android:layout_width="@dimen/_40sdp"
                     android:layout_height="@dimen/_40sdp"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:text="PLAY"
-                    android:textColor="#000000"
-                    android:textSize="@dimen/_12ssp"
-                    android:textStyle="bold"
-                    android:background="@drawable/premium_button_bg" />
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_px_edit"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:padding="10dp"
+                    app:tint="#FFFFFF" />
+
+                <ImageButton
+                    android:id="@+id/settings_button_main"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_sharp_settings_24"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:padding="10dp"
+                    app:tint="#FFFFFF" />
             </LinearLayout>
+
+            <!-- Hero PLAY Button (Blue Gradient Neon Glow - Step 9) -->
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/play_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:text="PLAY"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_13ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_play_button_bg"
+                android:elevation="8dp" />
+
         </LinearLayout>
 
-        <!-- Dummy views for logic -->
-        <View android:id="@+id/edit_profile_button_main" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- UI Logic Dummies -->
@@ -131,7 +224,7 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Right) -->
+    <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Right - Step 7) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
         android:layout_width="@dimen/_240sdp"

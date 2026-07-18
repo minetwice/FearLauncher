@@ -140,6 +140,9 @@ public class MainMenuFragment extends Fragment {
         View playButton          = view.findViewById(R.id.play_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
+        View settingsBtnMain     = view.findViewById(R.id.settings_button_main);
+        View headerAvatarCard    = view.findViewById(R.id.header_avatar_card);
+        View headerNotificationBtn = view.findViewById(R.id.header_notification_btn);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
         // Refresh UI
@@ -152,8 +155,34 @@ public class MainMenuFragment extends Fragment {
 
         if (editBtnMain != null) {
             editBtnMain.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 if (mVersionSpinner != null)
                     mVersionSpinner.openProfileEditor(requireActivity());
+            });
+        }
+
+        if (settingsBtnMain != null) {
+            settingsBtnMain.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard();
+            });
+        }
+
+        if (headerAvatarCard != null) {
+            headerAvatarCard.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard(); // Open configuration center showing Accounts (or other tabs)
+            });
+        }
+
+        if (headerNotificationBtn != null) {
+            headerNotificationBtn.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();
             });
         }
 
