@@ -107,11 +107,11 @@ public class MainMenuFragment extends Fragment {
                 if (playButton instanceof com.kdt.mcgui.MineButton) {
                     com.kdt.mcgui.MineButton mb = (com.kdt.mcgui.MineButton) playButton;
                     if (taskCount > 0) {
-                        mb.setText("LAUNCHING...");
+                        mb.setText("⏳ LAUNCHING...");
                         mb.setEnabled(false);
                         mb.setAlpha(0.6f);
                     } else {
-                        mb.setText("PLAY");
+                        mb.setText("▶  PLAY");
                         mb.setEnabled(true);
                         mb.setAlpha(1.0f);
                     }
@@ -152,26 +152,48 @@ public class MainMenuFragment extends Fragment {
 
         if (editBtnMain != null) {
             editBtnMain.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
                 if (mVersionSpinner != null)
                     mVersionSpinner.openProfileEditor(requireActivity());
             });
         }
 
+        View accountButton = view.findViewById(R.id.account_button);
+        if (accountButton != null) {
+            accountButton.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openAccountManager();
+            });
+        }
+
+        View notificationButton = view.findViewById(R.id.notification_button);
+        if (notificationButton != null) {
+            notificationButton.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                int count = ProgressKeeper.getTaskCount();
+                Toast.makeText(requireContext(), count == 0 ? "No active notifications." : count + " task(s) running.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View settingsButton = view.findViewById(R.id.settings_button);
+        if (settingsButton != null) {
+            settingsButton.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null);
+            });
+        }
+
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
-        if (hamburgerBtn != null && settingsTray != null) {
+        if (hamburgerBtn != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-
-                if (settingsTray.getVisibility() != View.VISIBLE) {
-                    settingsTray.setVisibility(View.VISIBLE);
-                    Animation slideIn = AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_in);
-                    settingsTray.startAnimation(slideIn);
-                    bindPerformanceStats(view);
-                } else {
-                    collapseTray(settingsTray);
-                }
+                openCommandDashboard();
             });
         }
 

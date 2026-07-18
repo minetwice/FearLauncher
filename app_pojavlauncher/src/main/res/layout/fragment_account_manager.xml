@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="@dimen/_480sdp"
         android:layout_height="@dimen/_300sdp"
-        android:background="@drawable/premium_glass_black_bg"
+        android:background="@drawable/fear_glass_panel_bg"
         android:padding="@dimen/_20sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -34,7 +34,7 @@
             android:layout_marginStart="@dimen/_40sdp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ACCOUNT DASHBOARD"
+            android:text="ACCOUNT CENTER"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
@@ -46,7 +46,7 @@
             android:id="@+id/manager_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Manage your identities and switch between accounts smoothly."
+            android:text="Switch, add, and protect Minecraft accounts in one polished hub."
             android:textColor="#B3FFFFFF"
             android:textSize="@dimen/_9ssp"
             app:layout_constraintTop_toBottomOf="@id/manager_title"
@@ -79,7 +79,7 @@
                 android:text="ADD NEW"
                 android:textColor="#000000"
                 android:textSize="@dimen/_10ssp"
-                android:background="@drawable/premium_button_bg" />
+                android:background="@drawable/fear_play_button_bg" />
 
             <TextView
                 android:layout_width="wrap_content"
