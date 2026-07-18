@@ -7,11 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.EditText;
 import android.graphics.Color;
 import android.widget.ImageButton;
@@ -60,6 +58,7 @@ public class MainMenuFragment extends Fragment {
     private TextView mAccountNameDisplay;
     private TextView mVersionTextDisplay;
     private TextView mHomeInstanceName;
+    private TextView mSidebarAccountName;
 
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
             registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
@@ -141,8 +140,9 @@ public class MainMenuFragment extends Fragment {
         mAccountNameDisplay = view.findViewById(R.id.account_name_display);
         mVersionTextDisplay = view.findViewById(R.id.version_text_display);
         mHomeInstanceName   = view.findViewById(R.id.home_instance_name);
+        mSidebarAccountName = view.findViewById(R.id.home_sidebar_account_name);
 
-        // Buttons
+        // Buttons & Spinner
         View playButton          = view.findViewById(R.id.play_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
@@ -285,7 +285,7 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Open our Command Dashboard Dialog from Tray Experimental Stuff button
+        // Open Command Dashboard from Tray Experimental Stuff button
         View traySettings = view.findViewById(R.id.tray_settings_btn);
         if (traySettings != null) {
             traySettings.setOnClickListener(v -> {
@@ -305,8 +305,7 @@ public class MainMenuFragment extends Fragment {
 
     /**
      * Wires the left sidebar nav rail (Home / Instances / Servers / Skins /
-     * Resource Packs / Settings / About) plus the "Manage Account" row so the
-     * new home screen is actually clickable, not just decorative.
+     * Resource Packs / Settings / About) plus the "Manage Account" row.
      */
     private void setupSidebarNavigation(@NonNull View root) {
         View navHome          = root.findViewById(R.id.home_nav_dashboard);
@@ -320,7 +319,7 @@ public class MainMenuFragment extends Fragment {
 
         final View[] navItems = {navHome, navInstances, navServers, navSkins, navResourcePacks, navSettings, navAbout};
 
-        // Only "Home" is activated (highlighted) by default since we start here.
+        // Only "Home" is activated by default.
         for (View item : navItems) {
             if (item != null) item.setActivated(item == navHome);
         }
@@ -330,7 +329,6 @@ public class MainMenuFragment extends Fragment {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 for (View item : navItems) if (item != null) item.setActivated(item == navHome);
-                // Already home - just refresh the UI in case something changed.
                 refreshAccountUI();
                 updateVersionText();
             });
@@ -410,7 +408,7 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    /** Wires the notification bell, the settings gear on the hero card, and the quick launch strip. */
+    /** Wires the notification bell and the settings gear on the hero card. */
     private void setupHomeTopBarExtras(@NonNull View root) {
         View bellBtn = root.findViewById(R.id.home_bell_btn);
         if (bellBtn != null) {
@@ -429,43 +427,6 @@ public class MainMenuFragment extends Fragment {
                 openCommandDashboard();
             });
         }
-
-        View newsCard = root.findViewById(R.id.home_news_card);
-        if (newsCard != null) {
-            newsCard.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                try {
-                    android.net.Uri uri = android.net.Uri.parse(getString(R.string.social_media_invite));
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } catch (Exception e) {
-                    Toast.makeText(requireContext(), "Opening Wiki/Discord invite failed.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        View quickLaunch1 = root.findViewById(R.id.home_quicklaunch_item_1);
-        View quickLaunch2 = root.findViewById(R.id.home_quicklaunch_item_2);
-        View.OnClickListener openInstances = v -> {
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            net.kdt.pojavlaunch.SoundManager.playClick();
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container_fragment, new InstallationsFragment())
-                    .commit();
-        };
-        if (quickLaunch1 != null) quickLaunch1.setOnClickListener(openInstances);
-        if (quickLaunch2 != null) quickLaunch2.setOnClickListener(openInstances);
-
-        View quickLaunch3 = root.findViewById(R.id.home_quicklaunch_item_3);
-        View quickLaunch4 = root.findViewById(R.id.home_quicklaunch_item_4);
-        View.OnClickListener comingSoon = v -> {
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            net.kdt.pojavlaunch.SoundManager.playClick();
-            Toast.makeText(requireContext(), "Realms & friends are coming soon!", Toast.LENGTH_SHORT).show();
-        };
-        if (quickLaunch3 != null) quickLaunch3.setOnClickListener(comingSoon);
-        if (quickLaunch4 != null) quickLaunch4.setOnClickListener(comingSoon);
     }
 
     private void showAboutDialog() {
@@ -501,7 +462,6 @@ public class MainMenuFragment extends Fragment {
         TextView memoryTv = root.findViewById(R.id.drawer_perf_memory);
         TextView rendererTv = root.findViewById(R.id.drawer_perf_renderer);
 
-        // FPS
         if (fpsTv != null) {
             try {
                 android.view.Display display = requireActivity().getWindowManager().getDefaultDisplay();
@@ -512,7 +472,6 @@ public class MainMenuFragment extends Fragment {
             }
         }
 
-        // CPU
         if (cpuTv != null) {
             try {
                 String abi = android.os.Build.SUPPORTED_ABIS[0];
@@ -522,7 +481,6 @@ public class MainMenuFragment extends Fragment {
             }
         }
 
-        // GPU
         if (gpuTv != null) {
             try {
                 net.kdt.pojavlaunch.utils.GLInfoUtils.GLInfo glInfo = net.kdt.pojavlaunch.utils.GLInfoUtils.getGlInfo();
@@ -536,25 +494,22 @@ public class MainMenuFragment extends Fragment {
             }
         }
 
-        // RAM
         if (ramTv != null) {
             ramTv.setText(LauncherPreferences.PREF_RAM_ALLOCATION + " MB");
         }
 
-        // Memory
         if (memoryTv != null) {
             try {
                 android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
                 android.app.ActivityManager activityManager = (android.app.ActivityManager) requireContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
                 activityManager.getMemoryInfo(mi);
-                double availableGigs = mi.availMem / 1073741824.0; // in GB
+                double availableGigs = mi.availMem / 1073741824.0;
                 memoryTv.setText(String.format(java.util.Locale.US, "%.1f GB FREE", availableGigs));
             } catch (Exception e) {
                 memoryTv.setText("4.2 GB FREE");
             }
         }
 
-        // Renderer
         if (rendererTv != null) {
             try {
                 Instance instance = Instances.loadSelectedInstance();
@@ -638,7 +593,6 @@ public class MainMenuFragment extends Fragment {
             navSettings.setBackgroundResource(R.drawable.premium_button_bg);
             navSettings.setTextColor(0xFF000000);
 
-            // Inflate options inside the right pane container dynamically
             rightPane.removeAllViews();
             View configView = dialog.getLayoutInflater().inflate(R.layout.dialog_mod_filters, rightPane, false);
             TextView titleV = configView.findViewById(R.id.search_mod_selected_mc_version_textview);
@@ -682,7 +636,7 @@ public class MainMenuFragment extends Fragment {
             rightPane.addView(execLayout);
         });
 
-        // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adaptive)
+        // SPLIT-PANE 3: SKIN CUSTOMIZER
         navSkin.setOnClickListener(v2 -> {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
@@ -821,7 +775,7 @@ public class MainMenuFragment extends Fragment {
             mRefreshSkinPaneRunnable.run();
         });
 
-        // SPLIT-PANE 4: ACCOUNT HUB (Microsoft & Local Offline login panels side-by-side with profile management)
+        // SPLIT-PANE 4: ACCOUNT HUB
         navAccount.setOnClickListener(v2 -> {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
@@ -1089,7 +1043,7 @@ public class MainMenuFragment extends Fragment {
             rightPane.addView(mapBtn);
         });
 
-        // SPLIT-PANE 6: MODPACK ENGINE (MODPACKS)
+        // SPLIT-PANE 6: MODPACK ENGINE
         if (navModpacks != null) {
             navModpacks.setOnClickListener(v2 -> {
                 v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -1106,7 +1060,7 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // SPLIT-PANE 7: ADDON INSTALLER (MODS, SHADERS, RESOURCE PACKS)
+        // SPLIT-PANE 7: ADDON INSTALLER
         if (navAddons != null) {
             navAddons.setOnClickListener(v2 -> {
                 v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -1122,7 +1076,6 @@ public class MainMenuFragment extends Fragment {
                 Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
             });
         }
-
 
         // SPLIT-PANE 8: TELEMETRY LOGS
         navLogs.setOnClickListener(v2 -> {
@@ -1148,18 +1101,6 @@ public class MainMenuFragment extends Fragment {
         navSettings.performClick();
 
         dialog.show();
-    }
-
-    private void animateItemsSequentially(ViewGroup container, boolean show) {
-        int count = container.getChildCount();
-        for (int i = 0; i < count; i++) {
-            final View child = container.getChildAt(i);
-            if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView || child instanceof LinearLayout) {
-                Animation anim = AnimationUtils.loadAnimation(requireContext(), show ? R.anim.item_fade_in : R.anim.item_fade_out);
-                anim.setStartOffset(i * 50L);
-                child.startAnimation(anim);
-            }
-        }
     }
 
     private void openAccountManager() {
@@ -1190,9 +1131,13 @@ public class MainMenuFragment extends Fragment {
 
         if (mAccountName != null) mAccountName.setText(username);
         if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
-
         if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
-        if (mHomeInstanceName != null) mHomeInstanceName.setText(username);
+        if (mSidebarAccountName != null) mSidebarAccountName.setText(username);
+
+        // Fix: Show Instance Name, not Account Name
+        Instance instance = Instances.loadSelectedInstance();
+        String instanceName = (instance != null && instance.name != null) ? instance.name : "No Instance";
+        if (mHomeInstanceName != null) mHomeInstanceName.setText(instanceName);
     }
 
     private void handlePlayButton() {
@@ -1219,20 +1164,6 @@ public class MainMenuFragment extends Fragment {
 
         if (mVersionText != null) mVersionText.setText(version);
         if (mVersionTextDisplay != null) mVersionTextDisplay.setText(version);
-    }
-
-    private void openGameDirectory(Context context) {
-        Instance instance = Instances.loadSelectedInstance();
-        if (instance == null) {
-            Toast.makeText(context, R.string.no_instance, Toast.LENGTH_LONG).show();
-            return;
-        }
-        File gameDirectory = instance.getGameDirectory();
-        if (FileUtils.ensureDirectorySilently(gameDirectory)) {
-            openPath(context, gameDirectory, false);
-        } else {
-            Toast.makeText(context, R.string.gamedir_open_failed, Toast.LENGTH_LONG).show();
-        }
     }
 
     private void runInstallerWithConfirmation() {
