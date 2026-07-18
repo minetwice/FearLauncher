@@ -29,15 +29,19 @@ import com.kdt.mcgui.mcVersionSpinner;
 
 import net.kdt.pojavlaunch.CustomControlsActivity;
 import git.artdeell.mojo.R;
+import net.kdt.pojavlaunch.LauncherActivity;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
+import net.kdt.pojavlaunch.fragments.InstallationsFragment;
+import net.kdt.pojavlaunch.fragments.SearchModFragment;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 import net.kdt.pojavlaunch.utils.FileUtils;
@@ -55,6 +59,7 @@ public class MainMenuFragment extends Fragment {
     // Display views for the new layout
     private TextView mAccountNameDisplay;
     private TextView mVersionTextDisplay;
+    private TextView mHomeInstanceName;
 
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
             registerForActivityResult(new OpenDocumentWithExtension("jar"), (data) -> {
@@ -135,6 +140,7 @@ public class MainMenuFragment extends Fragment {
         // Display bindings
         mAccountNameDisplay = view.findViewById(R.id.account_name_display);
         mVersionTextDisplay = view.findViewById(R.id.version_text_display);
+        mHomeInstanceName   = view.findViewById(R.id.home_instance_name);
 
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
@@ -292,6 +298,182 @@ public class MainMenuFragment extends Fragment {
 
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
+
+        setupSidebarNavigation(view);
+        setupHomeTopBarExtras(view);
+    }
+
+    /**
+     * Wires the left sidebar nav rail (Home / Instances / Servers / Skins /
+     * Resource Packs / Settings / About) plus the "Manage Account" row so the
+     * new home screen is actually clickable, not just decorative.
+     */
+    private void setupSidebarNavigation(@NonNull View root) {
+        View navHome          = root.findViewById(R.id.home_nav_dashboard);
+        View navInstances     = root.findViewById(R.id.home_nav_instances);
+        View navServers       = root.findViewById(R.id.home_nav_servers);
+        View navSkins         = root.findViewById(R.id.home_nav_skins);
+        View navResourcePacks = root.findViewById(R.id.home_nav_resourcepacks);
+        View navSettings      = root.findViewById(R.id.home_nav_settings);
+        View navAbout         = root.findViewById(R.id.home_nav_about);
+        View manageAccount    = root.findViewById(R.id.home_manage_account);
+
+        final View[] navItems = {navHome, navInstances, navServers, navSkins, navResourcePacks, navSettings, navAbout};
+
+        // Only "Home" is activated (highlighted) by default since we start here.
+        for (View item : navItems) {
+            if (item != null) item.setActivated(item == navHome);
+        }
+
+        if (navHome != null) {
+            navHome.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navHome);
+                // Already home - just refresh the UI in case something changed.
+                refreshAccountUI();
+                updateVersionText();
+            });
+        }
+
+        if (navInstances != null) {
+            navInstances.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navInstances);
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.container_fragment, new InstallationsFragment())
+                        .commit();
+            });
+        }
+
+        if (navServers != null) {
+            navServers.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navServers);
+                Toast.makeText(requireContext(), "Server management is coming soon!", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navSkins != null) {
+            navSkins.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navSkins);
+                Toast.makeText(requireContext(), "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navResourcePacks != null) {
+            navResourcePacks.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navResourcePacks);
+                Instance instance = Instances.loadSelectedInstance();
+                if (instance != null) {
+                    File rpDir = new File(instance.getGameDirectory(), "resourcepacks");
+                    if (rpDir.exists() || rpDir.mkdirs()) {
+                        Tools.openPath(requireContext(), rpDir, false);
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "No selected instance to view resource packs.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (navSettings != null) {
+            navSettings.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navSettings);
+                Tools.swapFragment(requireActivity(), LauncherPreferenceFragment.class, LauncherActivity.SETTING_FRAGMENT_TAG, null);
+            });
+        }
+
+        if (navAbout != null) {
+            navAbout.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                for (View item : navItems) if (item != null) item.setActivated(item == navAbout);
+                showAboutDialog();
+            });
+        }
+
+        if (manageAccount != null) {
+            manageAccount.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openAccountManager();
+            });
+        }
+    }
+
+    /** Wires the notification bell, the settings gear on the hero card, and the quick launch strip. */
+    private void setupHomeTopBarExtras(@NonNull View root) {
+        View bellBtn = root.findViewById(R.id.home_bell_btn);
+        if (bellBtn != null) {
+            bellBtn.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Toast.makeText(requireContext(), "No new notifications.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View gearBtn = root.findViewById(R.id.home_dashboard_gear_btn);
+        if (gearBtn != null) {
+            gearBtn.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard();
+            });
+        }
+
+        View newsCard = root.findViewById(R.id.home_news_card);
+        if (newsCard != null) {
+            newsCard.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                try {
+                    android.net.Uri uri = android.net.Uri.parse(getString(R.string.social_media_invite));
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                } catch (Exception e) {
+                    Toast.makeText(requireContext(), "Opening Wiki/Discord invite failed.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        View quickLaunch1 = root.findViewById(R.id.home_quicklaunch_item_1);
+        View quickLaunch2 = root.findViewById(R.id.home_quicklaunch_item_2);
+        View.OnClickListener openInstances = v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container_fragment, new InstallationsFragment())
+                    .commit();
+        };
+        if (quickLaunch1 != null) quickLaunch1.setOnClickListener(openInstances);
+        if (quickLaunch2 != null) quickLaunch2.setOnClickListener(openInstances);
+
+        View quickLaunch3 = root.findViewById(R.id.home_quicklaunch_item_3);
+        View quickLaunch4 = root.findViewById(R.id.home_quicklaunch_item_4);
+        View.OnClickListener comingSoon = v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            Toast.makeText(requireContext(), "Realms & friends are coming soon!", Toast.LENGTH_SHORT).show();
+        };
+        if (quickLaunch3 != null) quickLaunch3.setOnClickListener(comingSoon);
+        if (quickLaunch4 != null) quickLaunch4.setOnClickListener(comingSoon);
+    }
+
+    private void showAboutDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("About Fear Launcher")
+                .setMessage("Fear Launcher\nBuilt on PojavLauncher\n\nA custom Minecraft: Java Edition launcher for Android.")
+                .setPositiveButton("Close", null)
+                .show();
     }
 
     private void collapseTray(View settingsTray) {
@@ -1010,6 +1192,7 @@ public class MainMenuFragment extends Fragment {
         if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
 
         if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
+        if (mHomeInstanceName != null) mHomeInstanceName.setText(username);
     }
 
     private void handlePlayButton() {
