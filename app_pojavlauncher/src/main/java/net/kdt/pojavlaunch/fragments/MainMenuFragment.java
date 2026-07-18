@@ -59,6 +59,44 @@ public class MainMenuFragment extends Fragment {
                 if (data != null) Tools.launchModInstaller(requireContext(), data);
             });
 
+    private Runnable mRefreshSkinPaneRunnable = null;
+
+    private final ActivityResultLauncher<String> mSkinPickerLauncher =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.GetContent(), (uri) -> {
+                if (uri != null) {
+                    try {
+                        java.io.InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+                        if (inputStream != null) {
+                            File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
+                            if (!skinsDir.exists()) skinsDir.mkdirs();
+
+                            String filename = "custom_skin_" + System.currentTimeMillis() + ".png";
+                            File destFile = new File(skinsDir, filename);
+                            java.io.FileOutputStream outputStream = new java.io.FileOutputStream(destFile);
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = inputStream.read(buffer)) != -1) {
+                                outputStream.write(buffer, 0, read);
+                            }
+                            outputStream.close();
+                            inputStream.close();
+
+                            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+                            prefs.edit().putString("active_skin_path", destFile.getAbsolutePath()).apply();
+
+                            Toast.makeText(requireContext(), "Skin imported and set as active!", Toast.LENGTH_SHORT).show();
+
+                            if (mRefreshSkinPaneRunnable != null) {
+                                mRefreshSkinPaneRunnable.run();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(requireContext(), "Failed to import skin: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
     public MainMenuFragment() {
         super(R.layout.fragment_launcher);
     }
@@ -200,77 +238,135 @@ public class MainMenuFragment extends Fragment {
                     navSkin.setBackgroundResource(R.drawable.premium_button_bg);
                     navSkin.setTextColor(0xFF000000);
 
-                    rightPane.removeAllViews();
-                    LinearLayout skinLayout = new LinearLayout(requireContext());
-                    skinLayout.setOrientation(LinearLayout.VERTICAL);
-                    skinLayout.setPadding(16, 16, 16, 16);
+                    mRefreshSkinPaneRunnable = () -> {
+                        rightPane.removeAllViews();
+                        View skinPane = dialog.getLayoutInflater().inflate(R.layout.premium_skin_customizer_pane, rightPane, false);
 
-                    TextView titleSkin = new TextView(requireContext());
-                    titleSkin.setText("SKIN CUSTOMIZER & BODY COMPONENT");
-                    titleSkin.setTextColor(Color.WHITE);
-                    titleSkin.setTextSize(14);
-                    titleSkin.setGravity(android.view.Gravity.CENTER);
-                    titleSkin.setPadding(0, 0, 0, 16);
+                        com.kdt.mcgui.MinecraftSkinView currentViewer = skinPane.findViewById(R.id.skin_current_viewer);
+                        Button btnSteveModel = skinPane.findViewById(R.id.skin_btn_steve_model);
+                        Button btnAlexModel = skinPane.findViewById(R.id.skin_btn_alex_model);
+                        LinearLayout libraryContainer = skinPane.findViewById(R.id.skin_library_container);
 
-                    // Steve/Alex body type select
-                    LinearLayout bodySelect = new LinearLayout(requireContext());
-                    bodySelect.setOrientation(LinearLayout.HORIZONTAL);
-                    bodySelect.setGravity(android.view.Gravity.CENTER);
+                        android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+                        final String activeSkinPath = prefs.getString("active_skin_path", "steve");
+                        final boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
 
-                    Button btnSteve = new Button(requireContext());
-                    btnSteve.setText("Steve (4-px)");
-                    btnSteve.setBackgroundResource(R.drawable.premium_button_bg);
-                    btnSteve.setTextColor(Color.BLACK);
+                        currentViewer.loadSkin(activeSkinPath, isAlex);
 
-                    Button btnAlex = new Button(requireContext());
-                    btnAlex.setText("Alex (3-px)");
-                    btnAlex.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                    btnAlex.setTextColor(Color.WHITE);
+                        java.lang.Runnable updateModelButtonsUI = () -> {
+                            boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+                            if (currentIsAlex) {
+                                btnAlexModel.setBackgroundResource(R.drawable.premium_button_bg);
+                                btnAlexModel.setTextColor(Color.BLACK);
+                                btnSteveModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                                btnSteveModel.setTextColor(Color.WHITE);
+                            } else {
+                                btnSteveModel.setBackgroundResource(R.drawable.premium_button_bg);
+                                btnSteveModel.setTextColor(Color.BLACK);
+                                btnAlexModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                                btnAlexModel.setTextColor(Color.WHITE);
+                            }
+                        };
+                        updateModelButtonsUI.run();
 
-                    btnSteve.setOnClickListener(vS -> {
-                        vS.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        btnSteve.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnSteve.setTextColor(Color.BLACK);
-                        btnAlex.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnAlex.setTextColor(Color.WHITE);
-                        Toast.makeText(requireContext(), "Body type Steve selected", Toast.LENGTH_SHORT).show();
-                    });
+                        btnSteveModel.setOnClickListener(vS -> {
+                            vS.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            prefs.edit().putBoolean("active_skin_is_alex", false).apply();
+                            updateModelButtonsUI.run();
+                            currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), false);
+                        });
 
-                    btnAlex.setOnClickListener(vA -> {
-                        vA.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        btnSteve.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnSteve.setTextColor(Color.WHITE);
-                        btnAlex.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnAlex.setTextColor(Color.BLACK);
-                        Toast.makeText(requireContext(), "Body type Alex selected", Toast.LENGTH_SHORT).show();
-                    });
+                        btnAlexModel.setOnClickListener(vA -> {
+                            vA.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            prefs.edit().putBoolean("active_skin_is_alex", true).apply();
+                            updateModelButtonsUI.run();
+                            currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), true);
+                        });
 
-                    LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-                    btnLp.setMargins(8, 8, 8, 8);
-                    bodySelect.addView(btnSteve, btnLp);
-                    bodySelect.addView(btnAlex, btnLp);
+                        libraryContainer.removeAllViews();
 
-                    // Import file btn
-                    Button btnImport = new Button(requireContext());
-                    btnImport.setText("LOAD CUSTOM SKIN (.PNG)");
-                    btnImport.setBackgroundResource(R.drawable.premium_button_bg);
-                    btnImport.setTextColor(Color.BLACK);
-                    btnImport.setOnClickListener(vI -> {
-                        vI.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        Toast.makeText(requireContext(), "Loading skin database...", Toast.LENGTH_SHORT).show();
-                    });
+                        View newSkinCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_new_skin, libraryContainer, false);
+                        newSkinCard.setOnClickListener(vNew -> {
+                            vNew.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            mSkinPickerLauncher.launch("image/*");
+                        });
+                        libraryContainer.addView(newSkinCard);
 
-                    skinLayout.addView(titleSkin);
-                    skinLayout.addView(bodySelect);
+                        View steveCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
+                        com.kdt.mcgui.MinecraftSkinView steveViewer = steveCard.findViewById(R.id.item_skin_viewer);
+                        TextView steveTitle = steveCard.findViewById(R.id.item_skin_title);
+                        steveTitle.setText("Steve");
+                        steveViewer.loadSkin("steve", false);
+                        if ("steve".equalsIgnoreCase(activeSkinPath)) {
+                            steveCard.setBackgroundResource(R.drawable.premium_button_bg);
+                            steveTitle.setTextColor(Color.BLACK);
+                        }
+                        steveCard.setOnClickListener(vSteve -> {
+                            vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            prefs.edit().putString("active_skin_path", "steve").apply();
+                            mRefreshSkinPaneRunnable.run();
+                        });
+                        libraryContainer.addView(steveCard);
 
-                    View space = new View(requireContext());
-                    skinLayout.addView(space, new LinearLayout.LayoutParams(1, 24));
-                    skinLayout.addView(btnImport, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                        View alexCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
+                        com.kdt.mcgui.MinecraftSkinView alexViewer = alexCard.findViewById(R.id.item_skin_viewer);
+                        TextView alexTitle = alexCard.findViewById(R.id.item_skin_title);
+                        alexTitle.setText("Alex");
+                        alexViewer.loadSkin("alex", true);
+                        if ("alex".equalsIgnoreCase(activeSkinPath)) {
+                            alexCard.setBackgroundResource(R.drawable.premium_button_bg);
+                            alexTitle.setTextColor(Color.BLACK);
+                        }
+                        alexCard.setOnClickListener(vAlex -> {
+                            vAlex.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            prefs.edit().putString("active_skin_path", "alex").apply();
+                            mRefreshSkinPaneRunnable.run();
+                        });
+                        libraryContainer.addView(alexCard);
 
-                    rightPane.addView(skinLayout);
+                        File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
+                        if (skinsDir.exists() && skinsDir.isDirectory()) {
+                            File[] skinFiles = skinsDir.listFiles(f -> f.isFile() && f.getName().toLowerCase().endsWith(".png"));
+                            if (skinFiles != null) {
+                                for (File f : skinFiles) {
+                                    View customCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
+                                    com.kdt.mcgui.MinecraftSkinView customViewer = customCard.findViewById(R.id.item_skin_viewer);
+                                    TextView customTitle = customCard.findViewById(R.id.item_skin_title);
+
+                                    String name = f.getName();
+                                    if (name.startsWith("custom_skin_")) {
+                                        name = "<unnamed skin>";
+                                    } else if (name.endsWith(".png")) {
+                                        name = name.substring(0, name.length() - 4);
+                                    }
+                                    customTitle.setText(name);
+                                    customViewer.loadSkin(f.getAbsolutePath(), isAlex);
+
+                                    if (f.getAbsolutePath().equals(activeSkinPath)) {
+                                        customCard.setBackgroundResource(R.drawable.premium_button_bg);
+                                        customTitle.setTextColor(Color.BLACK);
+                                    }
+
+                                    customCard.setOnClickListener(vCust -> {
+                                        vCust.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                        net.kdt.pojavlaunch.SoundManager.playClick();
+                                        prefs.edit().putString("active_skin_path", f.getAbsolutePath()).apply();
+                                        mRefreshSkinPaneRunnable.run();
+                                    });
+                                    libraryContainer.addView(customCard);
+                                }
+                            }
+                        }
+
+                        rightPane.addView(skinPane);
+                    };
+
+                    mRefreshSkinPaneRunnable.run();
                 });
 
                 // SPLIT-PANE 4: ACCOUNT HUB (Offline Local login panel side-by-side)
