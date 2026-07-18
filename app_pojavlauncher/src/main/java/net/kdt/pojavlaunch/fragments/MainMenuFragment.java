@@ -443,29 +443,6 @@ public class MainMenuFragment extends Fragment {
                 }
             });
         }
-
-        View quickLaunch1 = root.findViewById(R.id.home_quicklaunch_item_1);
-        View quickLaunch2 = root.findViewById(R.id.home_quicklaunch_item_2);
-        View.OnClickListener openInstances = v -> {
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            net.kdt.pojavlaunch.SoundManager.playClick();
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container_fragment, new InstallationsFragment())
-                    .commit();
-        };
-        if (quickLaunch1 != null) quickLaunch1.setOnClickListener(openInstances);
-        if (quickLaunch2 != null) quickLaunch2.setOnClickListener(openInstances);
-
-        View quickLaunch3 = root.findViewById(R.id.home_quicklaunch_item_3);
-        View quickLaunch4 = root.findViewById(R.id.home_quicklaunch_item_4);
-        View.OnClickListener comingSoon = v -> {
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            net.kdt.pojavlaunch.SoundManager.playClick();
-            Toast.makeText(requireContext(), "Realms & friends are coming soon!", Toast.LENGTH_SHORT).show();
-        };
-        if (quickLaunch3 != null) quickLaunch3.setOnClickListener(comingSoon);
-        if (quickLaunch4 != null) quickLaunch4.setOnClickListener(comingSoon);
     }
 
     private void showAboutDialog() {
@@ -495,8 +472,6 @@ public class MainMenuFragment extends Fragment {
 
     private void bindPerformanceStats(View root) {
         TextView fpsTv = root.findViewById(R.id.drawer_perf_fps);
-        TextView cpuTv = root.findViewById(R.id.drawer_perf_cpu);
-        TextView gpuTv = root.findViewById(R.id.drawer_perf_gpu);
         TextView ramTv = root.findViewById(R.id.drawer_perf_ram);
         TextView memoryTv = root.findViewById(R.id.drawer_perf_memory);
         TextView rendererTv = root.findViewById(R.id.drawer_perf_renderer);
@@ -509,30 +484,6 @@ public class MainMenuFragment extends Fragment {
                 fpsTv.setText(String.format(java.util.Locale.US, "%.1f FPS", refreshRate));
             } catch (Exception e) {
                 fpsTv.setText("60.0 FPS");
-            }
-        }
-
-        // CPU
-        if (cpuTv != null) {
-            try {
-                String abi = android.os.Build.SUPPORTED_ABIS[0];
-                cpuTv.setText(abi.toUpperCase(java.util.Locale.US));
-            } catch (Exception e) {
-                cpuTv.setText("OCTA-CORE");
-            }
-        }
-
-        // GPU
-        if (gpuTv != null) {
-            try {
-                net.kdt.pojavlaunch.utils.GLInfoUtils.GLInfo glInfo = net.kdt.pojavlaunch.utils.GLInfoUtils.getGlInfo();
-                if (glInfo != null && glInfo.renderer != null && !glInfo.renderer.equals("<Unknown>")) {
-                    gpuTv.setText(glInfo.renderer.toUpperCase(java.util.Locale.US));
-                } else {
-                    gpuTv.setText("ADRENO GPU");
-                }
-            } catch (Exception e) {
-                gpuTv.setText("ADRENO GPU");
             }
         }
 
