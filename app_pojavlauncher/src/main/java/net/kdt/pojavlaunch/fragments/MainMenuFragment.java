@@ -217,17 +217,23 @@ public class MainMenuFragment extends Fragment {
                     navExecute.setTextColor(0xFF000000);
 
                     rightPane.removeAllViews();
-                    View execView = dialog.getLayoutInflater().inflate(R.layout.view_loading, rightPane, false);
+                    LinearLayout execLayout = new LinearLayout(requireContext());
+                    execLayout.setOrientation(LinearLayout.VERTICAL);
+                    execLayout.setPadding(16, 16, 16, 16);
+                    execLayout.setGravity(android.view.Gravity.CENTER);
+
                     Button launchBtn = new Button(requireContext());
                     launchBtn.setText("LAUNCH INSTALLER (.JAR)");
                     launchBtn.setBackgroundResource(R.drawable.premium_button_bg);
                     launchBtn.setTextColor(0xFF000000);
+                    launchBtn.setPadding(24, 12, 24, 12);
                     launchBtn.setOnClickListener(vLaunch -> {
                         dialog.dismiss();
                         runInstallerWithConfirmation();
                     });
-                    ((android.view.ViewGroup)execView).addView(launchBtn);
-                    rightPane.addView(execView);
+
+                    execLayout.addView(launchBtn, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    rightPane.addView(execLayout);
                 });
 
                 // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adaptive)
