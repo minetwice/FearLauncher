@@ -152,13 +152,23 @@
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_mods"
+                    android:id="@+id/dash_nav_modpacks"
                     android:layout_width="match_parent"
                     android:layout_height="36dp"
-                    android:text="MODS DEPLOY"
-                    android:textColor="#000000"
+                    android:text="MODPACK ENGINE"
+                    android:textColor="#FFFFFF"
                     android:textSize="@dimen/_8ssp"
-                    android:background="@drawable/premium_button_bg"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/dash_nav_addons"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:text="ADDON INSTALLER"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:background="@drawable/premium_glass_black_bg"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.MineButton

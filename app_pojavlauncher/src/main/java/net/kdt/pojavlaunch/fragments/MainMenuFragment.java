@@ -162,7 +162,8 @@ public class MainMenuFragment extends Fragment {
                 Button navSkin = dialog.findViewById(R.id.dash_nav_skin);
                 Button navAccount = dialog.findViewById(R.id.dash_nav_account);
                 Button navControls = dialog.findViewById(R.id.dash_nav_controls);
-                Button navMods = dialog.findViewById(R.id.dash_nav_mods);
+                Button navModpacks = dialog.findViewById(R.id.dash_nav_modpacks);
+                Button navAddons = dialog.findViewById(R.id.dash_nav_addons);
                 Button navLogs = dialog.findViewById(R.id.dash_nav_logs);
 
                 android.widget.FrameLayout rightPane = dialog.findViewById(R.id.dash_content_pane);
@@ -178,8 +179,14 @@ public class MainMenuFragment extends Fragment {
                     navAccount.setTextColor(0xFFFFFFFF);
                     navControls.setBackgroundResource(R.drawable.premium_glass_black_bg);
                     navControls.setTextColor(0xFFFFFFFF);
-                    navMods.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                    navMods.setTextColor(0xFFFFFFFF);
+                    if (navModpacks != null) {
+                        navModpacks.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        navModpacks.setTextColor(0xFFFFFFFF);
+                    }
+                    if (navAddons != null) {
+                        navAddons.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        navAddons.setTextColor(0xFFFFFFFF);
+                    }
                     navLogs.setBackgroundResource(R.drawable.premium_glass_black_bg);
                     navLogs.setTextColor(0xFFFFFFFF);
                 };
@@ -643,19 +650,39 @@ public class MainMenuFragment extends Fragment {
                     rightPane.addView(mapBtn);
                 });
 
-                // SPLIT-PANE 6: MODS DEPLOY (Embed Downloader Dashboard directly inside Right Pane!)
-                navMods.setOnClickListener(v2 -> {
-                    v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    resetNavButtons.run();
-                    navMods.setBackgroundResource(R.drawable.premium_button_bg);
-                    navMods.setTextColor(0xFF000000);
+                // SPLIT-PANE 6: MODPACK ENGINE (MODPACKS)
+                if (navModpacks != null) {
+                    navModpacks.setOnClickListener(v2 -> {
+                        v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        resetNavButtons.run();
+                        navModpacks.setBackgroundResource(R.drawable.premium_button_bg);
+                        navModpacks.setTextColor(0xFF000000);
 
-                    rightPane.removeAllViews();
-                    // Swap directly to allow comfortable full-screen download/search experience
-                    dialog.dismiss();
-                    Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, null);
-                });
+                        rightPane.removeAllViews();
+                        dialog.dismiss();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("mode", "modpack");
+                        Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+                    });
+                }
+
+                // SPLIT-PANE 7: ADDON INSTALLER (MODS, SHADERS, RESOURCE PACKS)
+                if (navAddons != null) {
+                    navAddons.setOnClickListener(v2 -> {
+                        v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        resetNavButtons.run();
+                        navAddons.setBackgroundResource(R.drawable.premium_button_bg);
+                        navAddons.setTextColor(0xFF000000);
+
+                        rightPane.removeAllViews();
+                        dialog.dismiss();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("mode", "addon");
+                        Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+                    });
+                }
 
 
                 // SPLIT-PANE 8: TELEMETRY LOGS

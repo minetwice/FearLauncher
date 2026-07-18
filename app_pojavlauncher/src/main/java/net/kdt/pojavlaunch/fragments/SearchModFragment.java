@@ -127,11 +127,58 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mStatusTextView = view.findViewById(R.id.search_mod_status_text);
         mFilterButton = view.findViewById(R.id.search_mod_filter);
 
+        Bundle args = getArguments();
+        String mode = args != null ? args.getString("mode", "modpack") : "modpack";
+
+        TextView headerTitle = view.findViewById(R.id.search_mod_header_title);
+        View downloaderTabs = view.findViewById(R.id.downloader_tabs);
+
         // Map Segment Control Tabs dynamically
         com.kdt.mcgui.MineButton btnModpacks = view.findViewById(R.id.tab_modpacks);
         com.kdt.mcgui.MineButton btnMods = view.findViewById(R.id.tab_mods);
         com.kdt.mcgui.MineButton btnRes = view.findViewById(R.id.tab_resourcepacks);
         com.kdt.mcgui.MineButton btnShaders = view.findViewById(R.id.tab_shaders);
+
+        mImportButton = view.findViewById(R.id.mineButton_import_local_modpack);
+
+        if ("modpack".equals(mode)) {
+            if (headerTitle != null) {
+                headerTitle.setText("MODPACK DEPLOY ENGINE");
+            }
+            if (downloaderTabs != null) {
+                downloaderTabs.setVisibility(View.GONE);
+            }
+            if (mSearchEditText != null) {
+                mSearchEditText.setHint("SEARCH MODPACK PROTOCOLS...");
+            }
+            if (mImportButton != null) {
+                mImportButton.setVisibility(View.VISIBLE);
+            }
+            mSearchFilters.isModpack = true;
+            mSearchFilters.isMod = false;
+            mSearchFilters.isResourcePack = false;
+            mSearchFilters.isShaderPack = false;
+        } else {
+            if (headerTitle != null) {
+                headerTitle.setText("ADDON PROVISIONING HUB");
+            }
+            if (downloaderTabs != null) {
+                downloaderTabs.setVisibility(View.VISIBLE);
+            }
+            if (btnModpacks != null) {
+                btnModpacks.setVisibility(View.GONE);
+            }
+            if (mSearchEditText != null) {
+                mSearchEditText.setHint("SEARCH ADDONS & ASSETS...");
+            }
+            if (mImportButton != null) {
+                mImportButton.setVisibility(View.GONE);
+            }
+            mSearchFilters.isModpack = false;
+            mSearchFilters.isMod = true;
+            mSearchFilters.isResourcePack = false;
+            mSearchFilters.isShaderPack = false;
+        }
 
         if (btnModpacks != null && btnMods != null && btnRes != null && btnShaders != null) {
             btnModpacks.setOnClickListener(v -> {
@@ -231,17 +278,30 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         });
 
         mFilterButton.setOnClickListener(v -> displayFilterDialog());
-        mImportButton = view.findViewById(R.id.mineButton_import_local_modpack);
-        mImportButton.setOnClickListener(v -> {
-            mImportLauncher.launch("*/*");
-        });
+        if (mImportButton != null) {
+            mImportButton.setOnClickListener(v -> {
+                mImportLauncher.launch("*/*");
+            });
+        }
         mTaskCountListener = taskCount -> {
-            runOnUiThread(() -> mImportButton.setEnabled(taskCount == 0));
+            runOnUiThread(() -> {
+                if (mImportButton != null) {
+                    mImportButton.setEnabled(taskCount == 0);
+                }
+            });
             return false;
         };
         ProgressKeeper.addTaskCountListener(mTaskCountListener);
 
-        searchMods(null);
+        if ("addon".equals(mode)) {
+            if (btnMods != null) {
+                btnMods.performClick();
+            } else {
+                searchMods(null);
+            }
+        } else {
+            searchMods(null);
+        }
     }
 
     @Override
