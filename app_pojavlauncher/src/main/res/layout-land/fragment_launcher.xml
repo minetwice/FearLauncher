@@ -6,13 +6,13 @@
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Three-Dot Menu Trigger (Top Right - Premium Glass Three-Dot) -->
+    <!-- Settings Gear Menu Trigger (Top Right - Premium Black Gear) -->
     <com.kdt.mcgui.LauncherMenuButton
         android:id="@+id/hamburger_menu_icon"
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_40sdp"
         android:layout_margin="@dimen/_16sdp"
-        android:src="@drawable/ic_three_dots"
+        android:src="@drawable/ic_sharp_settings_24"
         android:background="@drawable/premium_glass_black_bg"
         android:padding="@dimen/_8sdp"
         app:tint="#FFFFFF"
@@ -23,11 +23,6 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <com.kdt.mcgui.GlassParticleView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.3" />
 
         <!-- Info Card (Center) -->
         <LinearLayout
@@ -43,10 +38,10 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
-                android:layout_width="@dimen/_50sdp"
-                android:layout_height="@dimen/_50sdp"
+                android:layout_width="@dimen/_60sdp"
+                android:layout_height="@dimen/_60sdp"
                 android:src="@drawable/ic_app_logo"
-                android:layout_marginBottom="@dimen/_6sdp" />
+                android:layout_marginBottom="@dimen/_10sdp" />
 
             <TextView
                 android:id="@+id/account_name_display"
@@ -54,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="Guest"
                 android:textColor="#FFFFFF"
-                android:textSize="@dimen/_16ssp"
+                android:textSize="@dimen/_18ssp"
                 android:textStyle="bold" />
 
             <TextView
@@ -63,33 +58,8 @@
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
                 android:textColor="#E0E0E0"
-                android:textSize="@dimen/_10ssp"
-                android:layout_marginBottom="@dimen/_4sdp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FEAR ULTRA-CORE v4.0 [MANUFACTURED]"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_8ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:alpha="0.9"
-                android:layout_marginTop="2dp"
-                android:shadowColor="#FFFFFF"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="8" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="CORE STABILITY: LOCKED"
-                android:textColor="#00FFCC"
-                android:textSize="@dimen/_6ssp"
-                android:textStyle="bold"
-                android:alpha="0.8"
-                android:layout_marginBottom="@dimen/_12sdp" />
+                android:textSize="@dimen/_12ssp"
+                android:layout_marginBottom="@dimen/_20sdp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -99,13 +69,33 @@
 
                 <com.kdt.mcgui.mcVersionSpinner
                     android:id="@+id/mc_version_spinner"
-                    android:layout_width="@dimen/_120sdp"
+                    android:layout_width="@dimen/_100sdp"
                     android:layout_height="@dimen/_40sdp"
                     android:background="@drawable/premium_glass_black_bg" />
 
+                <ImageButton
+                    android:id="@+id/main_modpacks_btn"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:src="@drawable/ic_px_file_dl"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:padding="@dimen/_8sdp"
+                    app:tint="#FFFFFF" />
+
+                <ImageButton
+                    android:id="@+id/main_addons_btn"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:src="@drawable/ic_px_experiment"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:padding="@dimen/_8sdp"
+                    app:tint="#FFFFFF" />
+
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/play_button"
-                    android:layout_width="@dimen/_120sdp"
+                    android:layout_width="@dimen/_100sdp"
                     android:layout_height="@dimen/_40sdp"
                     android:layout_marginStart="@dimen/_10sdp"
                     android:text="PLAY"
@@ -162,14 +152,14 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     android:background="@drawable/premium_edit_bg"
                     android:padding="8dp">
 
                     <androidx.cardview.widget.CardView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        app:cardCornerRadius="20dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardCornerRadius="24dp"
                         app:cardBackgroundColor="#20FFFFFF"
                         app:cardElevation="2dp">
                         <ImageView
@@ -195,300 +185,133 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TELEMETRY ACTIVE"
+                            android:text="STABILITY: ONLINE"
                             android:textColor="#00FFCC"
                             android:textSize="@dimen/_7ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Performance Diagnostics Section -->
+                <!-- SECTION 1: CORE OPERATIONS -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="• SYSTEMS TELEMETRY"
-                    android:textColor="#00FFCC"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <!-- Grid of Telemetry metrics -->
-                <GridLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="3"
-                    android:alignmentMode="alignBounds"
-                    android:layout_marginBottom="12dp">
-
-                    <!-- Metric: FPS -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="FPS TARGET"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_fps"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="60.0 FPS"
-                            android:textColor="#00FFCC"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: CPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CORE CHIPSET"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_cpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="OCTA-CORE"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: GPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="GRAPHICS CORE"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_gpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="ADRENO GPU"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: RAM Allocation -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ALLOCATED RAM"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_ram"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="1144 MB"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: JVM Heap Memory -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="FREE SYSTEM MEMORY"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_memory"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="4.2 GB"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: Active Renderer -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ACTIVE RENDERER"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_renderer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="HOLY GL4ES"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </GridLayout>
-
-                <!-- SECTION 1: OPERATIONS & TELEMETRY -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• OPERATIONS &amp; DIAGNOSTICS"
+                    android:text="• CORE OPERATIONS"
                     android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_logs_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="EXPORT LOGS"
-                    android:drawableStart="@drawable/ic_px_sharelog"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_downloads_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="BACKGROUND DOWNLOADS"
-                    android:drawableStart="@drawable/ic_px_file_dl"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_news_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="LATEST NEWS"
-                    android:drawableStart="@drawable/ic_px_book"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- SECTION 2: INSTALLED ADDONS -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• INSTALLED MODULES"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_mods_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="INSTALLED MODS"
-                    android:drawableStart="@drawable/ic_px_zap"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_resource_packs_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="RESOURCE PACKS"
-                    android:drawableStart="@drawable/ic_px_image"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_shader_packs_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="SHADER PACKS"
-                    android:drawableStart="@drawable/ic_px_image_renderer"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- SECTION 3: SYSTEM CONTROLS & DEVELOPMENT -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• DEV &amp; COMMAND EXPERIMENT"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_controls_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="DEVELOPER OPTIONS"
-                    android:drawableStart="@drawable/ic_px_gamepad"
-                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_settings_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="EXPERIMENTAL STUFF"
+                    android:layout_height="@dimen/_40sdp"
+                    android:text="SETTINGS ENGINE"
                     android:drawableStart="@drawable/ic_px_sliders"
                     android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="8dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_execute_jar_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:text="RUN EXECUTABLE"
+                    android:drawableStart="@drawable/ic_px_java_run"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="16dp" />
+
+                <!-- SECTION 2: PERSONALIZATION -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• PERSONALIZATION"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_skin_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:text="SKIN CUSTOMIZER"
+                    android:drawableStart="@drawable/ic_account_circle"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="8dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_account_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:text="ACCOUNT HUB"
+                    android:drawableStart="@drawable/ic_px_edit"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- SECTION 3: EXPANSIONS -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• UTILITY MODULES"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/more_settings_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:text="ADVANCED TOOLS"
+                    android:drawableStart="@drawable/ic_px_alt_sliders"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Sub Tray for More Settings -->
+                <LinearLayout
+                    android:id="@+id/more_settings_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginBottom="16dp"
+                    android:paddingStart="8dp">
+
+                    <com.kdt.mcgui.LauncherMenuButton
+                        android:id="@+id/tray_controls_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_36sdp"
+                        android:text="INPUT MAPPING"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/tray_button_bg"
+                        android:layout_marginBottom="4dp" />
+
+                    <com.kdt.mcgui.LauncherMenuButton
+                        android:id="@+id/tray_mods_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_36sdp"
+                        android:text="MODIFICATIONS"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/tray_button_bg"
+                        android:layout_marginBottom="4dp" />
+
+                    <com.kdt.mcgui.LauncherMenuButton
+                        android:id="@+id/tray_logs_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_36sdp"
+                        android:text="DATA STREAM"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/tray_button_bg"
+                        android:layout_marginBottom="4dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/tray_close"

@@ -3,63 +3,78 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FA000000"
+    android:background="@drawable/premium_gradient_bg"
     android:padding="12dp">
 
-    <!-- Header / Close button -->
-    <ImageButton
-        android:id="@+id/detail_close_btn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_px_arrow_left"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.kdt.mcgui.MineButton
-        android:id="@+id/detail_done_btn"
-        android:layout_width="72dp"
-        android:layout_height="32dp"
-        android:text="DONE"
-        android:textColor="#000000"
-        android:textSize="@dimen/_8ssp"
-        android:textStyle="bold"
-        android:background="@drawable/premium_button_bg"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/detail_header_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="SPECIFICATION TELEMETRY"
-        android:textColor="#80FFFFFF"
-        android:textSize="@dimen/_9ssp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintTop_toTopOf="@id/detail_close_btn"
-        app:layout_constraintBottom_toBottomOf="@id/detail_close_btn"
-        app:layout_constraintStart_toEndOf="@id/detail_close_btn"
-        app:layout_constraintEnd_toStartOf="@id/detail_done_btn" />
-
-    <!-- Top Specifications & Installation Row -->
+    <!-- Top Header Navigation HUD -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/detail_top_spec_row"
+        android:id="@+id/detail_header_hud"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/detail_close_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/detail_header_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="TELEMETRY SYSTEM: PROVISIONING PROTOCOL"
+            android:textColor="#E0E0E0"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/detail_close_btn"
+            app:layout_constraintEnd_toStartOf="@id/detail_done_btn" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/detail_done_btn"
+            android:layout_width="80dp"
+            android:layout_height="36dp"
+            android:text="DONE"
+            android:textColor="#000000"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:background="@drawable/premium_button_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Left side Info Panel (Icons, spinners, version selector tabs) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/detail_left_panel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="6dp"
         android:background="@drawable/premium_glass_black_bg"
         android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/detail_close_btn">
+        app:layout_constraintTop_toBottomOf="@id/detail_header_hud"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/detail_right_panel_guideline">
 
-        <!-- Item Icon -->
+        <!-- Logo & Spec Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/detail_logo_card"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:cardBackgroundColor="@android:color/transparent"
@@ -72,227 +87,229 @@
                 android:scaleType="centerCrop" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Title and Source -->
-        <LinearLayout
-            android:id="@+id/detail_title_box"
+        <!-- Title, Source Text & Action button -->
+        <TextView
+            android:id="@+id/detail_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_12ssp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
             android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/detail_logo_card"
-            app:layout_constraintEnd_toStartOf="@id/detail_install_btn">
+            app:layout_constraintEnd_toEndOf="parent" />
 
+        <LinearLayout
+            android:id="@+id/detail_source_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/detail_title"
+            app:layout_constraintStart_toEndOf="@id/detail_logo_card"
+            app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:id="@+id/detail_source_icon"
+                android:layout_width="14dp"
+                android:layout_height="14dp" />
             <TextView
-                android:id="@+id/detail_title"
+                android:id="@+id/detail_source_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_12ssp"
-                android:textStyle="bold"
-                android:maxLines="2"
-                android:ellipsize="end" />
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- Interactive Custom Selector Dropdowns -->
+        <LinearLayout
+            android:id="@+id/detail_dropdowns_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/detail_logo_card">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="4dp">
-                <ImageView
-                    android:id="@+id/detail_source_icon"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp" />
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="6dp">
                 <TextView
-                    android:id="@+id/detail_source_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:layout_marginStart="4dp" />
+                    android:text="LOADER ENGINE"
+                    android:textColor="#A0E0E0"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="3dp" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/detail_modloader_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:background="@drawable/premium_glass_black_bg" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GAME VERSION"
+                    android:textColor="#A0E0E0"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="3dp" />
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/detail_version_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:background="@drawable/premium_glass_black_bg" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- MODERN INSTALL BUTTON (Right next to Title) -->
+        <!-- Segment Filter Tabs (ALL, RELEASE, BETA, SNAPSHOT) -->
+        <LinearLayout
+            android:id="@+id/detail_filter_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/detail_dropdowns_row">
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/filter_type_all"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="ALL"
+                android:textSize="@dimen/_8ssp"
+                android:textColor="#000000"
+                android:background="@drawable/premium_button_bg"
+                android:layout_marginEnd="4dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/filter_type_release"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:text="RELEASE"
+                android:textSize="@dimen/_8ssp"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="4dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/filter_type_beta"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="BETA"
+                android:textSize="@dimen/_8ssp"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="4dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/filter_type_alpha"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:text="SNAPSHOT"
+                android:textSize="@dimen/_8ssp"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_glass_black_bg" />
+        </LinearLayout>
+
+        <!-- Prominent Install Action Button -->
         <com.kdt.mcgui.MineButton
             android:id="@+id/detail_install_btn"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:text="INSTALL"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="DEPLOY PACKAGE"
             android:textColor="#000000"
-            android:textSize="@dimen/_10ssp"
+            android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
             android:background="@drawable/premium_button_bg"
-            android:layout_marginEnd="32dp"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_marginBottom="4dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Side-by-Side Dual Selector Bar HUD -->
-    <LinearLayout
-        android:id="@+id/detail_selector_hud"
-        android:layout_width="match_parent"
+    <!-- Vertical Guideline to split Left and Right sides beautifully in landscape -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/detail_right_panel_guideline"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/detail_top_spec_row">
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.45" />
 
-        <!-- Modloader / Engine Dropdown -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginEnd="6dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LOADER / ENGINE"
-                android:textColor="#80FFFFFF"
-                android:textSize="@dimen/_7ssp"
-                android:textStyle="bold"
-                android:layout_marginBottom="3dp" />
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/detail_modloader_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:background="@drawable/premium_edit_bg" />
-        </LinearLayout>
-
-        <!-- Minecraft Version Dropdown -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.2"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="GAME VERSION"
-                android:textColor="#80FFFFFF"
-                android:textSize="@dimen/_7ssp"
-                android:textStyle="bold"
-                android:layout_marginBottom="3dp" />
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/detail_version_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:background="@drawable/premium_edit_bg" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Release Type Tabs / Filters (Aligned perfectly directly below dropdowns) -->
-    <LinearLayout
-        android:id="@+id/detail_type_filters"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_28sdp"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/detail_selector_hud">
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/filter_type_all"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="ALL"
-            android:textSize="@dimen/_8ssp"
-            android:textColor="#000000"
-            android:background="@drawable/premium_button_bg"
-            android:layout_marginEnd="4dp" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/filter_type_release"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.2"
-            android:text="RELEASE"
-            android:textSize="@dimen/_8ssp"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/premium_glass_black_bg"
-            android:layout_marginEnd="4dp" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/filter_type_beta"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="BETA"
-            android:textSize="@dimen/_8ssp"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/premium_glass_black_bg"
-            android:layout_marginEnd="4dp" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/filter_type_alpha"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.2"
-            android:text="SNAPSHOT"
-            android:textSize="@dimen/_8ssp"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/premium_glass_black_bg" />
-    </LinearLayout>
-
-    <!-- Details Content Scroll Area -->
-    <ScrollView
-        android:layout_width="match_parent"
+    <!-- Right side detail documentation and manual view -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/detail_right_panel"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/detail_type_filters"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_marginStart="6dp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@id/detail_header_hud"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/detail_right_panel_guideline"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="4dp">
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:scrollbars="vertical">
 
-            <!-- Error Warning text if any -->
-            <TextView
-                android:id="@+id/detail_error_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#FF4D4D"
-                android:textSize="@dimen/_9ssp"
-                android:gravity="center"
-                android:visibility="gone"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Preview Screenshot Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/detail_preview_card"
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:visibility="gone"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#20FFFFFF"
-                android:layout_marginBottom="12dp">
-                <ImageView
-                    android:id="@+id/detail_preview_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop" />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Description Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/premium_glass_black_bg"
-                android:padding="12dp">
+                android:orientation="vertical">
+
+                <!-- Error Telemetry alerts -->
+                <TextView
+                    android:id="@+id/detail_error_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF4D4D"
+                    android:textSize="@dimen/_9ssp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Gallery screenshot card -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/detail_preview_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:visibility="gone"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="#20FFFFFF"
+                    android:layout_marginBottom="12dp">
+                    <ImageView
+                        android:id="@+id/detail_preview_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop" />
+                </androidx.cardview.widget.CardView>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="DOCUMENTATION &amp; FIELD MANUAL"
+                    android:text="DOCUMENTATION &amp; SPECIFICATIONS"
                     android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
@@ -307,13 +324,9 @@
                     android:textSize="@dimen/_10ssp"
                     android:lineSpacingMultiplier="1.3"
                     android:textIsSelectable="true" />
+
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp" />
-
-        </LinearLayout>
-    </ScrollView>
+        </ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

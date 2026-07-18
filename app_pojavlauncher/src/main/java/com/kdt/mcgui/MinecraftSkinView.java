@@ -138,7 +138,7 @@ public class MinecraftSkinView extends View {
         int sh = mSkinBitmap.getHeight();
 
         // Scale factor for HD skins
-        int scale = sw / 64;
+        int scale = Math.max(1, sw / 64);
         int cx = x * scale;
         int cy = y * scale;
         int cw = w * scale;
