@@ -310,6 +310,10 @@ public class LauncherActivity extends BaseActivity {
                 .apply();
     }
 
+    public ProgressLayout getProgressLayout() {
+        return mProgressLayout;
+    }
+
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
         mProgressLayout = findViewById(R.id.progress_layout);

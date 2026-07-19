@@ -26,7 +26,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Top Left: Hamburger, Logo & Launcher Name -->
-        <com.kdt.mcgui.LauncherMenuButton
+        <ImageButton
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"

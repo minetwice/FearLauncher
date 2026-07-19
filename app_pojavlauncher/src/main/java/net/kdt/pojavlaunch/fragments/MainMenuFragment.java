@@ -182,7 +182,15 @@ public class MainMenuFragment extends Fragment {
             headerNotificationBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();
+                if (requireActivity() instanceof net.kdt.pojavlaunch.LauncherActivity) {
+                    com.kdt.mcgui.ProgressLayout pl = ((net.kdt.pojavlaunch.LauncherActivity) requireActivity()).getProgressLayout();
+                    if (pl != null) {
+                        pl.setVisibility(View.VISIBLE);
+                        pl.onClick(pl);
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
