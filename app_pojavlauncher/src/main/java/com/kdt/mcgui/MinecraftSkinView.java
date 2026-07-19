@@ -395,9 +395,10 @@ public class MinecraftSkinView extends View {
         }
         // FACE_BOTTOM
         if (mFaceBitmaps[partId][FACE_BOTTOM] != null) {
+            // Swap Z coords to correct bottom-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_BOTTOM, mFaceBitmaps[partId][FACE_BOTTOM], new Point3D[] {
-                new Point3D(x1, y2, z2), new Point3D(x2, y2, z2),
-                new Point3D(x1, y2, z1), new Point3D(x2, y2, z1)
+                new Point3D(x1, y2, z1), new Point3D(x2, y2, z1),
+                new Point3D(x1, y2, z2), new Point3D(x2, y2, z2)
             }));
         }
         // FACE_LEFT
