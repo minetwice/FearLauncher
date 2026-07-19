@@ -99,6 +99,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
+            <!-- Dynamic 2D Skin Head Preview -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="@dimen/_44sdp"
+                android:layout_height="@dimen/_44sdp"
+                app:cardCornerRadius="@dimen/_22sdp"
+                app:cardBackgroundColor="#20FFFFFF"
+                app:cardElevation="0dp"
+                android:layout_marginBottom="@dimen/_8sdp">
+                <ImageView
+                    android:id="@+id/homepage_skin_head"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter" />
+            </androidx.cardview.widget.CardView>
+
             <!-- Subcard Header details -->
             <TextView
                 android:id="@+id/account_name_display"

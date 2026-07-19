@@ -335,7 +335,8 @@ public class MinecraftSkinView extends View {
         // 3D rotation and projection
         float scale = getHeight() / 32f;
         float centerX = getWidth() / 2f;
-        float centerY = getHeight() / 2.3f;
+        // Shift centerY slightly upwards (higher up on screen) to make the entire body/feet perfectly visible
+        float centerY = getHeight() / 2.8f;
 
         List<ProjectedFace> projected = new ArrayList<>();
         for (Face3D f : faces) {
@@ -401,16 +402,18 @@ public class MinecraftSkinView extends View {
         }
         // FACE_LEFT
         if (mFaceBitmaps[partId][FACE_LEFT] != null) {
+            // Swap Z coords to correct left-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_LEFT, mFaceBitmaps[partId][FACE_LEFT], new Point3D[] {
-                new Point3D(x1, y1, z1), new Point3D(x1, y1, z2),
-                new Point3D(x1, y2, z1), new Point3D(x1, y2, z2)
+                new Point3D(x1, y1, z2), new Point3D(x1, y1, z1),
+                new Point3D(x1, y2, z2), new Point3D(x1, y2, z1)
             }));
         }
         // FACE_RIGHT
         if (mFaceBitmaps[partId][FACE_RIGHT] != null) {
+            // Swap Z coords to correct right-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_RIGHT, mFaceBitmaps[partId][FACE_RIGHT], new Point3D[] {
-                new Point3D(x2, y1, z2), new Point3D(x2, y1, z1),
-                new Point3D(x2, y2, z2), new Point3D(x2, y2, z1)
+                new Point3D(x2, y1, z1), new Point3D(x2, y1, z2),
+                new Point3D(x2, y2, z1), new Point3D(x2, y2, z2)
             }));
         }
     }

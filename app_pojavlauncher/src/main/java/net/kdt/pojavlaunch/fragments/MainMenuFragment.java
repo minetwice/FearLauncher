@@ -49,6 +49,7 @@ public class MainMenuFragment extends Fragment {
 
     private mcVersionSpinner mVersionSpinner;
     private TextView mAccountName;
+    private View mRootView;
     private TextView mAccountTypeLabel;
     private TextView mVersionText;
 
@@ -127,6 +128,7 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mRootView = view;
         // Logic bindings (invisible dummies)
         mAccountName      = view.findViewById(R.id.account_name);
         mAccountTypeLabel = view.findViewById(R.id.account_type_label);
@@ -991,6 +993,82 @@ public class MainMenuFragment extends Fragment {
         if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
 
         if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
+
+        if (mRootView != null) {
+            refreshSkinHeadDisplay(mRootView);
+        }
+    }
+
+    private void refreshSkinHeadDisplay(View view) {
+        ImageView skinHeadIv = view.findViewById(R.id.homepage_skin_head);
+        if (skinHeadIv == null) return;
+
+        android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String activeSkinPath = prefs.getString("active_skin_path", "steve");
+
+        android.graphics.Bitmap fullSkinBmp = null;
+        if ("steve".equalsIgnoreCase(activeSkinPath)) {
+            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_STEVE_BASE64, android.util.Base64.DEFAULT);
+            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } else if ("alex".equalsIgnoreCase(activeSkinPath)) {
+            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_ALEX_BASE64, android.util.Base64.DEFAULT);
+            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } else {
+            try {
+                java.io.File file = new java.io.File(activeSkinPath);
+                if (file.exists()) {
+                    fullSkinBmp = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (fullSkinBmp == null) {
+            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_STEVE_BASE64, android.util.Base64.DEFAULT);
+            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        }
+
+        if (fullSkinBmp != null) {
+            int sw = fullSkinBmp.getWidth();
+            int sh = fullSkinBmp.getHeight();
+            int scale = Math.max(1, sw / 64);
+
+            // Create a high-quality 128x128 pixel head bitmap to prevent blurriness on high-res displays
+            android.graphics.Bitmap headBmp = android.graphics.Bitmap.createBitmap(128, 128, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(headBmp);
+            android.graphics.Paint paint = new android.graphics.Paint();
+            paint.setAntiAlias(false);
+            paint.setFilterBitmap(false); // Point filtering to ensure crisp sharp pixel edges
+
+            // Crop base face: X=8, Y=8, W=8, H=8
+            int bx = 8 * scale;
+            int by = 8 * scale;
+            int bSize = 8 * scale;
+            if (bx + bSize <= sw && by + bSize <= sh) {
+                android.graphics.Bitmap baseFace = android.graphics.Bitmap.createBitmap(fullSkinBmp, bx, by, bSize, bSize);
+                android.graphics.Rect destRect = new android.graphics.Rect(0, 0, 128, 128);
+                canvas.drawBitmap(baseFace, null, destRect, paint);
+                baseFace.recycle();
+            }
+
+            // Crop overlay face if modern 64x64 skin: X=40, Y=8, W=8, H=8
+            if (sh >= 64 * scale) {
+                int ox = 40 * scale;
+                int oy = 8 * scale;
+                if (ox + bSize <= sw && oy + bSize <= sh) {
+                    android.graphics.Bitmap overlayFace = android.graphics.Bitmap.createBitmap(fullSkinBmp, ox, oy, bSize, bSize);
+                    android.graphics.Rect destRect = new android.graphics.Rect(0, 0, 128, 128);
+                    canvas.drawBitmap(overlayFace, null, destRect, paint);
+                    overlayFace.recycle();
+                }
+            }
+
+            skinHeadIv.setImageBitmap(headBmp);
+            if (fullSkinBmp != headBmp) {
+                fullSkinBmp.recycle();
+            }
+        }
     }
 
     private void handlePlayButton() {
