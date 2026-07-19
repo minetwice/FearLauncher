@@ -99,11 +99,11 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Dynamic 2D Skin Head Preview -->
+            <!-- Dynamic 2D Skin Head Preview (Square Profile Redesign) -->
             <androidx.cardview.widget.CardView
                 android:layout_width="@dimen/_44sdp"
                 android:layout_height="@dimen/_44sdp"
-                app:cardCornerRadius="@dimen/_22sdp"
+                app:cardCornerRadius="@dimen/_4sdp"
                 app:cardBackgroundColor="#20FFFFFF"
                 app:cardElevation="0dp"
                 android:layout_marginBottom="@dimen/_8sdp">

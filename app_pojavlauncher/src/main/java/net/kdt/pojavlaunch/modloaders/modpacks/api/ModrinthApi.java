@@ -142,8 +142,15 @@ public class ModrinthApi implements ModpackApi{
             String mcNameStr = "any";
             if (version.has("game_versions") && !version.get("game_versions").isJsonNull()) {
                 JsonArray gv = version.getAsJsonArray("game_versions");
-                if (gv.size() > 0) {
-                    mcNameStr = gv.get(0).getAsString();
+                StringBuilder mcVersionBuilder = new StringBuilder();
+                for (int g = 0; g < gv.size(); g++) {
+                    if (mcVersionBuilder.length() > 0) {
+                        mcVersionBuilder.append(", ");
+                    }
+                    mcVersionBuilder.append(gv.get(g).getAsString());
+                }
+                if (mcVersionBuilder.length() > 0) {
+                    mcNameStr = mcVersionBuilder.toString();
                 }
             }
             mcNames[i] = mcNameStr;
