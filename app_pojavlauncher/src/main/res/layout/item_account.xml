@@ -4,28 +4,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/_10sdp"
+    android:layout_marginBottom="@dimen/_6sdp"
     android:background="@drawable/premium_glass_black_bg"
     android:clickable="true"
     android:focusable="true"
-    android:padding="@dimen/_12sdp">
+    android:padding="@dimen/_8sdp">
 
+    <!-- Avatar User Icon -->
     <ImageView
         android:id="@+id/account_avatar"
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_40sdp"
-        android:src="@drawable/ic_app_logo"
+        android:layout_width="@dimen/_24sdp"
+        android:layout_height="@dimen/_24sdp"
+        android:src="@drawable/ic_account_circle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:tint="#66FFFFFF" />
 
+    <!-- Name & Type -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_12sdp"
+        android:layout_marginStart="@dimen/_8sdp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/account_selected_check"
+        app:layout_constraintEnd_toStartOf="@+id/status_layout"
         app:layout_constraintStart_toEndOf="@id/account_avatar"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -35,48 +38,75 @@
             android:layout_height="wrap_content"
             android:text="Username"
             android:textColor="#FFFFFF"
-            android:textSize="@dimen/_14ssp"
+            android:textSize="@dimen/_10ssp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/account_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Microsoft Account"
-            android:textColor="#B3FFFFFF"
-            android:textSize="@dimen/_9ssp" />
+            android:text="Microsoft"
+            android:textColor="#80FFFFFF"
+            android:textSize="@dimen/_7ssp" />
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/account_selected_check"
-        android:layout_width="@dimen/_18sdp"
-        android:layout_height="@dimen/_18sdp"
-        android:layout_marginEnd="@dimen/_8sdp"
-        android:src="@drawable/ic_px_zap"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/account_delete_btn"
+    <!-- Status Column (matches reference exactly) -->
+    <LinearLayout
+        android:id="@+id/status_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:layout_marginEnd="@dimen/_10sdp"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFFFF" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/account_delete_btn">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status"
+            android:textColor="#40FFFFFF"
+            android:textSize="@dimen/_6ssp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
+
+            <!-- Active / Local colored dot -->
+            <View
+                android:id="@+id/account_status_dot"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@android:color/holo_red_light"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/account_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Active"
+                android:textColor="#FF4D4D"
+                android:textSize="@dimen/_7ssp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Menu or Action Options Button (we can show three dots) -->
     <ImageButton
         android:id="@+id/account_delete_btn"
-        android:layout_width="@dimen/_32sdp"
-        android:layout_height="@dimen/_32sdp"
+        android:layout_width="@dimen/_24sdp"
+        android:layout_height="@dimen/_24sdp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_px_trash"
+        android:src="@drawable/ic_three_dots"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFFFF" />
-
-    <!-- Shine Overlay (Animated in code or via loop animation if possible) -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/button_shine_line"
-        android:alpha="0.1"
-        android:visibility="gone" />
+        app:tint="#80FFFFFF" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
