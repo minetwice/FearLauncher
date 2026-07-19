@@ -268,6 +268,7 @@ public class MainMenuFragment extends Fragment {
                 collapseTray(settingsTray);
                 Bundle bundle = new Bundle();
                 bundle.putString("mode", "addon");
+                bundle.putString("initial_category", "mods");
                 Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
             });
         }
@@ -277,15 +278,11 @@ public class MainMenuFragment extends Fragment {
             trayResourcePacks.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                Instance instance = Instances.loadSelectedInstance();
-                if (instance != null) {
-                    File rpDir = new File(instance.getGameDirectory(), "resourcepacks");
-                    if (rpDir.exists() || rpDir.mkdirs()) {
-                        Tools.openPath(requireContext(), rpDir, false);
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "No selected instance to view resource packs.", Toast.LENGTH_SHORT).show();
-                }
+                collapseTray(settingsTray);
+                Bundle bundle = new Bundle();
+                bundle.putString("mode", "addon");
+                bundle.putString("initial_category", "resourcepacks");
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
             });
         }
 
@@ -294,15 +291,21 @@ public class MainMenuFragment extends Fragment {
             trayShaderPacks.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                Instance instance = Instances.loadSelectedInstance();
-                if (instance != null) {
-                    File spDir = new File(instance.getGameDirectory(), "shaderpacks");
-                    if (spDir.exists() || spDir.mkdirs()) {
-                        Tools.openPath(requireContext(), spDir, false);
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "No selected instance to view shader packs.", Toast.LENGTH_SHORT).show();
-                }
+                collapseTray(settingsTray);
+                Bundle bundle = new Bundle();
+                bundle.putString("mode", "addon");
+                bundle.putString("initial_category", "shaders");
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+            });
+        }
+
+        View traySkin = view.findViewById(R.id.tray_skin_btn);
+        if (traySkin != null) {
+            traySkin.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                openCommandDashboard("skin");
             });
         }
 
@@ -364,6 +367,10 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void openCommandDashboard() {
+        openCommandDashboard(null);
+    }
+
+    private void openCommandDashboard(String defaultTab) {
         android.app.Dialog dialog = new android.app.Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.dialog_premium_settings_dashboard);
 
@@ -422,7 +429,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navSettings.setBackgroundResource(R.drawable.premium_button_bg);
-            navSettings.setTextColor(0xFF000000);
+            navSettings.setTextColor(0xFFFFFFFF);
 
             // Inflate options inside the right pane container dynamically
             rightPane.removeAllViews();
@@ -446,7 +453,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navExecute.setBackgroundResource(R.drawable.premium_button_bg);
-            navExecute.setTextColor(0xFF000000);
+            navExecute.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
             LinearLayout execLayout = new LinearLayout(requireContext());
@@ -457,7 +464,7 @@ public class MainMenuFragment extends Fragment {
             Button launchBtn = new Button(requireContext());
             launchBtn.setText("LAUNCH INSTALLER (.JAR)");
             launchBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            launchBtn.setTextColor(0xFF000000);
+            launchBtn.setTextColor(0xFFFFFFFF);
             launchBtn.setPadding(24, 12, 24, 12);
             launchBtn.setOnClickListener(vLaunch -> {
                 dialog.dismiss();
@@ -474,7 +481,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navSkin.setBackgroundResource(R.drawable.premium_button_bg);
-            navSkin.setTextColor(0xFF000000);
+            navSkin.setTextColor(0xFFFFFFFF);
 
             mRefreshSkinPaneRunnable = () -> {
                 rightPane.removeAllViews();
@@ -495,12 +502,12 @@ public class MainMenuFragment extends Fragment {
                     boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
                     if (currentIsAlex) {
                         btnAlexModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnAlexModel.setTextColor(Color.BLACK);
+                        btnAlexModel.setTextColor(Color.WHITE);
                         btnSteveModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnSteveModel.setTextColor(Color.WHITE);
                     } else {
                         btnSteveModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnSteveModel.setTextColor(Color.BLACK);
+                        btnSteveModel.setTextColor(Color.WHITE);
                         btnAlexModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnAlexModel.setTextColor(Color.WHITE);
                     }
@@ -540,7 +547,7 @@ public class MainMenuFragment extends Fragment {
                 steveViewer.loadSkin("steve", false);
                 if ("steve".equalsIgnoreCase(activeSkinPath)) {
                     steveCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    steveTitle.setTextColor(Color.BLACK);
+                    steveTitle.setTextColor(Color.WHITE);
                 }
                 steveCard.setOnClickListener(vSteve -> {
                     vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -557,7 +564,7 @@ public class MainMenuFragment extends Fragment {
                 alexViewer.loadSkin("alex", true);
                 if ("alex".equalsIgnoreCase(activeSkinPath)) {
                     alexCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    alexTitle.setTextColor(Color.BLACK);
+                    alexTitle.setTextColor(Color.WHITE);
                 }
                 alexCard.setOnClickListener(vAlex -> {
                     vAlex.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -587,7 +594,7 @@ public class MainMenuFragment extends Fragment {
 
                             if (f.getAbsolutePath().equals(activeSkinPath)) {
                                 customCard.setBackgroundResource(R.drawable.premium_button_bg);
-                                customTitle.setTextColor(Color.BLACK);
+                                customTitle.setTextColor(Color.WHITE);
                             }
 
                             customCard.setOnClickListener(vCust -> {
@@ -613,7 +620,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navAccount.setBackgroundResource(R.drawable.premium_button_bg);
-            navAccount.setTextColor(0xFF000000);
+            navAccount.setTextColor(0xFFFFFFFF);
 
             java.lang.Runnable refreshAccountHub = new java.lang.Runnable() {
                 private boolean mShowLocalAuth = true;
@@ -861,13 +868,13 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navControls.setBackgroundResource(R.drawable.premium_button_bg);
-            navControls.setTextColor(0xFF000000);
+            navControls.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
             Button mapBtn = new Button(requireContext());
             mapBtn.setText("OPEN CUSTOM CONTROLS MAPPING");
             mapBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            mapBtn.setTextColor(0xFF000000);
+            mapBtn.setTextColor(0xFFFFFFFF);
             mapBtn.setOnClickListener(vMap -> {
                 dialog.dismiss();
                 startActivity(new Intent(requireContext(), CustomControlsActivity.class));
@@ -882,7 +889,7 @@ public class MainMenuFragment extends Fragment {
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
                 navModpacks.setBackgroundResource(R.drawable.premium_button_bg);
-                navModpacks.setTextColor(0xFF000000);
+                navModpacks.setTextColor(0xFFFFFFFF);
 
                 rightPane.removeAllViews();
                 dialog.dismiss();
@@ -899,7 +906,7 @@ public class MainMenuFragment extends Fragment {
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
                 navAddons.setBackgroundResource(R.drawable.premium_button_bg);
-                navAddons.setTextColor(0xFF000000);
+                navAddons.setTextColor(0xFFFFFFFF);
 
                 rightPane.removeAllViews();
                 dialog.dismiss();
@@ -916,13 +923,13 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navLogs.setBackgroundResource(R.drawable.premium_button_bg);
-            navLogs.setTextColor(0xFF000000);
+            navLogs.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
             Button shareBtn = new Button(requireContext());
             shareBtn.setText("EXPORT SYSTEMS LOGS TELEMETRY");
             shareBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            shareBtn.setTextColor(0xFF000000);
+            shareBtn.setTextColor(0xFFFFFFFF);
             shareBtn.setOnClickListener(vShare -> {
                 dialog.dismiss();
                 shareLog(requireContext());
@@ -931,7 +938,13 @@ public class MainMenuFragment extends Fragment {
         });
 
         // Default selection
-        navSettings.performClick();
+        if ("skin".equals(defaultTab)) {
+            navSkin.performClick();
+        } else if ("account".equals(defaultTab)) {
+            navAccount.performClick();
+        } else {
+            navSettings.performClick();
+        }
 
         dialog.show();
     }

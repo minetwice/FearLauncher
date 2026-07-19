@@ -1,63 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Skin Customizer Dashboard Redesign — Full Glassmorphic 2026 Style -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="12dp">
 
-    <!-- Left Pane: Current Active Skin -->
+    <!-- Left Pane: 3D Preview Frame -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="0.45"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="6dp"
+        android:padding="12dp"
         android:background="@drawable/premium_glass_black_bg">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CURRENT SKIN"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:text="ACTIVE 3D SKIN PREVIEW"
+            android:textColor="#00F0FF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
-            android:layout_marginBottom="4dp" />
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
 
+        <!-- Rotatable 3D Skin Canvas -->
         <com.kdt.mcgui.MinecraftSkinView
             android:id="@+id/skin_current_viewer"
-            android:layout_width="140dp"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:layout_marginBottom="12dp" />
 
         <!-- Model Type (Steve vs Alex) Toggle Selector -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:orientation="horizontal"
-            android:layout_marginTop="4dp">
+            android:layout_height="36dp"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/skin_btn_steve_model"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="STEVE (4-PX)"
-                android:textColor="#000000"
-                android:textSize="8sp"
+                android:text="STEVE (4-PX ARMS)"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
                 android:textStyle="bold"
                 android:background="@drawable/premium_button_bg"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="6dp" />
 
             <Button
                 android:id="@+id/skin_btn_alex_model"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="ALEX (3-PX)"
+                android:text="ALEX (3-PX ARMS)"
                 android:textColor="#FFFFFF"
-                android:textSize="8sp"
+                android:textSize="9sp"
                 android:textStyle="bold"
                 android:background="@drawable/premium_glass_black_bg" />
 
@@ -65,13 +67,10 @@
 
     </LinearLayout>
 
-    <!-- Vertical Divider Line -->
+    <!-- Vertical Separation Space -->
     <View
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:background="#33FFFFFF"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+        android:layout_width="12dp"
+        android:layout_height="match_parent" />
 
     <!-- Right Pane: Local Skin Library Repository -->
     <LinearLayout
@@ -79,17 +78,18 @@
         android:layout_height="match_parent"
         android:layout_weight="0.55"
         android:orientation="vertical"
-        android:padding="6dp">
+        android:padding="12dp"
+        android:background="@drawable/premium_glass_black_bg">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SKIN LIBRARY"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:text="LOCAL SKIN REPOSITORY"
+            android:textColor="#00F0FF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
-            android:layout_marginBottom="8dp" />
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="12dp" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"

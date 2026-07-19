@@ -65,8 +65,8 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/ic_app_logo"
-                android:padding="@dimen/_4sdp" />
+                android:src="@drawable/ic_account_circle"
+                android:padding="0dp" />
         </androidx.cardview.widget.CardView>
 
         <ImageButton
@@ -368,6 +368,15 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="SHADER PACKS"
                     android:drawableStart="@drawable/ic_px_image_renderer"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_skin_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="SKIN CUSTOMIZER"
+                    android:drawableStart="@drawable/ic_account_circle"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="12dp" />
 

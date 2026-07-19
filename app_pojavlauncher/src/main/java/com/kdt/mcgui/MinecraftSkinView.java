@@ -63,7 +63,8 @@ public class MinecraftSkinView extends View {
     private void init() {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mPaint.setFilterBitmap(true);
+        // Use Nearest Neighbor/Point filtering to ensure razor-sharp pixels for low-res Minecraft skins
+        mPaint.setFilterBitmap(false);
         setSkinBase64(DEFAULT_STEVE_BASE64, false);
     }
 
@@ -270,12 +271,12 @@ public class MinecraftSkinView extends View {
             mFaceBitmaps[PART_LEFT_LEG][FACE_LEFT] = crop(24, 52, 4, 12, false);
             mFaceBitmaps[PART_LEFT_LEG][FACE_BACK] = crop(28, 52, 4, 12, false);
 
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_TOP] = crop(4, 52, 4, 4, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BOTTOM] = crop(8, 52, 4, 4, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_RIGHT] = crop(0, 56, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_FRONT] = crop(4, 56, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_LEFT] = crop(8, 56, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BACK] = crop(12, 56, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_TOP] = crop(4, 48, 4, 4, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BOTTOM] = crop(8, 48, 4, 4, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_RIGHT] = crop(0, 52, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_FRONT] = crop(4, 52, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_LEFT] = crop(8, 52, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BACK] = crop(12, 52, 4, 12, false);
         }
     }
 
