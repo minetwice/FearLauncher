@@ -341,76 +341,7 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void bindPerformanceStats(View root) {
-        TextView fpsTv = root.findViewById(R.id.drawer_perf_fps);
-        TextView cpuTv = root.findViewById(R.id.drawer_perf_cpu);
-        TextView gpuTv = root.findViewById(R.id.drawer_perf_gpu);
-        TextView ramTv = root.findViewById(R.id.drawer_perf_ram);
-        TextView memoryTv = root.findViewById(R.id.drawer_perf_memory);
-        TextView rendererTv = root.findViewById(R.id.drawer_perf_renderer);
-
-        // FPS
-        if (fpsTv != null) {
-            try {
-                android.view.Display display = requireActivity().getWindowManager().getDefaultDisplay();
-                float refreshRate = display.getRefreshRate();
-                fpsTv.setText(String.format(java.util.Locale.US, "%.1f FPS", refreshRate));
-            } catch (Exception e) {
-                fpsTv.setText("60.0 FPS");
-            }
-        }
-
-        // CPU
-        if (cpuTv != null) {
-            try {
-                String abi = android.os.Build.SUPPORTED_ABIS[0];
-                cpuTv.setText(abi.toUpperCase(java.util.Locale.US));
-            } catch (Exception e) {
-                cpuTv.setText("OCTA-CORE");
-            }
-        }
-
-        // GPU
-        if (gpuTv != null) {
-            try {
-                net.kdt.pojavlaunch.utils.GLInfoUtils.GLInfo glInfo = net.kdt.pojavlaunch.utils.GLInfoUtils.getGlInfo();
-                if (glInfo != null && glInfo.renderer != null && !glInfo.renderer.equals("<Unknown>")) {
-                    gpuTv.setText(glInfo.renderer.toUpperCase(java.util.Locale.US));
-                } else {
-                    gpuTv.setText("ADRENO GPU");
-                }
-            } catch (Exception e) {
-                gpuTv.setText("ADRENO GPU");
-            }
-        }
-
-        // RAM
-        if (ramTv != null) {
-            ramTv.setText(LauncherPreferences.PREF_RAM_ALLOCATION + " MB");
-        }
-
-        // Memory
-        if (memoryTv != null) {
-            try {
-                android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
-                android.app.ActivityManager activityManager = (android.app.ActivityManager) requireContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
-                activityManager.getMemoryInfo(mi);
-                double availableGigs = mi.availMem / 1073741824.0; // in GB
-                memoryTv.setText(String.format(java.util.Locale.US, "%.1f GB FREE", availableGigs));
-            } catch (Exception e) {
-                memoryTv.setText("4.2 GB FREE");
-            }
-        }
-
-        // Renderer
-        if (rendererTv != null) {
-            try {
-                Instance instance = Instances.loadSelectedInstance();
-                String rawRenderer = (instance != null) ? instance.getLaunchRenderer() : null;
-                rendererTv.setText(getFriendlyRendererName(rawRenderer));
-            } catch (Exception e) {
-                rendererTv.setText("HOLY GL4ES");
-            }
-        }
+        // System telemetry removed entirely as requested.
     }
 
     private String getFriendlyRendererName(String id) {

@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:alpha="0.3" />
 
-    <!-- Top Header Bar (Step 6 Alignment Requirements) -->
+    <!-- Top Header Bar (Step 6 Alignment Requirements Redesigned with Hamburger on Left) -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
@@ -25,7 +25,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Top Left: Logo & Launcher Name -->
+        <!-- Top Left: Hamburger, Logo & Launcher Name -->
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/hamburger_menu_icon"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:src="@drawable/ic_hamburger"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="@dimen/_10sdp" />
+
         <ImageView
             android:layout_width="@dimen/_28sdp"
             android:layout_height="@dimen/_28sdp"
@@ -42,7 +51,7 @@
             android:letterSpacing="0.1"
             android:layout_marginStart="@dimen/_8sdp" />
 
-        <!-- Top Right: Avatar, Notification, Three Dot Menu -->
+        <!-- Top Right: Avatar, Notification -->
         <androidx.cardview.widget.CardView
             android:id="@+id/header_avatar_card"
             android:layout_width="@dimen/_24sdp"
@@ -65,15 +74,6 @@
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_px_bell"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF"
-            android:layout_marginEnd="@dimen/_10sdp" />
-
-        <com.kdt.mcgui.LauncherMenuButton
-            android:id="@+id/hamburger_menu_icon"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_hamburger"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="#FFFFFF" />
 
@@ -288,195 +288,12 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TELEMETRY ACTIVE"
+                            android:text="SYSTEMS ONLINE"
                             android:textColor="#00FFCC"
                             android:textSize="@dimen/_7ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
-
-                <!-- Performance Diagnostics Section -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• SYSTEMS TELEMETRY"
-                    android:textColor="#00FFCC"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <!-- Grid of Telemetry metrics -->
-                <GridLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="3"
-                    android:alignmentMode="alignBounds"
-                    android:layout_marginBottom="12dp">
-
-                    <!-- Metric: FPS -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="FPS TARGET"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_fps"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="60.0 FPS"
-                            android:textColor="#00FFCC"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: CPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CORE CHIPSET"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_cpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="OCTA-CORE"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: GPU -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="GRAPHICS CORE"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_gpu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="ADRENO GPU"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: RAM Allocation -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ALLOCATED RAM"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_ram"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="1144 MB"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: JVM Heap Memory -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="FREE SYSTEM MEMORY"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_memory"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="4.2 GB"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Metric: Active Renderer -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/premium_edit_bg"
-                        android:padding="5dp"
-                        android:layout_margin="1dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="ACTIVE RENDERER"
-                            android:textColor="#80FFFFFF"
-                            android:textSize="@dimen/_6ssp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/drawer_perf_renderer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="HOLY GL4ES"
-                            android:textColor="#FFFFFF"
-                            android:textSize="@dimen/_8ssp"
-                            android:singleLine="true"
-                            android:ellipsize="end"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </GridLayout>
 
                 <!-- SECTION 1: OPERATIONS & TELEMETRY -->
                 <TextView
