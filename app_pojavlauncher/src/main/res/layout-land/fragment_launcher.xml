@@ -33,7 +33,16 @@
             android:src="@drawable/ic_hamburger"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="@dimen/_10sdp" />
+            android:layout_marginEnd="@dimen/_6sdp" />
+
+        <ImageButton
+            android:id="@+id/header_account_hub_btn"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:src="@drawable/ic_account_circle"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="@dimen/_8sdp" />
 
         <ImageView
             android:layout_width="@dimen/_28sdp"
@@ -125,8 +134,8 @@
 
                 <com.kdt.mcgui.MinecraftSkinView
                     android:id="@+id/homepage_skin_head"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="140dp"
+                    android:layout_height="80dp"
                     app:layout_constraintTop_toBottomOf="@id/homepage_chat_bubble"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />

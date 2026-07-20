@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/_6sdp">
+
+    <!-- Dual Column Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- LEFT PANEL: CURRENT ACCOUNTS -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.1"
+            android:layout_marginEnd="@dimen/_6sdp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:padding="@dimen/_8sdp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CURRENT ACCOUNTS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your linked identities"
+                android:textColor="#66FFFFFF"
+                android:textSize="@dimen/_7ssp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="@dimen/_6sdp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/account_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <LinearLayout
+                    android:id="@+id/empty_account_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="@dimen/_28sdp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:src="@drawable/ic_mc_skull"
+                        app:tint="#20FFFFFF"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="No accounts found"
+                        android:textColor="#40FFFFFF"
+                        android:textSize="@dimen/_9ssp"/>
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/btn_switch_account"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_28sdp"
+                android:layout_marginTop="@dimen/_6sdp"
+                android:text="Switch Account"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_red_button_bg" />
+
+        </LinearLayout>
+
+        <!-- RIGHT PANEL: ADD NEW ACCOUNT -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.3"
+            android:layout_marginStart="@dimen/_6sdp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:padding="@dimen/_8sdp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ADD NEW ACCOUNT"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Begin your journey"
+                android:textColor="#66FFFFFF"
+                android:textSize="@dimen/_7ssp" />
+
+            <!-- Account Name Input -->
+            <EditText
+                android:id="@+id/local_username_input"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_28sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:background="@drawable/premium_edit_bg"
+                android:hint="Account Name"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#40FFFFFF"
+                android:paddingHorizontal="@dimen/_8sdp"
+                android:textSize="@dimen/_10ssp"
+                android:drawableStart="@drawable/ic_account_circle"
+                android:drawablePadding="@dimen/_6sdp"
+                app:tint="#66FFFFFF"/>
+
+            <!-- Selection Category -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_6sdp"
+                android:text="Select Account Type"
+                android:textColor="#B3FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold" />
+
+            <!-- Horizontally Scrollable or Fixed Types Cards -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:gravity="center_vertical">
+
+                <!-- Microsoft Type -->
+                <LinearLayout
+                    android:id="@+id/card_type_ms"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_54sdp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/_3sdp"
+                    android:background="@drawable/premium_auth_type_card_bg"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="4dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="@dimen/_16sdp"
+                        android:layout_height="@dimen/_16sdp"
+                        android:src="@drawable/ic_auth_ms" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Microsoft Account"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:layout_marginTop="2dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Single Sign-On, Cross-play"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="@dimen/_5ssp"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Mojang Type -->
+                <LinearLayout
+                    android:id="@+id/card_type_mojang"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_54sdp"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="@dimen/_1sdp"
+                    android:background="@drawable/premium_auth_type_card_bg"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="4dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="@dimen/_16sdp"
+                        android:layout_height="@dimen/_16sdp"
+                        android:src="@drawable/ic_auth_mojang" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mojang Account"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:layout_marginTop="2dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Legacy Accounts"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="@dimen/_5ssp"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Local Type -->
+                <LinearLayout
+                    android:id="@+id/card_type_local"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_54sdp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/_3sdp"
+                    android:background="@drawable/premium_auth_type_card_bg"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="4dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="@dimen/_16sdp"
+                        android:layout_height="@dimen/_16sdp"
+                        android:src="@drawable/ic_auth_local_compass" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Local Profile"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:layout_marginTop="2dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Offline, No Cross-play"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="@dimen/_5ssp"
+                        android:gravity="center" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Trouble Text or Errors -->
+            <TextView
+                android:id="@+id/local_error_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FF5252"
+                android:textSize="@dimen/_8ssp"
+                android:visibility="gone"
+                android:layout_marginTop="2dp" />
+
+            <!-- Add Account Button -->
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/btn_add_account"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_28sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="➕ ADD ACCOUNT"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_red_button_bg" />
+
+            <TextView
+                android:id="@+id/trouble_logging_in"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:text="Trouble logging in?"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

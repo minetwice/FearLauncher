@@ -196,6 +196,15 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        View headerAccountHubBtn = view.findViewById(R.id.header_account_hub_btn);
+        if (headerAccountHubBtn != null) {
+            headerAccountHubBtn.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openAccountManager();
+            });
+        }
+
         if (headerNotificationBtn != null) {
             headerNotificationBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -640,244 +649,239 @@ public class MainMenuFragment extends Fragment {
             navAccount.setBackgroundResource(R.drawable.premium_button_bg);
             navAccount.setTextColor(0xFFFFFFFF);
 
-            java.lang.Runnable refreshAccountHub = new java.lang.Runnable() {
-                private boolean mShowLocalAuth = true;
+            rightPane.removeAllViews();
+            LayoutInflater inflater = LayoutInflater.from(requireContext());
+            View accountHubView = inflater.inflate(R.layout.premium_account_hub_pane, rightPane, false);
 
-                @Override
-                public void run() {
-                    rightPane.removeAllViews();
+            RecyclerView recyclerView = accountHubView.findViewById(R.id.account_list);
+            View emptyState = accountHubView.findViewById(R.id.empty_account_state);
+            EditText inputUsername = accountHubView.findViewById(R.id.local_username_input);
+            TextView errorText = accountHubView.findViewById(R.id.local_error_text);
+            View cardMs = accountHubView.findViewById(R.id.card_type_ms);
+            View cardMojang = accountHubView.findViewById(R.id.card_type_mojang);
+            View cardLocal = accountHubView.findViewById(R.id.card_type_local);
+            Button btnAddAccount = accountHubView.findViewById(R.id.btn_add_account);
+            Button btnSwitchAccount = accountHubView.findViewById(R.id.btn_switch_account);
+            View troubleLink = accountHubView.findViewById(R.id.trouble_logging_in);
 
-                    android.widget.ScrollView rootScroll = new android.widget.ScrollView(requireContext());
-                    rootScroll.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
-                            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
-                    rootScroll.setVerticalScrollBarEnabled(false);
+            if (troubleLink != null) {
+                troubleLink.setOnClickListener(v -> {
+                    Toast.makeText(requireContext(), "Microsoft account migration is required for online play.", Toast.LENGTH_LONG).show();
+                });
+            }
 
-                    LinearLayout accLayout = new LinearLayout(requireContext());
-                    accLayout.setOrientation(LinearLayout.VERTICAL);
-                    accLayout.setPadding(16, 16, 16, 16);
+            final java.util.List<net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount>[] accountListWrapper = new java.util.List[] { new java.util.ArrayList<>() };
+            final net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount[] selectedAccWrapper = new net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount[] { null };
+            final net.kdt.pojavlaunch.authenticator.AuthType[] selectedAuthType = new net.kdt.pojavlaunch.authenticator.AuthType[] { net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT };
 
-                    TextView titleAcc = new TextView(requireContext());
-                    titleAcc.setText("ACCOUNT COMMAND CENTER");
-                    titleAcc.setTextColor(Color.WHITE);
-                    titleAcc.setTextSize(14);
-                    titleAcc.setTypeface(null, android.graphics.Typeface.BOLD);
-                    titleAcc.setPadding(0, 0, 0, 12);
-                    accLayout.addView(titleAcc);
-
-                    LinearLayout tabSelector = new LinearLayout(requireContext());
-                    tabSelector.setOrientation(LinearLayout.HORIZONTAL);
-                    tabSelector.setPadding(0, 0, 0, 16);
-
-                    Button btnLocalTab = new Button(requireContext());
-                    btnLocalTab.setText("OFFLINE LOCAL");
-                    btnLocalTab.setTextSize(10);
-
-                    Button btnMsTab = new Button(requireContext());
-                    btnMsTab.setText("MICROSOFT LOGIN");
-                    btnMsTab.setTextSize(10);
-
-                    if (mShowLocalAuth) {
-                        btnLocalTab.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnLocalTab.setTextColor(Color.BLACK);
-                        btnMsTab.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnMsTab.setTextColor(Color.WHITE);
-                    } else {
-                        btnLocalTab.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnLocalTab.setTextColor(Color.WHITE);
-                        btnMsTab.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnMsTab.setTextColor(Color.BLACK);
-                    }
-
-                    btnLocalTab.setOnClickListener(vLocalTab -> {
-                        vLocalTab.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        mShowLocalAuth = true;
-                        this.run();
-                    });
-
-                    btnMsTab.setOnClickListener(vMsTab -> {
-                        vMsTab.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        mShowLocalAuth = false;
-                        this.run();
-                    });
-
-                    LinearLayout.LayoutParams tabLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-                    tabLp.setMargins(4, 4, 4, 4);
-                    tabSelector.addView(btnLocalTab, tabLp);
-                    tabSelector.addView(btnMsTab, tabLp);
-                    accLayout.addView(tabSelector);
-
-                    if (mShowLocalAuth) {
-                        final EditText inputUser = new EditText(requireContext());
-                        inputUser.setHint("ENTER OFFLINE USERNAME...");
-                        inputUser.setTextColor(Color.WHITE);
-                        inputUser.setHintTextColor(0x80FFFFFF);
-                        inputUser.setBackgroundResource(R.drawable.premium_edit_bg);
-                        inputUser.setPadding(12, 12, 12, 12);
-                        accLayout.addView(inputUser, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-                        View space2 = new View(requireContext());
-                        accLayout.addView(space2, new LinearLayout.LayoutParams(1, 12));
-
-                        Button btnLocalLogin = new Button(requireContext());
-                        btnLocalLogin.setText("LOG IN OFFLINE");
-                        btnLocalLogin.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnLocalLogin.setTextColor(Color.BLACK);
-                        btnLocalLogin.setOnClickListener(vL -> {
-                            vL.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                            net.kdt.pojavlaunch.SoundManager.playClick();
-                            String name = inputUser.getText().toString().trim();
-                            if (name.isEmpty() || name.length() < 3) {
-                                Toast.makeText(requireContext(), "Username must be at least 3 characters", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                            try {
-                                net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(account -> {
-                                    account.username = name;
-                                    account.profileId = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes()).toString();
-                                    account.accessToken = "0";
-                                    account.refreshToken = "0";
-                                    account.authType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
-                                });
-                                net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(acc);
-                                refreshAccountUI();
-                                Toast.makeText(requireContext(), "Successfully logged in as " + name, Toast.LENGTH_LONG).show();
-                                this.run();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                Toast.makeText(requireContext(), "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        accLayout.addView(btnLocalLogin, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    } else {
-                        TextView msDesc = new TextView(requireContext());
-                        msDesc.setText("Connect your official Microsoft / Xbox Live account securely via the safe web portal.");
-                        msDesc.setTextColor(0xCCFFFFFF);
-                        msDesc.setTextSize(11);
-                        msDesc.setPadding(4, 4, 4, 16);
-                        accLayout.addView(msDesc);
-
-                        Button btnMsLogin = new Button(requireContext());
-                        btnMsLogin.setText("LOG IN WITH MICROSOFT");
-                        btnMsLogin.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnMsLogin.setTextColor(Color.BLACK);
-                        btnMsLogin.setOnClickListener(vM -> {
-                            vM.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                            net.kdt.pojavlaunch.SoundManager.playClick();
-                            dialog.dismiss();
-                            Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
-                        });
-                        accLayout.addView(btnMsLogin, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    }
-
-                    View space3 = new View(requireContext());
-                    accLayout.addView(space3, new LinearLayout.LayoutParams(1, 24));
-
-                    TextView profilesHeader = new TextView(requireContext());
-                    profilesHeader.setText("SAVED ACCOUNT PROFILES");
-                    profilesHeader.setTextColor(0x80FFFFFF);
-                    profilesHeader.setTextSize(10);
-                    profilesHeader.setTypeface(null, android.graphics.Typeface.BOLD);
-                    profilesHeader.setPadding(0, 0, 0, 8);
-                    accLayout.addView(profilesHeader);
-
-                    try {
-                        net.kdt.pojavlaunch.authenticator.accounts.Accounts loadedAccounts = net.kdt.pojavlaunch.authenticator.accounts.Accounts.load();
-                        java.util.List<net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount> accountList = loadedAccounts.accounts;
-                        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount current = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
-                        final String currentName = (current != null) ? current.mSaveLocation.getName() : "";
-
-                        if (accountList.isEmpty()) {
-                            TextView emptyTv = new TextView(requireContext());
-                            emptyTv.setText("No saved accounts found.");
-                            emptyTv.setTextColor(0x60FFFFFF);
-                            emptyTv.setTextSize(11);
-                            accLayout.addView(emptyTv);
-                        } else {
-                            for (net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc : accountList) {
-                                LinearLayout row = new LinearLayout(requireContext());
-                                row.setOrientation(LinearLayout.HORIZONTAL);
-                                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
-                                row.setPadding(8, 8, 8, 8);
-
-                                boolean isSelected = acc.mSaveLocation != null && acc.mSaveLocation.getName().equals(currentName);
-                                if (isSelected) {
-                                    row.setBackgroundResource(R.drawable.premium_button_bg);
-                                } else {
-                                    row.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                                }
-
-                                LinearLayout textCol = new LinearLayout(requireContext());
-                                textCol.setOrientation(LinearLayout.VERTICAL);
-
-                                TextView uTv = new TextView(requireContext());
-                                uTv.setText(acc.username);
-                                uTv.setTextColor(isSelected ? Color.BLACK : Color.WHITE);
-                                uTv.setTextSize(12);
-                                uTv.setTypeface(null, android.graphics.Typeface.BOLD);
-
-                                TextView tTv = new TextView(requireContext());
-                                String type = "Local";
-                                if (acc.authType != null) {
-                                    switch (acc.authType) {
-                                        case MICROSOFT: type = "Microsoft"; break;
-                                        case ELY_BY:    type = "Ely.by";    break;
-                                        default:        type = "Local";     break;
-                                    }
-                                }
-                                tTv.setText(type);
-                                tTv.setTextColor(isSelected ? 0x80000000 : 0x80FFFFFF);
-                                tTv.setTextSize(9);
-
-                                textCol.addView(uTv);
-                                textCol.addView(tTv);
-
-                                LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-                                row.addView(textCol, rowLp);
-
-                                ImageButton btnDel = new ImageButton(requireContext());
-                                btnDel.setImageResource(R.drawable.ic_px_trash);
-                                btnDel.setBackgroundColor(Color.TRANSPARENT);
-                                if (isSelected) {
-                                    btnDel.setColorFilter(Color.BLACK);
-                                } else {
-                                    btnDel.setColorFilter(Color.WHITE);
-                                }
-                                btnDel.setOnClickListener(vDel -> {
-                                    vDel.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                    net.kdt.pojavlaunch.SoundManager.playClick();
-                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.delete(acc);
-                                    refreshAccountUI();
-                                    this.run();
-                                    Toast.makeText(requireContext(), "Account deleted", Toast.LENGTH_SHORT).show();
-                                });
-                                row.addView(btnDel);
-
-                                row.setOnClickListener(vRow -> {
-                                    vRow.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                    net.kdt.pojavlaunch.SoundManager.playClick();
-                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(acc);
-                                    refreshAccountUI();
-                                    this.run();
-                                });
-
-                                LinearLayout.LayoutParams rowOuterLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                rowOuterLp.setMargins(0, 4, 0, 4);
-                                accLayout.addView(row, rowOuterLp);
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    rootScroll.addView(accLayout);
-                    rightPane.addView(rootScroll);
+            java.lang.Runnable loadAccountsList = () -> {
+                accountListWrapper[0].clear();
+                try {
+                    accountListWrapper[0].addAll(net.kdt.pojavlaunch.authenticator.accounts.Accounts.load().accounts);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (emptyState != null) {
+                    emptyState.setVisibility(accountListWrapper[0].isEmpty() ? View.VISIBLE : View.GONE);
                 }
             };
 
-            refreshAccountHub.run();
+            loadAccountsList.run();
+            net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount currentActive = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+            selectedAccWrapper[0] = currentActive;
+
+            class HubAdapter extends RecyclerView.Adapter<HubAdapter.VH> {
+                @NonNull
+                @Override
+                public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                    return new VH(inflater.inflate(R.layout.item_account, parent, false));
+                }
+
+                @Override
+                public void onBindViewHolder(@NonNull VH h, int position) {
+                    net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = accountListWrapper[0].get(position);
+                    h.username.setText(acc.username);
+
+                    String typeLabel = "Local";
+                    if (acc.authType != null) {
+                        switch (acc.authType) {
+                            case MICROSOFT: typeLabel = "Microsoft"; break;
+                            case ELY_BY:    typeLabel = "Ely.by";    break;
+                            default:        typeLabel = "Local";     break;
+                        }
+                    }
+                    h.type.setText(typeLabel);
+
+                    boolean isListSelected = selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName());
+
+                    if (isListSelected) {
+                        h.itemView.setBackgroundResource(R.drawable.premium_auth_type_card_bg);
+                    } else {
+                        h.itemView.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    }
+
+                    boolean isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && currentActive.mSaveLocation.getName().equals(currentActive.mSaveLocation.getName()); // fix compare always true, we compare acc to active!
+
+                    isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && currentActive.mSaveLocation.getName().equals(acc.mSaveLocation.getName());
+
+                    if (isCurrentActive) {
+                        h.statusText.setText("Active");
+                        h.statusText.setTextColor(Color.parseColor("#FF4D4D"));
+                        h.statusDot.setBackgroundColor(Color.parseColor("#FF4D4D"));
+                    } else {
+                        h.statusText.setText(typeLabel);
+                        h.statusText.setTextColor(Color.parseColor("#80FFFFFF"));
+                        h.statusDot.setBackgroundColor(Color.parseColor("#80FFFFFF"));
+                    }
+
+                    h.itemView.setOnClickListener(v -> {
+                        selectedAccWrapper[0] = acc;
+                        notifyDataSetChanged();
+                    });
+
+                    h.deleteBtn.setOnClickListener(v -> {
+                        PopupMenu popup = new PopupMenu(v.getContext(), h.deleteBtn);
+                        popup.getMenu().add("Delete");
+                        popup.setOnMenuItemClickListener(item -> {
+                            if ("Delete".equals(item.getTitle())) {
+                                try {
+                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.delete(acc);
+                                    loadAccountsList.run();
+                                    notifyDataSetChanged();
+                                    if (selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
+                                            && acc.mSaveLocation != null
+                                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName())) {
+                                        selectedAccWrapper[0] = null;
+                                    }
+                                    refreshAccountUI();
+                                    Toast.makeText(requireContext(), "Account removed", Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            return true;
+                        });
+                        popup.show();
+                    });
+                }
+
+                @Override public int getItemCount() { return accountListWrapper[0].size(); }
+
+                class VH extends RecyclerView.ViewHolder {
+                    TextView username, type, statusText;
+                    View statusDot, deleteBtn;
+                    VH(@NonNull View v) {
+                        super(v);
+                        username   = v.findViewById(R.id.account_username);
+                        type       = v.findViewById(R.id.account_type);
+                        statusText = v.findViewById(R.id.account_status_text);
+                        statusDot  = v.findViewById(R.id.account_status_dot);
+                        deleteBtn  = v.findViewById(R.id.account_delete_btn);
+                    }
+                }
+            }
+
+            HubAdapter adapter = new HubAdapter();
+            if (recyclerView != null) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+                recyclerView.setAdapter(adapter);
+            }
+
+            java.lang.Runnable updateAuthUI = () -> {
+                if (cardMs != null) cardMs.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT);
+                if (cardMojang != null) cardMojang.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY);
+                if (cardLocal != null) cardLocal.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL);
+
+                if (inputUsername != null) {
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
+                        inputUsername.setEnabled(true);
+                        inputUsername.setAlpha(1.0f);
+                    } else {
+                        inputUsername.setEnabled(false);
+                        inputUsername.setAlpha(0.4f);
+                        inputUsername.setText("");
+                    }
+                }
+                if (errorText != null) errorText.setVisibility(View.GONE);
+            };
+
+            updateAuthUI.run();
+
+            if (cardMs != null) cardMs.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT; updateAuthUI.run(); });
+            if (cardMojang != null) cardMojang.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY; updateAuthUI.run(); });
+            if (cardLocal != null) cardLocal.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL; updateAuthUI.run(); });
+
+            if (btnSwitchAccount != null) {
+                btnSwitchAccount.setOnClickListener(v -> {
+                    if (selectedAccWrapper[0] != null) {
+                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(selectedAccWrapper[0]);
+                        refreshAccountUI();
+                        Toast.makeText(requireContext(), "Switched to " + selectedAccWrapper[0].username, Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(requireContext(), "Please select an account first", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            if (btnAddAccount != null) {
+                btnAddAccount.setOnClickListener(v -> {
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
+                        dialog.dismiss();
+                        Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
+                        return;
+                    }
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY) {
+                        Toast.makeText(requireContext(), "Mojang Account login is migrated to Microsoft. Please select Microsoft Account.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    if (inputUsername == null) return;
+                    String username = inputUsername.getText().toString().trim();
+
+                    if (android.text.TextUtils.isEmpty(username)) {
+                        if (errorText != null) { errorText.setText("Username cannot be empty"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (username.length() < 3) {
+                        if (errorText != null) { errorText.setText("Username must be at least 3 characters"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (username.length() > 16) {
+                        if (errorText != null) { errorText.setText("Username must be 16 characters or less"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (!username.matches("[a-zA-Z0-9_]+")) {
+                        if (errorText != null) { errorText.setText("Only letters, numbers and _ allowed"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+
+                    if (errorText != null) errorText.setVisibility(View.GONE);
+
+                    try {
+                        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(acc -> {
+                            acc.username    = username;
+                            acc.authType    = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
+                            acc.accessToken = "0";
+                            acc.profileId   = "00000000-0000-0000-0000-000000000000";
+                            acc.refreshToken = "0";
+                        });
+                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(account);
+                        refreshAccountUI();
+                        Toast.makeText(requireContext(), "Account '" + username + "' created!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } catch (Exception e) {
+                        if (errorText != null) { errorText.setText("Failed: " + e.getMessage()); errorText.setVisibility(View.VISIBLE); }
+                    }
+                });
+            }
+
+            rightPane.addView(accountHubView);
         });
 
         // SPLIT-PANE 5: INPUT MAPPING
