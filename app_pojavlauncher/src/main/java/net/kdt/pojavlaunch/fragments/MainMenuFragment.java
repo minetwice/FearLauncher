@@ -47,6 +47,22 @@ import java.io.File;
 public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
+    private static final String[] CHAT_MESSAGES = {
+        "💬 What's the plan today?",
+        "⚔️ Ready for another adventure?",
+        "💎 Let's mine some diamonds!",
+        "🚀 FEAR Launcher ready to boot!",
+        "✨ Play premium. Play smooth.",
+        "🍕 Time to craft some food?",
+        "🛠️ Customize your custom controls!",
+        "🔋 Performance is fully optimized!",
+        "🎮 Keep building, keep playing!"
+    };
+
+    private android.animation.ValueAnimator mHeadRotationAnimator;
+    private android.os.Handler mChatBubbleHandler;
+    private java.lang.Runnable mChatBubbleRunnable;
+
     private mcVersionSpinner mVersionSpinner;
     private TextView mAccountName;
     private View mRootView;
@@ -1000,74 +1016,81 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void refreshSkinHeadDisplay(View view) {
-        ImageView skinHeadIv = view.findViewById(R.id.homepage_skin_head);
-        if (skinHeadIv == null) return;
+        com.kdt.mcgui.MinecraftSkinView skinView = view.findViewById(R.id.homepage_skin_head);
+        if (skinView == null) return;
 
         android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
         String activeSkinPath = prefs.getString("active_skin_path", "steve");
+        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
 
-        android.graphics.Bitmap fullSkinBmp = null;
-        if ("steve".equalsIgnoreCase(activeSkinPath)) {
-            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_STEVE_BASE64, android.util.Base64.DEFAULT);
-            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        } else if ("alex".equalsIgnoreCase(activeSkinPath)) {
-            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_ALEX_BASE64, android.util.Base64.DEFAULT);
-            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        } else {
-            try {
-                java.io.File file = new java.io.File(activeSkinPath);
-                if (file.exists()) {
-                    fullSkinBmp = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        skinView.setShowHeadOnly(true);
+        skinView.loadSkin(activeSkinPath, activeSkinIsAlex);
+
+        // Auto-rotation animation loop for 3D skin head
+        if (mHeadRotationAnimator != null) {
+            mHeadRotationAnimator.cancel();
         }
+        mHeadRotationAnimator = android.animation.ValueAnimator.ofFloat(-30f, 30f);
+        mHeadRotationAnimator.setDuration(4000);
+        mHeadRotationAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        mHeadRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        mHeadRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        mHeadRotationAnimator.addUpdateListener(animation -> {
+            float val = (float) animation.getAnimatedValue();
+            skinView.setRotationAngles(val, -15f);
+        });
+        mHeadRotationAnimator.start();
 
-        if (fullSkinBmp == null) {
-            byte[] bytes = android.util.Base64.decode(com.kdt.mcgui.MinecraftSkinView.DEFAULT_STEVE_BASE64, android.util.Base64.DEFAULT);
-            fullSkinBmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        }
-
-        if (fullSkinBmp != null) {
-            int sw = fullSkinBmp.getWidth();
-            int sh = fullSkinBmp.getHeight();
-            int scale = Math.max(1, sw / 64);
-
-            // Create a high-quality 128x128 pixel head bitmap to prevent blurriness on high-res displays
-            android.graphics.Bitmap headBmp = android.graphics.Bitmap.createBitmap(128, 128, android.graphics.Bitmap.Config.ARGB_8888);
-            android.graphics.Canvas canvas = new android.graphics.Canvas(headBmp);
-            android.graphics.Paint paint = new android.graphics.Paint();
-            paint.setAntiAlias(false);
-            paint.setFilterBitmap(false); // Point filtering to ensure crisp sharp pixel edges
-
-            // Crop base face: X=8, Y=8, W=8, H=8
-            int bx = 8 * scale;
-            int by = 8 * scale;
-            int bSize = 8 * scale;
-            if (bx + bSize <= sw && by + bSize <= sh) {
-                android.graphics.Bitmap baseFace = android.graphics.Bitmap.createBitmap(fullSkinBmp, bx, by, bSize, bSize);
-                android.graphics.Rect destRect = new android.graphics.Rect(0, 0, 128, 128);
-                canvas.drawBitmap(baseFace, null, destRect, paint);
-                baseFace.recycle();
-            }
-
-            // Crop overlay face if modern 64x64 skin: X=40, Y=8, W=8, H=8
-            if (sh >= 64 * scale) {
-                int ox = 40 * scale;
-                int oy = 8 * scale;
-                if (ox + bSize <= sw && oy + bSize <= sh) {
-                    android.graphics.Bitmap overlayFace = android.graphics.Bitmap.createBitmap(fullSkinBmp, ox, oy, bSize, bSize);
-                    android.graphics.Rect destRect = new android.graphics.Rect(0, 0, 128, 128);
-                    canvas.drawBitmap(overlayFace, null, destRect, paint);
-                    overlayFace.recycle();
+        // Setup Chat Bubble typed greetings loop
+        TextView chatBubble = view.findViewById(R.id.homepage_chat_bubble);
+        if (chatBubble != null) {
+            if (mChatBubbleHandler == null) {
+                mChatBubbleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            } else {
+                if (mChatBubbleRunnable != null) {
+                    mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
                 }
             }
 
-            skinHeadIv.setImageBitmap(headBmp);
-            if (fullSkinBmp != headBmp) {
-                fullSkinBmp.recycle();
-            }
+            mChatBubbleRunnable = new java.lang.Runnable() {
+                private final java.util.Random random = new java.util.Random();
+                @Override
+                public void run() {
+                    String msg = CHAT_MESSAGES[random.nextInt(CHAT_MESSAGES.length)];
+                    chatBubble.setText(msg);
+                    chatBubble.setVisibility(View.VISIBLE);
+                    chatBubble.setAlpha(0f);
+                    chatBubble.setScaleX(0f);
+                    chatBubble.setScaleY(0f);
+
+                    // Animate scale up & fade in
+                    chatBubble.animate()
+                            .alpha(1f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(400)
+                            .setInterpolator(new android.view.animation.OvershootInterpolator(1.4f))
+                            .withEndAction(() -> {
+                                // Keep visible for 4 seconds, then fade out
+                                chatBubble.postDelayed(() -> {
+                                    chatBubble.animate()
+                                            .alpha(0f)
+                                            .scaleX(0.5f)
+                                            .scaleY(0.5f)
+                                            .setDuration(300)
+                                            .withEndAction(() -> chatBubble.setVisibility(View.GONE))
+                                            .start();
+                                }, 4000);
+                            })
+                            .start();
+
+                    // Re-run every 15 seconds
+                    mChatBubbleHandler.postDelayed(this, 15000);
+                }
+            };
+
+            // Start loop with a slight initial delay of 1 second
+            mChatBubbleHandler.postDelayed(mChatBubbleRunnable, 1000);
         }
     }
 
@@ -1129,6 +1152,12 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (mHeadRotationAnimator != null) {
+            mHeadRotationAnimator.cancel();
+        }
+        if (mChatBubbleHandler != null && mChatBubbleRunnable != null) {
+            mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
+        }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
     }

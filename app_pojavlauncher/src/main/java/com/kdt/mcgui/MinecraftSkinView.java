@@ -22,6 +22,12 @@ public class MinecraftSkinView extends View {
     private float mRotationX = -15f;
     private float mLastTouchX;
     private float mLastTouchY;
+    private boolean mShowHeadOnly = false;
+
+    public void setShowHeadOnly(boolean headOnly) {
+        mShowHeadOnly = headOnly;
+        invalidate();
+    }
 
     public static final int PART_HEAD = 0;
     public static final int PART_TORSO = 1;
@@ -318,25 +324,29 @@ public class MinecraftSkinView extends View {
 
         // Add Base parts
         addCuboidFaces(faces, PART_HEAD, -4, -8, -4, 4, 0, 4, false);
-        addCuboidFaces(faces, PART_TORSO, -4, 0, -2, 4, 12, 2, false);
-        addCuboidFaces(faces, PART_RIGHT_ARM, 4, 0, -2, 4 + armW, 12, 2, false);
-        addCuboidFaces(faces, PART_LEFT_ARM, -4 - armW, 0, -2, -4, 12, 2, false);
-        addCuboidFaces(faces, PART_RIGHT_LEG, 0, 12, -2, 4, 24, 2, false);
-        addCuboidFaces(faces, PART_LEFT_LEG, -4, 12, -2, 0, 24, 2, false);
+        if (!mShowHeadOnly) {
+            addCuboidFaces(faces, PART_TORSO, -4, 0, -2, 4, 12, 2, false);
+            addCuboidFaces(faces, PART_RIGHT_ARM, 4, 0, -2, 4 + armW, 12, 2, false);
+            addCuboidFaces(faces, PART_LEFT_ARM, -4 - armW, 0, -2, -4, 12, 2, false);
+            addCuboidFaces(faces, PART_RIGHT_LEG, 0, 12, -2, 4, 24, 2, false);
+            addCuboidFaces(faces, PART_LEFT_LEG, -4, 12, -2, 0, 24, 2, false);
+        }
 
         // Add Overlay parts if valid
         addCuboidFaces(faces, PART_HEAD_OVERLAY, -4, -8, -4, 4, 0, 4, true);
-        addCuboidFaces(faces, PART_TORSO_OVERLAY, -4, 0, -2, 4, 12, 2, true);
-        addCuboidFaces(faces, PART_RIGHT_ARM_OVERLAY, 4, 0, -2, 4 + armW, 12, 2, true);
-        addCuboidFaces(faces, PART_LEFT_ARM_OVERLAY, -4 - armW, 0, -2, -4, 12, 2, true);
-        addCuboidFaces(faces, PART_RIGHT_LEG_OVERLAY, 0, 12, -2, 4, 24, 2, true);
-        addCuboidFaces(faces, PART_LEFT_LEG_OVERLAY, -4, 12, -2, 0, 24, 2, true);
+        if (!mShowHeadOnly) {
+            addCuboidFaces(faces, PART_TORSO_OVERLAY, -4, 0, -2, 4, 12, 2, true);
+            addCuboidFaces(faces, PART_RIGHT_ARM_OVERLAY, 4, 0, -2, 4 + armW, 12, 2, true);
+            addCuboidFaces(faces, PART_LEFT_ARM_OVERLAY, -4 - armW, 0, -2, -4, 12, 2, true);
+            addCuboidFaces(faces, PART_RIGHT_LEG_OVERLAY, 0, 12, -2, 4, 24, 2, true);
+            addCuboidFaces(faces, PART_LEFT_LEG_OVERLAY, -4, 12, -2, 0, 24, 2, true);
+        }
 
         // 3D rotation and projection
-        float scale = getHeight() / 32f;
+        float scale = mShowHeadOnly ? (getHeight() / 9.5f) : (getHeight() / 32f);
         float centerX = getWidth() / 2f;
         // Shift centerY slightly upwards (higher up on screen) to make the entire body/feet perfectly visible
-        float centerY = getHeight() / 2.8f;
+        float centerY = mShowHeadOnly ? (getHeight() / 2f + 3.8f * scale) : (getHeight() / 2.8f);
 
         List<ProjectedFace> projected = new ArrayList<>();
         for (Face3D f : faces) {

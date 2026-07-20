@@ -99,20 +99,39 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Dynamic 2D Skin Head Preview (Square Profile Redesign) -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/_44sdp"
-                android:layout_height="@dimen/_44sdp"
-                app:cardCornerRadius="@dimen/_4sdp"
-                app:cardBackgroundColor="#20FFFFFF"
-                app:cardElevation="0dp"
-                android:layout_marginBottom="@dimen/_8sdp">
-                <ImageView
+            <!-- 3D Minecraft head viewport and Speech Bubble HUD -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/_6sdp">
+
+                <!-- Speech bubble text view -->
+                <TextView
+                    android:id="@+id/homepage_chat_bubble"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:text="💬 What's the plan today?"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toTopOf="@id/homepage_skin_head"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginBottom="4dp" />
+
+                <com.kdt.mcgui.MinecraftSkinView
                     android:id="@+id/homepage_skin_head"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitCenter" />
-            </androidx.cardview.widget.CardView>
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    app:layout_constraintTop_toBottomOf="@id/homepage_chat_bubble"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Subcard Header details -->
             <TextView
