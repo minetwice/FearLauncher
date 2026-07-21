@@ -52,15 +52,36 @@ public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
     private static final String[] CHAT_MESSAGES = {
-        "💬 What's the plan today?",
-        "⚔️ Ready for another adventure?",
-        "💎 Let's mine some diamonds!",
-        "🚀 FEAR Launcher ready to boot!",
-        "✨ Play premium. Play smooth.",
-        "🍕 Time to craft some food?",
-        "🛠️ Customize your custom controls!",
-        "🔋 Performance is fully optimized!",
-        "🎮 Keep building, keep playing!"
+        "💬 What's the plan today?", "⚔️ Ready for another adventure?", "💎 Let's mine some diamonds!", "🚀 FEAR Launcher ready to boot!",
+        "✨ Play premium. Play smooth.", "🍕 Time to craft some food?", "🛠️ Customize your custom controls!", "🔋 Performance is fully optimized!",
+        "🎮 Keep building, keep playing!", "🪵 Punching trees is the key to start!", "🧟 Beware of the zombies tonight!", "🏹 Skeletons have perfect aim!",
+        "🕸️ Spiders climb walls quite easily!", "🧨 Shhh... SSSS... boom!", "🧱 Build a sturdy obsidian vault!", "🪓 Chopping wood with style!",
+        "🧭 Follow the compass to home base!", "🔔 Raid protection activated!", "🧪 Brewing some strength potions!", "📦 Organize your storage chest!",
+        "🌾 Farming wheat for delicious bread!", "🥚 Egg-cellent poultry farms!", "🐷 Ride a pig with a carrot on a stick!", "🐴 Horse taming in progress!",
+        "🐺 Loyal wolves will protect you!", "🐱 Cats ward off pesky creepers!", "🦜 Parrots imitate nearby mobs!", "🦙 Llama caravans carry your loot!",
+        "🐼 Bamboo eating pandas are cute!", "🦊 Foxes sleep under sweet berry bushes!", "🐸 Frogs jump in mangrove swamps!", "🦦 Otters swimming in rivers!",
+        "🐝 Sweet honey blocks look delicious!", "🐑 Shear sheep for colorful wool!", "🐮 Milking cows with iron buckets!", "🐔 Chicken farms produce feathers!",
+        "🗺️ Map out your entire kingdom!", "🛖 Cozy wood cabins are best!", "🏰 Build a majestic stone castle!", "🌋 Watch out for flowing lava!",
+        "🌊 Diving deep into the ocean!", "🐬 Dolphins lead to buried treasure!", "🐋 Whale watching in cold biomes!", "🐢 Turtle shells make great helmets!",
+        "🐟 Fishing under a starry night!", "🐡 Pufferfish are highly poisonous!", "🪵 Spruce wood matches dark builds!", "🪵 Birch wood for clean interiors!",
+        "🪵 Jungle trees grow extremely high!", "🪵 Acacia wood makes cool orange builds!", "🪵 Dark oak doors look premium!", "🪵 Mangrove wood has rich red tones!",
+        "🪵 Cherry wood adds pastel beauty!", "🌾 Harvest beetroot for pink dye!", "🥕 Golden carrots restore major hunger!", "🍎 Golden apples grant absorption!",
+        "🍉 Glistering melon for brewing!", "🎃 Jack o'lanterns light up paths!", "🕯️ Scented candles add cozy vibes!", "💡 Glowstone lamps under water!",
+        "🧊 Ice skating on frozen lakes!", "🏔️ Climbing snowy mountain peaks!", "🪵 Crimson stems grow in the Nether!", "🪵 Warped stems look extraterrestrial!",
+        "🔥 Blue soul fire burns brightly!", "🐷 Piglins love gold ingots!", "🐗 Watch out for angry hoglins!", "👻 Ghasts cry in the nether sky!",
+        "💀 Wither skeletons drop rare skulls!", "😈 Blazes spin in nether fortresses!", "🧗 Climbing up winding cave vines!", "💎 Finding raw iron in veins!",
+        "💎 Raw copper turns into green blocks!", "💎 Raw gold deep in badlands!", "⛏️ Diamond pickaxe with Fortune III!", "⛏️ Netherite pickaxe is indestructible!",
+        "🛡️ Shield up to deflect arrows!", "🗡️ Sharpness V on your netherite sword!", "🏹 Infinity bow never runs out of ammo!", "🔱 Riptide trident in rainstorms!",
+        "🧼 Clean your armor with cauldrons!", "🚪 Secret doors behind paintings!", "🪜 Ladders climb to the sky limit!", "🐾 Sniffers sniffing out ancient seeds!",
+        "🐫 Camel riding through vast deserts!", "🌵 Watch out for prickly cacti!", "🏜️ Pyramids hold secret TNT traps!", "🏝️ Warm ocean coral reefs look gorgeous!",
+        "🧜 Conduit power activates underwater breathing!", "🏠 Set your spawn point with beds!", "🛏️ Respawn anchors set nether spawns!", "🔮 Enchanting books on tables!",
+        "📚 Bookshelves boost enchantment levels!", "🧪 Brewing splash potion of healing!", "🧿 Eye of ender guides to portals!", "🏰 Strongholds hide deep underground!",
+        "👾 Silverfish hide inside stone blocks!", "🚪 Unlock the End Portal frame!", "🐉 Defeat the mighty Ender Dragon!", "🥚 Collect the rare Dragon Egg!",
+        "🦅 Elytra wings let you fly freely!", "🚀 Fireworks boost Elytra flight!", "🐚 Shulker boxes act as portable chests!", "🏙️ End cities hide majestic loot!",
+        "🌲 Tall taiga forests are majestic!", "🪵 Dark oak forests grow thick!", "🍄 Giant mushrooms look mystical!", "🧙 Witches brew inside swamp huts!",
+        "🦑 Glow squids light up dark water!", "💎 Amethyst geodes ring beautifully!", "🧪 Copper bulbs oxidize over time!", "⚔️ Trial chambers hold trials!",
+        "🦁 Armadillos drop scutes for wolf armor!", "🪵 Breeze rods craft wind charges!", "🌬️ Wind charges launch you high!", "🗝️ Trial keys unlock vaults!",
+        "💎 Heavy cores craft the Mace!", "🔨 Mace smash attacks deal huge damage!", "💎 Netherite upgrade templates are rare!", "🎨 Trim your armor with styles!"
     };
 
     private android.animation.ValueAnimator mHeadRotationAnimator;
