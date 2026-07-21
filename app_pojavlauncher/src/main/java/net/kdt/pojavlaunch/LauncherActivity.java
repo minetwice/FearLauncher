@@ -146,6 +146,7 @@ public class LauncherActivity extends BaseActivity {
         setupDrawer();
         SoundManager.init(this);
         SoundManager.startMusic(this);
+        net.kdt.pojavlaunch.utils.JunkCleaner.start();
 
         if (savedInstanceState == null) {
             getSupportFragmentManager()
@@ -239,6 +240,7 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        net.kdt.pojavlaunch.utils.JunkCleaner.stop();
         super.onDestroy();
         mProgressLayout.cleanUpObservers();
         ProgressKeeper.removeTaskCountListener(mProgressLayout);
