@@ -1034,18 +1034,17 @@ public class MainMenuFragment extends Fragment {
         skinView.setShowHeadOnly(true);
         skinView.loadSkin(activeSkinPath, activeSkinIsAlex);
 
-        // Auto-rotation animation loop for 3D skin head
+        // Auto-rotation animation loop for 3D skin head (360 degrees continuous, looking straight)
         if (mHeadRotationAnimator != null) {
             mHeadRotationAnimator.cancel();
         }
-        mHeadRotationAnimator = android.animation.ValueAnimator.ofFloat(-30f, 30f);
-        mHeadRotationAnimator.setDuration(4000);
-        mHeadRotationAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        mHeadRotationAnimator = android.animation.ValueAnimator.ofFloat(0f, 360f);
+        mHeadRotationAnimator.setDuration(6000); // 6 seconds for a full smooth 360 rotation
         mHeadRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
         mHeadRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
         mHeadRotationAnimator.addUpdateListener(animation -> {
             float val = (float) animation.getAnimatedValue();
-            skinView.setRotationAngles(val, -15f);
+            skinView.setRotationAngles(val, 0f);
         });
         mHeadRotationAnimator.start();
 
