@@ -567,6 +567,7 @@ public class MainMenuFragment extends Fragment {
         Button navModpacks = dialog.findViewById(R.id.dash_nav_modpacks);
         Button navAddons = dialog.findViewById(R.id.dash_nav_addons);
         Button navLogs = dialog.findViewById(R.id.dash_nav_logs);
+        Button navInfo = dialog.findViewById(R.id.dash_nav_info);
 
         android.widget.FrameLayout rightPane = dialog.findViewById(R.id.dash_content_pane);
 
@@ -591,6 +592,10 @@ public class MainMenuFragment extends Fragment {
             }
             navLogs.setBackgroundResource(R.drawable.premium_glass_black_bg);
             navLogs.setTextColor(0xFFFFFFFF);
+            if (navInfo != null) {
+                navInfo.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                navInfo.setTextColor(0xFFFFFFFF);
+            }
         };
 
         // SPLIT-PANE 1: SETTINGS ENGINE
@@ -1101,6 +1106,46 @@ public class MainMenuFragment extends Fragment {
             });
             rightPane.addView(shareBtn);
         });
+
+        // SPLIT-PANE 9: CREATORS & INFO
+        if (navInfo != null) {
+            navInfo.setOnClickListener(v2 -> {
+                v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                resetNavButtons.run();
+                navInfo.setBackgroundResource(R.drawable.premium_button_bg);
+                navInfo.setTextColor(0xFFFFFFFF);
+
+                rightPane.removeAllViews();
+                View infoView = dialog.getLayoutInflater().inflate(R.layout.dialog_creators_info, rightPane, false);
+
+                // Hide background of infoView inside FrameLayout to blend seamlessly
+                infoView.setBackground(null);
+
+                View btnTwicefear = infoView.findViewById(R.id.btn_yt_twicefear);
+                View btnHellzior = infoView.findViewById(R.id.btn_yt_hellzior);
+
+                if (btnTwicefear != null) {
+                    btnTwicefear.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
+                        startActivity(intent);
+                    });
+                }
+
+                if (btnHellzior != null) {
+                    btnHellzior.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
+                        startActivity(intent);
+                    });
+                }
+
+                rightPane.addView(infoView);
+            });
+        }
 
         // Default selection
         if ("skin".equals(defaultTab)) {

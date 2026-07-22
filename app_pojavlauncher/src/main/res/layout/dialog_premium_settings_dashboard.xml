@@ -214,6 +214,20 @@
                     android:drawablePadding="8dp"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/dash_nav_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:text="CREATORS &amp; INFO"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:drawableStart="@drawable/ic_px_experiment"
+                    android:drawablePadding="8dp"
+                    android:gravity="start|center_vertical"
+                    android:paddingStart="8dp"
                     android:background="@drawable/premium_glass_black_bg" />
 
             </LinearLayout>
