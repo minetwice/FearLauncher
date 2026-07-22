@@ -21,7 +21,7 @@ public class JunkCleaner {
             @Override
             public void run() {
                 // Run on Pojav's background executor to avoid blocking the UI thread
-                Tools.sExecutorService.submit(() -> {
+                net.kdt.pojavlaunch.PojavApplication.sExecutorService.submit(() -> {
                     try {
                         // 1. Run Lightweight Java VM Garbage Collector
                         System.gc();
