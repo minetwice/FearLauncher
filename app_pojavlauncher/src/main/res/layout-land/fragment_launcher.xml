@@ -458,6 +458,15 @@
                     android:text="EXPERIMENTAL STUFF"
                     android:drawableStart="@drawable/ic_px_sliders"
                     android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_info_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="INFO &amp; CREATORS"
+                    android:drawableStart="@drawable/ic_px_experiment"
+                    android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="16dp" />
 
                 <com.kdt.mcgui.MineButton
@@ -472,5 +481,59 @@
             </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>
+
+    <!-- Minecraft Advancement Made Toast Overlay (Step 11 & Custom Feature Redesign) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/advancement_toast_layout"
+        android:layout_width="@dimen/_180sdp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_8sdp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_marginEnd="-220dp">
+
+        <ImageView
+            android:id="@+id/advancement_icon"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:src="@drawable/ic_youtube_logo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/_8sdp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/advancement_icon"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Advancement Made!"
+                android:textColor="#FFFF55"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/advancement_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subscribe to twicefear"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:layout_marginTop="1dp"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

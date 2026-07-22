@@ -382,8 +382,125 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        // Open our Creators Info Dialog from Tray Info button
+        View trayInfo = view.findViewById(R.id.tray_info_btn);
+        if (trayInfo != null) {
+            trayInfo.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                openCreatorsInfoDialog();
+            });
+        }
+
+        // Minecraft Advancement Made Overlay Toast slide-in loops (Step 11)
+        View advToast = view.findViewById(R.id.advancement_toast_layout);
+        TextView advMsg = view.findViewById(R.id.advancement_message);
+        if (advToast != null && advMsg != null) {
+            // Trigger 1: Subscribe to twicefear (after 5 seconds)
+            advToast.postDelayed(() -> {
+                advMsg.setText("Subscribe to twicefear");
+                advToast.setVisibility(View.VISIBLE);
+                advToast.setTranslationX(400f);
+                advToast.animate()
+                        .translationX(0f)
+                        .setDuration(800)
+                        .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
+                        .withEndAction(() -> {
+                            playChallengeSound();
+                            // Click to YouTube twicefear
+                            advToast.setOnClickListener(v -> {
+                                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                net.kdt.pojavlaunch.SoundManager.playClick();
+                                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
+                                startActivity(intent);
+                            });
+                            // Slide out after 5 seconds
+                            advToast.postDelayed(() -> {
+                                advToast.animate()
+                                        .translationX(400f)
+                                        .setDuration(600)
+                                        .withEndAction(() -> advToast.setVisibility(View.GONE))
+                                        .start();
+                            }, 5000);
+                        })
+                        .start();
+            }, 5000);
+
+            // Trigger 2: Subscribe to hellzior (after 15 seconds)
+            advToast.postDelayed(() -> {
+                advMsg.setText("Subscribe to hellzior");
+                advToast.setVisibility(View.VISIBLE);
+                advToast.setTranslationX(400f);
+                advToast.animate()
+                        .translationX(0f)
+                        .setDuration(800)
+                        .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
+                        .withEndAction(() -> {
+                            playChallengeSound();
+                            // Click to YouTube hellzior
+                            advToast.setOnClickListener(v -> {
+                                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                net.kdt.pojavlaunch.SoundManager.playClick();
+                                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
+                                startActivity(intent);
+                            });
+                            // Slide out after 5 seconds
+                            advToast.postDelayed(() -> {
+                                advToast.animate()
+                                        .translationX(400f)
+                                        .setDuration(600)
+                                        .withEndAction(() -> advToast.setVisibility(View.GONE))
+                                        .start();
+                            }, 5000);
+                        })
+                        .start();
+            }, 15000);
+        }
+
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
+    }
+
+    private void playChallengeSound() {
+        try {
+            android.net.Uri notification = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION);
+            android.media.Ringtone r = android.media.RingtoneManager.getRingtone(requireContext(), notification);
+            r.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void openCreatorsInfoDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(R.layout.dialog_creators_info)
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            View btnTwicefear = dialog.findViewById(R.id.btn_yt_twicefear);
+            View btnHellzior = dialog.findViewById(R.id.btn_yt_hellzior);
+
+            if (btnTwicefear != null) {
+                btnTwicefear.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
+                    startActivity(intent);
+                });
+            }
+
+            if (btnHellzior != null) {
+                btnHellzior.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
+                    startActivity(intent);
+                });
+            }
+        });
+
+        dialog.show();
     }
 
     private void collapseTray(View settingsTray) {
