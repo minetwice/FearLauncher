@@ -495,7 +495,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="@dimen/_16sdp"
-        android:layout_marginEnd="-220dp">
+        android:layout_marginEnd="@dimen/_16sdp">
 
         <ImageView
             android:id="@+id/advancement_icon"

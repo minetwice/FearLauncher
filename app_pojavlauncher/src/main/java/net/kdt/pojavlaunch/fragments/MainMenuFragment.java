@@ -89,6 +89,11 @@ public class MainMenuFragment extends Fragment {
     private android.os.Handler mChatBubbleHandler;
     private java.lang.Runnable mChatBubbleRunnable;
 
+    // Custom continuous looping advancement announcements (Step 3)
+    private int mAnnouncementIndex = 0;
+    private android.os.Handler mAnnouncementHandler;
+    private java.lang.Runnable mAnnouncementRunnable;
+
     private mcVersionSpinner mVersionSpinner;
     private TextView mAccountName;
     private View mRootView;
@@ -394,70 +399,17 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Minecraft Advancement Made Overlay Toast slide-in loops (Step 11)
-        View advToast = view.findViewById(R.id.advancement_toast_layout);
-        TextView advMsg = view.findViewById(R.id.advancement_message);
-        if (advToast != null && advMsg != null) {
-            // Trigger 1: Subscribe to twicefear (after 5 seconds)
-            advToast.postDelayed(() -> {
-                advMsg.setText("Subscribe to twicefear");
-                advToast.setVisibility(View.VISIBLE);
-                advToast.setTranslationX(400f);
-                advToast.animate()
-                        .translationX(0f)
-                        .setDuration(800)
-                        .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
-                        .withEndAction(() -> {
-                            playChallengeSound();
-                            // Click to YouTube twicefear
-                            advToast.setOnClickListener(v -> {
-                                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                net.kdt.pojavlaunch.SoundManager.playClick();
-                                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
-                                startActivity(intent);
-                            });
-                            // Slide out after 5 seconds
-                            advToast.postDelayed(() -> {
-                                advToast.animate()
-                                        .translationX(400f)
-                                        .setDuration(600)
-                                        .withEndAction(() -> advToast.setVisibility(View.GONE))
-                                        .start();
-                            }, 5000);
-                        })
-                        .start();
-            }, 5000);
-
-            // Trigger 2: Subscribe to hellzior (after 15 seconds)
-            advToast.postDelayed(() -> {
-                advMsg.setText("Subscribe to hellzior");
-                advToast.setVisibility(View.VISIBLE);
-                advToast.setTranslationX(400f);
-                advToast.animate()
-                        .translationX(0f)
-                        .setDuration(800)
-                        .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
-                        .withEndAction(() -> {
-                            playChallengeSound();
-                            // Click to YouTube hellzior
-                            advToast.setOnClickListener(v -> {
-                                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                net.kdt.pojavlaunch.SoundManager.playClick();
-                                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
-                                startActivity(intent);
-                            });
-                            // Slide out after 5 seconds
-                            advToast.postDelayed(() -> {
-                                advToast.animate()
-                                        .translationX(400f)
-                                        .setDuration(600)
-                                        .withEndAction(() -> advToast.setVisibility(View.GONE))
-                                        .start();
-                            }, 5000);
-                        })
-                        .start();
-            }, 15000);
-        }
+        // Setup custom looping advancement announcements (Step 3)
+        mAnnouncementHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        mAnnouncementRunnable = new java.lang.Runnable() {
+            @Override
+            public void run() {
+                showAdvancementAnnouncement();
+                mAnnouncementHandler.postDelayed(this, 20000); // Trigger every 20 seconds
+            }
+        };
+        // Trigger first announcement after 5 seconds
+        mAnnouncementHandler.postDelayed(mAnnouncementRunnable, 5000);
 
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
@@ -473,6 +425,58 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
+    private void showAdvancementAnnouncement() {
+        if (getView() == null) return;
+        View advToast = getView().findViewById(R.id.advancement_toast_layout);
+        TextView advMsg = getView().findViewById(R.id.advancement_message);
+        if (advToast == null || advMsg == null) return;
+
+        final boolean isTwicefear = (mAnnouncementIndex % 2 == 0);
+        mAnnouncementIndex++;
+
+        final String text = isTwicefear ? "Subscribe to twicefear" : "Subscribe to hellzior";
+        final String url = isTwicefear ? "https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_" : "https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k";
+
+        advMsg.setText(text);
+        advToast.setVisibility(View.VISIBLE);
+
+        // Position it completely off-screen to start (slide in from right)
+        float startX = advToast.getWidth() > 0 ? advToast.getWidth() + 200f : 1000f;
+        advToast.setTranslationX(startX);
+
+        // Slide in animation with OvershootInterpolator for premium bouncy touch
+        advToast.animate()
+                .translationX(0f)
+                .setDuration(800)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
+                .withEndAction(() -> {
+                    playChallengeSound();
+
+                    // Set click listener to open the correct YouTube channel
+                    advToast.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+                    // Slide out after 5 seconds
+                    advToast.postDelayed(() -> {
+                        if (getView() == null) return;
+                        advToast.animate()
+                                .translationX(startX)
+                                .setDuration(600)
+                                .withEndAction(() -> advToast.setVisibility(View.GONE))
+                                .start();
+                    }, 5000);
+                })
+                .start();
+    }
+
     private void openCreatorsInfoDialog() {
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(R.layout.dialog_creators_info)
@@ -486,8 +490,12 @@ public class MainMenuFragment extends Fragment {
                 btnTwicefear.setOnClickListener(v -> {
                     v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
-                    startActivity(intent);
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_"));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
             }
 
@@ -495,8 +503,12 @@ public class MainMenuFragment extends Fragment {
                 btnHellzior.setOnClickListener(v -> {
                     v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
-                    startActivity(intent);
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k"));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
             }
         });
@@ -1348,6 +1360,9 @@ public class MainMenuFragment extends Fragment {
         }
         if (mChatBubbleHandler != null && mChatBubbleRunnable != null) {
             mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
+        }
+        if (mAnnouncementHandler != null && mAnnouncementRunnable != null) {
+            mAnnouncementHandler.removeCallbacks(mAnnouncementRunnable);
         }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
