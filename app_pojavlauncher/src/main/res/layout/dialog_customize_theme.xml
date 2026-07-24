@@ -140,6 +140,81 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="DRAGON GOLD (LEGENDARY)" android:textColor="#FFC400" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
                     </LinearLayout>
 
+                    <LinearLayout
+                        android:id="@+id/theme_option_turquoise"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00E5FF" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="GLACIAL DEEP TURQUOISE" android:textColor="#00E5FF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_option_crimson"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF003C" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="VAMPIRE CRIMSON ROSE" android:textColor="#FF003C" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_option_emerald"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00FF88" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="EMERALD ELIXIR GREEN" android:textColor="#00FF88" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_option_pink"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF00C4" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="COSMIC NEBULA PINK" android:textColor="#FF00C4" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_option_orange"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF7F00" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="SUNSET HORIZON ORANGE" android:textColor="#FF7F00" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </ScrollView>
 
@@ -291,11 +366,151 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="8dp"
+                        android:layout_marginBottom="6dp"
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 RISING FIRE EMBERS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Heat-swaying fast fire sparks from the bottom" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_10"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌸 ANIME SAKURA PETALS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Drifting cherry blossoms with soft anime wind sways" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_11"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 HINOKAMI KAGURA DANCE" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rising majestic flame trails of Kimetsu" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_12"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🛰️ CYBER-WAVE NEON GRID" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Retrowave vanishing grid perspective" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_13"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡ CHIDORI ELECTRIC SPARKS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hyper-speed neon blue lightning bolts and arcs" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_14"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌀 RASENGAN CHAKRA SWIRL" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Swirling spirals of rotating chakra aura spheres" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_15"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💨 SHADOW CLONE PUFFS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Exploding and expanding soft white smoke clouds" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_16"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✨ SUPER SAIYAN GOLD AURA" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Roaring blazing golden flame columns" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_17"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🖤 AMATERASU BLACK FLAMES" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mysterious dark purple outlined rising void embers" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_18"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔴 MANGEKYOU SHARINGAN EYE" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Spinning and rotating crimson three-tomoed patterns" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/anim_opt_19"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        android:background="@drawable/premium_edit_bg"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌌 DOMAIN EXPANSION VOID" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Infinite void radial dark space orbits" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                 </LinearLayout>

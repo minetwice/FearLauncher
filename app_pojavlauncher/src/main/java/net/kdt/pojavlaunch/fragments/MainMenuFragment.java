@@ -176,6 +176,15 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         mRootView = view;
+
+        // Auto sync active skin to Minecraft resource packs on boot (Step 2)
+        try {
+            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+            syncSkinToMinecraftResourcePack(requireContext(), prefs.getString("active_skin_path", "steve"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         // Logic bindings (invisible dummies)
         mAccountName      = view.findViewById(R.id.account_name);
         mAccountTypeLabel = view.findViewById(R.id.account_type_label);
@@ -531,7 +540,12 @@ public class MainMenuFragment extends Fragment {
                     btn.getBackground().setColorFilter(new android.graphics.PorterDuffColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP));
                 }
             }
-        } else if (view instanceof android.view.ViewGroup) {
+        } else if (view != null && view.getBackground() instanceof android.graphics.drawable.GradientDrawable) {
+            // Programmatically update borders/strokes of any container panel, dialog card, or edit field to theme accents (Step 4)
+            android.graphics.drawable.GradientDrawable gd = (android.graphics.drawable.GradientDrawable) view.getBackground();
+            gd.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
+        }
+        if (view instanceof android.view.ViewGroup) {
             android.view.ViewGroup vg = (android.view.ViewGroup) view;
             for (int i = 0; i < vg.getChildCount(); i++) {
                 updateMineButtonsInView(vg.getChildAt(i), primaryColor, themeIndex);
@@ -566,6 +580,26 @@ public class MainMenuFragment extends Fragment {
             case 4: // Dragon Gold
                 primaryColor = 0xFFFFC400;
                 secondaryColor = 0xFF995500;
+                break;
+            case 5: // Glacial Turquoise (Rare Color preset)
+                primaryColor = 0xFF00E5FF;
+                secondaryColor = 0xFF004B57;
+                break;
+            case 6: // Vampire Crimson Rose (Rare Color preset)
+                primaryColor = 0xFFFF003C;
+                secondaryColor = 0xFF57000F;
+                break;
+            case 7: // Emerald Elixir (Rare Color preset)
+                primaryColor = 0xFF00FF88;
+                secondaryColor = 0xFF005022;
+                break;
+            case 8: // Cosmic Nebula Pink (Rare Color preset)
+                primaryColor = 0xFFFF00C4;
+                secondaryColor = 0xFF5E004B;
+                break;
+            case 9: // Sunset Horizon Orange (Rare Color preset)
+                primaryColor = 0xFFFF7F00;
+                secondaryColor = 0xFF591D00;
                 break;
             case 0: // Cyber Neon Blue (Default)
             default:
@@ -615,6 +649,11 @@ public class MainMenuFragment extends Fragment {
             View optGreen = dialog.findViewById(R.id.theme_option_green);
             View optPurple = dialog.findViewById(R.id.theme_option_purple);
             View optGold = dialog.findViewById(R.id.theme_option_gold);
+            View optTurquoise = dialog.findViewById(R.id.theme_option_turquoise);
+            View optCrimson = dialog.findViewById(R.id.theme_option_crimson);
+            View optEmerald = dialog.findViewById(R.id.theme_option_emerald);
+            View optPink = dialog.findViewById(R.id.theme_option_pink);
+            View optOrange = dialog.findViewById(R.id.theme_option_orange);
 
             View tabSelectColour = dialog.findViewById(R.id.tab_select_colour);
             View tabSelectAnimation = dialog.findViewById(R.id.tab_select_animation);
@@ -625,13 +664,18 @@ public class MainMenuFragment extends Fragment {
 
             android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-            // Color Themes mapping and binding
+            // Color Themes mapping and binding (10 Presets - Step 4)
             java.util.HashMap<View, Integer> themeMap = new java.util.HashMap<>();
             themeMap.put(optBlue, 0);
             themeMap.put(optRed, 1);
             themeMap.put(optGreen, 2);
             themeMap.put(optPurple, 3);
             themeMap.put(optGold, 4);
+            themeMap.put(optTurquoise, 5);
+            themeMap.put(optCrimson, 6);
+            themeMap.put(optEmerald, 7);
+            themeMap.put(optPink, 8);
+            themeMap.put(optOrange, 9);
 
             for (java.util.Map.Entry<View, Integer> entry : themeMap.entrySet()) {
                 View card = entry.getKey();
@@ -664,10 +708,12 @@ public class MainMenuFragment extends Fragment {
                 });
             }
 
-            // Bind the 10 Background Animation Options
+            // Bind the 20 Background Animation Options (Classic + Anime - Step 4)
             int[] animIds = {
                 R.id.anim_opt_0, R.id.anim_opt_1, R.id.anim_opt_2, R.id.anim_opt_3, R.id.anim_opt_4,
-                R.id.anim_opt_5, R.id.anim_opt_6, R.id.anim_opt_7, R.id.anim_opt_8, R.id.anim_opt_9
+                R.id.anim_opt_5, R.id.anim_opt_6, R.id.anim_opt_7, R.id.anim_opt_8, R.id.anim_opt_9,
+                R.id.anim_opt_10, R.id.anim_opt_11, R.id.anim_opt_12, R.id.anim_opt_13, R.id.anim_opt_14,
+                R.id.anim_opt_15, R.id.anim_opt_16, R.id.anim_opt_17, R.id.anim_opt_18, R.id.anim_opt_19
             };
 
             for (int i = 0; i < animIds.length; i++) {
@@ -761,6 +807,75 @@ public class MainMenuFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void syncSkinToMinecraftResourcePack(Context context, String skinPath) {
+        if (context == null || skinPath == null) return;
+        try {
+            File packDir = new File(Tools.DIR_GAME_HOME, "resourcepacks/FEAR_Skin_Pack");
+            File entityDir = new File(packDir, "assets/minecraft/textures/entity");
+            entityDir.mkdirs();
+
+            File stevePng = new File(entityDir, "steve.png");
+            File alexPng = new File(entityDir, "alex.png");
+
+            if (skinPath.equals("steve") || skinPath.equals("alex")) {
+                if (stevePng.exists()) stevePng.delete();
+                if (alexPng.exists()) alexPng.delete();
+            } else {
+                File srcFile = new File(skinPath);
+                if (srcFile.exists()) {
+                    copyFileStream(srcFile, stevePng);
+                    copyFileStream(srcFile, alexPng);
+                }
+            }
+
+            // Write pack.mcmeta
+            File mcmeta = new File(packDir, "pack.mcmeta");
+            String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
+            writeStringToFile(mcmeta, mcmetaContent);
+
+            // Automatically enable the skin pack in options.txt
+            File optionsFile = new File(Tools.DIR_GAME_HOME, "options.txt");
+            if (optionsFile.exists()) {
+                String optionsContent = readStringFromFile(optionsFile);
+                if (optionsContent != null && !optionsContent.contains("FEAR_Skin_Pack")) {
+                    if (optionsContent.contains("resourcePacks:[")) {
+                        optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
+                        writeStringToFile(optionsFile, optionsContent);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void copyFileStream(File src, File dst) throws java.io.IOException {
+        try (java.io.InputStream in = new java.io.FileInputStream(src);
+             java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        }
+    }
+
+    private void writeStringToFile(File file, String str) throws java.io.IOException {
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+            fos.write(str.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    private String readStringFromFile(File file) {
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+            byte[] data = new byte[(int) file.length()];
+            int readBytes = fis.read(data);
+            return new String(data, 0, readBytes, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void collapseTray(View settingsTray) {
@@ -929,6 +1044,9 @@ public class MainMenuFragment extends Fragment {
                 android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
                 final String activeSkinPath = prefs.getString("active_skin_path", "steve");
                 final boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
+
+                // Auto sync selected skin to Minecraft game textures folder (Step 2)
+                syncSkinToMinecraftResourcePack(requireContext(), activeSkinPath);
 
                 currentViewer.loadSkin(activeSkinPath, isAlex);
 
