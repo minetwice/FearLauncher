@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="@dimen/_440sdp"
-    android:layout_height="@dimen/_310sdp"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/_250sdp"
     android:background="@drawable/burnt_parchment_bg"
+    android:orientation="vertical"
     android:paddingHorizontal="@dimen/_18sdp"
     android:paddingVertical="@dimen/_14sdp">
 
@@ -13,28 +15,24 @@
         android:id="@+id/info_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:text="📜 THE LEGENDARY SCROLL OF FEAR 📜"
         android:textColor="#2A1405"
         android:textSize="@dimen/_14ssp"
         android:textStyle="bold"
         android:letterSpacing="0.06"
-        android:layout_marginTop="6dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_marginTop="6dp" />
 
     <TextView
         android:id="@+id/info_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:text="Behold the sacred parchment chronicling the creators, developers, and visionaries"
         android:textColor="#5E3514"
         android:textSize="@dimen/_8ssp"
         android:textStyle="italic"
-        android:layout_marginTop="2dp"
-        app:layout_constraintTop_toBottomOf="@id/info_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_marginTop="2dp" />
 
     <!-- Horizontal Divider (A burnt/scorched looking divider line) -->
     <View
@@ -43,18 +41,14 @@
         android:layout_height="2dp"
         android:background="#804E27"
         android:layout_marginTop="6dp"
-        app:layout_constraintTop_toBottomOf="@id/info_subtitle" />
+        android:layout_marginBottom="8dp" />
 
-    <!-- Scrollable Treasure Lore Body -->
+    <!-- Scrollable Treasure Lore Body (Definite height to prevent collapse in AlertDialog wrapping) -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
+        android:layout_height="@dimen/_180sdp"
         android:scrollbars="vertical"
-        android:scrollbarThumbVertical="@drawable/silver_scrollbar"
-        app:layout_constraintTop_toBottomOf="@id/info_divider"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:scrollbarThumbVertical="@drawable/silver_scrollbar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -118,18 +112,40 @@ As a highly respected content creator and public mentor, Twicefear maintains an 
 • THE INFINITE HORIZON (LINE 50)\n
 Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to become the ultimate peak of mobile emulation, continuously breaking performance boundaries and setting unmatched standards for the global gaming community." />
 
-                <!-- YouTube Action Button styled to match the parchment theme -->
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/btn_yt_twicefear"
+                <!-- Row of buttons: YouTube & Discord Server -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_28sdp"
-                    android:layout_marginTop="8dp"
-                    android:text="📺 VISIT TWICEFEAR'S YT CHANNEL"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:paddingHorizontal="12dp"
-                    android:background="@drawable/premium_red_button_bg" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/btn_yt_twicefear"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="📺 TWICEFEAR YT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="4dp"
+                        android:background="@drawable/premium_red_button_bg" />
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/btn_discord_twicefear"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="💬 JOIN DISCORD"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="4dp"
+                        android:background="@drawable/premium_button_bg" />
+
+                </LinearLayout>
             </LinearLayout>
 
             <!-- ==========================================
@@ -188,18 +204,40 @@ Believing that great software thrives on transparency, Hellzior crafted the laun
 • GUARDIAN OF THE UNIFIED FUTURE (LINE 50)\n
 Working side-by-side with Twicefear, Hellzior maintains strict control over version releases, ensuring every update is meticulously polished, stable, secure, and ready to deliver the ultimate high-performance experience to all players globally." />
 
-                <!-- YouTube Action Button styled to match the parchment theme -->
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/btn_yt_hellzior"
+                <!-- Row of buttons: YouTube & Discord Server -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_28sdp"
-                    android:layout_marginTop="8dp"
-                    android:text="📺 VISIT HELLZIOR'S YT CHANNEL"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:paddingHorizontal="12dp"
-                    android:background="@drawable/premium_red_button_bg" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/btn_yt_hellzior"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="📺 HELLZIOR YT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="4dp"
+                        android:background="@drawable/premium_red_button_bg" />
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/btn_discord_hellzior"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="💬 JOIN DISCORD"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_7ssp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="4dp"
+                        android:background="@drawable/premium_button_bg" />
+
+                </LinearLayout>
             </LinearLayout>
 
             <!-- ==========================================
@@ -273,4 +311,4 @@ It's Crazy Play's continuous research into custom gestures, virtual mapping, and
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

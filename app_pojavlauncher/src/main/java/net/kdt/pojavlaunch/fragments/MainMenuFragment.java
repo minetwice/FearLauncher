@@ -429,15 +429,45 @@ public class MainMenuFragment extends Fragment {
         if (getView() == null) return;
         View advToast = getView().findViewById(R.id.advancement_toast_layout);
         TextView advMsg = getView().findViewById(R.id.advancement_message);
+        android.widget.ImageView advIcon = getView().findViewById(R.id.advancement_icon);
         if (advToast == null || advMsg == null) return;
 
-        final boolean isTwicefear = (mAnnouncementIndex % 2 == 0);
+        // Modulo 4 cycle of announcements (YouTube Twicefear, YouTube Hellzior, Discord Twicefear, Discord Hellzior)
+        final int state = mAnnouncementIndex % 4;
         mAnnouncementIndex++;
 
-        final String text = isTwicefear ? "Subscribe to twicefear" : "Subscribe to hellzior";
-        final String url = isTwicefear ? "https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_" : "https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k";
+        final String text;
+        final String url;
+        final boolean isDiscord;
+
+        switch (state) {
+            case 0:
+                text = "Subscribe to twicefear";
+                url = "https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_";
+                isDiscord = false;
+                break;
+            case 1:
+                text = "Subscribe to hellzior";
+                url = "https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k";
+                isDiscord = false;
+                break;
+            case 2:
+                text = "Join Twicefear's Discord";
+                url = "https://discord.gg/NGMjxn9a7";
+                isDiscord = true;
+                break;
+            case 3:
+            default:
+                text = "Join Hellzior's Discord";
+                url = "https://discord.gg/bsGtVV5sk";
+                isDiscord = true;
+                break;
+        }
 
         advMsg.setText(text);
+        if (advIcon != null) {
+            advIcon.setImageResource(isDiscord ? R.drawable.ic_discord : R.drawable.ic_youtube_logo);
+        }
         advToast.setVisibility(View.VISIBLE);
 
         // Position it completely off-screen to start (slide in from right)
@@ -452,7 +482,7 @@ public class MainMenuFragment extends Fragment {
                 .withEndAction(() -> {
                     playChallengeSound();
 
-                    // Set click listener to open the correct YouTube channel
+                    // Set click listener to open the correct YouTube channel or Discord link
                     advToast.setOnClickListener(v -> {
                         v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                         net.kdt.pojavlaunch.SoundManager.playClick();
@@ -485,6 +515,8 @@ public class MainMenuFragment extends Fragment {
         dialog.setOnShowListener(dialogInterface -> {
             View btnTwicefear = dialog.findViewById(R.id.btn_yt_twicefear);
             View btnHellzior = dialog.findViewById(R.id.btn_yt_hellzior);
+            View btnDiscordTwicefear = dialog.findViewById(R.id.btn_discord_twicefear);
+            View btnDiscordHellzior = dialog.findViewById(R.id.btn_discord_hellzior);
 
             if (btnTwicefear != null) {
                 btnTwicefear.setOnClickListener(v -> {
@@ -505,6 +537,32 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k"));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            if (btnDiscordTwicefear != null) {
+                btnDiscordTwicefear.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/NGMjxn9a7"));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            if (btnDiscordHellzior != null) {
+                btnDiscordHellzior.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/bsGtVV5sk"));
                         startActivity(intent);
                     } catch (Exception e) {
                         e.printStackTrace();
