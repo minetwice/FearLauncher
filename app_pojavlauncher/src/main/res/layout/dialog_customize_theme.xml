@@ -2,18 +2,18 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="@dimen/_440sdp"
+    android:layout_width="@dimen/_450sdp"
     android:layout_height="wrap_content"
     android:background="@drawable/premium_glass_black_bg"
     android:orientation="vertical"
     android:padding="@dimen/_16sdp">
 
-    <!-- Header Section -->
+    <!-- Header Section (Premium Website Style Console Header) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="🎨 VISUAL ENGINE CONTROL PANEL 🎨"
+        android:text="🖥️ FEAR VISUAL SYSTEM CONSOLE 🖥️"
         android:textColor="#FFFFFF"
         android:textSize="@dimen/_13ssp"
         android:textStyle="bold"
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Customize your launcher theme colors and background animations in real-time"
+        android:text="Unleash high-fidelity color presets and intense full-canvas background animations"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/_8ssp"
         android:layout_marginTop="2dp" />
@@ -38,7 +38,7 @@
     <!-- Horizontal Split-Pane Layout -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_200sdp"
+        android:layout_height="@dimen/_210sdp"
         android:orientation="horizontal"
         android:baselineAligned="false">
 
@@ -49,176 +49,41 @@
             android:layout_weight="1"
             android:layout_marginEnd="12dp">
 
-            <!-- 1. Color Customizer Workspace Pane -->
-            <ScrollView
+            <!-- 1. Color Customizer Workspace Pane (Rainbow Color Wheel) -->
+            <LinearLayout
                 android:id="@+id/panel_color_workspace"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                android:scrollbarThumbVertical="@drawable/silver_scrollbar"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
                 android:visibility="visible">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingEnd="6dp">
+                    android:text="🎨 ADVANCED COLOR HUE SELECTION"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-                    <!-- Theme Options -->
-                    <LinearLayout
-                        android:id="@+id/theme_option_blue"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00F0FF" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="CYBER NEON BLUE (DEFAULT)" android:textColor="#00F0FF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
+                <!-- The majestic 2D dynamic ColorWheelView -->
+                <com.kdt.mcgui.ColorWheelView
+                    android:id="@+id/theme_color_wheel"
+                    android:layout_width="@dimen/_150sdp"
+                    android:layout_height="@dimen/_150sdp"
+                    android:layout_gravity="center_horizontal" />
 
-                    <LinearLayout
-                        android:id="@+id/theme_option_red"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF3D00" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="MOLTEN LAVA RED" android:textColor="#FF3D00" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Drag or tap to generate any custom ARGB color"
+                    android:textColor="#50FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/theme_option_green"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00FF66" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="TOXIC LIME GREEN" android:textColor="#00FF66" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_purple"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#D000FF" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="MYSTICAL AMETHYST PURPLE" android:textColor="#D000FF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_gold"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FFC400" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="DRAGON GOLD (LEGENDARY)" android:textColor="#FFC400" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_turquoise"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00E5FF" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="GLACIAL DEEP TURQUOISE" android:textColor="#00E5FF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_crimson"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF003C" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="VAMPIRE CRIMSON ROSE" android:textColor="#FF003C" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_emerald"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#00FF88" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="EMERALD ELIXIR GREEN" android:textColor="#00FF88" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_pink"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF00C4" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="COSMIC NEBULA PINK" android:textColor="#FF00C4" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/theme_option_orange"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FF7F00" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:text="SUNSET HORIZON ORANGE" android:textColor="#FF7F00" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </ScrollView>
-
-            <!-- 2. Animation Selector Workspace Pane -->
+            <!-- 2. Animation Selector Workspace Pane (15 Intense Options) -->
             <ScrollView
                 android:id="@+id/panel_animation_workspace"
                 android:layout_width="match_parent"
@@ -233,7 +98,7 @@
                     android:orientation="vertical"
                     android:paddingEnd="6dp">
 
-                    <!-- Mode Options -->
+                    <!-- Intense Animations List (15 items) -->
                     <LinearLayout
                         android:id="@+id/anim_opt_0"
                         android:layout_width="match_parent"
@@ -244,8 +109,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌊 FLOWING WATER WAVES" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trigonometric fluid sine waves in background" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 1. AURA BURST (AURA BLAST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent center attraction with a massive shockwave blast" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -258,8 +123,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✨ FLOATING GLASS PARTICLES" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Glowing translucent glass circles floating upwards" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡ 2. SPEED DASH (TELEPORT STRIKE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Afterimages, horizontal screen tear glitch lines and heavy rumble" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -272,8 +137,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌌 COSMIC STARFIELD" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Travel through space with twinkling stars" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 3. ENERGY COMPRESSION (BEAM CHARGE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Singularity vortex suck in with a directional massive laser beam" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -286,8 +151,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌋 MOLTEN LAVA BUBBLES" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Wobbling lava chambers rising from the bottom" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚔️ 4. SLASH STRIKE (SWORD SLASH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Diagonal slash marks, glowing sparks and violent delayed shockwaves" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -300,8 +165,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💾 DIGITAL MATRIX RAIN" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Falling hacker matrix code streams" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕸️ 5. DOMAIN BARRIER (DOMAIN EXPANSION)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rising perspective 3D dome, bass-drop, inverted gravity and spins" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -314,8 +179,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="❄️ SNOWFALL BLIZZARD" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Silent snowflakes sways softly downwards" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌟 6. POWER UP PILLAR (SUPER SAIYAN)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shattering ground, rising debris, and a high-velocity golden aura column" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -328,8 +193,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌠 AURORA BOREALIS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Breathing, slow-waving sky lights" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏱️ 7. ULTIMATE CHARGE (TIME-STOP &amp; BLAST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent swirling vortex, full screen time freeze, and a massive blast" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -342,8 +207,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛈️ DIAGONAL RAIN STORM" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fast wind-blown diagonal rain drops" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕳️ 8. BLACK HOLE (GRAVITY COLLAPSE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Particles stretch, spaghettify, and collapse into a dense void point" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -356,8 +221,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌀 PORTAL VORTEX RINGS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Expanding, rotating cyber portal vectors" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💾 9. DIGITAL DECAY (SEVERE GLITCH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Aggressive pixel corruption, screen tears, and heavy static noise shake" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -370,8 +235,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 RISING FIRE EMBERS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Heat-swaying fast fire sparks from the bottom" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☄️ 10. METEOR IMPACT (CRATER EXPLOSION)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Blazing streak crashes on ground with massive slow-motion spark rain" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -384,8 +249,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌸 ANIME SAKURA PETALS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Drifting cherry blossoms with soft anime wind sways" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛈️ 11. LIGHTNING STORM (THUNDER STRIKE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Erratic branching lightning lines, violent strobe, and zoom flashes" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -398,8 +263,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 HINOKAMI KAGURA DANCE" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rising majestic flame trails of Kimetsu" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌋 12. VOLCANIC ERUPTION (MAGMA BURST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Explosive upward magma burst and low-frequency continuous rumble" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -412,8 +277,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🛰️ CYBER-WAVE NEON GRID" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Retrowave vanishing grid perspective" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌪️ 13. CYCLONE FUNNEL (TORNADO VORTEX)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent wind field, particles sucked in funnel and collapsing bursts" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -426,8 +291,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡ CHIDORI ELECTRIC SPARKS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hyper-speed neon blue lightning bolts and arcs" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☢️ 14. NUCLEAR DOME (SHOCKWAVE PUSH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Blinding bright white flash and a massive expanding 3D dome push" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -436,81 +301,11 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="8dp"
-                        android:layout_marginBottom="6dp"
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌀 RASENGAN CHAKRA SWIRL" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Swirling spirals of rotating chakra aura spheres" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/anim_opt_15"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💨 SHADOW CLONE PUFFS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Exploding and expanding soft white smoke clouds" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/anim_opt_16"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✨ SUPER SAIYAN GOLD AURA" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Roaring blazing golden flame columns" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/anim_opt_17"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🖤 AMATERASU BLACK FLAMES" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mysterious dark purple outlined rising void embers" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/anim_opt_18"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:layout_marginBottom="6dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔴 MANGEKYOU SHARINGAN EYE" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Spinning and rotating crimson three-tomoed patterns" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/anim_opt_19"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:background="@drawable/premium_edit_bg"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌌 DOMAIN EXPANSION VOID" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Infinite void radial dark space orbits" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 15. DIMENSIONAL COLLAPSE (SPACE WARP)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Space bends and wraps to singularity then elastically snaps back" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -518,7 +313,7 @@
 
         </FrameLayout>
 
-        <!-- RIGHT SIDE: Sidebar Selector Row (Color & Animation Tabs - Step 3) -->
+        <!-- RIGHT SIDE: Sidebar Selector Row (Color & Animation Tabs - Premium Website Panel - Step 3) -->
         <LinearLayout
             android:layout_width="@dimen/_110sdp"
             android:layout_height="match_parent"
@@ -530,7 +325,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="NAV BAR"
+                android:text="ADMIN PANEL"
                 android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:textStyle="bold"

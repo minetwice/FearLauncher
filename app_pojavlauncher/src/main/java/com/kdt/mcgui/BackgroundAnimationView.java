@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class BackgroundAnimationView extends View {
 
-    private int mAnimType = 0; // 0 to 19 representing the 20 animation styles (10 classic + 10 anime)
+    private int mAnimType = 0; // 0 to 14 representing the 15 Intense/Destructive animations
     private int mPrimaryColor = 0x00F0FF;
     private int mSecondaryColor = 0x005BFF;
 
@@ -24,29 +24,19 @@ public class BackgroundAnimationView extends View {
 
     private final Path mPath1 = new Path();
     private final Path mPath2 = new Path();
-    private final Path mPath3 = new Path();
 
     private final Random mRandom = new Random();
 
-    // Fields for Wave Animation (Mode 0)
-    private float mOffset1 = 0f;
-    private float mOffset2 = 0f;
-    private float mOffset3 = 0f;
-
-    // Unified Particle structure for modes (1, 2, 3, 5, 7, 9, 10, 11, 13, 15, 16, 17)
-    private static final int MAX_PARTICLES = 35;
+    // Fields for Intense Particle Arrays
+    private static final int MAX_PARTICLES = 40;
     private final Particle[] mParticles = new Particle[MAX_PARTICLES];
 
-    // Fields for Matrix Rain (Mode 4)
-    private static final int MATRIX_COLUMNS = 25;
-    private final float[] mMatrixY = new float[MATRIX_COLUMNS];
-    private final String[] mMatrixChars = new String[MATRIX_COLUMNS];
-
-    // Fields for Aurora (Mode 6) & Grid (Mode 12)
-    private float mAuroraPhase = 0f;
-
-    // Fields for Portal Vortex (Mode 8) & Rasengan (Mode 14) & Sharingan (Mode 18)
-    private float mPortalAngle = 0f;
+    // Global Animation phases/timers for complex effects
+    private float mAnimPhase = 0f;
+    private int mTimeStopTimer = 0;
+    private float mShakeX = 0f;
+    private float mShakeY = 0f;
+    private boolean mFlashActive = false;
 
     public BackgroundAnimationView(Context context) {
         super(context);
@@ -67,15 +57,11 @@ public class BackgroundAnimationView extends View {
         for (int i = 0; i < MAX_PARTICLES; i++) {
             mParticles[i] = new Particle();
         }
-        for (int i = 0; i < MATRIX_COLUMNS; i++) {
-            mMatrixY[i] = mRandom.nextFloat() * -500f;
-            mMatrixChars[i] = String.valueOf((char) (33 + mRandom.nextInt(90)));
-        }
         updatePaintStyle();
     }
 
     public void setAnimationType(int type) {
-        mAnimType = Math.max(0, Math.min(type, 19));
+        mAnimType = Math.max(0, Math.min(type, 14));
         postInvalidate();
     }
 
@@ -100,472 +86,499 @@ public class BackgroundAnimationView extends View {
         int height = getHeight();
         if (width == 0 || height == 0) return;
 
-        switch (mAnimType) {
-            case 0: drawWaterWaves(canvas, width, height); break;
-            case 1: drawGlassParticles(canvas, width, height); break;
-            case 2: drawCosmicStarfield(canvas, width, height); break;
-            case 3: drawLavaBubbles(canvas, width, height); break;
-            case 4: drawMatrixRain(canvas, width, height); break;
-            case 5: drawSnowfall(canvas, width, height); break;
-            case 6: drawAurora(canvas, width, height); break;
-            case 7: drawRainStorm(canvas, width, height); break;
-            case 8: drawPortalVortex(canvas, width, height); break;
-            case 9: drawFireEmbers(canvas, width, height); break;
-            case 10: drawAnimeSakura(canvas, width, height); break;
-            case 11: drawHinokamiFire(canvas, width, height); break;
-            case 12: drawNeonGrid(canvas, width, height); break;
-            case 13: drawChidoriSparks(canvas, width, height); break;
-            case 14: drawRasenganChakra(canvas, width, height); break;
-            case 15: drawShadowCloneSmoke(canvas, width, height); break;
-            case 16: drawSuperSaiyanAura(canvas, width, height); break;
-            case 17: drawAmaterasuBlackFire(canvas, width, height); break;
-            case 18: drawMangekyouSharingan(canvas, width, height); break;
-            case 19: drawDomainExpansionVoid(canvas, width, height); break;
+        // Apply global screen shake offset if active (for speed dashes, slashes, power-ups)
+        canvas.save();
+        if (mShakeX != 0 || mShakeY != 0) {
+            canvas.translate(mShakeX, mShakeY);
+            mShakeX *= 0.85f;
+            mShakeY *= 0.85f;
+            if (Math.abs(mShakeX) < 1f) mShakeX = 0f;
+            if (Math.abs(mShakeY) < 1f) mShakeY = 0f;
         }
 
-        // Loop animation frame smoothly (60 FPS)
+        switch (mAnimType) {
+            case 0: drawAuraBurst(canvas, width, height); break;
+            case 1: drawSpeedDash(canvas, width, height); break;
+            case 2: drawEnergyCompression(canvas, width, height); break;
+            case 3: drawSlashStrike(canvas, width, height); break;
+            case 4: drawDomainBarrier(canvas, width, height); break;
+            case 5: drawPowerUpPillar(canvas, width, height); break;
+            case 6: drawUltimateCharge(canvas, width, height); break;
+            case 7: drawBlackHole(canvas, width, height); break;
+            case 8: drawDigitalDecay(canvas, width, height); break;
+            case 9: drawMeteorImpact(canvas, width, height); break;
+            case 10: drawLightningStorm(canvas, width, height); break;
+            case 11: drawVolcanicEruption(canvas, width, height); break;
+            case 12: drawCycloneFunnel(canvas, width, height); break;
+            case 13: drawNuclearDome(canvas, width, height); break;
+            case 14: drawDimensionalCollapse(canvas, width, height); break;
+        }
+
+        canvas.restore();
+
+        // Strobe Flash handler (Nuclear dome, ultimate charge, lightning)
+        if (mFlashActive) {
+            mPaint1.setShader(null);
+            mPaint1.setColor(0xCCFFFFFF);
+            canvas.drawRect(0, 0, width, height, mPaint1);
+            mFlashActive = false;
+        }
+
+        // Keep infinite looping (60 FPS)
         postInvalidateDelayed(16);
     }
 
-    // 0. Flowing Water Waves
-    private void drawWaterWaves(Canvas canvas, int width, int height) {
-        float baseHeight = height * 0.82f;
+    // 0. Aura Burst (Aura Blast)
+    private void drawAuraBurst(Canvas canvas, int width, int height) {
+        float cx = width / 2f;
+        float cy = height / 2f;
+        mAnimPhase += 0.05f;
 
-        mPath1.reset(); mPath2.reset(); mPath3.reset();
-        mPath1.moveTo(0, height); mPath2.moveTo(0, height); mPath3.moveTo(0, height);
-        mPath1.lineTo(0, baseHeight); mPath2.lineTo(0, baseHeight - 15f); mPath3.lineTo(0, baseHeight + 10f);
+        mPaint1.setShader(null);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x60000000);
 
-        for (int x = 0; x <= width; x += 12) {
-            float y1 = (float) (Math.sin((x * 0.005) + mOffset1) * 32f) + baseHeight;
-            float y2 = (float) (Math.sin((x * 0.007) + mOffset2) * 24f) + baseHeight - 10f;
-            float y3 = (float) (Math.cos((x * 0.004) + mOffset3) * 18f) + baseHeight + 15f;
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 0) p.reset(width, height, 0);
 
-            mPath1.lineTo(x, y1); mPath2.lineTo(x, y2); mPath3.lineTo(x, y3);
+            // Pull to center
+            float dx = cx - p.x;
+            float dy = cy - p.y;
+            p.x += dx * 0.05f;
+            p.y += dy * 0.05f;
+
+            canvas.drawCircle(p.x + (float)Math.sin(mAnimPhase) * 6f, p.y, p.size, mPaint1);
+
+            // Explode when close
+            if (Math.abs(dx) < 25f && Math.abs(dy) < 25f) {
+                p.reset(width, height, 0);
+                mShakeX = (mRandom.nextFloat() - 0.5f) * 35f;
+                mShakeY = (mRandom.nextFloat() - 0.5f) * 35f;
+                mFlashActive = true;
+            }
         }
 
-        mPath1.lineTo(width, height); mPath2.lineTo(width, height); mPath3.lineTo(width, height);
-        mPath1.close(); mPath2.close(); mPath3.close();
-
-        mPaint3.setColor((mPrimaryColor & 0x00FFFFFF) | 0x15000000);
-        mPaint2.setColor((mSecondaryColor & 0x00FFFFFF) | 0x1A000000);
-        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x2E000000);
-
-        canvas.drawPath(mPath3, mPaint3);
-        canvas.drawPath(mPath2, mPaint2);
-        canvas.drawPath(mPath1, mPaint1);
-
-        mOffset1 += 0.022f; mOffset2 += 0.015f; mOffset3 += 0.010f;
+        // Shockwave rings expanding
+        mPaint2.setStyle(Paint.Style.STROKE);
+        mPaint2.setStrokeWidth(5f);
+        mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x90000000);
+        float radius = (mAnimPhase * 18f) % (width * 0.5f);
+        canvas.drawCircle(cx, cy, radius, mPaint2);
+        mPaint2.setStyle(Paint.Style.FILL);
     }
 
-    // 1. Floating Glass Particles
-    private void drawGlassParticles(Canvas canvas, int width, int height) {
+    // 1. Speed Dash (Teleportation Strike)
+    private void drawSpeedDash(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x3D000000);
+        mPaint1.setStrokeWidth(3f);
+
+        // trailing speed lines
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 1) p.reset(width, height, 1);
 
-            mPaint1.setAlpha((int) (p.alpha * 255));
-            mPaint1.setShader(new LinearGradient(p.x, p.y, p.x + p.size, p.y + p.size,
-                    (mPrimaryColor & 0x00FFFFFF) | 0x40000000, 0x00FFFFFF, Shader.TileMode.CLAMP));
+            canvas.drawLine(p.x, p.y, p.x + p.size, p.y, mPaint1);
+            p.x -= p.vy * 8f; // high-speed dash left
 
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-            mPaint1.setShader(null);
-
-            p.x += p.vx; p.y += p.vy;
-
-            if (p.x < -p.size || p.x > width + p.size || p.y < -p.size || p.y > height + p.size) {
+            if (p.x < -p.size) {
                 p.reset(width, height, 1);
+                mShakeX = -12f;
+                mShakeY = (mRandom.nextFloat() - 0.5f) * 8f;
             }
+        }
+
+        // Random horizontal glitch tear bars
+        if (mRandom.nextFloat() > 0.85f) {
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x40000000);
+            float gy = mRandom.nextInt(height);
+            canvas.drawRect(0, gy, width, gy + 15f, mPaint2);
         }
     }
 
-    // 2. Cosmic Starfield
-    private void drawCosmicStarfield(Canvas canvas, int width, int height) {
+    // 2. Energy Compression (Beam Charge)
+    private void drawEnergyCompression(Canvas canvas, int width, int height) {
+        float cx = width / 2f;
+        float cy = height / 2f;
+        mAnimPhase += 0.08f;
+
         mPaint1.setShader(null);
-        mPaint1.setColor(0xFFFFFFFF);
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 2) p.reset(width, height, 2);
 
-            mPaint1.setAlpha((int) (p.alpha * 255));
+            // Gravity pull to singular center point
+            float dx = cx - p.x;
+            float dy = cy - p.y;
+            p.x += dx * 0.08f;
+            p.y += dy * 0.08f;
+
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x4D000000);
             canvas.drawCircle(p.x, p.y, p.size, mPaint1);
 
-            float cx = width / 2f;
-            float cy = height / 2f;
-            p.x += (p.x - cx) * 0.015f + p.vx;
-            p.y += (p.y - cy) * 0.015f + p.vy;
-            p.size += 0.05f;
-
-            if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+            if (Math.abs(dx) < 15f && Math.abs(dy) < 15f) {
                 p.reset(width, height, 2);
             }
         }
-    }
 
-    // 3. Molten Lava Bubbles
-    private void drawLavaBubbles(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 3) p.reset(width, height, 3);
-
-            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x22000000);
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            mPaint2.setStyle(Paint.Style.STROKE);
-            mPaint2.setStrokeWidth(2f);
-            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x4D000000);
-            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
-            mPaint2.setStyle(Paint.Style.FILL);
-
-            p.y -= p.vy * 1.5f;
-            p.x += Math.sin(p.y * 0.05f) * 0.8f;
-
-            if (p.y < -p.size) {
-                p.reset(width, height, 3);
-            }
+        // Blinding beam shoots every few seconds
+        float beamPulse = (float) Math.sin(mAnimPhase) * 40f + 50f;
+        if (beamPulse > 80f) {
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0xB0000000);
+            canvas.drawRect(0, cy - 25f, width, cy + 25f, mPaint2);
+            mPaint3.setColor(0xFFFFFFFF);
+            canvas.drawRect(0, cy - 10f, width, cy + 10f, mPaint3);
+            mShakeY = (mRandom.nextFloat() - 0.5f) * 20f;
         }
     }
 
-    // 4. Digital Matrix Rain
-    private void drawMatrixRain(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        mPaint1.setTextSize(width / (float) MATRIX_COLUMNS * 0.8f);
-        mPaint1.setFlags(Paint.FAKE_BOLD_TEXT_FLAG);
-
-        float columnWidth = width / (float) MATRIX_COLUMNS;
-        for (int i = 0; i < MATRIX_COLUMNS; i++) {
-            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0xCC000000);
-            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i], mPaint1);
-
-            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x44000000);
-            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i] - 30f, mPaint1);
-            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i] - 60f, mPaint1);
-
-            mMatrixY[i] += 12f;
-
-            if (mRandom.nextFloat() > 0.95f) {
-                mMatrixChars[i] = String.valueOf((char) (33 + mRandom.nextInt(90)));
-            }
-
-            if (mMatrixY[i] > height + 80f) {
-                mMatrixY[i] = -100f;
-            }
-        }
-    }
-
-    // 5. Snowfall Blizzard
-    private void drawSnowfall(Canvas canvas, int width, int height) {
+    // 3. Slash Strike (Sword Slash)
+    private void drawSlashStrike(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.06f;
         mPaint1.setShader(null);
         mPaint1.setColor(0xFFFFFFFF);
+        mPaint1.setStrokeWidth(6f);
+
+        // draw random jagged diagonal slash marks
+        if (((int)mAnimPhase % 4) == 0) {
+            mShakeX = (mRandom.nextFloat() - 0.5f) * 25f;
+            mShakeY = (mRandom.nextFloat() - 0.5f) * 25f;
+
+            float sx = mRandom.nextInt(width / 2);
+            float sy = mRandom.nextInt(height / 2);
+            canvas.drawLine(sx, sy, sx + width * 0.4f, sy + height * 0.4f, mPaint1);
+
+            // slash spark sparks
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x90000000);
+            canvas.drawCircle(sx + width * 0.2f, sy + height * 0.2f, 35f, mPaint2);
+        }
+    }
+
+    // 4. Domain Barrier (Domain Expansion)
+    private void drawDomainBarrier(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.02f;
+        mPaint1.setShader(null);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x22000000);
+        mPaint1.setStrokeWidth(2f);
+
+        float horizon = height * 0.5f;
+        // Draw geometric grid lines rising into dome
+        for (float y = horizon; y < height; y += 22f) {
+            canvas.drawLine(0, y, width, y, mPaint1);
+        }
+
+        float cx = width / 2f;
+        for (int i = -8; i <= 8; i++) {
+            canvas.drawLine(cx, horizon, cx + i * 85f, height, mPaint1);
+        }
+
+        // Rapid rotating particles inside barrier
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 4) p.reset(width, height, 4);
+
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x50000000);
+            p.x += Math.cos(mAnimPhase + p.vy) * 12f;
+            p.y += Math.sin(mAnimPhase + p.vy) * 12f;
+            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
+        }
+    }
+
+    // 5. Power Up Pillar (Super Saiyan)
+    private void drawPowerUpPillar(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.05f;
+        mPaint1.setShader(null);
+        mPaint1.setColor(0xFFFFDD00); // Goku golden aura
+        mPaint1.setAlpha(120);
+
+        mShakeX = (mRandom.nextFloat() - 0.5f) * 6f;
+        mShakeY = (mRandom.nextFloat() - 0.5f) * 6f;
+
+        // Draw vertical columns
+        float cx = width / 2f;
+        canvas.drawRect(cx - 60f, 0, cx + 60f, height, mPaint1);
+        mPaint1.setColor(0xFFFFFFFF);
+        mPaint1.setAlpha(180);
+        canvas.drawRect(cx - 20f, 0, cx + 20f, height, mPaint1);
+
+        // Anti-gravity debris rising up
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 5) p.reset(width, height, 5);
 
-            mPaint1.setAlpha((int) (p.alpha * 255));
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+            mPaint2.setColor(0xFFFFEE33);
+            canvas.drawRect(p.x, p.y, p.x + p.size, p.y + p.size, mPaint2);
 
-            p.y += p.vy * 0.8f;
-            p.x += Math.sin(p.y * 0.02f) * 0.6f + p.vx * 0.2f;
+            p.y -= p.vy * 3.5f;
 
-            if (p.y > height + p.size) {
+            if (p.y < -p.size) {
                 p.reset(width, height, 5);
             }
         }
     }
 
-    // 6. Aurora Light Columns
-    private void drawAurora(Canvas canvas, int width, int height) {
-        int step = width / 6;
-        for (int i = 0; i < 6; i++) {
-            float x = i * step + step / 2f;
-            float sway = (float) (Math.sin(mAuroraPhase + i) * 60f);
+    // 6. Ultimate Charge (Time-Stop & Blast)
+    private void drawUltimateCharge(Canvas canvas, int width, int height) {
+        mTimeStopTimer++;
+        float cx = width / 2f;
+        float cy = height / 2f;
 
-            LinearGradient lg = new LinearGradient(x + sway, 0, x + sway, height,
-                    new int[] { 0x00FFFFFF, (mPrimaryColor & 0x00FFFFFF) | 0x22000000, 0x00FFFFFF },
-                    null, Shader.TileMode.CLAMP);
-
-            mPaint1.setShader(lg);
-            canvas.drawRect(i * step, 0, (i + 1) * step, height, mPaint1);
+        // Timestop freezes everything at 120 frames interval
+        if (mTimeStopTimer % 180 < 30) {
+            // Time stop: draw black & white frozen void circles
+            mPaint1.setShader(null);
+            mPaint1.setColor(0x80101010);
+            canvas.drawRect(0, 0, width, height, mPaint1);
+            mPaint2.setColor(0xFFFFFFFF);
+            mPaint2.setStyle(Paint.Style.STROKE);
+            canvas.drawCircle(cx, cy, 180f, mPaint2);
+            mPaint2.setStyle(Paint.Style.FILL);
+            return;
         }
-        mPaint1.setShader(null);
-        mAuroraPhase += 0.008f;
-    }
 
-    // 7. Diagonal Rain Storm
-    private void drawRainStorm(Canvas canvas, int width, int height) {
+        // Swirling vortex of lines
+        mAnimPhase += 0.08f;
         mPaint1.setShader(null);
         mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x4D000000);
-        mPaint1.setStrokeWidth(2.5f);
+        for (int r = 50; r < 400; r += 45) {
+            float px = cx + (float) Math.cos(mAnimPhase + (r * 0.01)) * r;
+            float py = cy + (float) Math.sin(mAnimPhase + (r * 0.01)) * r;
+            canvas.drawCircle(px, py, 8f, mPaint1);
+        }
+
+        if (mTimeStopTimer % 180 == 31) {
+            mFlashActive = true; // Blast transition
+        }
+    }
+
+    // 7. Black Hole (Gravity Collapse)
+    private void drawBlackHole(Canvas canvas, int width, int height) {
+        float cx = width / 2f;
+        float cy = height / 2f;
+
+        // Translucent space-bending lensing rings
+        mPaint1.setShader(null);
+        mPaint1.setStyle(Paint.Style.STROKE);
+        mPaint1.setStrokeWidth(4f);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x2E000000);
+        canvas.drawCircle(cx, cy, 100f, mPaint1);
+        canvas.drawCircle(cx, cy, 180f, mPaint1);
+        mPaint1.setStyle(Paint.Style.FILL);
+
+        // Core absolute black sphere
+        mPaint2.setColor(0xFF03030D);
+        canvas.drawCircle(cx, cy, 55f, mPaint2);
+
+        // pull and stretch particles
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 7) p.reset(width, height, 7);
 
-            canvas.drawLine(p.x, p.y, p.x - 8f, p.y + p.size, mPaint1);
+            float dx = cx - p.x;
+            float dy = cy - p.y;
+            p.x += dx * 0.04f;
+            p.y += dy * 0.04f;
 
-            p.y += p.vy * 4f; p.x -= 4f;
+            mPaint3.setColor((mPrimaryColor & 0x00FFFFFF) | 0x40000000);
+            // Spaghettify stretch
+            canvas.drawRect(p.x, p.y, p.x + p.size * 2f, p.y + p.size / 2f, mPaint3);
 
-            if (p.y > height || p.x < 0) {
+            if (Math.abs(dx) < 55f && Math.abs(dy) < 55f) {
                 p.reset(width, height, 7);
             }
         }
     }
 
-    // 8. Portal Vortex Rings
-    private void drawPortalVortex(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        mPaint1.setStyle(Paint.Style.STROKE);
-        mPaint1.setStrokeWidth(3f);
+    // 8. Digital Decay (Severe Glitch)
+    private void drawDigitalDecay(Canvas canvas, int width, int height) {
+        if (mRandom.nextFloat() > 0.40f) {
+            mPaint1.setShader(null);
+            // Tearing bar offset
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x3D000000);
+            float gy = mRandom.nextInt(height);
+            canvas.drawRect(0, gy, width, gy + 35f, mPaint1);
 
-        float cx = width / 2f;
-        float cy = height / 2f;
-        float maxRadius = Math.max(width, height) * 0.6f;
-
-        for (int r = 40; r < maxRadius; r += 60) {
-            mPaint1.setColor((mSecondaryColor & 0x00FFFFFF) | 0x1A000000);
-            canvas.drawCircle(cx, cy, r, mPaint1);
-
-            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x40000000);
-            float px = cx + (float) (Math.cos(mPortalAngle + (r * 0.02f)) * r);
-            float py = cy + (float) (Math.sin(mPortalAngle + (r * 0.02f)) * r);
-            canvas.drawCircle(px, py, 6f, mPaint2);
+            // Digital glitch box clusters
+            mPaint2.setColor(mRandom.nextFloat() > 0.5f ? 0x4000FFFF : 0x40FF0055);
+            for (int i = 0; i < 6; i++) {
+                float bx = mRandom.nextInt(width);
+                float by = mRandom.nextInt(height);
+                canvas.drawRect(bx, by, bx + 50f, by + 50f, mPaint2);
+            }
+            mShakeX = (mRandom.nextFloat() - 0.5f) * 12f;
+            mShakeY = (mRandom.nextFloat() - 0.5f) * 12f;
         }
-
-        mPaint1.setStyle(Paint.Style.FILL);
-        mPortalAngle += 0.015f;
     }
 
-    // 9. Rising Fire Embers
-    private void drawFireEmbers(Canvas canvas, int width, int height) {
+    // 9. Meteor Impact (Crater Explosion)
+    private void drawMeteorImpact(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.04f;
+        float mx = (mAnimPhase * 18f) % (width + 300f) - 100f;
+        float my = (mAnimPhase * 10f) % (height + 200f) - 100f;
+
         mPaint1.setShader(null);
+        mPaint1.setColor(0xFFFF6A00); // blazing meteor tail
+        canvas.drawCircle(mx, my, 22f, mPaint1);
+
+        // Crater impact explosion trigger
+        if (my > height - 40f) {
+            mShakeY = -35f;
+            mFlashActive = true;
+            mAnimPhase = 0f; // reset loop streak
+        }
+
+        // Rising ash debris
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 9) p.reset(width, height, 9);
-
-            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x50000000);
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            p.y -= p.vy * 1.8f;
-            p.x += Math.sin(p.y * 0.08f) * 1.2f + p.vx * 0.4f;
-
-            if (p.y < -p.size) {
-                p.reset(width, height, 9);
-            }
+            mPaint2.setColor(0xFFFF9900);
+            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
+            p.y -= p.vy * 0.8f;
+            if (p.y < 0) p.reset(width, height, 9);
         }
     }
 
-    // 10. Anime Cherry Blossom (Sakura)
-    private void drawAnimeSakura(Canvas canvas, int width, int height) {
+    // 10. Lightning Storm
+    private void drawLightningStorm(Canvas canvas, int width, int height) {
         mPaint1.setShader(null);
-        mPaint1.setColor(0xFFFFB2D1); // Soft anime Sakura pink color
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 10) p.reset(width, height, 10);
+        mPaint1.setColor(0xFFD6F6FF);
+        mPaint1.setStrokeWidth(4f);
 
-            mPaint1.setAlpha((int) (p.alpha * 255));
-            // Draw rotated oval for petal feel
-            canvas.save();
-            canvas.translate(p.x, p.y);
-            canvas.rotate(p.vx * 40f);
-            canvas.drawOval(-p.size, -p.size / 2f, p.size, p.size / 2f, mPaint1);
-            canvas.restore();
+        if (mRandom.nextFloat() > 0.85f) {
+            mFlashActive = true;
+            mShakeX = (mRandom.nextFloat() - 0.5f) * 18f;
 
-            p.y += p.vy * 0.9f;
-            p.x += Math.sin(p.y * 0.03) * 0.8f + p.vx * 1.5f;
-
-            if (p.y > height + p.size) p.reset(width, height, 10);
-        }
-    }
-
-    // 11. Hinokami Fire Dance (Anime Flame Columns)
-    private void drawHinokamiFire(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 11) p.reset(width, height, 11);
-
-            // Red to deep orange core
-            mPaint1.setColor(p.vx > 0 ? 0xFFFF3C00 : 0xFFFF9000);
-            mPaint1.setAlpha((int) (p.alpha * 255));
-
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            p.y -= p.vy * 2.2f;
-            p.x += Math.sin(p.y * 0.05f) * 1.5f;
-            p.size -= 0.12f;
-
-            if (p.y < -p.size || p.size <= 1f) p.reset(width, height, 11);
-        }
-    }
-
-    // 12. Neon Grid Cyber-wave
-    private void drawNeonGrid(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x2E000000);
-        mPaint1.setStrokeWidth(2.5f);
-
-        float horizon = height * 0.5f;
-        // Drawing horizontal perspective lines
-        for (float y = horizon; y < height; y += (height - y) * 0.18f + 10f) {
-            canvas.drawLine(0, y, width, y, mPaint1);
-        }
-
-        // Perspective vertical vanishing lines
-        float cx = width / 2f;
-        for (int i = -10; i <= 10; i++) {
-            float xOffset = i * (width / 12f);
-            canvas.drawLine(cx, horizon, cx + xOffset * 2f, height, mPaint1);
-        }
-    }
-
-    // 13. Chidori Electric Sparks
-    private void drawChidoriSparks(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        mPaint1.setColor(0xFF00F0FF); // Chidori blue light
-        mPaint1.setStrokeWidth(3f);
-
-        if (mRandom.nextFloat() > 0.7f) {
             float sx = mRandom.nextInt(width);
-            float sy = mRandom.nextInt(height);
+            float sy = 0;
             mPath1.reset();
             mPath1.moveTo(sx, sy);
-            for (int i = 0; i < 4; i++) {
-                sx += (mRandom.nextFloat() - 0.5f) * 120f;
-                sy += (mRandom.nextFloat() - 0.5f) * 120f;
+            while (sy < height) {
+                sx += (mRandom.nextFloat() - 0.5f) * 100f;
+                sy += mRandom.nextFloat() * 120f;
                 mPath1.lineTo(sx, sy);
             }
             mPaint1.setStyle(Paint.Style.STROKE);
             canvas.drawPath(mPath1, mPaint1);
             mPaint1.setStyle(Paint.Style.FILL);
         }
+    }
 
-        // Electric particles
+    // 11. Volcanic Eruption
+    private void drawVolcanicEruption(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setColor(0xFFFF4000); // Lava magma color
+
+        // Ground magma cracks
+        mPaint2.setColor(0x80FF2A00);
+        canvas.drawRect(0, height - 20f, width, height, mPaint2);
+
+        // Explosive rising magma
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 11) p.reset(width, height, 11);
+
+            mPaint1.setAlpha((int) (p.alpha * 255));
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+
+            p.y -= p.vy * 2.8f;
+            p.x += p.vx * 1.5f;
+
+            if (p.y < 0) {
+                p.reset(width, height, 11);
+                mShakeY = -4f;
+            }
+        }
+    }
+
+    // 12. Cyclone Funnel (Tornado Vortex)
+    private void drawCycloneFunnel(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.05f;
+        float cx = width / 2f;
+        mPaint1.setShader(null);
+        mPaint1.setStyle(Paint.Style.STROKE);
+        mPaint1.setStrokeWidth(3f);
+
+        // Swirling wind funnel curves
+        for (int y = 50; y < height; y += 40) {
+            float widthRatio = (y / (float) height) * 160f + 20f;
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x22000000);
+            canvas.drawOval(cx - widthRatio, y - 10f, cx + widthRatio, y + 10f, mPaint1);
+        }
+
+        mPaint1.setStyle(Paint.Style.FILL);
+
+        // Particles spinning in funnel
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 12) p.reset(width, height, 12);
+            p.y -= p.vy * 1.5f;
+            float swirlRadius = (p.y / (float) height) * 160f + 10f;
+            p.x = cx + (float) Math.sin(mAnimPhase + p.vy) * swirlRadius;
+
+            mPaint2.setColor(mPrimaryColor);
+            mPaint2.setAlpha(120);
+            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
+
+            if (p.y < 0) p.reset(width, height, 12);
+        }
+    }
+
+    // 13. Nuclear Dome (Shockwave push)
+    private void drawNuclearDome(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.015f;
+        float cx = width / 2f;
+        float cy = height / 2f;
+
+        mPaint1.setShader(null);
+        mPaint1.setStyle(Paint.Style.STROKE);
+        mPaint1.setStrokeWidth(8f);
+        mPaint1.setColor(0x35FFFFFF); // Transparent expanding white bubble
+
+        float maxR = Math.max(width, height) * 0.7f;
+        float radius = (mAnimPhase * maxR) % maxR;
+
+        canvas.drawCircle(cx, cy, radius, mPaint1);
+        mPaint1.setStyle(Paint.Style.FILL);
+
+        // Push particles outward
         for (Particle p : mParticles) {
             if (p.size == 0 || p.mode != 13) p.reset(width, height, 13);
-            mPaint1.setColor(0xFF80FAFF);
-            mPaint1.setAlpha((int) (p.alpha * 255));
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
 
-            p.x += p.vx * 3f; p.y += p.vy * 3f;
-            if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) p.reset(width, height, 13);
+            float dx = p.x - cx;
+            float dy = p.y - cy;
+            float dist = (float) Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < radius && dist > radius - 40f) {
+                p.x += dx * 0.5f;
+                p.y += dy * 0.5f;
+                mShakeX = (mRandom.nextFloat() - 0.5f) * 4f;
+            }
+
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x60000000);
+            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
         }
     }
 
-    // 14. Rasengan Chakra Swirl
-    private void drawRasenganChakra(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
+    // 14. Dimensional Collapse (Space Warp Singularity)
+    private void drawDimensionalCollapse(Canvas canvas, int width, int height) {
+        mAnimPhase += 0.03f;
         float cx = width / 2f;
         float cy = height / 2f;
 
-        mPaint1.setStyle(Paint.Style.STROKE);
+        mPaint1.setShader(null);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x1A000000);
         mPaint1.setStrokeWidth(2f);
-        mPaint1.setColor(0x2E00F0FF);
-        canvas.drawCircle(cx, cy, 140f, mPaint1);
 
-        for (int i = 0; i < 3; i++) {
-            mPaint2.setColor(0x4000C8FF);
-            float angle = mPortalAngle + (i * 2.09f);
-            float px1 = cx + (float) (Math.cos(angle) * 140f);
-            float py1 = cy + (float) (Math.sin(angle) * 140f);
-            canvas.drawCircle(px1, py1, 25f, mPaint2);
+        // draw perspective lines bending to singularity
+        float bendScale = (float) Math.sin(mAnimPhase) * 60f + 100f;
+        for (int i = 0; i < width; i += 80) {
+            canvas.drawLine(i, 0, cx + (i - cx) * (bendScale / 250f), cy, mPaint1);
+            canvas.drawLine(i, height, cx + (i - cx) * (bendScale / 250f), cy, mPaint1);
         }
 
-        mPaint1.setStyle(Paint.Style.FILL);
-        mPortalAngle += 0.035f;
-    }
+        // Singularity core
+        mPaint2.setColor(0xFF1E0221); // deep royal void outline
+        canvas.drawCircle(cx, cy, 32f, mPaint2);
+        mPaint2.setColor(0xFFFFFFFF);
+        canvas.drawCircle(cx, cy, 12f, mPaint2);
 
-    // 15. Shadow Clone Multi-smoke (Expanding puffs)
-    private void drawShadowCloneSmoke(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        mPaint1.setColor(0x35FFFFFF); // Translucent smoke white
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 15) p.reset(width, height, 15);
-
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            p.size += 1.8f;
-            p.y -= p.vy * 0.5f;
-            p.alpha -= 0.006f;
-
-            if (p.alpha <= 0.02f) p.reset(width, height, 15);
+        if (bendScale < 50f) {
+            mShakeX = (mRandom.nextFloat() - 0.5f) * 40f;
         }
     }
 
-    // 16. Super Saiyan Aura
-    private void drawSuperSaiyanAura(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 16) p.reset(width, height, 16);
-
-            mPaint1.setColor(0xFFFFEA00); // Super Saiyan gold
-            mPaint1.setAlpha((int) (p.alpha * 255));
-
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            p.y -= p.vy * 3.5f;
-            p.x += (mRandom.nextFloat() - 0.5f) * 12f; // Extreme flame flicker
-            p.size -= 0.15f;
-
-            if (p.y < 0 || p.size <= 1f) p.reset(width, height, 16);
-        }
-    }
-
-    // 17. Amaterasu Black Flames
-    private void drawAmaterasuBlackFire(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        for (Particle p : mParticles) {
-            if (p.size == 0 || p.mode != 17) p.reset(width, height, 17);
-
-            // Black core
-            mPaint1.setColor(0xFF0D0D0D);
-            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
-
-            // Purple glow outline
-            mPaint2.setStyle(Paint.Style.STROKE);
-            mPaint2.setStrokeWidth(2.5f);
-            mPaint2.setColor(0xCC7F00FF);
-            canvas.drawCircle(p.x, p.y, p.size + 1.5f, mPaint2);
-            mPaint2.setStyle(Paint.Style.FILL);
-
-            p.y -= p.vy * 1.5f;
-            p.x += Math.cos(p.y * 0.07f) * 1.8f;
-
-            if (p.y < -p.size) p.reset(width, height, 17);
-        }
-    }
-
-    // 18. Mangekyou Sharingan Pattern
-    private void drawMangekyouSharingan(Canvas canvas, int width, int height) {
-        mPaint1.setShader(null);
-        float cx = width / 2f;
-        float cy = height / 2f;
-
-        // Base Sharingan red orbit
-        mPaint1.setStyle(Paint.Style.STROKE);
-        mPaint1.setStrokeWidth(4f);
-        mPaint1.setColor(0x44FF003C);
-        canvas.drawCircle(cx, cy, 120f, mPaint1);
-
-        // Drawing three spinning Sharingan tomoes
-        mPaint2.setStyle(Paint.Style.FILL);
-        mPaint2.setColor(0xCCFF003C);
-        for (int i = 0; i < 3; i++) {
-            float angle = mPortalAngle + (i * 2.094f);
-            float tx = cx + (float) (Math.cos(angle) * 120f);
-            float ty = cy + (float) (Math.sin(angle) * 120f);
-            canvas.drawCircle(tx, ty, 15f, mPaint2);
-        }
-
-        mPaint1.setStyle(Paint.Style.FILL);
-        mPortalAngle += 0.022f;
-    }
-
-    // 19. Domain Expansion Void
-    private void drawDomainExpansionVoid(Canvas canvas, int width, int height) {
-        float cx = width / 2f;
-        float cy = height / 2f;
-
-        RadialGradient rg = new RadialGradient(cx, cy, width * 0.45f,
-                new int[] { 0x00000000, 0x334B00FF, 0x7F0D001F },
-                null, Shader.TileMode.CLAMP);
-
-        mPaint1.setShader(rg);
-        canvas.drawCircle(cx, cy, width * 0.5f, mPaint1);
-        mPaint1.setShader(null);
-    }
-
-    // Unified Particle class
+    // Particle structure definition
     private class Particle {
         float x, y, vx, vy, size, alpha;
         int mode;
@@ -578,59 +591,55 @@ public class BackgroundAnimationView extends View {
             alpha = 0.1f + mRandom.nextFloat() * 0.25f;
 
             switch (activeMode) {
-                case 1: // Glass Particle
+                case 0: // Aura Burst
+                    x = w / 2f + (mRandom.nextFloat() - 0.5f) * 450f;
+                    y = h / 2f + (mRandom.nextFloat() - 0.5f) * 450f;
+                    size = 4f + mRandom.nextFloat() * 6f;
+                    break;
+                case 1: // Speed Dash
+                    x = w + 50f + mRandom.nextInt(300);
                     y = mRandom.nextInt(h);
-                    size = 80f + mRandom.nextFloat() * 200f;
-                    alpha = 0.04f + mRandom.nextFloat() * 0.08f;
+                    size = 80f + mRandom.nextFloat() * 180f; // line length
+                    vy = 3f + mRandom.nextFloat() * 5f; // speed ratio
                     break;
-                case 2: // Starfield
-                    x = (w / 2f) + (mRandom.nextFloat() - 0.5f) * 100f;
-                    y = (h / 2f) + (mRandom.nextFloat() - 0.5f) * 100f;
-                    size = 1f + mRandom.nextFloat() * 2f;
-                    break;
-                case 3: // Lava Bubbles
-                case 17: // Amaterasu Black Fire
-                    y = h + 20f + mRandom.nextInt(100);
-                    size = 12f + mRandom.nextFloat() * 20f;
-                    break;
-                case 5: // Snowfall
-                    y = mRandom.nextFloat() * -100f;
-                    size = 3f + mRandom.nextFloat() * 5f;
-                    alpha = 0.3f + mRandom.nextFloat() * 0.5f;
-                    break;
-                case 7: // Rain Storm
-                    y = mRandom.nextFloat() * -300f;
-                    size = 15f + mRandom.nextFloat() * 25f;
-                    alpha = 0.2f + mRandom.nextFloat() * 0.3f;
-                    break;
-                case 9: // Fire Embers
-                    y = h + 20f + mRandom.nextInt(150);
-                    size = 2f + mRandom.nextFloat() * 5f;
-                    break;
-                case 10: // Sakura Petals
-                    y = mRandom.nextFloat() * -150f;
-                    size = 8f + mRandom.nextFloat() * 12f;
-                    alpha = 0.4f + mRandom.nextFloat() * 0.5f;
-                    break;
-                case 11: // Hinokami Fire
-                case 16: // Saiyan Aura
-                    x = (w * 0.1f) + mRandom.nextInt((int)(w * 0.8f));
-                    y = h - mRandom.nextInt(80);
-                    size = 18f + mRandom.nextFloat() * 22f;
-                    break;
-                case 13: // Chidori
+                case 2: // Energy Compression
+                    x = mRandom.nextInt(w);
                     y = mRandom.nextInt(h);
-                    size = 2f + mRandom.nextFloat() * 4f;
+                    size = 5f + mRandom.nextFloat() * 8f;
                     break;
-                case 15: // Smoke
-                    x = (w / 2f) + (mRandom.nextFloat() - 0.5f) * 150f;
-                    y = (h / 2f) + (mRandom.nextFloat() - 0.5f) * 150f;
-                    size = 15f + mRandom.nextFloat() * 30f;
-                    alpha = 0.25f + mRandom.nextFloat() * 0.35f;
+                case 4: // Domain grid elements
+                    y = h / 2f + mRandom.nextInt(h / 2);
+                    size = 3f + mRandom.nextFloat() * 4f;
                     break;
+                case 5: // Saiyan Aura Debris
+                    x = (w * 0.35f) + mRandom.nextInt((int)(w * 0.3f));
+                    y = h + mRandom.nextInt(100);
+                    size = 12f + mRandom.nextFloat() * 22f; // box size
+                    vy = 2.5f + mRandom.nextFloat() * 3.5f;
+                    break;
+                case 7: // Black hole stretching
+                    x = mRandom.nextInt(w);
+                    y = mRandom.nextInt(h);
+                    size = 4f + mRandom.nextFloat() * 8f;
+                    break;
+                case 9: // Meteor ash
+                    x = mRandom.nextInt(w);
+                    y = h + mRandom.nextInt(50);
+                    size = 3f + mRandom.nextFloat() * 6f;
+                    vy = 1.5f + mRandom.nextFloat() * 2f;
+                    break;
+                case 11: // Volcanic Magma
+                    x = (w / 2f) + (mRandom.nextFloat() - 0.5f) * 80f;
+                    y = h - 20f;
+                    size = 6f + mRandom.nextFloat() * 12f;
+                    vx = (mRandom.nextFloat() - 0.5f) * 12f;
+                    vy = 3f + mRandom.nextFloat() * 6f;
+                    break;
+                case 12: // Cyclone Vortex
+                case 13: // Nuclear
                 default:
                     y = mRandom.nextInt(h);
-                    size = 10f;
+                    size = 6f + mRandom.nextFloat() * 6f;
                     break;
             }
         }

@@ -491,11 +491,11 @@ public class MainMenuFragment extends Fragment {
         if (advIcon != null) {
             advIcon.setImageResource(isDiscord ? R.drawable.ic_discord : R.drawable.ic_youtube_logo);
         }
-        advToast.setVisibility(View.VISIBLE);
 
-        // Position it completely off-screen to start (slide in from right)
+        // Position it completely off-screen to start BEFORE making it visible (prevents static flicker)
         float startX = advToast.getWidth() > 0 ? advToast.getWidth() + 200f : 1000f;
         advToast.setTranslationX(startX);
+        advToast.setVisibility(View.VISIBLE);
 
         // Slide in animation with OvershootInterpolator for premium bouncy touch
         advToast.animate()
@@ -503,7 +503,7 @@ public class MainMenuFragment extends Fragment {
                 .setDuration(800)
                 .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
                 .withEndAction(() -> {
-                    playChallengeSound();
+                    // Silent display as requested - no notification sound trigger
 
                     // Set click listener to open the correct YouTube channel or Discord link
                     advToast.setOnClickListener(v -> {
@@ -553,62 +553,23 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
+    private int getDarkerShade(int color) {
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.45f; // Reduce value/brightness to make a perfect secondary dark gradient counterpart
+        return android.graphics.Color.HSVToColor(hsv);
+    }
+
     private void applyThemeColors(View view) {
         if (view == null || getContext() == null) return;
 
-        // Retrieve chosen theme color index from SharedPreferences
         android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        int themeIndex = prefs.getInt("launcher_theme_color", 0);
+        // Default to beautiful custom cyan/cyber-blue ARGB color value (#FF00F0FF)
+        int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFF00F0FF);
+        int secondaryColor = getDarkerShade(primaryColor);
         int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
 
-        int primaryColor;
-        int secondaryColor;
-
-        switch (themeIndex) {
-            case 1: // Molten Lava Red
-                primaryColor = 0xFFFF3D00;
-                secondaryColor = 0xFF990000;
-                break;
-            case 2: // Toxic Lime Green
-                primaryColor = 0xFF00FF66;
-                secondaryColor = 0xFF006600;
-                break;
-            case 3: // Mystical Purple
-                primaryColor = 0xFFD000FF;
-                secondaryColor = 0xFF520066;
-                break;
-            case 4: // Dragon Gold
-                primaryColor = 0xFFFFC400;
-                secondaryColor = 0xFF995500;
-                break;
-            case 5: // Glacial Turquoise (Rare Color preset)
-                primaryColor = 0xFF00E5FF;
-                secondaryColor = 0xFF004B57;
-                break;
-            case 6: // Vampire Crimson Rose (Rare Color preset)
-                primaryColor = 0xFFFF003C;
-                secondaryColor = 0xFF57000F;
-                break;
-            case 7: // Emerald Elixir (Rare Color preset)
-                primaryColor = 0xFF00FF88;
-                secondaryColor = 0xFF005022;
-                break;
-            case 8: // Cosmic Nebula Pink (Rare Color preset)
-                primaryColor = 0xFFFF00C4;
-                secondaryColor = 0xFF5E004B;
-                break;
-            case 9: // Sunset Horizon Orange (Rare Color preset)
-                primaryColor = 0xFFFF7F00;
-                secondaryColor = 0xFF591D00;
-                break;
-            case 0: // Cyber Neon Blue (Default)
-            default:
-                primaryColor = 0xFF00F0FF;
-                secondaryColor = 0xFF005BFF;
-                break;
-        }
-
-        // 1. Tint BackgroundAnimationView and apply the correct animation mode
+        // 1. Tint BackgroundAnimationView and apply the correct animation mode (from the 15 Intense styles)
         com.kdt.mcgui.BackgroundAnimationView animBgView = view.findViewById(R.id.background_animation_view);
         if (animBgView != null) {
             animBgView.setAnimationType(bgAnimType);
@@ -634,8 +595,8 @@ public class MainMenuFragment extends Fragment {
             advBg.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
         }
 
-        // 4. Recursively scan the active view hierarchy and apply theme colors instantly to all MineButtons (Step 2)
-        updateMineButtonsInView(view, primaryColor, themeIndex);
+        // 4. Recursively scan the active view hierarchy and apply theme colors instantly to all MineButtons and borders (Step 2 & 4)
+        updateMineButtonsInView(view, primaryColor, 1);
     }
 
     private void openThemeCustomizerDialog() {
@@ -644,16 +605,7 @@ public class MainMenuFragment extends Fragment {
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> {
-            View optBlue = dialog.findViewById(R.id.theme_option_blue);
-            View optRed = dialog.findViewById(R.id.theme_option_red);
-            View optGreen = dialog.findViewById(R.id.theme_option_green);
-            View optPurple = dialog.findViewById(R.id.theme_option_purple);
-            View optGold = dialog.findViewById(R.id.theme_option_gold);
-            View optTurquoise = dialog.findViewById(R.id.theme_option_turquoise);
-            View optCrimson = dialog.findViewById(R.id.theme_option_crimson);
-            View optEmerald = dialog.findViewById(R.id.theme_option_emerald);
-            View optPink = dialog.findViewById(R.id.theme_option_pink);
-            View optOrange = dialog.findViewById(R.id.theme_option_orange);
+            com.kdt.mcgui.ColorWheelView colorWheel = dialog.findViewById(R.id.theme_color_wheel);
 
             View tabSelectColour = dialog.findViewById(R.id.tab_select_colour);
             View tabSelectAnimation = dialog.findViewById(R.id.tab_select_animation);
@@ -664,31 +616,13 @@ public class MainMenuFragment extends Fragment {
 
             android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-            // Color Themes mapping and binding (10 Presets - Step 4)
-            java.util.HashMap<View, Integer> themeMap = new java.util.HashMap<>();
-            themeMap.put(optBlue, 0);
-            themeMap.put(optRed, 1);
-            themeMap.put(optGreen, 2);
-            themeMap.put(optPurple, 3);
-            themeMap.put(optGold, 4);
-            themeMap.put(optTurquoise, 5);
-            themeMap.put(optCrimson, 6);
-            themeMap.put(optEmerald, 7);
-            themeMap.put(optPink, 8);
-            themeMap.put(optOrange, 9);
-
-            for (java.util.Map.Entry<View, Integer> entry : themeMap.entrySet()) {
-                View card = entry.getKey();
-                int idx = entry.getValue();
-                if (card != null) {
-                    card.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        prefs.edit().putInt("launcher_theme_color", idx).apply();
-                        applyThemeColors(mRootView);
-                        Toast.makeText(requireContext(), "THEME ACCENT CHANGED SUCCESSFULLY!", Toast.LENGTH_SHORT).show();
-                    });
-                }
+            // Bind Color Wheel drag/touch listener to instantly update and skin launcher in real-time (Step 3)
+            if (colorWheel != null) {
+                colorWheel.setOnColorSelectedListener(color -> {
+                    prefs.edit().putInt("launcher_theme_color_argb", color).apply();
+                    prefs.edit().putInt("launcher_theme_color", 1).apply(); // non-zero trigger for MineButton tints
+                    applyThemeColors(mRootView);
+                });
             }
 
             // Tab Switching Navigation Logic (Step 3)
@@ -708,12 +642,11 @@ public class MainMenuFragment extends Fragment {
                 });
             }
 
-            // Bind the 20 Background Animation Options (Classic + Anime - Step 4)
+            // Bind the 15 Intense Background Animation Options (Step 4)
             int[] animIds = {
                 R.id.anim_opt_0, R.id.anim_opt_1, R.id.anim_opt_2, R.id.anim_opt_3, R.id.anim_opt_4,
                 R.id.anim_opt_5, R.id.anim_opt_6, R.id.anim_opt_7, R.id.anim_opt_8, R.id.anim_opt_9,
-                R.id.anim_opt_10, R.id.anim_opt_11, R.id.anim_opt_12, R.id.anim_opt_13, R.id.anim_opt_14,
-                R.id.anim_opt_15, R.id.anim_opt_16, R.id.anim_opt_17, R.id.anim_opt_18, R.id.anim_opt_19
+                R.id.anim_opt_10, R.id.anim_opt_11, R.id.anim_opt_12, R.id.anim_opt_13, R.id.anim_opt_14
             };
 
             for (int i = 0; i < animIds.length; i++) {
@@ -725,7 +658,7 @@ public class MainMenuFragment extends Fragment {
                         net.kdt.pojavlaunch.SoundManager.playClick();
                         prefs.edit().putInt("launcher_bg_animation", animIdx).apply();
                         applyThemeColors(mRootView);
-                        Toast.makeText(requireContext(), "BACKGROUND ANIMATION SWAPPED SUCCESSFULLY!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "INTENSE ANIMATION ACTIVATED!", Toast.LENGTH_SHORT).show();
                     });
                 }
             }

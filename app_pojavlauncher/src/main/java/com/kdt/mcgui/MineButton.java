@@ -32,33 +32,12 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 			setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.premium_button_bg, null));
 		}
 
-		// Dynamically skin button glow/stroke border matching the selected theme (Step 1)
+		// Dynamically skin button glow/stroke border matching the selected theme color directly from the Color Wheel (Step 1)
 		try {
 			SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(getContext());
-			int themeIndex = prefs.getInt("launcher_theme_color", 0);
-			if (themeIndex != 0 && getBackground() != null) {
-				int primaryColor;
-				switch (themeIndex) {
-					case 1: // Red
-						primaryColor = 0xFFFF3D00;
-						break;
-					case 2: // Green
-						primaryColor = 0xFF00FF66;
-						break;
-					case 3: // Purple
-						primaryColor = 0xFFD000FF;
-						break;
-					case 4: // Gold
-						primaryColor = 0xFFFFC400;
-						break;
-					case 0:
-					default:
-						primaryColor = 0xFF00F0FF;
-						break;
-				}
+			int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFF00F0FF);
+			if (getBackground() != null) {
 				getBackground().setColorFilter(new android.graphics.PorterDuffColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP));
-			} else if (getBackground() != null) {
-				getBackground().clearColorFilter();
 			}
 		} catch (Exception e) {
 			// fallback silently
