@@ -109,8 +109,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 1. AURA BURST (AURA BLAST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent center attraction with a massive shockwave blast" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 1. SUPREME AURA EXPLOSION" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Spherical aura releases power waves and rising energy columns" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -123,8 +123,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡ 2. SPEED DASH (TELEPORT STRIKE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Afterimages, horizontal screen tear glitch lines and heavy rumble" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌀 2. RASENGAN SPIRAL SPHERE" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Swirling chakra energy with opposite rotating outer rings" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -137,8 +137,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 3. ENERGY COMPRESSION (BEAM CHARGE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Singularity vortex suck in with a directional massive laser beam" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚡ 3. CHIDORI LIGHTNING CLAW" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chirping electric discharges and intense lightning arcs" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -151,8 +151,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚔️ 4. SLASH STRIKE (SWORD SLASH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Diagonal slash marks, glowing sparks and violent delayed shockwaves" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 4. SPIRIT BOMB GATHERING" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Light particles merge into a colossal sphere at the top" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -165,8 +165,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕸️ 5. DOMAIN BARRIER (DOMAIN EXPANSION)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rising perspective 3D dome, bass-drop, inverted gravity and spins" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚔️ 5. BANKAI SLASH ERUPTION" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sharp vertical sword slash with drifting glass shatter shapes" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -179,8 +179,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌟 6. POWER UP PILLAR (SUPER SAIYAN)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shattering ground, rising debris, and a high-velocity golden aura column" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💥 6. KAMEHAMEHA CHARGE-UP" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Opposite ends energy waves merge into a giant laser beam" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -193,8 +193,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏱️ 7. ULTIMATE CHARGE (TIME-STOP &amp; BLAST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent swirling vortex, full screen time freeze, and a massive blast" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🐉 7. DRAGON'S FURY VORTEX" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Spiral dragon energy columns swirling upwards" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -207,8 +207,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕳️ 8. BLACK HOLE (GRAVITY COLLAPSE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Particles stretch, spaghettify, and collapse into a dense void point" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕳️ 8. VOID IMPLOSION" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Central black void spot sucking and collapsing space" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -221,8 +221,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💾 9. DIGITAL DECAY (SEVERE GLITCH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Aggressive pixel corruption, screen tears, and heavy static noise shake" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌀 9. FRACTAL SPIRAL BURST" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Complex expanding branches growing like an infinite mandala" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -235,8 +235,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☄️ 10. METEOR IMPACT (CRATER EXPLOSION)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Blazing streak crashes on ground with massive slow-motion spark rain" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏱️ 10. TEMPORAL REWIND RING" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reverse spinning clock hand and backward flying gears" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -249,8 +249,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛈️ 11. LIGHTNING STORM (THUNDER STRIKE)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Erratic branching lightning lines, violent strobe, and zoom flashes" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⛈️ 11. VOLTAIC STORM GRID" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Horizontal and vertical electric wire grids with violent lightning" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -263,8 +263,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌋 12. VOLCANIC ERUPTION (MAGMA BURST)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Explosive upward magma burst and low-frequency continuous rumble" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 12. GRAVITY DISTORTION LENS" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invisible gravity sphere bending and curving space light rays" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -277,8 +277,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌪️ 13. CYCLONE FUNNEL (TORNADO VORTEX)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violent wind field, particles sucked in funnel and collapsing bursts" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💎 13. PRISMATIC SHATTER" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Spinning geometric crystal shatters and merges back" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -291,8 +291,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☢️ 14. NUCLEAR DOME (SHOCKWAVE PUSH)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Blinding bright white flash and a massive expanding 3D dome push" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌌 14. NEBULA SWIRL" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Colorful cosmic dust clouds mixing with twinkling stars" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -304,8 +304,8 @@
                         android:background="@drawable/premium_edit_bg"
                         android:clickable="true"
                         android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔮 15. DIMENSIONAL COLLAPSE (SPACE WARP)" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Space bends and wraps to singularity then elastically snaps back" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🩸 15. PLASMA ERUPTION" android:textColor="#FFFFFF" android:textSize="@dimen/_8ssp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hot loop-shaped plasma arcs rising and bursting into flame rings" android:textColor="#80FFFFFF" android:textSize="@dimen/_6ssp" />
                     </LinearLayout>
 
                 </LinearLayout>
