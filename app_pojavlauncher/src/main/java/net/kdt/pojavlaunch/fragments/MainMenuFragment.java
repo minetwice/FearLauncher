@@ -521,6 +521,24 @@ public class MainMenuFragment extends Fragment {
                 .start();
     }
 
+    private void updateMineButtonsInView(View view, int primaryColor, int themeIndex) {
+        if (view instanceof com.kdt.mcgui.MineButton) {
+            com.kdt.mcgui.MineButton btn = (com.kdt.mcgui.MineButton) view;
+            if (btn.getBackground() != null) {
+                if (themeIndex == 0) {
+                    btn.getBackground().clearColorFilter();
+                } else {
+                    btn.getBackground().setColorFilter(new android.graphics.PorterDuffColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP));
+                }
+            }
+        } else if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup vg = (android.view.ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                updateMineButtonsInView(vg.getChildAt(i), primaryColor, themeIndex);
+            }
+        }
+    }
+
     private void applyThemeColors(View view) {
         if (view == null || getContext() == null) return;
 
@@ -579,6 +597,9 @@ public class MainMenuFragment extends Fragment {
             android.graphics.drawable.GradientDrawable advBg = (android.graphics.drawable.GradientDrawable) advToast.getBackground();
             advBg.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
         }
+
+        // 4. Recursively scan the active view hierarchy and apply theme colors instantly to all MineButtons (Step 2)
+        updateMineButtonsInView(view, primaryColor, themeIndex);
     }
 
     private void openThemeCustomizerDialog() {
