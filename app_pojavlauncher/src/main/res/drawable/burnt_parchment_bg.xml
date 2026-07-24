@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Layer 1: Outermost scorched/burnt ash margin (nearly black) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1A0D05" />
+            <corners android:radius="14dp" />
+            <stroke android:width="2dp" android:color="#0D0602" />
+        </shape>
+    </item>
+
+    <!-- Layer 2: Transition burnt toast (dark mahogany brown) -->
+    <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#3D1A08"
+                android:endColor="#5C2E14"
+                android:angle="135" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+
+    <!-- Layer 3: Inner singed heat wave glow (burnt amber gold) -->
+    <item android:left="8dp" android:right="8dp" android:top="8dp" android:bottom="8dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#9E5D24" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+
+    <!-- Layer 4: The dried, aged parchment map body (antique parchment beige with center-to-edge burn shading) -->
+    <item android:left="11dp" android:right="11dp" android:top="11dp" android:bottom="11dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#EFE3C3"
+                android:centerColor="#DFCE9F"
+                android:endColor="#CBB57D"
+                android:type="radial"
+                android:gradientRadius="450dp" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+
+    <!-- Layer 5: Subtle horizontal burnt creases/veins inside the parchment for an authentic map feel -->
+    <item android:left="25dp" android:right="25dp" android:top="25dp" android:bottom="25dp">
+        <shape android:shape="rectangle">
+            <stroke android:width="1dp" android:color="#156C4D24" />
+            <corners android:radius="4dp" />
+        </shape>
+    </item>
+</layer-list>
