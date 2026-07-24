@@ -1,0 +1,419 @@
+package com.kdt.mcgui;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RadialGradient;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.util.AttributeSet;
+import android.view.View;
+import androidx.annotation.Nullable;
+import java.util.Random;
+
+public class BackgroundAnimationView extends View {
+
+    private int mAnimType = 0; // 0 to 9 representing the 10 animation styles
+    private int mPrimaryColor = 0x00F0FF;
+    private int mSecondaryColor = 0x005BFF;
+
+    private final Paint mPaint1 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mPaint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mPaint3 = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private final Path mPath1 = new Path();
+    private final Path mPath2 = new Path();
+    private final Path mPath3 = new Path();
+
+    private final Random mRandom = new Random();
+
+    // Fields for Wave Animation (Mode 0)
+    private float mOffset1 = 0f;
+    private float mOffset2 = 0f;
+    private float mOffset3 = 0f;
+
+    // Unified Particle structure for modes (1, 2, 3, 5, 7, 9)
+    private static final int MAX_PARTICLES = 30;
+    private final Particle[] mParticles = new Particle[MAX_PARTICLES];
+
+    // Fields for Matrix Rain (Mode 4)
+    private static final int MATRIX_COLUMNS = 25;
+    private final float[] mMatrixY = new float[MATRIX_COLUMNS];
+    private final String[] mMatrixChars = new String[MATRIX_COLUMNS];
+
+    // Fields for Aurora (Mode 6)
+    private float mAuroraPhase = 0f;
+
+    // Fields for Portal Vortex (Mode 8)
+    private float mPortalAngle = 0f;
+
+    public BackgroundAnimationView(Context context) {
+        super(context);
+        init();
+    }
+
+    public BackgroundAnimationView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
+
+    public BackgroundAnimationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    private void init() {
+        for (int i = 0; i < MAX_PARTICLES; i++) {
+            mParticles[i] = new Particle();
+        }
+        for (int i = 0; i < MATRIX_COLUMNS; i++) {
+            mMatrixY[i] = mRandom.nextFloat() * -500f;
+            mMatrixChars[i] = String.valueOf((char) (33 + mRandom.nextInt(90)));
+        }
+        updatePaintStyle();
+    }
+
+    public void setAnimationType(int type) {
+        mAnimType = Math.max(0, Math.min(type, 9));
+        postInvalidate();
+    }
+
+    public void setThemeColors(int primaryColor, int secondaryColor) {
+        mPrimaryColor = primaryColor;
+        mSecondaryColor = secondaryColor;
+        updatePaintStyle();
+        postInvalidate();
+    }
+
+    private void updatePaintStyle() {
+        mPaint1.setStyle(Paint.Style.FILL);
+        mPaint2.setStyle(Paint.Style.FILL);
+        mPaint3.setStyle(Paint.Style.FILL);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        int width = getWidth();
+        int height = getHeight();
+        if (width == 0 || height == 0) return;
+
+        switch (mAnimType) {
+            case 0: // Flowing Water Waves
+                drawWaterWaves(canvas, width, height);
+                break;
+            case 1: // Floating Glass Particles
+                drawGlassParticles(canvas, width, height);
+                break;
+            case 2: // Cosmic Starfield
+                drawCosmicStarfield(canvas, width, height);
+                break;
+            case 3: // Molten Lava Bubbles
+                drawLavaBubbles(canvas, width, height);
+                break;
+            case 4: // Digital Matrix Rain
+                drawMatrixRain(canvas, width, height);
+                break;
+            case 5: // Snowfall Blizzard
+                drawSnowfall(canvas, width, height);
+                break;
+            case 6: // Aurora Light Columns
+                drawAurora(canvas, width, height);
+                break;
+            case 7: // Diagonal Rain Storm
+                drawRainStorm(canvas, width, height);
+                break;
+            case 8: // Portal Vortex Rings
+                drawPortalVortex(canvas, width, height);
+                break;
+            case 9: // Rising Fire Embers
+                drawFireEmbers(canvas, width, height);
+                break;
+        }
+
+        // Loop animation frame smoothly (60 FPS)
+        postInvalidateDelayed(16);
+    }
+
+    // 0. Flowing Water Waves
+    private void drawWaterWaves(Canvas canvas, int width, int height) {
+        float baseHeight = height * 0.82f;
+
+        mPath1.reset(); mPath2.reset(); mPath3.reset();
+        mPath1.moveTo(0, height); mPath2.moveTo(0, height); mPath3.moveTo(0, height);
+        mPath1.lineTo(0, baseHeight); mPath2.lineTo(0, baseHeight - 15f); mPath3.lineTo(0, baseHeight + 10f);
+
+        for (int x = 0; x <= width; x += 12) {
+            float y1 = (float) (Math.sin((x * 0.005) + mOffset1) * 32f) + baseHeight;
+            float y2 = (float) (Math.sin((x * 0.007) + mOffset2) * 24f) + baseHeight - 10f;
+            float y3 = (float) (Math.cos((x * 0.004) + mOffset3) * 18f) + baseHeight + 15f;
+
+            mPath1.lineTo(x, y1); mPath2.lineTo(x, y2); mPath3.lineTo(x, y3);
+        }
+
+        mPath1.lineTo(width, height); mPath2.lineTo(width, height); mPath3.lineTo(width, height);
+        mPath1.close(); mPath2.close(); mPath3.close();
+
+        mPaint3.setColor((mPrimaryColor & 0x00FFFFFF) | 0x15000000);
+        mPaint2.setColor((mSecondaryColor & 0x00FFFFFF) | 0x1A000000);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x2E000000);
+
+        canvas.drawPath(mPath3, mPaint3);
+        canvas.drawPath(mPath2, mPaint2);
+        canvas.drawPath(mPath1, mPaint1);
+
+        mOffset1 += 0.022f; mOffset2 += 0.015f; mOffset3 += 0.010f;
+    }
+
+    // 1. Floating Glass Particles
+    private void drawGlassParticles(Canvas canvas, int width, int height) {
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 1) p.reset(width, height, 1);
+
+            mPaint1.setAlpha((int) (p.alpha * 255));
+            mPaint1.setShader(new LinearGradient(p.x, p.y, p.x + p.size, p.y + p.size,
+                    (mPrimaryColor & 0x00FFFFFF) | 0x40000000, 0x00FFFFFF, Shader.TileMode.CLAMP));
+
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+            mPaint1.setShader(null);
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < -p.size || p.x > width + p.size || p.y < -p.size || p.y > height + p.size) {
+                p.reset(width, height, 1);
+            }
+        }
+    }
+
+    // 2. Cosmic Starfield
+    private void drawCosmicStarfield(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setColor(0xFFFFFFFF);
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 2) p.reset(width, height, 2);
+
+            mPaint1.setAlpha((int) (p.alpha * 255));
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+
+            // Move star outwards (3D travel effect)
+            float cx = width / 2f;
+            float cy = height / 2f;
+            p.x += (p.x - cx) * 0.015f + p.vx;
+            p.y += (p.y - cy) * 0.015f + p.vy;
+            p.size += 0.05f;
+
+            if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+                p.reset(width, height, 2);
+            }
+        }
+    }
+
+    // 3. Molten Lava Bubbles
+    private void drawLavaBubbles(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 3) p.reset(width, height, 3);
+
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x22000000);
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+
+            // Subtle outline border
+            mPaint2.setStyle(Paint.Style.STROKE);
+            mPaint2.setStrokeWidth(2f);
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x4D000000);
+            canvas.drawCircle(p.x, p.y, p.size, mPaint2);
+            mPaint2.setStyle(Paint.Style.FILL);
+
+            // Bubble floats up and wobbles
+            p.y -= p.vy * 1.5f;
+            p.x += Math.sin(p.y * 0.05f) * 0.8f;
+
+            if (p.y < -p.size) {
+                p.reset(width, height, 3);
+            }
+        }
+    }
+
+    // 4. Digital Matrix Rain
+    private void drawMatrixRain(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setTextSize(width / (float) MATRIX_COLUMNS * 0.8f);
+        mPaint1.setFlags(Paint.FAKE_BOLD_TEXT_FLAG);
+
+        float columnWidth = width / (float) MATRIX_COLUMNS;
+        for (int i = 0; i < MATRIX_COLUMNS; i++) {
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0xCC000000); // Matrix Code green/primary
+            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i], mPaint1);
+
+            // Add fading tails
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x44000000);
+            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i] - 30f, mPaint1);
+            canvas.drawText(mMatrixChars[i], i * columnWidth, mMatrixY[i] - 60f, mPaint1);
+
+            mMatrixY[i] += 12f;
+
+            if (mRandom.nextFloat() > 0.95f) {
+                mMatrixChars[i] = String.valueOf((char) (33 + mRandom.nextInt(90)));
+            }
+
+            if (mMatrixY[i] > height + 80f) {
+                mMatrixY[i] = -100f;
+            }
+        }
+    }
+
+    // 5. Snowfall Blizzard
+    private void drawSnowfall(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setColor(0xFFFFFFFF);
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 5) p.reset(width, height, 5);
+
+            mPaint1.setAlpha((int) (p.alpha * 255));
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+
+            // Snowflake sways and falls
+            p.y += p.vy * 0.8f;
+            p.x += Math.sin(p.y * 0.02f) * 0.6f + p.vx * 0.2f;
+
+            if (p.y > height + p.size) {
+                p.reset(width, height, 5);
+            }
+        }
+    }
+
+    // 6. Aurora Light Columns
+    private void drawAurora(Canvas canvas, int width, int height) {
+        int step = width / 6;
+        for (int i = 0; i < 6; i++) {
+            float x = i * step + step / 2f;
+            float sway = (float) (Math.sin(mAuroraPhase + i) * 60f);
+
+            LinearGradient lg = new LinearGradient(x + sway, 0, x + sway, height,
+                    new int[] { 0x00FFFFFF, (mPrimaryColor & 0x00FFFFFF) | 0x22000000, 0x00FFFFFF },
+                    null, Shader.TileMode.CLAMP);
+
+            mPaint1.setShader(lg);
+            canvas.drawRect(i * step, 0, (i + 1) * step, height, mPaint1);
+        }
+        mPaint1.setShader(null);
+        mAuroraPhase += 0.008f;
+    }
+
+    // 7. Diagonal Rain Storm
+    private void drawRainStorm(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x4D000000);
+        mPaint1.setStrokeWidth(2.5f);
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 7) p.reset(width, height, 7);
+
+            canvas.drawLine(p.x, p.y, p.x - 8f, p.y + p.size, mPaint1);
+
+            // Fall fast diagonally
+            p.y += p.vy * 4f;
+            p.x -= 4f;
+
+            if (p.y > height || p.x < 0) {
+                p.reset(width, height, 7);
+            }
+        }
+    }
+
+    // 8. Portal Vortex Rings
+    private void drawPortalVortex(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        mPaint1.setStyle(Paint.Style.STROKE);
+        mPaint1.setStrokeWidth(3f);
+
+        float cx = width / 2f;
+        float cy = height / 2f;
+        float maxRadius = Math.max(width, height) * 0.6f;
+
+        for (int r = 40; r < maxRadius; r += 60) {
+            mPaint1.setColor((mSecondaryColor & 0x00FFFFFF) | 0x1A000000);
+            canvas.drawCircle(cx, cy, r, mPaint1);
+
+            // Rotating vortex particles/indicators on each ring
+            mPaint2.setColor((mPrimaryColor & 0x00FFFFFF) | 0x40000000);
+            float px = cx + (float) (Math.cos(mPortalAngle + (r * 0.02f)) * r);
+            float py = cy + (float) (Math.sin(mPortalAngle + (r * 0.02f)) * r);
+            canvas.drawCircle(px, py, 6f, mPaint2);
+        }
+
+        mPaint1.setStyle(Paint.Style.FILL);
+        mPortalAngle += 0.015f;
+    }
+
+    // 9. Rising Fire Embers
+    private void drawFireEmbers(Canvas canvas, int width, int height) {
+        mPaint1.setShader(null);
+        for (Particle p : mParticles) {
+            if (p.size == 0 || p.mode != 9) p.reset(width, height, 9);
+
+            mPaint1.setColor((mPrimaryColor & 0x00FFFFFF) | 0x50000000); // Orange / Warm glow
+            canvas.drawCircle(p.x, p.y, p.size, mPaint1);
+
+            // Spark rises and sways
+            p.y -= p.vy * 1.8f;
+            p.x += Math.sin(p.y * 0.08f) * 1.2f + p.vx * 0.4f;
+
+            if (p.y < -p.size) {
+                p.reset(width, height, 9);
+            }
+        }
+    }
+
+    // Particle structure definition
+    private class Particle {
+        float x, y, vx, vy, size, alpha;
+        int mode;
+
+        void reset(int w, int h, int activeMode) {
+            mode = activeMode;
+            x = mRandom.nextInt(w);
+            vx = (mRandom.nextFloat() - 0.5f) * 0.8f;
+            vy = 1f + mRandom.nextFloat() * 2f;
+            alpha = 0.1f + mRandom.nextFloat() * 0.25f;
+
+            switch (activeMode) {
+                case 1: // Glass Particle
+                    y = mRandom.nextInt(h);
+                    size = 80f + mRandom.nextFloat() * 200f;
+                    alpha = 0.04f + mRandom.nextFloat() * 0.08f;
+                    break;
+                case 2: // Starfield
+                    // Start stars near the center
+                    x = (w / 2f) + (mRandom.nextFloat() - 0.5f) * 100f;
+                    y = (h / 2f) + (mRandom.nextFloat() - 0.5f) * 100f;
+                    size = 1f + mRandom.nextFloat() * 2f;
+                    break;
+                case 3: // Lava Bubbles
+                    y = h + 20f + mRandom.nextInt(100);
+                    size = 15f + mRandom.nextFloat() * 25f;
+                    break;
+                case 5: // Snowfall
+                    y = mRandom.nextFloat() * -100f;
+                    size = 3f + mRandom.nextFloat() * 5f;
+                    alpha = 0.3f + mRandom.nextFloat() * 0.5f;
+                    break;
+                case 7: // Rain Storm
+                    y = mRandom.nextFloat() * -300f;
+                    size = 15f + mRandom.nextFloat() * 25f; // raindrop length
+                    alpha = 0.2f + mRandom.nextFloat() * 0.3f;
+                    break;
+                case 9: // Fire Embers
+                    y = h + 20f + mRandom.nextInt(150);
+                    size = 2f + mRandom.nextFloat() * 5f;
+                    break;
+                default:
+                    y = mRandom.nextInt(h);
+                    size = 10f;
+                    break;
+            }
+        }
+    }
+}

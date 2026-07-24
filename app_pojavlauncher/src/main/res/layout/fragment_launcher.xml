@@ -8,15 +8,9 @@
     android:clipToPadding="false"
     android:background="@drawable/premium_gradient_bg">
 
-    <!-- Floating Particles Layer -->
-    <com.kdt.mcgui.GlassParticleView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0.3" />
-
-    <!-- Animated Water Waves Background System (Step 2) -->
-    <com.kdt.mcgui.WaterWavesView
-        android:id="@+id/water_waves_view"
+    <!-- Unified Dynamic Background Animation Layer (Step 2) -->
+    <com.kdt.mcgui.BackgroundAnimationView
+        android:id="@+id/background_animation_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

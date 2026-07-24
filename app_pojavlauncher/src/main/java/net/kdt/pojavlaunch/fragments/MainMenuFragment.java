@@ -545,6 +545,7 @@ public class MainMenuFragment extends Fragment {
         // Retrieve chosen theme color index from SharedPreferences
         android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
         int themeIndex = prefs.getInt("launcher_theme_color", 0);
+        int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
 
         int primaryColor;
         int secondaryColor;
@@ -573,10 +574,11 @@ public class MainMenuFragment extends Fragment {
                 break;
         }
 
-        // 1. Tint WaterWavesView in the background
-        com.kdt.mcgui.WaterWavesView wavesView = view.findViewById(R.id.water_waves_view);
-        if (wavesView != null) {
-            wavesView.setThemeColors(primaryColor, secondaryColor);
+        // 1. Tint BackgroundAnimationView and apply the correct animation mode
+        com.kdt.mcgui.BackgroundAnimationView animBgView = view.findViewById(R.id.background_animation_view);
+        if (animBgView != null) {
+            animBgView.setAnimationType(bgAnimType);
+            animBgView.setThemeColors(primaryColor, secondaryColor);
         }
 
         // 2. Tint hero Play Button with the active gradient
@@ -613,10 +615,17 @@ public class MainMenuFragment extends Fragment {
             View optGreen = dialog.findViewById(R.id.theme_option_green);
             View optPurple = dialog.findViewById(R.id.theme_option_purple);
             View optGold = dialog.findViewById(R.id.theme_option_gold);
+
+            View tabSelectColour = dialog.findViewById(R.id.tab_select_colour);
+            View tabSelectAnimation = dialog.findViewById(R.id.tab_select_animation);
+            View panelColorWorkspace = dialog.findViewById(R.id.panel_color_workspace);
+            View panelAnimationWorkspace = dialog.findViewById(R.id.panel_animation_workspace);
+
             View btnClose = dialog.findViewById(R.id.btn_close_customizer);
 
             android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
 
+            // Color Themes mapping and binding
             java.util.HashMap<View, Integer> themeMap = new java.util.HashMap<>();
             themeMap.put(optBlue, 0);
             themeMap.put(optRed, 1);
@@ -634,6 +643,43 @@ public class MainMenuFragment extends Fragment {
                         prefs.edit().putInt("launcher_theme_color", idx).apply();
                         applyThemeColors(mRootView);
                         Toast.makeText(requireContext(), "THEME ACCENT CHANGED SUCCESSFULLY!", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            // Tab Switching Navigation Logic (Step 3)
+            if (tabSelectColour != null && tabSelectAnimation != null && panelColorWorkspace != null && panelAnimationWorkspace != null) {
+                tabSelectColour.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    panelColorWorkspace.setVisibility(View.VISIBLE);
+                    panelAnimationWorkspace.setVisibility(View.GONE);
+                });
+
+                tabSelectAnimation.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    panelColorWorkspace.setVisibility(View.GONE);
+                    panelAnimationWorkspace.setVisibility(View.VISIBLE);
+                });
+            }
+
+            // Bind the 10 Background Animation Options
+            int[] animIds = {
+                R.id.anim_opt_0, R.id.anim_opt_1, R.id.anim_opt_2, R.id.anim_opt_3, R.id.anim_opt_4,
+                R.id.anim_opt_5, R.id.anim_opt_6, R.id.anim_opt_7, R.id.anim_opt_8, R.id.anim_opt_9
+            };
+
+            for (int i = 0; i < animIds.length; i++) {
+                final int animIdx = i;
+                View animOpt = dialog.findViewById(animIds[i]);
+                if (animOpt != null) {
+                    animOpt.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        prefs.edit().putInt("launcher_bg_animation", animIdx).apply();
+                        applyThemeColors(mRootView);
+                        Toast.makeText(requireContext(), "BACKGROUND ANIMATION SWAPPED SUCCESSFULLY!", Toast.LENGTH_SHORT).show();
                     });
                 }
             }
