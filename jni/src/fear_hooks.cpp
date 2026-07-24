@@ -168,6 +168,39 @@ void fear_glShaderSource(unsigned int shader, int count, const char* const* stri
     glShaderSource(shader, count, string, length);
 }
 
+// Override eglGetProcAddress to proxy glMemoryBarrier and glShaderSource safely to prevent LWJGL 3 crashes
+void* eglGetProcAddress(const char* procname) {
+    if (procname == nullptr) return nullptr;
+
+    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
+        LOGI("eglGetProcAddress: Intercepted and returned custom glMemoryBarrier proxy!");
+        return (void*)glMemoryBarrier;
+    }
+    if (strcmp(procname, "glShaderSource") == 0 || strcmp(procname, "glShaderSourceARB") == 0) {
+        LOGI("eglGetProcAddress: Intercepted and returned custom glShaderSource proxy!");
+        return (void*)glShaderSource;
+    }
+    if (strcmp(procname, "glGetString") == 0) {
+        return (void*)fear_glGetString;
+    }
+    if (strcmp(procname, "glGetStringi") == 0) {
+        return (void*)fear_glGetStringi;
+    }
+
+    // Call real eglGetProcAddress
+    typedef void* (*eglGetProcAddress_pfn)(const char*);
+    static eglGetProcAddress_pfn real_eglGetProcAddress = nullptr;
+    if (!real_eglGetProcAddress) {
+        real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(RTLD_NEXT, "eglGetProcAddress");
+    }
+    if (real_eglGetProcAddress) {
+        return real_eglGetProcAddress(procname);
+    }
+
+    // Fallback to dlsym
+    return dlsym(RTLD_NEXT, procname);
+}
+
 } // extern "C"
 
 void initialize_fear_hooks() {
