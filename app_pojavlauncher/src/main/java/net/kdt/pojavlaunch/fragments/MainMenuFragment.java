@@ -377,6 +377,17 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        // Open our Theme Customizer panel from Tray DESIGN & CUSTOMIZE button
+        View trayCustomize = view.findViewById(R.id.tray_customize_btn);
+        if (trayCustomize != null) {
+            trayCustomize.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                openThemeCustomizerDialog();
+            });
+        }
+
         // Open our Command Dashboard Dialog from Tray Experimental Stuff button
         View traySettings = view.findViewById(R.id.tray_settings_btn);
         if (traySettings != null) {
@@ -410,6 +421,9 @@ public class MainMenuFragment extends Fragment {
         };
         // Trigger first announcement after 5 seconds
         mAnnouncementHandler.postDelayed(mAnnouncementRunnable, 5000);
+
+        // Apply theme color accents instantly upon creation (Step 3)
+        applyThemeColors(view);
 
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
@@ -505,6 +519,114 @@ public class MainMenuFragment extends Fragment {
                     }, 5000);
                 })
                 .start();
+    }
+
+    private void applyThemeColors(View view) {
+        if (view == null || getContext() == null) return;
+
+        // Retrieve chosen theme color index from SharedPreferences
+        android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        int themeIndex = prefs.getInt("launcher_theme_color", 0);
+
+        int primaryColor;
+        int secondaryColor;
+
+        switch (themeIndex) {
+            case 1: // Molten Lava Red
+                primaryColor = 0xFFFF3D00;
+                secondaryColor = 0xFF990000;
+                break;
+            case 2: // Toxic Lime Green
+                primaryColor = 0xFF00FF66;
+                secondaryColor = 0xFF006600;
+                break;
+            case 3: // Mystical Purple
+                primaryColor = 0xFFD000FF;
+                secondaryColor = 0xFF520066;
+                break;
+            case 4: // Dragon Gold
+                primaryColor = 0xFFFFC400;
+                secondaryColor = 0xFF995500;
+                break;
+            case 0: // Cyber Neon Blue (Default)
+            default:
+                primaryColor = 0xFF00F0FF;
+                secondaryColor = 0xFF005BFF;
+                break;
+        }
+
+        // 1. Tint WaterWavesView in the background
+        com.kdt.mcgui.WaterWavesView wavesView = view.findViewById(R.id.water_waves_view);
+        if (wavesView != null) {
+            wavesView.setThemeColors(primaryColor, secondaryColor);
+        }
+
+        // 2. Tint hero Play Button with the active gradient
+        View playBtn = view.findViewById(R.id.play_button);
+        if (playBtn != null) {
+            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[] { secondaryColor, primaryColor }
+            );
+            gd.setCornerRadius(view.getResources().getDimension(R.dimen._8sdp));
+            gd.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
+            playBtn.setBackground(gd);
+        }
+
+        // 3. Tint the advancement board border programmatically if it's visible
+        View advToast = view.findViewById(R.id.advancement_toast_layout);
+        if (advToast != null && advToast.getBackground() instanceof android.graphics.drawable.GradientDrawable) {
+            android.graphics.drawable.GradientDrawable advBg = (android.graphics.drawable.GradientDrawable) advToast.getBackground();
+            advBg.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
+        }
+    }
+
+    private void openThemeCustomizerDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(R.layout.dialog_customize_theme)
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            View optBlue = dialog.findViewById(R.id.theme_option_blue);
+            View optRed = dialog.findViewById(R.id.theme_option_red);
+            View optGreen = dialog.findViewById(R.id.theme_option_green);
+            View optPurple = dialog.findViewById(R.id.theme_option_purple);
+            View optGold = dialog.findViewById(R.id.theme_option_gold);
+            View btnClose = dialog.findViewById(R.id.btn_close_customizer);
+
+            android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+            java.util.HashMap<View, Integer> themeMap = new java.util.HashMap<>();
+            themeMap.put(optBlue, 0);
+            themeMap.put(optRed, 1);
+            themeMap.put(optGreen, 2);
+            themeMap.put(optPurple, 3);
+            themeMap.put(optGold, 4);
+
+            for (java.util.Map.Entry<View, Integer> entry : themeMap.entrySet()) {
+                View card = entry.getKey();
+                int idx = entry.getValue();
+                if (card != null) {
+                    card.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        prefs.edit().putInt("launcher_theme_color", idx).apply();
+                        applyThemeColors(mRootView);
+                        Toast.makeText(requireContext(), "THEME ACCENT CHANGED SUCCESSFULLY!", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            if (btnClose != null) {
+                btnClose.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    dialog.dismiss();
+                });
+            }
+        });
+
+        dialog.show();
     }
 
     private void openCreatorsInfoDialog() {

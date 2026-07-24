@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/_380sdp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/premium_glass_black_bg"
+    android:orientation="vertical"
+    android:padding="@dimen/_16sdp">
+
+    <!-- Header Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="🎨 THEME CONTROL PANEL 🎨"
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/_14ssp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Morph the interface color accents instantly in real-time"
+        android:textColor="#80FFFFFF"
+        android:textSize="@dimen/_8ssp"
+        android:layout_marginTop="2dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1AFFFFFF"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- List of Themes (Spacious Selectable Rows) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 1. Cyber Neon Blue -->
+        <LinearLayout
+            android:id="@+id/theme_option_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/premium_edit_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="#00F0FF" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CYBER NEON BLUE (DEFAULT)"
+                    android:textColor="#00F0FF"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sleek, futuristic cyan and glowing sapphire blue theme"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_7ssp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 2. Molten Lava Red -->
+        <LinearLayout
+            android:id="@+id/theme_option_red"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/premium_edit_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="#FF3D00" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MOLTEN LAVA RED"
+                    android:textColor="#FF3D00"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aggressive, hot lava orange and dark volcanic red theme"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_7ssp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 3. Toxic Lime Green -->
+        <LinearLayout
+            android:id="@+id/theme_option_green"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/premium_edit_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="#00FF66" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TOXIC LIME GREEN"
+                    android:textColor="#00FF66"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Radioactive, striking lime green and deep forest glow"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_7ssp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 4. Mystical Purple -->
+        <LinearLayout
+            android:id="@+id/theme_option_purple"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/premium_edit_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="#D000FF" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MYSTICAL AMETHYST PURPLE"
+                    android:textColor="#D000FF"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Royal, mysterious deep amethyst purple and void glow"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_7ssp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 5. Dragon Gold -->
+        <LinearLayout
+            android:id="@+id/theme_option_gold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/premium_edit_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="#FFC400" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DRAGON GOLD (LEGENDARY)"
+                    android:textColor="#FFC400"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Luxurious, golden status-border and yellow embers"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="@dimen/_7ssp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Close Button -->
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/btn_close_customizer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="CLOSE CONTROL PANEL"
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/_10ssp"
+        android:textStyle="bold"
+        android:background="@drawable/premium_button_bg" />
+
+</LinearLayout>

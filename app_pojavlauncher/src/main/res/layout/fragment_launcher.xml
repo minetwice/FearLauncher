@@ -14,6 +14,12 @@
         android:layout_height="match_parent"
         android:alpha="0.3" />
 
+    <!-- Animated Water Waves Background System (Step 2) -->
+    <com.kdt.mcgui.WaterWavesView
+        android:id="@+id/water_waves_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <!-- Top Header Bar (Step 6 Alignment Requirements Redesigned with Hamburger on Left) -->
     <LinearLayout
         android:id="@+id/header_layout"
@@ -448,6 +454,15 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="DEVELOPER OPTIONS"
                     android:drawableStart="@drawable/ic_px_gamepad"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_customize_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="DESIGN &amp; CUSTOMIZE"
+                    android:drawableStart="@drawable/ic_px_edit"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 
