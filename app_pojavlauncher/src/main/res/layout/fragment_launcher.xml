@@ -452,15 +452,6 @@
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_customize_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="DESIGN &amp; CUSTOMIZE"
-                    android:drawableStart="@drawable/ic_px_edit"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_settings_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"

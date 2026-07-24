@@ -66,7 +66,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
     private View mDashboardRoot;
     private View mStatusRoot;
 
-    // Real-time 1-Second refresh timer loop for accurate downlod monitoring (Step 5)
+    // Real-time 0.1-Second refresh timer loop for accurate download monitoring
     private final android.os.Handler mRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable mRefreshRunnable = new Runnable() {
         @Override
@@ -74,7 +74,7 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
             if (hasProcesses()) {
                 updateGlobalProgress();
             }
-            mRefreshHandler.postDelayed(this, 1000); // Recalculate and update stats every second
+            mRefreshHandler.postDelayed(this, 100); // Recalculate and update stats every 0.1 second (100ms)
         }
     };
 
@@ -111,8 +111,8 @@ public class ProgressLayout extends ConstraintLayout implements View.OnClickList
 
         if (mStatusRoot != null) mStatusRoot.setOnClickListener(this);
 
-        // Start the continuous 1-second refresh timer loop
-        mRefreshHandler.postDelayed(mRefreshRunnable, 1000);
+        // Start the continuous 0.1-second refresh timer loop
+        mRefreshHandler.postDelayed(mRefreshRunnable, 100);
     }
 
     @Override

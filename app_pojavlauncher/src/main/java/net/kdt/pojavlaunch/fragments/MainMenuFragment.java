@@ -386,16 +386,6 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Open our Theme Customizer panel from Tray DESIGN & CUSTOMIZE button
-        View trayCustomize = view.findViewById(R.id.tray_customize_btn);
-        if (trayCustomize != null) {
-            trayCustomize.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                openThemeCustomizerDialog();
-            });
-        }
 
         // Open our Command Dashboard Dialog from Tray Experimental Stuff button
         View traySettings = view.findViewById(R.id.tray_settings_btn);
