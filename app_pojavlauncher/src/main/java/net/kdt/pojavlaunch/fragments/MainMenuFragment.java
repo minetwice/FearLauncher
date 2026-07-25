@@ -735,37 +735,63 @@ public class MainMenuFragment extends Fragment {
     private void syncSkinToMinecraftResourcePack(Context context, String skinPath) {
         if (context == null || skinPath == null) return;
         try {
-            File packDir = new File(Tools.DIR_GAME_HOME, "resourcepacks/FEAR_Skin_Pack");
-            File entityDir = new File(packDir, "assets/minecraft/textures/entity");
-            entityDir.mkdirs();
-
-            File stevePng = new File(entityDir, "steve.png");
-            File alexPng = new File(entityDir, "alex.png");
-
-            if (skinPath.equals("steve") || skinPath.equals("alex")) {
-                if (stevePng.exists()) stevePng.delete();
-                if (alexPng.exists()) alexPng.delete();
-            } else {
-                File srcFile = new File(skinPath);
-                if (srcFile.exists()) {
-                    copyFileStream(srcFile, stevePng);
-                    copyFileStream(srcFile, alexPng);
-                }
+            // Persist the active skin path and model formatting to preferences
+            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+            prefs.edit().putString("active_skin_path", skinPath).apply();
+            if ("steve".equalsIgnoreCase(skinPath)) {
+                prefs.edit().putBoolean("active_skin_is_alex", false).apply();
+            } else if ("alex".equalsIgnoreCase(skinPath)) {
+                prefs.edit().putBoolean("active_skin_is_alex", true).apply();
             }
 
-            // Write pack.mcmeta
-            File mcmeta = new File(packDir, "pack.mcmeta");
-            String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
-            writeStringToFile(mcmeta, mcmetaContent);
+            // Synchronize skin to both standard and active instance directories
+            java.util.List<File> targetDirs = new java.util.ArrayList<>();
+            targetDirs.add(new File(Tools.DIR_GAME_HOME));
+            try {
+                Instance activeInstance = Instances.loadSelectedInstance();
+                if (activeInstance != null) {
+                    File instDir = activeInstance.getGameDirectory();
+                    if (instDir != null && !instDir.equals(new File(Tools.DIR_GAME_HOME))) {
+                        targetDirs.add(instDir);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            // Automatically enable the skin pack in options.txt
-            File optionsFile = new File(Tools.DIR_GAME_HOME, "options.txt");
-            if (optionsFile.exists()) {
-                String optionsContent = readStringFromFile(optionsFile);
-                if (optionsContent != null && !optionsContent.contains("FEAR_Skin_Pack")) {
-                    if (optionsContent.contains("resourcePacks:[")) {
-                        optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
-                        writeStringToFile(optionsFile, optionsContent);
+            for (File baseDir : targetDirs) {
+                File packDir = new File(baseDir, "resourcepacks/FEAR_Skin_Pack");
+                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
+                entityDir.mkdirs();
+
+                File stevePng = new File(entityDir, "steve.png");
+                File alexPng = new File(entityDir, "alex.png");
+
+                if (skinPath.equals("steve") || skinPath.equals("alex")) {
+                    if (stevePng.exists()) stevePng.delete();
+                    if (alexPng.exists()) alexPng.delete();
+                } else {
+                    File srcFile = new File(skinPath);
+                    if (srcFile.exists()) {
+                        copyFileStream(srcFile, stevePng);
+                        copyFileStream(srcFile, alexPng);
+                    }
+                }
+
+                // Write pack.mcmeta
+                File mcmeta = new File(packDir, "pack.mcmeta");
+                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
+                writeStringToFile(mcmeta, mcmetaContent);
+
+                // Automatically enable the skin pack in options.txt
+                File optionsFile = new File(baseDir, "options.txt");
+                if (optionsFile.exists()) {
+                    String optionsContent = readStringFromFile(optionsFile);
+                    if (optionsContent != null && !optionsContent.contains("FEAR_Skin_Pack")) {
+                        if (optionsContent.contains("resourcePacks:[")) {
+                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
+                            writeStringToFile(optionsFile, optionsContent);
+                        }
                     }
                 }
             }
