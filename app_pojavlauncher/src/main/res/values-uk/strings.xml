@@ -394,7 +394,7 @@
     <string name="oauth_unknown_error">Невідома помилка аутентифікації!</string>
     <string name="oauth_web_complete">Аутентифікація...</string>
     <string name="auth_select_microsoft">Аккаунт Microsoft</string>
-    <string name="auth_select_elyby">Аккаунт Ely.by</string>
+    <string name="auth_select_elyby">Аккаунт FEAR Network</string>
     <string name="auth_select_local">Локальний аккаунт</string>
     <string name="instance_dir_missing">Версії не знайдено</string>
     <string name="gamedir_open_failed">Не вдалося відкрити папку версії</string>

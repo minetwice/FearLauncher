@@ -59,8 +59,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_44sdp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:text="ELY.BY NETWORK"
-                android:drawableStart="@drawable/ic_auth_elyby" />
+                android:text="FEAR NETWORK AUTH"
+                android:drawableStart="@drawable/ic_app_logo" />
         </LinearLayout>
 
         <ImageView

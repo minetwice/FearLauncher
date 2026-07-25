@@ -432,7 +432,7 @@
     <string name="oauth_unknown_error">অজানা অথেনটিকেশন ত্রুটি</string>
     <string name="oauth_web_complete">অথেনটিকেট হচ্ছে…</string>
     <string name="auth_select_microsoft">Microsoft অ্যাকাউন্ট</string>
-    <string name="auth_select_elyby">Ely.by অ্যাকাউন্ট</string>
+    <string name="auth_select_elyby">FEAR Network অ্যাকাউন্ট</string>
     <string name="auth_select_local">লোকাল অ্যাকাউন্ট</string>
     <string name="instance_dir_missing">ইনস্ট্যান্স অনুপস্থিত</string>
     </resources>

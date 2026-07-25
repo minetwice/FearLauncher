@@ -869,20 +869,90 @@ public class MainMenuFragment extends Fragment {
         }).start();
     }
 
+    public static void uploadSkinToElyByAsync(final Context context, final net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account, final String skinPath, final boolean isAlex) {
+        if (account == null || skinPath == null || "steve".equals(skinPath) || "alex".equals(skinPath)) return;
+        new Thread(() -> {
+            try {
+                File skinFile = new File(skinPath);
+                if (!skinFile.exists()) return;
+
+                String boundary = "FEARSkinUploadBoundary" + System.currentTimeMillis();
+                java.net.URL url = new java.net.URL("https://skinsystem.ely.by/api/skins");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setDoOutput(true);
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Authorization", "Bearer " + account.accessToken);
+                conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+                try (java.io.OutputStream out = conn.getOutputStream()) {
+                    java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, "UTF-8"), true);
+
+                    // Field: model
+                    writer.append("--").append(boundary).append("\r\n");
+                    writer.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n");
+                    writer.append(isAlex ? "slim" : "classic").append("\r\n");
+
+                    // Field: file
+                    writer.append("--").append(boundary).append("\r\n");
+                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"skin.png\"\r\n");
+                    writer.append("Content-Type: image/png\r\n\r\n");
+                    writer.flush();
+
+                    // Write skin file bytes
+                    try (java.io.FileInputStream fis = new java.io.FileInputStream(skinFile)) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = fis.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    out.flush();
+
+                    writer.append("\r\n");
+                    writer.append("--").append(boundary).append("--\r\n");
+                    writer.flush();
+                }
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200 || responseCode == 201 || responseCode == 204) {
+                    if (context instanceof android.app.Activity) {
+                        ((android.app.Activity) context).runOnUiThread(() -> {
+                            android.widget.Toast.makeText(context, "Skin uploaded and synced with FEAR Network!", android.widget.Toast.LENGTH_LONG).show();
+                        });
+                    }
+                    new Thread(() -> {
+                        try {
+                            account.updateSkinFace();
+                        } catch (Exception ignored) {}
+                    }).start();
+                } else {
+                    android.util.Log.e("SkinUpload", "FEAR Network skin upload failed: Code " + responseCode);
+                }
+            } catch (Exception e) {
+                android.util.Log.e("SkinUpload", "Error uploading skin to FEAR Network", e);
+            }
+        }).start();
+    }
+
     private void triggerSkinSync(String skinPath) {
         if (skinPath == null) return;
 
         // Sync local skin resource pack instantly
         syncSkinToMinecraftResourcePack(requireContext(), skinPath);
 
-        // Upload custom skin to Mojang servers if the account is a premium Microsoft account
+        // Upload custom skin to Appropriate Server if using premium Microsoft or FEAR Network (Ely.by) account
         try {
             net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
-            if (account != null && account.authType == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
+            if (account != null) {
                 android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
                 boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
-                Toast.makeText(requireContext(), "Syncing custom skin with Microsoft account...", Toast.LENGTH_SHORT).show();
-                uploadSkinToMojangAsync(requireContext(), account, skinPath, isAlex);
+                if (account.authType == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
+                    Toast.makeText(requireContext(), "Syncing custom skin with Microsoft account...", Toast.LENGTH_SHORT).show();
+                    uploadSkinToMojangAsync(requireContext(), account, skinPath, isAlex);
+                } else if (account.authType == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY) {
+                    Toast.makeText(requireContext(), "Syncing custom skin with FEAR Network account...", Toast.LENGTH_SHORT).show();
+                    uploadSkinToElyByAsync(requireContext(), account, skinPath, isAlex);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

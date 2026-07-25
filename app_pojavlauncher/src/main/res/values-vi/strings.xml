@@ -428,7 +428,7 @@
     <string name="oauth_unknown_error">Lỗi xác thực không xác định</string>
     <string name="oauth_web_complete">Đang xác thực…</string>
     <string name="auth_select_microsoft">Tài khoản Microsoft</string>
-    <string name="auth_select_elyby">Tài khoản Ely.by </string>
+    <string name="auth_select_elyby">Tài khoản FEAR Network </string>
     <string name="auth_select_local">Tài khoản nội bộ</string>
     <string name="instance_dir_missing">Thư mục instance bị thiếu</string>
 </resources>
