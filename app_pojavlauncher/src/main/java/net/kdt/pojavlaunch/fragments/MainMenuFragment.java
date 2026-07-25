@@ -134,7 +134,7 @@ public class MainMenuFragment extends Fragment {
                             android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
                             prefs.edit().putString("active_skin_path", destFile.getAbsolutePath()).apply();
 
-                            Toast.makeText(requireContext(), "Skin imported and set as active!", Toast.LENGTH_SHORT).show();
+                            triggerSkinSync(destFile.getAbsolutePath());
 
                             if (mRefreshSkinPaneRunnable != null) {
                                 mRefreshSkinPaneRunnable.run();
@@ -732,10 +732,13 @@ public class MainMenuFragment extends Fragment {
         dialog.show();
     }
 
-    private void syncSkinToMinecraftResourcePack(Context context, String skinPath) {
+    public static void syncSkinToMinecraftResourcePack(Context context, String skinPath) {
         if (context == null || skinPath == null) return;
         try {
-            File packDir = new File(Tools.DIR_GAME_HOME, "resourcepacks/FEAR_Skin_Pack");
+            net.kdt.pojavlaunch.instances.Instance instance = net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            File targetGameDir = (instance != null) ? instance.getGameDirectory() : new File(Tools.DIR_GAME_HOME);
+
+            File packDir = new File(targetGameDir, "resourcepacks/FEAR_Skin_Pack");
             File entityDir = new File(packDir, "assets/minecraft/textures/entity");
             entityDir.mkdirs();
 
@@ -759,7 +762,7 @@ public class MainMenuFragment extends Fragment {
             writeStringToFile(mcmeta, mcmetaContent);
 
             // Automatically enable the skin pack in options.txt
-            File optionsFile = new File(Tools.DIR_GAME_HOME, "options.txt");
+            File optionsFile = new File(targetGameDir, "options.txt");
             if (optionsFile.exists()) {
                 String optionsContent = readStringFromFile(optionsFile);
                 if (optionsContent != null && !optionsContent.contains("FEAR_Skin_Pack")) {
@@ -774,7 +777,7 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    private void copyFileStream(File src, File dst) throws java.io.IOException {
+    public static void copyFileStream(File src, File dst) throws java.io.IOException {
         try (java.io.InputStream in = new java.io.FileInputStream(src);
              java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
             byte[] buf = new byte[1024];
@@ -785,19 +788,104 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    private void writeStringToFile(File file, String str) throws java.io.IOException {
+    public static void writeStringToFile(File file, String str) throws java.io.IOException {
         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
             fos.write(str.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
     }
 
-    private String readStringFromFile(File file) {
+    public static String readStringFromFile(File file) {
         try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
             byte[] data = new byte[(int) file.length()];
             int readBytes = fis.read(data);
             return new String(data, 0, readBytes, java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public static void uploadSkinToMojangAsync(final Context context, final net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account, final String skinPath, final boolean isAlex) {
+        if (account == null || skinPath == null || "steve".equals(skinPath) || "alex".equals(skinPath)) return;
+        new Thread(() -> {
+            try {
+                File skinFile = new File(skinPath);
+                if (!skinFile.exists()) return;
+
+                String boundary = "FEARSkinUploadBoundary" + System.currentTimeMillis();
+                java.net.URL url = new java.net.URL("https://api.minecraftservices.com/minecraft/profile/skins");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setDoOutput(true);
+                conn.setRequestMethod("PUT");
+                conn.setRequestProperty("Authorization", "Bearer " + account.accessToken);
+                conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+                try (java.io.OutputStream out = conn.getOutputStream()) {
+                    java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, "UTF-8"), true);
+
+                    // Field: variant
+                    writer.append("--").append(boundary).append("\r\n");
+                    writer.append("Content-Disposition: form-data; name=\"variant\"\r\n\r\n");
+                    writer.append(isAlex ? "slim" : "classic").append("\r\n");
+
+                    // Field: file
+                    writer.append("--").append(boundary).append("\r\n");
+                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"skin.png\"\r\n");
+                    writer.append("Content-Type: image/png\r\n\r\n");
+                    writer.flush();
+
+                    // Write skin file bytes
+                    try (java.io.FileInputStream fis = new java.io.FileInputStream(skinFile)) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = fis.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    out.flush();
+
+                    writer.append("\r\n");
+                    writer.append("--").append(boundary).append("--\r\n");
+                    writer.flush();
+                }
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200 || responseCode == 204) {
+                    if (context instanceof android.app.Activity) {
+                        ((android.app.Activity) context).runOnUiThread(() -> {
+                            android.widget.Toast.makeText(context, "Skin uploaded and synced with Mojang servers!", android.widget.Toast.LENGTH_LONG).show();
+                        });
+                    }
+                    new Thread(() -> {
+                        try {
+                            account.updateSkinFace();
+                        } catch (Exception ignored) {}
+                    }).start();
+                } else {
+                    android.util.Log.e("SkinUpload", "Mojang skin upload failed: Code " + responseCode);
+                }
+            } catch (Exception e) {
+                android.util.Log.e("SkinUpload", "Error uploading skin to Mojang", e);
+            }
+        }).start();
+    }
+
+    private void triggerSkinSync(String skinPath) {
+        if (skinPath == null) return;
+
+        // Sync local skin resource pack instantly
+        syncSkinToMinecraftResourcePack(requireContext(), skinPath);
+
+        // Upload custom skin to Mojang servers if the account is a premium Microsoft account
+        try {
+            net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+            if (account != null && account.authType == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
+                android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+                boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
+                Toast.makeText(requireContext(), "Syncing custom skin with Microsoft account...", Toast.LENGTH_SHORT).show();
+                uploadSkinToMojangAsync(requireContext(), account, skinPath, isAlex);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -994,7 +1082,9 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     prefs.edit().putBoolean("active_skin_is_alex", false).apply();
                     updateModelButtonsUI.run();
-                    currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), false);
+                    String curPath = prefs.getString("active_skin_path", "steve");
+                    currentViewer.loadSkin(curPath, false);
+                    triggerSkinSync(curPath);
                 });
 
                 btnAlexModel.setOnClickListener(vA -> {
@@ -1002,7 +1092,9 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     prefs.edit().putBoolean("active_skin_is_alex", true).apply();
                     updateModelButtonsUI.run();
-                    currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), true);
+                    String curPath = prefs.getString("active_skin_path", "steve");
+                    currentViewer.loadSkin(curPath, true);
+                    triggerSkinSync(curPath);
                 });
 
                 libraryContainer.removeAllViews();
@@ -1028,6 +1120,7 @@ public class MainMenuFragment extends Fragment {
                     vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     prefs.edit().putString("active_skin_path", "steve").apply();
+                    triggerSkinSync("steve");
                     mRefreshSkinPaneRunnable.run();
                 });
                 libraryContainer.addView(steveCard);
@@ -1045,6 +1138,7 @@ public class MainMenuFragment extends Fragment {
                     vAlex.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     prefs.edit().putString("active_skin_path", "alex").apply();
+                    triggerSkinSync("alex");
                     mRefreshSkinPaneRunnable.run();
                 });
                 libraryContainer.addView(alexCard);
@@ -1076,6 +1170,7 @@ public class MainMenuFragment extends Fragment {
                                 vCust.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                                 net.kdt.pojavlaunch.SoundManager.playClick();
                                 prefs.edit().putString("active_skin_path", f.getAbsolutePath()).apply();
+                                triggerSkinSync(f.getAbsolutePath());
                                 mRefreshSkinPaneRunnable.run();
                             });
                             libraryContainer.addView(customCard);

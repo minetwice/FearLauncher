@@ -167,6 +167,15 @@ public class GameRunner {
         File gamedir = instance.getGameDirectory();
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
+        // Ensure skin is fully synchronized to this instance right before launching
+        try {
+            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
+            String activeSkinPath = prefs.getString("active_skin_path", "steve");
+            net.kdt.pojavlaunch.fragments.MainMenuFragment.syncSkinToMinecraftResourcePack(activity, activeSkinPath);
+        } catch (Exception e) {
+            Log.e("GameRunner", "Failed to sync skin on game launch", e);
+        }
+
         // Switch renderer to GL4ES when running a compat context version on LTW
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
             instance.renderer = rendererName = "opengles2";
