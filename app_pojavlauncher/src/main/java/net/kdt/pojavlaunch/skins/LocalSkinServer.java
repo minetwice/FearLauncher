@@ -14,11 +14,11 @@ import com.google.gson.JsonObject;
 
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 
-import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -196,8 +196,12 @@ public class LocalSkinServer {
 
                 Log.i(TAG, "Profile query received for UUID: " + uuidStr);
 
-                if (uuidStr.equals(mUserUuid)) {
-                    JsonObject profile = createLocalProfile();
+                // Compute standard offline player UUID based on user's active username
+                String offlineUuidStr = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + mUsername).getBytes(StandardCharsets.UTF_8))
+                        .toString().replace("-", "").toLowerCase();
+
+                if (uuidStr.equals(mUserUuid) || uuidStr.equals(offlineUuidStr)) {
+                    JsonObject profile = createLocalProfile(uuidStr);
                     byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
                     sendResponse(os, 200, "application/json; charset=utf-8", body);
                 } else {
@@ -260,9 +264,9 @@ public class LocalSkinServer {
         os.flush();
     }
 
-    private JsonObject createLocalProfile() throws Exception {
+    private JsonObject createLocalProfile(String uuid) throws Exception {
         JsonObject profile = new JsonObject();
-        profile.addProperty("id", mUserUuid);
+        profile.addProperty("id", uuid);
         profile.addProperty("name", mUsername);
 
         JsonArray properties = new JsonArray();
@@ -271,7 +275,7 @@ public class LocalSkinServer {
 
         JsonObject payload = new JsonObject();
         payload.addProperty("timestamp", System.currentTimeMillis());
-        payload.addProperty("profileId", mUserUuid);
+        payload.addProperty("profileId", uuid);
         payload.addProperty("profileName", mUsername);
 
         JsonObject textures = new JsonObject();
