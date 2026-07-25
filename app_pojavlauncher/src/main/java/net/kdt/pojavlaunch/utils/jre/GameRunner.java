@@ -248,7 +248,7 @@ public class GameRunner {
         FileUtils.ensureDirectory(lwjglExtractDir);
         javaArgList.add("-Dorg.lwjgl.system.SharedLibraryExtractPath="+lwjglExtractDir.getAbsolutePath());
 
-        addAuthlibInjectorArgs(javaArgList, minecraftAccount);
+        addAuthlibInjectorArgs(javaArgList, minecraftAccount, activity);
 
         javaArgList.addAll(getMinecraftJVMArgs(versionId));
 
@@ -310,10 +310,31 @@ public class GameRunner {
         }
     }
 
-    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount) {
+    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
         String injectorUrl = minecraftAccount.authType.injectorUrl;
-        if(injectorUrl == null) return;
-        javaArgList.add("-javaagent:"+Tools.DIR_DATA+"/authlib-injector/authlib-injector.jar="+injectorUrl);
+        if (injectorUrl == null) {
+            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
+                File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
+                if (injectorJar.exists()) {
+                    try {
+                        net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
+                        javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
+                        Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
+                    } catch (Exception e) {
+                        Log.e("LocalSkinServer", "Error starting/injecting local skin server", e);
+                    }
+                } else {
+                    Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection.");
+                }
+            }
+            return;
+        }
+        File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
+        if (injectorJar.exists()) {
+            javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
+        } else {
+            Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping online authlib injection.");
+        }
     }
 
     private static List<String> getMinecraftJVMArgs(String versionName) {
