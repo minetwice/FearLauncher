@@ -22,6 +22,13 @@ public enum AuthType {
             "ely.by",
             "http://skinsystem.ely.by/skins/%s.png"
     ),
+    @SerializedName("elyfly")
+    ELY_FLY(
+            net.kdt.pojavlaunch.authenticator.impl.ElyFlyBackgroundLogin.CREATOR,
+            R.drawable.ic_auth_elyfly,
+            "ely.by",
+            "http://skinsystem.ely.by/skins/%s.png"
+    ),
     @SerializedName("local")
     LOCAL(null, 0, null, null);
 

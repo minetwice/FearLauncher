@@ -74,6 +74,7 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
     /* Login listeners */
     private final ExtraListener<String> mMicrosoftLoginListener = new LoginExtraListener(AuthType.MICROSOFT);
     private final ExtraListener<String> mElyByLoginListener = new LoginExtraListener(AuthType.ELY_BY);
+    private final ExtraListener<String> mElyFlyLoginListener = new LoginExtraListener(AuthType.ELY_FLY);
     private final ExtraListener<String[]> mMojangLoginListener = (key, value) -> {
         try {
             MinecraftAccount minecraftAccount = Accounts.create(acc-> acc.username = value[0]);
@@ -137,6 +138,7 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         ExtraCore.addExtraListener(ExtraConstants.MOJANG_LOGIN_TODO, mMojangLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.MICROSOFT_LOGIN_TODO, mMicrosoftLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.ELYBY_LOGIN_TODO, mElyByLoginListener);
+        ExtraCore.addExtraListener(ExtraConstants.ELYFLY_LOGIN_TODO, mElyFlyLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.REFRESH_ACCOUNT_SPINNER, mRefreshAccountsListener);
     }
 

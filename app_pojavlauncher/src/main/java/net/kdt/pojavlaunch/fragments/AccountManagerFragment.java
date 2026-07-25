@@ -306,6 +306,7 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
                 switch (acc.authType) {
                     case MICROSOFT: typeLabel = "Microsoft"; break;
                     case ELY_BY:    typeLabel = "Ely.by";    break;
+                    case ELY_FLY:   typeLabel = "ELY.FLY";   break;
                     default:        typeLabel = "Local";     break;
                 }
             }

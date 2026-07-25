@@ -61,6 +61,14 @@
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="ELY.BY NETWORK"
                 android:drawableStart="@drawable/ic_auth_elyby" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_elyfly_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_44sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="ELY.FLY NETWORK"
+                android:drawableStart="@drawable/ic_auth_elyfly" />
         </LinearLayout>
 
         <ImageView

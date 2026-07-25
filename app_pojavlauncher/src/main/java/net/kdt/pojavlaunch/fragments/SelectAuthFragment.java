@@ -27,10 +27,14 @@ public class SelectAuthFragment extends Fragment {
         Button mMicrosoftButton = view.findViewById(R.id.button_microsoft_authentication);
         Button mLocalButton = view.findViewById(R.id.button_local_authentication);
         Button mElyByButton = view.findViewById(R.id.button_elyby_authentication);
+        Button mElyFlyButton = view.findViewById(R.id.button_elyfly_authentication);
 
         mMicrosoftButton.setOnClickListener(v -> launchAuthFragment(MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG));
         mLocalButton.setOnClickListener(v -> launchAuthFragment(LocalLoginFragment.class, LocalLoginFragment.TAG));
         mElyByButton.setOnClickListener(v -> launchAuthFragment(ElyByLoginFragment.class, ElyByLoginFragment.TAG));
+        if (mElyFlyButton != null) {
+            mElyFlyButton.setOnClickListener(v -> launchAuthFragment(ElyFlyLoginFragment.class, ElyFlyLoginFragment.TAG));
+        }
     }
 
     private void launchAuthFragment(Class<? extends  Fragment> fragmentClass, String fragmentTag) {
