@@ -1180,7 +1180,6 @@ public class MainMenuFragment extends Fragment {
                     if (acc.authType != null) {
                         switch (acc.authType) {
                             case MICROSOFT: typeLabel = "Microsoft"; break;
-                            case ELY_BY:    typeLabel = "Ely.by";    break;
                             case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
                             default:        typeLabel = "Local";     break;
                         }
@@ -1270,7 +1269,7 @@ public class MainMenuFragment extends Fragment {
 
             java.lang.Runnable updateAuthUI = () -> {
                 if (cardMs != null) cardMs.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT);
-                if (cardMojang != null) cardMojang.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY);
+                if (cardMojang != null) cardMojang.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
                 if (cardLocal != null) cardLocal.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL);
 
                 if (inputUsername != null) {
@@ -1289,7 +1288,7 @@ public class MainMenuFragment extends Fragment {
             updateAuthUI.run();
 
             if (cardMs != null) cardMs.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT; updateAuthUI.run(); });
-            if (cardMojang != null) cardMojang.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY; updateAuthUI.run(); });
+            if (cardMojang != null) cardMojang.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC; updateAuthUI.run(); });
             if (cardLocal != null) cardLocal.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL; updateAuthUI.run(); });
 
             if (btnSwitchAccount != null) {
@@ -1312,8 +1311,9 @@ public class MainMenuFragment extends Fragment {
                         Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
                         return;
                     }
-                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY) {
-                        Toast.makeText(requireContext(), "Mojang Account login is migrated to Microsoft. Please select Microsoft Account.", Toast.LENGTH_LONG).show();
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                        dialog.dismiss();
+                        Tools.swapFragment(requireActivity(), CraftynLoginFragment.class, CraftynLoginFragment.TAG, null);
                         return;
                     }
                     if (inputUsername == null) return;
@@ -1518,7 +1518,6 @@ public class MainMenuFragment extends Fragment {
             if (current.authType != null) {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
-                    case ELY_BY:    typeLabel = "Ely.by Account";    break;
                     case CRAFTYN_MC:typeLabel = "CraftynMC Account"; break;
                     default:        typeLabel = "Local Account";     break;
                 }

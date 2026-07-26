@@ -172,7 +172,7 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             mCardMs.setOnClickListener(v -> updateAuthSelection(AuthType.MICROSOFT));
         }
         if (mCardMojang != null) {
-            mCardMojang.setOnClickListener(v -> updateAuthSelection(AuthType.ELY_BY)); // map Mojang to alternate/OAuth or warn
+            mCardMojang.setOnClickListener(v -> updateAuthSelection(AuthType.CRAFTYN_MC));
         }
         if (mCardLocal != null) {
             mCardLocal.setOnClickListener(v -> updateAuthSelection(AuthType.LOCAL));
@@ -183,7 +183,7 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         mSelectedAuthType = type;
 
         if (mCardMs != null) mCardMs.setSelected(type == AuthType.MICROSOFT);
-        if (mCardMojang != null) mCardMojang.setSelected(type == AuthType.ELY_BY);
+        if (mCardMojang != null) mCardMojang.setSelected(type == AuthType.CRAFTYN_MC);
         if (mCardLocal != null) mCardLocal.setSelected(type == AuthType.LOCAL);
 
         // Control username field visibility/access
@@ -209,8 +209,11 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        if (mSelectedAuthType == AuthType.ELY_BY) {
-            Toast.makeText(requireContext(), "Mojang Account login is migrated to Microsoft. Please select Microsoft Account.", Toast.LENGTH_LONG).show();
+        if (mSelectedAuthType == AuthType.CRAFTYN_MC) {
+            dismiss();
+            Tools.swapFragment(requireActivity(),
+                    CraftynLoginFragment.class,
+                    CraftynLoginFragment.TAG, null);
             return;
         }
 
@@ -305,7 +308,6 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             if (acc.authType != null) {
                 switch (acc.authType) {
                     case MICROSOFT: typeLabel = "Microsoft"; break;
-                    case ELY_BY:    typeLabel = "Ely.by";    break;
                     case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
                     default:        typeLabel = "Local";     break;
                 }

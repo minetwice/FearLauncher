@@ -2,7 +2,6 @@ package net.kdt.pojavlaunch.authenticator;
 
 import com.google.gson.annotations.SerializedName;
 
-import net.kdt.pojavlaunch.authenticator.impl.ElyByBackgroundLogin;
 import net.kdt.pojavlaunch.authenticator.impl.MicrosoftBackgroundLogin;
 
 import git.artdeell.mojo.R;
@@ -14,13 +13,6 @@ public enum AuthType {
             R.drawable.ic_auth_ms,
             null,
             "https://mineskin.eu/skin/%s" // Switched from mc-heads.net cause blocked in Russia
-    ),
-    @SerializedName("elyby")
-    ELY_BY(
-            ElyByBackgroundLogin.CREATOR,
-            R.drawable.ic_auth_elyby,
-            "ely.by",
-            "http://skinsystem.ely.by/skins/%s.png"
     ),
     @SerializedName("craftynmc")
     CRAFTYN_MC(
