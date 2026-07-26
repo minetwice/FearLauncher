@@ -257,7 +257,7 @@ public class GameRunner {
         FileUtils.ensureDirectory(lwjglExtractDir);
         javaArgList.add("-Dorg.lwjgl.system.SharedLibraryExtractPath="+lwjglExtractDir.getAbsolutePath());
 
-        addAuthlibInjectorArgs(javaArgList, minecraftAccount);
+        addAuthlibInjectorArgs(activity, javaArgList, minecraftAccount);
 
         javaArgList.addAll(getMinecraftJVMArgs(versionId));
 
@@ -319,10 +319,16 @@ public class GameRunner {
         }
     }
 
-    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount) {
-        String injectorUrl = minecraftAccount.authType.injectorUrl;
-        if(injectorUrl == null) return;
-        javaArgList.add("-javaagent:"+Tools.DIR_DATA+"/authlib-injector/authlib-injector.jar="+injectorUrl);
+    private static void addAuthlibInjectorArgs(android.content.Context context, List<String> javaArgList, MinecraftAccount minecraftAccount) {
+        if (minecraftAccount.isLocal()) {
+            // Start the inbuild local skin server to connect the launcher skins directory
+            net.kdt.pojavlaunch.authenticator.LocalSkinServer.start(context);
+            javaArgList.add("-javaagent:" + Tools.DIR_DATA + "/authlib-injector/authlib-injector.jar=http://127.0.0.1:25599");
+        } else {
+            String injectorUrl = minecraftAccount.authType.injectorUrl;
+            if (injectorUrl == null) return;
+            javaArgList.add("-javaagent:" + Tools.DIR_DATA + "/authlib-injector/authlib-injector.jar=" + injectorUrl);
+        }
     }
 
     private static List<String> getMinecraftJVMArgs(String versionName) {
