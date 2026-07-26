@@ -19,8 +19,8 @@ public enum AuthType {
     ELY_BY(
             ElyByBackgroundLogin.CREATOR,
             R.drawable.ic_auth_elyby,
-            "ely.by",
-            "http://skinsystem.ely.by/skins/%s.png"
+            "https://farmer-my1t.onrender.com",
+            "https://farmer-my1t.onrender.com/skins/%s.png"
     ),
     @SerializedName("local")
     LOCAL(null, 0, null, null);

@@ -1279,7 +1279,10 @@ public class MainMenuFragment extends Fragment {
 
             if (troubleLink != null) {
                 troubleLink.setOnClickListener(v -> {
-                    Toast.makeText(requireContext(), "Microsoft account migration is required for online play.", Toast.LENGTH_LONG).show();
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://farmer-my1t.onrender.com/"));
+                    requireContext().startActivity(intent);
                 });
             }
 
