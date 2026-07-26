@@ -185,7 +185,7 @@
                         android:gravity="center" />
                 </LinearLayout>
 
-                <!-- Mojang Type -->
+                <!-- Craftyn Type -->
                 <LinearLayout
                     android:id="@+id/card_type_mojang"
                     android:layout_width="0dp"
@@ -202,12 +202,12 @@
                     <ImageView
                         android:layout_width="@dimen/_16sdp"
                         android:layout_height="@dimen/_16sdp"
-                        android:src="@drawable/ic_auth_mojang" />
+                        android:src="@drawable/ic_app_logo" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Mojang Account"
+                        android:text="Craftyn Account"
                         android:textColor="#FFFFFF"
                         android:textSize="@dimen/_7ssp"
                         android:layout_marginTop="2dp"
@@ -216,7 +216,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Legacy Accounts"
+                        android:text="Connect skin &amp; play online"
                         android:textColor="#80FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />

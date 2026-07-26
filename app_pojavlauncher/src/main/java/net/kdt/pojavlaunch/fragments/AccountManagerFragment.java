@@ -213,7 +213,10 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         }
 
         if (mSelectedAuthType == AuthType.ELY_BY) {
-            Toast.makeText(requireContext(), "Mojang Account login is migrated to Microsoft. Please select Microsoft Account.", Toast.LENGTH_LONG).show();
+            dismiss();
+            Tools.swapFragment(requireActivity(),
+                    ElyByLoginFragment.class,
+                    ElyByLoginFragment.TAG, null);
             return;
         }
 
@@ -308,7 +311,7 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             if (acc.authType != null) {
                 switch (acc.authType) {
                     case MICROSOFT: typeLabel = "Microsoft"; break;
-                    case ELY_BY:    typeLabel = "Ely.by";    break;
+                    case ELY_BY:    typeLabel = "Craftyn";   break;
                     default:        typeLabel = "Local";     break;
                 }
             }

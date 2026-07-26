@@ -1322,7 +1322,7 @@ public class MainMenuFragment extends Fragment {
                     if (acc.authType != null) {
                         switch (acc.authType) {
                             case MICROSOFT: typeLabel = "Microsoft"; break;
-                            case ELY_BY:    typeLabel = "Ely.by";    break;
+                            case ELY_BY:    typeLabel = "Craftyn";   break;
                             default:        typeLabel = "Local";     break;
                         }
                     }
@@ -1454,7 +1454,8 @@ public class MainMenuFragment extends Fragment {
                         return;
                     }
                     if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.ELY_BY) {
-                        Toast.makeText(requireContext(), "Mojang Account login is migrated to Microsoft. Please select Microsoft Account.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                        Tools.swapFragment(requireActivity(), ElyByLoginFragment.class, ElyByLoginFragment.TAG, null);
                         return;
                     }
                     if (inputUsername == null) return;
@@ -1659,7 +1660,7 @@ public class MainMenuFragment extends Fragment {
             if (current.authType != null) {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
-                    case ELY_BY:    typeLabel = "Ely.by Account";    break;
+                    case ELY_BY:    typeLabel = "Craftyn Account";   break;
                     default:        typeLabel = "Local Account";     break;
                 }
             }
