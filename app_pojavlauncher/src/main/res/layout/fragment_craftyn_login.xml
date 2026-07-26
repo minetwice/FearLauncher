@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/premium_gradient_bg">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="@dimen/_520sdp"
+        android:layout_height="@dimen/_280sdp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="@dimen/_24sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/login_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CRAFTYN.MC NETWORK ACCESS"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Left Side: Login Form -->
+        <LinearLayout
+            android:id="@+id/login_input_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_24sdp"
+            app:layout_constraintTop_toBottomOf="@id/login_header_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.48">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CraftynMC Login"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <com.kdt.mcgui.MineEditText
+                android:id="@+id/craftyn_username"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_36sdp"
+                android:background="@drawable/premium_edit_bg"
+                android:hint="CraftynMC Username"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#40FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="@dimen/_11ssp"
+                android:inputType="text" />
+
+            <com.kdt.mcgui.MineEditText
+                android:id="@+id/craftyn_password"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_36sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:background="@drawable/premium_edit_bg"
+                android:hint="Security Key / Password"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#40FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="@dimen/_11ssp"
+                android:inputType="textPassword" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/craftyn_login_btn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:text="Connect &amp; Fetch Skin"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_play_button_bg" />
+        </LinearLayout>
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="@dimen/_160sdp"
+            android:background="#1AFFFFFF"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintEnd_toStartOf="@+id/right_visual_container"
+            app:layout_constraintTop_toTopOf="@id/login_input_group"
+            app:layout_constraintBottom_toBottomOf="@id/login_input_group" />
+
+        <!-- Right Side: Create Account and Info -->
+        <LinearLayout
+            android:id="@+id/right_visual_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/_24sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/login_input_group"
+            app:layout_constraintWidth_percent="0.45">
+
+            <ImageView
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
+                android:src="@drawable/ic_auth_craftynmc"
+                android:layout_marginBottom="@dimen/_10sdp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Don't have an account yet?"
+                android:textColor="#B3FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:layout_marginBottom="@dimen/_6sdp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/craftyn_register_web_btn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:text="Register &amp; Upload Skin"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/premium_glass_black_bg" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:text="CraftynMC Station v2.0"
+                android:textColor="#66FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:letterSpacing="0.1" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

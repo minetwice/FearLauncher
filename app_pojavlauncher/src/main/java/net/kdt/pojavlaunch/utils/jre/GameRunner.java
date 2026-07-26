@@ -313,7 +313,8 @@ public class GameRunner {
     private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
         String injectorUrl = minecraftAccount.authType.injectorUrl;
         if (injectorUrl == null) {
-            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
+            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL ||
+                minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
                 File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
                 if (!injectorJar.exists()) {
                     try {

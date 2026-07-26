@@ -38,7 +38,12 @@ public class MinecraftAccount {
     public void updateSkinFace() {
         String skinFaceUrlTemplate = authType.skinUrl;
         if(skinFaceUrlTemplate == null) return;
-        String skinFaceUrl = String.format(skinFaceUrlTemplate, username);
+        String skinFaceUrl;
+        if (authType == AuthType.CRAFTYN_MC) {
+            skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + profileId + ".png";
+        } else {
+            skinFaceUrl = String.format(skinFaceUrlTemplate, username);
+        }
         try {
             Log.i("SkinLoader", "Updating skin face...");
             File skinFile = getSkinFaceFile();

@@ -1181,7 +1181,7 @@ public class MainMenuFragment extends Fragment {
                         switch (acc.authType) {
                             case MICROSOFT: typeLabel = "Microsoft"; break;
                             case ELY_BY:    typeLabel = "Ely.by";    break;
-                            case ELY_FLY:   typeLabel = "ELY.FLY";   break;
+                            case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
                             default:        typeLabel = "Local";     break;
                         }
                     }
@@ -1519,7 +1519,7 @@ public class MainMenuFragment extends Fragment {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
                     case ELY_BY:    typeLabel = "Ely.by Account";    break;
-                    case ELY_FLY:   typeLabel = "ELY.FLY Account";   break;
+                    case CRAFTYN_MC:typeLabel = "CraftynMC Account"; break;
                     default:        typeLabel = "Local Account";     break;
                 }
             }

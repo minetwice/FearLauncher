@@ -33,7 +33,7 @@ public class SelectAuthFragment extends Fragment {
         mLocalButton.setOnClickListener(v -> launchAuthFragment(LocalLoginFragment.class, LocalLoginFragment.TAG));
         mElyByButton.setOnClickListener(v -> launchAuthFragment(ElyByLoginFragment.class, ElyByLoginFragment.TAG));
         if (mElyFlyButton != null) {
-            mElyFlyButton.setOnClickListener(v -> launchAuthFragment(ElyFlyLoginFragment.class, ElyFlyLoginFragment.TAG));
+            mElyFlyButton.setOnClickListener(v -> launchAuthFragment(CraftynLoginFragment.class, CraftynLoginFragment.TAG));
         }
     }
 
