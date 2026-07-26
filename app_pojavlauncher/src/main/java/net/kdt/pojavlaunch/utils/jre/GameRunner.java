@@ -315,6 +315,22 @@ public class GameRunner {
         if (injectorUrl == null) {
             if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
                 File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
+                if (!injectorJar.exists()) {
+                    try {
+                        injectorJar.getParentFile().mkdirs();
+                        try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
+                             java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+                        }
+                        Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
+                    } catch (Exception e) {
+                        Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
+                    }
+                }
                 if (injectorJar.exists()) {
                     try {
                         net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
