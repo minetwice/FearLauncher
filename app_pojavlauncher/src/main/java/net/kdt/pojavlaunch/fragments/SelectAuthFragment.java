@@ -24,10 +24,14 @@ public class SelectAuthFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Button mFearNetButton = view.findViewById(R.id.button_fearnet_authentication);
         Button mMicrosoftButton = view.findViewById(R.id.button_microsoft_authentication);
         Button mLocalButton = view.findViewById(R.id.button_local_authentication);
         Button mElyFlyButton = view.findViewById(R.id.button_elyfly_authentication);
 
+        if (mFearNetButton != null) {
+            mFearNetButton.setOnClickListener(v -> launchAuthFragment(FearNetLoginFragment.class, FearNetLoginFragment.TAG));
+        }
         mMicrosoftButton.setOnClickListener(v -> launchAuthFragment(MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG));
         mLocalButton.setOnClickListener(v -> launchAuthFragment(LocalLoginFragment.class, LocalLoginFragment.TAG));
         if (mElyFlyButton != null) {
