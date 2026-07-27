@@ -2,6 +2,8 @@ package net.kdt.pojavlaunch.authenticator;
 
 import com.google.gson.annotations.SerializedName;
 
+import net.kdt.pojavlaunch.authenticator.impl.ElyByBackgroundLogin;
+import net.kdt.pojavlaunch.authenticator.impl.FearNetBackgroundLogin;
 import net.kdt.pojavlaunch.authenticator.impl.MicrosoftBackgroundLogin;
 
 import git.artdeell.mojo.R;
@@ -12,14 +14,30 @@ public enum AuthType {
             MicrosoftBackgroundLogin.CREATOR,
             R.drawable.ic_auth_ms,
             null,
-            "https://mineskin.eu/skin/%s" // Switched from mc-heads.net cause blocked in Russia
+            "https://mineskin.eu/skin/%s"
     ),
-    @SerializedName("craftynmc")
-    CRAFTYN_MC(
-            net.kdt.pojavlaunch.authenticator.impl.CraftynBackgroundLogin.CREATOR,
-            R.drawable.ic_auth_craftynmc,
-            null,
-            "https://farmer-my1t.onrender.com/skins/%s.png"
+    @SerializedName("elyby")
+    ELY_BY(
+            ElyByBackgroundLogin.CREATOR,
+            R.drawable.ic_auth_elyby,
+            "ely.by",
+            "http://skinsystem.ely.by/skins/%s.png"
+    ),
+    // ---- FearNet: your own custom auth/skin server ----
+    // IMPORTANT: if your Render service URL ever changes, both values below need
+    // to be updated to match (rebuild + redistribute the app after changing them).
+    //   injectorUrl: bare domain only, no "https://", no trailing slash - this is
+    //   passed straight into the authlib-injector javaagent argument, same pattern
+    //   Ely.by uses above with just "ely.by".
+    //   skinUrl: full URL template, formatted with %s = username, used only for
+    //   the small face icon shown in the account list (actual in-game skin
+    //   resolution goes through injectorUrl, not this field).
+    @SerializedName("fearnet")
+    FEAR_NET(
+            FearNetBackgroundLogin.CREATOR,
+            R.drawable.ic_auth_fearnet,
+            "farmer-my1t.onrender.com",
+            "https://farmer-my1t.onrender.com/skins/name/%s.png"
     ),
     @SerializedName("local")
     LOCAL(null, 0, null, null);
