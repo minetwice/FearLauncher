@@ -138,6 +138,7 @@ public class AccountSpinner extends AppCompatSpinner implements LoginListener, A
         ExtraCore.addExtraListener(ExtraConstants.MOJANG_LOGIN_TODO, mMojangLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.MICROSOFT_LOGIN_TODO, mMicrosoftLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.ELYFLY_LOGIN_TODO, mCraftynLoginListener);
+        ExtraCore.addExtraListener(ExtraConstants.FEARNET_LOGIN_TODO, mFearNetLoginListener);
         ExtraCore.addExtraListener(ExtraConstants.REFRESH_ACCOUNT_SPINNER, mRefreshAccountsListener);
     }
 
