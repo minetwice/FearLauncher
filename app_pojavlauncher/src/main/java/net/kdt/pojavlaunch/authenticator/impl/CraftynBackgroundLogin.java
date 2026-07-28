@@ -102,7 +102,7 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
     private void fillAccount(MinecraftAccount acc) {
         acc.authType = AuthType.CRAFTYN_MC;
         acc.accessToken = mToken;
-        acc.refreshToken = mPassword; // store password as refresh token to allow dynamic refreshing
+        acc.refreshToken = mPassword;
         acc.username = mUsername;
         acc.profileId = mUuid;
         acc.xuid = null;
@@ -111,7 +111,6 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
 
     @Override
     public void createAccount(@NonNull LoginListener loginListener, String credentials) {
-        // credentials string formatted as "username:password"
         String[] parts = credentials.split(":", 2);
         if (parts.length == 2) {
             mUsername = parts[0];
@@ -120,7 +119,6 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
         authenticateUser(loginListener, () -> {
             try {
                 MinecraftAccount account = Accounts.create(this::fillAccount);
-                // Dynamically fetch and download the uploaded skin from CraftynMC
                 Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
                 downloadAndSetSkin(context, mUsername, mUuid);
                 Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
@@ -134,17 +132,17 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
     @Override
     public void refreshAccount(@NonNull LoginListener loginListener, MinecraftAccount account) {
         mUsername = account.username;
+        mUuid = account.profileId;
         mPassword = account.refreshToken;
-        authenticateUser(loginListener, () -> {
+
+        sExecutorService.execute(() -> {
             try {
-                fillAccount(account);
-                account.save();
                 Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
                 downloadAndSetSkin(context, mUsername, mUuid);
                 Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
             } catch (Exception e) {
-                Log.e("CraftynAuth", "Error refreshing account", e);
-                Tools.runOnUiThread(() -> loginListener.onLoginError(e));
+                Log.e("CraftynAuth", "Error refreshing skin", e);
+                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
             }
         });
     }
