@@ -1,0 +1,716 @@
+--------- Starting game with Launcher Debug!
+Info: Launcher version: iris-20260730-[3bcff53]-fix-multiplayer-local-skins-18143932138295815932
+Info: Architecture: arm64
+Info: Device model: motorola motorola edge 60 fusion
+Info: API version: 36
+Info: Selected Minecraft version: fabric-loader-0.18.4-1.21.11
+Info: Custom Java arguments: ""
+Info: RAM allocated: 2048 Mb
+Info: Graphics device: ARM Mali-G615 MC2 (OpenGL ES 3)
+Info: Selected renderer: opengles2
+Added custom env: EGL_PLATFORM=android
+Added custom env: FORCE_VSYNC=true
+Added custom env: POJAV_NATIVEDIR=/data/app/~~72WzLHctf8KscUj98mVf_g==/git.artdeell.mojo.debug--DfRY0Tgcqo18GdVtFMkpw==/lib/arm64
+Added custom env: LIBGL_MIPMAP=3
+Added custom env: allow_higher_compat_version=true
+Added custom env: MESA_GLSL_CACHE_DIR=/data/user/0/git.artdeell.mojo.debug/cache
+Added custom env: LIBGL_NOINTOVLHACK=1
+Added custom env: MOD_ANDROID_RUNTIME=/data/user/0/git.artdeell.mojo.debug/cache/app_runtime_mod
+Added custom env: force_glsl_extensions_warn=true
+Added custom env: LIBGL_NORMALIZE=1
+Added custom env: POJAV_VSYNC_IN_ZINK=1
+Added custom env: LIBGL_NOERROR=1
+Added custom env: LIBGL_ES=2
+Added custom env: allow_glsl_extension_directive_midshader=true
+LTW will force dynamic storage buffers to be coherent.
+LTW will prevent all explicit buffer flushes.
+Loaded EGL libltw.so (in namespace: 0)
+I/jrelog  : updateLdLibPath: 0x73168e7bc0
+
+[authlib-injector] [INFO] Logging file: /storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/instances/batoon's_modpack-2694d987-370f-4504-8782-110bdecdc595/authlib-injector.log
+[authlib-injector] [INFO] Version: 1.2.7
+[authlib-injector] [INFO] Authentication server: http://127.0.0.1:25599/
+[authlib-injector] [WARNING] You are using HTTP protocol, which is INSECURE! Please switch to HTTPS if possible.
+[0.974s][warning][jni,resolve] Re-registering of platform native method: jdk.internal.loader.NativeLibraries.load(Ljdk/internal/loader/NativeLibraries$NativeLibraryImpl;Ljava/lang/String;ZZ)Z from code in a different classloader
+[0.974s][warning][jni,resolve] Re-registering of platform native method: java.lang.ProcessImpl.forkAndExec(I[B[B[BI[BI[B[IZ)I from code in a different classloader
+Registered forkAndExec
+2026-07-30T17:11:11.337949859Z main ERROR appender Console has no parameter that matches element Policies
+[22:41:11] [main/INFO]: Loading Minecraft 1.21.11 with Fabric Loader 0.18.4
+[22:41:11] [main/INFO]: Fabric is preparing JARs on first launch, this may take a few seconds...
+[22:41:11] [main/WARN]: Warnings were found!
+ - Mod 'Sodium Extra' (sodium-extra) 0.8.2+mc1.21.11 recommends version 1.8.5 or later of reeses-sodium-options, which is missing!
+	 - You should install version 1.8.5 or later of reeses-sodium-options for the optimal experience.
+[22:41:11] [main/INFO]: Loading 114 mods:
+	- appleskin 3.0.7+mc1.21.11
+	- architectury 19.0.1
+	- armor_hud 3.1-1.21.11
+	- bactromod 3.4
+	- cloth-config 21.11.153
+	   \-- cloth-basic-math 0.6.1
+	- collective 8.13
+	- entity_model_features 3.0.8
+	- entity_texture_features 7.0.8
+	- entityculling 1.9.4
+	   |-- transition 1.0.11
+	   \-- trender 1.0.10
+	- fabric-api 0.140.2+1.21.11
+	   |-- fabric-api-base 1.0.5+4ebb5c083e
+	   |-- fabric-api-lookup-api-v1 1.6.113+1fb1cde93e
+	   |-- fabric-biome-api-v1 17.1.1+4fc5413f3e
+	   |-- fabric-block-api-v1 1.1.10+4ebb5c083e
+	   |-- fabric-block-view-api-v2 1.0.39+4ebb5c083e
+	   |-- fabric-command-api-v2 2.4.7+6b42a6003e
+	   |-- fabric-content-registries-v0 10.2.14+4fc5413f3e
+	   |-- fabric-convention-tags-v1 2.1.55+7f945d5b3e
+	   |-- fabric-convention-tags-v2 2.17.3+8ef948ba3e
+	   |-- fabric-crash-report-info-v1 0.3.23+4ebb5c083e
+	   |-- fabric-data-attachment-api-v1 1.8.44+1fb1cde93e
+	   |-- fabric-data-generation-api-v1 23.4.0+69974c4e3e
+	   |-- fabric-dimensions-v1 4.0.28+4fc5413f3e
+	   |-- fabric-entity-events-v1 3.0.5+4ebb5c083e
+	   |-- fabric-events-interaction-v0 4.0.44+1fb1cde93e
+	   |-- fabric-game-rule-api-v1 2.0.3+4fc5413f3e
+	   |-- fabric-item-api-v1 11.5.20+d0c46b9e3e
+	   |-- fabric-item-group-api-v1 4.2.36+4fc5413f3e
+	   |-- fabric-key-binding-api-v1 1.1.7+4fc5413f3e
+	   |-- fabric-lifecycle-events-v1 2.6.15+4ebb5c083e
+	   |-- fabric-loot-api-v2 3.0.73+3f89f5a53e
+	   |-- fabric-loot-api-v3 2.0.20+78c8b4663e
+	   |-- fabric-message-api-v1 6.1.12+4ebb5c083e
+	   |-- fabric-model-loading-api-v1 6.0.13+4fc5413f3e
+	   |-- fabric-networking-api-v1 5.1.5+ae1e07683e
+	   |-- fabric-object-builder-api-v1 21.1.39+4fc5413f3e
+	   |-- fabric-particles-v1 4.2.11+4fc5413f3e
+	   |-- fabric-recipe-api-v1 8.2.3+4ebb5c083e
+	   |-- fabric-registry-sync-v0 6.2.5+1718722b3e
+	   |-- fabric-renderer-api-v1 8.0.1+f4ffd2e53e
+	   |-- fabric-renderer-indigo 5.0.1+f4ffd2e53e
+	   |-- fabric-rendering-fluids-v1 3.1.43+4ebb5c083e
+	   |-- fabric-rendering-v1 16.2.8+f4ffd2e53e
+	   |-- fabric-resource-conditions-api-v1 5.0.35+4fc5413f3e
+	   |-- fabric-resource-loader-v0 3.3.4+4fc5413f3e
+	   |-- fabric-resource-loader-v1 1.0.10+78c8b4663e
+	   |-- fabric-screen-api-v1 3.1.7+4ebb5c083e
+	   |-- fabric-screen-handler-api-v1 1.3.161+4fc5413f3e
+	   |-- fabric-serialization-api-v1 1.0.5+4ebb5c083e
+	   |-- fabric-sound-api-v1 1.0.51+4fc5413f3e
+	   |-- fabric-tag-api-v1 1.2.20+4fc5413f3e
+	   |-- fabric-transfer-api-v1 6.0.24+4fc5413f3e
+	   \-- fabric-transitive-access-wideners-v1 7.1.0+014c8cec3e
+	- fabric-language-kotlin 1.13.8+kotlin.2.3.0
+	   |-- org_jetbrains_kotlin_kotlin-reflect 2.3.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib 2.3.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib-jdk7 2.3.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib-jdk8 2.3.0
+	   |-- org_jetbrains_kotlinx_atomicfu-jvm 0.29.0
+	   |-- org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm 1.10.2
+	   |-- org_jetbrains_kotlinx_kotlinx-coroutines-jdk8 1.10.2
+	   |-- org_jetbrains_kotlinx_kotlinx-datetime-jvm 0.7.1
+	   |-- org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm 0.8.2
+	   |-- org_jetbrains_kotlinx_kotlinx-io-core-jvm 0.8.2
+	   |-- org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm 1.9.0
+	   |-- org_jetbrains_kotlinx_kotlinx-serialization-core-jvm 1.9.0
+	   \-- org_jetbrains_kotlinx_kotlinx-serialization-json-jvm 1.9.0
+	- fabricloader 0.18.4
+	   \-- mixinextras 0.5.0
+	- ferritecore 8.0.3
+	- forgeconfigapiport 21.11.1
+	   |-- com_electronwill_night-config_core 3.8.3
+	   \-- com_electronwill_night-config_toml 3.8.3
+	- freecam 1.3.6+mc1.21.11
+	- freelook 1.2.7
+	- fullbrightnesstoggle 4.5
+	- immediatelyfast 1.14.1+1.21.11
+	   \-- net_lenni0451_reflect 1.6.1+curseforge
+	- iris 1.10.4+mc1.21.11
+	   |-- io_github_douira_glsl-transformer 3.0.0-pre3
+	   |-- org_anarres_jcpp 1.4.14
+	   \-- org_antlr_antlr4-runtime 4.13.1
+	- java 21
+	- konkrete 1.9.14
+	   |-- com_jayway_jsonpath_json-path 2.9.0
+	   |-- net_minidev_json-smart 2.6.0
+	   \-- net_objecthunter_exp4j 0.4.8
+	- lithium 0.21.2+mc1.21.11
+	- minecraft 1.21.11
+	- modmenu 17.0.0-beta.1
+	- placeholder-api 2.8.1+1.21.10
+	- puzzleslib 21.11.4
+	- skinlayers3d 1.10.1
+	   |-- transition 1.0.11
+	   \-- trender 1.0.10
+	- sodium 0.8.2+mc1.21.11
+	- sodium-extra 0.8.2+mc1.21.11
+	- voicechat 1.21.11-2.6.10
+	   \-- voicechat_api 2.6.0
+	- xaerominimap 25.3.1
+	   \-- xaerolib 1.0.38
+	- xaeroworldmap 1.40.1
+	   \-- xaerolib 1.0.38
+	- yet_another_config_lib_v3 3.8.1+1.21.11-fabric
+	   |-- com_twelvemonkeys_common_common-image 3.12.0
+	   |-- com_twelvemonkeys_common_common-io 3.12.0
+	   |-- com_twelvemonkeys_common_common-lang 3.12.0
+	   |-- com_twelvemonkeys_imageio_imageio-core 3.12.0
+	   |-- com_twelvemonkeys_imageio_imageio-metadata 3.12.0
+	   |-- com_twelvemonkeys_imageio_imageio-webp 3.12.0
+	   |-- org_quiltmc_parsers_gson 0.2.1
+	   \-- org_quiltmc_parsers_json 0.2.1
+	- zoomify 2.14.6+1.21.11
+	   \-- com_akuleshov7_ktoml-core-jvm 0.5.2
+[22:41:12] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/sponge-mixin/0.17.0+mixin.0.8.7/sponge-mixin-0.17.0+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT
+[22:41:12] [main/INFO]: Compatibility level set to JAVA_21
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris-fabric.refmap.json' for mixins.iris.fabric.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.fantastic.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.vertexformat.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.bettermipmaps.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.compat.sodium.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'iris.refmap.json' for mixins.iris.fixes.maxfpscrash.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/INFO]: Loaded configuration file for Lithium: 164 options available, 0 override(s) found.
+[22:41:13] [main/INFO]: Loaded configuration file for Sodium: 43 options available, 1 override(s) found
+[22:41:13] [main/INFO]: Loaded configuration file for Sodium Extra: 26 options available, 0 override(s) found
+[22:41:13] [main/WARN]: Reference map 'sodium-extra.refmap.json' for sodium-extra.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'xaerolib.refmap.json' for xaerolib.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'xaerominimap.refmap.json' for xaerohud.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'xaerominimap.refmap.json' for xaerohud.fabric.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'xaerominimap.refmap.json' for xaerominimap.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'xaeroworldmap.refmap.json' for xaeroworldmap.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'yet_another_config_lib_v3.refmap.json' for yacl.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Reference map 'yet_another_config_lib_v3.refmap.json' for yacl-fabric.mixins.json could not be read. If this is a development environment you can ignore this message
+[22:41:13] [main/WARN]: Error loading class: net/irisshaders/batchedentityrendering/impl/FullyBufferedMultiBufferSource (java.lang.ClassNotFoundException: net/irisshaders/batchedentityrendering/impl/FullyBufferedMultiBufferSource)
+[22:41:13] [main/WARN]: Error loading class: net/irisshaders/iris/layer/InnerWrappedRenderType (java.lang.ClassNotFoundException: net/irisshaders/iris/layer/InnerWrappedRenderType)
+[22:41:14] [main/WARN]: Force-disabling mixin 'features.render.world.sky.LevelRendererMixin' as rule 'mixin.features.render.world.sky' (added by mods [iris]) disables it and children
+[22:41:15] [main/INFO]: Searching for graphics cards...
+[22:41:15] [main/WARN]: Could not find any graphics adapters! Probably the device is not on a bus we can probe, or there are no devices supporting 3D acceleration.
+[22:41:15] [main/WARN]: Unable to determine desktop session type because the environment variable XDG_SESSION_TYPE is not set! Your user session may not be configured correctly.
+[authlib-injector] [INFO] Transformed [net.minecraft.client.main.Main] with [Main Arguments Transformer]
+[authlib-injector] [INFO] Transformed [com.mojang.authlib.properties.Property] with [Yggdrasil Public Key Transformer]
+[22:41:16] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.0).
+[22:41:18] [Datafixer Bootstrap/INFO]: trender.mixins.json:client.ScreenAccessor from mod trender->@Invoker[METHOD_PROXY]::libgui$defaultHandleGameClickEvent(Lnet/minecraft/class_2558;Lnet/minecraft/class_310;Lnet/minecraft/class_437;)V should be static as its target is
+[22:41:18] [main/WARN]: Did not find udev library in operating system. Some features may not work.
+[22:41:18] [Datafixer Bootstrap/ERROR]: ETF_load: Config was null, using defaults
+[22:41:18] [main/WARN]: File not found or not readable: /proc/stat
+[22:41:19] [Datafixer Bootstrap/INFO]: 287 Datafixer optimizations took 1796 milliseconds
+[authlib-injector] [INFO] Transformed [com.mojang.authlib.HttpAuthenticationService] with [ConcatenateURL Workaround]
+[authlib-injector] [INFO] Httpd is running on port 40929
+[authlib-injector] [INFO] Transformed [com.mojang.authlib.yggdrasil.YggdrasilEnvironment] with [Constant URL Transformer]
+[22:41:30] [Render thread/INFO]: Environment: Environment[sessionHost=http://127.0.0.1:40929/https/sessionserver.mojang.com, servicesHost=http://127.0.0.1:40929/https/api.minecraftservices.com, profilesHost=http://127.0.0.1:40929/https/api.mojang.com, name=PROD]
+[authlib-injector] [INFO] Transformed [com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo] with [Yggdrasil Public Key Transformer]
+[22:41:31] [Render thread/INFO]: Setting user: Twiceflame
+[22:41:31] [Render thread/INFO]: Loading Collective version 8.13.
+[22:41:31] [Render thread/INFO]: [KONKRETE] Loading v1.9.14 in client-side mode on FABRIC!
+[22:41:31] [Render thread/INFO]: [KONKRETE] Server-side modules initialized and ready to use!
+[22:41:31] [Render thread/INFO]: Constructing components for puzzleslib:common
+[22:41:32] [Render thread/INFO]: [voicechat] Compatibility version 20
+[22:41:32] [Render thread/INFO]: [voicechat] Loading plugins
+[22:41:32] [Render thread/INFO]: [voicechat] Loaded 0 plugin(s)
+[22:41:32] [Render thread/INFO]: [voicechat] Initializing plugins
+[22:41:32] [Render thread/INFO]: [voicechat] Initialized 0 plugin(s)
+[22:41:32] [Render thread/INFO]: Registering S2C receiver with id architectury:spawn_entity_packet
+[22:41:32] [Render thread/INFO]: Initializing BactroMod...
+[22:41:32] [Render thread/INFO]: [ETF]: Modifying ETF Render State constructor because: for EMF
+[22:41:32] [Render thread/INFO]: Loading Entity Model Features, 100% of the time it works 90% of the time!
+[22:41:32] [Render thread/INFO]: [ETF]: 6 new ETF Random Properties registered by entity_model_features
+[22:41:32] [Render thread/INFO]: Loading Entity Texture Features, you just lost the game.
+[22:41:32] [Render thread/INFO]: [Indigo] Different rendering plugin detected; not applying Indigo.
+[22:41:34] [Render thread/INFO]: Checking mod updates...
+[22:41:34] [Render thread/INFO]: Constructing components for puzzleslib:client
+[22:41:34] [Render thread/INFO]: [STDOUT]: [LibGui] Initializing Client...
+[22:41:34] [Render thread/INFO]: [voicechat] Initializing Opus
+[22:41:34] [Render thread/WARN]: [voicechat] Failed to validate Opus
+de.maxhenkel.opus4j.UnknownPlatformException: Could not load libopus4j natives for linux-aarch64
+	at knot//de.maxhenkel.opus4j.LibraryLoader.load(LibraryLoader.java:133)
+	at knot//de.maxhenkel.opus4j.NativeInitializer.load(NativeInitializer.java:32)
+	at knot//de.maxhenkel.opus4j.OpusEncoder.<init>(OpusEncoder.java:22)
+	at knot//de.maxhenkel.voicechat.plugins.impl.opus.NativeOpusEncoderImpl.<init>(NativeOpusEncoderImpl.java:17)
+	at knot//de.maxhenkel.voicechat.natives.OpusManager.runValidation(OpusManager.java:19)
+	at knot//de.maxhenkel.voicechat.natives.NativeValidator.lambda$initialize$0(NativeValidator.java:42)
+	at knot//de.maxhenkel.voicechat.natives.NativeUtils.lambda$createSafe$1(NativeUtils.java:20)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.UnsatisfiedLinkError: /data/data/git.artdeell.mojo.debug/cache/libopus4j-0c14ef959ab7d20b13b3d22401544f72/libopus4j.so: dlopen failed: library "libm.so.6" not found: needed by /data/data/git.artdeell.mojo.debug/cache/libopus4j-0c14ef959ab7d20b13b3d22401544f72/libopus4j.so in namespace clns-9
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:331)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:197)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:139)
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2418)
+	at java.base/java.lang.Runtime.load0(Runtime.java:852)
+	at java.base/java.lang.System.load(System.java:2026)
+	at knot//de.maxhenkel.opus4j.LibraryLoader.load(LibraryLoader.java:131)
+	... 7 more
+[22:41:34] [Render thread/INFO]: [voicechat] Initializing RNNoise
+[22:41:34] [Render thread/WARN]: [voicechat] Failed to validate RNNoise
+de.maxhenkel.rnnoise4j.UnknownPlatformException: Could not load librnnoise4j natives for linux-aarch64
+	at knot//de.maxhenkel.rnnoise4j.LibraryLoader.load(LibraryLoader.java:133)
+	at knot//de.maxhenkel.rnnoise4j.NativeInitializer.load(NativeInitializer.java:32)
+	at knot//de.maxhenkel.rnnoise4j.Denoiser.<init>(Denoiser.java:24)
+	at knot//de.maxhenkel.voicechat.natives.Denoiser.<init>(Denoiser.java:16)
+	at knot//de.maxhenkel.voicechat.natives.RNNoiseManager.runValidation(RNNoiseManager.java:11)
+	at knot//de.maxhenkel.voicechat.natives.NativeValidator.lambda$initialize$0(NativeValidator.java:42)
+	at knot//de.maxhenkel.voicechat.natives.NativeUtils.lambda$createSafe$1(NativeUtils.java:20)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.UnsatisfiedLinkError: /data/data/git.artdeell.mojo.debug/cache/librnnoise4j-9770d98d0e7e5c88c2ee922fe7af3f2b/librnnoise4j.so: dlopen failed: library "libm.so.6" not found: needed by /data/data/git.artdeell.mojo.debug/cache/librnnoise4j-9770d98d0e7e5c88c2ee922fe7af3f2b/librnnoise4j.so in namespace clns-9
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:331)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:197)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:139)
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2418)
+	at java.base/java.lang.Runtime.load0(Runtime.java:852)
+	at java.base/java.lang.System.load(System.java:2026)
+	at knot//de.maxhenkel.rnnoise4j.LibraryLoader.load(LibraryLoader.java:131)
+	... 7 more
+[22:41:34] [Render thread/INFO]: [voicechat] Initializing Speex
+[22:41:34] [Render thread/WARN]: [voicechat] Failed to validate Speex
+de.maxhenkel.speex4j.UnknownPlatformException: Could not load libspeex4j natives for linux-aarch64
+	at knot//de.maxhenkel.speex4j.LibraryLoader.load(LibraryLoader.java:133)
+	at knot//de.maxhenkel.speex4j.NativeInitializer.load(NativeInitializer.java:32)
+	at knot//de.maxhenkel.speex4j.AutomaticGainControl.<init>(AutomaticGainControl.java:14)
+	at knot//de.maxhenkel.voicechat.natives.Agc.<init>(Agc.java:17)
+	at knot//de.maxhenkel.voicechat.natives.SpeexManager.runValidation(SpeexManager.java:14)
+	at knot//de.maxhenkel.voicechat.natives.NativeValidator.lambda$initialize$0(NativeValidator.java:42)
+	at knot//de.maxhenkel.voicechat.natives.NativeUtils.lambda$createSafe$1(NativeUtils.java:20)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.UnsatisfiedLinkError: /data/data/git.artdeell.mojo.debug/cache/libspeex4j-f00bcd09378097fe9d40837083d60518/libspeex4j.so: dlopen failed: library "libm.so.6" not found: needed by /data/data/git.artdeell.mojo.debug/cache/libspeex4j-f00bcd09378097fe9d40837083d60518/libspeex4j.so in namespace clns-9
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:331)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:197)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:139)
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2418)
+	at java.base/java.lang.Runtime.load0(Runtime.java:852)
+	at java.base/java.lang.System.load(System.java:2026)
+	at knot//de.maxhenkel.speex4j.LibraryLoader.load(LibraryLoader.java:131)
+	... 7 more
+[22:41:34] [Render thread/INFO]: [voicechat] Initializing LAME
+[22:41:34] [Render thread/WARN]: [voicechat] Failed to validate LAME
+de.maxhenkel.lame4j.UnknownPlatformException: Could not load liblame4j natives for linux-aarch64
+	at knot//de.maxhenkel.lame4j.LibraryLoader.load(LibraryLoader.java:133)
+	at knot//de.maxhenkel.lame4j.NativeInitializer.load(NativeInitializer.java:32)
+	at knot//de.maxhenkel.lame4j.Mp3Encoder.<init>(Mp3Encoder.java:25)
+	at knot//de.maxhenkel.voicechat.natives.LameManager.runValidation(LameManager.java:18)
+	at knot//de.maxhenkel.voicechat.natives.NativeValidator.lambda$initialize$0(NativeValidator.java:42)
+	at knot//de.maxhenkel.voicechat.natives.NativeUtils.lambda$createSafe$1(NativeUtils.java:20)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.UnsatisfiedLinkError: /data/data/git.artdeell.mojo.debug/cache/liblame4j-79a066a7234e402c7651dc4c6cdf2cbf/liblame4j.so: dlopen failed: library "libm.so.6" not found: needed by /data/data/git.artdeell.mojo.debug/cache/liblame4j-79a066a7234e402c7651dc4c6cdf2cbf/liblame4j.so in namespace clns-9
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method)
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:331)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:197)
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:139)
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2418)
+	at java.base/java.lang.Runtime.load0(Runtime.java:852)
+	at java.base/java.lang.System.load(System.java:2026)
+	at knot//de.maxhenkel.lame4j.LibraryLoader.load(LibraryLoader.java:131)
+	... 6 more
+[22:41:34] [Render thread/INFO]: [voicechat] Using Cloth Config GUI
+[22:41:34] [Render thread/INFO]: Registering common data for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Registering client data for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Loading primary common config for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Loading server config profiles for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Loading primary client config for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Loading client config profiles for channel xaerolib:main!
+[22:41:34] [Render thread/INFO]: Loading XaeroLib common 1/2!
+[22:41:34] [Render thread/INFO]: Loading XaeroLib client 1/2!
+[22:41:35] [ModMenu/Update Checker/Fabric Loader/INFO]: Update available for 'fabricloader@0.18.4'
+[22:41:36] [Render thread/WARN]: io exception while checking patreon: Read timed out
+[22:41:36] [Render thread/INFO]: Registering common data for channel xaerominimap:main!
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'entity_texture_features@7.0.8', (-> 7.1-fabric-1.21.11)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'ferritecore@8.0.3', (-> 8.2.0-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'entity_model_features@3.0.8', (-> 3.2.4-fabric-1.21.11)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'puzzleslib@21.11.4', (-> 21.11.13)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'sodium-extra@0.8.2+mc1.21.11', (-> mc1.21.11-0.9.3+fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'bactromod@3.4', (-> 3.5)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'lithium@0.21.2+mc1.21.11', (-> mc1.21.11-0.21.4-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'zoomify@2.14.6+1.21.11', (-> 2.15.2+1.21.11)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'entityculling@1.9.4', (-> 1.10.5)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'konkrete@1.9.14', (-> 1.9.18-1.21.11-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'fabric-api@0.140.2+1.21.11', (-> 0.141.6+1.21.11)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'freelook@1.2.7', (-> 1.2.8)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'collective@8.13', (-> 1.21.11-8.32-fabric+forge+neo)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'modmenu@17.0.0-beta.1', (-> 17.0.0)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'fabric-language-kotlin@1.13.8+kotlin.2.3.0', (-> 1.13.13+kotlin.2.4.10)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'sodium@0.8.2+mc1.21.11', (-> mc1.21.11-0.8.13-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'armor_hud@3.1-1.21.11', (-> 3.2-1.21.11)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'xaerominimap@25.3.1', (-> fabric-1.21.11-26.4.2)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'skinlayers3d@1.10.1', (-> 1.11.2)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'immediatelyfast@1.14.1+1.21.11', (-> 1.14.3+1.21.11-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'voicechat@1.21.11-2.6.10', (-> fabric-1.21.11-2.6.21)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'placeholder-api@2.8.1+1.21.10', (-> 2.8.2+1.21.10)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'iris@1.10.4+mc1.21.11', (-> 1.10.7+1.21.11-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'xaeroworldmap@1.40.1', (-> fabric-1.21.11-1.44.2)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'freecam@1.3.6+mc1.21.11', (-> 1.4.0)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'yet_another_config_lib_v3@3.8.1+1.21.11-fabric', (-> 3.8.2+1.21.11-fabric)
+[22:41:36] [Worker-Main-1/INFO]: Update available for 'appleskin@3.0.7+mc1.21.11', (-> 3.0.8+mc1.21.11)
+[22:41:36] [Render thread/INFO]: Registering client data for channel xaerominimap:main!
+[22:41:36] [Render thread/INFO]: Loading primary common config for channel xaerominimap:main!
+[22:41:36] [Render thread/INFO]: Loading server config profiles for channel xaerominimap:main!
+[22:41:36] [Render thread/INFO]: Loading primary client config for channel xaerominimap:main!
+[22:41:36] [Render thread/INFO]: Loading client config profiles for channel xaerominimap:main!
+[22:41:36] [Render thread/INFO]: Loading Xaero's Minimap - Stage 1/2
+[22:41:36] [Render thread/INFO]: Registering common data for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Registering client data for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Loading primary common config for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Loading server config profiles for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Loading primary client config for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Loading client config profiles for channel xaeroworldmap:main!
+[22:41:36] [Render thread/INFO]: Loading Xaero's World Map - Stage 1/2
+[22:41:36] [Render thread/INFO]: Config file '/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/instances/batoon's_modpack-2694d987-370f-4504-8782-110bdecdc595/config/yacl.json5' does not exist. Creating it with default values.
+[22:41:36] [Render thread/INFO]: Serializing class dev.isxander.yacl3.platform.YACLConfig to '/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/instances/batoon's_modpack-2694d987-370f-4504-8782-110bdecdc595/config/yacl.json5'
+[22:41:37] [Render thread/ERROR]: Error parsing option value off for option Fullscreen: Not a boolean: "off"
+[22:41:37] [ForkJoinPool.commonPool-worker-1/WARN]: [Iris Update Check] This version doesn't have an update index, skipping.
+[22:41:37] [Render thread/INFO]: Backend library: LWJGL version 3.3.3-snapshot
+LTW: Running on OpenGL ES 3.2 with ESSL 320
+LTW: BaseVertex render calls will use the host driver implementation
+LTW: Overridden glGetIntegerv
+LTW: Overridden glGetString
+LTW: Overridden glGetStringi
+GL_NUM_EXTENSIONS: 115
+GL_NUM_EXTENSIONS: 115
+GL_NUM_EXTENSIONS: 115
+[22:41:37] [Render thread/WARN]: Not setting icon for unrecognized platform: 393222
+LWJGL linkerhook: replacing OpenGL with renderspec driver
+LTW: Overridden glGetError
+LTW: Overridden glGetString
+LTW: Overridden glGetIntegerv
+GL_NUM_EXTENSIONS: 115
+LTW: Overridden glGetStringi
+LTW: Overridden glEnable
+LTW: Overridden glClearDepth
+LTW: Overridden glDepthRange
+LTW: Overridden glDrawBuffer
+LTW: Overridden glGetIntegerv
+LTW: Overridden glGetError
+LTW: Overridden glGetString
+LTW: Overridden glGetTexImage
+LTW: Overridden glGetTexLevelParameteriv
+LTW: Overridden glGetTexLevelParameterfv
+LTW: Overridden glReadPixels
+LTW: Overridden glTexImage2D
+LTW: Overridden glCopyTexSubImage2D
+LTW: Overridden glTexParameteri
+LTW: Overridden glTexParameteriv
+LTW: Overridden glTexParameterf
+LTW: Overridden glTexParameterfv
+LTW: Overridden glTexSubImage2D
+LTW: Overridden glMultiDrawArrays
+LTW: Overridden glMultiDrawElements
+LTW: Overridden glBindBuffer
+LTW: Overridden glMapBuffer
+LTW: Overridden glGetQueryObjectiv
+LTW: Overridden glCreateProgram
+LTW: Overridden glDeleteProgram
+LTW: Overridden glCreateShader
+LTW: Overridden glDeleteShader
+LTW: Overridden glAttachShader
+LTW: Overridden glShaderSource
+LTW: Overridden glLinkProgram
+LTW: Overridden glUseProgram
+LTW: Overridden glGetShaderiv
+LTW: Overridden glVertexAttrib1s
+LTW: Overridden glVertexAttrib1d
+LTW: Overridden glVertexAttrib2s
+LTW: Overridden glVertexAttrib2d
+LTW: Overridden glVertexAttrib3s
+LTW: Overridden glVertexAttrib3d
+LTW: Overridden glVertexAttrib4s
+LTW: Overridden glVertexAttrib4d
+LTW: Overridden glVertexAttrib4Nub
+LTW: Overridden glVertexAttrib1sv
+LTW: Overridden glVertexAttrib1dv
+LTW: Overridden glVertexAttrib2sv
+LTW: Overridden glVertexAttrib2dv
+LTW: Overridden glVertexAttrib3sv
+LTW: Overridden glVertexAttrib3dv
+LTW: Overridden glVertexAttrib4sv
+LTW: Overridden glVertexAttrib4dv
+LTW: Overridden glVertexAttrib4Nbv
+LTW: Overridden glVertexAttrib4Nsv
+LTW: Overridden glVertexAttrib4Niv
+LTW: Overridden glVertexAttrib4Nubv
+LTW: Overridden glVertexAttrib4Nusv
+LTW: Overridden glVertexAttrib4Nuiv
+LTW: Overridden glDrawBuffers
+LTW: Overridden glGetStringi
+LTW: Overridden glClearBufferiv
+LTW: Overridden glClearBufferuiv
+LTW: Overridden glClearBufferfv
+LTW: Overridden glVertexAttribI1i
+LTW: Overridden glVertexAttribI2i
+LTW: Overridden glVertexAttribI3i
+LTW: Overridden glVertexAttribI1ui
+LTW: Overridden glVertexAttribI2ui
+LTW: Overridden glVertexAttribI3ui
+LTW: Overridden glVertexAttribI1iv
+LTW: Overridden glVertexAttribI2iv
+LTW: Overridden glVertexAttribI3iv
+LTW: Overridden glVertexAttribI1uiv
+LTW: Overridden glVertexAttribI2uiv
+LTW: Overridden glVertexAttribI3uiv
+LTW: Overridden glVertexAttribI4bv
+LTW: Overridden glVertexAttribI4sv
+LTW: Overridden glVertexAttribI4ubv
+LTW: Overridden glVertexAttribI4usv
+LTW: Overridden glBindFragDataLocation
+LTW: Overridden glMapBufferRange
+LTW: Overridden glFlushMappedBufferRange
+LTW: Overridden glRenderbufferStorage
+LTW: Overridden glBindFramebuffer
+LTW: Overridden glDeleteFramebuffers
+LTW: Overridden glGenFramebuffers
+LTW: Overridden glCheckFramebufferStatus
+LTW: Overridden glFramebufferTexture2D
+LTW: Overridden glFramebufferTextureLayer
+LTW: Overridden glFramebufferRenderbuffer
+LTW: Overridden glGetFramebufferAttachmentParameteriv
+LTW: Overridden glTexParameterIiv
+LTW: Overridden glTexParameterIuiv
+LTW: Overridden glBindBufferRange
+LTW: Overridden glBindBufferBase
+LTW: Overridden glTexBuffer
+LTW: Overridden glDrawElementsBaseVertex
+LTW: Overridden glMultiDrawElementsBaseVertex
+LTW: Overridden glGetQueryObjecti64v
+LTW: Overridden glGetQueryObjectui64v
+LTW: Overridden glBufferStorage
+LTW: Overridden glDebugMessageControl
+[22:41:38] [Render thread/INFO]: Initializing ImmediatelyFast 1.14.1+1.21.11 on Mali-G615 MC2 (artDev, SerpentSpirale, CADIndie) with OpenGL 3.3 OpenLTW (Built on: Jul 13 2026/19:49:47)
+[22:41:38] [Render thread/INFO]: Found Iris 1.10.4+mc1.21.11. Enabling compatibility.
+[22:41:38] [Render thread/INFO]: Debug functionality is disabled.
+[22:41:38] [Render thread/INFO]: DSA support not detected.
+[22:41:39] [Render thread/INFO]: Shaders are disabled because no valid shaderpack is selected
+[22:41:39] [Render thread/INFO]: OpenGL Vendor: artDev, SerpentSpirale, CADIndie
+[22:41:39] [Render thread/INFO]: OpenGL Renderer: Mali-G615 MC2
+[22:41:39] [Render thread/INFO]: OpenGL Version: 3.3 OpenLTW (Built on: Jul 13 2026/19:49:47)
+[22:41:39] [Render thread/INFO]: Using optional rendering extensions: GL_ARB_buffer_storage, GL_KHR_debug, GL_EXT_texture_filter_anisotropic
+[22:41:40] [Render thread/INFO]: Hardware information:
+[22:41:40] [Render thread/INFO]: CPU: 8x 
+[22:41:40] [Render thread/INFO]: GPU: Mali-G615 MC2 (Supports OpenGL 3.3 OpenLTW (Built on: Jul 13 2026/19:49:47))
+[22:41:40] [Render thread/INFO]: OS: Linux (Android-16)
+[22:41:40] [Render thread/ERROR]: Error while loading the narrator
+com.mojang.text2speech.Narrator$InitializeException: Failed to load library flite
+	at knot//com.mojang.text2speech.NarratorLinux$FliteLibrary.loadNative(NarratorLinux.java:81)
+	at knot//com.mojang.text2speech.NarratorLinux.<init>(NarratorLinux.java:18)
+	at knot//com.mojang.text2speech.Narrator.getNarrator(Narrator.java:41)
+	at knot//net.minecraft.class_333.<init>(class_333.java:20)
+	at knot//net.minecraft.class_310.<init>(class_310.java:702)
+	at knot//net.minecraft.client.main.Main.main(Main.java:234)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: java.lang.UnsatisfiedLinkError: Unable to load library 'flite':
+dlopen failed: library "libflite.so" not found
+dlopen failed: library "libflite.so" not found
+Native library (linux-aarch64/libflite.so) not found in resource path (/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/at/yawk/lz4/lz4-java/1.8.1/lz4-java-1.8.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/azure/azure-json/1.4.0/azure-json-1.4.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/github/oshi/oshi-core/6.9.0/oshi-core-6.9.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/guava/guava/33.5.0-jre/guava-33.5.0-jre.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/ibm/icu/icu4j/77.1/icu4j-77.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/microsoft/azure/msal4j/1.23.1/msal4j-1.23.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/authlib/7.0.61/authlib-7.0.61.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/blocklist/1.0.10/blocklist-1.0.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/brigadier/1.3.10/brigadier-1.3.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/datafixerupper/9.0.19/datafixerupper-9.0.19.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/jtracy/1.0.37/jtracy-1.0.37.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/jtracy/1.0.37/jtracy-1.0.37-natives-linux.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/logging/1.6.11/logging-1.6.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/patchy/2.2.10/patchy-2.2.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/text2speech/1.18.11/text2speech-1.18.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-buffer/4.2.7.Final/netty-buffer-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-base/4.2.7.Final/netty-codec-base-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-compression/4.2.7.Final/netty-codec-compression-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-http/4.2.7.Final/netty-codec-http-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-common/4.2.7.Final/netty-common-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-handler/4.2.7.Final/netty-handler-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-resolver/4.2.7.Final/netty-resolver-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-classes-epoll/4.2.7.Final/netty-transport-classes-epoll-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-classes-kqueue/4.2.7.Final/netty-transport-classes-kqueue-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-epoll/4.2.7.Final/netty-transport-native-epoll-4.2.7.Final-linux-aarch_64.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-epoll/4.2.7.Final/netty-transport-native-epoll-4.2.7.Final-linux-x86_64.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-unix-common/4.2.7.Final/netty-transport-native-unix-common-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport/4.2.7.Final/netty-transport-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/it/unimi/dsi/fastutil/8.5.18/fastutil-8.5.18.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/java/dev/jna/jna-platform/5.17.0/jna-platform-5.17.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/java/dev/jna/jna/5.17.0/jna-5.17.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-api/2.25.2/log4j-api-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-core/2.25.2/log4j-core-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-slf4j2-impl/2.25.2/log4j-slf4j2-impl-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/jcraft/jorbis/0.0.17/jorbis-0.0.17.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/joml/joml/1.10.8/joml-1.10.8.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-freetype/3.3.3/lwjgl-freetype-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-glfw/3.3.3/lwjgl-glfw-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-rpmalloc/3.3.3/lwjgl-rpmalloc-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-rpmalloc/3.3.3/lwjgl-rpmalloc-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-openal/3.3.3/lwjgl-openal-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl/3.3.3/lwjgl-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl/3.3.3/lwjgl-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm/9.9/asm-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-analysis/9.9/asm-analysis-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-commons/9.9/asm-commons-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-tree/9.9/asm-tree-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-util/9.9/asm-util-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/sponge-mixin/0.17.0+mixin.0.8.7/sponge-mixin-0.17.0+mixin.0.8.7.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/intermediary/1.21.11/intermediary-1.21.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/fabric-loader/0.18.4/fabric-loader-0.18.4.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/versions/fabric-loader-0.18.4-1.21.11/fabric-loader-0.18.4-1.21.11.jar)
+	at knot//com.sun.jna.NativeLibrary.loadLibrary(NativeLibrary.java:325)
+	at knot//com.sun.jna.NativeLibrary.getInstance(NativeLibrary.java:481)
+	at knot//com.sun.jna.NativeLibrary.getInstance(NativeLibrary.java:423)
+	at knot//com.mojang.text2speech.NarratorLinux$FliteLibrary.loadNative(NarratorLinux.java:79)
+	... 8 more
+	Suppressed: java.lang.UnsatisfiedLinkError: dlopen failed: library "libflite.so" not found
+		at knot//com.sun.jna.Native.open(Native Method)
+		at knot//com.sun.jna.NativeLibrary.loadLibrary(NativeLibrary.java:213)
+		... 11 more
+	Suppressed: java.lang.UnsatisfiedLinkError: dlopen failed: library "libflite.so" not found
+		at knot//com.sun.jna.Native.open(Native Method)
+		at knot//com.sun.jna.NativeLibrary.loadLibrary(NativeLibrary.java:226)
+		... 11 more
+	Suppressed: java.io.IOException: Native library (linux-aarch64/libflite.so) not found in resource path (/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/at/yawk/lz4/lz4-java/1.8.1/lz4-java-1.8.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/azure/azure-json/1.4.0/azure-json-1.4.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/github/oshi/oshi-core/6.9.0/oshi-core-6.9.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/google/guava/guava/33.5.0-jre/guava-33.5.0-jre.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/ibm/icu/icu4j/77.1/icu4j-77.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/microsoft/azure/msal4j/1.23.1/msal4j-1.23.1.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/authlib/7.0.61/authlib-7.0.61.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/blocklist/1.0.10/blocklist-1.0.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/brigadier/1.3.10/brigadier-1.3.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/datafixerupper/9.0.19/datafixerupper-9.0.19.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/jtracy/1.0.37/jtracy-1.0.37.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/jtracy/1.0.37/jtracy-1.0.37-natives-linux.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/logging/1.6.11/logging-1.6.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/patchy/2.2.10/patchy-2.2.10.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/com/mojang/text2speech/1.18.11/text2speech-1.18.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-buffer/4.2.7.Final/netty-buffer-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-base/4.2.7.Final/netty-codec-base-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-compression/4.2.7.Final/netty-codec-compression-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-codec-http/4.2.7.Final/netty-codec-http-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-common/4.2.7.Final/netty-common-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-handler/4.2.7.Final/netty-handler-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-resolver/4.2.7.Final/netty-resolver-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-classes-epoll/4.2.7.Final/netty-transport-classes-epoll-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-classes-kqueue/4.2.7.Final/netty-transport-classes-kqueue-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-epoll/4.2.7.Final/netty-transport-native-epoll-4.2.7.Final-linux-aarch_64.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-epoll/4.2.7.Final/netty-transport-native-epoll-4.2.7.Final-linux-x86_64.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport-native-unix-common/4.2.7.Final/netty-transport-native-unix-common-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/io/netty/netty-transport/4.2.7.Final/netty-transport-4.2.7.Final.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/it/unimi/dsi/fastutil/8.5.18/fastutil-8.5.18.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/java/dev/jna/jna-platform/5.17.0/jna-platform-5.17.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/java/dev/jna/jna/5.17.0/jna-5.17.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-api/2.25.2/log4j-api-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-core/2.25.2/log4j-core-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/apache/logging/log4j/log4j-slf4j2-impl/2.25.2/log4j-slf4j2-impl-2.25.2.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/jcraft/jorbis/0.0.17/jorbis-0.0.17.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/joml/joml/1.10.8/joml-1.10.8.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-freetype/3.3.3/lwjgl-freetype-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-glfw/3.3.3/lwjgl-glfw-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-rpmalloc/3.3.3/lwjgl-rpmalloc-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-rpmalloc/3.3.3/lwjgl-rpmalloc-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-openal/3.3.3/lwjgl-openal-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-opengl/3.3.3/lwjgl-opengl-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-stb/3.3.3/lwjgl-stb-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl-tinyfd/3.3.3/lwjgl-tinyfd-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl/3.3.3/lwjgl-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/lwjgl/lwjgl/3.3.3/lwjgl-natives-linux-arm64-3.3.3.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm/9.9/asm-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-analysis/9.9/asm-analysis-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-commons/9.9/asm-commons-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-tree/9.9/asm-tree-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/org/ow2/asm/asm-util/9.9/asm-util-9.9.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/sponge-mixin/0.17.0+mixin.0.8.7/sponge-mixin-0.17.0+mixin.0.8.7.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/intermediary/1.21.11/intermediary-1.21.11.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/libraries/net/fabricmc/fabric-loader/0.18.4/fabric-loader-0.18.4.jar:/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/.minecraft/versions/fabric-loader-0.18.4-1.21.11/fabric-loader-0.18.4-1.21.11.jar)
+		at knot//com.sun.jna.Native.extractFromResourcePath(Native.java:1141)
+		at knot//com.sun.jna.NativeLibrary.loadLibrary(NativeLibrary.java:297)
+		... 11 more
+[22:41:40] [Render thread/INFO]: Reloading ResourceManager: vanilla, appleskin, armor_hud, bactromod, cloth-config, entity_model_features, entity_texture_features, entityculling, fabric-api, fabric-api-base, fabric-api-lookup-api-v1, fabric-biome-api-v1, fabric-block-api-v1, fabric-block-view-api-v2, fabric-command-api-v2, fabric-content-registries-v0, fabric-convention-tags-v1, fabric-convention-tags-v2, fabric-crash-report-info-v1, fabric-data-attachment-api-v1, fabric-data-generation-api-v1, fabric-dimensions-v1, fabric-entity-events-v1, fabric-events-interaction-v0, fabric-game-rule-api-v1, fabric-item-api-v1, fabric-item-group-api-v1, fabric-key-binding-api-v1, fabric-language-kotlin, fabric-lifecycle-events-v1, fabric-loot-api-v2, fabric-loot-api-v3, fabric-message-api-v1, fabric-model-loading-api-v1, fabric-networking-api-v1, fabric-object-builder-api-v1, fabric-particles-v1, fabric-recipe-api-v1, fabric-registry-sync-v0, fabric-renderer-api-v1, fabric-renderer-indigo, fabric-rendering-fluids-v1, fabric-rendering-v1, fabric-resource-conditions-api-v1, fabric-resource-loader-v0, fabric-resource-loader-v1, fabric-screen-api-v1, fabric-screen-handler-api-v1, fabric-serialization-api-v1, fabric-sound-api-v1, fabric-tag-api-v1, fabric-transfer-api-v1, fabric-transitive-access-wideners-v1, fabricloader, forgeconfigapiport, freecam, freelook, fullbrightnesstoggle, immediatelyfast, iris, lithium, modmenu, placeholder-api, skinlayers3d, sodium, sodium-extra, trender, voicechat, xaerolib, xaerominimap, xaeroworldmap, yet_another_config_lib_v3, zoomify
+[22:41:41] [Download-2/INFO]: Could not authorize you against Realms server: java.lang.NullPointerException
+[22:41:41] [Download-2/ERROR]: Failed to fetch Realms feature flags
+net.minecraft.class_4355: Realms authentication error with message 'java.lang.NullPointerException'
+	at knot//net.minecraft.class_4341.method_20998(class_4341.java:526)
+	at knot//net.minecraft.class_4341.method_68466(class_4341.java:186)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[22:41:41] [Render thread/INFO]: Loading Xaero's World Map - Stage 2/2
+[22:41:41] [Worker-Main-4/INFO]: Found unifont_pua-17.0.01.hex, loading
+[22:41:41] [Render thread/INFO]: New world map region cache hash code: 2117685179
+[22:41:41] [Worker-Main-7/INFO]: Found unifont_all_no_pua-17.0.01.hex, loading
+[22:41:42] [Worker-Main-3/INFO]: Found unifont_jp_patch-17.0.01.hex, loading
+[22:41:43] [Worker-Main-5/ERROR]: [EMF]: OptiFine model map for helmet already exists, overwriting
+[22:41:43] [Worker-Main-5/ERROR]: [EMF]: OptiFine model map for chestplate already exists, overwriting
+[22:41:43] [Worker-Main-5/ERROR]: [EMF]: OptiFine model map for leggings already exists, overwriting
+[22:41:43] [Worker-Main-5/ERROR]: [EMF]: OptiFine model map for boots already exists, overwriting
+[22:41:43] [Render thread/ERROR]: io exception while checking versions: Read timed out
+[22:41:43] [Render thread/INFO]: Registered player tracker system: map_synced
+[22:41:43] [Render thread/INFO]: Xaero's WorldMap Mod: Xaero's minimap found!
+[22:41:43] [Render thread/INFO]: Registered player tracker system: minimap_synced
+[22:41:43] [Render thread/INFO]: No Optifine!
+[22:41:43] [Render thread/INFO]: Xaero's World Map: No Vivecraft!
+[22:41:43] [Render thread/INFO]: Xaero's World Map: Iris found!
+[22:41:43] [Render thread/WARN]: Unable to read property: level with value: "0" for blockstate: {Name:"minecraft:water_cauldron",Properties:{level:"0"}}
+[22:41:43] [Render thread/INFO]: Loading Xaero's Minimap - Stage 2/2
+[22:41:44] [Render thread/WARN]: io exception while checking versions: Read timed out
+[22:41:44] [Render thread/INFO]: Registered player tracker system: minimap_synced
+[22:41:44] [Render thread/INFO]: Xaero's Minimap: World Map found!
+[22:41:44] [Render thread/INFO]: No Optifine!
+[22:41:44] [Render thread/INFO]: Xaero's Minimap: No Vivecraft!
+[22:41:44] [Render thread/INFO]: Xaero's Minimap: Iris found!
+[22:41:45] [Render thread/INFO]: Loading XaeroLib common 2/2!
+[22:41:45] [Render thread/INFO]: Loading XaeroLib client 2/2!
+Stub: glPolygonMode
+[22:41:47] [Render thread/INFO]: OpenAL initialized on device Oboe Default
+[22:41:47] [Render thread/INFO]: Sound engine started
+[22:41:47] [Render thread/INFO]: Created: 512x256x0 minecraft:textures/atlas/particles.png-atlas
+[22:41:47] [Render thread/INFO]: Created: 128x128x0 minecraft:textures/atlas/decorated_pot.png-atlas
+[22:41:47] [Render thread/INFO]: Created: 2048x1024x0 minecraft:textures/atlas/armor_trims.png-atlas
+[22:41:47] [Render thread/INFO]: Created: 512x256x0 minecraft:textures/atlas/paintings.png-atlas
+[22:41:47] [Render thread/INFO]: Created: 1024x512x0 minecraft:textures/atlas/shield_patterns.png-atlas
+[22:41:47] [Render thread/INFO]: Created: 1024x512x0 minecraft:textures/atlas/blocks.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 512x512x0 minecraft:textures/atlas/chest.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 256x128x0 minecraft:textures/atlas/celestials.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 1024x512x0 minecraft:textures/atlas/banner_patterns.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 512x512x0 minecraft:textures/atlas/beds.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 1024x512x0 minecraft:textures/atlas/items.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 1024x1024x0 minecraft:textures/atlas/gui.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 128x64x0 minecraft:textures/atlas/map_decorations.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 512x256x0 minecraft:textures/atlas/signs.png-atlas
+[22:41:48] [Render thread/INFO]: Created: 512x512x0 minecraft:textures/atlas/shulker_boxes.png-atlas
+[22:41:51] [Render thread/INFO]: Zoomify detected first launch!
+[22:41:51] [Render thread/INFO]: [ETF]: reloading ETF data.
+[22:41:51] [Render thread/INFO]: [ETF]: emissive suffixes loaded: {_e}
+[22:41:51] [Render thread/INFO]: [ETF]: emissive suffixes loaded: {_e}
+GL_NUM_EXTENSIONS: 115
+GL_NUM_EXTENSIONS: 115
+[22:41:51] [Render thread/INFO]: Creating pipeline for dimension minecraft:overworld
+[22:41:52] [IO-Worker-1/INFO]: Could not authorize you against Realms server: java.lang.NullPointerException
+[22:41:52] [IO-Worker-1/ERROR]: Couldn't connect to realms
+net.minecraft.class_4355: Realms authentication error with message 'java.lang.NullPointerException'
+	at knot//net.minecraft.class_4341.method_20998(class_4341.java:526)
+	at knot//net.minecraft.class_4341.method_21027(class_4341.java:307)
+	at knot//net.minecraft.class_8647.method_52627(class_8647.java:48)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[authlib-injector] [INFO] Transformed [com.mojang.patchy.MojangBlockListSupplier] with [Constant URL Transformer]
+[22:42:51] [Server Pinger #0/WARN]: Failed to find a usable hardware address from the network interfaces; using random bytes: fd:dc:57:ec:46:12:bc:b7
+[22:42:52] [Render thread/INFO]: Connecting to play.applemc.fun, 25565
+[22:42:54] [Render thread/INFO]: Minimap required item set to nothing.
+[22:42:54] [Render thread/INFO]: New Xaero hud session initialized!
+[22:42:54] [Render thread/INFO]: Fullscreen map required item set to nothing.
+[22:42:54] [Render thread/INFO]: New world map session initialized!
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:rhombus'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:stripe_bottom'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:stripe_center'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:border'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:stripe_middle'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:half_horizontal'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:circle'
+[22:42:55] [Render thread/WARN]: Unable to find banner pattern with id: 'minecraft:border'
+[22:42:55] [Render thread/INFO]: Reloading pipeline on dimension change: minecraft:overworld => minecraft:the_end
+[22:42:55] [Render thread/INFO]: Destroying pipeline minecraft:overworld
+[22:42:55] [Render thread/INFO]: Creating pipeline for dimension minecraft:the_end
+[22:42:55] [Render thread/INFO]: Started 2 worker threads
+[22:42:55] [Render thread/INFO]: [voicechat] Sending secret request to the server
+[22:42:56] [Render thread/INFO]: [System] [CHAT] APPLEMC ➟ Please login using /login <password>, you have 3 attempts.
+[22:42:56] [Render thread/INFO]: Resizing Dynamic Transforms UBO, capacity limit of 2 reached during a single frame. New capacity will be 4.
+[22:42:56] [Render thread/INFO]: Reloading radar icon resources...
+[22:42:56] [Render thread/INFO]: Reloaded radar icon resources!
+[22:42:56] [Render thread/INFO]: Resizing Dynamic Transforms UBO, capacity limit of 4 reached during a single frame. New capacity will be 8.
+[22:42:57] [Render thread/INFO]: Resizing Dynamic Transforms UBO, capacity limit of 8 reached during a single frame. New capacity will be 16.
+[22:43:08] [Render thread/INFO]: [System] [CHAT] APPLEMC ➟ Successfully logged in!
+[22:43:08] [Render thread/INFO]: Stopping worker threads
+[22:43:11] [Render thread/INFO]: Previous hud session still active. Probably using MenuMobs. Forcing it to end...
+[22:43:11] [Render thread/INFO]: Xaero hud session finalized.
+[22:43:11] [Render thread/INFO]: Minimap required item set to nothing.
+[22:43:11] [Render thread/INFO]: New Xaero hud session initialized!
+[22:43:11] [Render thread/INFO]: Previous world map session still active. Probably using MenuMobs. Forcing it to end...
+[22:43:11] [Render thread/INFO]: Finalizing world map session...
+[22:43:11] [Thread-8/INFO]: World map cleaned normally!
+[22:43:12] [Render thread/INFO]: World map session finalized.
+[22:43:12] [Render thread/INFO]: Fullscreen map required item set to nothing.
+[22:43:12] [Render thread/INFO]: New world map session initialized!
+[22:43:12] [Render thread/INFO]: Reloading pipeline on dimension change: minecraft:the_end => minecraft:overworld
+[22:43:12] [Render thread/INFO]: Destroying pipeline minecraft:the_end
+[22:43:12] [Render thread/INFO]: Creating pipeline for dimension minecraft:overworld
+[22:43:12] [Render thread/INFO]: Started 2 worker threads
+[22:43:12] [Render thread/INFO]: [voicechat] Disconnecting from previous connection due to server change
+[22:43:12] [Render thread/INFO]: [voicechat] Clearing audio channels
+[22:43:12] [Render thread/INFO]: [voicechat] Sending secret request to the server
+[22:43:12] [Render thread/INFO]: [System] [CHAT] ✉ | You have no new mail.
+[22:43:12] [Render thread/WARN]: Server side doesn't have XaeroLib installed! Resetting.
+[22:43:12] [Render thread/WARN]: Server side doesn't have XaeroLib installed! Resetting.
+[authlib-injector] [INFO] Transformed [com.mojang.authlib.yggdrasil.TextureUrlChecker] with [Texture Whitelist Transformer]
+[22:43:12] [Worker-Main-3/INFO]: [STDOUT]: http://textures.minecraft.net/texture/e7d53dd4cd89a7a2a19dad0d69974bc3110799cf773d2430bd3b076c86bfe755
+[22:43:12] [Worker-Main-5/INFO]: [STDOUT]: http://textures.minecraft.net/texture/778df564e43f1167fe800e26926c2380653307b2b7d151506b79eb71bee9078e
+[22:43:12] [Worker-Main-6/INFO]: [STDOUT]: http://textures.minecraft.net/texture/777eeeff9e929c38ece72979622da976cd465c50ab1145c8bcdd4a78e9be738a
+[22:43:12] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/d20e89020b84b0a27071e2aefe60cb3bc771ed8d9d0d67bcd9c49edc2fcac9da
+[22:43:12] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/9d7784fdafe84d9706eabad4f79c04a1a5d3b42280248c3a3157aa1ff136a8ae
+[22:43:12] [Worker-Main-6/INFO]: [STDOUT]: http://textures.minecraft.net/texture/e7d53dd4cd89a7a2a19dad0d69974bc3110799cf773d2430bd3b076c86bfe755
+[22:43:12] [Worker-Main-6/INFO]: [STDOUT]: http://textures.minecraft.net/texture/778df564e43f1167fe800e26926c2380653307b2b7d151506b79eb71bee9078e
+[22:43:12] [Worker-Main-5/INFO]: [STDOUT]: http://textures.minecraft.net/texture/9d7784fdafe84d9706eabad4f79c04a1a5d3b42280248c3a3157aa1ff136a8ae
+[22:43:12] [Worker-Main-4/INFO]: [STDOUT]: http://textures.minecraft.net/texture/ab93e1c7f14de000d7e24ac9196a233ae1a2b81307767dae230463d2aed14aaa
+[22:43:12] [Worker-Main-6/INFO]: [STDOUT]: http://textures.minecraft.net/texture/777eeeff9e929c38ece72979622da976cd465c50ab1145c8bcdd4a78e9be738a
+[22:43:12] [Worker-Main-3/INFO]: [STDOUT]: http://textures.minecraft.net/texture/d20e89020b84b0a27071e2aefe60cb3bc771ed8d9d0d67bcd9c49edc2fcac9da
+[22:43:12] [Worker-Main-8/INFO]: [STDOUT]: http://textures.minecraft.net/texture/d83917609df63ec17626d594d11f80079d1c87c6d04618f5c25b58dd464a0b0
+[22:43:12] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/9d7784fdafe84d9706eabad4f79c04a1a5d3b42280248c3a3157aa1ff136a8ae
+[22:43:12] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/cdc8a26ef21191e7b8c0a9513d2d2ed9017506e6db107659f09585351f66bb9a
+[22:43:12] [Worker-Main-5/INFO]: [STDOUT]: http://textures.minecraft.net/texture/5875b6da6d5c7ae7c4b7406e48d45bdadbd4570718438c48a41281539ff48055
+[22:43:12] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/de06eaa4e97e3f7dea9e45ec04cf3be1a1c2314e37f86e8a336089279c875f8
+[22:43:12] [Worker-Main-3/INFO]: [STDOUT]: http://textures.minecraft.net/texture/b1057e470fb023b67def8f51b2fdb17fd09c59b4d1006b7d6b2d78bcc8cfd56c
+[22:43:12] [Worker-Main-3/INFO]: [STDOUT]: http://textures.minecraft.net/texture/7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/dbca394b91aae7960a3e5ebb121dcb88ab1058b5518000988801756c2b2e091c
+[22:43:12] [Worker-Main-3/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-3/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01f2e3affdef)
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-5/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-5/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01fe29fe7869)
+[22:43:12] [Worker-Main-6/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-6/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01fc0ee01c73)
+[22:43:12] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-8/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-7/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01fe1c8253f5)
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-8/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01fe073888fc)
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-4/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-4/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01fa512ff222)
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:12] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:12] [Worker-Main-1/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01f08bff90e7)
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/b6873e2932a1dc74527b77116dfbab632266647dde5b7196c329dd7ef7a4bcf3
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/89fc9c5b8736f36f3405cbe1363d434c141cd23aac04186476af0a0f7877aef4
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/82090aa835f6b97eea8dad4309e96e6c85e727749a24fb7362af79c4d57f3e89
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/a70d31c6550146151b5912893b36831a4787e5d1b00e23cbf138fbd61671eddb
+[22:43:13] [Worker-Main-4/INFO]: [STDOUT]: http://textures.minecraft.net/texture/4378b582d19ccc55b023eb82eda271bac4744fa2006cf5e190246e2b4d5d
+[22:43:13] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/4f672a2980daca6eb879b9b1c64bbc9b1d91e44432745225b1473c2f4d5c4a1
+[22:43:13] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/2de28df844961a8eca8efb79ebb4ae10b834c64a66815e8b645aeff75889664b
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/20aaa1425d2b99383697d57193f27d872442bcb995508f42d19de4af1f8612
+[22:43:13] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/59e1ae2381a928e6ff7e1d176e27a31dc2e1bc25886f7731a3abca6977a82
+[22:43:13] [Render thread/INFO]: Resizing Dynamic Transforms UBO, capacity limit of 16 reached during a single frame. New capacity will be 32.
+[22:43:14] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/9bb9f7258408a90bc580d3e04c2367372e06123a4c0f54b79de765a8574b7c93
+[22:43:15] [Render thread/INFO]: Resized a dynamic immediate buffer to 160!
+[22:43:15] [Render thread/INFO]: Resized a dynamic immediate buffer to 320!
+[22:43:18] [Render thread/INFO]: Resized a dynamic immediate buffer to 160!
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:21] [Worker-Main-1/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:21] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:21] [Worker-Main-1/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01ff9135cd24)
+[22:43:21] [Worker-Main-7/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01f8bedbc76c)
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:21] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:21] [Worker-Main-7/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01f05b5aa3dd)
+[22:43:25] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/1dff283bbb5fd6defb4caa6dbd237336e04754e3148a09a79b3ed6475caa5140
+[authlib-injector] [WARNING] Failed to verify property signature
+[authlib-injector] [WARNING] Failed to verify property signature
+[22:43:32] [Worker-Main-7/INFO]: [STDOUT]: http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb
+[22:43:32] [Worker-Main-7/WARN]: Profile contained invalid signature for textures property (profile id: 00000000-0000-0000-0009-01f3b03a7c13)
