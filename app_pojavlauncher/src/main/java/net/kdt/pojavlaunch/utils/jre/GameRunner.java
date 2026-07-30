@@ -212,6 +212,77 @@ public class GameRunner {
 
         // Pre-process specific files
         disableSplash(gamedir);
+
+        // Synchronize active skin to the current game instance's resource pack before launching
+        try {
+            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
+            String skinPath = prefs.getString("active_skin_path", "steve");
+            if (skinPath != null) {
+                File packDir = new File(gamedir, "resourcepacks/FEAR_Skin_Pack");
+                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
+                entityDir.mkdirs();
+
+                File stevePng = new File(entityDir, "steve.png");
+                File alexPng = new File(entityDir, "alex.png");
+
+                if (skinPath.equals("steve") || skinPath.equals("alex")) {
+                    if (stevePng.exists()) stevePng.delete();
+                    if (alexPng.exists()) alexPng.delete();
+                } else {
+                    File srcFile = new File(skinPath);
+                    if (srcFile.exists()) {
+                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
+                             java.io.OutputStream out = new java.io.FileOutputStream(stevePng)) {
+                            byte[] buf = new byte[1024];
+                            int len;
+                            while ((len = in.read(buf)) > 0) {
+                                out.write(buf, 0, len);
+                            }
+                        }
+                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
+                             java.io.OutputStream out = new java.io.FileOutputStream(alexPng)) {
+                            byte[] buf = new byte[1024];
+                            int len;
+                            while ((len = in.read(buf)) > 0) {
+                                out.write(buf, 0, len);
+                            }
+                        }
+                    }
+                }
+
+                // Write pack.mcmeta
+                File mcmeta = new File(packDir, "pack.mcmeta");
+                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(mcmeta)) {
+                    fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+
+                // Automatically enable the skin pack in options.txt
+                File optionsFile = new File(gamedir, "options.txt");
+                if (optionsFile.exists()) {
+                    StringBuilder sb = new StringBuilder();
+                    try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line).append("\n");
+                        }
+                    }
+                    String optionsContent = sb.toString();
+                    if (!optionsContent.contains("FEAR_Skin_Pack")) {
+                        if (optionsContent.contains("resourcePacks:[")) {
+                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
+                            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(optionsFile)) {
+                                fos.write(optionsContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                            }
+                        }
+                    }
+                }
+                Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
+            }
+        } catch (Exception e) {
+            Log.e("GameRunner", "Failed to synchronize skin resourcepack on launch", e);
+        }
+
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
 
         // Select the appropriate openGL version

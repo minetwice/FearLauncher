@@ -351,7 +351,7 @@ public class LocalSkinServer {
         JsonObject skin = new JsonObject();
         // Point to textures.minecraft.net to pass client domain whitelisting, which authlib-injector intercepts
         String skinHash = getSHA256(uuid);
-        skin.addProperty("url", "http://textures.minecraft.net/texture/" + skinHash);
+        skin.addProperty("url", "https://textures.minecraft.net/texture/" + skinHash);
 
         if (mIsAlex) {
             JsonObject metadata = new JsonObject();

@@ -84,6 +84,16 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
                         JsonObject userJson = response.getAsJsonObject("user");
                         mUsername = userJson.get("username").getAsString();
                         mUuid = userJson.get("uuid").getAsString();
+                        String skinModel = userJson.has("skinModel") ? userJson.get("skinModel").getAsString() : "classic";
+                        boolean isAlex = "slim".equalsIgnoreCase(skinModel);
+
+                        Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+                        if (context != null) {
+                            PreferenceManager.getDefaultSharedPreferences(context)
+                                    .edit()
+                                    .putBoolean("active_skin_is_alex", isAlex)
+                                    .apply();
+                        }
 
                         notifyProgress(loginListener, 2);
                         onSuccess.run();

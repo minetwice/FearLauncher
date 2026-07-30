@@ -1,0 +1,92 @@
+# Website Yggdrasil API - Mojang Skin Proxy and Fallback Tutorial
+===============================================================
+
+When players use your custom launcher with authlib-injector pointed to your website (https://farmer-my1t.onrender.com/), the Minecraft client sends ALL player skin and profile requests to your website's Yggdrasil API.
+
+Currently, if another player on a multiplayer server is not registered on your website, your website returns `204 No Content`. Because of this, **other players' skins (premium or non-registered players) will show up as default Steve/Alex skins to you.**
+
+To fix this, you should update your website's `/sessionserver/session/minecraft/profile/:uuid` route in `src/routes/yggdrasil.js` to automatically fetch profiles from Mojang's official servers and resign them with your website's private key when a user is not found in your database.
+
+
+## Step 1: Open `src/routes/yggdrasil.js` on your website repository
+
+Find the profile lookup endpoint (`router.get("/sessionserver/session/minecraft/profile/:uuid", ...)`).
+
+
+## Step 2: Replace that endpoint code with the following implementation:
+
+Copy and paste the code below. This code uses `node-fetch` or standard `fetch` (standard in Node.js 18+) to query Mojang, parse the premium player properties, and resign the texture payload using your website's own RSA key so authlib-injector accepts it:
+
+```javascript
+const fetch = require("node-fetch"); // Or use global fetch if on Node.js 18+
+
+// ---- Profile lookup by UUID with Mojang Fallback Proxy & Resigning ----
+router.get("/sessionserver/session/minecraft/profile/:uuid", async (req, res) => {
+    try {
+        const compact = req.params.uuid.replace(/-/g, "").toLowerCase();
+        const dashed = [
+            compact.substring(0, 8),
+            compact.substring(8, 12),
+            compact.substring(12, 16),
+            compact.substring(16, 20),
+            compact.substring(20, 32),
+        ].join("-");
+
+        // 1. Check if the user exists in our local CraftynMC database
+        const user = await User.findOne({ uuid: dashed });
+        if (user) {
+            const properties = [];
+            if (user.skinPngBase64 || user.capePngBase64) {
+                properties.push(buildTexturesProperty(user, keys, publicBaseUrl));
+            }
+            return res.json({ id: compact, name: user.username, properties });
+        }
+
+        // 2. Fallback: If not in our database, fetch the profile from official Mojang servers
+        console.log(`[yggdrasil] Profile not found locally. Proxying to Mojang for UUID: ${compact}`);
+        const mojangRes = await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${compact}?unsigned=false`);
+
+        if (mojangRes.status === 200) {
+            const mojangProfile = await mojangRes.json();
+
+            // We must resign the textures property with our own private key
+            // because authlib-injector only trusts our signature, not Mojang's!
+            const resignedProperties = [];
+            if (mojangProfile.properties) {
+                for (const prop of mojangProfile.properties) {
+                    if (prop.name === "textures") {
+                        const val = prop.value;
+                        const signature = signPayload(keys.privateKey, val);
+                        resignedProperties.push({
+                            name: "textures",
+                            value: val,
+                            signature: signature
+                        });
+                    } else {
+                        resignedProperties.push(prop);
+                    }
+                }
+            }
+
+            return res.json({
+                id: mojangProfile.id,
+                name: mojangProfile.name,
+                properties: resignedProperties
+            });
+        }
+
+        // 3. If Mojang doesn't have it either, return 204 No Content
+        return res.status(204).end();
+
+    } catch (error) {
+        console.error("Error in profile proxy lookup:", error);
+        return res.status(204).end();
+    }
+});
+```
+
+
+## Why this is a Game Changer:
+1. **Your Skin Works Everywhere:** Since your skin is served directly from your website's database, the Minecraft client loads your skin perfectly on any world or server.
+2. **Other Players' Skins Render Perfectly:** Other players' skins are fetched from Mojang, signed on the fly with your server key, and loaded seamlessly, so you'll never see everyone else as Steve/Alex again!
+3. **No performance overhead:** Only requests for non-local users are forwarded to Mojang.
