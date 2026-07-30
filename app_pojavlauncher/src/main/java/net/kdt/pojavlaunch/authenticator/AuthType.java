@@ -14,19 +14,12 @@ public enum AuthType {
             null,
             "https://mineskin.eu/skin/%s" // Switched from mc-heads.net cause blocked in Russia
     ),
-    // ---- CraftynMC (your own FearNet server) ----
-    // injectorUrl: bare domain only, no "https://", no trailing slash - this is
-    // passed straight into the authlib-injector javaagent argument at launch time.
-    // THIS WAS null BEFORE, WHICH MEANT SKINS NEVER SHOWED IN-GAME - now fixed.
-    // skinUrl: full URL template (%s = username), used only for the small face
-    // icon shown in the account list. Must use the /skins/name/ route (keyed by
-    // username), not /skins/ (which is keyed by UUID on the server).
     @SerializedName("craftynmc")
     CRAFTYN_MC(
             net.kdt.pojavlaunch.authenticator.impl.CraftynBackgroundLogin.CREATOR,
             R.drawable.ic_auth_craftynmc,
-            "farmer-my1t.onrender.com",
-            "https://farmer-my1t.onrender.com/skins/name/%s.png"
+            null,
+            "https://farmer-my1t.onrender.com/skins/%s.png"
     ),
     @SerializedName("local")
     LOCAL(null, 0, null, null);
