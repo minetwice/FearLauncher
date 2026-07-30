@@ -193,7 +193,7 @@ public class LocalSkinServer {
                 if (qIdx != -1) {
                     uuidStr = uuidStr.substring(0, qIdx);
                 }
-                uuidStr = uuidStr.toLowerCase().trim();
+                uuidStr = uuidStr.replace("-", "").toLowerCase().trim();
 
                 Log.i(TAG, "Profile query received for UUID: " + uuidStr);
 
@@ -215,28 +215,52 @@ public class LocalSkinServer {
                         sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                     }
                 }
-            } else if (path.contains("texture") || path.contains("skin")) {
-                // Texture serving endpoint (matches /texture/skin, /textures/skin.png, /texture/skin, etc.)
-                byte[] imgBytes = null;
-                if (mActiveSkinPath != null && !mActiveSkinPath.equals("steve") && !mActiveSkinPath.equals("alex")) {
-                    File skinFile = new File(mActiveSkinPath);
-                    if (skinFile.exists() && skinFile.isFile()) {
-                        try (FileInputStream fis = new FileInputStream(skinFile);
-                             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                            byte[] buf = new byte[1024];
-                            int read;
-                            while ((read = fis.read(buf)) != -1) {
-                                bos.write(buf, 0, read);
+            } else if (path.contains("/texture/") || path.contains("/textures/") || path.contains("skin")) {
+                // Texture serving endpoint
+                String hash = path.substring(path.lastIndexOf('/') + 1);
+                int qIdx = hash.indexOf('?');
+                if (qIdx != -1) {
+                    hash = hash.substring(0, qIdx);
+                }
+                hash = hash.toLowerCase().trim();
+
+                String myHash = getSHA256(mUserUuid).toLowerCase().trim();
+                String offlineUuidStr = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + mUsername).getBytes(StandardCharsets.UTF_8))
+                        .toString().replace("-", "").toLowerCase();
+                String myOfflineHash = getSHA256(offlineUuidStr).toLowerCase().trim();
+
+                if (hash.equals(myHash) || hash.equals(myOfflineHash) || hash.equals("skin")) {
+                    Log.i(TAG, "Serving local skin for hash: " + hash);
+                    byte[] imgBytes = null;
+                    if (mActiveSkinPath != null && !mActiveSkinPath.equals("steve") && !mActiveSkinPath.equals("alex")) {
+                        File skinFile = new File(mActiveSkinPath);
+                        if (skinFile.exists() && skinFile.isFile()) {
+                            try (FileInputStream fis = new FileInputStream(skinFile);
+                                 ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                                byte[] buf = new byte[1024];
+                                int read;
+                                while ((read = fis.read(buf)) != -1) {
+                                    bos.write(buf, 0, read);
+                                }
+                                imgBytes = bos.toByteArray();
                             }
-                            imgBytes = bos.toByteArray();
                         }
                     }
-                }
 
-                if (imgBytes == null) {
-                    sendResponse(os, 404, "image/png", new byte[0]);
+                    if (imgBytes == null) {
+                        sendResponse(os, 404, "image/png", new byte[0]);
+                    } else {
+                        sendResponse(os, 200, "image/png", imgBytes);
+                    }
                 } else {
-                    sendResponse(os, 200, "image/png", imgBytes);
+                    // Proxy to textures.minecraft.net
+                    Log.i(TAG, "Proxying texture request to textures.minecraft.net for hash: " + hash);
+                    byte[] imgBytes = fetchMojangTexture(hash);
+                    if (imgBytes != null) {
+                        sendResponse(os, 200, "image/png", imgBytes);
+                    } else {
+                        sendResponse(os, 404, "image/png", new byte[0]);
+                    }
                 }
             } else {
                 sendResponse(os, 404, "text/plain", "Not Found".getBytes(StandardCharsets.UTF_8));
@@ -265,6 +289,50 @@ public class LocalSkinServer {
         os.flush();
     }
 
+    private String getSHA256(String input) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            // Fallback to a 64-character hex string based on input hashcode
+            return String.format("%064x", Math.abs(input.hashCode()));
+        }
+    }
+
+    private byte[] fetchMojangTexture(String hash) {
+        try {
+            URL url = new URL("https://textures.minecraft.net/texture/" + hash);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            if (conn.getResponseCode() == 200) {
+                try (InputStream is = conn.getInputStream();
+                     ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                    byte[] buf = new byte[4096];
+                    int read;
+                    while ((read = is.read(buf)) != -1) {
+                        bos.write(buf, 0, read);
+                    }
+                    return bos.toByteArray();
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to proxy texture for " + hash, e);
+        }
+        return null;
+    }
+
     private JsonObject createLocalProfile(String uuid) throws Exception {
         JsonObject profile = new JsonObject();
         profile.addProperty("id", uuid);
@@ -282,7 +350,8 @@ public class LocalSkinServer {
         JsonObject textures = new JsonObject();
         JsonObject skin = new JsonObject();
         // Point to textures.minecraft.net to pass client domain whitelisting, which authlib-injector intercepts
-        skin.addProperty("url", "http://textures.minecraft.net/texture/skin");
+        String skinHash = getSHA256(uuid);
+        skin.addProperty("url", "http://textures.minecraft.net/texture/" + skinHash);
 
         if (mIsAlex) {
             JsonObject metadata = new JsonObject();
