@@ -178,6 +178,7 @@ public class LocalSkinServer {
                 JsonArray skinDomains = new JsonArray();
                 skinDomains.add("localhost");
                 skinDomains.add("127.0.0.1");
+                skinDomains.add("textures.minecraft.net");
                 response.add("skinDomains", skinDomains);
 
                 response.addProperty("signaturePublickey", mPemPublicKey);
@@ -214,8 +215,8 @@ public class LocalSkinServer {
                         sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                     }
                 }
-            } else if (path.startsWith("/textures/skin.png")) {
-                // Texture serving endpoint
+            } else if (path.contains("texture") || path.contains("skin")) {
+                // Texture serving endpoint (matches /texture/skin, /textures/skin.png, /texture/skin, etc.)
                 byte[] imgBytes = null;
                 if (mActiveSkinPath != null && !mActiveSkinPath.equals("steve") && !mActiveSkinPath.equals("alex")) {
                     File skinFile = new File(mActiveSkinPath);
@@ -280,7 +281,8 @@ public class LocalSkinServer {
 
         JsonObject textures = new JsonObject();
         JsonObject skin = new JsonObject();
-        skin.addProperty("url", "http://localhost:" + PORT + "/textures/skin.png");
+        // Point to textures.minecraft.net to pass client domain whitelisting, which authlib-injector intercepts
+        skin.addProperty("url", "http://textures.minecraft.net/texture/skin");
 
         if (mIsAlex) {
             JsonObject metadata = new JsonObject();
