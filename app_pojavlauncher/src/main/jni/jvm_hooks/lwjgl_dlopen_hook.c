@@ -20,10 +20,38 @@
  * https://github.com/PojavLauncherTeam/lwjgl3/blob/3.3.1/modules/lwjgl/core/src/generated/c/linux/org_lwjgl_system_linux_DynamicLinkLoader.c#L11
  * but with our own additions for stuff like vulkanmod.
  */
-static void* get_fear_render_symbol(const char* name) {
-    void* handle = dlopen("libfear_render.so", RTLD_NOW);
-    if (handle != NULL) {
-        return dlsym(handle, name);
+static void glMemoryBarrier_stub(unsigned int barriers) {
+    typedef void (*glFlush_pfn)();
+    static glFlush_pfn real_glFlush = NULL;
+    if (!real_glFlush) {
+        real_glFlush = (glFlush_pfn) dlsym(RTLD_DEFAULT, "glFlush");
+        if (!real_glFlush) {
+            real_glFlush = (glFlush_pfn) dlsym(RTLD_NEXT, "glFlush");
+        }
+    }
+    if (real_glFlush) {
+        real_glFlush();
+    }
+    LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
+}
+
+static void* eglGetProcAddress_hook(const char* procname) {
+    if (procname == NULL) return NULL;
+    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
+        LOGI("eglGetProcAddress_hook: Intercepted and returned custom glMemoryBarrier stub!");
+        return (void*) glMemoryBarrier_stub;
+    }
+
+    typedef void* (*eglGetProcAddress_pfn)(const char*);
+    static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
+    if (!real_eglGetProcAddress) {
+        real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (!real_eglGetProcAddress) {
+            real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_NEXT, "eglGetProcAddress");
+        }
+    }
+    if (real_eglGetProcAddress) {
+        return real_eglGetProcAddress(procname);
     }
     return NULL;
 }
@@ -64,25 +92,12 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     const char* symbol = (const char*) symbol_ptr;
     if (symbol != NULL) {
         if (strcmp(symbol, "eglGetProcAddress") == 0) {
-            void* sym = get_fear_render_symbol("eglGetProcAddress");
-            if (sym != NULL) {
-                printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol\n");
-                return (jlong) sym;
-            }
+            printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol directly\n");
+            return (jlong) eglGetProcAddress_hook;
         }
         if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
-            void* sym = get_fear_render_symbol("glMemoryBarrier");
-            if (sym != NULL) {
-                printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol\n");
-                return (jlong) sym;
-            }
-        }
-        if (strcmp(symbol, "glShaderSource") == 0 || strcmp(symbol, "glShaderSourceARB") == 0) {
-            void* sym = get_fear_render_symbol("glShaderSource");
-            if (sym != NULL) {
-                printf("LWJGL linkerhook: successfully hooked glShaderSource symbol\n");
-                return (jlong) sym;
-            }
+            printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
+            return (jlong) glMemoryBarrier_stub;
         }
     }
 

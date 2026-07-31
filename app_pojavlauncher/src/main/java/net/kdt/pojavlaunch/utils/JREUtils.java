@@ -397,11 +397,6 @@ public class JREUtils {
                 renderLibrary = "libltw.so";
                 useGles = true;
                 glesVersion = 3;
-                try {
-                    System.loadLibrary("fear_render");
-                } catch (UnsatisfiedLinkError e) {
-                    Log.w("JREUtils", "fear_render native wrapper layer failed to load", e);
-                }
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;
@@ -416,11 +411,6 @@ public class JREUtils {
                 renderLibrary = "libltw.so";
                 useGles = true;
                 glesVersion = 3;
-                try {
-                    System.loadLibrary("fear_render");
-                } catch (UnsatisfiedLinkError e) {
-                    Log.w("JREUtils", "fear_render native wrapper layer failed to load", e);
-                }
                 break;
             case "opengles2":
             case "opengles2_5":
