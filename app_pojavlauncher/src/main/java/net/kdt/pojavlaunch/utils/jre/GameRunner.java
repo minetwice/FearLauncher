@@ -384,8 +384,7 @@ public class GameRunner {
     private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
         String injectorUrl = minecraftAccount.authType.injectorUrl;
         if (injectorUrl == null) {
-            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL ||
-                minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
                 File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
                 if (!injectorJar.exists()) {
                     try {
@@ -418,8 +417,25 @@ public class GameRunner {
             return;
         }
         File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
+        if (!injectorJar.exists()) {
+            try {
+                injectorJar.getParentFile().mkdirs();
+                try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
+                     java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                }
+                Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
+            } catch (Exception e) {
+                Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
+            }
+        }
         if (injectorJar.exists()) {
             javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
+            Log.i("LocalSkinServer", "Successfully injected online authlib server: " + injectorUrl);
         } else {
             Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping online authlib injection.");
         }

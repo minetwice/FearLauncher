@@ -18,7 +18,7 @@ public enum AuthType {
     CRAFTYN_MC(
             net.kdt.pojavlaunch.authenticator.impl.CraftynBackgroundLogin.CREATOR,
             R.drawable.ic_auth_craftynmc,
-            null,
+            "https://farmer-my1t.onrender.com",
             "https://farmer-my1t.onrender.com/skins/%s.png"
     ),
     @SerializedName("local")

@@ -1,29 +1,204 @@
-# Website Yggdrasil API - Mojang Skin Proxy and Fallback Tutorial
-===============================================================
+# CraftynMC / FEAR Network Yggdrasil API Server Guide
+=====================================================
 
-When players use your custom launcher with authlib-injector pointed to your website (https://farmer-my1t.onrender.com/), the Minecraft client sends ALL player skin and profile requests to your website's Yggdrasil API.
+This guide shows you exactly how to write or update your backend code (Node.js/Express) at `https://farmer-my1t.onrender.com/` to make skins show up perfectly on MULTIPLAYER servers!
 
-Currently, if another player on a multiplayer server is not registered on your website, your website returns `204 No Content`. Because of this, **other players' skins (premium or non-registered players) will show up as default Steve/Alex skins to you.**
+The game client (using authlib-injector) sends all skin queries and multiplayer session verifications directly to your website. You must implement three core Yggdrasil endpoints:
+1. `/sessionserver/session/minecraft/join` (Client tells server they are joining)
+2. `/sessionserver/session/minecraft/hasJoined` (Server asks your API if the client actually joined)
+3. `/sessionserver/session/minecraft/profile/:uuid` (Retrieves player profile/skin)
 
-To fix this, you should update your website's `/sessionserver/session/minecraft/profile/:uuid` route in `src/routes/yggdrasil.js` to automatically fetch profiles from Mojang's official servers and resign them with your website's private key when a user is not found in your database.
+Here is the complete, production-ready implementation of these endpoints using your website's private key for signing.
 
+---
 
-## Step 1: Open `src/routes/yggdrasil.js` on your website repository
+## 1. Prerequisites (Setup RSA Keys on your Server)
 
-Find the profile lookup endpoint (`router.get("/sessionserver/session/minecraft/profile/:uuid", ...)`).
-
-
-## Step 2: Replace that endpoint code with the following implementation:
-
-Copy and paste the code below. This code uses `node-fetch` or standard `fetch` (standard in Node.js 18+) to query Mojang, parse the premium player properties, and resign the texture payload using your website's own RSA key so authlib-injector accepts it:
+Authlib-injector requires all profile responses to be signed with the website's custom private key.
+Ensure you have loaded your RSA keys in your code:
 
 ```javascript
-const fetch = require("node-fetch"); // Or use global fetch if on Node.js 18+
+const fs = require('fs');
+const crypto = require('crypto');
 
-// ---- Profile lookup by UUID with Mojang Fallback Proxy & Resigning ----
+// Load your keys (usually loaded at server startup)
+const keys = {
+    publicKey: fs.readFileSync('./keys/public.pem', 'utf8'),
+    privateKey: fs.readFileSync('./keys/private.pem', 'utf8')
+};
+
+// Simple signing function
+function signPayload(privateKeyPem, data) {
+    const sign = crypto.createSign('SHA1WithRSA');
+    sign.update(data);
+    return sign.sign(privateKeyPem, 'base64');
+}
+```
+
+---
+
+## 2. In-Memory Session Storage (For Multiplayer Joining)
+
+Minecraft multiplayer servers use a "handshake" to authenticate offline/injector players:
+- The client contacts `/join` with their `accessToken`, `selectedProfile` (UUID), and a `serverId` (hash).
+- Your API must temporarily store this server join request.
+- The multiplayer server then contacts `/hasJoined?username=NAME&serverId=HASH` to verify the connection.
+
+Add a simple global map to store these active join states:
+
+```javascript
+// Map to temporarily store active server joining sessions
+const activeSessions = new Map(); // key: "username:serverId", value: { uuid, properties }
+```
+
+---
+
+## 3. Implement the Routes in your Express App (`src/routes/yggdrasil.js`)
+
+Replace or add these three endpoints in your routing file:
+
+```javascript
+const fetch = require("node-fetch"); // Or use Node 18+ global fetch
+
+// ---------------------------------------------------------------------
+// 1. JOIN ENDPOINT (Client-side Handshake)
+// ---------------------------------------------------------------------
+router.post("/sessionserver/session/minecraft/join", async (req, res) => {
+    try {
+        const { accessToken, selectedProfile, serverId } = req.body;
+        if (!accessToken || !selectedProfile || !serverId) {
+            return res.status(400).json({ error: "Bad Request", errorMessage: "Missing parameters" });
+        }
+
+        // Fetch user matching the selectedProfile UUID from your MongoDB database
+        const user = await User.findOne({ uuid: selectedProfile });
+        if (!user) {
+            return res.status(401).json({ error: "Forbidden", errorMessage: "Invalid profile uuid" });
+        }
+
+        // Save session details temporarily
+        const sessionKey = `${user.username.toLowerCase()}:${serverId}`;
+        activeSessions.set(sessionKey, {
+            uuid: selectedProfile.replace(/-/g, "").toLowerCase(),
+            username: user.username,
+            userRecord: user
+        });
+
+        // Clean up session automatically after 30 seconds to prevent memory leaks
+        setTimeout(() => {
+            activeSessions.delete(sessionKey);
+        }, 30000);
+
+        console.log(`[Yggdrasil] Join registered for ${user.username} on serverId: ${serverId}`);
+        return res.status(204).end();
+    } catch (err) {
+        console.error("Error in join route:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// ---------------------------------------------------------------------
+// 2. HASJOINED ENDPOINT (Server-side Verification)
+// ---------------------------------------------------------------------
+router.get("/sessionserver/session/minecraft/hasJoined", async (req, res) => {
+    try {
+        const { username, serverId } = req.query;
+        if (!username || !serverId) {
+            return res.status(400).end();
+        }
+
+        const sessionKey = `${username.toLowerCase()}:${serverId}`;
+        const session = activeSessions.get(sessionKey);
+
+        if (session) {
+            // Player successfully verified! Build their signed profile response
+            console.log(`[Yggdrasil] Server successfully verified connection of ${username}`);
+            activeSessions.delete(sessionKey); // Consume session
+
+            const compactUuid = session.uuid;
+            const properties = [];
+
+            // Build skin textures property if user has a custom skin
+            const texturesPayload = {
+                timestamp: Date.now(),
+                profileId: compactUuid,
+                profileName: session.username,
+                textures: {
+                    SKIN: {
+                        url: `https://farmer-my1t.onrender.com/skins/${session.username}.png`
+                    }
+                }
+            };
+
+            // Set skin model if slim/Alex
+            if (session.userRecord.skinModel === "slim") {
+                texturesPayload.textures.SKIN.metadata = { model: "slim" };
+            }
+
+            const valBase64 = Buffer.from(JSON.stringify(texturesPayload)).toString("base64");
+            const signature = signPayload(keys.privateKey, valBase64);
+
+            properties.push({
+                name: "textures",
+                value: valBase64,
+                signature: signature
+            });
+
+            return res.json({
+                id: compactUuid,
+                name: session.username,
+                properties: properties
+            });
+        }
+
+        // If not found locally, fallback to proxy verifying with Mojang's official servers!
+        console.log(`[Yggdrasil] Session not found locally. Fallback proxy checking Mojang for: ${username}`);
+        const mojangRes = await fetch(`https://sessionserver.mojang.com/session/minecraft/hasJoined?username=${username}&serverId=${serverId}`);
+
+        if (mojangRes.status === 200) {
+            const mojangSession = await mojangRes.json();
+
+            // We must resign the premium player's texture with OUR private key
+            // because authlib-injector client only accepts signatures from our server!
+            const resignedProperties = [];
+            if (mojangSession.properties) {
+                for (const prop of mojangSession.properties) {
+                    if (prop.name === "textures") {
+                        const val = prop.value;
+                        const signature = signPayload(keys.privateKey, val);
+                        resignedProperties.push({
+                            name: "textures",
+                            value: val,
+                            signature: signature
+                        });
+                    } else {
+                        resignedProperties.push(prop);
+                    }
+                }
+            }
+
+            return res.json({
+                id: mojangSession.id,
+                name: mojangSession.name,
+                properties: resignedProperties
+            });
+        }
+
+        return res.status(204).end();
+    } catch (err) {
+        console.error("Error in hasJoined route:", err);
+        return res.status(204).end();
+    }
+});
+
+// ---------------------------------------------------------------------
+// 3. PROFILE ENDPOINT (Query skins & details by UUID)
+// ---------------------------------------------------------------------
 router.get("/sessionserver/session/minecraft/profile/:uuid", async (req, res) => {
     try {
         const compact = req.params.uuid.replace(/-/g, "").toLowerCase();
+
+        // Format dashed UUID for database comparison if needed
         const dashed = [
             compact.substring(0, 8),
             compact.substring(8, 12),
@@ -32,26 +207,50 @@ router.get("/sessionserver/session/minecraft/profile/:uuid", async (req, res) =>
             compact.substring(20, 32),
         ].join("-");
 
-        // 1. Check if the user exists in our local CraftynMC database
-        const user = await User.findOne({ uuid: dashed });
+        // 1. Check database for local CraftynMC player
+        const user = await User.findOne({ $or: [{ uuid: dashed }, { uuid: compact }] });
         if (user) {
             const properties = [];
-            if (user.skinPngBase64 || user.capePngBase64) {
-                properties.push(buildTexturesProperty(user, keys, publicBaseUrl));
+
+            const texturesPayload = {
+                timestamp: Date.now(),
+                profileId: compact,
+                profileName: user.username,
+                textures: {
+                    SKIN: {
+                        url: `https://farmer-my1t.onrender.com/skins/${user.username}.png`
+                    }
+                }
+            };
+
+            if (user.skinModel === "slim") {
+                texturesPayload.textures.SKIN.metadata = { model: "slim" };
             }
-            return res.json({ id: compact, name: user.username, properties });
+
+            const valBase64 = Buffer.from(JSON.stringify(texturesPayload)).toString("base64");
+            const signature = signPayload(keys.privateKey, valBase64);
+
+            properties.push({
+                name: "textures",
+                value: valBase64,
+                signature: signature
+            });
+
+            return res.json({
+                id: compact,
+                name: user.username,
+                properties: properties
+            });
         }
 
-        // 2. Fallback: If not in our database, fetch the profile from official Mojang servers
-        console.log(`[yggdrasil] Profile not found locally. Proxying to Mojang for UUID: ${compact}`);
+        // 2. Fallback: Query official Mojang server if skin/profile belongs to a premium account
+        console.log(`[Yggdrasil] Profile not found locally. Proxying profile lookup to Mojang for UUID: ${compact}`);
         const mojangRes = await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${compact}?unsigned=false`);
 
         if (mojangRes.status === 200) {
             const mojangProfile = await mojangRes.json();
-
-            // We must resign the textures property with our own private key
-            // because authlib-injector only trusts our signature, not Mojang's!
             const resignedProperties = [];
+
             if (mojangProfile.properties) {
                 for (const prop of mojangProfile.properties) {
                     if (prop.name === "textures") {
@@ -75,18 +274,16 @@ router.get("/sessionserver/session/minecraft/profile/:uuid", async (req, res) =>
             });
         }
 
-        // 3. If Mojang doesn't have it either, return 204 No Content
         return res.status(204).end();
-
-    } catch (error) {
-        console.error("Error in profile proxy lookup:", error);
+    } catch (err) {
+        console.error("Error in profile route:", err);
         return res.status(204).end();
     }
 });
 ```
 
+---
 
-## Why this is a Game Changer:
-1. **Your Skin Works Everywhere:** Since your skin is served directly from your website's database, the Minecraft client loads your skin perfectly on any world or server.
-2. **Other Players' Skins Render Perfectly:** Other players' skins are fetched from Mojang, signed on the fly with your server key, and loaded seamlessly, so you'll never see everyone else as Steve/Alex again!
-3. **No performance overhead:** Only requests for non-local users are forwarded to Mojang.
+## Why these changes solve the skin display on servers completely:
+1. **Join & hasJoined are required for Multiplayer:** Minecraft clients verify they own the account before the multiplayer server allows them to spawn in. Without `/join` and `/hasJoined`, players can spawn as Steve/Alex or fail authentication entirely.
+2. **Signature Verification Passing:** Your client's Authlib-Injector ONLY trusts signatures signed by your server's custom private key. When we fetch a premium skin from Mojang, we must parse the payload, extract the skin, and **sign it with your server private key**. This tells the client "yes, this skin is verified and safe to render."

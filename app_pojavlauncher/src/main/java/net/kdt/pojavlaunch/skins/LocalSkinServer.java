@@ -160,10 +160,24 @@ public class LocalSkinServer {
             String method = parts[0];
             String path = parts[1];
 
-            // Drain remaining headers
+            // Drain remaining headers and check content length
+            int contentLength = 0;
             String line;
             while ((line = reader.readLine()) != null && !line.trim().isEmpty()) {
-                // do nothing, just reading headers
+                if (line.toLowerCase().startsWith("content-length:")) {
+                    try {
+                        contentLength = Integer.parseInt(line.substring(15).trim());
+                    } catch (Exception ignored) {}
+                }
+            }
+            if (contentLength > 0) {
+                char[] bodyChars = new char[contentLength];
+                int read = 0;
+                while (read < contentLength) {
+                    int r = reader.read(bodyChars, read, contentLength - read);
+                    if (r == -1) break;
+                    read += r;
+                }
             }
 
             if (path.equals("/") || path.equals("")) {
@@ -185,6 +199,42 @@ public class LocalSkinServer {
 
                 byte[] body = response.toString().getBytes(StandardCharsets.UTF_8);
                 sendResponse(os, 200, "application/json; charset=utf-8", body);
+            } else if (path.startsWith("/sessionserver/session/minecraft/join")) {
+                // Join server handshake
+                Log.i(TAG, "Join handshake received");
+                sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+            } else if (path.startsWith("/sessionserver/session/minecraft/hasJoined")) {
+                // hasJoined server verification
+                String username = "";
+                int uIdx = path.indexOf("username=");
+                if (uIdx != -1) {
+                    int endIdx = path.indexOf('&', uIdx);
+                    if (endIdx == -1) {
+                        username = path.substring(uIdx + 9);
+                    } else {
+                        username = path.substring(uIdx + 9, endIdx);
+                    }
+                }
+                Log.i(TAG, "hasJoined query received for username: " + username);
+                if (username.equalsIgnoreCase(mUsername)) {
+                    JsonObject profile = createLocalProfile(mUserUuid);
+                    byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
+                    sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else {
+                    String fetchedUuid = fetchUuidByUsername(username);
+                    if (fetchedUuid != null) {
+                        JsonObject mojangProfile = fetchMojangProfile(fetchedUuid);
+                        if (mojangProfile != null) {
+                            JsonObject signedProfile = resignProfile(mojangProfile);
+                            byte[] body = signedProfile.toString().getBytes(StandardCharsets.UTF_8);
+                            sendResponse(os, 200, "application/json; charset=utf-8", body);
+                        } else {
+                            sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+                        }
+                    } else {
+                        sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+                    }
+                }
             } else if (path.startsWith("/sessionserver/session/minecraft/profile/")) {
                 // Profile endpoint
                 String uuidStr = path.substring(path.lastIndexOf('/') + 1);
@@ -372,6 +422,35 @@ public class LocalSkinServer {
         profile.add("properties", properties);
 
         return profile;
+    }
+
+    private String fetchUuidByUsername(String username) {
+        try {
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(3000);
+
+            if (conn.getResponseCode() == 200) {
+                try (InputStream is = conn.getInputStream();
+                     ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                    byte[] buf = new byte[1024];
+                    int read;
+                    while ((read = is.read(buf)) != -1) {
+                        bos.write(buf, 0, read);
+                    }
+                    String responseStr = new String(bos.toByteArray(), StandardCharsets.UTF_8);
+                    JsonObject obj = new Gson().fromJson(responseStr, JsonObject.class);
+                    if (obj != null && obj.has("id")) {
+                        return obj.get("id").getAsString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not fetch UUID for username: " + username, e);
+        }
+        return null;
     }
 
     private JsonObject fetchMojangProfile(String uuid) {
