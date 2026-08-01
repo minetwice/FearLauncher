@@ -159,10 +159,16 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
 
     private void downloadAndSetSkin(Context context, String username, String uuid) {
         try {
-            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + uuid + ".png");
+            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + username + ".png");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);
+            if (conn.getResponseCode() != 200) {
+                url = new URL("https://farmer-my1t.onrender.com/skins/" + uuid + ".png");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+            }
             if (conn.getResponseCode() == 200) {
                 File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
                 if (!skinsDir.exists()) skinsDir.mkdirs();

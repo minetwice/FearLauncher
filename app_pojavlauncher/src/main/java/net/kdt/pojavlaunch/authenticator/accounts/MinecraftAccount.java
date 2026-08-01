@@ -38,17 +38,27 @@ public class MinecraftAccount {
     public void updateSkinFace() {
         String skinFaceUrlTemplate = authType.skinUrl;
         if(skinFaceUrlTemplate == null) return;
-        String skinFaceUrl;
-        if (authType == AuthType.CRAFTYN_MC) {
-            skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + profileId + ".png";
-        } else {
-            skinFaceUrl = String.format(skinFaceUrlTemplate, username);
-        }
+        byte[] skinBytes = null;
         try {
             Log.i("SkinLoader", "Updating skin face...");
             File skinFile = getSkinFaceFile();
-            // Streaming it directly breaks on some devices
-            byte[] skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+            if (authType == AuthType.CRAFTYN_MC) {
+                try {
+                    String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + username + ".png";
+                    skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+                } catch (IOException e) {
+                    try {
+                        String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + profileId + ".png";
+                        skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+                    } catch (IOException ex) {
+                        Log.w("SkinLoader", "Could not load skin via username or profileId", ex);
+                        return;
+                    }
+                }
+            } else {
+                String skinFaceUrl = String.format(skinFaceUrlTemplate, username);
+                skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+            }
             Bitmap skinBitmap = BitmapFactory.decodeByteArray(skinBytes, 0, skinBytes.length);
             if(skinBitmap == null) return;
             Bitmap skinFace = new SkinHeadRenderer().render(100, skinBitmap);
