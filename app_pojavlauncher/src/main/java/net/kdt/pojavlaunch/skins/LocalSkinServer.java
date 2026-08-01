@@ -222,7 +222,25 @@ public class LocalSkinServer {
                     sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                 }
             } else if (path.startsWith("/sessionserver/session/minecraft/hasJoined")) {
-                if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                // Parse username first
+                String username = "";
+                int uIdx = path.indexOf("username=");
+                if (uIdx != -1) {
+                    int endIdx = path.indexOf('&', uIdx);
+                    if (endIdx == -1) {
+                        username = path.substring(uIdx + 9);
+                    } else {
+                        username = path.substring(uIdx + 9, endIdx);
+                    }
+                }
+                Log.i(TAG, "hasJoined query received for username: " + username);
+
+                // If verifying our own username, always serve our custom local skin directly
+                if (username.equalsIgnoreCase(mUsername)) {
+                    JsonObject profile = createLocalProfile(mUserUuid);
+                    byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
+                    sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
                     int[] statusCode = new int[1];
                     String[] outContentType = new String[1];
                     byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
@@ -241,36 +259,18 @@ public class LocalSkinServer {
                         sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
                     }
                 } else {
-                    // hasJoined server verification
-                    String username = "";
-                    int uIdx = path.indexOf("username=");
-                    if (uIdx != -1) {
-                        int endIdx = path.indexOf('&', uIdx);
-                        if (endIdx == -1) {
-                            username = path.substring(uIdx + 9);
-                        } else {
-                            username = path.substring(uIdx + 9, endIdx);
-                        }
-                    }
-                    Log.i(TAG, "hasJoined query received for username: " + username);
-                    if (username.equalsIgnoreCase(mUsername)) {
-                        JsonObject profile = createLocalProfile(mUserUuid);
-                        byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
-                        sendResponse(os, 200, "application/json; charset=utf-8", body);
-                    } else {
-                        String fetchedUuid = fetchUuidByUsername(username);
-                        if (fetchedUuid != null) {
-                            JsonObject mojangProfile = fetchMojangProfile(fetchedUuid);
-                            if (mojangProfile != null) {
-                                JsonObject signedProfile = resignProfile(mojangProfile);
-                                byte[] body = signedProfile.toString().getBytes(StandardCharsets.UTF_8);
-                                sendResponse(os, 200, "application/json; charset=utf-8", body);
-                            } else {
-                                sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
-                            }
+                    String fetchedUuid = fetchUuidByUsername(username);
+                    if (fetchedUuid != null) {
+                        JsonObject mojangProfile = fetchMojangProfile(fetchedUuid);
+                        if (mojangProfile != null) {
+                            JsonObject signedProfile = resignProfile(mojangProfile);
+                            byte[] body = signedProfile.toString().getBytes(StandardCharsets.UTF_8);
+                            sendResponse(os, 200, "application/json; charset=utf-8", body);
                         } else {
                             sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                         }
+                    } else {
+                        sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                     }
                 }
             } else if (path.startsWith("/sessionserver/session/minecraft/profile/")) {
@@ -285,7 +285,16 @@ public class LocalSkinServer {
 
                 Log.i(TAG, "Profile query received for UUID: " + uuidStr);
 
-                if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                // Compute standard offline player UUID based on user's active username
+                String offlineUuidStr = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + mUsername).getBytes(StandardCharsets.UTF_8))
+                        .toString().replace("-", "").toLowerCase();
+
+                // If querying our own UUID or offline UUID, always serve our custom local skin directly
+                if (uuidStr.equals(mUserUuid) || uuidStr.equals(offlineUuidStr)) {
+                    JsonObject profile = createLocalProfile(uuidStr);
+                    byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
+                    sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
                     int[] statusCode = new int[1];
                     String[] outContentType = new String[1];
                     byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
@@ -304,23 +313,13 @@ public class LocalSkinServer {
                         sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
                     }
                 } else {
-                    // Compute standard offline player UUID based on user's active username
-                    String offlineUuidStr = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + mUsername).getBytes(StandardCharsets.UTF_8))
-                            .toString().replace("-", "").toLowerCase();
-
-                    if (uuidStr.equals(mUserUuid) || uuidStr.equals(offlineUuidStr)) {
-                        JsonObject profile = createLocalProfile(uuidStr);
-                        byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
+                    JsonObject mojangProfile = fetchMojangProfile(uuidStr);
+                    if (mojangProfile != null) {
+                        JsonObject signedProfile = resignProfile(mojangProfile);
+                        byte[] body = signedProfile.toString().getBytes(StandardCharsets.UTF_8);
                         sendResponse(os, 200, "application/json; charset=utf-8", body);
                     } else {
-                        JsonObject mojangProfile = fetchMojangProfile(uuidStr);
-                        if (mojangProfile != null) {
-                            JsonObject signedProfile = resignProfile(mojangProfile);
-                            byte[] body = signedProfile.toString().getBytes(StandardCharsets.UTF_8);
-                            sendResponse(os, 200, "application/json; charset=utf-8", body);
-                        } else {
-                            sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
-                        }
+                        sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                     }
                 }
             } else if (path.contains("/texture/") || path.contains("/textures/") || path.contains("skin")) {
