@@ -14,12 +14,18 @@ public enum AuthType {
             null,
             "https://mineskin.eu/skin/%s" // Switched from mc-heads.net cause blocked in Russia
     ),
+    // ---- CraftynMC (your own FearNet/CraftynMC server) ----
+    // injectorUrl now includes "/yggdrasil" because the server's homepage and
+    // its Yggdrasil meta endpoint both used to fight over the bare "/" path -
+    // the website's homepage always won, so authlib-injector was getting HTML
+    // back instead of JSON ("Unable to parse metadata: Invalid JSON"). The
+    // Yggdrasil API now lives at its own path so both work at once.
     @SerializedName("craftynmc")
     CRAFTYN_MC(
             net.kdt.pojavlaunch.authenticator.impl.CraftynBackgroundLogin.CREATOR,
             R.drawable.ic_auth_craftynmc,
-            "https://farmer-my1t.onrender.com",
-            "https://farmer-my1t.onrender.com/skins/%s.png"
+            "farmer-my1t.onrender.com/yggdrasil",
+            "https://farmer-my1t.onrender.com/skins/name/%s.png"
     ),
     @SerializedName("local")
     LOCAL(null, 0, null, null);
