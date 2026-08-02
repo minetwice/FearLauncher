@@ -159,10 +159,32 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
 
     private void downloadAndSetSkin(Context context, String username, String uuid) {
         try {
-            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + uuid + ".png");
+            String dashedUuid = uuid;
+            if (dashedUuid != null && !dashedUuid.contains("-") && dashedUuid.length() == 32) {
+                dashedUuid = dashedUuid.substring(0, 8) + "-" +
+                             dashedUuid.substring(8, 12) + "-" +
+                             dashedUuid.substring(12, 16) + "-" +
+                             dashedUuid.substring(16, 20) + "-" +
+                             dashedUuid.substring(20, 32);
+            }
+            String undashedUuid = uuid != null ? uuid.replace("-", "").toLowerCase() : "";
+
+            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + dashedUuid + ".png");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);
+            if (conn.getResponseCode() != 200) {
+                url = new URL("https://farmer-my1t.onrender.com/skins/" + undashedUuid + ".png");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+            }
+            if (conn.getResponseCode() != 200) {
+                url = new URL("https://farmer-my1t.onrender.com/skins/" + username + ".png");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+            }
             if (conn.getResponseCode() == 200) {
                 File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
                 if (!skinsDir.exists()) skinsDir.mkdirs();

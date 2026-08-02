@@ -20,6 +20,119 @@
  * https://github.com/PojavLauncherTeam/lwjgl3/blob/3.3.1/modules/lwjgl/core/src/generated/c/linux/org_lwjgl_system_linux_DynamicLinkLoader.c#L11
  * but with our own additions for stuff like vulkanmod.
  */
+#define GL_VERSION 0x1F02
+#define GL_RENDERER 0x1F01
+#define GL_VENDOR 0x1F00
+#define GL_EXTENSIONS 0x1F03
+
+static void glMemoryBarrier_stub(unsigned int barriers) {
+    typedef void (*glFlush_pfn)();
+    static glFlush_pfn real_glFlush = NULL;
+    if (!real_glFlush) {
+        real_glFlush = (glFlush_pfn) dlsym(RTLD_DEFAULT, "glFlush");
+        if (!real_glFlush) {
+            real_glFlush = (glFlush_pfn) dlsym(RTLD_NEXT, "glFlush");
+        }
+    }
+    if (real_glFlush) {
+        real_glFlush();
+    }
+    LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
+}
+
+static const unsigned char* glGetString_hook(unsigned int name) {
+    if (name == GL_VERSION) {
+        return (const unsigned char*)"4.6.0 NVIDIA 545.29";
+    } else if (name == GL_RENDERER) {
+        return (const unsigned char*)"NVIDIA GeForce RTX 4090";
+    } else if (name == GL_VENDOR) {
+        return (const unsigned char*)"NVIDIA Corporation";
+    } else if (name == GL_EXTENSIONS) {
+        return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+    }
+
+    typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+    static glGetString_pfn real_glGetString = NULL;
+    if (!real_glGetString) {
+        real_glGetString = (glGetString_pfn) dlsym(RTLD_DEFAULT, "glGetString");
+        if (!real_glGetString) {
+            real_glGetString = (glGetString_pfn) dlsym(RTLD_NEXT, "glGetString");
+        }
+    }
+    if (real_glGetString) {
+        return real_glGetString(name);
+    }
+    return (const unsigned char*)"";
+}
+
+static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int index) {
+    if (name == GL_EXTENSIONS) {
+        static const char* extensions[] = {
+            "GL_ARB_direct_state_access",
+            "GL_ARB_buffer_storage",
+            "GL_ARB_shader_image_load_store",
+            "GL_NV_conditional_render",
+            "GL_EXT_gpu_shader4",
+            "GL_EXT_texture_buffer",
+            "GL_EXT_texture_cube_map_array",
+            "GL_OES_EGL_image_external_essl3",
+            "GL_NV_shader_noperspective_interpolation",
+            "GL_ARB_shader_objects",
+            "GL_ARB_vertex_shader",
+            "GL_ARB_fragment_shader",
+            "GL_EXT_blend_equation_separate",
+            "GL_EXT_geometry_shader4",
+            "GL_EXT_gpu_program_parameters",
+            "GL_ARB_instanced_arrays",
+            "GL_ARB_draw_instanced"
+        };
+        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
+        if (index < size) {
+            return (const unsigned char*)extensions[index];
+        }
+    }
+
+    typedef const unsigned char* (*glGetStringi_pfn)(unsigned int, unsigned int);
+    static glGetStringi_pfn real_glGetStringi = NULL;
+    if (!real_glGetStringi) {
+        real_glGetStringi = (glGetStringi_pfn) dlsym(RTLD_DEFAULT, "glGetStringi");
+        if (!real_glGetStringi) {
+            real_glGetStringi = (glGetStringi_pfn) dlsym(RTLD_NEXT, "glGetStringi");
+        }
+    }
+    if (real_glGetStringi) {
+        return real_glGetStringi(name, index);
+    }
+    return (const unsigned char*)"";
+}
+
+static void* eglGetProcAddress_hook(const char* procname) {
+    if (procname == NULL) return NULL;
+    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
+        LOGI("eglGetProcAddress_hook: Intercepted and returned custom glMemoryBarrier stub!");
+        return (void*) glMemoryBarrier_stub;
+    }
+    if (strcmp(procname, "glGetString") == 0) {
+        return (void*) glGetString_hook;
+    }
+    if (strcmp(procname, "glGetStringi") == 0) {
+        return (void*) glGetStringi_hook;
+    }
+
+    typedef void* (*eglGetProcAddress_pfn)(const char*);
+    static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
+    if (!real_eglGetProcAddress) {
+        real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (!real_eglGetProcAddress) {
+            real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_NEXT, "eglGetProcAddress");
+        }
+    }
+    if (real_eglGetProcAddress) {
+        return real_eglGetProcAddress(procname);
+    }
+    return NULL;
+}
+
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
                      jlong filename_ptr,
@@ -49,22 +162,51 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     return (jlong) dlopen(filename, mode);
 }
 
+static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
+                  __attribute__((unused)) jclass class,
+                  jlong handle,
+                  jlong symbol_ptr) {
+    const char* symbol = (const char*) symbol_ptr;
+    if (symbol != NULL) {
+        if (strcmp(symbol, "eglGetProcAddress") == 0) {
+            printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol directly\n");
+            return (jlong) eglGetProcAddress_hook;
+        }
+        if (strcmp(symbol, "glGetString") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glGetString symbol directly\n");
+            return (jlong) glGetString_hook;
+        }
+        if (strcmp(symbol, "glGetStringi") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glGetStringi symbol directly\n");
+            return (jlong) glGetStringi_hook;
+        }
+        if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
+            return (jlong) glMemoryBarrier_stub;
+        }
+    }
+
+    // Call real dlsym
+    return (jlong) dlsym((void*) handle, symbol);
+}
+
 /**
  * Install the LWJGL dlopen hook. This allows us to mitigate linker bugs and add custom library overrides.
  */
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL dlopen() hook");
+    LOGI("Installing LWJGL dlopen() and dlsym() hooks");
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if(dynamicLinkLoader == NULL) {
         LOGE("Failed to find the target class");
         (*env)->ExceptionClear(env);
         return;
     }
-    JNINativeMethod ndlopenMethod[] = {
-            {"ndlopen", "(JI)J", &ndlopen_bugfix}
+    JNINativeMethod hooks[] = {
+            {"ndlopen", "(JI)J", &ndlopen_bugfix},
+            {"ndlsym", "(JJ)J", &ndlsym_hook}
     };
-    if((*env)->RegisterNatives(env, dynamicLinkLoader, ndlopenMethod, 1) != 0) {
-        LOGE("Failed to register the hooked method");
+    if((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+        LOGE("Failed to register the hooked methods");
         (*env)->ExceptionClear(env);
     }
 }

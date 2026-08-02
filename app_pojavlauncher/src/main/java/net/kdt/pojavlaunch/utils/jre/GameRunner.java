@@ -382,38 +382,41 @@ public class GameRunner {
     }
 
     private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
-        String injectorUrl = minecraftAccount.authType.injectorUrl;
-        if (injectorUrl == null) {
-            if (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
-                File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
-                if (!injectorJar.exists()) {
-                    try {
-                        injectorJar.getParentFile().mkdirs();
-                        try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
-                             java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
-                            byte[] buffer = new byte[1024];
-                            int read;
-                            while ((read = in.read(buffer)) != -1) {
-                                out.write(buffer, 0, read);
-                            }
+        boolean useLocalServer = (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) ||
+                                 (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
+        if (useLocalServer) {
+            File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
+            if (!injectorJar.exists()) {
+                try {
+                    injectorJar.getParentFile().mkdirs();
+                    try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
+                         java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
+                        byte[] buffer = new byte[1024];
+                        int read;
+                        while ((read = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, read);
                         }
-                        Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-                    } catch (Exception e) {
-                        Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
                     }
-                }
-                if (injectorJar.exists()) {
-                    try {
-                        net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
-                        javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
-                        Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
-                    } catch (Exception e) {
-                        Log.e("LocalSkinServer", "Error starting/injecting local skin server", e);
-                    }
-                } else {
-                    Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection.");
+                    Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
+                } catch (Exception e) {
+                    Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
                 }
             }
+            if (injectorJar.exists()) {
+                try {
+                    net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
+                    javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
+                    Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
+                } catch (Exception e) {
+                    Log.e("LocalSkinServer", "Error starting/injecting local skin server", e);
+                }
+            } else {
+                Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection.");
+            }
+            return;
+        }
+        String injectorUrl = minecraftAccount.authType.injectorUrl;
+        if (injectorUrl == null) {
             return;
         }
         File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");

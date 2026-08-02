@@ -38,17 +38,42 @@ public class MinecraftAccount {
     public void updateSkinFace() {
         String skinFaceUrlTemplate = authType.skinUrl;
         if(skinFaceUrlTemplate == null) return;
-        String skinFaceUrl;
-        if (authType == AuthType.CRAFTYN_MC) {
-            skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + profileId + ".png";
-        } else {
-            skinFaceUrl = String.format(skinFaceUrlTemplate, username);
-        }
+        byte[] skinBytes = null;
         try {
             Log.i("SkinLoader", "Updating skin face...");
             File skinFile = getSkinFaceFile();
-            // Streaming it directly breaks on some devices
-            byte[] skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+            if (authType == AuthType.CRAFTYN_MC) {
+                String dashedUuid = profileId;
+                if (dashedUuid != null && !dashedUuid.contains("-") && dashedUuid.length() == 32) {
+                    dashedUuid = dashedUuid.substring(0, 8) + "-" +
+                                 dashedUuid.substring(8, 12) + "-" +
+                                 dashedUuid.substring(12, 16) + "-" +
+                                 dashedUuid.substring(16, 20) + "-" +
+                                 dashedUuid.substring(20, 32);
+                }
+                String undashedUuid = profileId != null ? profileId.replace("-", "").toLowerCase() : "";
+
+                try {
+                    String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + dashedUuid + ".png";
+                    skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+                } catch (IOException e1) {
+                    try {
+                        String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + undashedUuid + ".png";
+                        skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+                    } catch (IOException e2) {
+                        try {
+                            String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + username + ".png";
+                            skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+                        } catch (IOException e3) {
+                            Log.w("SkinLoader", "Could not load skin via dashed, undashed, or username", e3);
+                            return;
+                        }
+                    }
+                }
+            } else {
+                String skinFaceUrl = String.format(skinFaceUrlTemplate, username);
+                skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
+            }
             Bitmap skinBitmap = BitmapFactory.decodeByteArray(skinBytes, 0, skinBytes.length);
             if(skinBitmap == null) return;
             Bitmap skinFace = new SkinHeadRenderer().render(100, skinBitmap);

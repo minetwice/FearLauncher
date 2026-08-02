@@ -51,6 +51,7 @@ public class LocalSkinServer {
     private String mUserUuid = "00000000000000000000000000000000";
     private boolean mIsAlex = false;
     private String mActiveSkinPath = "steve";
+    private net.kdt.pojavlaunch.authenticator.AuthType mAuthType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
     private Context mContext;
 
     public static synchronized LocalSkinServer getInstance() {
@@ -83,13 +84,16 @@ public class LocalSkinServer {
         if (account != null) {
             mUsername = account.username;
             mUserUuid = account.profileId != null ? account.profileId.replace("-", "").toLowerCase() : "00000000000000000000000000000000";
+            mAuthType = account.authType;
+        } else {
+            mAuthType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
         }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         mActiveSkinPath = prefs.getString("active_skin_path", "steve");
         mIsAlex = prefs.getBoolean("active_skin_is_alex", false);
 
-        Log.i(TAG, "Starting LocalSkinServer for " + mUsername + " (" + mUserUuid + "), skin path: " + mActiveSkinPath);
+        Log.i(TAG, "Starting LocalSkinServer for " + mUsername + " (" + mUserUuid + "), skin path: " + mActiveSkinPath + ", authType: " + mAuthType);
 
         mIsRunning = true;
         mThreadPool = Executors.newCachedThreadPool();
@@ -162,14 +166,18 @@ public class LocalSkinServer {
 
             // Drain remaining headers and check content length
             int contentLength = 0;
+            String contentTypeHeader = null;
             String line;
             while ((line = reader.readLine()) != null && !line.trim().isEmpty()) {
                 if (line.toLowerCase().startsWith("content-length:")) {
                     try {
                         contentLength = Integer.parseInt(line.substring(15).trim());
                     } catch (Exception ignored) {}
+                } else if (line.toLowerCase().startsWith("content-type:")) {
+                    contentTypeHeader = line.substring(13).trim();
                 }
             }
+            byte[] requestBody = null;
             if (contentLength > 0) {
                 char[] bodyChars = new char[contentLength];
                 int read = 0;
@@ -178,6 +186,8 @@ public class LocalSkinServer {
                     if (r == -1) break;
                     read += r;
                 }
+                String bodyStr = new String(bodyChars);
+                requestBody = bodyStr.getBytes(StandardCharsets.UTF_8);
             }
 
             if (path.equals("/") || path.equals("")) {
@@ -193,6 +203,7 @@ public class LocalSkinServer {
                 skinDomains.add("localhost");
                 skinDomains.add("127.0.0.1");
                 skinDomains.add("textures.minecraft.net");
+                skinDomains.add("farmer-my1t.onrender.com");
                 response.add("skinDomains", skinDomains);
 
                 response.addProperty("signaturePublickey", mPemPublicKey);
@@ -200,11 +211,18 @@ public class LocalSkinServer {
                 byte[] body = response.toString().getBytes(StandardCharsets.UTF_8);
                 sendResponse(os, 200, "application/json; charset=utf-8", body);
             } else if (path.startsWith("/sessionserver/session/minecraft/join")) {
-                // Join server handshake
-                Log.i(TAG, "Join handshake received");
-                sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+                if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                    int[] statusCode = new int[1];
+                    String[] outContentType = new String[1];
+                    byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
+                    sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
+                } else {
+                    // Join server handshake
+                    Log.i(TAG, "Join handshake received");
+                    sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+                }
             } else if (path.startsWith("/sessionserver/session/minecraft/hasJoined")) {
-                // hasJoined server verification
+                // Parse username first
                 String username = "";
                 int uIdx = path.indexOf("username=");
                 if (uIdx != -1) {
@@ -216,10 +234,30 @@ public class LocalSkinServer {
                     }
                 }
                 Log.i(TAG, "hasJoined query received for username: " + username);
+
+                // If verifying our own username, always serve our custom local skin directly
                 if (username.equalsIgnoreCase(mUsername)) {
                     JsonObject profile = createLocalProfile(mUserUuid);
                     byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
                     sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                    int[] statusCode = new int[1];
+                    String[] outContentType = new String[1];
+                    byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
+                    if (statusCode[0] == 200 && responseBody != null && responseBody.length > 0) {
+                        try {
+                            String respStr = new String(responseBody, StandardCharsets.UTF_8);
+                            JsonObject profileObj = new Gson().fromJson(respStr, JsonObject.class);
+                            JsonObject resignedObj = resignProfile(profileObj);
+                            byte[] resignedBody = resignedObj.toString().getBytes(StandardCharsets.UTF_8);
+                            sendResponse(os, 200, "application/json; charset=utf-8", resignedBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to parse/resign Craftyn hasJoined profile", e);
+                            sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
+                        }
+                    } else {
+                        sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
+                    }
                 } else {
                     String fetchedUuid = fetchUuidByUsername(username);
                     if (fetchedUuid != null) {
@@ -251,10 +289,29 @@ public class LocalSkinServer {
                 String offlineUuidStr = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + mUsername).getBytes(StandardCharsets.UTF_8))
                         .toString().replace("-", "").toLowerCase();
 
+                // If querying our own UUID or offline UUID, always serve our custom local skin directly
                 if (uuidStr.equals(mUserUuid) || uuidStr.equals(offlineUuidStr)) {
                     JsonObject profile = createLocalProfile(uuidStr);
                     byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
                     sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                    int[] statusCode = new int[1];
+                    String[] outContentType = new String[1];
+                    byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
+                    if (statusCode[0] == 200 && responseBody != null && responseBody.length > 0) {
+                        try {
+                            String respStr = new String(responseBody, StandardCharsets.UTF_8);
+                            JsonObject profileObj = new Gson().fromJson(respStr, JsonObject.class);
+                            JsonObject resignedObj = resignProfile(profileObj);
+                            byte[] resignedBody = resignedObj.toString().getBytes(StandardCharsets.UTF_8);
+                            sendResponse(os, 200, "application/json; charset=utf-8", resignedBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to parse/resign Craftyn profile", e);
+                            sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
+                        }
+                    } else {
+                        sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
+                    }
                 } else {
                     JsonObject mojangProfile = fetchMojangProfile(uuidStr);
                     if (mojangProfile != null) {
@@ -509,6 +566,55 @@ public class LocalSkinServer {
             Log.e(TAG, "Error resigning profile", e);
             return mojangProfile;
         }
+    }
+
+    private byte[] proxyRequest(String method, String path, byte[] requestBody, String contentType, int[] outStatusCode, String[] outContentType) {
+        try {
+            URL url = new URL("https://farmer-my1t.onrender.com" + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod(method);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setUseCaches(false);
+
+            if (contentType != null) {
+                conn.setRequestProperty("Content-Type", contentType);
+            }
+
+            if (requestBody != null && requestBody.length > 0) {
+                conn.setDoOutput(true);
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(requestBody);
+                }
+            }
+
+            int respCode = conn.getResponseCode();
+            outStatusCode[0] = respCode;
+            outContentType[0] = conn.getContentType();
+
+            InputStream is;
+            if (respCode >= 200 && respCode < 400) {
+                is = conn.getInputStream();
+            } else {
+                is = conn.getErrorStream();
+            }
+
+            if (is != null) {
+                try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                    byte[] buf = new byte[4096];
+                    int read;
+                    while ((read = is.read(buf)) != -1) {
+                        bos.write(buf, 0, read);
+                    }
+                    return bos.toByteArray();
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to proxy request " + method + " " + path, e);
+        }
+        outStatusCode[0] = 500;
+        outContentType[0] = "text/plain";
+        return "Internal Proxy Error".getBytes(StandardCharsets.UTF_8);
     }
 
     private String signData(String data) throws Exception {
