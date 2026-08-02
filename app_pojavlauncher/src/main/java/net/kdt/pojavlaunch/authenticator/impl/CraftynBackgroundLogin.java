@@ -2,14 +2,10 @@ package net.kdt.pojavlaunch.authenticator.impl;
 
 import static net.kdt.pojavlaunch.PojavApplication.sExecutorService;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
 
-import com.google.gson.JsonObject;
 import com.kdt.mcgui.ProgressLayout;
 
 import net.kdt.pojavlaunch.Tools;
@@ -18,198 +14,149 @@ import net.kdt.pojavlaunch.authenticator.BackgroundLogin;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.authenticator.listener.LoginListener;
+import net.kdt.pojavlaunch.authenticator.model.CraftynAuthResponse;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Talks directly to your server's real Yggdrasil-style login endpoints
+ * (/yggdrasil/authserver/authenticate and /yggdrasil/authserver/refresh) -
+ * the same protocol Ely.by uses. This does NOT touch the website's /login
+ * endpoint (that one issues a website session JWT, not a valid Minecraft
+ * access token) and does NOT download/save skin files locally (that never
+ * actually reaches the game - authlib-injector handles skin display
+ * automatically once AuthType.CRAFTYN_MC.injectorUrl is set correctly).
+ *
+ * The credentials are packed as "username\npassword" into the single String
+ * the BackgroundLogin interface carries - see CraftynLoginFragment.
+ */
 public class CraftynBackgroundLogin implements BackgroundLogin {
     public static final BackgroundLogin.Creator CREATOR = CraftynBackgroundLogin::new;
 
-    private static final String loginUrl = "https://farmer-my1t.onrender.com/login";
-
-    private String mToken;
-    private String mUsername;
-    private String mUuid;
-    private String mPassword;
+    // Must match AuthType.CRAFTYN_MC's injectorUrl (with the scheme in front,
+    // since this is used for direct HTTP calls) - including the /yggdrasil
+    // path, since the server's website homepage and its Yggdrasil API can't
+    // both live at the bare "/" root.
+    private static final String SERVER_BASE_URL = "https://farmer-my1t.onrender.com/yggdrasil";
 
     private CraftynBackgroundLogin() {}
 
-    public void setCredentials(String username, String password) {
-        this.mUsername = username;
-        this.mPassword = password;
-    }
+    @Override
+    public void createAccount(@NonNull LoginListener loginListener, String code) {
+        String[] parts = code.split("\n", 2);
+        if (parts.length != 2) {
+            Tools.runOnUiThread(() -> loginListener.onLoginError(new IllegalArgumentException("Missing username or password")));
+            return;
+        }
+        String username = parts[0];
+        String password = parts[1];
 
-    private void authenticateUser(@NonNull LoginListener loginListener, Runnable onSuccess) {
         ProgressLayout.setProgress(ProgressLayout.AUTHENTICATE, 0);
         sExecutorService.execute(() -> {
-            loginListener.setMaxLoginProgress(2);
+            loginListener.setMaxLoginProgress(1);
             try {
-                notifyProgress(loginListener, 1);
-                // Perform authentication request to CraftynMC website
-                URL url = new URL(loginUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
-
-                JsonObject json = new JsonObject();
-                json.addProperty("username", mUsername);
-                json.addProperty("password", mPassword);
-
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(json.toString().getBytes(StandardCharsets.UTF_8));
-                }
-
-                if (conn.getResponseCode() == 200) {
-                    try (InputStream is = conn.getInputStream();
-                         ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                        byte[] buf = new byte[1024];
-                        int read;
-                        while ((read = is.read(buf)) != -1) {
-                            bos.write(buf, 0, read);
-                        }
-                        String responseStr = new String(bos.toByteArray(), StandardCharsets.UTF_8);
-                        JsonObject response = Tools.GLOBAL_GSON.fromJson(responseStr, JsonObject.class);
-
-                        mToken = response.get("token").getAsString();
-                        JsonObject userJson = response.getAsJsonObject("user");
-                        mUsername = userJson.get("username").getAsString();
-                        mUuid = userJson.get("uuid").getAsString();
-                        String skinModel = userJson.has("skinModel") ? userJson.get("skinModel").getAsString() : "classic";
-                        boolean isAlex = "slim".equalsIgnoreCase(skinModel);
-
-                        Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
-                        if (context != null) {
-                            PreferenceManager.getDefaultSharedPreferences(context)
-                                    .edit()
-                                    .putBoolean("active_skin_is_alex", isAlex)
-                                    .apply();
-                        }
-
-                        notifyProgress(loginListener, 2);
-                        onSuccess.run();
-                    }
-                } else {
-                    throw new IOException("Failed to login to CraftynMC. Response code: " + conn.getResponseCode());
-                }
+                Tools.runOnUiThread(() -> loginListener.onLoginProgress(1));
+                CraftynAuthResponse response = authenticate(username, password);
+                MinecraftAccount account = Accounts.create(acc -> fillAccount(acc, response));
+                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
             } catch (Exception e) {
-                Log.e("CraftynAuth", "Error during login", e);
+                Log.e("CraftynAuth", "Exception thrown during authentication", e);
                 Tools.runOnUiThread(() -> loginListener.onLoginError(e));
             }
             ProgressLayout.clearProgress(ProgressLayout.AUTHENTICATE);
         });
     }
 
-    private void fillAccount(MinecraftAccount acc) {
+    @Override
+    public void refreshAccount(@NonNull LoginListener loginListener, MinecraftAccount account) {
+        ProgressLayout.setProgress(ProgressLayout.AUTHENTICATE, 0);
+        sExecutorService.execute(() -> {
+            loginListener.setMaxLoginProgress(1);
+            try {
+                Tools.runOnUiThread(() -> loginListener.onLoginProgress(1));
+                // account.refreshToken doubles as the Yggdrasil "clientToken" here - see fillAccount().
+                CraftynAuthResponse response = refresh(account.accessToken, account.refreshToken);
+                fillAccount(account, response);
+                account.save();
+                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
+            } catch (Exception e) {
+                Log.e("CraftynAuth", "Exception thrown during refresh", e);
+                Tools.runOnUiThread(() -> loginListener.onLoginError(e));
+            }
+            ProgressLayout.clearProgress(ProgressLayout.AUTHENTICATE);
+        });
+    }
+
+    private void fillAccount(MinecraftAccount acc, CraftynAuthResponse response) {
         acc.authType = AuthType.CRAFTYN_MC;
-        acc.accessToken = mToken;
-        acc.refreshToken = mPassword;
-        acc.username = mUsername;
-        acc.profileId = mUuid;
+        acc.accessToken = response.accessToken;
+        // MinecraftAccount has no dedicated "clientToken" field, so we store it in
+        // refreshToken - the server's /authserver/refresh needs both accessToken
+        // and clientToken together, unlike OAuth-style refresh tokens. This is
+        // NOT the account's password - never store the raw password here.
+        acc.refreshToken = response.clientToken;
+        acc.username = response.selectedProfile.name;
+        acc.profileId = response.selectedProfile.id;
         acc.xuid = null;
+        acc.expiresAt = System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000; // sessions don't hard-expire server-side; this just avoids unnecessary refreshes
         acc.updateSkinFace();
     }
 
-    @Override
-    public void createAccount(@NonNull LoginListener loginListener, String credentials) {
-        String[] parts = credentials.split(":", 2);
-        if (parts.length == 2) {
-            mUsername = parts[0];
-            mPassword = parts[1];
+    private CraftynAuthResponse authenticate(String username, String password) throws IOException {
+        String json = "{\"username\":" + jsonString(username) + ",\"password\":" + jsonString(password) + "}";
+        return postJson(SERVER_BASE_URL + "/authserver/authenticate", json);
+    }
+
+    private CraftynAuthResponse refresh(String accessToken, String clientToken) throws IOException {
+        String json = "{\"accessToken\":" + jsonString(accessToken) + ",\"clientToken\":" + jsonString(clientToken) + "}";
+        return postJson(SERVER_BASE_URL + "/authserver/refresh", json);
+    }
+
+    private CraftynAuthResponse postJson(String urlStr, String jsonBody) throws IOException {
+        URL url = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setUseCaches(false);
+        conn.setDoInput(true);
+        conn.setDoOutput(true);
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        conn.connect();
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
         }
-        authenticateUser(loginListener, () -> {
-            try {
-                MinecraftAccount account = Accounts.create(this::fillAccount);
-                Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
-                downloadAndSetSkin(context, mUsername, mUuid);
-                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
-            } catch (Exception e) {
-                Log.e("CraftynAuth", "Error creating account", e);
-                Tools.runOnUiThread(() -> loginListener.onLoginError(e));
+
+        int code = conn.getResponseCode();
+        if (code >= 200 && code < 300) {
+            try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
+                return Tools.GLOBAL_GSON.fromJson(reader, CraftynAuthResponse.class);
+            } finally {
+                conn.disconnect();
             }
-        });
+        } else {
+            String errorBody = Tools.read(conn.getErrorStream());
+            Log.i("CraftynAuth", "Login failed (" + code + "): " + errorBody);
+            conn.disconnect();
+            throw new IOException(parseErrorMessage(errorBody, code));
+        }
     }
 
-    @Override
-    public void refreshAccount(@NonNull LoginListener loginListener, MinecraftAccount account) {
-        mUsername = account.username;
-        mUuid = account.profileId;
-        mPassword = account.refreshToken;
-
-        sExecutorService.execute(() -> {
-            try {
-                Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
-                downloadAndSetSkin(context, mUsername, mUuid);
-                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
-            } catch (Exception e) {
-                Log.e("CraftynAuth", "Error refreshing skin", e);
-                Tools.runOnUiThread(() -> loginListener.onLoginDone(account));
-            }
-        });
-    }
-
-    private void downloadAndSetSkin(Context context, String username, String uuid) {
+    private String parseErrorMessage(String errorBody, int code) {
         try {
-            String dashedUuid = uuid;
-            if (dashedUuid != null && !dashedUuid.contains("-") && dashedUuid.length() == 32) {
-                dashedUuid = dashedUuid.substring(0, 8) + "-" +
-                             dashedUuid.substring(8, 12) + "-" +
-                             dashedUuid.substring(12, 16) + "-" +
-                             dashedUuid.substring(16, 20) + "-" +
-                             dashedUuid.substring(20, 32);
-            }
-            String undashedUuid = uuid != null ? uuid.replace("-", "").toLowerCase() : "";
-
-            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + dashedUuid + ".png");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            if (conn.getResponseCode() != 200) {
-                url = new URL("https://farmer-my1t.onrender.com/skins/" + undashedUuid + ".png");
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-            }
-            if (conn.getResponseCode() != 200) {
-                url = new URL("https://farmer-my1t.onrender.com/skins/" + username + ".png");
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-            }
-            if (conn.getResponseCode() == 200) {
-                File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
-                if (!skinsDir.exists()) skinsDir.mkdirs();
-                File skinFile = new File(skinsDir, "craftynmc_" + username + ".png");
-                try (InputStream in = conn.getInputStream();
-                     FileOutputStream out = new FileOutputStream(skinFile)) {
-                    byte[] buffer = new byte[1024];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                    }
-                }
-                if (context != null) {
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-                    prefs.edit().putString("active_skin_path", skinFile.getAbsolutePath()).apply();
-                    Log.i("CraftynSkin", "Downloaded and activated CraftynMC skin for " + username);
-                }
-            }
-        } catch (Exception e) {
-            Log.w("CraftynSkin", "Could not download CraftynMC skin", e);
-        }
+            com.google.gson.JsonObject obj = Tools.GLOBAL_GSON.fromJson(errorBody, com.google.gson.JsonObject.class);
+            if (obj.has("errorMessage")) return obj.get("errorMessage").getAsString();
+            if (obj.has("error")) return obj.get("error").getAsString();
+        } catch (Exception ignored) { }
+        return "Login failed (HTTP " + code + ")";
     }
 
-    private void notifyProgress(LoginListener listener, int step) {
-        Tools.runOnUiThread(() -> listener.onLoginProgress(step));
-        ProgressLayout.setProgress(ProgressLayout.AUTHENTICATE, step * 50);
+    private static String jsonString(String s) {
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }
