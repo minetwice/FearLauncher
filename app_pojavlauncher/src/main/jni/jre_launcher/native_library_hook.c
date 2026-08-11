@@ -36,8 +36,8 @@ static void library_preload_hook(JNIEnv *env, const char* name) {
     const char* lib_filename = strrchr(name, '/');
     if(lib_filename == NULL) lib_filename = name;
     else lib_filename++;
-    if(strstr(lib_filename, "liblwjgl") != NULL) {
-        LOGI("Running LWJGL preload hooks for library: %s", lib_filename);
+    if(strcmp(lib_filename, "liblwjgl.so") == 0) {
+        LOGI("Running LWJGL preload hooks...");
         installLwjglDlopenHook(env);
         installEMUIIteratorMititgation(env);
     }

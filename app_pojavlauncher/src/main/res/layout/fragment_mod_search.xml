@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
+    android:background="@drawable/fear_ambient_bg"
     android:padding="@dimen/_12sdp">
 
     <!-- Header Overlay (Glassmorphism Control Center) -->
@@ -12,7 +12,7 @@
         android:id="@+id/search_mod_overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/premium_glass_black_bg"
+        android:background="@drawable/fear_glass_panel_bg"
         android:padding="@dimen/_10sdp"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -21,7 +21,7 @@
             android:id="@+id/search_mod_header_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MODPACK DEPLOY ENGINE"
+            android:text="CONTENT HUB"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_12ssp"
             android:textStyle="bold"
@@ -49,7 +49,7 @@
                 android:text="MODPACKS"
                 android:textSize="@dimen/_9ssp"
                 android:textColor="#000000"
-                android:background="@drawable/premium_button_bg"
+                android:background="@drawable/fear_play_button_bg"
                 android:layout_marginEnd="4dp" />
 
             <com.kdt.mcgui.MineButton
@@ -60,7 +60,7 @@
                 android:text="MODS"
                 android:textSize="@dimen/_9ssp"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/premium_glass_black_bg"
+                android:background="@drawable/fear_glass_panel_bg"
                 android:layout_marginEnd="4dp" />
 
             <com.kdt.mcgui.MineButton
@@ -71,7 +71,7 @@
                 android:text="RESOURCES"
                 android:textSize="@dimen/_9ssp"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/premium_glass_black_bg"
+                android:background="@drawable/fear_glass_panel_bg"
                 android:layout_marginEnd="4dp" />
 
             <com.kdt.mcgui.MineButton
@@ -82,15 +82,15 @@
                 android:text="SHADERS"
                 android:textSize="@dimen/_9ssp"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/premium_glass_black_bg" />
+                android:background="@drawable/fear_glass_panel_bg" />
         </LinearLayout>
 
         <com.kdt.mcgui.MineEditText
             android:id="@+id/search_mod_edittext"
             android:layout_width="0dp"
             android:layout_height="@dimen/_36sdp"
-            android:background="@drawable/premium_edit_bg"
-            android:hint="SEARCH PROTOCOL..."
+            android:background="@drawable/fear_glass_chip_bg"
+            android:hint="Search modpacks, mods, shaders, resource packs"
             android:textColor="#FFFFFF"
             android:textColorHint="#50FFFFFF"
             android:paddingHorizontal="@dimen/_12sdp"
@@ -160,7 +160,7 @@
         android:textColor="#000000"
         android:textSize="@dimen/_12ssp"
         android:textStyle="bold"
-        android:background="@drawable/premium_button_bg"
+        android:background="@drawable/fear_play_button_bg"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.LayoutInflater;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -20,15 +19,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.PopupMenu;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.kdt.mcgui.mcVersionSpinner;
 
@@ -52,51 +47,8 @@ import java.io.File;
 public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
-    private static final String[] CHAT_MESSAGES = {
-        "💬 What's the plan today?", "⚔️ Ready for another adventure?", "💎 Let's mine some diamonds!", "🚀 FEAR Launcher ready to boot!",
-        "✨ Play premium. Play smooth.", "🍕 Time to craft some food?", "🛠️ Customize your custom controls!", "🔋 Performance is fully optimized!",
-        "🎮 Keep building, keep playing!", "🪵 Punching trees is the key to start!", "🧟 Beware of the zombies tonight!", "🏹 Skeletons have perfect aim!",
-        "🕸️ Spiders climb walls quite easily!", "🧨 Shhh... SSSS... boom!", "🧱 Build a sturdy obsidian vault!", "🪓 Chopping wood with style!",
-        "🧭 Follow the compass to home base!", "🔔 Raid protection activated!", "🧪 Brewing some strength potions!", "📦 Organize your storage chest!",
-        "🌾 Farming wheat for delicious bread!", "🥚 Egg-cellent poultry farms!", "🐷 Ride a pig with a carrot on a stick!", "🐴 Horse taming in progress!",
-        "🐺 Loyal wolves will protect you!", "🐱 Cats ward off pesky creepers!", "🦜 Parrots imitate nearby mobs!", "🦙 Llama caravans carry your loot!",
-        "🐼 Bamboo eating pandas are cute!", "🦊 Foxes sleep under sweet berry bushes!", "🐸 Frogs jump in mangrove swamps!", "🦦 Otters swimming in rivers!",
-        "🐝 Sweet honey blocks look delicious!", "🐑 Shear sheep for colorful wool!", "🐮 Milking cows with iron buckets!", "🐔 Chicken farms produce feathers!",
-        "🗺️ Map out your entire kingdom!", "🛖 Cozy wood cabins are best!", "🏰 Build a majestic stone castle!", "🌋 Watch out for flowing lava!",
-        "🌊 Diving deep into the ocean!", "🐬 Dolphins lead to buried treasure!", "🐋 Whale watching in cold biomes!", "🐢 Turtle shells make great helmets!",
-        "🐟 Fishing under a starry night!", "🐡 Pufferfish are highly poisonous!", "🪵 Spruce wood matches dark builds!", "🪵 Birch wood for clean interiors!",
-        "🪵 Jungle trees grow extremely high!", "🪵 Acacia wood makes cool orange builds!", "🪵 Dark oak doors look premium!", "🪵 Mangrove wood has rich red tones!",
-        "🪵 Cherry wood adds pastel beauty!", "🌾 Harvest beetroot for pink dye!", "🥕 Golden carrots restore major hunger!", "🍎 Golden apples grant absorption!",
-        "🍉 Glistering melon for brewing!", "🎃 Jack o'lanterns light up paths!", "🕯️ Scented candles add cozy vibes!", "💡 Glowstone lamps under water!",
-        "🧊 Ice skating on frozen lakes!", "🏔️ Climbing snowy mountain peaks!", "🪵 Crimson stems grow in the Nether!", "🪵 Warped stems look extraterrestrial!",
-        "🔥 Blue soul fire burns brightly!", "🐷 Piglins love gold ingots!", "🐗 Watch out for angry hoglins!", "👻 Ghasts cry in the nether sky!",
-        "💀 Wither skeletons drop rare skulls!", "😈 Blazes spin in nether fortresses!", "🧗 Climbing up winding cave vines!", "💎 Finding raw iron in veins!",
-        "💎 Raw copper turns into green blocks!", "💎 Raw gold deep in badlands!", "⛏️ Diamond pickaxe with Fortune III!", "⛏️ Netherite pickaxe is indestructible!",
-        "🛡️ Shield up to deflect arrows!", "🗡️ Sharpness V on your netherite sword!", "🏹 Infinity bow never runs out of ammo!", "🔱 Riptide trident in rainstorms!",
-        "🧼 Clean your armor with cauldrons!", "🚪 Secret doors behind paintings!", "🪜 Ladders climb to the sky limit!", "🐾 Sniffers sniffing out ancient seeds!",
-        "🐫 Camel riding through vast deserts!", "🌵 Watch out for prickly cacti!", "🏜️ Pyramids hold secret TNT traps!", "🏝️ Warm ocean coral reefs look gorgeous!",
-        "🧜 Conduit power activates underwater breathing!", "🏠 Set your spawn point with beds!", "🛏️ Respawn anchors set nether spawns!", "🔮 Enchanting books on tables!",
-        "📚 Bookshelves boost enchantment levels!", "🧪 Brewing splash potion of healing!", "🧿 Eye of ender guides to portals!", "🏰 Strongholds hide deep underground!",
-        "👾 Silverfish hide inside stone blocks!", "🚪 Unlock the End Portal frame!", "🐉 Defeat the mighty Ender Dragon!", "🥚 Collect the rare Dragon Egg!",
-        "🦅 Elytra wings let you fly freely!", "🚀 Fireworks boost Elytra flight!", "🐚 Shulker boxes act as portable chests!", "🏙️ End cities hide majestic loot!",
-        "🌲 Tall taiga forests are majestic!", "🪵 Dark oak forests grow thick!", "🍄 Giant mushrooms look mystical!", "🧙 Witches brew inside swamp huts!",
-        "🦑 Glow squids light up dark water!", "💎 Amethyst geodes ring beautifully!", "🧪 Copper bulbs oxidize over time!", "⚔️ Trial chambers hold trials!",
-        "🦁 Armadillos drop scutes for wolf armor!", "🪵 Breeze rods craft wind charges!", "🌬️ Wind charges launch you high!", "🗝️ Trial keys unlock vaults!",
-        "💎 Heavy cores craft the Mace!", "🔨 Mace smash attacks deal huge damage!", "💎 Netherite upgrade templates are rare!", "🎨 Trim your armor with styles!"
-    };
-
-    private android.animation.ValueAnimator mHeadRotationAnimator;
-    private android.os.Handler mChatBubbleHandler;
-    private java.lang.Runnable mChatBubbleRunnable;
-
-    // Custom continuous looping advancement announcements (Step 3)
-    private int mAnnouncementIndex = 0;
-    private android.os.Handler mAnnouncementHandler;
-    private java.lang.Runnable mAnnouncementRunnable;
-
     private mcVersionSpinner mVersionSpinner;
     private TextView mAccountName;
-    private View mRootView;
     private TextView mAccountTypeLabel;
     private TextView mVersionText;
 
@@ -110,6 +62,9 @@ public class MainMenuFragment extends Fragment {
             });
 
     private Runnable mRefreshSkinPaneRunnable = null;
+    private float mRotationAngle = -35f;
+    private android.os.Handler mRotationHandler;
+    private Runnable mRotationRunnable;
 
     private final ActivityResultLauncher<String> mSkinPickerLauncher =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.GetContent(), (uri) -> {
@@ -155,11 +110,11 @@ public class MainMenuFragment extends Fragment {
                 if (playButton instanceof com.kdt.mcgui.MineButton) {
                     com.kdt.mcgui.MineButton mb = (com.kdt.mcgui.MineButton) playButton;
                     if (taskCount > 0) {
-                        mb.setText("LAUNCHING...");
+                        mb.setText("⏳ LAUNCHING...");
                         mb.setEnabled(false);
                         mb.setAlpha(0.6f);
                     } else {
-                        mb.setText("PLAY");
+                        mb.setText("▶  PLAY");
                         mb.setEnabled(true);
                         mb.setAlpha(1.0f);
                     }
@@ -175,16 +130,6 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        mRootView = view;
-
-        // Auto sync active skin to Minecraft resource packs on boot (Step 2)
-        try {
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-            syncSkinToMinecraftResourcePack(requireContext(), prefs.getString("active_skin_path", "steve"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         // Logic bindings (invisible dummies)
         mAccountName      = view.findViewById(R.id.account_name);
         mAccountTypeLabel = view.findViewById(R.id.account_type_label);
@@ -198,9 +143,6 @@ public class MainMenuFragment extends Fragment {
         View playButton          = view.findViewById(R.id.play_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
-        View settingsBtnMain     = view.findViewById(R.id.settings_button_main);
-        View headerAvatarCard    = view.findViewById(R.id.header_avatar_card);
-        View headerNotificationBtn = view.findViewById(R.id.header_notification_btn);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
         // Refresh UI
@@ -220,650 +162,188 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        if (settingsBtnMain != null) {
-            settingsBtnMain.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                openCommandDashboard();
-            });
-        }
-
-        if (headerAvatarCard != null) {
-            headerAvatarCard.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                openCommandDashboard(); // Open configuration center showing Accounts (or other tabs)
-            });
-        }
-
-        View headerAccountHubBtn = view.findViewById(R.id.header_account_hub_btn);
-        if (headerAccountHubBtn != null) {
-            headerAccountHubBtn.setOnClickListener(v -> {
+        View accountButton = view.findViewById(R.id.account_button);
+        if (accountButton != null) {
+            accountButton.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 openAccountManager();
             });
         }
 
-        if (headerNotificationBtn != null) {
-            headerNotificationBtn.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                if (requireActivity() instanceof net.kdt.pojavlaunch.LauncherActivity) {
-                    com.kdt.mcgui.ProgressLayout pl = ((net.kdt.pojavlaunch.LauncherActivity) requireActivity()).getProgressLayout();
-                    if (pl != null) {
-                        pl.setVisibility(View.VISIBLE);
-                        pl.onClick(pl);
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        // Sliding Drawer (settings_tray) bindings and trigger logic
-        View settingsTray = view.findViewById(R.id.settings_tray);
-        if (hamburgerBtn != null && settingsTray != null) {
-            hamburgerBtn.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-
-                if (settingsTray.getVisibility() != View.VISIBLE) {
-                    settingsTray.setVisibility(View.VISIBLE);
-                    Animation slideIn = AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_in);
-                    settingsTray.startAnimation(slideIn);
-                    bindPerformanceStats(view);
-                } else {
-                    collapseTray(settingsTray);
-                }
-            });
-        }
-
-        View trayClose = view.findViewById(R.id.tray_close);
-        if (trayClose != null && settingsTray != null) {
-            trayClose.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-            });
-        }
-
-        // Drawer Operations Click Listeners
-        View trayLogs = view.findViewById(R.id.tray_logs_btn);
-        if (trayLogs != null) {
-            trayLogs.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                shareLog(requireContext());
-            });
-        }
-
-        View trayDownloads = view.findViewById(R.id.tray_downloads_btn);
-        if (trayDownloads != null) {
-            trayDownloads.setOnClickListener(v -> {
+        View notificationButton = view.findViewById(R.id.notification_button);
+        if (notificationButton != null) {
+            notificationButton.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 int count = ProgressKeeper.getTaskCount();
-                if (count == 0) {
-                    Toast.makeText(requireContext(), "No active background downloads.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), count + " background download task(s) active.", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(requireContext(), count == 0 ? "No active notifications." : count + " task(s) running.", Toast.LENGTH_SHORT).show();
             });
         }
 
-        View trayNews = view.findViewById(R.id.tray_news_btn);
-        if (trayNews != null) {
-            trayNews.setOnClickListener(v -> {
+        View settingsButton = view.findViewById(R.id.settings_button);
+        if (settingsButton != null) {
+            settingsButton.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                try {
-                    android.net.Uri uri = android.net.Uri.parse(getString(R.string.social_media_invite));
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } catch (Exception e) {
-                    Toast.makeText(requireContext(), "Opening Wiki/Discord invite failed.", Toast.LENGTH_SHORT).show();
-                }
+                Tools.swapFragment(requireActivity(), CustomSettingsFragment.class, CustomSettingsFragment.TAG, null);
             });
         }
 
-        View trayMods = view.findViewById(R.id.tray_mods_btn);
-        if (trayMods != null) {
-            trayMods.setOnClickListener(v -> {
+        // The reference-aligned home no longer exposes a right-side tray; route the menu into the dashboard.
+        View settingsTray = view.findViewById(R.id.settings_tray);
+        if (hamburgerBtn != null) {
+            hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "mods");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View trayResourcePacks = view.findViewById(R.id.tray_resource_packs_btn);
-        if (trayResourcePacks != null) {
-            trayResourcePacks.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "resourcepacks");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View trayShaderPacks = view.findViewById(R.id.tray_shader_packs_btn);
-        if (trayShaderPacks != null) {
-            trayShaderPacks.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "shaders");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View traySkin = view.findViewById(R.id.tray_skin_btn);
-        if (traySkin != null) {
-            traySkin.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                openCommandDashboard("skin");
-            });
-        }
-
-        View trayControls = view.findViewById(R.id.tray_controls_btn);
-        if (trayControls != null) {
-            trayControls.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                startActivity(new Intent(requireContext(), CustomControlsActivity.class));
-            });
-        }
-
-
-        // Open our Command Dashboard Dialog from Tray Experimental Stuff button
-        View traySettings = view.findViewById(R.id.tray_settings_btn);
-        if (traySettings != null) {
-            traySettings.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
                 openCommandDashboard();
             });
         }
 
-        // Open our Creators Info Dialog from Tray Info button
-        View trayInfo = view.findViewById(R.id.tray_info_btn);
-        if (trayInfo != null) {
-            trayInfo.setOnClickListener(v -> {
+        // PREMIUM RED THEME INTERACTIVE CODE (Sidebar, Preview panel, continuous rotating character skin, etc.)
+        android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        final com.kdt.mcgui.MinecraftSkinView previewSkinView = view.findViewById(R.id.character_preview_skin_view);
+        if (previewSkinView != null) {
+            String activeSkinPath = prefs.getString("active_skin_path", "steve");
+            boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
+            previewSkinView.loadSkin(activeSkinPath, isAlex);
+
+            // Zoom on Touch + allow built-in rotation drag
+            previewSkinView.setOnTouchListener((v, event) -> {
+                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    previewSkinView.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200).start();
+                } else if (event.getAction() == android.view.MotionEvent.ACTION_UP || event.getAction() == android.view.MotionEvent.ACTION_CANCEL) {
+                    previewSkinView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start();
+                }
+                previewSkinView.onTouchEvent(event);
+                return true;
+            });
+
+            // Smooth slow 360 rotation thread
+            mRotationHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            mRotationRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (getView() != null) {
+                        mRotationAngle = (mRotationAngle + 0.6f) % 360f;
+                        previewSkinView.setRotationAngles(mRotationAngle, -15f);
+                        mRotationHandler.postDelayed(this, 20);
+                    }
+                }
+            };
+            mRotationHandler.post(mRotationRunnable);
+        }
+
+        // Sidebar Navigation click bindings
+        View tabHome = view.findViewById(R.id.tab_home);
+        if (tabHome != null) {
+            tabHome.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                openCreatorsInfoDialog();
+                Toast.makeText(requireContext(), "Already on Home dashboard.", Toast.LENGTH_SHORT).show();
             });
         }
 
-        // Setup custom looping advancement announcements (Step 3)
-        mAnnouncementHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-        mAnnouncementRunnable = new java.lang.Runnable() {
-            @Override
-            public void run() {
-                showAdvancementAnnouncement();
-                mAnnouncementHandler.postDelayed(this, 20000); // Trigger every 20 seconds
-            }
-        };
-        // Trigger first announcement after 5 seconds
-        mAnnouncementHandler.postDelayed(mAnnouncementRunnable, 5000);
+        View tabInstallations = view.findViewById(R.id.tab_installations);
+        if (tabInstallations != null) {
+            tabInstallations.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                if (mVersionSpinner != null) {
+                    mVersionSpinner.openProfileEditor(requireActivity());
+                }
+            });
+        }
 
-        // Apply theme color accents instantly upon creation (Step 3)
-        applyThemeColors(view);
+        View tabSkin = view.findViewById(R.id.tab_skin);
+        if (tabSkin != null) {
+            tabSkin.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard(2); // Initial tab = Skins
+            });
+        }
+
+        View tabMods = view.findViewById(R.id.tab_mods);
+        if (tabMods != null) {
+            tabMods.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard(5); // Initial tab = Modpacks
+            });
+        }
+
+        View tabServers = view.findViewById(R.id.tab_servers);
+        if (tabServers != null) {
+            tabServers.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Toast.makeText(requireContext(), "Servers module loaded.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View tabNews = view.findViewById(R.id.tab_news);
+        if (tabNews != null) {
+            tabNews.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Toast.makeText(requireContext(), "News module loaded.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View tabSettingsIcon = view.findViewById(R.id.tab_settings_icon);
+        if (tabSettingsIcon != null) {
+            tabSettingsIcon.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard(0); // Initial tab = Settings Engine
+            });
+        }
+
+        // Preview panel buttons click bindings
+        View btnRandomSkin = view.findViewById(R.id.btn_random_skin);
+        if (btnRandomSkin != null) {
+            btnRandomSkin.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                boolean nextIsAlex = !prefs.getBoolean("active_skin_is_alex", false);
+                prefs.edit().putBoolean("active_skin_is_alex", nextIsAlex)
+                            .putString("active_skin_path", nextIsAlex ? "alex" : "steve")
+                            .apply();
+                if (previewSkinView != null) {
+                    previewSkinView.loadSkin(nextIsAlex ? "alex" : "steve", nextIsAlex);
+                }
+                Toast.makeText(requireContext(), "Random skin model loaded: " + (nextIsAlex ? "Alex" : "Steve"), Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View btnChangeSkin = view.findViewById(R.id.btn_change_skin);
+        if (btnChangeSkin != null) {
+            btnChangeSkin.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                openCommandDashboard(2); // Initial tab = Skins
+            });
+        }
+
+        View btnCapeSkin = view.findViewById(R.id.btn_cape_skin);
+        if (btnCapeSkin != null) {
+            btnCapeSkin.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Toast.makeText(requireContext(), "Capes are premium network cosmetics.", Toast.LENGTH_SHORT).show();
+            });
+        }
 
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
     }
 
-    private void playChallengeSound() {
-        try {
-            android.net.Uri notification = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION);
-            android.media.Ringtone r = android.media.RingtoneManager.getRingtone(requireContext(), notification);
-            r.play();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void showAdvancementAnnouncement() {
-        if (getView() == null) return;
-        View advToast = getView().findViewById(R.id.advancement_toast_layout);
-        TextView advMsg = getView().findViewById(R.id.advancement_message);
-        android.widget.ImageView advIcon = getView().findViewById(R.id.advancement_icon);
-        if (advToast == null || advMsg == null) return;
-
-        // Modulo 4 cycle of announcements (YouTube Twicefear, YouTube Hellzior, Discord Twicefear, Discord Hellzior)
-        final int state = mAnnouncementIndex % 4;
-        mAnnouncementIndex++;
-
-        final String text;
-        final String url;
-        final boolean isDiscord;
-
-        switch (state) {
-            case 0:
-                text = "Subscribe to twicefear";
-                url = "https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_";
-                isDiscord = false;
-                break;
-            case 1:
-                text = "Subscribe to hellzior";
-                url = "https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k";
-                isDiscord = false;
-                break;
-            case 2:
-                text = "Join Twicefear's Discord";
-                url = "https://discord.gg/NGMjxn9a7";
-                isDiscord = true;
-                break;
-            case 3:
-            default:
-                text = "Join Hellzior's Discord";
-                url = "https://discord.gg/bsGtVV5sk";
-                isDiscord = true;
-                break;
-        }
-
-        advMsg.setText(text);
-        if (advIcon != null) {
-            advIcon.setImageResource(isDiscord ? R.drawable.ic_discord : R.drawable.ic_youtube_logo);
-        }
-
-        // Position it completely off-screen to start BEFORE making it visible (prevents static flicker)
-        float startX = advToast.getWidth() > 0 ? advToast.getWidth() + 200f : 1000f;
-        advToast.setTranslationX(startX);
-        advToast.setVisibility(View.VISIBLE);
-
-        // Slide in animation with OvershootInterpolator for premium bouncy touch
-        advToast.animate()
-                .translationX(0f)
-                .setDuration(800)
-                .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
-                .withEndAction(() -> {
-                    // Silent display as requested - no notification sound trigger
-
-                    // Set click listener to open the correct YouTube channel or Discord link
-                    advToast.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        try {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    // Slide out after 5 seconds
-                    advToast.postDelayed(() -> {
-                        if (getView() == null) return;
-                        advToast.animate()
-                                .translationX(startX)
-                                .setDuration(600)
-                                .withEndAction(() -> advToast.setVisibility(View.GONE))
-                                .start();
-                    }, 5000);
-                })
-                .start();
-    }
-
-    private void updateMineButtonsInView(View view, int primaryColor, int themeIndex) {
-        if (view instanceof com.kdt.mcgui.MineButton) {
-            com.kdt.mcgui.MineButton btn = (com.kdt.mcgui.MineButton) view;
-            if (btn.getBackground() != null) {
-                if (themeIndex == 0) {
-                    btn.getBackground().clearColorFilter();
-                } else {
-                    btn.getBackground().setColorFilter(new android.graphics.PorterDuffColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP));
-                }
-            }
-        } else if (view != null && view.getBackground() instanceof android.graphics.drawable.GradientDrawable) {
-            // Programmatically update borders/strokes of any container panel, dialog card, or edit field to theme accents (Step 4)
-            android.graphics.drawable.GradientDrawable gd = (android.graphics.drawable.GradientDrawable) view.getBackground();
-            gd.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
-        }
-        if (view instanceof android.view.ViewGroup) {
-            android.view.ViewGroup vg = (android.view.ViewGroup) view;
-            for (int i = 0; i < vg.getChildCount(); i++) {
-                updateMineButtonsInView(vg.getChildAt(i), primaryColor, themeIndex);
-            }
-        }
-    }
-
-    private int getDarkerShade(int color) {
-        float[] hsv = new float[3];
-        android.graphics.Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.45f; // Reduce value/brightness to make a perfect secondary dark gradient counterpart
-        return android.graphics.Color.HSVToColor(hsv);
-    }
-
-    private void applyThemeColors(View view) {
-        if (view == null || getContext() == null) return;
-
-        android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        // Default to beautiful custom cyan/cyber-blue ARGB color value (#FF00F0FF)
-        int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFF00F0FF);
-        int secondaryColor = getDarkerShade(primaryColor);
-        int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
-
-        // 1. Tint BackgroundAnimationView and apply the correct animation mode (from the 15 Intense styles)
-        com.kdt.mcgui.BackgroundAnimationView animBgView = view.findViewById(R.id.background_animation_view);
-        if (animBgView != null) {
-            animBgView.setAnimationType(bgAnimType);
-            animBgView.setThemeColors(primaryColor, secondaryColor);
-        }
-
-        // 2. Tint hero Play Button with the active gradient
-        View playBtn = view.findViewById(R.id.play_button);
-        if (playBtn != null) {
-            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] { secondaryColor, primaryColor }
-            );
-            gd.setCornerRadius(view.getResources().getDimension(R.dimen._8sdp));
-            gd.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
-            playBtn.setBackground(gd);
-        }
-
-        // 3. Tint the advancement board border programmatically if it's visible
-        View advToast = view.findViewById(R.id.advancement_toast_layout);
-        if (advToast != null && advToast.getBackground() instanceof android.graphics.drawable.GradientDrawable) {
-            android.graphics.drawable.GradientDrawable advBg = (android.graphics.drawable.GradientDrawable) advToast.getBackground();
-            advBg.setStroke((int)view.getResources().getDimension(R.dimen._1sdp), primaryColor);
-        }
-
-        // 4. Recursively scan the active view hierarchy and apply theme colors instantly to all MineButtons and borders (Step 2 & 4)
-        updateMineButtonsInView(view, primaryColor, 1);
-    }
-
-    private void openThemeCustomizerDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setView(R.layout.dialog_customize_theme)
-                .create();
-
-        dialog.setOnShowListener(dialogInterface -> {
-            com.kdt.mcgui.ColorWheelView colorWheel = dialog.findViewById(R.id.theme_color_wheel);
-
-            View tabSelectColour = dialog.findViewById(R.id.tab_select_colour);
-            View tabSelectAnimation = dialog.findViewById(R.id.tab_select_animation);
-            View panelColorWorkspace = dialog.findViewById(R.id.panel_color_workspace);
-            View panelAnimationWorkspace = dialog.findViewById(R.id.panel_animation_workspace);
-
-            View btnClose = dialog.findViewById(R.id.btn_close_customizer);
-
-            android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-
-            // Bind Color Wheel drag/touch listener to instantly update and skin launcher in real-time (Step 3)
-            if (colorWheel != null) {
-                colorWheel.setOnColorSelectedListener(color -> {
-                    prefs.edit().putInt("launcher_theme_color_argb", color).apply();
-                    prefs.edit().putInt("launcher_theme_color", 1).apply(); // non-zero trigger for MineButton tints
-                    applyThemeColors(mRootView);
-                });
-            }
-
-            // Tab Switching Navigation Logic (Step 3)
-            if (tabSelectColour != null && tabSelectAnimation != null && panelColorWorkspace != null && panelAnimationWorkspace != null) {
-                tabSelectColour.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    panelColorWorkspace.setVisibility(View.VISIBLE);
-                    panelAnimationWorkspace.setVisibility(View.GONE);
-                });
-
-                tabSelectAnimation.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    panelColorWorkspace.setVisibility(View.GONE);
-                    panelAnimationWorkspace.setVisibility(View.VISIBLE);
-                });
-            }
-
-            // Bind the 15 Intense Background Animation Options (Step 4)
-            int[] animIds = {
-                R.id.anim_opt_0, R.id.anim_opt_1, R.id.anim_opt_2, R.id.anim_opt_3, R.id.anim_opt_4,
-                R.id.anim_opt_5, R.id.anim_opt_6, R.id.anim_opt_7, R.id.anim_opt_8, R.id.anim_opt_9,
-                R.id.anim_opt_10, R.id.anim_opt_11, R.id.anim_opt_12, R.id.anim_opt_13, R.id.anim_opt_14
-            };
-
-            for (int i = 0; i < animIds.length; i++) {
-                final int animIdx = i;
-                View animOpt = dialog.findViewById(animIds[i]);
-                if (animOpt != null) {
-                    animOpt.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        prefs.edit().putInt("launcher_bg_animation", animIdx).apply();
-                        applyThemeColors(mRootView);
-                        Toast.makeText(requireContext(), "INTENSE ANIMATION ACTIVATED!", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            if (btnClose != null) {
-                btnClose.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    dialog.dismiss();
-                });
-            }
-        });
-
-        dialog.show();
-    }
-
-    private void openCreatorsInfoDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setView(R.layout.dialog_creators_info)
-                .create();
-
-        dialog.setOnShowListener(dialogInterface -> {
-            View btnTwicefear = dialog.findViewById(R.id.btn_yt_twicefear);
-            View btnHellzior = dialog.findViewById(R.id.btn_yt_hellzior);
-            View btnDiscordTwicefear = dialog.findViewById(R.id.btn_discord_twicefear);
-            View btnDiscordHellzior = dialog.findViewById(R.id.btn_discord_hellzior);
-
-            if (btnTwicefear != null) {
-                btnTwicefear.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_"));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-
-            if (btnHellzior != null) {
-                btnHellzior.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k"));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-
-            if (btnDiscordTwicefear != null) {
-                btnDiscordTwicefear.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/NGMjxn9a7"));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-
-            if (btnDiscordHellzior != null) {
-                btnDiscordHellzior.setOnClickListener(v -> {
-                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/bsGtVV5sk"));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        });
-
-        dialog.show();
-    }
-
-    private void syncSkinToMinecraftResourcePack(Context context, String skinPath) {
-        if (context == null || skinPath == null) return;
-        try {
-            // Persist the active skin path and model formatting to preferences
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
-            prefs.edit().putString("active_skin_path", skinPath).apply();
-            if ("steve".equalsIgnoreCase(skinPath)) {
-                prefs.edit().putBoolean("active_skin_is_alex", false).apply();
-            } else if ("alex".equalsIgnoreCase(skinPath)) {
-                prefs.edit().putBoolean("active_skin_is_alex", true).apply();
-            }
-
-            // Synchronize skin to both standard and active instance directories
-            java.util.List<File> targetDirs = new java.util.ArrayList<>();
-            targetDirs.add(new File(Tools.DIR_GAME_HOME));
-            try {
-                Instance activeInstance = Instances.loadSelectedInstance();
-                if (activeInstance != null) {
-                    File instDir = activeInstance.getGameDirectory();
-                    if (instDir != null && !instDir.equals(new File(Tools.DIR_GAME_HOME))) {
-                        targetDirs.add(instDir);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            for (File baseDir : targetDirs) {
-                File packDir = new File(baseDir, "resourcepacks/FEAR_Skin_Pack");
-                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
-                entityDir.mkdirs();
-
-                File stevePng = new File(entityDir, "steve.png");
-                File alexPng = new File(entityDir, "alex.png");
-
-                if (skinPath.equals("steve") || skinPath.equals("alex")) {
-                    if (stevePng.exists()) stevePng.delete();
-                    if (alexPng.exists()) alexPng.delete();
-                } else {
-                    File srcFile = new File(skinPath);
-                    if (srcFile.exists()) {
-                        copyFileStream(srcFile, stevePng);
-                        copyFileStream(srcFile, alexPng);
-                    }
-                }
-
-                // Write pack.mcmeta
-                File mcmeta = new File(packDir, "pack.mcmeta");
-                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
-                writeStringToFile(mcmeta, mcmetaContent);
-
-                // Automatically enable the skin pack in options.txt
-                File optionsFile = new File(baseDir, "options.txt");
-                if (optionsFile.exists()) {
-                    String optionsContent = readStringFromFile(optionsFile);
-                    if (optionsContent != null && !optionsContent.contains("FEAR_Skin_Pack")) {
-                        if (optionsContent.contains("resourcePacks:[")) {
-                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
-                            writeStringToFile(optionsFile, optionsContent);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void copyFileStream(File src, File dst) throws java.io.IOException {
-        try (java.io.InputStream in = new java.io.FileInputStream(src);
-             java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-        }
-    }
-
-    private void writeStringToFile(File file, String str) throws java.io.IOException {
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
-            fos.write(str.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        }
-    }
-
-    private String readStringFromFile(File file) {
-        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
-            byte[] data = new byte[(int) file.length()];
-            int readBytes = fis.read(data);
-            return new String(data, 0, readBytes, java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void collapseTray(View settingsTray) {
-        if (settingsTray != null && settingsTray.getVisibility() == View.VISIBLE) {
-            Animation slideOut = AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_out);
-            slideOut.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    settingsTray.setVisibility(View.GONE);
-                }
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-            });
-            settingsTray.startAnimation(slideOut);
-        }
-    }
-
-    private void bindPerformanceStats(View root) {
-        // System telemetry removed entirely as requested.
-    }
-
-    private String getFriendlyRendererName(String id) {
-        if (id == null) return "HOLY GL4ES";
-        String idLower = id.toLowerCase(java.util.Locale.US);
-        if (idLower.contains("ltw")) return "LTW (GLES 3)";
-        if (idLower.contains("fear")) return "FEAR ENGINE";
-        if (idLower.contains("vulkan") || idLower.contains("zink")) return "ZINK (VULKAN)";
-        if (idLower.contains("freedreno")) return "FREEDRENO (KGSL)";
-        if (idLower.contains("angle")) return "ANGLE ENGINE";
-        return "HOLY GL4ES";
-    }
-
     private void openCommandDashboard() {
-        openCommandDashboard(null);
+        openCommandDashboard(0);
     }
 
-    private void openCommandDashboard(String defaultTab) {
+    private void openCommandDashboard(int initialTab) {
         android.app.Dialog dialog = new android.app.Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.dialog_premium_settings_dashboard);
 
@@ -890,7 +370,6 @@ public class MainMenuFragment extends Fragment {
         Button navModpacks = dialog.findViewById(R.id.dash_nav_modpacks);
         Button navAddons = dialog.findViewById(R.id.dash_nav_addons);
         Button navLogs = dialog.findViewById(R.id.dash_nav_logs);
-        Button navInfo = dialog.findViewById(R.id.dash_nav_info);
 
         android.widget.FrameLayout rightPane = dialog.findViewById(R.id.dash_content_pane);
 
@@ -915,10 +394,6 @@ public class MainMenuFragment extends Fragment {
             }
             navLogs.setBackgroundResource(R.drawable.premium_glass_black_bg);
             navLogs.setTextColor(0xFFFFFFFF);
-            if (navInfo != null) {
-                navInfo.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                navInfo.setTextColor(0xFFFFFFFF);
-            }
         };
 
         // SPLIT-PANE 1: SETTINGS ENGINE
@@ -927,7 +402,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navSettings.setBackgroundResource(R.drawable.premium_button_bg);
-            navSettings.setTextColor(0xFFFFFFFF);
+            navSettings.setTextColor(0xFF000000);
 
             // Inflate options inside the right pane container dynamically
             rightPane.removeAllViews();
@@ -951,7 +426,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navExecute.setBackgroundResource(R.drawable.premium_button_bg);
-            navExecute.setTextColor(0xFFFFFFFF);
+            navExecute.setTextColor(0xFF000000);
 
             rightPane.removeAllViews();
             LinearLayout execLayout = new LinearLayout(requireContext());
@@ -962,7 +437,7 @@ public class MainMenuFragment extends Fragment {
             Button launchBtn = new Button(requireContext());
             launchBtn.setText("LAUNCH INSTALLER (.JAR)");
             launchBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            launchBtn.setTextColor(0xFFFFFFFF);
+            launchBtn.setTextColor(0xFF000000);
             launchBtn.setPadding(24, 12, 24, 12);
             launchBtn.setOnClickListener(vLaunch -> {
                 dialog.dismiss();
@@ -979,7 +454,7 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navSkin.setBackgroundResource(R.drawable.premium_button_bg);
-            navSkin.setTextColor(0xFFFFFFFF);
+            navSkin.setTextColor(0xFF000000);
 
             mRefreshSkinPaneRunnable = () -> {
                 rightPane.removeAllViews();
@@ -994,21 +469,18 @@ public class MainMenuFragment extends Fragment {
                 final String activeSkinPath = prefs.getString("active_skin_path", "steve");
                 final boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
 
-                // Auto sync selected skin to Minecraft game textures folder (Step 2)
-                syncSkinToMinecraftResourcePack(requireContext(), activeSkinPath);
-
                 currentViewer.loadSkin(activeSkinPath, isAlex);
 
                 java.lang.Runnable updateModelButtonsUI = () -> {
                     boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
                     if (currentIsAlex) {
                         btnAlexModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnAlexModel.setTextColor(Color.WHITE);
+                        btnAlexModel.setTextColor(Color.BLACK);
                         btnSteveModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnSteveModel.setTextColor(Color.WHITE);
                     } else {
                         btnSteveModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnSteveModel.setTextColor(Color.WHITE);
+                        btnSteveModel.setTextColor(Color.BLACK);
                         btnAlexModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnAlexModel.setTextColor(Color.WHITE);
                     }
@@ -1048,7 +520,7 @@ public class MainMenuFragment extends Fragment {
                 steveViewer.loadSkin("steve", false);
                 if ("steve".equalsIgnoreCase(activeSkinPath)) {
                     steveCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    steveTitle.setTextColor(Color.WHITE);
+                    steveTitle.setTextColor(Color.BLACK);
                 }
                 steveCard.setOnClickListener(vSteve -> {
                     vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -1065,7 +537,7 @@ public class MainMenuFragment extends Fragment {
                 alexViewer.loadSkin("alex", true);
                 if ("alex".equalsIgnoreCase(activeSkinPath)) {
                     alexCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    alexTitle.setTextColor(Color.WHITE);
+                    alexTitle.setTextColor(Color.BLACK);
                 }
                 alexCard.setOnClickListener(vAlex -> {
                     vAlex.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -1095,7 +567,7 @@ public class MainMenuFragment extends Fragment {
 
                             if (f.getAbsolutePath().equals(activeSkinPath)) {
                                 customCard.setBackgroundResource(R.drawable.premium_button_bg);
-                                customTitle.setTextColor(Color.WHITE);
+                                customTitle.setTextColor(Color.BLACK);
                             }
 
                             customCard.setOnClickListener(vCust -> {
@@ -1121,242 +593,246 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navAccount.setBackgroundResource(R.drawable.premium_button_bg);
-            navAccount.setTextColor(0xFFFFFFFF);
+            navAccount.setTextColor(0xFF000000);
 
-            rightPane.removeAllViews();
-            LayoutInflater inflater = LayoutInflater.from(requireContext());
-            View accountHubView = inflater.inflate(R.layout.premium_account_hub_pane, rightPane, false);
-
-            RecyclerView recyclerView = accountHubView.findViewById(R.id.account_list);
-            View emptyState = accountHubView.findViewById(R.id.empty_account_state);
-            EditText inputUsername = accountHubView.findViewById(R.id.local_username_input);
-            TextView errorText = accountHubView.findViewById(R.id.local_error_text);
-            View cardMs = accountHubView.findViewById(R.id.card_type_ms);
-            View cardMojang = accountHubView.findViewById(R.id.card_type_mojang);
-            View cardLocal = accountHubView.findViewById(R.id.card_type_local);
-            Button btnAddAccount = accountHubView.findViewById(R.id.btn_add_account);
-            Button btnSwitchAccount = accountHubView.findViewById(R.id.btn_switch_account);
-            View troubleLink = accountHubView.findViewById(R.id.trouble_logging_in);
-
-            if (troubleLink != null) {
-                troubleLink.setOnClickListener(v -> {
-                    Toast.makeText(requireContext(), "Microsoft account migration is required for online play.", Toast.LENGTH_LONG).show();
-                });
-            }
-
-            final java.util.List<net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount>[] accountListWrapper = new java.util.List[] { new java.util.ArrayList<>() };
-            final net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount[] selectedAccWrapper = new net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount[] { null };
-            final net.kdt.pojavlaunch.authenticator.AuthType[] selectedAuthType = new net.kdt.pojavlaunch.authenticator.AuthType[] { net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT };
-
-            java.lang.Runnable loadAccountsList = () -> {
-                accountListWrapper[0].clear();
-                try {
-                    accountListWrapper[0].addAll(net.kdt.pojavlaunch.authenticator.accounts.Accounts.load().accounts);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (emptyState != null) {
-                    emptyState.setVisibility(accountListWrapper[0].isEmpty() ? View.VISIBLE : View.GONE);
-                }
-            };
-
-            loadAccountsList.run();
-            net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount currentActive = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
-            selectedAccWrapper[0] = currentActive;
-
-            class HubAdapter extends RecyclerView.Adapter<HubAdapter.VH> {
-                @NonNull
-                @Override
-                public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                    return new VH(inflater.inflate(R.layout.item_account, parent, false));
-                }
+            java.lang.Runnable refreshAccountHub = new java.lang.Runnable() {
+                private boolean mShowLocalAuth = true;
 
                 @Override
-                public void onBindViewHolder(@NonNull VH h, int position) {
-                    net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = accountListWrapper[0].get(position);
-                    h.username.setText(acc.username);
+                public void run() {
+                    rightPane.removeAllViews();
 
-                    String typeLabel = "Local";
-                    if (acc.authType != null) {
-                        switch (acc.authType) {
-                            case MICROSOFT: typeLabel = "Microsoft"; break;
-                            case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
-                            default:        typeLabel = "Local";     break;
-                        }
-                    }
-                    h.type.setText(typeLabel);
+                    android.widget.ScrollView rootScroll = new android.widget.ScrollView(requireContext());
+                    rootScroll.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
+                    rootScroll.setVerticalScrollBarEnabled(false);
 
-                    boolean isListSelected = selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
-                            && acc.mSaveLocation != null
-                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName());
+                    LinearLayout accLayout = new LinearLayout(requireContext());
+                    accLayout.setOrientation(LinearLayout.VERTICAL);
+                    accLayout.setPadding(16, 16, 16, 16);
 
-                    if (isListSelected) {
-                        h.itemView.setBackgroundResource(R.drawable.premium_auth_type_card_bg);
+                    TextView titleAcc = new TextView(requireContext());
+                    titleAcc.setText("ACCOUNT COMMAND CENTER");
+                    titleAcc.setTextColor(Color.WHITE);
+                    titleAcc.setTextSize(14);
+                    titleAcc.setTypeface(null, android.graphics.Typeface.BOLD);
+                    titleAcc.setPadding(0, 0, 0, 12);
+                    accLayout.addView(titleAcc);
+
+                    LinearLayout tabSelector = new LinearLayout(requireContext());
+                    tabSelector.setOrientation(LinearLayout.HORIZONTAL);
+                    tabSelector.setPadding(0, 0, 0, 16);
+
+                    Button btnLocalTab = new Button(requireContext());
+                    btnLocalTab.setText("OFFLINE LOCAL");
+                    btnLocalTab.setTextSize(10);
+
+                    Button btnMsTab = new Button(requireContext());
+                    btnMsTab.setText("MICROSOFT LOGIN");
+                    btnMsTab.setTextSize(10);
+
+                    if (mShowLocalAuth) {
+                        btnLocalTab.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnLocalTab.setTextColor(Color.BLACK);
+                        btnMsTab.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        btnMsTab.setTextColor(Color.WHITE);
                     } else {
-                        h.itemView.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        btnLocalTab.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                        btnLocalTab.setTextColor(Color.WHITE);
+                        btnMsTab.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnMsTab.setTextColor(Color.BLACK);
                     }
 
-                    boolean isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
-                            && acc.mSaveLocation != null
-                            && currentActive.mSaveLocation.getName().equals(currentActive.mSaveLocation.getName()); // fix compare always true, we compare acc to active!
-
-                    isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
-                            && acc.mSaveLocation != null
-                            && currentActive.mSaveLocation.getName().equals(acc.mSaveLocation.getName());
-
-                    if (isCurrentActive) {
-                        h.statusText.setText("Active");
-                        h.statusText.setTextColor(Color.parseColor("#FF4D4D"));
-                        h.statusDot.setBackgroundColor(Color.parseColor("#FF4D4D"));
-                    } else {
-                        h.statusText.setText(typeLabel);
-                        h.statusText.setTextColor(Color.parseColor("#80FFFFFF"));
-                        h.statusDot.setBackgroundColor(Color.parseColor("#80FFFFFF"));
-                    }
-
-                    h.itemView.setOnClickListener(v -> {
-                        selectedAccWrapper[0] = acc;
-                        notifyDataSetChanged();
+                    btnLocalTab.setOnClickListener(vLocalTab -> {
+                        vLocalTab.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        mShowLocalAuth = true;
+                        this.run();
                     });
 
-                    h.deleteBtn.setOnClickListener(v -> {
-                        PopupMenu popup = new PopupMenu(v.getContext(), h.deleteBtn);
-                        popup.getMenu().add("Delete");
-                        popup.setOnMenuItemClickListener(item -> {
-                            if ("Delete".equals(item.getTitle())) {
-                                try {
-                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.delete(acc);
-                                    loadAccountsList.run();
-                                    notifyDataSetChanged();
-                                    if (selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
-                                            && acc.mSaveLocation != null
-                                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName())) {
-                                        selectedAccWrapper[0] = null;
-                                    }
-                                    refreshAccountUI();
-                                    Toast.makeText(requireContext(), "Account removed", Toast.LENGTH_SHORT).show();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                    btnMsTab.setOnClickListener(vMsTab -> {
+                        vMsTab.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        mShowLocalAuth = false;
+                        this.run();
+                    });
+
+                    LinearLayout.LayoutParams tabLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                    tabLp.setMargins(4, 4, 4, 4);
+                    tabSelector.addView(btnLocalTab, tabLp);
+                    tabSelector.addView(btnMsTab, tabLp);
+                    accLayout.addView(tabSelector);
+
+                    if (mShowLocalAuth) {
+                        final EditText inputUser = new EditText(requireContext());
+                        inputUser.setHint("ENTER OFFLINE USERNAME...");
+                        inputUser.setTextColor(Color.WHITE);
+                        inputUser.setHintTextColor(0x80FFFFFF);
+                        inputUser.setBackgroundResource(R.drawable.premium_edit_bg);
+                        inputUser.setPadding(12, 12, 12, 12);
+                        accLayout.addView(inputUser, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                        View space2 = new View(requireContext());
+                        accLayout.addView(space2, new LinearLayout.LayoutParams(1, 12));
+
+                        Button btnLocalLogin = new Button(requireContext());
+                        btnLocalLogin.setText("LOG IN OFFLINE");
+                        btnLocalLogin.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnLocalLogin.setTextColor(Color.BLACK);
+                        btnLocalLogin.setOnClickListener(vL -> {
+                            vL.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            String name = inputUser.getText().toString().trim();
+                            if (name.isEmpty() || name.length() < 3) {
+                                Toast.makeText(requireContext(), "Username must be at least 3 characters", Toast.LENGTH_SHORT).show();
+                                return;
                             }
-                            return true;
+                            try {
+                                net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(account -> {
+                                    account.username = name;
+                                    account.profileId = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes()).toString();
+                                    account.accessToken = "0";
+                                    account.refreshToken = "0";
+                                    account.authType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
+                                });
+                                net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(acc);
+                                refreshAccountUI();
+                                Toast.makeText(requireContext(), "Successfully logged in as " + name, Toast.LENGTH_LONG).show();
+                                this.run();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(requireContext(), "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         });
-                        popup.show();
-                    });
-                }
-
-                @Override public int getItemCount() { return accountListWrapper[0].size(); }
-
-                class VH extends RecyclerView.ViewHolder {
-                    TextView username, type, statusText;
-                    View statusDot, deleteBtn;
-                    VH(@NonNull View v) {
-                        super(v);
-                        username   = v.findViewById(R.id.account_username);
-                        type       = v.findViewById(R.id.account_type);
-                        statusText = v.findViewById(R.id.account_status_text);
-                        statusDot  = v.findViewById(R.id.account_status_dot);
-                        deleteBtn  = v.findViewById(R.id.account_delete_btn);
-                    }
-                }
-            }
-
-            HubAdapter adapter = new HubAdapter();
-            if (recyclerView != null) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-                recyclerView.setAdapter(adapter);
-            }
-
-            java.lang.Runnable updateAuthUI = () -> {
-                if (cardMs != null) cardMs.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT);
-                if (cardMojang != null) cardMojang.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
-                if (cardLocal != null) cardLocal.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL);
-
-                if (inputUsername != null) {
-                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
-                        inputUsername.setEnabled(true);
-                        inputUsername.setAlpha(1.0f);
+                        accLayout.addView(btnLocalLogin, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     } else {
-                        inputUsername.setEnabled(false);
-                        inputUsername.setAlpha(0.4f);
-                        inputUsername.setText("");
-                    }
-                }
-                if (errorText != null) errorText.setVisibility(View.GONE);
-            };
+                        TextView msDesc = new TextView(requireContext());
+                        msDesc.setText("Connect your official Microsoft / Xbox Live account securely via the safe web portal.");
+                        msDesc.setTextColor(0xCCFFFFFF);
+                        msDesc.setTextSize(11);
+                        msDesc.setPadding(4, 4, 4, 16);
+                        accLayout.addView(msDesc);
 
-            updateAuthUI.run();
-
-            if (cardMs != null) cardMs.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT; updateAuthUI.run(); });
-            if (cardMojang != null) cardMojang.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC; updateAuthUI.run(); });
-            if (cardLocal != null) cardLocal.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL; updateAuthUI.run(); });
-
-            if (btnSwitchAccount != null) {
-                btnSwitchAccount.setOnClickListener(v -> {
-                    if (selectedAccWrapper[0] != null) {
-                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(selectedAccWrapper[0]);
-                        refreshAccountUI();
-                        Toast.makeText(requireContext(), "Switched to " + selectedAccWrapper[0].username, Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    } else {
-                        Toast.makeText(requireContext(), "Please select an account first", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            if (btnAddAccount != null) {
-                btnAddAccount.setOnClickListener(v -> {
-                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
-                        dialog.dismiss();
-                        Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
-                        return;
-                    }
-                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
-                        dialog.dismiss();
-                        Tools.swapFragment(requireActivity(), CraftynLoginFragment.class, CraftynLoginFragment.TAG, null);
-                        return;
-                    }
-                    if (inputUsername == null) return;
-                    String username = inputUsername.getText().toString().trim();
-
-                    if (android.text.TextUtils.isEmpty(username)) {
-                        if (errorText != null) { errorText.setText("Username cannot be empty"); errorText.setVisibility(View.VISIBLE); }
-                        return;
-                    }
-                    if (username.length() < 3) {
-                        if (errorText != null) { errorText.setText("Username must be at least 3 characters"); errorText.setVisibility(View.VISIBLE); }
-                        return;
-                    }
-                    if (username.length() > 16) {
-                        if (errorText != null) { errorText.setText("Username must be 16 characters or less"); errorText.setVisibility(View.VISIBLE); }
-                        return;
-                    }
-                    if (!username.matches("[a-zA-Z0-9_]+")) {
-                        if (errorText != null) { errorText.setText("Only letters, numbers and _ allowed"); errorText.setVisibility(View.VISIBLE); }
-                        return;
+                        Button btnMsLogin = new Button(requireContext());
+                        btnMsLogin.setText("LOG IN WITH MICROSOFT");
+                        btnMsLogin.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnMsLogin.setTextColor(Color.BLACK);
+                        btnMsLogin.setOnClickListener(vM -> {
+                            vM.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                            net.kdt.pojavlaunch.SoundManager.playClick();
+                            dialog.dismiss();
+                            Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
+                        });
+                        accLayout.addView(btnMsLogin, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     }
 
-                    if (errorText != null) errorText.setVisibility(View.GONE);
+                    View space3 = new View(requireContext());
+                    accLayout.addView(space3, new LinearLayout.LayoutParams(1, 24));
+
+                    TextView profilesHeader = new TextView(requireContext());
+                    profilesHeader.setText("SAVED ACCOUNT PROFILES");
+                    profilesHeader.setTextColor(0x80FFFFFF);
+                    profilesHeader.setTextSize(10);
+                    profilesHeader.setTypeface(null, android.graphics.Typeface.BOLD);
+                    profilesHeader.setPadding(0, 0, 0, 8);
+                    accLayout.addView(profilesHeader);
 
                     try {
-                        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(acc -> {
-                            acc.username    = username;
-                            acc.authType    = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
-                            acc.accessToken = "0";
-                            acc.profileId   = "00000000-0000-0000-0000-000000000000";
-                            acc.refreshToken = "0";
-                        });
-                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(account);
-                        refreshAccountUI();
-                        Toast.makeText(requireContext(), "Account '" + username + "' created!", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    } catch (Exception e) {
-                        if (errorText != null) { errorText.setText("Failed: " + e.getMessage()); errorText.setVisibility(View.VISIBLE); }
-                    }
-                });
-            }
+                        net.kdt.pojavlaunch.authenticator.accounts.Accounts loadedAccounts = net.kdt.pojavlaunch.authenticator.accounts.Accounts.load();
+                        java.util.List<net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount> accountList = loadedAccounts.accounts;
+                        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount current = net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+                        final String currentName = (current != null) ? current.mSaveLocation.getName() : "";
 
-            rightPane.addView(accountHubView);
+                        if (accountList.isEmpty()) {
+                            TextView emptyTv = new TextView(requireContext());
+                            emptyTv.setText("No saved accounts found.");
+                            emptyTv.setTextColor(0x60FFFFFF);
+                            emptyTv.setTextSize(11);
+                            accLayout.addView(emptyTv);
+                        } else {
+                            for (net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc : accountList) {
+                                LinearLayout row = new LinearLayout(requireContext());
+                                row.setOrientation(LinearLayout.HORIZONTAL);
+                                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                                row.setPadding(8, 8, 8, 8);
+
+                                boolean isSelected = acc.mSaveLocation != null && acc.mSaveLocation.getName().equals(currentName);
+                                if (isSelected) {
+                                    row.setBackgroundResource(R.drawable.premium_button_bg);
+                                } else {
+                                    row.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                                }
+
+                                LinearLayout textCol = new LinearLayout(requireContext());
+                                textCol.setOrientation(LinearLayout.VERTICAL);
+
+                                TextView uTv = new TextView(requireContext());
+                                uTv.setText(acc.username);
+                                uTv.setTextColor(isSelected ? Color.BLACK : Color.WHITE);
+                                uTv.setTextSize(12);
+                                uTv.setTypeface(null, android.graphics.Typeface.BOLD);
+
+                                TextView tTv = new TextView(requireContext());
+                                String type = "Local";
+                                if (acc.authType != null) {
+                                    switch (acc.authType) {
+                                        case MICROSOFT: type = "Microsoft"; break;
+                                        case ELY_BY:    type = "Ely.by";    break;
+                                        default:        type = "Local";     break;
+                                    }
+                                }
+                                tTv.setText(type);
+                                tTv.setTextColor(isSelected ? 0x80000000 : 0x80FFFFFF);
+                                tTv.setTextSize(9);
+
+                                textCol.addView(uTv);
+                                textCol.addView(tTv);
+
+                                LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                                row.addView(textCol, rowLp);
+
+                                ImageButton btnDel = new ImageButton(requireContext());
+                                btnDel.setImageResource(R.drawable.ic_px_trash);
+                                btnDel.setBackgroundColor(Color.TRANSPARENT);
+                                if (isSelected) {
+                                    btnDel.setColorFilter(Color.BLACK);
+                                } else {
+                                    btnDel.setColorFilter(Color.WHITE);
+                                }
+                                btnDel.setOnClickListener(vDel -> {
+                                    vDel.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                    net.kdt.pojavlaunch.SoundManager.playClick();
+                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.delete(acc);
+                                    refreshAccountUI();
+                                    this.run();
+                                    Toast.makeText(requireContext(), "Account deleted", Toast.LENGTH_SHORT).show();
+                                });
+                                row.addView(btnDel);
+
+                                row.setOnClickListener(vRow -> {
+                                    vRow.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                    net.kdt.pojavlaunch.SoundManager.playClick();
+                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(acc);
+                                    refreshAccountUI();
+                                    this.run();
+                                });
+
+                                LinearLayout.LayoutParams rowOuterLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                rowOuterLp.setMargins(0, 4, 0, 4);
+                                accLayout.addView(row, rowOuterLp);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    rootScroll.addView(accLayout);
+                    rightPane.addView(rootScroll);
+                }
+            };
+
+            refreshAccountHub.run();
         });
 
         // SPLIT-PANE 5: INPUT MAPPING
@@ -1365,13 +841,13 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navControls.setBackgroundResource(R.drawable.premium_button_bg);
-            navControls.setTextColor(0xFFFFFFFF);
+            navControls.setTextColor(0xFF000000);
 
             rightPane.removeAllViews();
             Button mapBtn = new Button(requireContext());
             mapBtn.setText("OPEN CUSTOM CONTROLS MAPPING");
             mapBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            mapBtn.setTextColor(0xFFFFFFFF);
+            mapBtn.setTextColor(0xFF000000);
             mapBtn.setOnClickListener(vMap -> {
                 dialog.dismiss();
                 startActivity(new Intent(requireContext(), CustomControlsActivity.class));
@@ -1386,7 +862,7 @@ public class MainMenuFragment extends Fragment {
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
                 navModpacks.setBackgroundResource(R.drawable.premium_button_bg);
-                navModpacks.setTextColor(0xFFFFFFFF);
+                navModpacks.setTextColor(0xFF000000);
 
                 rightPane.removeAllViews();
                 dialog.dismiss();
@@ -1403,7 +879,7 @@ public class MainMenuFragment extends Fragment {
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
                 navAddons.setBackgroundResource(R.drawable.premium_button_bg);
-                navAddons.setTextColor(0xFFFFFFFF);
+                navAddons.setTextColor(0xFF000000);
 
                 rightPane.removeAllViews();
                 dialog.dismiss();
@@ -1420,13 +896,13 @@ public class MainMenuFragment extends Fragment {
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
             navLogs.setBackgroundResource(R.drawable.premium_button_bg);
-            navLogs.setTextColor(0xFFFFFFFF);
+            navLogs.setTextColor(0xFF000000);
 
             rightPane.removeAllViews();
             Button shareBtn = new Button(requireContext());
             shareBtn.setText("EXPORT SYSTEMS LOGS TELEMETRY");
             shareBtn.setBackgroundResource(R.drawable.premium_button_bg);
-            shareBtn.setTextColor(0xFFFFFFFF);
+            shareBtn.setTextColor(0xFF000000);
             shareBtn.setOnClickListener(vShare -> {
                 dialog.dismiss();
                 shareLog(requireContext());
@@ -1434,51 +910,19 @@ public class MainMenuFragment extends Fragment {
             rightPane.addView(shareBtn);
         });
 
-        // SPLIT-PANE 9: CREATORS & INFO
-        if (navInfo != null) {
-            navInfo.setOnClickListener(v2 -> {
-                v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                resetNavButtons.run();
-                navInfo.setBackgroundResource(R.drawable.premium_button_bg);
-                navInfo.setTextColor(0xFFFFFFFF);
-
-                rightPane.removeAllViews();
-                View infoView = dialog.getLayoutInflater().inflate(R.layout.dialog_creators_info, rightPane, false);
-
-                // Hide background of infoView inside FrameLayout to blend seamlessly
-                infoView.setBackground(null);
-
-                View btnTwicefear = infoView.findViewById(R.id.btn_yt_twicefear);
-                View btnHellzior = infoView.findViewById(R.id.btn_yt_hellzior);
-
-                if (btnTwicefear != null) {
-                    btnTwicefear.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
-                        startActivity(intent);
-                    });
-                }
-
-                if (btnHellzior != null) {
-                    btnHellzior.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
-                        startActivity(intent);
-                    });
-                }
-
-                rightPane.addView(infoView);
-            });
-        }
-
         // Default selection
-        if ("skin".equals(defaultTab)) {
+        if (initialTab == 2) {
             navSkin.performClick();
-        } else if ("account".equals(defaultTab)) {
+        } else if (initialTab == 3) {
             navAccount.performClick();
+        } else if (initialTab == 4) {
+            navControls.performClick();
+        } else if (initialTab == 5 && navModpacks != null) {
+            navModpacks.performClick();
+        } else if (initialTab == 6 && navAddons != null) {
+            navAddons.performClick();
+        } else if (initialTab == 7) {
+            navLogs.performClick();
         } else {
             navSettings.performClick();
         }
@@ -1518,7 +962,7 @@ public class MainMenuFragment extends Fragment {
             if (current.authType != null) {
                 switch (current.authType) {
                     case MICROSOFT: typeLabel = "Microsoft Account"; break;
-                    case CRAFTYN_MC:typeLabel = "CraftynMC Account"; break;
+                    case ELY_BY:    typeLabel = "Ely.by Account";    break;
                     default:        typeLabel = "Local Account";     break;
                 }
             }
@@ -1528,88 +972,6 @@ public class MainMenuFragment extends Fragment {
         if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
 
         if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
-
-        if (mRootView != null) {
-            refreshSkinHeadDisplay(mRootView);
-        }
-    }
-
-    private void refreshSkinHeadDisplay(View view) {
-        com.kdt.mcgui.MinecraftSkinView skinView = view.findViewById(R.id.homepage_skin_head);
-        if (skinView == null) return;
-
-        android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String activeSkinPath = prefs.getString("active_skin_path", "steve");
-        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
-
-        skinView.setShowHeadOnly(true);
-        skinView.loadSkin(activeSkinPath, activeSkinIsAlex);
-
-        // Auto-rotation animation loop for 3D skin head (360 degrees continuous, looking straight)
-        if (mHeadRotationAnimator != null) {
-            mHeadRotationAnimator.cancel();
-        }
-        mHeadRotationAnimator = android.animation.ValueAnimator.ofFloat(0f, 360f);
-        mHeadRotationAnimator.setDuration(6000); // 6 seconds for a full smooth 360 rotation
-        mHeadRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-        mHeadRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
-        mHeadRotationAnimator.addUpdateListener(animation -> {
-            float val = (float) animation.getAnimatedValue();
-            skinView.setRotationAngles(val, 0f);
-        });
-        mHeadRotationAnimator.start();
-
-        // Setup Chat Bubble typed greetings loop
-        TextView chatBubble = view.findViewById(R.id.homepage_chat_bubble);
-        if (chatBubble != null) {
-            if (mChatBubbleHandler == null) {
-                mChatBubbleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-            } else {
-                if (mChatBubbleRunnable != null) {
-                    mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
-                }
-            }
-
-            mChatBubbleRunnable = new java.lang.Runnable() {
-                private final java.util.Random random = new java.util.Random();
-                @Override
-                public void run() {
-                    String msg = CHAT_MESSAGES[random.nextInt(CHAT_MESSAGES.length)];
-                    chatBubble.setText(msg);
-                    chatBubble.setVisibility(View.VISIBLE);
-                    chatBubble.setAlpha(0f);
-                    chatBubble.setScaleX(0f);
-                    chatBubble.setScaleY(0f);
-
-                    // Animate scale up & fade in
-                    chatBubble.animate()
-                            .alpha(1f)
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(400)
-                            .setInterpolator(new android.view.animation.OvershootInterpolator(1.4f))
-                            .withEndAction(() -> {
-                                // Keep visible for 4 seconds, then fade out
-                                chatBubble.postDelayed(() -> {
-                                    chatBubble.animate()
-                                            .alpha(0f)
-                                            .scaleX(0.5f)
-                                            .scaleY(0.5f)
-                                            .setDuration(300)
-                                            .withEndAction(() -> chatBubble.setVisibility(View.GONE))
-                                            .start();
-                                }, 4000);
-                            })
-                            .start();
-
-                    // Re-run every 15 seconds
-                    mChatBubbleHandler.postDelayed(this, 15000);
-                }
-            };
-
-            // Start loop with a slight initial delay of 1 second
-            mChatBubbleHandler.postDelayed(mChatBubbleRunnable, 1000);
-        }
     }
 
     private void handlePlayButton() {
@@ -1670,16 +1032,10 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        if (mHeadRotationAnimator != null) {
-            mHeadRotationAnimator.cancel();
-        }
-        if (mChatBubbleHandler != null && mChatBubbleRunnable != null) {
-            mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
-        }
-        if (mAnnouncementHandler != null && mAnnouncementRunnable != null) {
-            mAnnouncementHandler.removeCallbacks(mAnnouncementRunnable);
-        }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
+        if (mRotationHandler != null && mRotationRunnable != null) {
+            mRotationHandler.removeCallbacks(mRotationRunnable);
+        }
     }
 }

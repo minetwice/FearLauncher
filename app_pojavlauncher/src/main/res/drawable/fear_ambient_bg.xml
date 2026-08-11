@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deep dark base gradient (#0d0d0f to #141419) -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#0d0d0f"
+                android:centerColor="#101014"
+                android:endColor="#141419"
+                android:angle="315"/>
+        </shape>
+    </item>
+    <!-- Soft crimson red ambient glows -->
+    <item android:left="120dp" android:right="-80dp" android:top="-80dp" android:bottom="90dp">
+        <shape android:shape="oval">
+            <gradient
+                android:startColor="#26E11D2E"
+                android:endColor="#00000000"
+                android:type="radial"
+                android:gradientRadius="260dp"/>
+        </shape>
+    </item>
+    <item android:left="-70dp" android:right="260dp" android:top="90dp" android:bottom="-70dp">
+        <shape android:shape="oval">
+            <gradient
+                android:startColor="#1AE11D2E"
+                android:endColor="#00000000"
+                android:type="radial"
+                android:gradientRadius="220dp"/>
+        </shape>
+    </item>
+</layer-list>

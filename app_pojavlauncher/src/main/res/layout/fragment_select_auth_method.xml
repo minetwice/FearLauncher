@@ -55,12 +55,12 @@
                 android:drawableStart="@drawable/ic_mc_skull" />
 
             <com.kdt.mcgui.MineButton
-                android:id="@+id/button_elyfly_authentication"
+                android:id="@+id/button_elyby_authentication"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_44sdp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:text="CRAFTYN.MC NETWORK"
-                android:drawableStart="@drawable/ic_auth_craftynmc" />
+                android:text="ELY.BY NETWORK"
+                android:drawableStart="@drawable/ic_auth_elyby" />
         </LinearLayout>
 
         <ImageView

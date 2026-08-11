@@ -294,12 +294,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         ProgressKeeper.addTaskCountListener(mTaskCountListener);
 
         if ("addon".equals(mode)) {
-            String initCat = args != null ? args.getString("initial_category", "mods") : "mods";
-            if ("resourcepacks".equals(initCat) && btnRes != null) {
-                btnRes.performClick();
-            } else if ("shaders".equals(initCat) && btnShaders != null) {
-                btnShaders.performClick();
-            } else if (btnMods != null) {
+            if (btnMods != null) {
                 btnMods.performClick();
             } else {
                 searchMods(null);

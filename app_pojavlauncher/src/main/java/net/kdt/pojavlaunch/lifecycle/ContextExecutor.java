@@ -79,11 +79,5 @@ public class ContextExecutor {
             sApplication.clear();
     }
 
-    public static Application getApplication() {
-        return Tools.getWeakReference(sApplication);
-    }
 
-    public static Activity getActivity() {
-        return Tools.getWeakReference(sActivity);
-    }
 }

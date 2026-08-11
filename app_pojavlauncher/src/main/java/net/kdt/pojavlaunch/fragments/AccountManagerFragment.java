@@ -1,15 +1,11 @@
 package net.kdt.pojavlaunch.fragments;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,8 +17,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
-import net.kdt.pojavlaunch.authenticator.AuthType;
-import net.kdt.pojavlaunch.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,18 +27,6 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
     private OnAccountSelectedListener mListener;
     private AccountAdapter mAdapter;
     private View mEmptyState;
-
-    // Controllers
-    private EditText mInputUsername;
-    private TextView mErrorText;
-    private View mCardMs;
-    private View mCardMojang;
-    private View mCardLocal;
-    private View mBtnAddAccount;
-    private View mBtnSwitchAccount;
-
-    private AuthType mSelectedAuthType = AuthType.MICROSOFT;
-    private MinecraftAccount mSelectedAccountInList = null;
 
     public interface OnAccountSelectedListener {
         void onAccountSelected(MinecraftAccount account);
@@ -66,56 +48,34 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         RecyclerView recyclerView = view.findViewById(R.id.account_list);
         mEmptyState = view.findViewById(R.id.empty_account_state);
+        View btnAddAccount = view.findViewById(R.id.btn_add_account);
         View btnClose = view.findViewById(R.id.btn_close_account_manager);
-
-        // Right panel inputs
-        mInputUsername = view.findViewById(R.id.local_username_input);
-        mErrorText     = view.findViewById(R.id.local_error_text);
-        mCardMs        = view.findViewById(R.id.card_type_ms);
-        mCardMojang    = view.findViewById(R.id.card_type_mojang);
-        mCardLocal     = view.findViewById(R.id.card_type_local);
-        mBtnAddAccount = view.findViewById(R.id.btn_add_account);
-        mBtnSwitchAccount = view.findViewById(R.id.btn_switch_account);
-        View troubleLink = view.findViewById(R.id.trouble_logging_in);
 
         if (btnClose != null) btnClose.setOnClickListener(v -> dismiss());
 
-        // Setup Trouble Logging In
-        if (troubleLink != null) {
-            troubleLink.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Microsoft account migration is required for online play.", Toast.LENGTH_LONG).show();
-            });
-        }
-
         // Load accounts
         List<MinecraftAccount> accountList = loadAccounts();
+        final String currentAccountName;
         MinecraftAccount current = Accounts.getCurrent();
+        currentAccountName = (current != null) ? current.mSaveLocation.getName() : "";
 
-        // Default list selection to current active account
-        mSelectedAccountInList = current;
-
-        mAdapter = new AccountAdapter(accountList, current, mSelectedAccountInList,
-                // On list click
+        mAdapter = new AccountAdapter(accountList, currentAccountName,
+                // On select
                 account -> {
-                    mSelectedAccountInList = account;
-                    mAdapter.setSelectedAccount(account);
+                    Accounts.setCurrent(account);
+                    if (mListener != null) mListener.onAccountSelected(account);
+                    dismiss();
                 },
-                // On delete click (three dots menu)
+                // On delete
                 account -> {
                     Accounts.delete(account);
                     accountList.remove(account);
                     mAdapter.notifyDataSetChanged();
                     updateEmptyState(accountList);
-                    if (mSelectedAccountInList != null && mSelectedAccountInList.mSaveLocation != null
-                            && account.mSaveLocation != null
-                            && mSelectedAccountInList.mSaveLocation.getName().equals(account.mSaveLocation.getName())) {
-                        mSelectedAccountInList = null;
-                        mAdapter.setSelectedAccount(null);
-                    }
-                    // If deleted account was the active one, notify parent
-                    if (current != null && account.mSaveLocation != null
-                            && account.mSaveLocation.getName().equals(current.mSaveLocation.getName())) {
-                        if (mListener != null) mListener.onAccountSelected(null);
+                    // If deleted account was current, refresh parent
+                    if (mListener != null && current != null
+                            && account.mSaveLocation.getName().equals(currentAccountName)) {
+                        mListener.onAccountSelected(null);
                     }
                     Toast.makeText(requireContext(), "Account removed", Toast.LENGTH_SHORT).show();
                 }
@@ -125,26 +85,18 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         recyclerView.setAdapter(mAdapter);
         updateEmptyState(accountList);
 
-        // Bind Switch Account Button
-        if (mBtnSwitchAccount != null) {
-            mBtnSwitchAccount.setOnClickListener(v -> {
-                if (mSelectedAccountInList != null) {
-                    Accounts.setCurrent(mSelectedAccountInList);
-                    if (mListener != null) mListener.onAccountSelected(mSelectedAccountInList);
-                    Toast.makeText(requireContext(), "Switched to " + mSelectedAccountInList.username, Toast.LENGTH_SHORT).show();
-                    dismiss();
-                } else {
-                    Toast.makeText(requireContext(), "Please select an account first", Toast.LENGTH_SHORT).show();
-                }
+        // Add account button → opens AddAccountFragment
+        if (btnAddAccount != null) {
+            btnAddAccount.setOnClickListener(v -> {
+                dismiss();
+                AddAccountFragment addSheet = new AddAccountFragment();
+                addSheet.setOnAccountAddedListener(newAccount -> {
+                    // After adding, set as current and notify parent
+                    Accounts.setCurrent(newAccount);
+                    if (mListener != null) mListener.onAccountSelected(newAccount);
+                });
+                addSheet.show(getParentFragmentManager(), AddAccountFragment.TAG);
             });
-        }
-
-        // Setup Account Type Selector Cards
-        setupAuthTypeCards();
-
-        // Bind Add Account Button
-        if (mBtnAddAccount != null) {
-            mBtnAddAccount.setOnClickListener(v -> handleAddAccount());
         }
     }
 
@@ -164,106 +116,6 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         mEmptyState.setVisibility(list.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    private void setupAuthTypeCards() {
-        // Default Selection
-        updateAuthSelection(AuthType.MICROSOFT);
-
-        if (mCardMs != null) {
-            mCardMs.setOnClickListener(v -> updateAuthSelection(AuthType.MICROSOFT));
-        }
-        if (mCardMojang != null) {
-            mCardMojang.setOnClickListener(v -> updateAuthSelection(AuthType.CRAFTYN_MC));
-        }
-        if (mCardLocal != null) {
-            mCardLocal.setOnClickListener(v -> updateAuthSelection(AuthType.LOCAL));
-        }
-    }
-
-    private void updateAuthSelection(AuthType type) {
-        mSelectedAuthType = type;
-
-        if (mCardMs != null) mCardMs.setSelected(type == AuthType.MICROSOFT);
-        if (mCardMojang != null) mCardMojang.setSelected(type == AuthType.CRAFTYN_MC);
-        if (mCardLocal != null) mCardLocal.setSelected(type == AuthType.LOCAL);
-
-        // Control username field visibility/access
-        if (mInputUsername != null) {
-            if (type == AuthType.LOCAL) {
-                mInputUsername.setEnabled(true);
-                mInputUsername.setAlpha(1.0f);
-            } else {
-                mInputUsername.setEnabled(false);
-                mInputUsername.setAlpha(0.4f);
-                mInputUsername.setText("");
-            }
-        }
-        if (mErrorText != null) mErrorText.setVisibility(View.GONE);
-    }
-
-    private void handleAddAccount() {
-        if (mSelectedAuthType == AuthType.MICROSOFT) {
-            dismiss();
-            Tools.swapFragment(requireActivity(),
-                    MicrosoftLoginFragment.class,
-                    MicrosoftLoginFragment.TAG, null);
-            return;
-        }
-
-        if (mSelectedAuthType == AuthType.CRAFTYN_MC) {
-            dismiss();
-            Tools.swapFragment(requireActivity(),
-                    CraftynLoginFragment.class,
-                    CraftynLoginFragment.TAG, null);
-            return;
-        }
-
-        // Local Profile creation
-        if (mInputUsername == null) return;
-        String username = mInputUsername.getText().toString().trim();
-
-        if (TextUtils.isEmpty(username)) {
-            showError("Username cannot be empty");
-            return;
-        }
-        if (username.length() < 3) {
-            showError("Username must be at least 3 characters");
-            return;
-        }
-        if (username.length() > 16) {
-            showError("Username must be 16 characters or less");
-            return;
-        }
-        if (!username.matches("[a-zA-Z0-9_]+")) {
-            showError("Only letters, numbers and _ allowed");
-            return;
-        }
-
-        if (mErrorText != null) mErrorText.setVisibility(View.GONE);
-
-        final String finalUsername = username;
-        try {
-            MinecraftAccount account = Accounts.create(acc -> {
-                acc.username    = finalUsername;
-                acc.authType    = AuthType.LOCAL;
-                acc.accessToken = "0";
-                acc.profileId   = "00000000-0000-0000-0000-000000000000";
-                acc.refreshToken = "0";
-            });
-            Accounts.setCurrent(account);
-            if (mListener != null) mListener.onAccountSelected(account);
-            Toast.makeText(requireContext(), "Account '" + finalUsername + "' created!", Toast.LENGTH_SHORT).show();
-            dismiss();
-        } catch (Exception e) {
-            showError("Failed to create account: " + e.getMessage());
-        }
-    }
-
-    private void showError(String message) {
-        if (mErrorText == null) return;
-        mErrorText.setText(message);
-        mErrorText.setVisibility(View.VISIBLE);
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
     // RecyclerView Adapter
     // ─────────────────────────────────────────────────────────────────────────
@@ -271,23 +123,16 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
         interface OnClick { void onClick(MinecraftAccount account); }
 
         private final List<MinecraftAccount> mList;
-        private final MinecraftAccount mCurrentActive;
-        private MinecraftAccount mSelectedAccount;
+        private final String mCurrentName;
         private final OnClick mOnSelect;
         private final OnClick mOnDelete;
 
-        AccountAdapter(List<MinecraftAccount> list, MinecraftAccount currentActive,
-                       MinecraftAccount selectedAccount, OnClick onSelect, OnClick onDelete) {
+        AccountAdapter(List<MinecraftAccount> list, String currentName,
+                       OnClick onSelect, OnClick onDelete) {
             mList = list;
-            mCurrentActive = currentActive;
-            mSelectedAccount = selectedAccount;
+            mCurrentName = currentName;
             mOnSelect = onSelect;
             mOnDelete = onDelete;
-        }
-
-        public void setSelectedAccount(MinecraftAccount account) {
-            mSelectedAccount = account;
-            notifyDataSetChanged();
         }
 
         @NonNull
@@ -308,69 +153,32 @@ public class AccountManagerFragment extends BottomSheetDialogFragment {
             if (acc.authType != null) {
                 switch (acc.authType) {
                     case MICROSOFT: typeLabel = "Microsoft"; break;
-                    case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
+                    case ELY_BY:    typeLabel = "Ely.by";    break;
                     default:        typeLabel = "Local";     break;
                 }
             }
             h.type.setText(typeLabel);
 
-            // Highlight if selected in the list
-            boolean isListSelected = mSelectedAccount != null && mSelectedAccount.mSaveLocation != null
-                    && acc.mSaveLocation != null
-                    && mSelectedAccount.mSaveLocation.getName().equals(acc.mSaveLocation.getName());
-
-            if (isListSelected) {
-                h.itemView.setSelected(true);
-                h.itemView.setBackgroundResource(R.drawable.premium_auth_type_card_bg);
-                h.itemView.setSelected(true);
-            } else {
-                h.itemView.setSelected(false);
-                h.itemView.setBackgroundResource(R.drawable.premium_glass_black_bg);
-            }
-
-            // Check status dot and label (Red for active or Local)
-            boolean isCurrentActive = mCurrentActive != null && mCurrentActive.mSaveLocation != null
-                    && acc.mSaveLocation != null
-                    && mCurrentActive.mSaveLocation.getName().equals(acc.mSaveLocation.getName());
-
-            if (isCurrentActive) {
-                h.statusText.setText("Active");
-                h.statusText.setTextColor(Color.parseColor("#FF4D4D"));
-                h.statusDot.setBackgroundColor(Color.parseColor("#FF4D4D"));
-            } else {
-                h.statusText.setText(typeLabel);
-                h.statusText.setTextColor(Color.parseColor("#80FFFFFF"));
-                h.statusDot.setBackgroundColor(Color.parseColor("#80FFFFFF"));
-            }
+            // Show checkmark if this is current account
+            boolean isSelected = acc.mSaveLocation != null
+                    && acc.mSaveLocation.getName().equals(mCurrentName);
+            h.check.setVisibility(isSelected ? View.VISIBLE : View.GONE);
 
             h.itemView.setOnClickListener(v -> mOnSelect.onClick(acc));
-
-            // Delete action (Popup Menu)
-            h.deleteBtn.setOnClickListener(v -> {
-                PopupMenu popup = new PopupMenu(v.getContext(), h.deleteBtn);
-                popup.getMenu().add("Delete");
-                popup.setOnMenuItemClickListener(item -> {
-                    if ("Delete".equals(item.getTitle())) {
-                        mOnDelete.onClick(acc);
-                    }
-                    return true;
-                });
-                popup.show();
-            });
+            h.deleteBtn.setOnClickListener(v -> mOnDelete.onClick(acc));
         }
 
         @Override public int getItemCount() { return mList.size(); }
 
         static class VH extends RecyclerView.ViewHolder {
-            TextView username, type, statusText;
-            View statusDot, deleteBtn;
+            TextView username, type;
+            View check, deleteBtn;
             VH(@NonNull View v) {
                 super(v);
-                username   = v.findViewById(R.id.account_username);
-                type       = v.findViewById(R.id.account_type);
-                statusText = v.findViewById(R.id.account_status_text);
-                statusDot  = v.findViewById(R.id.account_status_dot);
-                deleteBtn  = v.findViewById(R.id.account_delete_btn);
+                username  = v.findViewById(R.id.account_username);
+                type      = v.findViewById(R.id.account_type);
+                check     = v.findViewById(R.id.account_selected_check);
+                deleteBtn = v.findViewById(R.id.account_delete_btn);
             }
         }
     }

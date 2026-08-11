@@ -34,16 +34,7 @@ public class ProgressService extends Service implements TaskCountListener {
     /** Simple wrapper to start the service */
     public static void startService(Context context){
         Intent intent = new Intent(context, ProgressService.class);
-        try {
-            ContextCompat.startForegroundService(context, intent);
-        } catch (Exception e) {
-            Log.e("ProgressService", "Failed to start foreground progress service due to background constraints", e);
-            try {
-                context.startService(intent);
-            } catch (Exception ex) {
-                Log.e("ProgressService", "Failed to start progress service as background either", ex);
-            }
-        }
+        ContextCompat.startForegroundService(context, intent);
     }
 
     private NotificationCompat.Builder mNotificationBuilder;

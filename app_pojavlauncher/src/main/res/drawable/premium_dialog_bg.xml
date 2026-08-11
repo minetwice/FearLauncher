@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#F202050D" /> <!-- Cinematic near-opaque glass black background -->
-    <corners android:radius="16dp" />
-    <stroke android:width="2dp" android:color="#FF00F0FF" /> <!-- Vibrant Blue neon glow border -->
-</shape>

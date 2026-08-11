@@ -82,7 +82,9 @@ public class CommonApi implements ModpackApi {
                 else continue;
                 totalSize += searchResult.totalResultCount;
             }catch (Exception e) {
-                e.printStackTrace(); // Log error but do not fail the other successful APIs' results!
+                cancelAllFutures(futures);
+                e.printStackTrace();
+                return null;
             }
         }
         if(!hasSuccessful) {

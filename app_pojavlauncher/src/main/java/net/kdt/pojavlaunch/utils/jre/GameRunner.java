@@ -212,77 +212,6 @@ public class GameRunner {
 
         // Pre-process specific files
         disableSplash(gamedir);
-
-        // Synchronize active skin to the current game instance's resource pack before launching
-        try {
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
-            String skinPath = prefs.getString("active_skin_path", "steve");
-            if (skinPath != null) {
-                File packDir = new File(gamedir, "resourcepacks/FEAR_Skin_Pack");
-                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
-                entityDir.mkdirs();
-
-                File stevePng = new File(entityDir, "steve.png");
-                File alexPng = new File(entityDir, "alex.png");
-
-                if (skinPath.equals("steve") || skinPath.equals("alex")) {
-                    if (stevePng.exists()) stevePng.delete();
-                    if (alexPng.exists()) alexPng.delete();
-                } else {
-                    File srcFile = new File(skinPath);
-                    if (srcFile.exists()) {
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(stevePng)) {
-                            byte[] buf = new byte[1024];
-                            int len;
-                            while ((len = in.read(buf)) > 0) {
-                                out.write(buf, 0, len);
-                            }
-                        }
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(alexPng)) {
-                            byte[] buf = new byte[1024];
-                            int len;
-                            while ((len = in.read(buf)) > 0) {
-                                out.write(buf, 0, len);
-                            }
-                        }
-                    }
-                }
-
-                // Write pack.mcmeta
-                File mcmeta = new File(packDir, "pack.mcmeta");
-                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(mcmeta)) {
-                    fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                }
-
-                // Automatically enable the skin pack in options.txt
-                File optionsFile = new File(gamedir, "options.txt");
-                if (optionsFile.exists()) {
-                    StringBuilder sb = new StringBuilder();
-                    try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            sb.append(line).append("\n");
-                        }
-                    }
-                    String optionsContent = sb.toString();
-                    if (!optionsContent.contains("FEAR_Skin_Pack")) {
-                        if (optionsContent.contains("resourcePacks:[")) {
-                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
-                            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(optionsFile)) {
-                                fos.write(optionsContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                            }
-                        }
-                    }
-                }
-                Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
-            }
-        } catch (Exception e) {
-            Log.e("GameRunner", "Failed to synchronize skin resourcepack on launch", e);
-        }
-
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
 
         // Select the appropriate openGL version
@@ -319,7 +248,7 @@ public class GameRunner {
         FileUtils.ensureDirectory(lwjglExtractDir);
         javaArgList.add("-Dorg.lwjgl.system.SharedLibraryExtractPath="+lwjglExtractDir.getAbsolutePath());
 
-        addAuthlibInjectorArgs(javaArgList, minecraftAccount, activity);
+        addAuthlibInjectorArgs(javaArgList, minecraftAccount);
 
         javaArgList.addAll(getMinecraftJVMArgs(versionId));
 
@@ -381,67 +310,10 @@ public class GameRunner {
         }
     }
 
-    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
-        boolean useLocalServer = (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) ||
-                                 (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
-        if (useLocalServer) {
-            File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
-            if (!injectorJar.exists()) {
-                try {
-                    injectorJar.getParentFile().mkdirs();
-                    try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
-                         java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
-                        byte[] buffer = new byte[1024];
-                        int read;
-                        while ((read = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, read);
-                        }
-                    }
-                    Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-                } catch (Exception e) {
-                    Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
-                }
-            }
-            if (injectorJar.exists()) {
-                try {
-                    net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
-                    javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
-                    Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
-                } catch (Exception e) {
-                    Log.e("LocalSkinServer", "Error starting/injecting local skin server", e);
-                }
-            } else {
-                Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection.");
-            }
-            return;
-        }
+    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount) {
         String injectorUrl = minecraftAccount.authType.injectorUrl;
-        if (injectorUrl == null) {
-            return;
-        }
-        File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
-        if (!injectorJar.exists()) {
-            try {
-                injectorJar.getParentFile().mkdirs();
-                try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
-                     java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
-                    byte[] buffer = new byte[1024];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                    }
-                }
-                Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-            } catch (Exception e) {
-                Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e);
-            }
-        }
-        if (injectorJar.exists()) {
-            javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
-            Log.i("LocalSkinServer", "Successfully injected online authlib server: " + injectorUrl);
-        } else {
-            Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping online authlib injection.");
-        }
+        if(injectorUrl == null) return;
+        javaArgList.add("-javaagent:"+Tools.DIR_DATA+"/authlib-injector/authlib-injector.jar="+injectorUrl);
     }
 
     private static List<String> getMinecraftJVMArgs(String versionName) {

@@ -22,12 +22,6 @@ public class MinecraftSkinView extends View {
     private float mRotationX = -15f;
     private float mLastTouchX;
     private float mLastTouchY;
-    private boolean mShowHeadOnly = false;
-
-    public void setShowHeadOnly(boolean headOnly) {
-        mShowHeadOnly = headOnly;
-        invalidate();
-    }
 
     public static final int PART_HEAD = 0;
     public static final int PART_TORSO = 1;
@@ -69,8 +63,7 @@ public class MinecraftSkinView extends View {
     private void init() {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        // Use Nearest Neighbor/Point filtering to ensure razor-sharp pixels for low-res Minecraft skins
-        mPaint.setFilterBitmap(false);
+        mPaint.setFilterBitmap(true);
         setSkinBase64(DEFAULT_STEVE_BASE64, false);
     }
 
@@ -277,12 +270,12 @@ public class MinecraftSkinView extends View {
             mFaceBitmaps[PART_LEFT_LEG][FACE_LEFT] = crop(24, 52, 4, 12, false);
             mFaceBitmaps[PART_LEFT_LEG][FACE_BACK] = crop(28, 52, 4, 12, false);
 
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_TOP] = crop(4, 48, 4, 4, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BOTTOM] = crop(8, 48, 4, 4, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_RIGHT] = crop(0, 52, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_FRONT] = crop(4, 52, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_LEFT] = crop(8, 52, 4, 12, false);
-            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BACK] = crop(12, 52, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_TOP] = crop(4, 52, 4, 4, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BOTTOM] = crop(8, 52, 4, 4, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_RIGHT] = crop(0, 56, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_FRONT] = crop(4, 56, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_LEFT] = crop(8, 56, 4, 12, false);
+            mFaceBitmaps[PART_LEFT_LEG_OVERLAY][FACE_BACK] = crop(12, 56, 4, 12, false);
         }
     }
 
@@ -324,29 +317,24 @@ public class MinecraftSkinView extends View {
 
         // Add Base parts
         addCuboidFaces(faces, PART_HEAD, -4, -8, -4, 4, 0, 4, false);
-        if (!mShowHeadOnly) {
-            addCuboidFaces(faces, PART_TORSO, -4, 0, -2, 4, 12, 2, false);
-            addCuboidFaces(faces, PART_RIGHT_ARM, 4, 0, -2, 4 + armW, 12, 2, false);
-            addCuboidFaces(faces, PART_LEFT_ARM, -4 - armW, 0, -2, -4, 12, 2, false);
-            addCuboidFaces(faces, PART_RIGHT_LEG, 0, 12, -2, 4, 24, 2, false);
-            addCuboidFaces(faces, PART_LEFT_LEG, -4, 12, -2, 0, 24, 2, false);
-        }
+        addCuboidFaces(faces, PART_TORSO, -4, 0, -2, 4, 12, 2, false);
+        addCuboidFaces(faces, PART_RIGHT_ARM, 4, 0, -2, 4 + armW, 12, 2, false);
+        addCuboidFaces(faces, PART_LEFT_ARM, -4 - armW, 0, -2, -4, 12, 2, false);
+        addCuboidFaces(faces, PART_RIGHT_LEG, 0, 12, -2, 4, 24, 2, false);
+        addCuboidFaces(faces, PART_LEFT_LEG, -4, 12, -2, 0, 24, 2, false);
 
         // Add Overlay parts if valid
         addCuboidFaces(faces, PART_HEAD_OVERLAY, -4, -8, -4, 4, 0, 4, true);
-        if (!mShowHeadOnly) {
-            addCuboidFaces(faces, PART_TORSO_OVERLAY, -4, 0, -2, 4, 12, 2, true);
-            addCuboidFaces(faces, PART_RIGHT_ARM_OVERLAY, 4, 0, -2, 4 + armW, 12, 2, true);
-            addCuboidFaces(faces, PART_LEFT_ARM_OVERLAY, -4 - armW, 0, -2, -4, 12, 2, true);
-            addCuboidFaces(faces, PART_RIGHT_LEG_OVERLAY, 0, 12, -2, 4, 24, 2, true);
-            addCuboidFaces(faces, PART_LEFT_LEG_OVERLAY, -4, 12, -2, 0, 24, 2, true);
-        }
+        addCuboidFaces(faces, PART_TORSO_OVERLAY, -4, 0, -2, 4, 12, 2, true);
+        addCuboidFaces(faces, PART_RIGHT_ARM_OVERLAY, 4, 0, -2, 4 + armW, 12, 2, true);
+        addCuboidFaces(faces, PART_LEFT_ARM_OVERLAY, -4 - armW, 0, -2, -4, 12, 2, true);
+        addCuboidFaces(faces, PART_RIGHT_LEG_OVERLAY, 0, 12, -2, 4, 24, 2, true);
+        addCuboidFaces(faces, PART_LEFT_LEG_OVERLAY, -4, 12, -2, 0, 24, 2, true);
 
         // 3D rotation and projection
-        float scale = mShowHeadOnly ? (getHeight() / 9.5f) : (getHeight() / 32f);
+        float scale = getHeight() / 32f;
         float centerX = getWidth() / 2f;
-        // Shift centerY slightly upwards (higher up on screen) to make the entire body/feet perfectly visible
-        float centerY = mShowHeadOnly ? (getHeight() / 2f + 3.8f * scale) : (getHeight() / 2.8f);
+        float centerY = getHeight() / 2.3f;
 
         List<ProjectedFace> projected = new ArrayList<>();
         for (Face3D f : faces) {
@@ -405,26 +393,23 @@ public class MinecraftSkinView extends View {
         }
         // FACE_BOTTOM
         if (mFaceBitmaps[partId][FACE_BOTTOM] != null) {
-            // Swap Z coords to correct bottom-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_BOTTOM, mFaceBitmaps[partId][FACE_BOTTOM], new Point3D[] {
-                new Point3D(x1, y2, z1), new Point3D(x2, y2, z1),
-                new Point3D(x1, y2, z2), new Point3D(x2, y2, z2)
+                new Point3D(x1, y2, z2), new Point3D(x2, y2, z2),
+                new Point3D(x1, y2, z1), new Point3D(x2, y2, z1)
             }));
         }
         // FACE_LEFT
         if (mFaceBitmaps[partId][FACE_LEFT] != null) {
-            // Swap Z coords to correct left-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_LEFT, mFaceBitmaps[partId][FACE_LEFT], new Point3D[] {
-                new Point3D(x1, y1, z2), new Point3D(x1, y1, z1),
-                new Point3D(x1, y2, z2), new Point3D(x1, y2, z1)
+                new Point3D(x1, y1, z1), new Point3D(x1, y1, z2),
+                new Point3D(x1, y2, z1), new Point3D(x1, y2, z2)
             }));
         }
         // FACE_RIGHT
         if (mFaceBitmaps[partId][FACE_RIGHT] != null) {
-            // Swap Z coords to correct right-face skin texture mirroring/inversion
             faces.add(new Face3D(partId, FACE_RIGHT, mFaceBitmaps[partId][FACE_RIGHT], new Point3D[] {
-                new Point3D(x2, y1, z1), new Point3D(x2, y1, z2),
-                new Point3D(x2, y2, z1), new Point3D(x2, y2, z2)
+                new Point3D(x2, y1, z2), new Point3D(x2, y1, z1),
+                new Point3D(x2, y2, z2), new Point3D(x2, y2, z1)
             }));
         }
     }
