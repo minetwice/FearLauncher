@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Classic Minecraft Advancement Board dark brown background -->
-    <solid android:color="#F2211510" />
-    <corners android:radius="4dp" /> <!-- Blocky Minecraft style corners -->
-    <stroke android:width="2dp" android:color="#FFFFB300" /> <!-- Gorgeous golden advancement border -->
-</shape>

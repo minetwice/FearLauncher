@@ -13,8 +13,6 @@ public class ExtraConstants {
     public static final String MOJANG_LOGIN_TODO = "mojang_login_todo";
     /* ExtraCore constant: Ely.by authentication to perform */
     public static final String ELYBY_LOGIN_TODO = "elyby_login_done";
-    /* ExtraCore constant: Ely.fly authentication to perform */
-    public static final String ELYFLY_LOGIN_TODO = "elyfly_login_done";
     /* ExtraCore constant: Add minecraft account procedure, the user has to select between mojang or microsoft */
     public static final String SELECT_AUTH_METHOD = "start_login_procedure";
     /* ExtraCore constant: Selected file or folder, as a String */

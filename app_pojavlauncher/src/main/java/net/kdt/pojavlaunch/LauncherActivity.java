@@ -146,7 +146,6 @@ public class LauncherActivity extends BaseActivity {
         setupDrawer();
         SoundManager.init(this);
         SoundManager.startMusic(this);
-        net.kdt.pojavlaunch.utils.JunkCleaner.start();
 
         if (savedInstanceState == null) {
             getSupportFragmentManager()
@@ -240,7 +239,6 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        net.kdt.pojavlaunch.utils.JunkCleaner.stop();
         super.onDestroy();
         mProgressLayout.cleanUpObservers();
         ProgressKeeper.removeTaskCountListener(mProgressLayout);
@@ -310,10 +308,6 @@ public class LauncherActivity extends BaseActivity {
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putBoolean(LauncherPreferences.PREF_KEY_SKIP_NOTIFICATION_CHECK, true)
                 .apply();
-    }
-
-    public ProgressLayout getProgressLayout() {
-        return mProgressLayout;
     }
 
     private void bindViews() {

@@ -68,7 +68,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_vanilla"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/optifine_profile"
@@ -80,7 +80,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_zap"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
             </GridLayout>
 
             <!-- Category: Modded -->
@@ -108,7 +108,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_fabric"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_forge"
@@ -120,7 +120,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_forge"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_quilt"
@@ -132,7 +132,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_quilt"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_neoforge"
@@ -144,7 +144,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_neoforge"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_modpack"
@@ -156,7 +156,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_file_dl"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_bta"
@@ -168,7 +168,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_experiment"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_legacy_fabric"
@@ -180,7 +180,7 @@
                     android:padding="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_fabric"
                     android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/premium_glass_black_bg" />
 
             </GridLayout>
 
