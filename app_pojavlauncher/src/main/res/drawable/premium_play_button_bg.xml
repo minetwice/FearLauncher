@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#8000F0FF">
+    android:color="#80FF2A2A">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="16dp" />
@@ -12,29 +12,29 @@
             <item android:state_enabled="false">
                 <shape>
                     <gradient
-                        android:startColor="#1A00F0FF"
-                        android:endColor="#1A004BFF"
+                        android:startColor="#1AFF2A2A"
+                        android:endColor="#1AD31A21"
                         android:angle="270" />
                     <corners android:radius="16dp" />
-                    <stroke android:width="2dp" android:color="#4000F0FF" />
+                    <stroke android:width="2dp" android:color="#40FF2A2A" />
                 </shape>
             </item>
             <item>
                 <layer-list>
-                    <!-- Outer neon glow border -->
+                    <!-- Outer red glow border -->
                     <item>
                         <shape>
                             <corners android:radius="16dp" />
                             <solid android:color="#00FFFFFF" />
-                            <stroke android:width="2.5dp" android:color="#FF00F0FF" />
+                            <stroke android:width="2.5dp" android:color="#FFFF4D4D" />
                         </shape>
                     </item>
-                    <!-- Inside button gradient (Blue Neon Gradient) -->
+                    <!-- Inside button gradient (Red) -->
                     <item android:top="2dp" android:left="2dp" android:right="2dp" android:bottom="2dp">
                         <shape>
                             <gradient
-                                android:startColor="#00F0FF"
-                                android:endColor="#004BFF"
+                                android:startColor="#FF2A2A"
+                                android:endColor="#D31A21"
                                 android:angle="270" />
                             <corners android:radius="14dp" />
                         </shape>
