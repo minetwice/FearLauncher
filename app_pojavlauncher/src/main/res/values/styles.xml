@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- res/values/styles.xml - Full updated version -->
+<!-- res/values/styles.xml - Red Theme Professional Update -->
 <resources>
 
     <!-- ═══════════════════════════════════════════════ -->
@@ -9,11 +9,10 @@
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:statusBarColor">#000000</item>
-        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#0A0000</item>
+        <item name="android:navigationBarColor">#0A0000</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
         <item name="android:textSize">@dimen/_12ssp</item>
-        <!-- FIX: All text white by default -->
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textColorHint">@color/secondary_text</item>
         <item name="android:textColorSecondary">@color/secondary_text</item>
@@ -22,7 +21,7 @@
     <style name="FearPreferenceTheme" parent="PreferenceThemeOverlay.v14.Material">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:background">@drawable/premium_gradient_bg</item>
-        <item name="android:colorBackground">#000000</item>
+        <item name="android:colorBackground">#0A0000</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
         <item name="alertDialogTheme">@style/FearAlertDialogTheme</item>
     </style>
@@ -31,8 +30,8 @@
         <item name="android:windowBackground">@drawable/premium_dialog_bg</item>
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColor">#FFFFFF</item>
-        <item name="android:textColorSecondary">#B3FFFFFF</item>
-        <item name="colorAccent">#FF00F0FF</item> <!-- Neon blue color accent for dialog UI controls/buttons -->
+        <item name="android:textColorSecondary">#CCFFFFFF</item>
+        <item name="colorAccent">#FF2A2A</item>
         <item name="colorOnSurface">#FFFFFF</item>
     </style>
 
@@ -40,29 +39,27 @@
     <!-- FEAR MATERIAL THEME                             -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="Theme.FearLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:statusBarColor">#000000</item>
-        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:statusBarColor">#0A0000</item>
+        <item name="android:navigationBarColor">#0A0000</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="colorPrimary">@color/fear_primary</item>
         <item name="colorOnPrimary">@color/fear_on_primary</item>
         <item name="colorSecondary">@color/fear_secondary</item>
         <item name="colorTertiary">@color/fear_tertiary</item>
-        <item name="android:colorBackground">#000000</item>
-        <item name="colorSurface">#0A0A0A</item>
-        <item name="colorSurfaceVariant">#121212</item>
+        <item name="android:colorBackground">#0A0000</item>
+        <item name="colorSurface">#120000</item>
+        <item name="colorSurfaceVariant">#1A0000</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:textSize">@dimen/_12ssp</item>
-        <!-- FIX: Text colors -->
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textColorHint">@color/secondary_text</item>
         <item name="android:textColorSecondary">@color/secondary_text</item>
-        <!-- FIX: Bottom sheets dark bg -->
         <item name="bottomSheetDialogTheme">@style/BottomSheet.Fear</item>
         <item name="alertDialogTheme">@style/FearAlertDialogTheme</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- BOTTOM SHEET — Dark Fear Theme                  -->
+    <!-- BOTTOM SHEET                                    -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="BottomSheet.Fear" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/BottomSheet.Fear.Style</item>
@@ -80,7 +77,7 @@
     <!-- ═══════════════════════════════════════════════ -->
     <style name="LauncherMenuButton" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/premium_button_bg</item>
-        <item name="android:textColor">#000000</item>
+        <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">@dimen/_14ssp</item>
         <item name="android:layout_margin">@dimen/padding_small</item>
         <item name="android:textAllCaps">false</item>
@@ -102,15 +99,13 @@
     <style name="ThickDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/_1sdp</item>
-        <!-- FIX: Use Fear divider color instead of system listDivider -->
-        <item name="android:background">@color/background_overlay</item>
+        <item name="android:background">@color/divider</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════ -->
     <!-- TEXT STYLES                                     -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="TextAppearance.AppCompat.Title" parent="Base.TextAppearance.AppCompat.Title">
-        <!-- FIX: Title text white, not default gray -->
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
@@ -128,11 +123,11 @@
     <!-- FEAR CARDS AND BUTTONS                          -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="FearCard" parent="Widget.MaterialComponents.CardView">
-        <item name="cardBackgroundColor">#1AFFFFFF</item>
+        <item name="cardBackgroundColor">#1AFF2A2A</item>
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="strokeWidth">1dp</item>
-        <item name="strokeColor">#4DFFFFFF</item>
+        <item name="strokeColor">#4DFF2A2A</item>
     </style>
 
     <style name="FearPlayButton" parent="Widget.MaterialComponents.Button">
