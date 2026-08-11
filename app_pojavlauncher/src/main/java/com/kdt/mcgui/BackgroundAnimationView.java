@@ -15,8 +15,8 @@ import java.util.Random;
 public class BackgroundAnimationView extends View {
 
     private int mAnimType = 0; // 0 to 14 representing the 15 Intense Custom animations
-    private int mPrimaryColor = 0x00F0FF;
-    private int mSecondaryColor = 0x005BFF;
+    private int mPrimaryColor = 0xFF2A2A;   // Red theme
+    private int mSecondaryColor = 0xD31A21; // Dark red
 
     private final Paint mPaint1 = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mPaint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -215,7 +215,7 @@ public class BackgroundAnimationView extends View {
         mPortalAngle += 0.08f;
 
         mPaint1.setShader(null);
-        mPaint1.setColor(0xFF80E0FF); // Chidori lightning neon-blue
+        mPaint1.setColor(0xFFFF4D4D); // Red lightning
         mPaint1.setStrokeWidth(3.5f);
 
         // core bright flashes
