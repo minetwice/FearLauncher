@@ -1,4 +1,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#FFFFFF" />
+    <!-- Premium Neon Cyan Scrollbar (Step 1 Redesign Requirements) -->
+    <solid android:color="#B300F0FF" />
     <corners android:radius="100dp" />
 </shape>
