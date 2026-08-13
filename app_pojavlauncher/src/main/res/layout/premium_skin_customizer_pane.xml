@@ -1,38 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Premium Skin Customizer Dashboard Redesign — Full Glassmorphic 2026 Style -->
+<!-- Premium Skin Customizer Dashboard Overhaul — Maximum 3D Statue Showcase Edition -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:padding="8dp">
 
-    <!-- Left Pane: 3D Preview Frame -->
+    <!-- Left Pane: MAXIMIZED 3D Preview Frame (Showing space and preview size greatly expanded) -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.45"
+        android:layout_weight="0.65"
         android:orientation="vertical"
         android:gravity="center_horizontal"
         android:padding="12dp"
-        android:background="@drawable/premium_glass_black_bg">
+        android:background="@drawable/premium_glass_black_bg"
+        android:layout_marginEnd="8dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ACTIVE 3D SKIN PREVIEW"
+            android:text="HIGH-RESOLUTION 3D STATUE"
             android:textColor="#FF003C"
             android:textSize="11sp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="6dp" />
 
-        <!-- Rotatable 3D Skin Canvas -->
+        <!-- Rotatable 3D Skin Canvas (Greatly expanded size inside layout) -->
         <com.kdt.mcgui.MinecraftSkinView
             android:id="@+id/skin_current_viewer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="8dp" />
 
         <!-- Model Type (Steve vs Alex) Toggle Selector -->
         <LinearLayout
@@ -45,7 +46,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="STEVE (4-PX ARMS)"
+                android:text="STEVE (CLASSIC MODEL)"
                 android:textColor="#FFFFFF"
                 android:textSize="9sp"
                 android:textStyle="bold"
@@ -57,7 +58,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="ALEX (3-PX ARMS)"
+                android:text="ALEX (SLIM MODEL)"
                 android:textColor="#FFFFFF"
                 android:textSize="9sp"
                 android:textStyle="bold"
@@ -67,16 +68,11 @@
 
     </LinearLayout>
 
-    <!-- Vertical Separation Space -->
-    <View
-        android:layout_width="12dp"
-        android:layout_height="match_parent" />
-
     <!-- Right Pane: Local Skin Library Repository -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.55"
+        android:layout_weight="0.45"
         android:orientation="vertical"
         android:padding="12dp"
         android:background="@drawable/premium_glass_black_bg">
@@ -84,12 +80,12 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="LOCAL SKIN REPOSITORY"
+            android:text="SKIN VAULT"
             android:textColor="#FF003C"
             android:textSize="11sp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="8dp" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
