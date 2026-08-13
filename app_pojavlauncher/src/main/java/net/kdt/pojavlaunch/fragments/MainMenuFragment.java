@@ -53,22 +53,23 @@ public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
 
     private static final String[] CHAT_MESSAGES = {
-        "[SYSTEM] Boot sequence initialized successfully.",
-        "[SYSTEM] Active rendering pipeline: FEAR CORE.",
-        "[SYSTEM] Checking hardware specifications: OK.",
-        "[CORE] JRE execution parameters: LOCKED.",
-        "[CORE] Mesa driver emulation layer: ACTIVE.",
-        "[CORE] Memory allocation optimization: LOCKED.",
-        "[GPU] Context wrapper glMemoryBarrier: SAFE.",
-        "[GPU] Nearest-neighbor texture scaling: ACTIVE.",
-        "[NET] Local metadata server proxy running on 25599.",
-        "[NET] Handshaking Yggdrasil API textures: OK.",
-        "[INPUT] Virtual touch controller layout: LOADED.",
-        "[INPUT] Mouse pointer acceleration speed: OPTIMIZED.",
-        "[SYSTEM] Telemetry services: STANDBY."
+        "⏽ [SYSTEM] Boot sequence initialized successfully.",
+        "⎈ [SYSTEM] Active rendering pipeline: FEAR CORE.",
+        "⛋ [SYSTEM] Checking hardware specifications: OK.",
+        "⚙ [CORE] JRE execution parameters: LOCKED.",
+        "⚡ [CORE] Mesa driver emulation layer: ACTIVE.",
+        "🖴 [CORE] Memory allocation optimization: LOCKED.",
+        "🛡 [GPU] Context wrapper glMemoryBarrier: SAFE.",
+        "✦ [GPU] Nearest-neighbor texture scaling: ACTIVE.",
+        "🖧 [NET] Local metadata server proxy running on 25599.",
+        "🗝 [NET] Handshaking Yggdrasil API textures: OK.",
+        "🎮 [INPUT] Virtual touch controller layout: LOADED.",
+        "⇗ [INPUT] Mouse pointer acceleration speed: OPTIMIZED.",
+        "📡 [SYSTEM] Telemetry services: STANDBY."
     };
 
     private android.animation.ValueAnimator mHeadRotationAnimator;
+    private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
     private java.lang.Runnable mChatBubbleRunnable;
 
@@ -982,6 +983,20 @@ public class MainMenuFragment extends Fragment {
 
                 currentViewer.loadSkin(activeSkinPath, isAlex);
 
+                // Feather / Lunar style automatic 360-degree continuous rotatable loop animation
+                if (mSkinRotationAnimator != null) {
+                    mSkinRotationAnimator.cancel();
+                }
+                mSkinRotationAnimator = android.animation.ValueAnimator.ofFloat(0f, 360f);
+                mSkinRotationAnimator.setDuration(12000); // Elegant 12 seconds full rotation
+                mSkinRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                mSkinRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+                mSkinRotationAnimator.addUpdateListener(animation -> {
+                    float val = (float) animation.getAnimatedValue();
+                    currentViewer.setRotationAngles(val, 0f);
+                });
+                mSkinRotationAnimator.start();
+
                 java.lang.Runnable updateModelButtonsUI = () -> {
                     boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
                     if (currentIsAlex) {
@@ -1655,6 +1670,9 @@ public class MainMenuFragment extends Fragment {
     public void onDestroyView() {
         if (mHeadRotationAnimator != null) {
             mHeadRotationAnimator.cancel();
+        }
+        if (mSkinRotationAnimator != null) {
+            mSkinRotationAnimator.cancel();
         }
         if (mChatBubbleHandler != null && mChatBubbleRunnable != null) {
             mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);

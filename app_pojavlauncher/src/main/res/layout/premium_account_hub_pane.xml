@@ -1,56 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Redesigned FEAR Premium Account Hub — 2026 Popular Launcher Dashboard Standard -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/_6sdp">
+    android:padding="@dimen/_8sdp">
 
     <!-- Dual Column Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:orientation="horizontal">
 
-        <!-- LEFT PANEL: CURRENT ACCOUNTS -->
+        <!-- LEFT PANEL: PROFILE MANAGER -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1.1"
-            android:layout_marginEnd="@dimen/_6sdp"
+            android:layout_marginEnd="@dimen/_8sdp"
             android:background="@drawable/premium_glass_black_bg"
-            android:padding="@dimen/_8sdp"
+            android:padding="@dimen/_12sdp"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CURRENT ACCOUNTS"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_9ssp"
-                android:textStyle="bold" />
+                android:text="ACTIVE IDENTITIES"
+                android:textColor="#FF003C"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your linked identities"
-                android:textColor="#66FFFFFF"
-                android:textSize="@dimen/_7ssp" />
+                android:text="Manage your active gaming profiles"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginBottom="8dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1AFFFFFF"
+                android:layout_marginBottom="8dp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:layout_marginTop="@dimen/_6sdp">
+                android:layout_weight="1">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/account_list"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:scrollbars="vertical"
+                    android:scrollbarThumbVertical="@drawable/silver_scrollbar" />
 
                 <LinearLayout
                     android:id="@+id/empty_account_state"
@@ -64,13 +71,13 @@
                         android:layout_width="@dimen/_28sdp"
                         android:layout_height="@dimen/_28sdp"
                         android:src="@drawable/ic_mc_skull"
-                        app:tint="#20FFFFFF"/>
+                        app:tint="#4DFF003C"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="No accounts found"
+                        android:text="No identities initialized"
                         android:textColor="#40FFFFFF"
                         android:textSize="@dimen/_9ssp"/>
                 </LinearLayout>
@@ -79,9 +86,9 @@
             <com.kdt.mcgui.MineButton
                 android:id="@+id/btn_switch_account"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_28sdp"
-                android:layout_marginTop="@dimen/_6sdp"
-                android:text="Switch Account"
+                android:layout_height="@dimen/_32sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="SWAP PLAY PROFILE"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
@@ -89,97 +96,105 @@
 
         </LinearLayout>
 
-        <!-- RIGHT PANEL: ADD NEW ACCOUNT -->
+        <!-- RIGHT PANEL: CONSOLE REGISTRATION -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1.3"
-            android:layout_marginStart="@dimen/_6sdp"
+            android:layout_marginStart="@dimen/_8sdp"
             android:background="@drawable/premium_glass_black_bg"
-            android:padding="@dimen/_8sdp"
+            android:padding="@dimen/_12sdp"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ADD NEW ACCOUNT"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_9ssp"
-                android:textStyle="bold" />
+                android:text="CONSOLIDATE NEW PROFILE"
+                android:textColor="#FF003C"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Begin your journey"
-                android:textColor="#66FFFFFF"
-                android:textSize="@dimen/_7ssp" />
+                android:text="Establish credentials for authentication"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginBottom="8dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1AFFFFFF"
+                android:layout_marginBottom="8dp" />
 
             <!-- Account Name Input -->
             <EditText
                 android:id="@+id/local_username_input"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_28sdp"
-                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_height="@dimen/_32sdp"
                 android:background="@drawable/premium_edit_bg"
-                android:hint="Account Name"
+                android:hint="Account Username"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#40FFFFFF"
-                android:paddingHorizontal="@dimen/_8sdp"
+                android:paddingHorizontal="@dimen/_10sdp"
                 android:textSize="@dimen/_10ssp"
                 android:drawableStart="@drawable/ic_account_circle"
                 android:drawablePadding="@dimen/_6sdp"
-                app:tint="#66FFFFFF"/>
+                app:tint="#66FFFFFF"
+                android:singleLine="true"/>
 
             <!-- Selection Category -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_6sdp"
-                android:text="Select Account Type"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="Select Protocol Method"
                 android:textColor="#B3FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold" />
 
-            <!-- Horizontally Scrollable or Fixed Types Cards -->
+            <!-- fixed Types Cards -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_marginTop="@dimen/_6sdp"
                 android:gravity="center_vertical">
 
                 <!-- Microsoft Type -->
                 <LinearLayout
                     android:id="@+id/card_type_ms"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_54sdp"
+                    android:layout_height="@dimen/_60sdp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="@dimen/_3sdp"
+                    android:layout_marginEnd="@dimen/_4sdp"
                     android:background="@drawable/premium_auth_type_card_bg"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="4dp"
+                    android:padding="6dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="@dimen/_16sdp"
-                        android:layout_height="@dimen/_16sdp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
                         android:src="@drawable/ic_auth_ms" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Microsoft Account"
+                        android:text="Microsoft SSO"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_7ssp"
-                        android:layout_marginTop="2dp"
+                        android:textSize="@dimen/_8ssp"
+                        android:layout_marginTop="3dp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Single Sign-On, Cross-play"
+                        android:text="Secure Official Auth"
                         android:textColor="#80FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
@@ -189,34 +204,34 @@
                 <LinearLayout
                     android:id="@+id/card_type_mojang"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_54sdp"
+                    android:layout_height="@dimen/_60sdp"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="@dimen/_1sdp"
+                    android:layout_marginHorizontal="@dimen/_2sdp"
                     android:background="@drawable/premium_auth_type_card_bg"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="4dp"
+                    android:padding="6dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="@dimen/_16sdp"
-                        android:layout_height="@dimen/_16sdp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
                         android:src="@drawable/ic_auth_craftynmc" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CraftynMC Account"
+                        android:text="CraftynMC"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_7ssp"
-                        android:layout_marginTop="2dp"
+                        android:textSize="@dimen/_8ssp"
+                        android:layout_marginTop="3dp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Farmer Station Auth"
+                        android:text="Render community server"
                         android:textColor="#80FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
@@ -226,34 +241,34 @@
                 <LinearLayout
                     android:id="@+id/card_type_local"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_54sdp"
+                    android:layout_height="@dimen/_60sdp"
                     android:layout_weight="1"
-                    android:layout_marginStart="@dimen/_3sdp"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:background="@drawable/premium_auth_type_card_bg"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:padding="4dp"
+                    android:padding="6dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="@dimen/_16sdp"
-                        android:layout_height="@dimen/_16sdp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
                         android:src="@drawable/ic_auth_local_compass" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Local Profile"
+                        android:text="Offline Local"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_7ssp"
-                        android:layout_marginTop="2dp"
+                        android:textSize="@dimen/_8ssp"
+                        android:layout_marginTop="3dp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Offline, No Cross-play"
+                        android:text="No online capability"
                         android:textColor="#80FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
@@ -266,18 +281,18 @@
                 android:id="@+id/local_error_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FF5252"
+                android:textColor="#FF3B30"
                 android:textSize="@dimen/_8ssp"
                 android:visibility="gone"
-                android:layout_marginTop="2dp" />
+                android:layout_marginTop="4dp" />
 
             <!-- Add Account Button -->
             <com.kdt.mcgui.MineButton
                 android:id="@+id/btn_add_account"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_28sdp"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:text="➕ ADD ACCOUNT"
+                android:layout_height="@dimen/_32sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:text="➕ INITIALIZE PROFILE"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
@@ -288,8 +303,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="2dp"
-                android:text="Trouble logging in?"
+                android:layout_marginTop="6dp"
+                android:text="Need assistance with configuration?"
                 android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:clickable="true"
