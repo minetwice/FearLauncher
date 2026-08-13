@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Premium Cyberpunk Dark Red-to-Black Cinematic Background Gradient -->
     <gradient
-        android:startColor="#091426"
-        android:centerColor="#02050D"
+        android:startColor="#1E0306"
+        android:centerColor="#090102"
         android:endColor="#000000"
-        android:angle="270" />
+        android:angle="270"
+        android:type="linear" />
 </shape>

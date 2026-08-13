@@ -194,7 +194,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SYNCHRONIZING STATION NETWORK"
-                android:textColor="#00F0FF"
+                android:textColor="#FF003C"
                 android:textSize="@dimen/_11ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"

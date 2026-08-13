@@ -203,7 +203,7 @@ public class LocalSkinServer {
                 skinDomains.add("localhost");
                 skinDomains.add("127.0.0.1");
                 skinDomains.add("textures.minecraft.net");
-                skinDomains.add("farmer-my1t.onrender.com");
+                skinDomains.add("craftynmc.onrender.com");
                 response.add("skinDomains", skinDomains);
 
                 response.addProperty("signaturePublickey", mPemPublicKey);
@@ -570,7 +570,7 @@ public class LocalSkinServer {
 
     private byte[] proxyRequest(String method, String path, byte[] requestBody, String contentType, int[] outStatusCode, String[] outContentType) {
         try {
-            URL url = new URL("https://farmer-my1t.onrender.com" + path);
+            URL url = new URL("https://craftynmc.onrender.com" + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod(method);
             conn.setConnectTimeout(10000);

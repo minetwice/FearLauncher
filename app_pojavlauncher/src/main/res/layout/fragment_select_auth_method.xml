@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Redesigned FEAR Authentication Method Selector — 2026 Popular Launcher Dashboard Standard -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -17,58 +18,73 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Left Side: Header and Button Selectors -->
         <TextView
             android:id="@+id/add_account_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ACCOUNT ACCESS"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_18ssp"
+            android:text="SECURE IDENTITY AUTHORIZATION"
+            android:textColor="#FF003C"
+            android:textSize="@dimen/_16ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/add_account_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose your preferred Minecraft authentication mechanism"
+            android:textColor="#80FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            app:layout_constraintTop_toBottomOf="@id/add_account_title"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="2dp" />
 
         <LinearLayout
             android:id="@+id/auth_method_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="@dimen/_30sdp"
-            app:layout_constraintTop_toBottomOf="@id/add_account_title"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:layout_constraintTop_toBottomOf="@id/add_account_subtitle"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintWidth_percent="0.5">
+            app:layout_constraintWidth_percent="0.55">
 
+            <!-- Microsoft Auth -->
             <com.kdt.mcgui.MineButton
                 android:id="@+id/button_microsoft_authentication"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_44sdp"
-                android:text="MICROSOFT ACCOUNT"
-                android:drawableStart="@drawable/ic_auth_ms" />
+                android:layout_height="@dimen/_40sdp"
+                android:text="MICROSOFT SECURITY ACCESS"
+                android:drawableStart="@drawable/ic_auth_ms"
+                android:layout_marginBottom="10dp" />
 
+            <!-- Local Identity -->
             <com.kdt.mcgui.MineButton
                 android:id="@+id/button_local_authentication"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_44sdp"
-                android:layout_marginTop="@dimen/_12sdp"
-                android:text="LOCAL IDENTITY"
-                android:drawableStart="@drawable/ic_mc_skull" />
+                android:layout_height="@dimen/_40sdp"
+                android:text="LOCAL IDENTITY ACCESS"
+                android:drawableStart="@drawable/ic_mc_skull"
+                android:layout_marginBottom="10dp" />
 
+            <!-- CraftynMC Network Auth -->
             <com.kdt.mcgui.MineButton
                 android:id="@+id/button_elyfly_authentication"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_44sdp"
-                android:layout_marginTop="@dimen/_12sdp"
-                android:text="CRAFTYN.MC NETWORK"
+                android:layout_height="@dimen/_40sdp"
+                android:text="FEAR NETWORK COMMUNITY"
                 android:drawableStart="@drawable/ic_auth_craftynmc" />
         </LinearLayout>
 
+        <!-- Right Side Logo visuals -->
         <ImageView
-            android:layout_width="@dimen/_180sdp"
-            android:layout_height="@dimen/_180sdp"
-            android:src="@drawable/ic_px_zap"
-            app:tint="#4DFFFFFF"
-            android:alpha="0.3"
+            android:layout_width="@dimen/_160sdp"
+            android:layout_height="@dimen/_160sdp"
+            android:src="@drawable/ic_app_logo"
+            app:tint="#1AFF003C"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

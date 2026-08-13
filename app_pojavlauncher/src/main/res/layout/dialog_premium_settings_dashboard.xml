@@ -1,265 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Redesigned FEAR Command Center settings dashboard — 2026 Ultra Premium Glassmorphic Split-Pane HUD -->
+<!-- Redesigned FEAR Command Center Settings Dashboard — 2026 Cyber-Red Holographic Top-Tab HUD -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/premium_gradient_bg"
-    android:padding="16dp">
+    android:padding="12dp">
 
-    <!-- Top Header -->
-    <ImageButton
-        android:id="@+id/dash_back_btn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_px_arrow_left"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/dash_header_title"
-        android:layout_width="wrap_content"
+    <!-- Top Action Bar (Redesigned Header Row) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/dash_top_bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="FEAR SYSTEM CONTROLS"
-        android:textColor="#00F0FF"
-        android:textSize="@dimen/_14ssp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1"
-        android:layout_marginStart="12dp"
-        app:layout_constraintTop_toTopOf="@id/dash_back_btn"
-        app:layout_constraintBottom_toBottomOf="@id/dash_back_btn"
-        app:layout_constraintStart_toEndOf="@id/dash_back_btn" />
+        android:paddingVertical="8dp"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <com.kdt.mcgui.MineButton
-        android:id="@+id/dash_done_btn"
-        android:layout_width="84dp"
-        android:layout_height="36dp"
-        android:text="CLOSE"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/_8ssp"
-        android:textStyle="bold"
-        android:background="@drawable/premium_button_bg"
-        android:layout_marginEnd="48dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <ImageButton
+            android:id="@+id/dash_back_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FF003C"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
+        <TextView
+            android:id="@+id/dash_header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEAR SYSTEM COMMAND CORE"
+            android:textColor="#FF003C"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dash_back_btn" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/dash_done_btn"
+            android:layout_width="100dp"
+            android:layout_height="36dp"
+            android:text="COLLAPSE"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:background="@drawable/premium_button_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Horizontal Neon-Red Separation Line -->
     <View
         android:id="@+id/dash_header_divider"
         android:layout_width="match_parent"
         android:layout_height="1.5dp"
-        android:background="#4D00F0FF"
-        android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@id/dash_back_btn" />
+        android:background="#FF003C"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/dash_top_bar" />
 
-    <!-- Split Pane Workspace -->
-    <LinearLayout
+    <!-- STRUCTURAL REPOSITIONING: Horizontal Tabbed Navigation Bar (Repositioned to Top Scroll Container) -->
+    <HorizontalScrollView
+        android:id="@+id/dash_nav_tab_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="6dp"
+        app:layout_constraintTop_toBottomOf="@id/dash_header_divider">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_settings"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="SETTINGS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_sharp_settings_24"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_execute"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="EXECUTABLE"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_zap"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_skin"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="SKIN SYSTEM"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_account_circle"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_account"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="ACCOUNT HUB"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_account_circle"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_controls"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="INPUTS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_gamepad"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_modpacks"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="MODPACKS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_file_dl"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_addons"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="ADDONS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_experiment"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_logs"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="TELEMETRY"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_sharelog"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginEnd="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/dash_nav_info"
+                android:layout_width="140dp"
+                android:layout_height="34dp"
+                android:text="CREATORS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:drawableStart="@drawable/ic_px_experiment"
+                android:drawablePadding="6dp"
+                android:paddingStart="8dp"
+                android:gravity="start|center_vertical"
+                android:background="@drawable/premium_glass_black_bg" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Large Central Content Panel (Size maximized and position structured cleanly right below tabs) -->
+    <FrameLayout
+        android:id="@+id/dash_content_pane"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/dash_header_divider"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/dash_nav_tab_bar"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Left Navigation Rail Column (Spacious 180dp width with premium icons) -->
-        <ScrollView
-            android:layout_width="180dp"
-            android:layout_height="match_parent"
-            android:scrollbars="none"
-            android:background="@drawable/premium_glass_black_bg"
-            android:padding="8dp">
+        <!-- Default holographic welcome message -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="SELECT MODULE FOR SYSTEM CONTROLS"
+            android:textColor="#B3FFFFFF"
+            android:textSize="@dimen/_11ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="SYSTEM ENGINE"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_7ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_settings"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="SETTINGS ENGINE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_sharp_settings_24"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_execute"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="RUN EXECUTABLE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_zap"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="14dp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="USER IDENTITY"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_7ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_skin"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="SKIN CUSTOMIZER"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_account_circle"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_account"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="ACCOUNT HUB"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_account_circle"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="14dp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ASSET DOWNLOADING"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="@dimen/_7ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_controls"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="INPUT MAPPING"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_gamepad"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_modpacks"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="MODPACK ENGINE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_file_dl"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_addons"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="ADDON INSTALLER"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_experiment"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_logs"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="DATA TELEMETRY"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_sharelog"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/dash_nav_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:text="CREATORS &amp; INFO"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:drawableStart="@drawable/ic_px_experiment"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:background="@drawable/premium_glass_black_bg" />
-
-            </LinearLayout>
-        </ScrollView>
-
-        <!-- Vertical Space -->
-        <View
-            android:layout_width="12dp"
-            android:layout_height="match_parent" />
-
-        <!-- Right Content Work Pane (Dynamically swaps settings and lists inside here!) -->
-        <FrameLayout
-            android:id="@+id/dash_content_pane"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/premium_glass_black_bg"
-            android:padding="12dp">
-
-            <!-- Default panel inside Pane -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="SELECT MODULE FOR CUSTOMIZATION"
-                android:textColor="#80FFFFFF"
-                android:textSize="@dimen/_11ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
-
-        </FrameLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

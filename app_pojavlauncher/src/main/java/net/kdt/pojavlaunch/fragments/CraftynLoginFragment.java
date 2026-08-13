@@ -165,7 +165,7 @@ public class CraftynLoginFragment extends Fragment {
 
         PojavApplication.sExecutorService.execute(() -> {
             try {
-                URL url = new URL("https://farmer-my1t.onrender.com/api/check-username?username=" + username);
+                URL url = new URL("https://craftynmc.onrender.com/api/check-username?username=" + username);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(3000);
@@ -244,7 +244,7 @@ public class CraftynLoginFragment extends Fragment {
                 Thread.sleep(800); // Elegant delay for animation visibility
 
                 String endpoint = mIsSignUpMode ? "register" : "login";
-                URL url = new URL("https://farmer-my1t.onrender.com/" + endpoint);
+                URL url = new URL("https://craftynmc.onrender.com/" + endpoint);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
@@ -283,7 +283,7 @@ public class CraftynLoginFragment extends Fragment {
 
                         boolean skinSuccess = false;
                         try {
-                            URL skinUrl = new URL("https://farmer-my1t.onrender.com/skins/" + uuid + ".png");
+                            URL skinUrl = new URL("https://craftynmc.onrender.com/skins/" + uuid + ".png");
                             HttpURLConnection skinConn = (HttpURLConnection) skinUrl.openConnection();
                             skinConn.setRequestMethod("GET");
                             skinConn.setConnectTimeout(4000);
