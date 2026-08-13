@@ -554,8 +554,8 @@ public class MainMenuFragment extends Fragment {
         if (view == null || getContext() == null) return;
 
         android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        // Default to beautiful custom cyan/cyber-blue ARGB color value (#FF00F0FF)
-        int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFF00F0FF);
+        // Default to beautiful custom red/cyber-red ARGB color value (#FFFF003C)
+        int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFFFF003C);
         int secondaryColor = getDarkerShade(primaryColor);
         int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
 
