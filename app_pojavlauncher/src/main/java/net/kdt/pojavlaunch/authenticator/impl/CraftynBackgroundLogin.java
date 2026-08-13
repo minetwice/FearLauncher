@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 public class CraftynBackgroundLogin implements BackgroundLogin {
     public static final BackgroundLogin.Creator CREATOR = CraftynBackgroundLogin::new;
 
-    private static final String loginUrl = "https://farmer-my1t.onrender.com/login";
+    private static final String loginUrl = "https://craftynmc.onrender.com/login";
 
     private String mToken;
     private String mUsername;
@@ -169,18 +169,18 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
             }
             String undashedUuid = uuid != null ? uuid.replace("-", "").toLowerCase() : "";
 
-            URL url = new URL("https://farmer-my1t.onrender.com/skins/" + dashedUuid + ".png");
+            URL url = new URL("https://craftynmc.onrender.com/skins/" + dashedUuid + ".png");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);
             if (conn.getResponseCode() != 200) {
-                url = new URL("https://farmer-my1t.onrender.com/skins/" + undashedUuid + ".png");
+                url = new URL("https://craftynmc.onrender.com/skins/" + undashedUuid + ".png");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5000);
             }
             if (conn.getResponseCode() != 200) {
-                url = new URL("https://farmer-my1t.onrender.com/skins/" + username + ".png");
+                url = new URL("https://craftynmc.onrender.com/skins/" + username + ".png");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5000);

@@ -54,15 +54,15 @@ public class MinecraftAccount {
                 String undashedUuid = profileId != null ? profileId.replace("-", "").toLowerCase() : "";
 
                 try {
-                    String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + dashedUuid + ".png";
+                    String skinFaceUrl = "https://craftynmc.onrender.com/skins/" + dashedUuid + ".png";
                     skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
                 } catch (IOException e1) {
                     try {
-                        String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + undashedUuid + ".png";
+                        String skinFaceUrl = "https://craftynmc.onrender.com/skins/" + undashedUuid + ".png";
                         skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
                     } catch (IOException e2) {
                         try {
-                            String skinFaceUrl = "https://farmer-my1t.onrender.com/skins/" + username + ".png";
+                            String skinFaceUrl = "https://craftynmc.onrender.com/skins/" + username + ".png";
                             skinBytes = IOUtils.toByteArray(new URL(skinFaceUrl));
                         } catch (IOException e3) {
                             Log.w("SkinLoader", "Could not load skin via dashed, undashed, or username", e3);
