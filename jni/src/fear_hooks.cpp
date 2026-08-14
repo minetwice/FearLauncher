@@ -43,6 +43,20 @@ static std::string get_shader_cache_dir() {
     return tmp_str + "/../files/fear_shader_cache";
 }
 
+// OpenGL ES Error converter helper
+static const char* get_gl_error_string(unsigned int err) {
+    switch (err) {
+        case 0x0500: return "GL_INVALID_ENUM";
+        case 0x0501: return "GL_INVALID_VALUE";
+        case 0x0502: return "GL_INVALID_OPERATION";
+        case 0x0503: return "GL_STACK_OVERFLOW";
+        case 0x0504: return "GL_STACK_UNDERFLOW";
+        case 0x0505: return "GL_OUT_OF_MEMORY";
+        case 0x0506: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+        default: return "GL_UNKNOWN_ERROR";
+    }
+}
+
 extern "C" {
 
 const unsigned char* fear_glGetString(unsigned int name) {
@@ -424,6 +438,162 @@ void glLinkProgram(unsigned int program) {
     }
 }
 
+// Hook glTexImage2D to downgrade high-end desktop formats to mobile-safe versions
+void glTexImage2D(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format, unsigned int type, const void* pixels) {
+    typedef void (*glTexImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    static glTexImage2D_pfn real_glTexImage2D = nullptr;
+    if (!real_glTexImage2D) {
+        real_glTexImage2D = (glTexImage2D_pfn)dlsym(RTLD_NEXT, "glTexImage2D");
+    }
+
+    int original_internalformat = internalformat;
+    if (internalformat == 0x8814 /* GL_RGBA32F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGBA32F -> GL_RGBA16F).");
+    } else if (internalformat == 0x8815 /* GL_RGB32F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGB32F -> GL_RGBA16F).");
+    } else if (internalformat == 0x881B /* GL_RGB16F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Map non-renderable GL_RGB16F texture to renderable GL_RGBA16F format.");
+    } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+        LOGI("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+        LOGI("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+    }
+
+    if (real_glTexImage2D) {
+        real_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+    }
+
+    // Wrap with error handling
+    typedef unsigned int (*glGetError_pfn)();
+    static glGetError_pfn real_glGetError = nullptr;
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn)dlsym(RTLD_NEXT, "glGetError");
+    }
+    if (real_glGetError) {
+        unsigned int err = real_glGetError();
+        if (err != 0) {
+            LOGE("[FearEngine] Error in glTexImage2D (0x%04X: %s) with params: [target=0x%X, level=%d, internalformat=0x%X (orig=0x%X), width=%d, height=%d, format=0x%X, type=0x%X]",
+                 err, get_gl_error_string(err), target, level, internalformat, original_internalformat, width, height, format, type);
+        }
+    }
+}
+
+// Hook glTexImage3D to downgrade high-end desktop formats to mobile-safe versions
+void glTexImage3D(unsigned int target, int level, int internalformat, int width, int height, int depth, int border, unsigned int format, unsigned int type, const void* pixels) {
+    typedef void (*glTexImage3D_pfn)(unsigned int, int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    static glTexImage3D_pfn real_glTexImage3D = nullptr;
+    if (!real_glTexImage3D) {
+        real_glTexImage3D = (glTexImage3D_pfn)dlsym(RTLD_NEXT, "glTexImage3D");
+    }
+
+    int original_internalformat = internalformat;
+    if (internalformat == 0x8814 /* GL_RGBA32F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGBA32F -> GL_RGBA16F).");
+    } else if (internalformat == 0x8815 /* GL_RGB32F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGB32F -> GL_RGBA16F).");
+    } else if (internalformat == 0x881B /* GL_RGB16F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Map non-renderable GL_RGB16F texture to renderable GL_RGBA16F format.");
+    } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+        LOGI("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+        LOGI("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+    }
+
+    if (real_glTexImage3D) {
+        real_glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
+    }
+
+    typedef unsigned int (*glGetError_pfn)();
+    static glGetError_pfn real_glGetError = nullptr;
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn)dlsym(RTLD_NEXT, "glGetError");
+    }
+    if (real_glGetError) {
+        unsigned int err = real_glGetError();
+        if (err != 0) {
+            LOGE("[FearEngine] Error in glTexImage3D (0x%04X: %s) with params: [target=0x%X, level=%d, internalformat=0x%X (orig=0x%X), width=%d, height=%d, depth=%d, format=0x%X, type=0x%X]",
+                 err, get_gl_error_string(err), target, level, internalformat, original_internalformat, width, height, depth, format, type);
+        }
+    }
+}
+
+// Hook glRenderbufferStorage to guarantee compliant depth formats
+void glRenderbufferStorage(unsigned int target, unsigned int internalformat, int width, int height) {
+    typedef void (*glRenderbufferStorage_pfn)(unsigned int, unsigned int, int, int);
+    static glRenderbufferStorage_pfn real_glRenderbufferStorage = nullptr;
+    if (!real_glRenderbufferStorage) {
+        real_glRenderbufferStorage = (glRenderbufferStorage_pfn)dlsym(RTLD_NEXT, "glRenderbufferStorage");
+    }
+
+    unsigned int original_internalformat = internalformat;
+    if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+        LOGI("[FearEngine] Downgraded renderbuffer depth format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+        LOGI("[FearEngine] Downgraded renderbuffer depth-stencil format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+    } else if (internalformat == 0x8814 /* GL_RGBA32F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded renderbuffer color format (GL_RGBA32F -> GL_RGBA16F).");
+    } else if (internalformat == 0x8815 /* GL_RGB32F */ || internalformat == 0x881B /* GL_RGB16F */) {
+        internalformat = 0x881A /* GL_RGBA16F */;
+        LOGI("[FearEngine] Downgraded renderbuffer color format (GL_RGB32F/16F -> GL_RGBA16F).");
+    }
+
+    if (real_glRenderbufferStorage) {
+        real_glRenderbufferStorage(target, internalformat, width, height);
+    }
+
+    typedef unsigned int (*glGetError_pfn)();
+    static glGetError_pfn real_glGetError = nullptr;
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn)dlsym(RTLD_NEXT, "glGetError");
+    }
+    if (real_glGetError) {
+        unsigned int err = real_glGetError();
+        if (err != 0) {
+            LOGE("[FearEngine] Error in glRenderbufferStorage (0x%04X: %s) with params: [target=0x%X, internalformat=0x%X (orig=0x%X), width=%d, height=%d]",
+                 err, get_gl_error_string(err), target, internalformat, original_internalformat, width, height);
+        }
+    }
+}
+
+// Hook glFramebufferTexture2D to intercept FBO attachments
+void glFramebufferTexture2D(unsigned int target, unsigned int attachment, unsigned int textarget, unsigned int texture, int level) {
+    typedef void (*glFramebufferTexture2D_pfn)(unsigned int, unsigned int, unsigned int, unsigned int, int);
+    static glFramebufferTexture2D_pfn real_glFramebufferTexture2D = nullptr;
+    if (!real_glFramebufferTexture2D) {
+        real_glFramebufferTexture2D = (glFramebufferTexture2D_pfn)dlsym(RTLD_NEXT, "glFramebufferTexture2D");
+    }
+
+    if (real_glFramebufferTexture2D) {
+        real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
+    }
+
+    typedef unsigned int (*glGetError_pfn)();
+    static glGetError_pfn real_glGetError = nullptr;
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn)dlsym(RTLD_NEXT, "glGetError");
+    }
+    if (real_glGetError) {
+        unsigned int err = real_glGetError();
+        if (err != 0) {
+            LOGE("[FearEngine] Error in glFramebufferTexture2D (0x%04X: %s) with params: [target=0x%X, attachment=0x%X, textarget=0x%X, texture=%u, level=%d]",
+                 err, get_gl_error_string(err), target, attachment, textarget, texture, level);
+        }
+    }
+}
+
 // Override eglGetProcAddress to proxy glMemoryBarrier and glShaderSource safely to prevent LWJGL 3 crashes
 void* eglGetProcAddress(const char* procname) {
     if (procname == nullptr) return nullptr;
@@ -454,6 +624,18 @@ void* eglGetProcAddress(const char* procname) {
     }
     if (strcmp(procname, "glDeleteProgram") == 0) {
         return (void*)glDeleteProgram;
+    }
+    if (strcmp(procname, "glTexImage2D") == 0) {
+        return (void*)glTexImage2D;
+    }
+    if (strcmp(procname, "glTexImage3D") == 0) {
+        return (void*)glTexImage3D;
+    }
+    if (strcmp(procname, "glRenderbufferStorage") == 0) {
+        return (void*)glRenderbufferStorage;
+    }
+    if (strcmp(procname, "glFramebufferTexture2D") == 0) {
+        return (void*)glFramebufferTexture2D;
     }
     if (strcmp(procname, "glGetString") == 0) {
         return (void*)fear_glGetString;
