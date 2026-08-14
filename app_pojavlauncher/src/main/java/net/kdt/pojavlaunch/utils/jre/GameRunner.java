@@ -279,8 +279,10 @@ public class GameRunner {
                 }
                 Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
             }
+        } catch (com.google.gson.JsonSyntaxException e) {
+            Log.w("FearLauncher", "[FearLauncher] Skin loading failed due to JsonSyntaxException, using default skin", e);
         } catch (Exception e) {
-            Log.e("GameRunner", "Failed to synchronize skin resourcepack on launch", e);
+            Log.e("FearLauncher", "[FearLauncher] Skin loading failed, using default skin", e);
         }
 
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);

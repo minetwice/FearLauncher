@@ -80,7 +80,6 @@ std::string FearTranslateGLSL(
 
     *translationSuccess = true;
 
-    // STEP 2.6 - GEOMETRY SHADER HANDLING:
     if (isGeometryShader(shaderType)) {
         *translationSuccess = false;
         LOG_WARNING("[FearEngine] WARNING: Geometry shader detected - not supported on mobile, skipping");
@@ -89,7 +88,6 @@ std::string FearTranslateGLSL(
 
     std::string glsl(sourceCode);
 
-    // SECTION 3: COMPUTE SHADER EMULATION DETECTION
     bool isCompute = isComputeShader(shaderType) ||
                      glsl.find("layout(local_size_x") != std::string::npos;
 
@@ -130,8 +128,8 @@ std::string FearTranslateGLSL(
         target_version = "#version 300 es";
     }
 
-    // SECTION 13: MOBILE DEFINES & EXTENSIONS
-    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n";
+    // SECTION B10: MOBILE DEFINES & EXTENSIONS
+    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n#define FEAR_SHADOW_MAP_RES 1024\n";
     if (glsl.find("dFdx") != std::string::npos || glsl.find("dFdy") != std::string::npos || glsl.find("fwidth") != std::string::npos) {
         mobile_defines += "#extension GL_OES_standard_derivatives : enable\n";
     }
@@ -147,7 +145,7 @@ std::string FearTranslateGLSL(
         insertAfterLine(glsl, target_version, inject_text);
     }
 
-    // SECTION 1: DERIVATIVES (Balanced parens parser)
+    // SECTION B1: DERIVATIVES
     size_t fwidth_pos = 0;
     while ((fwidth_pos = glsl.find("fwidth(", fwidth_pos)) != std::string::npos) {
         size_t close_paren = glsl.find(")", fwidth_pos);
@@ -161,19 +159,12 @@ std::string FearTranslateGLSL(
         }
     }
 
-    if (glsl.find("fear_calcNormal") == std::string::npos && glsl.find("dFdx(") != std::string::npos) {
-        std::string normal_helper = "vec3 fear_calcNormal(vec3 pos) {\n"
-                                    "    vec3 dp1 = dFdx(pos);\n"
-                                    "    vec3 dp2 = dFdy(pos);\n"
-                                    "    return normalize(cross(dp1, dp2));\n"
-                                    "}\n";
-        insertBeforeMain(glsl, normal_helper);
-    }
-
-    // SECTION 2: TEXTURE ARRAYS
-    if (glsl.find("sampler2DArray") != std::string::npos && glsl.find("fear_sampleArray") == std::string::npos) {
-        std::string array_helper = "vec4 fear_sampleArray(sampler2DArray sampler, vec2 uv, float layer) {\n"
-                                   "    return texture(sampler, vec3(uv, layer));\n"
+    // SECTION B2: TEXTURE ARRAYS & EMULATION HELPERS
+    if (glsl.find("fear_sampleArray2D") == std::string::npos) {
+        std::string array_helper = "vec4 fear_sampleArray2D(sampler2D atlas, vec2 uv, float layer, vec2 atlasSize) {\n"
+                                   "    vec2 offset = vec2(mod(layer, atlasSize.x), floor(layer / atlasSize.x));\n"
+                                   "    vec2 newUV = (uv + offset) / atlasSize;\n"
+                                   "    return texture(atlas, newUV);\n"
                                    "}\n";
         insertBeforeMain(glsl, array_helper);
     }
@@ -184,19 +175,19 @@ std::string FearTranslateGLSL(
     }
     replaceAll(glsl, "texture(lightmap, uv)", "texture(lightmap, vec3(uv, float(lightmap_layer)))");
 
-    // SECTION 3: COMPUTE SHADER EMULATION
+    // SECTION B3: COMPUTE SHADER EMULATION
     if (isCompute) {
         removeLinesContaining(glsl, "layout(local_size_x");
         removeLinesContaining(glsl, "layout (local_size_x");
-        replaceAll(glsl, "gl_GlobalInvocationID", "gl_FragCoord.xy");
-        replaceAll(glsl, "gl_WorkGroupID", "vec2(0.0)");
-        replaceAll(glsl, "gl_LocalInvocationID", "gl_FragCoord.xy");
-        replaceAll(glsl, "gl_NumWorkGroups", "vec2(textureSize(outputImage, 0))");
+        replaceAll(glsl, "gl_GlobalInvocationID", "ivec2(gl_FragCoord.xy)");
+        replaceAll(glsl, "gl_WorkGroupID", "ivec2(0)");
+        replaceAll(glsl, "gl_LocalInvocationID", "ivec2(gl_FragCoord.xy)");
+        replaceAll(glsl, "gl_NumWorkGroups", "ivec2(textureSize(outputTex, 0))");
 
         shaderType = GL_FRAGMENT_SHADER;
     }
 
-    // SECTION 4: IMAGE LOAD/STORE OPERATIONS
+    // SECTION B4: IMAGE LOAD/STORE OPERATIONS
     replaceAll(glsl, "writeonly image2D", "image2D");
     replaceAll(glsl, "readonly image2D", "sampler2D");
     replaceAll(glsl, "image2D", "sampler2D");
@@ -215,7 +206,7 @@ std::string FearTranslateGLSL(
     replaceAll(glsl, "shadow2D(", "texture(");
     replaceAll(glsl, "shadow2DProj(", "textureProj(");
 
-    // SECTION 5: ADVANCED TEXTURE FUNCTIONS (Balanced parens parser)
+    // SECTION B5: ADVANCED TEXTURE FUNCTIONS
     size_t gather_pos = 0;
     while ((gather_pos = glsl.find("textureGather(", gather_pos)) != std::string::npos) {
         size_t close_paren = glsl.find(")", gather_pos);
@@ -233,7 +224,7 @@ std::string FearTranslateGLSL(
     replaceAll(glsl, "textureQueryLevels(", "1");
     replaceAll(glsl, "textureSamples(", "1");
 
-    // SECTION 6: MATRIX OPERATIONS HELPERS
+    // SECTION B6: MATRIX INVERSE & TRANSPOSE HELPERS
     if (glsl.find("inverse(") != std::string::npos || glsl.find("transpose(") != std::string::npos) {
         std::string matrix_helpers = "mat3 fear_transpose(mat3 m) {\n"
                                      "    return mat3(m[0][0], m[1][0], m[2][0],\n"
@@ -251,13 +242,50 @@ std::string FearTranslateGLSL(
                                      "    return mat3(b01, b11, b21,\n"
                                      "                -a22 * a01 + a02 * a21, a22 * a00 - a02 * a20, -a21 * a00 + a01 * a20,\n"
                                      "                a12 * a01 - a02 * a11, -a12 * a00 + a02 * a10, a11 * a00 - a01 * a10) / det;\n"
+                                     "}\n"
+                                     "mat4 fear_inverse(mat4 m) {\n"
+                                     "    float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3];\n"
+                                     "    float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3];\n"
+                                     "    float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3];\n"
+                                     "    float a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3];\n"
+                                     "    float b00 = a00 * a11 - a01 * a10;\n"
+                                     "    float b01 = a00 * a12 - a02 * a10;\n"
+                                     "    float b02 = a00 * a13 - a03 * a10;\n"
+                                     "    float b03 = a01 * a12 - a02 * a11;\n"
+                                     "    float b04 = a01 * a13 - a03 * a11;\n"
+                                     "    float b05 = a02 * a13 - a03 * a12;\n"
+                                     "    float b06 = a20 * a31 - a21 * a30;\n"
+                                     "    float b07 = a20 * a32 - a22 * a30;\n"
+                                     "    float b08 = a20 * a33 - a23 * a30;\n"
+                                     "    float b09 = a21 * a32 - a22 * a31;\n"
+                                     "    float b10 = a21 * a33 - a23 * a31;\n"
+                                     "    float b11 = a22 * a33 - a23 * a32;\n"
+                                     "    float det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n"
+                                     "    return mat4(\n"
+                                     "        a11 * b11 - a12 * b10 + a13 * b09,\n"
+                                     "        a02 * b10 - a01 * b11 - a03 * b09,\n"
+                                     "        a31 * b05 - a32 * b04 + a33 * b03,\n"
+                                     "        a22 * b04 - a21 * b05 - a23 * b03,\n"
+                                     "        a12 * b08 - a10 * b11 - a13 * b07,\n"
+                                     "        a00 * b11 - a02 * b08 + a03 * b07,\n"
+                                     "        a32 * b02 - a30 * b05 - a33 * b01,\n"
+                                     "        a20 * b05 - a22 * b02 + a23 * b01,\n"
+                                     "        a10 * b10 - a11 * b08 + a13 * b06,\n"
+                                     "        a01 * b08 - a00 * b10 - a03 * b06,\n"
+                                     "        a30 * b04 - a31 * b02 + a33 * b00,\n"
+                                     "        a21 * b02 - a20 * b04 - a23 * b00,\n"
+                                     "        a11 * b07 - a10 * b09 - a12 * b06,\n"
+                                     "        a00 * b09 - a01 * b07 + a02 * b06,\n"
+                                     "        a31 * b01 - a30 * b03 - a32 * b00,\n"
+                                     "        a20 * b03 - a21 * b01 + a22 * b00\n"
+                                     "    ) / det;\n"
                                      "}\n";
         insertBeforeMain(glsl, matrix_helpers);
         replaceAll(glsl, "inverse(", "fear_inverse(");
         replaceAll(glsl, "transpose(", "fear_transpose(");
     }
 
-    // SECTION 7: BITFIELD OPERATIONS
+    // SECTION B7: BITWISE OPERATIONS HELPERS
     if (glsl.find("bitfieldExtract(") != std::string::npos || glsl.find("bitfieldInsert(") != std::string::npos) {
         std::string bitfield_helpers = "uint fear_bitfieldExtract(uint value, int offset, int bits) {\n"
                                        "    uint mask = (1u << bits) - 1u;\n"
@@ -272,7 +300,7 @@ std::string FearTranslateGLSL(
         replaceAll(glsl, "bitfieldInsert(", "fear_bitfieldInsert(");
     }
 
-    // SECTION 8: FORMAT SPECIFIER DOWNGRADES
+    // SECTION B8: FORMAT SPECIFIER DOWNGRADES
     replaceAll(glsl, "layout(rgba32f)", "layout(rgba16f)");
     replaceAll(glsl, "layout(r32f)", "layout(r16f)");
     replaceAll(glsl, "layout(rg32f)", "layout(rg16f)");
@@ -394,7 +422,7 @@ std::string FearTranslateGLSL(
         }
     }
 
-    // STEP 2.12 - NOISE FUNCTION REMOVAL (Clean inline replacement)
+    // STEP 2.12 & SECTION B9: NOISE REMOVAL & RAYMARCH OPTIMIZATIONS
     size_t noise_pos = 0;
     while ((noise_pos = glsl.find("noise1(", noise_pos)) != std::string::npos) {
         size_t close_paren = glsl.find(")", noise_pos);
@@ -432,11 +460,15 @@ std::string FearTranslateGLSL(
         }
     }
 
-    // SECTION 13: PERFORMANCE OPTIMIZATIONS
     replaceAll(glsl, "const int shadowMapResolution = 2048;", "const int shadowMapResolution = 1024;");
     replaceAll(glsl, "const int RAY_MARCH_STEPS = 64;", "const int RAY_MARCH_STEPS = 32;");
+    replaceAll(glsl, "const int CLOUD_STEPS = 16;", "const int CLOUD_STEPS = 8;");
 
-    // Remove vendor-specific desktop blocks
+    // Disable expensive SSR / volumetric clouds / motion blur defines if enabled
+    replaceAll(glsl, "#define SSR_ENABLED", "// #define SSR_ENABLED");
+    replaceAll(glsl, "#define VOLUMETRIC_CLOUDS", "// #define VOLUMETRIC_CLOUDS");
+    replaceAll(glsl, "#define MOTION_BLUR", "// #define MOTION_BLUR");
+
     if (glsl.find("#ifdef MC_GL_VENDOR_INTEL") != std::string::npos) {
         removeLinesContaining(glsl, "#ifdef MC_GL_VENDOR_INTEL");
     }
