@@ -345,6 +345,16 @@ public class GameRunner {
 
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
 
+        if (rendererName.equals("fear_engine") || rendererName.equals("mh_drive") || rendererName.equals("opengles3_ltw")) {
+            try {
+                System.loadLibrary("fear_render");
+                String cachePath = activity.getFilesDir().getAbsolutePath() + "/fear_shader_cache";
+                JREUtils.initFearShaderEngine(cachePath, 1 /* version number */);
+            } catch (Throwable t) {
+                Log.e("GameRunner", "Failed to initialize Fear Shader Engine", t);
+            }
+        }
+
         try {
             JavaRunner.nativeSetupExit(activity);
             JavaRunner.startJvm(runtime, javaArgList, launchClassPath, versionInfo.mainClass, launchArgs);

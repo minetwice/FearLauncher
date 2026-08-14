@@ -10,8 +10,10 @@ add_library(fear_render SHARED
     src/fear_main.cpp
     src/fear_hooks.cpp
     src/fear_backend.cpp
-    src/fear_shader.cpp
     src/fear_memory.cpp
+    src/fear_shader_translator.cpp
+    src/fear_shader_interceptor.cpp
+    src/fear_shader_cache.cpp
 )
 
 target_include_directories(fear_render PRIVATE
