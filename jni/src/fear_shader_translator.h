@@ -20,5 +20,6 @@ void removeLinesContaining(std::string& code, const std::string& substring);
 bool isVertexShader(GLenum type);
 bool isFragmentShader(GLenum type);
 bool isGeometryShader(GLenum type);
+bool isComputeShader(GLenum type);
 
 #endif // FEAR_SHADER_TRANSLATOR_H
