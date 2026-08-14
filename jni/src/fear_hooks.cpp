@@ -1,9 +1,17 @@
 #include "fear_hooks.h"
+#include "fear_shader.h"
 #include <android/log.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string>
+#include <mutex>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define TAG "FEAR_RENDERER"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
@@ -14,6 +22,26 @@
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
+
+// Global thread-safe structures for tracking shader sources and program attachments
+static std::mutex g_shader_mutex;
+static std::map<unsigned int, std::string> g_shader_hashes; // shader ID -> SHA-256 of original source
+static std::map<unsigned int, std::vector<std::string>> g_program_shaders; // program ID -> attached shader hashes
+
+// Helper function to resolve cache directory dynamically from TMPDIR env var
+static std::string get_shader_cache_dir() {
+    const char* tmp = getenv("TMPDIR");
+    if (!tmp) {
+        return "/data/data/git.artdeell.mojo/files/fear_shader_cache";
+    }
+    std::string tmp_str(tmp);
+    size_t last_slash = tmp_str.find_last_of('/');
+    if (last_slash != std::string::npos) {
+        std::string base = tmp_str.substr(0, last_slash);
+        return base + "/files/fear_shader_cache";
+    }
+    return tmp_str + "/../files/fear_shader_cache";
+}
 
 extern "C" {
 
@@ -104,7 +132,7 @@ void fear_glMemoryBarrierEXT(unsigned int barriers) {
     glMemoryBarrier(barriers);
 }
 
-// Hook glShaderSource to dynamically rewrite shaders for Complementary & Solas in real-time!
+// Hook glShaderSource to dynamically rewrite shaders on-the-fly
 void glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
     typedef void (*glShaderSource_pfn)(unsigned int, int, const char* const*, const int*);
     static glShaderSource_pfn real_glShaderSource = nullptr;
@@ -134,38 +162,266 @@ void glShaderSource(unsigned int shader, int count, const char* const* string, c
         }
     }
 
-    // Run translation logic on GLSL sources
-    size_t pos;
-    // Replace non-perspective interpolation with standard flat fallback
-    while ((pos = full_source.find("noperspective")) != std::string::npos) {
-        full_source.replace(pos, 13, "flat");
+    // Phase 4: Generate SHA-256 hash of the original desktop GLSL string
+    std::string original_hash = calculate_sha256(full_source);
+    {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        g_shader_hashes[shader] = original_hash;
     }
 
-    // Rewrite unsupported layout qualifiers for mobile GPUs
-    while ((pos = full_source.find("layout(location = 0) out vec4 fragColor;")) != std::string::npos) {
-        full_source.replace(pos, 40, "out vec4 fragColor;");
+    // Phase 2: Detect shader type to pass isFragment parameter accurately
+    GLint shader_type = 0;
+    typedef void (*glGetShaderiv_pfn)(unsigned int, unsigned int, int*);
+    static glGetShaderiv_pfn real_glGetShaderiv = nullptr;
+    if (!real_glGetShaderiv) {
+        real_glGetShaderiv = (glGetShaderiv_pfn)dlsym(RTLD_NEXT, "glGetShaderiv");
     }
-    while ((pos = full_source.find("layout(location = 0) out vec4 out_Color;")) != std::string::npos) {
-        full_source.replace(pos, 40, "out vec4 out_Color;");
+    if (real_glGetShaderiv) {
+        real_glGetShaderiv(shader, 0x8B37 /* GL_SHADER_TYPE */, &shader_type);
     }
+    bool isFragment = (shader_type == 0x8B30 /* GL_FRAGMENT_SHADER */);
 
-    // Set correct OpenGL ES 3.2 headers and precision markers on-the-fly
-    if (full_source.find("#version 330") != std::string::npos || full_source.find("#version 150") != std::string::npos) {
-        pos = full_source.find("#version");
-        if (pos != std::string::npos) {
-            size_t end_line = full_source.find("\n", pos);
-            full_source.replace(pos, end_line - pos, "#version 320 es\nprecision highp float;\nprecision highp int;");
-        }
-    }
+    // Translate GLSL BEFORE it reaches the native mobile GPU driver
+    std::string translated = FearTranslateGLSL(full_source.c_str(), isFragment);
 
-    const char* translated_cstr = full_source.c_str();
+    const char* translated_cstr = translated.c_str();
     real_glShaderSource(shader, 1, &translated_cstr, nullptr);
-    LOGI("glShaderSource intercepted and transpiled dynamically on-the-fly (Shader: %u)", shader);
+    LOGI("glShaderSource intercepted and transpiled dynamically on-the-fly (Shader: %u, Hash: %s)", shader, original_hash.c_str());
 }
 
 // Export fear_glShaderSource alias
 void fear_glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
     glShaderSource(shader, count, string, length);
+}
+
+// Hook glCompileShader
+void glCompileShader(unsigned int shader) {
+    typedef void (*glCompileShader_pfn)(unsigned int);
+    static glCompileShader_pfn real_glCompileShader = nullptr;
+    if (!real_glCompileShader) {
+        real_glCompileShader = (glCompileShader_pfn)dlsym(RTLD_NEXT, "glCompileShader");
+    }
+    if (real_glCompileShader) {
+        real_glCompileShader(shader);
+        LOGI("glCompileShader executed (Shader: %u)", shader);
+    }
+}
+
+// Hook glAttachShader to track which shader hashes are attached to which program
+void glAttachShader(unsigned int program, unsigned int shader) {
+    typedef void (*glAttachShader_pfn)(unsigned int, unsigned int);
+    static glAttachShader_pfn real_glAttachShader = nullptr;
+    if (!real_glAttachShader) {
+        real_glAttachShader = (glAttachShader_pfn)dlsym(RTLD_NEXT, "glAttachShader");
+    }
+    if (real_glAttachShader) {
+        real_glAttachShader(program, shader);
+    }
+
+    std::string sh_hash = "";
+    {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        if (g_shader_hashes.find(shader) != g_shader_hashes.end()) {
+            sh_hash = g_shader_hashes[shader];
+        }
+    }
+    if (!sh_hash.empty()) {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        auto& list = g_program_shaders[program];
+        if (std::find(list.begin(), list.end(), sh_hash) == list.end()) {
+            list.push_back(sh_hash);
+        }
+    }
+}
+
+// Hook glDetachShader to remove tracked shader hashes
+void glDetachShader(unsigned int program, unsigned int shader) {
+    typedef void (*glDetachShader_pfn)(unsigned int, unsigned int);
+    static glDetachShader_pfn real_glDetachShader = nullptr;
+    if (!real_glDetachShader) {
+        real_glDetachShader = (glDetachShader_pfn)dlsym(RTLD_NEXT, "glDetachShader");
+    }
+    if (real_glDetachShader) {
+        real_glDetachShader(program, shader);
+    }
+
+    std::string sh_hash = "";
+    {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        if (g_shader_hashes.find(shader) != g_shader_hashes.end()) {
+            sh_hash = g_shader_hashes[shader];
+        }
+    }
+    if (!sh_hash.empty()) {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        auto& list = g_program_shaders[program];
+        auto it = std::find(list.begin(), list.end(), sh_hash);
+        if (it != list.end()) {
+            list.erase(it);
+        }
+    }
+}
+
+// Hook glDeleteShader to prevent leaks
+void glDeleteShader(unsigned int shader) {
+    typedef void (*glDeleteShader_pfn)(unsigned int);
+    static glDeleteShader_pfn real_glDeleteShader = nullptr;
+    if (!real_glDeleteShader) {
+        real_glDeleteShader = (glDeleteShader_pfn)dlsym(RTLD_NEXT, "glDeleteShader");
+    }
+    if (real_glDeleteShader) {
+        real_glDeleteShader(shader);
+    }
+    std::lock_guard<std::mutex> lock(g_shader_mutex);
+    g_shader_hashes.erase(shader);
+}
+
+// Hook glDeleteProgram to prevent leaks
+void glDeleteProgram(unsigned int program) {
+    typedef void (*glDeleteProgram_pfn)(unsigned int);
+    static glDeleteProgram_pfn real_glDeleteProgram = nullptr;
+    if (!real_glDeleteProgram) {
+        real_glDeleteProgram = (glDeleteProgram_pfn)dlsym(RTLD_NEXT, "glDeleteProgram");
+    }
+    if (real_glDeleteProgram) {
+        real_glDeleteProgram(program);
+    }
+    std::lock_guard<std::mutex> lock(g_shader_mutex);
+    g_program_shaders.erase(program);
+}
+
+// Hook glLinkProgram to implement program binary caching
+void glLinkProgram(unsigned int program) {
+    typedef void (*glLinkProgram_pfn)(unsigned int);
+    static glLinkProgram_pfn real_glLinkProgram = nullptr;
+    if (!real_glLinkProgram) {
+        real_glLinkProgram = (glLinkProgram_pfn)dlsym(RTLD_NEXT, "glLinkProgram");
+    }
+
+    std::vector<std::string> hashes;
+    {
+        std::lock_guard<std::mutex> lock(g_shader_mutex);
+        if (g_program_shaders.find(program) != g_program_shaders.end()) {
+            hashes = g_program_shaders[program];
+        }
+    }
+
+    // Generate unique program hash from all attached shader hashes
+    std::sort(hashes.begin(), hashes.end());
+    std::string concat = "";
+    for (const auto& h : hashes) {
+        concat += h;
+    }
+
+    std::string program_hash = "";
+    if (!concat.empty()) {
+        program_hash = calculate_sha256(concat);
+    }
+
+    bool loaded_from_cache = false;
+    std::string cache_dir = get_shader_cache_dir();
+    std::string cache_path = cache_dir + "/" + program_hash + ".bin";
+
+    if (!program_hash.empty()) {
+        FILE* f = fopen(cache_path.c_str(), "rb");
+        if (f) {
+            // Find length
+            fseek(f, 0, SEEK_END);
+            long file_size = ftell(f);
+            fseek(f, 0, SEEK_SET);
+
+            if (file_size > 4) {
+                unsigned int binary_format = 0;
+                fread(&binary_format, sizeof(unsigned int), 1, f);
+                long data_size = file_size - 4;
+                void* binary_data = malloc(data_size);
+                if (binary_data) {
+                    fread(binary_data, 1, data_size, f);
+                    fclose(f);
+                    f = nullptr;
+
+                    typedef void (*glProgramBinary_pfn)(unsigned int, unsigned int, const void*, int);
+                    static glProgramBinary_pfn real_glProgramBinary = nullptr;
+                    if (!real_glProgramBinary) {
+                        real_glProgramBinary = (glProgramBinary_pfn)dlsym(RTLD_NEXT, "glProgramBinary");
+                    }
+
+                    if (real_glProgramBinary) {
+                        real_glProgramBinary(program, binary_format, binary_data, data_size);
+
+                        // Verify link status
+                        int link_status = 0;
+                        typedef void (*glGetProgramiv_pfn)(unsigned int, unsigned int, int*);
+                        static glGetProgramiv_pfn real_glGetProgramiv = nullptr;
+                        if (!real_glGetProgramiv) {
+                            real_glGetProgramiv = (glGetProgramiv_pfn)dlsym(RTLD_NEXT, "glGetProgramiv");
+                        }
+                        if (real_glGetProgramiv) {
+                            real_glGetProgramiv(program, 0x8B82 /* GL_LINK_STATUS */, &link_status);
+                        }
+                        if (link_status) {
+                            loaded_from_cache = true;
+                            LOGI("Shader Program binary LOADED INSTANTLY from cache (Program: %u, Hash: %s)", program, program_hash.c_str());
+                        } else {
+                            LOGW("Shader Program binary cached but failed to load, relinking... (Program: %u)", program);
+                        }
+                    }
+                    free(binary_data);
+                }
+            }
+            if (f) fclose(f);
+        }
+    }
+
+    if (!loaded_from_cache) {
+        if (real_glLinkProgram) {
+            real_glLinkProgram(program);
+        }
+
+        // Check if link succeeded, if so save binary
+        int link_status = 0;
+        typedef void (*glGetProgramiv_pfn)(unsigned int, unsigned int, int*);
+        static glGetProgramiv_pfn real_glGetProgramiv = nullptr;
+        if (!real_glGetProgramiv) {
+            real_glGetProgramiv = (glGetProgramiv_pfn)dlsym(RTLD_NEXT, "glGetProgramiv");
+        }
+        if (real_glGetProgramiv) {
+            real_glGetProgramiv(program, 0x8B82 /* GL_LINK_STATUS */, &link_status);
+        }
+
+        if (link_status && !program_hash.empty()) {
+            int binary_len = 0;
+            if (real_glGetProgramiv) {
+                real_glGetProgramiv(program, 0x8741 /* GL_PROGRAM_BINARY_LENGTH */, &binary_len);
+            }
+            if (binary_len > 0) {
+                void* binary_data = malloc(binary_len);
+                unsigned int binary_format = 0;
+                int written_len = 0;
+
+                typedef void (*glGetProgramBinary_pfn)(unsigned int, int, int*, unsigned int*, void*);
+                static glGetProgramBinary_pfn real_glGetProgramBinary = nullptr;
+                if (!real_glGetProgramBinary) {
+                    real_glGetProgramBinary = (glGetProgramBinary_pfn)dlsym(RTLD_NEXT, "glGetProgramBinary");
+                }
+
+                if (real_glGetProgramBinary && binary_data) {
+                    real_glGetProgramBinary(program, binary_len, &written_len, &binary_format, binary_data);
+
+                    // Save to local cache directory
+                    mkdir(cache_dir.c_str(), 0777);
+                    FILE* out = fopen(cache_path.c_str(), "wb");
+                    if (out) {
+                        fwrite(&binary_format, sizeof(unsigned int), 1, out);
+                        fwrite(binary_data, 1, written_len, out);
+                        fclose(out);
+                        LOGI("Shader Program binary SAVED to cache (Program: %u, Hash: %s)", program, program_hash.c_str());
+                    }
+                }
+                if (binary_data) free(binary_data);
+            }
+        }
+    }
 }
 
 // Override eglGetProcAddress to proxy glMemoryBarrier and glShaderSource safely to prevent LWJGL 3 crashes
@@ -179,6 +435,25 @@ void* eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glShaderSource") == 0 || strcmp(procname, "glShaderSourceARB") == 0) {
         LOGI("eglGetProcAddress: Intercepted and returned custom glShaderSource proxy!");
         return (void*)glShaderSource;
+    }
+    if (strcmp(procname, "glCompileShader") == 0 || strcmp(procname, "glCompileShaderARB") == 0) {
+        LOGI("eglGetProcAddress: Intercepted and returned custom glCompileShader proxy!");
+        return (void*)glCompileShader;
+    }
+    if (strcmp(procname, "glAttachShader") == 0) {
+        return (void*)glAttachShader;
+    }
+    if (strcmp(procname, "glDetachShader") == 0) {
+        return (void*)glDetachShader;
+    }
+    if (strcmp(procname, "glLinkProgram") == 0) {
+        return (void*)glLinkProgram;
+    }
+    if (strcmp(procname, "glDeleteShader") == 0) {
+        return (void*)glDeleteShader;
+    }
+    if (strcmp(procname, "glDeleteProgram") == 0) {
+        return (void*)glDeleteProgram;
     }
     if (strcmp(procname, "glGetString") == 0) {
         return (void*)fear_glGetString;

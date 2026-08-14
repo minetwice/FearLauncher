@@ -98,6 +98,13 @@ public class JavaRunner {
         userArguments.add(0, "-Xms"+LauncherPreferences.PREF_RAM_ALLOCATION+"M");
         userArguments.add(0, "-Xmx"+LauncherPreferences.PREF_RAM_ALLOCATION+"M");
 
+        // Advanced Android gaming GC flags for smooth background memory handling
+        userArguments.add("-XX:+UseG1GC");
+        userArguments.add("-XX:MaxGCPauseMillis=15");
+        userArguments.add("-XX:+DisableExplicitGC");
+        userArguments.add("-XX:+ParallelRefProcEnabled");
+        userArguments.add("-XX:+UseStringDeduplication");
+
         ArrayList<String> overridableArguments = new ArrayList<>(Arrays.asList(
                 "-Djava.home=" + runtimeHome,
                 "-Djava.io.tmpdir=" + Tools.DIR_CACHE.getAbsolutePath(),
