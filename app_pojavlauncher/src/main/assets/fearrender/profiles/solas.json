@@ -1,0 +1,12 @@
+{
+  "packName": "Solas Shader",
+  "version": "1.0",
+  "targetEsVersion": 320,
+  "defines": [
+    "FEAR_MOBILE",
+    "FEAR_MAX_SHADOWS 2"
+  ],
+  "disabledFeatures": [
+    "MOTION_BLUR"
+  ]
+}

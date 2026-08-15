@@ -1,0 +1,9 @@
+{
+  "packName": "Bliss Shader",
+  "version": "1.0",
+  "targetEsVersion": 320,
+  "defines": [
+    "FEAR_MOBILE"
+  ],
+  "disabledFeatures": []
+}
