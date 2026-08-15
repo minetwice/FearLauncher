@@ -1,0 +1,23 @@
+#ifndef FEAR_GL_EMULATION_H
+#define FEAR_GL_EMULATION_H
+
+#include <GLES3/gl32.h>
+
+extern "C" {
+
+void fear_glMemoryBarrier(GLbitfield barriers);
+void fear_glTextureBarrier();
+void fear_glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
+void fear_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
+void fear_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* data);
+void fear_glMultiDrawArrays(GLenum mode, const GLint* first, const GLsizei* count, GLsizei drawcount);
+void fear_glMultiDrawElements(GLenum mode, const GLsizei* count, GLenum type, const void* const* indices, GLsizei drawcount);
+void fear_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum* attachments);
+void fear_glCreateBuffers(GLsizei n, GLuint* buffers);
+void fear_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
+void fear_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+void fear_glBindTextureUnit(GLuint unit, GLuint texture);
+
+}
+
+#endif // FEAR_GL_EMULATION_H

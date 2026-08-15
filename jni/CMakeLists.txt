@@ -14,6 +14,8 @@ add_library(fear_render SHARED
     src/fear_shader_translator.cpp
     src/fear_shader_interceptor.cpp
     src/fear_shader_cache.cpp
+    src/fear_glsl_transpiler.cpp
+    src/fear_gl_emulation.cpp
 )
 
 target_include_directories(fear_render PRIVATE
