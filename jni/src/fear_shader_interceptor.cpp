@@ -18,6 +18,39 @@ static int g_memBarrierCallCount = 0;
 static int g_bindImageTexCount = 0;
 static int g_genericWarningCount = 0;
 
+static bool g_contextChecked = false;
+static bool g_isGLESContext = true;
+
+static void checkGLContext() {
+    if (g_contextChecked) return;
+    g_contextChecked = true;
+
+    typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+    static glGetString_pfn real_glGetString = nullptr;
+    if (!real_glGetString) {
+        real_glGetString = (glGetString_pfn)dlsym(RTLD_NEXT, "glGetString");
+    }
+
+    if (real_glGetString) {
+        const unsigned char* version = real_glGetString(0x1F02 /* GL_VERSION */);
+        const unsigned char* renderer = real_glGetString(0x1F01 /* GL_RENDERER */);
+
+        std::string ver_str = version ? (const char*)version : "";
+        std::string rend_str = renderer ? (const char*)renderer : "";
+
+        LOG_INFO("[FearEngine] Detected GL_VERSION: %s", ver_str.c_str());
+        LOG_INFO("[FearEngine] Detected GL_RENDERER: %s", rend_str.c_str());
+
+        if (ver_str.find("OpenGL ES") != std::string::npos) {
+            g_isGLESContext = true;
+            LOG_INFO("[FearEngine] OpenGL ES detected - translation ENABLED");
+        } else {
+            g_isGLESContext = false;
+            LOG_INFO("[FearEngine] Desktop GL detected (Zink) - translation DISABLED. Native desktop shaders will be used.");
+        }
+    }
+}
+
 static const char* get_gl_error_string(unsigned int err) {
     switch (err) {
         case 0x0500: return "GL_INVALID_ENUM";
@@ -36,6 +69,16 @@ extern "C" {
 // PART A: SODIUM & DESKTOP GL42+ FUNCTION INTERCEPTIONS
 
 void glMemoryBarrier(unsigned int barriers) {
+    checkGLContext();
+    if (!g_isGLESContext) {
+        typedef void (*glMemoryBarrier_pfn)(unsigned int);
+        static glMemoryBarrier_pfn real_glMemoryBarrier = (glMemoryBarrier_pfn)dlsym(RTLD_NEXT, "glMemoryBarrier");
+        if (real_glMemoryBarrier) {
+            real_glMemoryBarrier(barriers);
+        }
+        return;
+    }
+
     {
         std::lock_guard<std::mutex> lock(g_interceptorMutex);
         if (g_memBarrierCallCount < 10) {
@@ -66,6 +109,16 @@ void fear_glMemoryBarrierEXT(unsigned int barriers) {
 }
 
 void glBindImageTexture(unsigned int unit, unsigned int texture, int level, unsigned char layered, int layer, unsigned int access, unsigned int format) {
+    checkGLContext();
+    if (!g_isGLESContext) {
+        typedef void (*glBindImageTexture_pfn)(unsigned int, unsigned int, int, unsigned char, int, unsigned int, unsigned int);
+        static glBindImageTexture_pfn real_glBindImageTexture = (glBindImageTexture_pfn)dlsym(RTLD_NEXT, "glBindImageTexture");
+        if (real_glBindImageTexture) {
+            real_glBindImageTexture(unit, texture, level, layered, layer, access, format);
+        }
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(g_interceptorMutex);
     if (g_bindImageTexCount < 10) {
         g_bindImageTexCount++;
@@ -137,6 +190,16 @@ void glInvalidateFramebuffer(unsigned int target, int numAttachments, const unsi
 }
 
 void glBufferStorage(unsigned int target, long size, const void* data, unsigned int flags) {
+    checkGLContext();
+    if (!g_isGLESContext) {
+        typedef void (*glBufferStorage_pfn)(unsigned int, long, const void*, unsigned int);
+        static glBufferStorage_pfn real_glBufferStorage = (glBufferStorage_pfn)dlsym(RTLD_NEXT, "glBufferStorage");
+        if (real_glBufferStorage) {
+            real_glBufferStorage(target, size, data, flags);
+        }
+        return;
+    }
+
     typedef void (*glBufferData_pfn)(unsigned int, long, const void*, unsigned int);
     static glBufferData_pfn real_glBufferData = nullptr;
     if (!real_glBufferData) {
@@ -249,6 +312,8 @@ GLuint glCreateShader(GLenum type) {
 
 // HOOK glShaderSource:
 void glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length) {
+    checkGLContext();
+
     typedef void (*glShaderSource_pfn)(GLuint, GLsizei, const GLchar *const*, const GLint *);
     static glShaderSource_pfn real_glShaderSource = nullptr;
     if (!real_glShaderSource) {
@@ -256,6 +321,12 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, co
     }
 
     if (!real_glShaderSource) return;
+
+    if (!g_isGLESContext) {
+        // Pure pass-through on Desktop GL (Zink) - native shaders will be used without modification!
+        real_glShaderSource(shader, count, string, length);
+        return;
+    }
 
     if (count <= 0 || !string || !string[0]) {
         real_glShaderSource(shader, count, string, length);
@@ -450,6 +521,8 @@ void glDeleteProgram(GLuint program) {
 
 // HOOK glLinkProgram:
 void glLinkProgram(GLuint program) {
+    checkGLContext();
+
     typedef void (*glLinkProgram_pfn)(GLuint);
     static glLinkProgram_pfn real_glLinkProgram = nullptr;
     if (!real_glLinkProgram) {
@@ -478,7 +551,7 @@ void glLinkProgram(GLuint program) {
 
     bool loaded_from_cache = false;
     if (!program_hash.empty()) {
-        loaded_from_cache = loadProgramBinaryFromCache(program, program_hash);
+        loaded_from_cache = loadProgramBinaryFromCache(program, program_hash, g_isGLESContext);
     }
 
     if (!loaded_from_cache) {
@@ -497,34 +570,38 @@ void glLinkProgram(GLuint program) {
         }
 
         if (link_status && !program_hash.empty()) {
-            saveProgramBinaryToCache(program, program_hash);
+            saveProgramBinaryToCache(program, program_hash, g_isGLESContext);
         }
     }
 }
 
 void glTexImage2D(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format, unsigned int type, const void* pixels) {
+    checkGLContext();
+
     typedef void (*glTexImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
     static glTexImage2D_pfn real_glTexImage2D = nullptr;
     if (!real_glTexImage2D) {
         real_glTexImage2D = (glTexImage2D_pfn)dlsym(RTLD_NEXT, "glTexImage2D");
     }
 
-    int original_internalformat = internalformat;
-    if (internalformat == 0x8814 /* GL_RGBA32F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGBA32F -> GL_RGBA16F).");
-    } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGB32F -> GL_RGBA16F).");
-    } else if (internalformat == 0x881B /* GL_RGB16F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Map non-renderable GL_RGB16F texture to renderable GL_RGBA16F format.");
-    } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
-        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
-        LOG_INFO("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
-    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
-        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
-        LOG_INFO("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+    if (g_isGLESContext) {
+        int original_internalformat = internalformat;
+        if (internalformat == 0x8814 /* GL_RGBA32F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGBA32F -> GL_RGBA16F).");
+        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGB32F -> GL_RGBA16F).");
+        } else if (internalformat == 0x881B /* GL_RGB16F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGB16F -> GL_RGBA16F).");
+        } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+            internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+            LOG_INFO("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+        } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+            internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+            LOG_INFO("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+        }
     }
 
     if (real_glTexImage2D) {
@@ -546,28 +623,32 @@ void glTexImage2D(unsigned int target, int level, int internalformat, int width,
 }
 
 void glTexImage3D(unsigned int target, int level, int internalformat, int width, int height, int depth, int border, unsigned int format, unsigned int type, const void* pixels) {
+    checkGLContext();
+
     typedef void (*glTexImage3D_pfn)(unsigned int, int, int, int, int, int, int, unsigned int, unsigned int, const void*);
     static glTexImage3D_pfn real_glTexImage3D = nullptr;
     if (!real_glTexImage3D) {
         real_glTexImage3D = (glTexImage3D_pfn)dlsym(RTLD_NEXT, "glTexImage3D");
     }
 
-    int original_internalformat = internalformat;
-    if (internalformat == 0x8814 /* GL_RGBA32F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGBA32F -> GL_RGBA16F).");
-    } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded 32F/16F texture to mobile-safe format (GL_RGB32F -> GL_RGBA16F).");
-    } else if (internalformat == 0x881B /* GL_RGB16F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Map non-renderable GL_RGB16F texture to renderable GL_RGBA16F format.");
-    } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
-        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
-        LOG_INFO("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
-    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
-        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
-        LOG_INFO("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+    if (g_isGLESContext) {
+        int original_internalformat = internalformat;
+        if (internalformat == 0x8814 /* GL_RGBA32F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGBA32F -> GL_RGBA16F).");
+        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGB32F -> GL_RGBA16F).");
+        } else if (internalformat == 0x881B /* GL_RGB16F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded HDR format for GLES compatibility (GL_RGB16F -> GL_RGBA16F).");
+        } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+            internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+            LOG_INFO("[FearEngine] Downgraded depth texture format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+        } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+            internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+            LOG_INFO("[FearEngine] Downgraded depth-stencil texture format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+        }
     }
 
     if (real_glTexImage3D) {
@@ -589,25 +670,29 @@ void glTexImage3D(unsigned int target, int level, int internalformat, int width,
 }
 
 void glRenderbufferStorage(unsigned int target, unsigned int internalformat, int width, int height) {
+    checkGLContext();
+
     typedef void (*glRenderbufferStorage_pfn)(unsigned int, unsigned int, int, int);
     static glRenderbufferStorage_pfn real_glRenderbufferStorage = nullptr;
     if (!real_glRenderbufferStorage) {
         real_glRenderbufferStorage = (glRenderbufferStorage_pfn)dlsym(RTLD_NEXT, "glRenderbufferStorage");
     }
 
-    unsigned int original_internalformat = internalformat;
-    if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
-        internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
-        LOG_INFO("[FearEngine] Downgraded renderbuffer depth format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
-    } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
-        internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
-        LOG_INFO("[FearEngine] Downgraded renderbuffer depth-stencil format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
-    } else if (internalformat == 0x8814 /* GL_RGBA32F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded renderbuffer color format (GL_RGBA32F -> GL_RGBA16F).");
-    } else if (internalformat == 0x8815 /* GL_RGB32F */ || internalformat == 0x881B /* GL_RGB16F */) {
-        internalformat = 0x881A /* GL_RGBA16F */;
-        LOG_INFO("[FearEngine] Downgraded renderbuffer color format (GL_RGB32F/16F -> GL_RGBA16F).");
+    if (g_isGLESContext) {
+        unsigned int original_internalformat = internalformat;
+        if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
+            internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
+            LOG_INFO("[FearEngine] Downgraded renderbuffer depth format (GL_DEPTH_COMPONENT32F -> GL_DEPTH_COMPONENT24).");
+        } else if (internalformat == 0x8CAD /* GL_DEPTH32F_STENCIL8 */) {
+            internalformat = 0x88F0 /* GL_DEPTH24_STENCIL8 */;
+            LOG_INFO("[FearEngine] Downgraded renderbuffer depth-stencil format (GL_DEPTH32F_STENCIL8 -> GL_DEPTH24_STENCIL8).");
+        } else if (internalformat == 0x8814 /* GL_RGBA32F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded renderbuffer color format (GL_RGBA32F -> GL_RGBA16F).");
+        } else if (internalformat == 0x8815 /* GL_RGB32F */ || internalformat == 0x881B /* GL_RGB16F */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearEngine] Downgraded renderbuffer color format (GL_RGB32F/16F -> GL_RGBA16F).");
+        }
     }
 
     if (real_glRenderbufferStorage) {
@@ -654,6 +739,16 @@ void glFramebufferTexture2D(unsigned int target, unsigned int attachment, unsign
 }
 
 void glDispatchCompute(unsigned int num_groups_x, unsigned int num_groups_y, unsigned int num_groups_z) {
+    checkGLContext();
+    if (!g_isGLESContext) {
+        typedef void (*glDispatchCompute_pfn)(unsigned int, unsigned int, unsigned int);
+        static glDispatchCompute_pfn real_glDispatchCompute = (glDispatchCompute_pfn)dlsym(RTLD_NEXT, "glDispatchCompute");
+        if (real_glDispatchCompute) {
+            real_glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
+        }
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(g_interceptorMutex);
     if (g_genericWarningCount < 10) {
         g_genericWarningCount++;

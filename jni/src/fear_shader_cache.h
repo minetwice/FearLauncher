@@ -4,17 +4,17 @@
 #include <string>
 #include <GLES3/gl32.h>
 
-// Initialize cache system (creates directory, handles cache invalidation on version update)
+// Initialize cache system
 void initShaderCacheSystem(const std::string& cacheDir, int launcherVersion);
 
 // Generate SHA-256 hash from source string
 std::string getShaderSourceHash(const std::string& source);
 
 // Load precompiled program binary if cached
-bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash);
+bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash, bool isGLES);
 
 // Save linked program binary to cache
-void saveProgramBinaryToCache(GLuint program, const std::string& programHash);
+void saveProgramBinaryToCache(GLuint program, const std::string& programHash, bool isGLES);
 
 // Clear the cache directory
 void clearShaderCacheDir();

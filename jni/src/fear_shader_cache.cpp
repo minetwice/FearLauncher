@@ -15,7 +15,7 @@
 static std::string g_cacheDir = "";
 static std::mutex g_cacheMutex;
 
-// Generate SHA-256 hash from source string (standard, 100% correct C++ SHA-256 implementation)
+// Generate SHA-256 hash from source string
 std::string calculate_sha256(const std::string& str) {
     unsigned int h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
     unsigned int h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
@@ -162,12 +162,17 @@ void initShaderCacheSystem(const std::string& cacheDir, int launcherVersion) {
     }
 }
 
-bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash) {
+bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash, bool isGLES) {
+    if (!isGLES) {
+        // Skip binary caching on Desktop GL (Zink) - Mesa handles its own disk cache natively
+        return false;
+    }
+
     std::lock_guard<std::mutex> lock(g_cacheMutex);
     if (g_cacheDir.empty() || programHash.empty()) return false;
 
-    std::string binPath = g_cacheDir + "/" + programHash + ".bin";
-    std::string fmtPathCorrect = g_cacheDir + "/" + programHash + ".fmt";
+    std::string binPath = g_cacheDir + "/" + programHash + "_gles.bin";
+    std::string fmtPathCorrect = g_cacheDir + "/" + programHash + "_gles.fmt";
 
     FILE* f_bin = fopen(binPath.c_str(), "rb");
     if (!f_bin) return false;
@@ -240,7 +245,9 @@ bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash) 
     return loaded;
 }
 
-void saveProgramBinaryToCache(GLuint program, const std::string& programHash) {
+void saveProgramBinaryToCache(GLuint program, const std::string& programHash, bool isGLES) {
+    if (!isGLES) return;
+
     std::lock_guard<std::mutex> lock(g_cacheMutex);
     if (g_cacheDir.empty() || programHash.empty()) return;
 
@@ -270,8 +277,8 @@ void saveProgramBinaryToCache(GLuint program, const std::string& programHash) {
     if (real_glGetProgramBinary) {
         real_glGetProgramBinary(program, binary_len, &written_len, &format, buffer);
 
-        std::string binPath = g_cacheDir + "/" + programHash + ".bin";
-        std::string fmtPath = g_cacheDir + "/" + programHash + ".fmt";
+        std::string binPath = g_cacheDir + "/" + programHash + "_gles.bin";
+        std::string fmtPath = g_cacheDir + "/" + programHash + "_gles.fmt";
 
         FILE* f_bin = fopen(binPath.c_str(), "wb");
         if (f_bin) {
