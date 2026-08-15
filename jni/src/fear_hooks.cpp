@@ -1,14 +1,13 @@
 #include "fear_hooks.h"
+#include "fear_gl_emulation.h"
+#include "fear_render_engine.h"
 #include <android/log.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
-#include <string>
 
-#define TAG "FEAR_RENDERER"
+#define TAG "FearRender"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
@@ -19,7 +18,7 @@ extern "C" {
 
 const unsigned char* fear_glGetString(unsigned int name) {
     if (name == GL_VERSION) {
-        return (const unsigned char*)"4.6.0 NVIDIA 545.29";
+        return (const unsigned char*)"4.6 (Fear Render)";
     } else if (name == GL_RENDERER) {
         return (const unsigned char*)"NVIDIA GeForce RTX 4090";
     } else if (name == GL_VENDOR) {
@@ -77,127 +76,46 @@ const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
     return (const unsigned char*)"";
 }
 
-// Export the dynamic symbols exactly so LWJGL binds directly to them
-void glMemoryBarrier(unsigned int barriers) {
-    typedef void (*glFlush_pfn)();
-    static glFlush_pfn real_glFlush = nullptr;
-    if (!real_glFlush) {
-        real_glFlush = (glFlush_pfn)dlsym(RTLD_NEXT, "glFlush");
-    }
-    if (real_glFlush) {
-        real_glFlush();
-    }
-    LOGI("glMemoryBarrier intercepted and flushed safely to prevent world rendering crash (Barriers: %u)", barriers);
-}
-
-void glMemoryBarrierEXT(unsigned int barriers) {
-    glMemoryBarrier(barriers);
-}
-
-// Hook and stub glMemoryBarrier to prevent JVM crashes on server lobbies
-void fear_glMemoryBarrier(unsigned int barriers) {
-    glMemoryBarrier(barriers);
-}
-
-// Intercept and bypass glMemoryBarrierEXT
-void fear_glMemoryBarrierEXT(unsigned int barriers) {
-    glMemoryBarrier(barriers);
-}
-
-// Hook glShaderSource to dynamically rewrite shaders for Complementary & Solas in real-time!
-void glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
-    typedef void (*glShaderSource_pfn)(unsigned int, int, const char* const*, const int*);
-    static glShaderSource_pfn real_glShaderSource = nullptr;
-    if (!real_glShaderSource) {
-        real_glShaderSource = (glShaderSource_pfn)dlsym(RTLD_NEXT, "glShaderSource");
-    }
-
-    if (!real_glShaderSource) {
-        LOGE("Failed to find real glShaderSource symbol!");
-        return;
-    }
-
-    if (count <= 0 || !string || !string[0]) {
-        real_glShaderSource(shader, count, string, length);
-        return;
-    }
-
-    // Allocate memory and combine multiple source blocks if needed
-    std::string full_source = "";
-    for (int i = 0; i < count; i++) {
-        if (string[i]) {
-            if (length && length[i] >= 0) {
-                full_source.append(string[i], length[i]);
-            } else {
-                full_source.append(string[i]);
-            }
-        }
-    }
-
-    // Run translation logic on GLSL sources
-    size_t pos;
-    // Replace non-perspective interpolation with standard flat fallback
-    while ((pos = full_source.find("noperspective")) != std::string::npos) {
-        full_source.replace(pos, 13, "flat");
-    }
-
-    // Rewrite unsupported layout qualifiers for mobile GPUs
-    while ((pos = full_source.find("layout(location = 0) out vec4 fragColor;")) != std::string::npos) {
-        full_source.replace(pos, 40, "out vec4 fragColor;");
-    }
-    while ((pos = full_source.find("layout(location = 0) out vec4 out_Color;")) != std::string::npos) {
-        full_source.replace(pos, 40, "out vec4 out_Color;");
-    }
-
-    // Set correct OpenGL ES 3.2 headers and precision markers on-the-fly
-    if (full_source.find("#version 330") != std::string::npos || full_source.find("#version 150") != std::string::npos) {
-        pos = full_source.find("#version");
-        if (pos != std::string::npos) {
-            size_t end_line = full_source.find("\n", pos);
-            full_source.replace(pos, end_line - pos, "#version 320 es\nprecision highp float;\nprecision highp int;");
-        }
-    }
-
-    const char* translated_cstr = full_source.c_str();
-    real_glShaderSource(shader, 1, &translated_cstr, nullptr);
-    LOGI("glShaderSource intercepted and transpiled dynamically on-the-fly (Shader: %u)", shader);
-}
-
-// Export fear_glShaderSource alias
-void fear_glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
-    glShaderSource(shader, count, string, length);
-}
-
-// Override eglGetProcAddress to proxy glMemoryBarrier and glShaderSource safely to prevent LWJGL 3 crashes
 void* eglGetProcAddress(const char* procname) {
     if (procname == nullptr) return nullptr;
 
-    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
-        LOGI("eglGetProcAddress: Intercepted and returned custom glMemoryBarrier proxy!");
-        return (void*)glMemoryBarrier;
-    }
-    if (strcmp(procname, "glShaderSource") == 0 || strcmp(procname, "glShaderSourceARB") == 0) {
-        LOGI("eglGetProcAddress: Intercepted and returned custom glShaderSource proxy!");
-        return (void*)glShaderSource;
-    }
-    if (strcmp(procname, "glGetString") == 0) {
-        return (void*)fear_glGetString;
-    }
-    if (strcmp(procname, "glGetStringi") == 0) {
-        return (void*)fear_glGetStringi;
-    }
+    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
+    if (strcmp(procname, "glTextureBarrier") == 0) return (void*)fear_glTextureBarrier;
+    if (strcmp(procname, "glBindImageTexture") == 0) return (void*)fear_glBindTextureUnit;
+    if (strcmp(procname, "glBufferStorage") == 0) return (void*)fear_glBufferStorage;
+    if (strcmp(procname, "glClearTexImage") == 0) return (void*)fear_glClearTexImage;
+    if (strcmp(procname, "glClearTexSubImage") == 0) return (void*)fear_glClearTexSubImage;
+    if (strcmp(procname, "glMultiDrawArrays") == 0) return (void*)fear_glMultiDrawArrays;
+    if (strcmp(procname, "glMultiDrawElements") == 0) return (void*)fear_glMultiDrawElements;
+    if (strcmp(procname, "glInvalidateFramebuffer") == 0) return (void*)fear_glInvalidateFramebuffer;
+    if (strcmp(procname, "glCreateBuffers") == 0) return (void*)fear_glCreateBuffers;
+    if (strcmp(procname, "glNamedBufferData") == 0) return (void*)fear_glNamedBufferData;
+    if (strcmp(procname, "glNamedBufferSubData") == 0) return (void*)fear_glNamedBufferSubData;
+    if (strcmp(procname, "glBindTextureUnit") == 0) return (void*)fear_glBindTextureUnit;
 
-    // Call real eglGetProcAddress
+    if (strcmp(procname, "glCreateShader") == 0) return (void*)fear_glCreateShader;
+    if (strcmp(procname, "glShaderSource") == 0 || strcmp(procname, "glShaderSourceARB") == 0) return (void*)fear_glShaderSource;
+    if (strcmp(procname, "glCompileShader") == 0 || strcmp(procname, "glCompileShaderARB") == 0) return (void*)fear_glCompileShader;
+    if (strcmp(procname, "glAttachShader") == 0) return (void*)fear_glAttachShader;
+    if (strcmp(procname, "glDetachShader") == 0) return (void*)fear_glDetachShader;
+    if (strcmp(procname, "glLinkProgram") == 0) return (void*)fear_glLinkProgram;
+    if (strcmp(procname, "glDeleteShader") == 0) return (void*)fear_glDeleteShader;
+    if (strcmp(procname, "glDeleteProgram") == 0) return (void*)fear_glDeleteProgram;
+
+    if (strcmp(procname, "glTexImage2D") == 0) return (void*)fear_glTexImage2D;
+    if (strcmp(procname, "glTexImage3D") == 0) return (void*)fear_glTexImage3D;
+    if (strcmp(procname, "glRenderbufferStorage") == 0) return (void*)fear_glRenderbufferStorage;
+    if (strcmp(procname, "glFramebufferTexture2D") == 0) return (void*)fear_glFramebufferTexture2D;
+
+    if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
+    if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
+
     typedef void* (*eglGetProcAddress_pfn)(const char*);
-    static eglGetProcAddress_pfn real_eglGetProcAddress = nullptr;
-    if (!real_eglGetProcAddress) {
-        real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(RTLD_NEXT, "eglGetProcAddress");
-    }
+    static eglGetProcAddress_pfn real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(RTLD_NEXT, "eglGetProcAddress");
     if (real_eglGetProcAddress) {
         return real_eglGetProcAddress(procname);
     }
 
-    // Fallback to dlsym
     return dlsym(RTLD_NEXT, procname);
 }
 

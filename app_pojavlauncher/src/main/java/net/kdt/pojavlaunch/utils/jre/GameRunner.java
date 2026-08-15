@@ -279,8 +279,10 @@ public class GameRunner {
                 }
                 Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
             }
+        } catch (com.google.gson.JsonSyntaxException e) {
+            Log.w("FearLauncher", "[FearLauncher] Skin loading failed due to JsonSyntaxException, using default skin", e);
         } catch (Exception e) {
-            Log.e("GameRunner", "Failed to synchronize skin resourcepack on launch", e);
+            Log.e("FearLauncher", "[FearLauncher] Skin loading failed, using default skin", e);
         }
 
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
@@ -344,6 +346,16 @@ public class GameRunner {
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
 
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
+
+        if (rendererName.equals("fear_engine") || rendererName.equals("mh_drive") || rendererName.equals("opengles3_ltw")) {
+            try {
+                System.loadLibrary("fear_render");
+                String cachePath = activity.getFilesDir().getAbsolutePath() + "/fear_shader_cache";
+                JREUtils.initFearShaderEngine(cachePath, 1 /* version number */);
+            } catch (Throwable t) {
+                Log.e("GameRunner", "Failed to initialize Fear Shader Engine", t);
+            }
+        }
 
         try {
             JavaRunner.nativeSetupExit(activity);

@@ -438,6 +438,14 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
+
+    // Fear Shader Engine JNI Bridge Declarations
+    public static native void initFearShaderEngine(String cachePath, int version);
+    public static native void destroyFearShaderEngine();
+    public static native String getShaderCachePath();
+    public static native void clearShaderCache();
+    public static native int getTranslatedShaderCount();
+
     //public static native void initializeHooks();
     // Obtain AWT screen pixels to render on Android SurfaceView
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
