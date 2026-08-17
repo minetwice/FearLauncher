@@ -4,6 +4,8 @@ project(fear_render C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+
 find_program(PYTHON_EXECUTABLE NAMES python3 python)
 if(PYTHON_EXECUTABLE)
     set(PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}" CACHE FILEPATH "" FORCE)
@@ -32,8 +34,29 @@ set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
 set(SPIRV_TOOLS_BUILD_STATIC ON CACHE BOOL "" FORCE)
 
-add_subdirectory(fearrender/fogl_core/deps/spirv-cross EXCLUDE_FROM_ALL)
-add_subdirectory(fearrender/fogl_core/deps/shaderc EXCLUDE_FROM_ALL)
+# Include spirv-cross: local vendor or FetchContent fallback
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross/CMakeLists.txt")
+    add_subdirectory(fearrender/fogl_core/deps/spirv-cross EXCLUDE_FROM_ALL)
+else()
+    FetchContent_Declare(
+        spirv_cross
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+        GIT_TAG        sdk-1.3.268.0
+    )
+    FetchContent_MakeAvailable(spirv_cross)
+endif()
+
+# Include shaderc: local vendor or FetchContent fallback
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/CMakeLists.txt")
+    add_subdirectory(fearrender/fogl_core/deps/shaderc EXCLUDE_FROM_ALL)
+else()
+    FetchContent_Declare(
+        shaderc
+        GIT_REPOSITORY https://github.com/google/shaderc.git
+        GIT_TAG        v2024.0
+    )
+    FetchContent_MakeAvailable(shaderc)
+endif()
 
 file(GLOB_RECURSE FOGL_SOURCES
     "fearrender/fogl_core/src/*.cpp"
