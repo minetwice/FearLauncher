@@ -15,7 +15,6 @@
 static std::string g_cacheDir = "";
 static std::mutex g_cacheMutex;
 
-// Generate SHA-256 hash from source string
 std::string calculate_sha256(const std::string& str) {
     unsigned int h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
     unsigned int h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
@@ -95,10 +94,6 @@ std::string calculate_sha256(const std::string& str) {
 
 extern "C" {
 
-std::string getShaderSourceHash(const std::string& source) {
-    return calculate_sha256(source);
-}
-
 void clearShaderCacheDir() {
     std::lock_guard<std::mutex> lock(g_cacheMutex);
     if (g_cacheDir.empty()) return;
@@ -162,9 +157,14 @@ void initShaderCacheSystem(const std::string& cacheDir, int launcherVersion) {
     }
 }
 
+} // extern "C"
+
+std::string getShaderSourceHash(const std::string& source) {
+    return calculate_sha256(source);
+}
+
 bool loadProgramBinaryFromCache(GLuint program, const std::string& programHash, bool isGLES) {
     if (!isGLES) {
-        // Skip binary caching on Desktop GL (Zink) - Mesa handles its own disk cache natively
         return false;
     }
 
@@ -295,5 +295,3 @@ void saveProgramBinaryToCache(GLuint program, const std::string& programHash, bo
     }
     free(buffer);
 }
-
-} // extern "C"

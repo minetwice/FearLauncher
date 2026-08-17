@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item name="0">FEAR ULTRA-CORE v4.0 [PRO]</item>
+        <item name="0">Fear Render - Standalone (FOGL core)</item>
         <item name="1">@string/mcl_setting_renderer_gles2_4</item>
         <item name="2">@string/mcl_setting_renderer_vulkan_zink</item>
         <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
@@ -38,7 +38,7 @@
     </string-array>
     
     <string-array name="renderer_values">
-        <item>fear_engine</item> <!-- Fear High Performance Engine -->
+        <item>fear_engine</item> <!-- Fear Render (Standalone FOGL core) -->
         <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->
         <item>vulkan_zink</item> <!-- zink with OpenGL (undef) -->
         <item>freedreno_kgsl</item> <!-- freedreno gallium driver with OpenGL 4.6 -->

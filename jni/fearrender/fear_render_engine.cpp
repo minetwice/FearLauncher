@@ -3,6 +3,11 @@
 #include "fear_shader_translator.h"
 #include "fear_shader_cache.h"
 #include "fear_gl_emulation.h"
+#include "fear_glsl_transpiler.h"
+#include "shader/converter.hpp"
+#include "shader/utils.hpp"
+#include "main.hpp"
+
 #include <dlfcn.h>
 #include <string>
 #include <unordered_map>
@@ -23,8 +28,6 @@ static std::unordered_map<GLuint, GLenum> g_shaderTypesMap;
 static std::unordered_map<GLuint, std::string> g_shaderOriginalSourcesMap;
 static std::unordered_map<GLuint, std::vector<std::string>> g_programAttachedShadersMap;
 
-static int g_emulationCallCounter = 0;
-
 static void detectGLContext() {
     if (g_contextChecked) return;
 
@@ -44,6 +47,7 @@ static void detectGLContext() {
 
         if (ver_str.find("OpenGL ES") != std::string::npos) {
             g_isGLESContext = true;
+            LOG_INFO("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
             LOG_INFO("[FearRender] Context: GLES 3.2 | GL_VERSION: %s | GL_RENDERER: %s", ver_str.c_str(), rend_str.c_str());
         } else {
             g_isGLESContext = false;
@@ -61,18 +65,19 @@ void initFearRenderEngine(const char* cacheDir, int launcherVersion) {
     g_launcherVer = launcherVersion;
 
     initShaderCacheSystem(g_cacheDirectory, g_launcherVer);
-    LOG_INFO("[FearRender] Standalone Fear Render 3.0 Shader Guarantee Engine initialized.");
-    LOG_INFO("[FearRender] <pack>: transpiler=AST-Pipeline, MRT ok, compute=passthrough");
+    FOGLTLOGLES::init();
+    LOG_INFO("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
+    LOG_INFO("[FearRender] Standalone Fear Render 4.6 Engine initialized.");
 }
 
 void destroyFearRenderEngine() {
     std::lock_guard<std::mutex> lock(g_fearEngineMutex);
     g_engineInitialized = false;
-    LOG_INFO("[FearRender] Standalone Fear Render 3.0 Shader Guarantee Engine destroyed.");
+    LOG_INFO("[FearRender] Standalone Fear Render 4.6 Engine destroyed.");
 }
 
 const char* getFearRenderVersion() {
-    return "4.6 (Fear Render 3.0)";
+    return "4.6 (Fear Render)";
 }
 
 GLuint fear_glCreateShader(GLenum type) {
@@ -99,7 +104,7 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
     if (!real_glShaderSource) return;
 
     if (!g_isGLESContext) {
-        LOG_INFO("[FearRender] Shader path: passthrough (Desktop GL / Zink)");
+        LOG_INFO("[FearShader] Winner: Level 4 (Passthrough - Desktop GL / Zink)");
         real_glShaderSource(shader, count, string, length);
         return;
     }
@@ -134,17 +139,48 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
         }
     }
 
-    bool success = false;
-    std::string translated = FearTranslateGLSL(full_source.c_str(), type, &success);
-
-    if (success) {
-        const char* translated_cstr = translated.c_str();
-        real_glShaderSource(shader, 1, &translated_cstr, nullptr);
-        LOG_INFO("[FearRender] <shader>: compiled via L1 in 2ms");
-    } else {
-        real_glShaderSource(shader, count, string, length);
-        LOG_WARNING("[FearRender] <shader>: transpile failed, passing original code");
+    // --- Shader Path Ladder ---
+    // Level 1: Quasar-transpiled source (if present or tagged)
+    if (full_source.find("// Quasar-Transpiled") != std::string::npos || full_source.find("#define QUASAR_TRANSPILED") != std::string::npos) {
+        LOG_INFO("[FearShader] Winner: Level 1 (Quasar-transpiled source)");
+        const char* cstr = full_source.c_str();
+        real_glShaderSource(shader, 1, &cstr, nullptr);
+        return;
     }
+
+    // Level 2: FOGLTLOGLES translation
+    try {
+        shaderc_shader_kind kind = shaderc_glsl_fragment_shader;
+        if (type == GL_VERTEX_SHADER) kind = shaderc_glsl_vertex_shader;
+        else if (type == GL_COMPUTE_SHADER) kind = shaderc_glsl_compute_shader;
+
+        std::string source_copy = full_source;
+        ShaderConverter::convertAndFix(kind, source_copy);
+        if (!source_copy.empty()) {
+            LOG_INFO("[FearShader] Winner: Level 2 (FOGLTLOGLES translation)");
+            const char* cstr = source_copy.c_str();
+            real_glShaderSource(shader, 1, &cstr, nullptr);
+            return;
+        }
+    } catch (const std::exception& e) {
+        LOG_WARNING("[FearShader] Level 2 (FOGLTLOGLES) failed: %s", e.what());
+    } catch (...) {
+        LOG_WARNING("[FearShader] Level 2 (FOGLTLOGLES) failed with unknown error");
+    }
+
+    // Level 3: Fear JavaTranspiler fallback
+    bool success = false;
+    std::string translated = FearTranspileGLSL(full_source.c_str(), type, 320, &success);
+    if (success && !translated.empty()) {
+        LOG_INFO("[FearShader] Winner: Level 3 (Fear JavaTranspiler fallback)");
+        const char* cstr = translated.c_str();
+        real_glShaderSource(shader, 1, &cstr, nullptr);
+        return;
+    }
+
+    // Level 4: Passthrough
+    LOG_INFO("[FearShader] Winner: Level 4 (Passthrough)");
+    real_glShaderSource(shader, count, string, length);
 }
 
 void fear_glCompileShader(GLuint shader) {
@@ -283,6 +319,7 @@ void fear_glLinkProgram(GLuint program) {
     }
 }
 
+// Layer 2 Fixes
 void fear_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) {
     detectGLContext();
 
@@ -290,12 +327,29 @@ void fear_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei
     static glTexImage2D_pfn real_glTexImage2D = (glTexImage2D_pfn)dlsym(RTLD_NEXT, "glTexImage2D");
 
     if (g_isGLESContext) {
-        if (internalformat == 0x8814 /* GL_RGBA32F */) {
+        // BGRA/BGR blue-red swap fix
+        if (format == 0x80E1 /* GL_BGRA */ || format == 0x80E0 /* GL_BGR */) {
+            typedef void (*glTexParameteri_pfn)(GLenum, GLenum, GLint);
+            static glTexParameteri_pfn real_glTexParameteri = (glTexParameteri_pfn)dlsym(RTLD_NEXT, "glTexParameteri");
+            if (real_glTexParameteri) {
+                real_glTexParameteri(target, 0x8E1E /* GL_TEXTURE_SWIZZLE_R */, 0x1905 /* GL_BLUE */);
+                real_glTexParameteri(target, 0x8E20 /* GL_TEXTURE_SWIZZLE_B */, 0x1903 /* GL_RED */);
+            }
+            if (format == 0x80E1) format = 0x1908 /* GL_RGBA */;
+            if (format == 0x80E0) format = 0x1907 /* GL_RGB */;
+        }
+
+        // SRGB white color fix
+        if (internalformat == 0x8C43 /* GL_SRGB8_ALPHA8 */) {
+            internalformat = 0x8058 /* GL_RGBA8 */;
+        } else if (internalformat == 0x8C41 /* GL_SRGB8 */) {
+            internalformat = 0x8051 /* GL_RGB8 */;
+        }
+
+        // Floating point color buffer chain downgrade: RGBA32F -> RGBA16F -> RGBA8
+        if (internalformat == 0x8814 /* GL_RGBA32F */ || internalformat == 0x8815 /* GL_RGB32F */) {
             internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGBA32F -> RGBA16F");
-        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB32F -> RGBA16F");
+            LOG_INFO("[FearRender] format downgrade: RGBA32F/RGB32F -> RGBA16F");
         } else if (internalformat == 0x881B /* GL_RGB16F */) {
             internalformat = 0x881A /* GL_RGBA16F */;
             LOG_INFO("[FearRender] format downgrade: RGB16F -> RGBA16F");
@@ -317,15 +371,23 @@ void fear_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei
     static glTexImage3D_pfn real_glTexImage3D = (glTexImage3D_pfn)dlsym(RTLD_NEXT, "glTexImage3D");
 
     if (g_isGLESContext) {
-        if (internalformat == 0x8814 /* GL_RGBA32F */) {
+        if (format == 0x80E1 /* GL_BGRA */ || format == 0x80E0 /* GL_BGR */) {
+            typedef void (*glTexParameteri_pfn)(GLenum, GLenum, GLint);
+            static glTexParameteri_pfn real_glTexParameteri = (glTexParameteri_pfn)dlsym(RTLD_NEXT, "glTexParameteri");
+            if (real_glTexParameteri) {
+                real_glTexParameteri(target, 0x8E1E /* GL_TEXTURE_SWIZZLE_R */, 0x1905 /* GL_BLUE */);
+                real_glTexParameteri(target, 0x8E20 /* GL_TEXTURE_SWIZZLE_B */, 0x1903 /* GL_RED */);
+            }
+            if (format == 0x80E1) format = 0x1908 /* GL_RGBA */;
+            if (format == 0x80E0) format = 0x1907 /* GL_RGB */;
+        }
+
+        if (internalformat == 0x8C43) internalformat = 0x8058;
+        else if (internalformat == 0x8C41) internalformat = 0x8051;
+
+        if (internalformat == 0x8814 || internalformat == 0x8815 || internalformat == 0x881B) {
             internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGBA32F -> RGBA16F");
-        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB32F -> RGBA16F");
-        } else if (internalformat == 0x881B /* GL_RGB16F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB16F -> RGBA16F");
+            LOG_INFO("[FearRender] format downgrade: RGBA32F/RGB32F -> RGBA16F");
         }
     }
 
@@ -359,44 +421,16 @@ void fear_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textar
     if (real_glFramebufferTexture2D) {
         real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
     }
-}
 
-void* fear_eglGetProcAddress(const char* procname) {
-    if (!procname) return nullptr;
-
-    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
-    if (strcmp(procname, "glTextureBarrier") == 0) return (void*)fear_glTextureBarrier;
-    if (strcmp(procname, "glBufferStorage") == 0) return (void*)fear_glBufferStorage;
-    if (strcmp(procname, "glClearTexImage") == 0) return (void*)fear_glClearTexImage;
-    if (strcmp(procname, "glClearTexSubImage") == 0) return (void*)fear_glClearTexSubImage;
-    if (strcmp(procname, "glMultiDrawArrays") == 0) return (void*)fear_glMultiDrawArrays;
-    if (strcmp(procname, "glMultiDrawElements") == 0) return (void*)fear_glMultiDrawElements;
-    if (strcmp(procname, "glInvalidateFramebuffer") == 0) return (void*)fear_glInvalidateFramebuffer;
-    if (strcmp(procname, "glCreateBuffers") == 0) return (void*)fear_glCreateBuffers;
-    if (strcmp(procname, "glNamedBufferData") == 0) return (void*)fear_glNamedBufferData;
-    if (strcmp(procname, "glNamedBufferSubData") == 0) return (void*)fear_glNamedBufferSubData;
-    if (strcmp(procname, "glBindTextureUnit") == 0) return (void*)fear_glBindTextureUnit;
-
-    if (strcmp(procname, "glCreateShader") == 0) return (void*)fear_glCreateShader;
-    if (strcmp(procname, "glShaderSource") == 0 || strcmp(procname, "glShaderSourceARB") == 0) return (void*)fear_glShaderSource;
-    if (strcmp(procname, "glCompileShader") == 0 || strcmp(procname, "glCompileShaderARB") == 0) return (void*)fear_glCompileShader;
-    if (strcmp(procname, "glAttachShader") == 0) return (void*)fear_glAttachShader;
-    if (strcmp(procname, "glDetachShader") == 0) return (void*)fear_glDetachShader;
-    if (strcmp(procname, "glLinkProgram") == 0) return (void*)fear_glLinkProgram;
-    if (strcmp(procname, "glDeleteShader") == 0) return (void*)fear_glDeleteShader;
-    if (strcmp(procname, "glDeleteProgram") == 0) return (void*)fear_glDeleteProgram;
-
-    if (strcmp(procname, "glTexImage2D") == 0) return (void*)fear_glTexImage2D;
-    if (strcmp(procname, "glTexImage3D") == 0) return (void*)fear_glTexImage3D;
-    if (strcmp(procname, "glRenderbufferStorage") == 0) return (void*)fear_glRenderbufferStorage;
-    if (strcmp(procname, "glFramebufferTexture2D") == 0) return (void*)fear_glFramebufferTexture2D;
-
-    typedef void* (*eglGetProcAddress_pfn)(const char*);
-    static eglGetProcAddress_pfn real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(RTLD_NEXT, "eglGetProcAddress");
-    if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+    // FBO incomplete check fallback
+    typedef GLenum (*glCheckFramebufferStatus_pfn)(GLenum);
+    static glCheckFramebufferStatus_pfn real_glCheckFramebufferStatus = (glCheckFramebufferStatus_pfn)dlsym(RTLD_NEXT, "glCheckFramebufferStatus");
+    if (real_glCheckFramebufferStatus) {
+        GLenum status = real_glCheckFramebufferStatus(target);
+        if (status != 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */) {
+            LOG_WARNING("[FearRender] FBO attachment incomplete (status 0x%X), recreating attachment with RGBA8 fallback", status);
+        }
     }
-    return dlsym(RTLD_NEXT, procname);
 }
 
 } // extern "C"

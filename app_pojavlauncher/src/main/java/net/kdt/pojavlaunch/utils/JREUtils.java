@@ -35,7 +35,7 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             // Filter lines in-memory for speed and "Manufactured" feel
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -128,8 +128,7 @@ public class JREUtils {
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 break;
             case "fear_engine":
-                // FEAR ULTRA-CORE V4.0 [MANUFACTURED PRO] joined with High-Compatibility LTW Engine (Vulkan-Free)
-                Logger.appendToLog("[FEAR CORE] V4.0 ULTRA-CORE INITIALIZED with HIGH-COMPATIBILITY LTW ENGINE...");
+                Logger.appendToLog("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
 
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
@@ -393,8 +392,7 @@ public class JREUtils {
                 }
                 break;
             case "fear_engine":
-                // Lock to the highly-compatible and universally supported libltw.so to avoid Vulkan/Zink EGL driver initialization crashes!
-                renderLibrary = "libltw.so";
+                renderLibrary = "libfearrender.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
