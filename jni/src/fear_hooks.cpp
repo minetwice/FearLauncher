@@ -13,16 +13,19 @@
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
+#define GL_SHADING_LANGUAGE_VERSION 0x8B8C
 
 extern "C" {
 
 const unsigned char* fear_glGetString(unsigned int name) {
     if (name == GL_VERSION) {
         return (const unsigned char*)"4.6 (Fear Render)";
+    } else if (name == GL_SHADING_LANGUAGE_VERSION) {
+        return (const unsigned char*)"4.60";
     } else if (name == GL_RENDERER) {
-        return (const unsigned char*)"NVIDIA GeForce RTX 4090";
+        return (const unsigned char*)"Fear Render";
     } else if (name == GL_VENDOR) {
-        return (const unsigned char*)"NVIDIA Corporation";
+        return (const unsigned char*)"Fear Render / FOGLTLOGLES";
     } else if (name == GL_EXTENSIONS) {
         return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
     }
@@ -76,7 +79,7 @@ const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
     return (const unsigned char*)"";
 }
 
-void* eglGetProcAddress(const char* procname) {
+void* fear_eglGetProcAddress(const char* procname) {
     if (procname == nullptr) return nullptr;
 
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
@@ -110,13 +113,7 @@ void* eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
 
-    typedef void* (*eglGetProcAddress_pfn)(const char*);
-    static eglGetProcAddress_pfn real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(RTLD_NEXT, "eglGetProcAddress");
-    if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
-    }
-
-    return dlsym(RTLD_NEXT, procname);
+    return nullptr;
 }
 
 } // extern "C"

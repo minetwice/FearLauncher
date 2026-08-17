@@ -33,7 +33,6 @@ static void checkGLContext() {
         const unsigned char* renderer = real_glGetString(0x1F01 /* GL_RENDERER */);
 
         if (!version) {
-            // GL context not bound yet, retry on next GL call
             return;
         }
 
@@ -49,19 +48,6 @@ static void checkGLContext() {
             g_isGLESContext = false;
             LOG_INFO("[FearRender] Context: Desktop GL (passthrough mode) | GL_VERSION: %s | GL_RENDERER: %s", ver_str.c_str(), rend_str.c_str());
         }
-    }
-}
-
-static const char* get_gl_error_string(unsigned int err) {
-    switch (err) {
-        case 0x0500: return "GL_INVALID_ENUM";
-        case 0x0501: return "GL_INVALID_VALUE";
-        case 0x0502: return "GL_INVALID_OPERATION";
-        case 0x0503: return "GL_STACK_OVERFLOW";
-        case 0x0504: return "GL_STACK_UNDERFLOW";
-        case 0x0505: return "GL_OUT_OF_MEMORY";
-        case 0x0506: return "GL_INVALID_FRAMEBUFFER_OPERATION";
-        default: return "GL_UNKNOWN_ERROR";
     }
 }
 
@@ -148,11 +134,6 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, co
     } else {
         real_glShaderSource(shader, count, string, length);
     }
-}
-
-// Export fear_glShaderSource alias
-void fear_glShaderSource(unsigned int shader, int count, const char* const* string, const int* length) {
-    glShaderSource(shader, count, string, length);
 }
 
 // HOOK glCompileShader:
@@ -345,96 +326,6 @@ void glLinkProgram(GLuint program) {
         if (link_status && !program_hash.empty()) {
             saveProgramBinaryToCache(program, program_hash, g_isGLESContext);
         }
-    }
-}
-
-void glTexImage2D(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format, unsigned int type, const void* pixels) {
-    checkGLContext();
-
-    typedef void (*glTexImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
-    static glTexImage2D_pfn real_glTexImage2D = nullptr;
-    if (!real_glTexImage2D) {
-        real_glTexImage2D = (glTexImage2D_pfn)dlsym(RTLD_NEXT, "glTexImage2D");
-    }
-
-    if (g_isGLESContext) {
-        if (internalformat == 0x8814 /* GL_RGBA32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGBA32F -> RGBA16F");
-        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB32F -> RGBA16F");
-        } else if (internalformat == 0x881B /* GL_RGB16F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB16F -> RGBA16F");
-        } else if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
-            internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
-            LOG_INFO("[FearRender] format downgrade: DEPTH32F -> DEPTH24");
-        }
-    }
-
-    if (real_glTexImage2D) {
-        real_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
-    }
-}
-
-void glTexImage3D(unsigned int target, int level, int internalformat, int width, int height, int depth, int border, unsigned int format, unsigned int type, const void* pixels) {
-    checkGLContext();
-
-    typedef void (*glTexImage3D_pfn)(unsigned int, int, int, int, int, int, int, unsigned int, unsigned int, const void*);
-    static glTexImage3D_pfn real_glTexImage3D = nullptr;
-    if (!real_glTexImage3D) {
-        real_glTexImage3D = (glTexImage3D_pfn)dlsym(RTLD_NEXT, "glTexImage3D");
-    }
-
-    if (g_isGLESContext) {
-        if (internalformat == 0x8814 /* GL_RGBA32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGBA32F -> RGBA16F");
-        } else if (internalformat == 0x8815 /* GL_RGB32F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB32F -> RGBA16F");
-        } else if (internalformat == 0x881B /* GL_RGB16F */) {
-            internalformat = 0x881A /* GL_RGBA16F */;
-            LOG_INFO("[FearRender] format downgrade: RGB16F -> RGBA16F");
-        }
-    }
-
-    if (real_glTexImage3D) {
-        real_glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
-    }
-}
-
-void glRenderbufferStorage(unsigned int target, unsigned int internalformat, int width, int height) {
-    checkGLContext();
-
-    typedef void (*glRenderbufferStorage_pfn)(unsigned int, unsigned int, int, int);
-    static glRenderbufferStorage_pfn real_glRenderbufferStorage = nullptr;
-    if (!real_glRenderbufferStorage) {
-        real_glRenderbufferStorage = (glRenderbufferStorage_pfn)dlsym(RTLD_NEXT, "glRenderbufferStorage");
-    }
-
-    if (g_isGLESContext) {
-        if (internalformat == 0x8CAC /* GL_DEPTH_COMPONENT32F */) {
-            internalformat = 0x81A6 /* GL_DEPTH_COMPONENT24 */;
-            LOG_INFO("[FearRender] format downgrade: DEPTH32F -> DEPTH24");
-        }
-    }
-
-    if (real_glRenderbufferStorage) {
-        real_glRenderbufferStorage(target, internalformat, width, height);
-    }
-}
-
-void glFramebufferTexture2D(unsigned int target, unsigned int attachment, unsigned int textarget, unsigned int texture, int level) {
-    typedef void (*glFramebufferTexture2D_pfn)(unsigned int, unsigned int, unsigned int, unsigned int, int);
-    static glFramebufferTexture2D_pfn real_glFramebufferTexture2D = nullptr;
-    if (!real_glFramebufferTexture2D) {
-        real_glFramebufferTexture2D = (glFramebufferTexture2D_pfn)dlsym(RTLD_NEXT, "glFramebufferTexture2D");
-    }
-
-    if (real_glFramebufferTexture2D) {
-        real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
     }
 }
 
