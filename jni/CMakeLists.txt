@@ -34,28 +34,38 @@ set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
 set(SPIRV_TOOLS_BUILD_STATIC ON CACHE BOOL "" FORCE)
 
-# Include spirv-cross: local vendor or FetchContent fallback
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross/CMakeLists.txt")
+# Check if full local vendor tree exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross/CMakeLists.txt" AND
+   EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/third_party/spirv-tools/CMakeLists.txt")
     add_subdirectory(fearrender/fogl_core/deps/spirv-cross EXCLUDE_FROM_ALL)
+    add_subdirectory(fearrender/fogl_core/deps/shaderc EXCLUDE_FROM_ALL)
 else()
+    FetchContent_Declare(
+        spirv_headers
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Headers.git
+        GIT_TAG        vulkan-sdk-1.3.268.0
+    )
+    FetchContent_Declare(
+        spirv_tools
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Tools.git
+        GIT_TAG        vulkan-sdk-1.3.268.0
+    )
+    FetchContent_Declare(
+        glslang
+        GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
+        GIT_TAG        vulkan-sdk-1.3.268.0
+    )
     FetchContent_Declare(
         spirv_cross
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
         GIT_TAG        vulkan-sdk-1.3.268.0
     )
-    FetchContent_MakeAvailable(spirv_cross)
-endif()
-
-# Include shaderc: local vendor or FetchContent fallback
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/CMakeLists.txt")
-    add_subdirectory(fearrender/fogl_core/deps/shaderc EXCLUDE_FROM_ALL)
-else()
     FetchContent_Declare(
         shaderc
         GIT_REPOSITORY https://github.com/google/shaderc.git
         GIT_TAG        v2024.0
     )
-    FetchContent_MakeAvailable(shaderc)
+    FetchContent_MakeAvailable(spirv_headers spirv_tools glslang spirv_cross shaderc)
 endif()
 
 file(GLOB_RECURSE FOGL_SOURCES
