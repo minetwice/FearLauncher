@@ -41,7 +41,7 @@ else()
     FetchContent_Declare(
         spirv_cross
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
-        GIT_TAG        sdk-1.3.268.0
+        GIT_TAG        vulkan-sdk-1.3.268.0
     )
     FetchContent_MakeAvailable(spirv_cross)
 endif()
