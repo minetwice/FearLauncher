@@ -125,6 +125,14 @@ target_include_directories(fearrender PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross
 )
 
+if(spirv_cross_SOURCE_DIR)
+    target_include_directories(fearrender PRIVATE ${spirv_cross_SOURCE_DIR})
+endif()
+
+if(shaderc_SOURCE_DIR)
+    target_include_directories(fearrender PRIVATE ${shaderc_SOURCE_DIR}/libshaderc/include)
+endif()
+
 find_library(log-lib log)
 find_library(android-lib android)
 find_library(egl-lib EGL)
