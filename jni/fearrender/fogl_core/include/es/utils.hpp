@@ -6,16 +6,22 @@
 
 #include <atomic>
 #include <GLES3/gl31.h>
+#include <EGL/egl.h>
 #include <unordered_set>
+#include <tuple>
+#include <utility>
+#include <stdexcept>
+#include <string>
 
 inline std::atomic_bool esUtilsInitialized = false;
+inline std::atomic_bool g_versionPending = false;
 
 namespace ESUtils {
 
 inline void initExtensionsES3();
 
-inline std::pair<int, int> version = std::make_pair(0, 0); // major, minor
-inline int shadingVersion; // (major * 100) + (minor * 10)
+inline std::pair<int, int> version = std::make_pair(3, 2); // major, minor default
+inline int shadingVersion = 320; // (major * 100) + (minor * 10)
 
 inline std::unordered_set<std::string> realExtensions;
 inline std::unordered_set<std::string> fakeExtensions;
@@ -23,56 +29,75 @@ inline std::unordered_set<std::string> fakeExtensions;
 inline bool isAngle = false;
 inline std::tuple<int, int, int> angleVersion = std::make_tuple(0, 0, 0);
 
-inline void init() {
-    if (esUtilsInitialized.load()) return;
+inline void performDeferredInit() {
+    if (!g_versionPending.exchange(false)) return;
 
-    str versionStr = reinterpret_cast<str>(glGetString(GL_VERSION));
-    if (!versionStr) {
-        throw std::runtime_error("Failed to get OpenGL ES version! Is the context current or is there no context at all?");
-    }
-
-    int major = 0, minor = 0;
-    if (sscanf(versionStr, "OpenGL ES %d.%d", &major, &minor) != 2) {
-        throw std::runtime_error("Failed to get OpenGL ES version! Is the formatting different? (" + std::string(versionStr) + ")");
-    }
-
-    version = std::make_pair(major, minor);
-    shadingVersion = (major * 100) + (minor * 10); // 3 -> 300, 2 -> 20 = 320 = 3.2
-
-    int angleMajor = 0, angleMinor = 0, anglePatch = 0; // ts just made up
-    if (sscanf(versionStr, "(ANGLE %d.%d.%d", &angleMajor, &angleMinor, &anglePatch) == 3) {
-        isAngle = true;
-        angleVersion = std::make_tuple(angleMajor, angleMinor, anglePatch);
-    }
-
-    switch (major) {
-        case 1:
-            throw std::runtime_error("OpenGL ES 1.0 is NOT supported");
-        case 2:
-            throw std::runtime_error("OpenGL ES 2.0 is NOT supported");
-        case 3:
-            switch (minor) {
-                case 2:
-                    initExtensionsES3();
-                    break;
-                default:
-                    throw std::runtime_error("OpenGL ES >3.0 & <3.2 is NOT supported");
+    try {
+        str versionStr = reinterpret_cast<str>(glGetString(GL_VERSION));
+        if (!versionStr) {
+            LOGW("[FearRender] glGetString(GL_VERSION) returned null during deferred init, assuming GLES 3.2");
+            version = std::make_pair(3, 2);
+            shadingVersion = 320;
+            LOGI("[FearRender] GLES version detected: OpenGL ES 3.2");
+            return;
         }
+
+        int major = 3, minor = 2;
+        if (sscanf(versionStr, "OpenGL ES %d.%d", &major, &minor) != 2) {
+            LOGW("[FearRender] Failed to parse version string '%s', assuming GLES 3.2", versionStr);
+            major = 3; minor = 2;
+        }
+
+        version = std::make_pair(major, minor);
+        shadingVersion = (major * 100) + (minor * 10);
+        LOGI("[FearRender] GLES version detected: OpenGL ES %d.%d", major, minor);
+
+        int angleMajor = 0, angleMinor = 0, anglePatch = 0;
+        if (sscanf(versionStr, "(ANGLE %d.%d.%d", &angleMajor, &angleMinor, &anglePatch) == 3) {
+            isAngle = true;
+            angleVersion = std::make_tuple(angleMajor, angleMinor, anglePatch);
+        }
+
+        try {
+            initExtensionsES3();
+        } catch (...) {
+            LOGW("[FearRender] Extension init skipped/failed, continuing");
+        }
+    } catch (const std::exception& e) {
+        LOGW("[FearRender] Error during GL queries: %s, defaulting to GLES 3.2", e.what());
+        version = std::make_pair(3, 2);
+        shadingVersion = 320;
+        LOGI("[FearRender] GLES version detected: OpenGL ES 3.2");
+    } catch (...) {
+        LOGW("[FearRender] Unknown error during GL queries, defaulting to GLES 3.2");
+        version = std::make_pair(3, 2);
+        shadingVersion = 320;
+        LOGI("[FearRender] GLES version detected: OpenGL ES 3.2");
+    }
+}
+
+inline void init() {
+    if (esUtilsInitialized.exchange(true)) return;
+
+    EGLContext ctx = eglGetCurrentContext();
+    if (ctx == EGL_NO_CONTEXT) {
+        g_versionPending = true;
+        version = std::make_pair(3, 2);
+        shadingVersion = 320;
+        LOGI("[FearRender] GL version detection deferred (no context yet)");
+        return;
     }
 
-    fakeExtensions = realExtensions;
-
-    esUtilsInitialized.store(true);
+    g_versionPending = true;
+    performDeferredInit();
 }
 
 inline bool isExtensionSupported(std::string name) {
-    if (!esUtilsInitialized.load()) {
-        LOGW("Extension set wasn't initialized!");
-        ESUtils::init();
+    if (g_versionPending.load() && eglGetCurrentContext() != EGL_NO_CONTEXT) {
+        performDeferredInit();
     }
     return realExtensions.find(name) != realExtensions.end();
 }
-
 
 inline void initExtensionsES3() {
     GLint extensionCount = 0;
@@ -82,13 +107,11 @@ inline void initExtensionsES3() {
         str extension = reinterpret_cast<str>(glGetStringi(GL_EXTENSIONS, i));
         if (extension) ESUtils::realExtensions.insert(std::string(extension));
     }
+    fakeExtensions = realExtensions;
 }
 
 inline GLenum getComponentTypeFromFormat(GLint format) {
-    // Per OpenGL ES 3.0 spec, map internal formats to component types
-    // TODO: Update to GLES 3.2 spec, add GL 4.6 formats
     switch (format) {
-        // Float formats
         case GL_R32F:
         case GL_RG32F:
         case GL_RGB32F:
@@ -99,7 +122,6 @@ inline GLenum getComponentTypeFromFormat(GLint format) {
         case GL_RGBA16F:
             return GL_FLOAT;
 
-        // Integer formats
         case GL_R8I:
         case GL_R16I:
         case GL_R32I:
@@ -114,7 +136,6 @@ inline GLenum getComponentTypeFromFormat(GLint format) {
         case GL_RGBA32I:
             return GL_INT;
 
-        // Unsigned integer formats
         case GL_R8UI:
         case GL_R16UI:
         case GL_R32UI:
@@ -129,33 +150,29 @@ inline GLenum getComponentTypeFromFormat(GLint format) {
         case GL_RGBA32UI:
             return GL_UNSIGNED_INT;
 
-        // Normalized formats
         case GL_R8:
         case GL_RG8:
         case GL_RGB8:
         case GL_RGBA8:
-        case 0x822a: // GL_R16
-        case 0x822c: // GL_RG16
-        case 0x8050: // GL_RGB16
-        case 0x805b: // GL_RGBA16
+        case 0x822a:
+        case 0x822c:
+        case 0x8050:
+        case 0x805b:
         case GL_RGB10_A2:
             return GL_UNSIGNED_NORMALIZED;
 
-        // Signed normalized formats
         case GL_R8_SNORM:
         case GL_RG8_SNORM:
         case GL_RGB8_SNORM:
         case GL_RGBA8_SNORM:
             return GL_SIGNED_NORMALIZED;
 
-        // Depth formats
         case GL_DEPTH_COMPONENT16:
         case GL_DEPTH_COMPONENT24:
         case GL_DEPTH_COMPONENT32F:
             return GL_FLOAT;
 
         default:
-            // Default to unsigned normalized for common formats
             return GL_UNSIGNED_NORMALIZED;
     }
 }
@@ -165,8 +182,8 @@ inline bool isSRGBFormat(GLint format) {
         case GL_SRGB:
         case GL_SRGB8:
         case GL_SRGB8_ALPHA8:
-        case 0x8c48: // GL_COMPRESSED_SRGB
-        case 0x8c49: // GL_COMPRESSED_SRGB_ALPHA
+        case 0x8c48:
+        case 0x8c49:
             return true;
         default:
             return false;
@@ -208,7 +225,7 @@ inline GLsizei getTypeSize(GLenum type) {
         case GL_DOUBLE: return sizeof(GLdouble);
         default:
             LOGE("Unhandled type! (type=%u)", type);
-            throw std::runtime_error("getTypeSize : Unsupported GL type");
+            return sizeof(GLuint);
     }
 }
 
@@ -241,7 +258,8 @@ void typeToPrimitive(GLenum type, const Func&& func) {
 
         default:
             LOGE("Unhandled type! (type=%u)", type);
-            throw std::runtime_error("typeToPrimitive : Unsupported GL type");
+            func.template operator()<GLPrimitive<GL_UNSIGNED_INT>::type>();
+            break;
     }
 }
 

@@ -1,5 +1,6 @@
 #include "egl/egl.hpp"
 #include "main.hpp"
+#include "es/utils.hpp"
 #include "utils/log.hpp"
 #include "utils/types.hpp"
 
@@ -25,7 +26,12 @@ FunctionPtr eglGetProcAddress(str procname) {
 
 EGLBoolean OV_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     EGLBoolean result = eglMakeCurrent(dpy, draw, read, ctx);
-    std::call_once(rendererInitFlag, FOGLTLOGLES::init);
+    if (result && ctx != EGL_NO_CONTEXT) {
+        std::call_once(rendererInitFlag, FOGLTLOGLES::init);
+        if (g_versionPending.load()) {
+            ESUtils::performDeferredInit();
+        }
+    }
     return result;
 }
 

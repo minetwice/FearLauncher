@@ -45,27 +45,47 @@ else()
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Headers.git
         GIT_TAG        vulkan-sdk-1.3.268.0
     )
+    FetchContent_GetProperties(spirv_headers)
+    if(NOT spirv_headers_POPULATED)
+        FetchContent_Populate(spirv_headers)
+        set(SHADERC_SPIRV_HEADERS_DIR "${spirv_headers_SOURCE_DIR}" CACHE STRING "" FORCE)
+    endif()
+
     FetchContent_Declare(
         spirv_tools
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Tools.git
         GIT_TAG        vulkan-sdk-1.3.268.0
     )
+    FetchContent_GetProperties(spirv_tools)
+    if(NOT spirv_tools_POPULATED)
+        FetchContent_Populate(spirv_tools)
+        set(SHADERC_SPIRV_TOOLS_DIR "${spirv_tools_SOURCE_DIR}" CACHE STRING "" FORCE)
+    endif()
+
     FetchContent_Declare(
         glslang
         GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
         GIT_TAG        vulkan-sdk-1.3.268.0
     )
+    FetchContent_GetProperties(glslang)
+    if(NOT glslang_POPULATED)
+        FetchContent_Populate(glslang)
+        set(SHADERC_GLSLANG_DIR "${glslang_SOURCE_DIR}" CACHE STRING "" FORCE)
+    endif()
+
     FetchContent_Declare(
         spirv_cross
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
         GIT_TAG        vulkan-sdk-1.3.268.0
     )
+
     FetchContent_Declare(
         shaderc
         GIT_REPOSITORY https://github.com/google/shaderc.git
         GIT_TAG        v2024.0
     )
-    FetchContent_MakeAvailable(spirv_headers spirv_tools glslang spirv_cross shaderc)
+
+    FetchContent_MakeAvailable(spirv_cross shaderc)
 endif()
 
 file(GLOB_RECURSE FOGL_SOURCES
@@ -104,6 +124,14 @@ target_include_directories(fearrender PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/libshaderc/include
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross
 )
+
+if(spirv_cross_SOURCE_DIR)
+    target_include_directories(fearrender PRIVATE ${spirv_cross_SOURCE_DIR})
+endif()
+
+if(shaderc_SOURCE_DIR)
+    target_include_directories(fearrender PRIVATE ${shaderc_SOURCE_DIR}/libshaderc/include)
+endif()
 
 find_library(log-lib log)
 find_library(android-lib android)
