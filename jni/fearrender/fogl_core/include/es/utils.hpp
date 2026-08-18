@@ -99,6 +99,23 @@ inline bool isExtensionSupported(std::string name) {
     return realExtensions.find(name) != realExtensions.end();
 }
 
+inline void seedFallbackExtensions() {
+    static const char* fallbacks[] = {
+        "GL_OES_element_index_uint", "GL_OES_depth_texture",
+        "GL_OES_depth24", "GL_OES_texture_3D",
+        "GL_OES_texture_float", "GL_OES_texture_half_float",
+        "GL_OES_texture_half_float_linear", "GL_OES_texture_npot",
+        "GL_OES_mapbuffer", "GL_OES_packed_depth_stencil",
+        "GL_OES_standard_derivatives", "GL_OES_vertex_array_object",
+        "GL_OES_compressed_ETC1_RGB8_texture",
+        "GL_EXT_texture_format_BGRA8888",
+        "GL_EXT_color_buffer_float", "GL_EXT_color_buffer_half_float"
+    };
+    for (const char* ext : fallbacks) {
+        realExtensions.insert(std::string(ext));
+    }
+}
+
 inline void initExtensionsES3() {
     GLint extensionCount = 0;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
@@ -106,6 +123,11 @@ inline void initExtensionsES3() {
     for (GLint i = 0; i < extensionCount; ++i) {
         str extension = reinterpret_cast<str>(glGetStringi(GL_EXTENSIONS, i));
         if (extension) ESUtils::realExtensions.insert(std::string(extension));
+    }
+
+    if (realExtensions.empty()) {
+        LOGW("[FearRender] No real extensions found, seeding fallback extensions");
+        seedFallbackExtensions();
     }
     fakeExtensions = realExtensions;
 }

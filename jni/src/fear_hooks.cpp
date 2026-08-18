@@ -27,6 +27,7 @@ const unsigned char* fear_glGetString(unsigned int name) {
     } else if (name == GL_VENDOR) {
         return (const unsigned char*)"Fear Render / FOGLTLOGLES";
     } else if (name == GL_EXTENSIONS) {
+        LOGI("[FearRender] Spoofed GL_EXTENSIONS string");
         return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
     }
 
@@ -110,8 +111,13 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glRenderbufferStorage") == 0) return (void*)fear_glRenderbufferStorage;
     if (strcmp(procname, "glFramebufferTexture2D") == 0) return (void*)fear_glFramebufferTexture2D;
 
-    if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
-    if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
+    // NOTE: glGetString and glGetStringi are deliberately NOT intercepted here.
+    // They are handled by FOGLTLOGLES's OV_glGetString / OV_glGetStringi overrides
+    // (registered via REGISTEROV in branding.cpp), which are consistent with
+    // OV_glGetIntegerv (GL_NUM_EXTENSIONS). If we intercept them here with the
+    // hardcoded 17-extension list, GLFW sees a count mismatch (fakeExtensions.size()
+    // from OV_glGetIntegerv vs 17 from fear_glGetStringi) and triggers error 65544
+    // "Extension string retrieval is broken".
 
     return nullptr;
 }

@@ -62,6 +62,16 @@ const GLubyte* OV_glGetString(GLenum name) {
 
         case GL_EXTENSIONS:
             fakeExtensionsJoined = join_set(ESUtils::fakeExtensions, " ");
+            if (fakeExtensionsJoined.empty()) {
+                LOGI("[FearRender] Spoofed GL_EXTENSIONS string (fakeExtensions was empty)");
+                fakeExtensionsJoined = "GL_OES_element_index_uint GL_OES_depth_texture "
+                    "GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float "
+                    "GL_OES_texture_half_float GL_OES_texture_half_float_linear "
+                    "GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil "
+                    "GL_OES_standard_derivatives GL_OES_vertex_array_object "
+                    "GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 "
+                    "GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float";
+            }
             return CAST_TO_CUBYTE(fakeExtensionsJoined.c_str());
 
         default:

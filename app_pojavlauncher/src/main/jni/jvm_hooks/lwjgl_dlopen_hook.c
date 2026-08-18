@@ -184,9 +184,28 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
         }
+        // For any other gl* symbol, try eglGetProcAddress first so FOGLTLOGLES
+        // overrides are used. If that returns NULL (Android eglGetProcAddress
+        // only returns extension functions, not core functions like glGetIntegerv),
+        // fall back to dlsym(RTLD_DEFAULT, ...) which searches ALL loaded libraries
+        // (libGLESv3.so, libfearrender.so, etc.).
+        if (symbol[0] == 'g' && symbol[1] == 'l') {
+            void* proc = eglGetProcAddress_hook(symbol);
+            if (proc) {
+                printf("LWJGL linkerhook: resolved %s via eglGetProcAddress\n", symbol);
+                return (jlong) proc;
+            }
+            // eglGetProcAddress returned NULL - try RTLD_DEFAULT which searches
+            // all loaded libraries (libGLESv3.so has glGetIntegerv etc.)
+            proc = dlsym(RTLD_DEFAULT, symbol);
+            if (proc) {
+                printf("LWJGL linkerhook: resolved %s via RTLD_DEFAULT\n", symbol);
+                return (jlong) proc;
+            }
+        }
     }
 
-    // Call real dlsym
+    // Call real dlsym with the specific handle
     return (jlong) dlsym((void*) handle, symbol);
 }
 
