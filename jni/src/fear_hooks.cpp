@@ -9,6 +9,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <unistd.h>
 #include <EGL/egl.h>
 
 #define TAG "FearRender"
@@ -23,6 +24,7 @@
 
 static void* g_eglHandle = nullptr;
 static void* g_glesHandle = nullptr;
+static int g_windowCreated = 0;
 static bool g_emergencyContextCreated = false;
 
 static void initEGLGLESHandles() {
@@ -34,18 +36,19 @@ static void initEGLGLESHandles() {
     });
 }
 
-static bool isContextCurrent() {
+static EGLContext getCurrentEGLContext() {
     initEGLGLESHandles();
     typedef EGLContext (*eglGetCurrentContext_pfn)();
-    static eglGetCurrentContext_pfn p_eglGetCurrentContext = nullptr;
-    if (!p_eglGetCurrentContext) {
-        p_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetCurrentContext");
-    }
-    return (p_eglGetCurrentContext && p_eglGetCurrentContext() != EGL_NO_CONTEXT);
+    static eglGetCurrentContext_pfn real_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetCurrentContext");
+    return real_eglGetCurrentContext ? real_eglGetCurrentContext() : EGL_NO_CONTEXT;
 }
 
-static void createEmergencyContextIfNeeded() {
-    if (g_emergencyContextCreated) return;
+static bool isContextCurrent() {
+    return getCurrentEGLContext() != EGL_NO_CONTEXT;
+}
+
+static void tryEmergencyContext() {
+    if (!g_windowCreated || g_emergencyContextCreated) return;
     g_emergencyContextCreated = true;
 
     initEGLGLESHandles();
@@ -76,13 +79,14 @@ static void createEmergencyContextIfNeeded() {
             EGLint numConfigs = 0;
             p_eglChooseConfig(display, configAttribs, &config, 1, &numConfigs);
             if (numConfigs > 0) {
-                EGLint pbufAttribs[] = { EGL_WIDTH, 16, EGL_HEIGHT, 16, EGL_NONE };
+                EGLint pbufAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
                 EGLSurface pbuf = p_eglCreatePbufferSurface(display, config, pbufAttribs);
                 EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
                 EGLContext ctx = p_eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
                 if (pbuf != EGL_NO_SURFACE && ctx != EGL_NO_CONTEXT) {
-                    p_eglMakeCurrent(display, pbuf, pbuf, ctx);
-                    LOGI("[FearRender] emergency pbuffer context created");
+                    if (p_eglMakeCurrent(display, pbuf, pbuf, ctx)) {
+                        LOGI("[FearRender][EMERGENCY] self-context created tid=%d", gettid());
+                    }
                 }
             }
         }
@@ -94,39 +98,18 @@ extern "C" {
 EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
     initEGLGLESHandles();
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
-    static eglCreateContext_pfn real_eglCreateContext = nullptr;
-    if (!real_eglCreateContext && g_eglHandle) {
-        real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle, "eglCreateContext");
-    }
-    if (!real_eglCreateContext) {
-        real_eglCreateContext = (eglCreateContext_pfn)dlsym(RTLD_NEXT, "eglCreateContext");
-    }
-
-    EGLContext ctx = EGL_NO_CONTEXT;
-    if (real_eglCreateContext) {
-        ctx = real_eglCreateContext(dpy, config, share_context, attrib_list);
-    }
-    LOGI("[FearRender] eglCreateContext -> %p", ctx);
+    static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
+    EGLContext ctx = real_eglCreateContext ? real_eglCreateContext(dpy, config, share_context, attrib_list) : EGL_NO_CONTEXT;
+    LOGI("[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
     return ctx;
 }
 
 EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     initEGLGLESHandles();
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
-    static eglMakeCurrent_pfn real_eglMakeCurrent = nullptr;
-    if (!real_eglMakeCurrent && g_eglHandle) {
-        real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle, "eglMakeCurrent");
-    }
-    if (!real_eglMakeCurrent) {
-        real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(RTLD_NEXT, "eglMakeCurrent");
-    }
-
-    EGLBoolean res = EGL_FALSE;
-    if (real_eglMakeCurrent) {
-        res = real_eglMakeCurrent(dpy, draw, read, ctx);
-    }
-
-    LOGI("[FearRender] eglMakeCurrent(display, ctx=%p) -> %s", ctx, res ? "EGL_TRUE" : "EGL_FALSE");
+    static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
+    EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
+    LOGI("[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
 
     if (res && ctx != EGL_NO_CONTEXT) {
         if (g_versionPending.load()) {
@@ -141,16 +124,25 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     return res;
 }
 
+void* glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
+    typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
+    static glfwCreateWindow_pfn real_glfwCreateWindow = (glfwCreateWindow_pfn)dlsym(RTLD_NEXT, "glfwCreateWindow");
+    void* window = real_glfwCreateWindow ? real_glfwCreateWindow(width, height, title, monitor, share) : nullptr;
+    g_windowCreated = 1;
+    LOGI("[FearRender] glfwCreateWindow -> %p", window);
+    return window;
+}
+
 void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
 
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender] glGetIntegerv without context - returning defaults");
+            LOGI("[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
             logged = true;
         }
-        createEmergencyContextIfNeeded();
+        tryEmergencyContext();
         if (isContextCurrent()) {
             typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
             static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
@@ -175,6 +167,11 @@ void glGetIntegerv(GLenum pname, GLint* params) {
 void glGetFloatv(GLenum pname, GLfloat* params) {
     if (!params) return;
     if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glGetFloatv without context tid=%d - safe default", gettid());
+            logged = true;
+        }
         *params = 1.0f;
         return;
     }
@@ -186,6 +183,11 @@ void glGetFloatv(GLenum pname, GLfloat* params) {
 void glGetBooleanv(GLenum pname, GLboolean* params) {
     if (!params) return;
     if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glGetBooleanv without context tid=%d - safe default", gettid());
+            logged = true;
+        }
         *params = GL_FALSE;
         return;
     }
@@ -195,35 +197,98 @@ void glGetBooleanv(GLenum pname, GLboolean* params) {
 }
 
 void glEnable(GLenum cap) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glEnable without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glEnable_pfn)(GLenum);
     static glEnable_pfn real_glEnable = (glEnable_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glEnable");
     if (real_glEnable) real_glEnable(cap);
 }
 
 void glDisable(GLenum cap) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glDisable without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDisable_pfn)(GLenum);
     static glDisable_pfn real_glDisable = (glDisable_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDisable");
     if (real_glDisable) real_glDisable(cap);
 }
 
 void glBindTexture(GLenum target, GLuint texture) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glBindTexture without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glBindTexture_pfn)(GLenum, GLuint);
     static glBindTexture_pfn real_glBindTexture = (glBindTexture_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glBindTexture");
     if (real_glBindTexture) real_glBindTexture(target, texture);
 }
 
+void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glClearColor without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
+    typedef void (*glClearColor_pfn)(GLfloat, GLfloat, GLfloat, GLfloat);
+    static glClearColor_pfn real_glClearColor = (glClearColor_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glClearColor");
+    if (real_glClearColor) real_glClearColor(red, green, blue, alpha);
+}
+
+void glClear(GLbitfield mask) {
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glClear without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
+    typedef void (*glClear_pfn)(GLbitfield);
+    static glClear_pfn real_glClear = (glClear_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glClear");
+    if (real_glClear) real_glClear(mask);
+}
+
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glDrawArrays without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDrawArrays_pfn)(GLenum, GLint, GLsizei);
     static glDrawArrays_pfn real_glDrawArrays = (glDrawArrays_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDrawArrays");
     if (real_glDrawArrays) real_glDrawArrays(mode, first, count);
 }
 
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glDrawElements without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDrawElements_pfn)(GLenum, GLsizei, GLenum, const void*);
     static glDrawElements_pfn real_glDrawElements = (glDrawElements_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDrawElements");
     if (real_glDrawElements) real_glDrawElements(mode, count, type, indices);
@@ -337,6 +402,8 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glEnable") == 0) return (void*)glEnable;
     if (strcmp(procname, "glDisable") == 0) return (void*)glDisable;
     if (strcmp(procname, "glBindTexture") == 0) return (void*)glBindTexture;
+    if (strcmp(procname, "glClearColor") == 0) return (void*)glClearColor;
+    if (strcmp(procname, "glClear") == 0) return (void*)glClear;
     if (strcmp(procname, "glDrawArrays") == 0) return (void*)glDrawArrays;
     if (strcmp(procname, "glDrawElements") == 0) return (void*)glDrawElements;
 
