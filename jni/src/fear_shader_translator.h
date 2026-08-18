@@ -14,6 +14,7 @@ std::string FearTranslateGLSL(
 // String Helpers
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
 void insertAfterLine(std::string& code, const std::string& targetLine, const std::string& insertText);
+void insertBeforeMain(std::string& code, const std::string& insertText);
 void removeLinesContaining(std::string& code, const std::string& substring);
 
 // Shader Type Helpers
