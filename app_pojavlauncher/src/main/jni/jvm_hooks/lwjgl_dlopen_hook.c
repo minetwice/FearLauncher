@@ -184,6 +184,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
         }
+        // For any other gl* symbol, try eglGetProcAddress first so FOGLTLOGLES
+        // overrides (like OV_glGetIntegerv) are used instead of raw libGLESv3.so
+        // functions. This prevents "No context is current" crashes when LWJGL
+        // resolves functions like glGetIntegerv via dlsym.
+        if (symbol[0] == 'g' && symbol[1] == 'l') {
+            void* proc = eglGetProcAddress_hook(symbol);
+            if (proc) {
+                printf("LWJGL linkerhook: resolved %s via eglGetProcAddress\n", symbol);
+                return (jlong) proc;
+            }
+        }
     }
 
     // Call real dlsym
