@@ -111,8 +111,13 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glRenderbufferStorage") == 0) return (void*)fear_glRenderbufferStorage;
     if (strcmp(procname, "glFramebufferTexture2D") == 0) return (void*)fear_glFramebufferTexture2D;
 
-    if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
-    if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
+    // NOTE: glGetString and glGetStringi are deliberately NOT intercepted here.
+    // They are handled by FOGLTLOGLES's OV_glGetString / OV_glGetStringi overrides
+    // (registered via REGISTEROV in branding.cpp), which are consistent with
+    // OV_glGetIntegerv (GL_NUM_EXTENSIONS). If we intercept them here with the
+    // hardcoded 17-extension list, GLFW sees a count mismatch (fakeExtensions.size()
+    // from OV_glGetIntegerv vs 17 from fear_glGetStringi) and triggers error 65544
+    // "Extension string retrieval is broken".
 
     return nullptr;
 }
