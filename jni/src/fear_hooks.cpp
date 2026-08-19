@@ -2,6 +2,7 @@
 #include "fear_gl_emulation.h"
 #include "fear_render_engine.h"
 #include "es/utils.hpp"
+#include "main.hpp"
 #include <android/log.h>
 #include <dlfcn.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 
 #define TAG "FearRender"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__)
 
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
@@ -27,9 +29,18 @@ static void* g_glesHandle = nullptr;
 static int g_windowCreated = 0;
 static bool g_emergencyContextCreated = false;
 
+static void universal_safe_stub() {
+    static bool logged = false;
+    if (!logged) {
+        LOGI("[FearRender] Universal GL stub invoked without context");
+        logged = true;
+    }
+}
+
 static void initEGLGLESHandles() {
     static std::once_flag flag;
     std::call_once(flag, []() {
+        LOGW("BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
         g_eglHandle = dlopen("libEGL.so", RTLD_GLOBAL | RTLD_LAZY);
         g_glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
         LOGI("[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
@@ -391,7 +402,7 @@ const unsigned char* glGetStringi(unsigned int name, unsigned int index) {
 }
 
 void* fear_eglGetProcAddress(const char* procname) {
-    if (procname == nullptr) return nullptr;
+    if (procname == nullptr) return (void*)universal_safe_stub;
 
     if (strcmp(procname, "eglMakeCurrent") == 0) return (void*)eglMakeCurrent;
     if (strcmp(procname, "eglCreateContext") == 0) return (void*)eglCreateContext;
@@ -438,13 +449,31 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
 
+    // Resolve from FOGLTLOGLES dispatch map
+    FunctionPtr fogl_fn = FOGLTLOGLES::getFunctionAddress(procname);
+    if (fogl_fn) return reinterpret_cast<void*>(fogl_fn);
+
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_NEXT, "eglGetProcAddress");
     if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+        void* res = real_eglGetProcAddress(procname);
+        if (res) return res;
     }
 
-    return dlsym(RTLD_NEXT, procname);
+    if (g_glesHandle) {
+        void* sym = dlsym(g_glesHandle, procname);
+        if (sym) return sym;
+    }
+
+    if (strncmp(procname, "gl", 2) == 0 || strncmp(procname, "egl", 3) == 0) {
+        return (void*)universal_safe_stub;
+    }
+
+    return (void*)universal_safe_stub;
+}
+
+void* eglGetProcAddress(const char* procname) {
+    return fear_eglGetProcAddress(procname);
 }
 
 } // extern "C"
