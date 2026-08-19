@@ -56,7 +56,6 @@ android {
 
     lintOptions {
         abortOnError false
-        // 🔥 StringFormatInvalid ko Disable करो (Material Library ke liye)
         disable 'StringFormatInvalid'
     }
 
@@ -89,6 +88,10 @@ android {
         versionName getVersionName()
         multiDexEnabled false
         resValue 'string', 'curseforge_api_key', getCFApiKey()
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
     }
 
     flavorDimensions = ["runtime"]
@@ -327,9 +330,5 @@ dependencies {
     implementation project(":dnbglfw")
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
-    // 🔥 Material Library को Exclude करो - क्योंकि इसी से Error आ रहा है
-    // implementation 'com.google.android.material:material:1.12.0'  // इस line को comment करो
-
-    // ✅ अगर Material Library चाहिए तो इस Version का उपयोग करो (जिसमें Bug नहीं है)
     implementation 'com.google.android.material:material:1.11.0'
 }
