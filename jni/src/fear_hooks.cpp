@@ -24,8 +24,18 @@
 
 static void* g_eglHandle = nullptr;
 static void* g_glesHandle = nullptr;
+static void* g_ourSoHandle = nullptr;
 static int g_windowCreated = 0;
 static bool g_emergencyContextCreated = false;
+
+extern "C" uintptr_t fear_universal_safe_stub(uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t a6, uintptr_t a7, uintptr_t a8) {
+    static bool logged = false;
+    if (!logged) {
+        LOGI("[FearRender][STUB] Universal safe-stub called");
+        logged = true;
+    }
+    return 0;
+}
 
 static void initEGLGLESHandles() {
     static std::once_flag flag;
@@ -100,7 +110,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
     static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
     EGLContext ctx = real_eglCreateContext ? real_eglCreateContext(dpy, config, share_context, attrib_list) : EGL_NO_CONTEXT;
-    LOGI("[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
+    LOGI("[FearRender][EGL] eglCreateContext dpy=%p config=%p share=%p -> ctx=%p", dpy, config, share_context, ctx);
     return ctx;
 }
 
@@ -109,7 +119,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
     static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
     EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
-    LOGI("[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
+    LOGI("[FearRender][EGL] eglMakeCurrent dpy=%p draw=%p read=%p ctx=%p -> %s", dpy, draw, read, ctx, res ? "EGL_TRUE" : "EGL_FALSE");
 
     if (res && ctx != EGL_NO_CONTEXT) {
         if (g_versionPending.load()) {
@@ -124,6 +134,15 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     return res;
 }
 
+EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint* attrib_list) {
+    initEGLGLESHandles();
+    typedef EGLSurface (*eglCreateWindowSurface_pfn)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint*);
+    static eglCreateWindowSurface_pfn real_eglCreateWindowSurface = (eglCreateWindowSurface_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateWindowSurface");
+    EGLSurface surf = real_eglCreateWindowSurface ? real_eglCreateWindowSurface(dpy, config, win, attrib_list) : EGL_NO_SURFACE;
+    LOGI("[FearRender][EGL] eglCreateWindowSurface dpy=%p config=%p win=%p -> surf=%p", dpy, config, (void*)win, surf);
+    return surf;
+}
+
 void* glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
     typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
     static glfwCreateWindow_pfn real_glfwCreateWindow = (glfwCreateWindow_pfn)dlsym(RTLD_NEXT, "glfwCreateWindow");
@@ -136,20 +155,11 @@ void* glfwCreateWindow(int width, int height, const char* title, void* monitor, 
 void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
 
-    if (!isContextCurrent()) {
+    if (getCurrentEGLContext() == EGL_NO_CONTEXT) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
+            LOGI("[FearRender][GUARD] glGetIntegerv without context - returning safe default");
             logged = true;
-        }
-        tryEmergencyContext();
-        if (isContextCurrent()) {
-            typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-            static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
-            if (real_glGetIntegerv) {
-                real_glGetIntegerv(pname, params);
-                return;
-            }
         }
         if (pname == GL_MAX_TEXTURE_SIZE) *params = 16384;
         else if (pname == 0x821D /* GL_MAX_DRAW_BUFFERS */) *params = 8;
@@ -197,10 +207,10 @@ void glGetBooleanv(GLenum pname, GLboolean* params) {
 }
 
 void glEnable(GLenum cap) {
-    if (!isContextCurrent()) {
+    if (getCurrentEGLContext() == EGL_NO_CONTEXT) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glEnable without context tid=%d - safe default", gettid());
+            LOGI("[FearRender][GUARD] glEnable without context - doing nothing");
             logged = true;
         }
         return;
@@ -211,10 +221,10 @@ void glEnable(GLenum cap) {
 }
 
 void glDisable(GLenum cap) {
-    if (!isContextCurrent()) {
+    if (getCurrentEGLContext() == EGL_NO_CONTEXT) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glDisable without context tid=%d - safe default", gettid());
+            LOGI("[FearRender][GUARD] glDisable without context - doing nothing");
             logged = true;
         }
         return;
@@ -295,35 +305,43 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices
 }
 
 const unsigned char* fear_glGetString(unsigned int name) {
-    if (name == GL_VERSION) {
-        return (const unsigned char*)"4.6 (Fear Render)";
-    } else if (name == GL_SHADING_LANGUAGE_VERSION) {
-        return (const unsigned char*)"4.60";
-    } else if (name == GL_RENDERER) {
-        return (const unsigned char*)"Fear Render";
-    } else if (name == GL_VENDOR) {
-        return (const unsigned char*)"Fear Render";
-    } else if (name == GL_EXTENSIONS) {
-        if (isContextCurrent()) {
-            typedef const unsigned char* (*glGetString_pfn)(unsigned int);
-            static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
-            if (real_glGetString) {
-                const unsigned char* realExt = real_glGetString(GL_EXTENSIONS);
-                if (realExt && realExt[0] != '\0') return realExt;
-            }
+    if (getCurrentEGLContext() == EGL_NO_CONTEXT) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glGetString without context - returning safe default");
+            logged = true;
         }
-        static const char* fakeExt = "GL_OES_element_index_uint GL_OES_depth_texture GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_standard_derivatives GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
-        LOGI("[FearRender] Spoofed GL_EXTENSIONS string");
-        return (const unsigned char*)fakeExt;
+        if (name == GL_VERSION) return (const unsigned char*)"4.6 (Fear Render)";
+        if (name == GL_SHADING_LANGUAGE_VERSION) return (const unsigned char*)"4.60";
+        if (name == GL_RENDERER) return (const unsigned char*)"Fear Render";
+        if (name == GL_VENDOR) return (const unsigned char*)"Fear Render";
+        if (name == GL_EXTENSIONS) {
+            static const char* fakeExt = "GL_OES_element_index_uint GL_OES_depth_texture GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_standard_derivatives GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+            return (const unsigned char*)fakeExt;
+        }
+        return (const unsigned char*)"Fear Render";
     }
 
-    if (isContextCurrent()) {
+    if (name == GL_VERSION) return (const unsigned char*)"4.6 (Fear Render)";
+    if (name == GL_SHADING_LANGUAGE_VERSION) return (const unsigned char*)"4.60";
+    if (name == GL_RENDERER) return (const unsigned char*)"Fear Render";
+    if (name == GL_VENDOR) return (const unsigned char*)"Fear Render";
+    if (name == GL_EXTENSIONS) {
         typedef const unsigned char* (*glGetString_pfn)(unsigned int);
         static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
         if (real_glGetString) {
-            const unsigned char* res = real_glGetString(name);
-            if (res && res[0] != '\0') return res;
+            const unsigned char* realExt = real_glGetString(GL_EXTENSIONS);
+            if (realExt && realExt[0] != '\0') return realExt;
         }
+        static const char* fakeExt = "GL_OES_element_index_uint GL_OES_depth_texture GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_standard_derivatives GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+        return (const unsigned char*)fakeExt;
+    }
+
+    typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+    static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
+    if (real_glGetString) {
+        const unsigned char* res = real_glGetString(name);
+        if (res && res[0] != '\0') return res;
     }
     return (const unsigned char*)"Fear Render";
 }
@@ -333,55 +351,57 @@ const unsigned char* glGetString(unsigned int name) {
 }
 
 const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
-    if (name == GL_EXTENSIONS) {
-        static const char* extensions[] = {
-            "GL_OES_element_index_uint",
-            "GL_OES_depth_texture",
-            "GL_OES_depth24",
-            "GL_OES_texture_3D",
-            "GL_OES_texture_float",
-            "GL_OES_texture_half_float",
-            "GL_OES_texture_half_float_linear",
-            "GL_OES_texture_npot",
-            "GL_OES_mapbuffer",
-            "GL_OES_packed_depth_stencil",
-            "GL_OES_standard_derivatives",
-            "GL_OES_vertex_array_object",
-            "GL_OES_compressed_ETC1_RGB8_texture",
-            "GL_EXT_texture_format_BGRA8888",
-            "GL_EXT_color_buffer_float",
-            "GL_EXT_color_buffer_half_float",
-            "GL_ARB_direct_state_access",
-            "GL_ARB_buffer_storage",
-            "GL_ARB_shader_image_load_store",
-            "GL_NV_conditional_render",
-            "GL_EXT_gpu_shader4",
-            "GL_EXT_texture_buffer",
-            "GL_EXT_texture_cube_map_array",
-            "GL_OES_EGL_image_external_essl3",
-            "GL_NV_shader_noperspective_interpolation",
-            "GL_ARB_shader_objects",
-            "GL_ARB_vertex_shader",
-            "GL_ARB_fragment_shader",
-            "GL_EXT_blend_equation_separate",
-            "GL_EXT_geometry_shader4",
-            "GL_EXT_gpu_program_parameters",
-            "GL_ARB_instanced_arrays",
-            "GL_ARB_draw_instanced"
-        };
-        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
-        if (index < size) {
-            return (const unsigned char*)extensions[index];
+    if (getCurrentEGLContext() == EGL_NO_CONTEXT) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender][GUARD] glGetStringi without context - returning safe default");
+            logged = true;
         }
+        if (name == GL_EXTENSIONS) {
+            static const char* extensions[] = {
+                "GL_OES_element_index_uint", "GL_OES_depth_texture", "GL_OES_depth24",
+                "GL_OES_texture_3D", "GL_OES_texture_float", "GL_OES_texture_half_float",
+                "GL_OES_texture_half_float_linear", "GL_OES_texture_npot", "GL_OES_mapbuffer",
+                "GL_OES_packed_depth_stencil", "GL_OES_standard_derivatives", "GL_OES_vertex_array_object",
+                "GL_OES_compressed_ETC1_RGB8_texture", "GL_EXT_texture_format_BGRA8888",
+                "GL_EXT_color_buffer_float", "GL_EXT_color_buffer_half_float", "GL_ARB_direct_state_access",
+                "GL_ARB_buffer_storage", "GL_ARB_shader_image_load_store", "GL_NV_conditional_render",
+                "GL_EXT_gpu_shader4", "GL_EXT_texture_buffer", "GL_EXT_texture_cube_map_array",
+                "GL_OES_EGL_image_external_essl3", "GL_NV_shader_noperspective_interpolation",
+                "GL_ARB_shader_objects", "GL_ARB_vertex_shader", "GL_ARB_fragment_shader",
+                "GL_EXT_blend_equation_separate", "GL_EXT_geometry_shader4", "GL_EXT_gpu_program_parameters",
+                "GL_ARB_instanced_arrays", "GL_ARB_draw_instanced"
+            };
+            unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
+            if (index < size) return (const unsigned char*)extensions[index];
+        }
+        return (const unsigned char*)"";
     }
 
-    if (isContextCurrent()) {
-        typedef const unsigned char* (*glGetStringi_pfn)(unsigned int, unsigned int);
-        static glGetStringi_pfn real_glGetStringi = (glGetStringi_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetStringi");
-        if (real_glGetStringi) {
-            const unsigned char* res = real_glGetStringi(name, index);
-            if (res && res[0] != '\0') return res;
-        }
+    if (name == GL_EXTENSIONS) {
+        static const char* extensions[] = {
+            "GL_OES_element_index_uint", "GL_OES_depth_texture", "GL_OES_depth24",
+            "GL_OES_texture_3D", "GL_OES_texture_float", "GL_OES_texture_half_float",
+            "GL_OES_texture_half_float_linear", "GL_OES_texture_npot", "GL_OES_mapbuffer",
+            "GL_OES_packed_depth_stencil", "GL_OES_standard_derivatives", "GL_OES_vertex_array_object",
+            "GL_OES_compressed_ETC1_RGB8_texture", "GL_EXT_texture_format_BGRA8888",
+            "GL_EXT_color_buffer_float", "GL_EXT_color_buffer_half_float", "GL_ARB_direct_state_access",
+            "GL_ARB_buffer_storage", "GL_ARB_shader_image_load_store", "GL_NV_conditional_render",
+            "GL_EXT_gpu_shader4", "GL_EXT_texture_buffer", "GL_EXT_texture_cube_map_array",
+            "GL_OES_EGL_image_external_essl3", "GL_NV_shader_noperspective_interpolation",
+            "GL_ARB_shader_objects", "GL_ARB_vertex_shader", "GL_ARB_fragment_shader",
+            "GL_EXT_blend_equation_separate", "GL_EXT_geometry_shader4", "GL_EXT_gpu_program_parameters",
+            "GL_ARB_instanced_arrays", "GL_ARB_draw_instanced"
+        };
+        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
+        if (index < size) return (const unsigned char*)extensions[index];
+    }
+
+    typedef const unsigned char* (*glGetStringi_pfn)(unsigned int, unsigned int);
+    static glGetStringi_pfn real_glGetStringi = (glGetStringi_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetStringi");
+    if (real_glGetStringi) {
+        const unsigned char* res = real_glGetStringi(name, index);
+        if (res && res[0] != '\0') return res;
     }
     return (const unsigned char*)"";
 }
@@ -393,8 +413,24 @@ const unsigned char* glGetStringi(unsigned int name, unsigned int index) {
 void* fear_eglGetProcAddress(const char* procname) {
     if (procname == nullptr) return nullptr;
 
+    initEGLGLESHandles();
+
+    if (!g_ourSoHandle) {
+        Dl_info info;
+        if (dladdr((void*)fear_eglGetProcAddress, &info) && info.dli_fname) {
+            g_ourSoHandle = dlopen(info.dli_fname, RTLD_LAZY | RTLD_LOCAL);
+        }
+        if (!g_ourSoHandle) {
+            g_ourSoHandle = dlopen("libfearrender.so", RTLD_LAZY | RTLD_LOCAL);
+        }
+    }
+
+    bool isGLorEGL = (strncmp(procname, "gl", 2) == 0 || strncmp(procname, "egl", 3) == 0);
+
+    // 1. Explicitly mapped custom wrapper addresses & dlsym(our own .so handle, name)
     if (strcmp(procname, "eglMakeCurrent") == 0) return (void*)eglMakeCurrent;
     if (strcmp(procname, "eglCreateContext") == 0) return (void*)eglCreateContext;
+    if (strcmp(procname, "eglCreateWindowSurface") == 0) return (void*)eglCreateWindowSurface;
 
     if (strcmp(procname, "glGetIntegerv") == 0) return (void*)glGetIntegerv;
     if (strcmp(procname, "glGetFloatv") == 0) return (void*)glGetFloatv;
@@ -438,13 +474,40 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (void*)fear_glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*)fear_glGetStringi;
 
+    if (g_ourSoHandle) {
+        void* sym = dlsym(g_ourSoHandle, procname);
+        if (sym) return sym;
+    }
+
+    // 2. real eglGetProcAddress(name)
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = (eglGetProcAddress_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_NEXT, "eglGetProcAddress");
     if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+        void* sym = real_eglGetProcAddress(procname);
+        if (sym) return sym;
     }
 
-    return dlsym(RTLD_NEXT, procname);
+    // 3. dlsym(libGLESv3 handle, name) / libEGL handle
+    if (g_glesHandle) {
+        void* sym = dlsym(g_glesHandle, procname);
+        if (sym) return sym;
+    }
+    if (g_eglHandle && strncmp(procname, "egl", 3) == 0) {
+        void* sym = dlsym(g_eglHandle, procname);
+        if (sym) return sym;
+    }
+
+    // 4. last resort: for ANY name starting "gl" or "egl", NEVER return NULL.
+    if (isGLorEGL) {
+        static bool logged = false;
+        if (!logged) {
+            LOGI("[FearRender] eglGetProcAddress: fallback safe-stub for '%s'", procname);
+            logged = true;
+        }
+        return (void*)fear_universal_safe_stub;
+    }
+
+    return nullptr;
 }
 
 } // extern "C"
