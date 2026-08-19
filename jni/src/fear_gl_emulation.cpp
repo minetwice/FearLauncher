@@ -16,6 +16,36 @@ static void logEmulation(int idx, const char* name) {
 
 extern "C" {
 
+void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex) {
+    typedef void (*glDrawElementsBaseVertex_pfn)(GLenum, GLsizei, GLenum, const void*, GLint);
+    static glDrawElementsBaseVertex_pfn real_fn = (glDrawElementsBaseVertex_pfn)dlsym(RTLD_NEXT, "glDrawElementsBaseVertex");
+    if (real_fn) {
+        real_fn(mode, count, type, indices, basevertex);
+    } else {
+        typedef void (*glDrawElements_pfn)(GLenum, GLsizei, GLenum, const void*);
+        static glDrawElements_pfn real_draw = (glDrawElements_pfn)dlsym(RTLD_NEXT, "glDrawElements");
+        if (real_draw) real_draw(mode, count, type, indices);
+    }
+}
+
+void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar* message) {
+    typedef void (*glPushDebugGroup_pfn)(GLenum, GLuint, GLsizei, const GLchar*);
+    static glPushDebugGroup_pfn real_fn = (glPushDebugGroup_pfn)dlsym(RTLD_NEXT, "glPushDebugGroup");
+    if (real_fn) real_fn(source, id, length, message);
+}
+
+void glPopDebugGroup() {
+    typedef void (*glPopDebugGroup_pfn)();
+    static glPopDebugGroup_pfn real_fn = (glPopDebugGroup_pfn)dlsym(RTLD_NEXT, "glPopDebugGroup");
+    if (real_fn) real_fn();
+}
+
+void glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) {
+    typedef void (*glDebugMessageCallback_pfn)(GLDEBUGPROC, const void*);
+    static glDebugMessageCallback_pfn real_fn = (glDebugMessageCallback_pfn)dlsym(RTLD_NEXT, "glDebugMessageCallback");
+    if (real_fn) real_fn(callback, userParam);
+}
+
 void fear_glMemoryBarrier(GLbitfield barriers) {
     logEmulation(0, "glMemoryBarrier");
     typedef void (*glMemoryBarrier_pfn)(GLbitfield);
