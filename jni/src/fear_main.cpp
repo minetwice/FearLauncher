@@ -15,7 +15,14 @@ int getTranslatedShaderCountInternal();
 void initShaderCacheSystem(const std::string& cacheDir, int launcherVersion);
 void clearShaderCacheDir();
 
+__attribute__((constructor)) static void print_build_marker() {
+    __android_log_print(ANDROID_LOG_WARN, "FearRender",
+      "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
+}
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+    __android_log_print(ANDROID_LOG_WARN, "FearRender",
+      "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
     LOGI("Fear Renderer Native Library Loading...");
     initialize_fear_hooks();
     detect_hardware_and_select_backend();

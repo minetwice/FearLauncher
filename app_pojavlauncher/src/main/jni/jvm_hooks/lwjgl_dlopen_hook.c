@@ -106,19 +106,25 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
     return (const unsigned char*)"";
 }
 
+static uintptr_t lwjgl_universal_safe_stub(uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t a6, uintptr_t a7, uintptr_t a8) {
+    static int logged = 0;
+    if (!logged) {
+        LOGI("LWJGL universal safe-stub called");
+        logged = 1;
+    }
+    return 0;
+}
+
 static void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
-    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
-        LOGI("eglGetProcAddress_hook: Intercepted and returned custom glMemoryBarrier stub!");
-        return (void*) glMemoryBarrier_stub;
-    }
-    if (strcmp(procname, "glGetString") == 0) {
-        return (void*) glGetString_hook;
-    }
-    if (strcmp(procname, "glGetStringi") == 0) {
-        return (void*) glGetStringi_hook;
-    }
 
+    int isGLorEGL = (strncmp(procname, "gl", 2) == 0 || strncmp(procname, "egl", 3) == 0);
+
+    // 1. dlsym(RTLD_DEFAULT, procname)
+    void* sym = dlsym(RTLD_DEFAULT, procname);
+    if (sym) return sym;
+
+    // 2. real eglGetProcAddress(procname)
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
     if (!real_eglGetProcAddress) {
@@ -128,8 +134,24 @@ static void* eglGetProcAddress_hook(const char* procname) {
         }
     }
     if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+        sym = real_eglGetProcAddress(procname);
+        if (sym) return sym;
     }
+
+    // 3. dlsym(libGLESv3 handle, procname)
+    static void* gles_handle = NULL;
+    if (!gles_handle) gles_handle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
+    if (gles_handle) {
+        sym = dlsym(gles_handle, procname);
+        if (sym) return sym;
+    }
+
+    // 4. last resort for GL or EGL procnames
+    if (isGLorEGL) {
+        LOGI("eglGetProcAddress_hook: fallback safe-stub for '%s'", procname);
+        return (void*) lwjgl_universal_safe_stub;
+    }
+
     return NULL;
 }
 
