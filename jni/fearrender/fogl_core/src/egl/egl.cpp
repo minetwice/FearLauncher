@@ -10,7 +10,7 @@
 
 extern "C" void* fear_eglGetProcAddress(const char* procname);
 
-FunctionPtr eglGetProcAddress(str procname) {
+FunctionPtr fogl_eglGetProcAddress(str procname) {
     std::call_once(eglInitFlag, eglInit);
     if (procname && procname[0]) {
         void* fear_hook = fear_eglGetProcAddress(procname);
@@ -31,6 +31,11 @@ EGLBoolean OV_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, E
         if (g_versionPending.load()) {
             ESUtils::performDeferredInit();
         }
+        static bool fboReadyLogged = false;
+        if (!fboReadyLogged) {
+            LOGI("[FearRender] FakeDepthFramebuffer ready=true");
+            fboReadyLogged = true;
+        }
     }
     return result;
 }
@@ -49,7 +54,7 @@ inline void eglInit() {
     REGISTER(eglGetCurrentContext);
     REGISTER(eglGetDisplay);
     REGISTER(eglGetError);
-    REGISTER(eglGetProcAddress);
+    REGISTERREDIR(eglGetProcAddress, fogl_eglGetProcAddress);
     REGISTER(eglInitialize);
     REGISTEROV(eglMakeCurrent);
     REGISTER(eglSwapBuffers);
