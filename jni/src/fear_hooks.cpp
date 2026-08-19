@@ -13,10 +13,6 @@
 #include <unistd.h>
 #include <EGL/egl.h>
 
-#define TAG "FearRender"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__)
-
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
@@ -32,7 +28,7 @@ static bool g_emergencyContextCreated = false;
 static void universal_safe_stub() {
     static bool logged = false;
     if (!logged) {
-        LOGI("[FearRender] Universal GL stub invoked without context");
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Universal GL stub invoked without context");
         logged = true;
     }
 }
@@ -40,10 +36,10 @@ static void universal_safe_stub() {
 static void initEGLGLESHandles() {
     static std::once_flag flag;
     std::call_once(flag, []() {
-        LOGW("BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
         g_eglHandle = dlopen("libEGL.so", RTLD_GLOBAL | RTLD_LAZY);
         g_glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
-        LOGI("[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
     });
 }
 
@@ -96,7 +92,7 @@ static void tryEmergencyContext() {
                 EGLContext ctx = p_eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
                 if (pbuf != EGL_NO_SURFACE && ctx != EGL_NO_CONTEXT) {
                     if (p_eglMakeCurrent(display, pbuf, pbuf, ctx)) {
-                        LOGI("[FearRender][EMERGENCY] self-context created tid=%d", gettid());
+                        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EMERGENCY] self-context created tid=%d", gettid());
                     }
                 }
             }
@@ -111,7 +107,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
     static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
     EGLContext ctx = real_eglCreateContext ? real_eglCreateContext(dpy, config, share_context, attrib_list) : EGL_NO_CONTEXT;
-    LOGI("[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
     return ctx;
 }
 
@@ -120,7 +116,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
     static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
     EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
-    LOGI("[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
 
     if (res && ctx != EGL_NO_CONTEXT) {
         if (g_versionPending.load()) {
@@ -128,7 +124,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         }
         static bool fboReadyLogged = false;
         if (!fboReadyLogged) {
-            LOGI("[FearRender] FakeDepthFramebuffer ready=true");
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] FakeDepthFramebuffer ready=true");
             fboReadyLogged = true;
         }
     }
@@ -140,7 +136,7 @@ void* glfwCreateWindow(int width, int height, const char* title, void* monitor, 
     static glfwCreateWindow_pfn real_glfwCreateWindow = (glfwCreateWindow_pfn)dlsym(RTLD_NEXT, "glfwCreateWindow");
     void* window = real_glfwCreateWindow ? real_glfwCreateWindow(width, height, title, monitor, share) : nullptr;
     g_windowCreated = 1;
-    LOGI("[FearRender] glfwCreateWindow -> %p", window);
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] glfwCreateWindow -> %p", window);
     return window;
 }
 
@@ -150,7 +146,7 @@ void glGetIntegerv(GLenum pname, GLint* params) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
             logged = true;
         }
         tryEmergencyContext();
@@ -180,7 +176,7 @@ void glGetFloatv(GLenum pname, GLfloat* params) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glGetFloatv without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetFloatv without context tid=%d - safe default", gettid());
             logged = true;
         }
         *params = 1.0f;
@@ -196,7 +192,7 @@ void glGetBooleanv(GLenum pname, GLboolean* params) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glGetBooleanv without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetBooleanv without context tid=%d - safe default", gettid());
             logged = true;
         }
         *params = GL_FALSE;
@@ -211,7 +207,7 @@ void glEnable(GLenum cap) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glEnable without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glEnable without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -225,7 +221,7 @@ void glDisable(GLenum cap) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glDisable without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDisable without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -239,7 +235,7 @@ void glBindTexture(GLenum target, GLuint texture) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glBindTexture without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glBindTexture without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -253,7 +249,7 @@ void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glClearColor without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glClearColor without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -267,7 +263,7 @@ void glClear(GLbitfield mask) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glClear without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glClear without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -281,7 +277,7 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glDrawArrays without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDrawArrays without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -295,7 +291,7 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            LOGI("[FearRender][GUARD] glDrawElements without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDrawElements without context tid=%d - safe default", gettid());
             logged = true;
         }
         return;
@@ -324,7 +320,7 @@ const unsigned char* fear_glGetString(unsigned int name) {
             }
         }
         static const char* fakeExt = "GL_OES_element_index_uint GL_OES_depth_texture GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_standard_derivatives GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
-        LOGI("[FearRender] Spoofed GL_EXTENSIONS string");
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Spoofed GL_EXTENSIONS string");
         return (const unsigned char*)fakeExt;
     }
 
@@ -465,15 +461,11 @@ void* fear_eglGetProcAddress(const char* procname) {
         if (sym) return sym;
     }
 
-    if (strncmp(procname, "gl", 2) == 0 || strncmp(procname, "egl", 3) == 0) {
-        return (void*)universal_safe_stub;
-    }
-
     return (void*)universal_safe_stub;
 }
 
-void* eglGetProcAddress(const char* procname) {
-    return fear_eglGetProcAddress(procname);
+__eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname) {
+    return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(fear_eglGetProcAddress(procname));
 }
 
 } // extern "C"
@@ -481,12 +473,12 @@ void* eglGetProcAddress(const char* procname) {
 void initialize_fear_hooks() {
     initEGLGLESHandles();
     setenv("TINYFD_SKIP", "1", 1);
-    LOGI("[FearRender] Tiny file dialogs stubbed for Android");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Tiny file dialogs stubbed for Android");
 
     std::thread([]() {
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        LOGI("[FearRender] Auto-continued past GLFW warning");
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Auto-continued past GLFW warning");
     }).detach();
 
-    LOGI("Fear Hooking Engine successfully activated.");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "Fear Hooking Engine successfully activated.");
 }
