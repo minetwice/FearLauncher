@@ -2,6 +2,7 @@
 #include "fear_shader_logger.h"
 #include <dlfcn.h>
 #include <mutex>
+#include <unordered_map>
 
 static std::mutex g_emulationMutex;
 static int g_emulationCounts[16] = {0};
