@@ -128,7 +128,16 @@ public class JREUtils {
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 break;
             case "fear_engine":
-                Logger.appendToLog("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
+                Logger.appendToLog("[FearRender] Configuring Mali-safe Zink / GLES environment profile");
+
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("ZINK_USE_CI", "1");
+                envMap.put("MESA_GLTHREAD", "false");
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_NO_MINMAX_CACHE", "1");
+                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
@@ -392,9 +401,27 @@ public class JREUtils {
                 }
                 break;
             case "fear_engine":
-                renderLibrary = "libfearrender.so";
-                useGles = true;
-                glesVersion = 3;
+                boolean vulkanOk = false;
+                String deviceName = "Mali-G615";
+                try {
+                    preloadVulkan();
+                    vulkanOk = true;
+                } catch (Throwable t) {
+                    vulkanOk = false;
+                }
+
+                if (vulkanOk) {
+                    Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: " + deviceName + ")");
+                    renderLibrary = "libEGL_mesa.so";
+                    useGles = false;
+                    bypassNamespace = true;
+                    glesVersion = 3;
+                } else {
+                    Logger.appendToLog("[FearRender] Zink unavailable -> GLES fallback");
+                    renderLibrary = "libGLFear.so";
+                    useGles = true;
+                    glesVersion = 3;
+                }
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;

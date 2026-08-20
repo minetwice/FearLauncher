@@ -152,7 +152,19 @@ void* glfwCreateWindow(int width, int height, const char* title, void* monitor, 
     void* window = real_glfwCreateWindow ? real_glfwCreateWindow(width, height, title, monitor, share) : nullptr;
     g_windowCreated = 1;
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] glfwCreateWindow -> %p", window);
+    if (isContextCurrent()) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] context verified on render thread");
+    }
     return window;
+}
+
+FEAR_EXPORT void glfwMakeContextCurrent(void* window) {
+    typedef void (*glfwMakeContextCurrent_pfn)(void*);
+    static glfwMakeContextCurrent_pfn real_fn = (glfwMakeContextCurrent_pfn)dlsym(RTLD_NEXT, "glfwMakeContextCurrent");
+    if (real_fn) real_fn(window);
+    if (isContextCurrent()) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] context verified on render thread");
+    }
 }
 
 FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
