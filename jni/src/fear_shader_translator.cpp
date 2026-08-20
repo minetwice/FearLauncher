@@ -93,6 +93,10 @@ std::string FearTranslateGLSL(
                      glsl.find("buffer") != std::string::npos ||
                      glsl.find("layout(std430") != std::string::npos;
 
+    // Clean up Desktop ARB extensions that cause GLES compiler syntax errors
+    removeLinesContaining(glsl, "#extension GL_ARB_");
+    removeLinesContaining(glsl, "#extension GL_EXT_gpu_shader4");
+
     // STEP 2.1 - VERSION DIRECTIVE REPLACEMENT:
     size_t version_pos = glsl.find("#version");
     bool has_version = false;
@@ -131,20 +135,30 @@ std::string FearTranslateGLSL(
     }
 
     // SECTION B10: MOBILE DEFINES & EXTENSIONS
-    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n#define FEAR_SHADOW_MAP_RES 1024\n";
+    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n#define FEAR_SHADOW_MAP_RES 1024\n#define FEAR_RENDER_ENGINE_4_6\n";
     if (glsl.find("dFdx") != std::string::npos || glsl.find("dFdy") != std::string::npos || glsl.find("fwidth") != std::string::npos) {
         mobile_defines += "#extension GL_OES_standard_derivatives : enable\n";
     }
+    if (glsl.find("gl_FragDepth") != std::string::npos || glsl.find("gl_FragDepthEXT") != std::string::npos) {
+        mobile_defines += "#extension GL_EXT_frag_depth : enable\n";
+    }
     insertAfterLine(glsl, target_version, mobile_defines);
 
-    // STEP 2.2 - PRECISION QUALIFIER INJECTION:
-    bool has_precision = (glsl.find("precision") != std::string::npos);
-    if (!has_precision) {
-        std::string inject_text = "precision highp float;\nprecision highp int;";
-        if (isFragmentShader(shaderType) || isCompute) {
-            inject_text += "\nprecision mediump sampler2D;\nprecision mediump sampler2DArray;";
-        }
-        insertAfterLine(glsl, target_version, inject_text);
+    // STEP 2.2 - PRECISION QUALIFIER INJECTION FOR MALI/ADRENO COLOR STABILITY:
+    std::string inject_precision = "precision highp float;\nprecision highp int;\n"
+                                   "precision highp sampler2D;\nprecision highp sampler2DArray;\n"
+                                   "precision highp sampler3D;\nprecision highp samplerCube;\n"
+                                   "precision highp sampler2DShadow;\nprecision highp sampler2DArrayShadow;\n";
+    if (isCompute) {
+        inject_precision += "precision highp image2D;\nprecision highp uimage2D;\nprecision highp iimage2D;\n";
+    }
+
+    if (glsl.find("precision ") == std::string::npos) {
+        insertAfterLine(glsl, target_version, inject_precision);
+    } else {
+        // Upgrade mediump float to highp float for color and lighting calculations on Mali/Adreno GPUs
+        replaceAll(glsl, "precision mediump float;", "precision highp float;");
+        replaceAll(glsl, "precision lowp float;", "precision highp float;");
     }
 
     // FIX 1: COMPUTE SHADER FIXES
@@ -206,19 +220,36 @@ std::string FearTranslateGLSL(
         replaceAll(glsl, "varying ", "out ");
     }
 
-    // STEP 2.5 - FRAGMENT SHADER SPECIFIC RULES:
+    // STEP 2.5 - FRAGMENT SHADER SPECIFIC RULES (MRT & Output translation):
     if (isFragmentShader(shaderType)) {
         replaceAll(glsl, "varying ", "in ");
         replaceAll(glsl, "noperspective in ", "in ");
         replaceAll(glsl, "noperspective out ", "out ");
         replaceAll(glsl, "flat varying ", "flat in ");
 
-        if (glsl.find("gl_FragColor") != std::string::npos || glsl.find("gl_FragData[0]") != std::string::npos) {
-            if (glsl.find("out vec4 FragColor;") == std::string::npos) {
-                insertAfterLine(glsl, target_version, "out vec4 FragColor;");
+        // Frag Depth
+        replaceAll(glsl, "gl_FragDepthEXT", "gl_FragDepth");
+
+        // Multiple Render Targets (gl_FragData[0..7]) translation for Solas & Complementary shaders
+        bool uses_fragdata = false;
+        for (int i = 0; i < 8; i++) {
+            std::string fragDataName = "gl_FragData[" + std::to_string(i) + "]";
+            if (glsl.find(fragDataName) != std::string::npos) {
+                uses_fragdata = true;
+                std::string targetOutName = "fear_FragData" + std::to_string(i);
+                std::string decl = "layout(location = " + std::to_string(i) + ") out vec4 " + targetOutName + ";";
+                if (glsl.find(targetOutName) == std::string::npos) {
+                    insertAfterLine(glsl, target_version, decl);
+                }
+                replaceAll(glsl, fragDataName, targetOutName);
+            }
+        }
+
+        if (!uses_fragdata && glsl.find("gl_FragColor") != std::string::npos) {
+            if (glsl.find("out vec4 FragColor;") == std::string::npos && glsl.find("fear_FragData0") == std::string::npos) {
+                insertAfterLine(glsl, target_version, "layout(location = 0) out vec4 FragColor;");
             }
             replaceAll(glsl, "gl_FragColor", "FragColor");
-            replaceAll(glsl, "gl_FragData[0]", "FragColor");
         }
     }
 

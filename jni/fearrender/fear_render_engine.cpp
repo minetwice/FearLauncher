@@ -203,11 +203,11 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
         LOG_WARNING("[FearShader] Level 2 (FOGLTLOGLES) failed with unknown error");
     }
 
-    // Level 3: Fear JavaTranspiler fallback
+    // Level 3: Fear Core GLSL Translation fallback (PC to Mobile translation)
     bool success = false;
-    std::string translated = FearTranspileGLSL(full_source.c_str(), type, 320, &success);
+    std::string translated = FearTranslateGLSL(full_source.c_str(), type, &success);
     if (success && !translated.empty()) {
-        LOG_INFO("[FearShader] Winner: Level 3 (Fear JavaTranspiler fallback)");
+        LOG_INFO("[FearShader] Winner: Level 3 (Fear Core Desktop-to-Mobile GLSL Translation)");
         const char* cstr = translated.c_str();
         real_glShaderSource(shader, 1, &cstr, nullptr);
         return;
