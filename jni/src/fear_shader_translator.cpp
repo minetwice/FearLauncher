@@ -1,5 +1,6 @@
 #include "fear_shader_translator.h"
 #include "fear_shader_logger.h"
+#include <shaderc/shaderc.hpp>
 #include <algorithm>
 
 // String Helpers implementation
@@ -254,4 +255,62 @@ std::string FearTranslateGLSL(
     }
 
     return glsl;
+}
+
+// Module 1 Implementation: Runtime GLSL-to-SPIRV Cross-Compiler Pipeline using Shaderc
+std::vector<uint32_t> FearCompileGLSLToSPIRV(
+    const char* sourceCode,
+    GLenum shaderType,
+    const char* shaderName,
+    bool* compileSuccess
+) {
+    if (!sourceCode) {
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    bool transSuccess = false;
+    std::string sanitizedGLSL = FearTranslateGLSL(sourceCode, shaderType, &transSuccess);
+    if (!transSuccess || sanitizedGLSL.empty()) {
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    // Convert GLES version headers to Vulkan GLSL (#version 450)
+    if (sanitizedGLSL.find("#version 300 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 300 es", "#version 450");
+    } else if (sanitizedGLSL.find("#version 310 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 310 es", "#version 450");
+    } else if (sanitizedGLSL.find("#version 320 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 320 es", "#version 450");
+    }
+
+    // Remove GLES-specific extension directives incompatible with Vulkan GLSL
+    removeLinesContaining(sanitizedGLSL, "#extension GL_OES_");
+    removeLinesContaining(sanitizedGLSL, "#extension GL_EXT_frag_depth");
+
+    shaderc::Compiler compiler;
+    shaderc::CompileOptions options;
+
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+    options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+    shaderc_shader_kind kind = shaderc_glsl_fragment_shader;
+    if (shaderType == GL_VERTEX_SHADER) {
+        kind = shaderc_glsl_vertex_shader;
+    } else if (shaderType == GL_COMPUTE_SHADER) {
+        kind = shaderc_glsl_compute_shader;
+    }
+
+    std::string nameStr = shaderName ? shaderName : "minecraft_glsl_shader";
+    shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(sanitizedGLSL, kind, nameStr.c_str(), options);
+
+    if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
+        LOG_WARNING("[FearRender SPIRV Compiler Warning] %s - Falling back to GLES Translation Pipeline", module.GetErrorMessage().c_str());
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    if (compileSuccess) *compileSuccess = true;
+    return {module.cbegin(), module.cend()};
 }
