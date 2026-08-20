@@ -1,6 +1,8 @@
 #ifndef FEAR_BACKEND_H
 #define FEAR_BACKEND_H
 
+#include <stddef.h>
+
 void detect_hardware_and_select_backend();
 
 // Module 4: Hardware Specific Workarounds API
