@@ -285,9 +285,10 @@ std::vector<uint32_t> FearCompileGLSLToSPIRV(
         replaceAll(sanitizedGLSL, "#version 320 es", "#version 450");
     }
 
-    // Remove GLES-specific extension directives incompatible with Vulkan GLSL
+    // Remove GLES-specific extension directives and precision statements incompatible with Vulkan GLSL (#version 450)
     removeLinesContaining(sanitizedGLSL, "#extension GL_OES_");
     removeLinesContaining(sanitizedGLSL, "#extension GL_EXT_frag_depth");
+    removeLinesContaining(sanitizedGLSL, "precision ");
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;

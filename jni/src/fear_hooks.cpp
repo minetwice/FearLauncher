@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <EGL/egl.h>
 
+#define FEAR_EXPORT __attribute__((visibility("default")))
+
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
@@ -102,7 +104,18 @@ static void tryEmergencyContext() {
 
 extern "C" {
 
-EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
+// Helper to resolve GL/EGL symbols
+void* resolve_fear_symbol(const char* symbol) {
+    if (symbol && (strncmp(symbol, "gl", 2) == 0 || strncmp(symbol, "egl", 3) == 0)) {
+        void* our_fn = fear_eglGetProcAddress(symbol);
+        if (our_fn && our_fn != (void*)universal_safe_stub) {
+            return our_fn;
+        }
+    }
+    return nullptr;
+}
+
+FEAR_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
     initEGLGLESHandles();
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
     static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
@@ -111,14 +124,16 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     return ctx;
 }
 
-EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
+FEAR_EXPORT EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     initEGLGLESHandles();
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
     static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
     EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
 
-    if (res && ctx != EGL_NO_CONTEXT) {
+    if (ctx == EGL_NO_CONTEXT) {
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender][EGL] eglMakeCurrent passed EGL_NO_CONTEXT tid=%d (retaining internal state)", gettid());
+    } else if (res) {
         if (g_versionPending.load()) {
             ESUtils::performDeferredInit();
         }
@@ -140,7 +155,7 @@ void* glfwCreateWindow(int width, int height, const char* title, void* monitor, 
     return window;
 }
 
-void glGetIntegerv(GLenum pname, GLint* params) {
+FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
 
     if (!isContextCurrent()) {
@@ -171,7 +186,7 @@ void glGetIntegerv(GLenum pname, GLint* params) {
     }
 }
 
-void glGetFloatv(GLenum pname, GLfloat* params) {
+FEAR_EXPORT void glGetFloatv(GLenum pname, GLfloat* params) {
     if (!params) return;
     if (!isContextCurrent()) {
         static bool logged = false;
@@ -187,7 +202,7 @@ void glGetFloatv(GLenum pname, GLfloat* params) {
     if (real_glGetFloatv) real_glGetFloatv(pname, params);
 }
 
-void glGetBooleanv(GLenum pname, GLboolean* params) {
+FEAR_EXPORT void glGetBooleanv(GLenum pname, GLboolean* params) {
     if (!params) return;
     if (!isContextCurrent()) {
         static bool logged = false;
@@ -203,7 +218,7 @@ void glGetBooleanv(GLenum pname, GLboolean* params) {
     if (real_glGetBooleanv) real_glGetBooleanv(pname, params);
 }
 
-void glEnable(GLenum cap) {
+FEAR_EXPORT void glEnable(GLenum cap) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -217,7 +232,7 @@ void glEnable(GLenum cap) {
     if (real_glEnable) real_glEnable(cap);
 }
 
-void glDisable(GLenum cap) {
+FEAR_EXPORT void glDisable(GLenum cap) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -231,7 +246,7 @@ void glDisable(GLenum cap) {
     if (real_glDisable) real_glDisable(cap);
 }
 
-void glBindTexture(GLenum target, GLuint texture) {
+FEAR_EXPORT void glBindTexture(GLenum target, GLuint texture) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -245,7 +260,7 @@ void glBindTexture(GLenum target, GLuint texture) {
     if (real_glBindTexture) real_glBindTexture(target, texture);
 }
 
-void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+FEAR_EXPORT void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -259,7 +274,7 @@ void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
     if (real_glClearColor) real_glClearColor(red, green, blue, alpha);
 }
 
-void glClear(GLbitfield mask) {
+FEAR_EXPORT void glClear(GLbitfield mask) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -273,7 +288,7 @@ void glClear(GLbitfield mask) {
     if (real_glClear) real_glClear(mask);
 }
 
-void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+FEAR_EXPORT void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -287,7 +302,7 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (real_glDrawArrays) real_glDrawArrays(mode, first, count);
 }
 
-void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
+FEAR_EXPORT void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -335,7 +350,7 @@ const unsigned char* fear_glGetString(unsigned int name) {
     return (const unsigned char*)"Fear Render";
 }
 
-const unsigned char* glGetString(unsigned int name) {
+FEAR_EXPORT const unsigned char* glGetString(unsigned int name) {
     return fear_glGetString(name);
 }
 
@@ -393,7 +408,7 @@ const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
     return (const unsigned char*)"";
 }
 
-const unsigned char* glGetStringi(unsigned int name, unsigned int index) {
+FEAR_EXPORT const unsigned char* glGetStringi(unsigned int name, unsigned int index) {
     return fear_glGetStringi(name, index);
 }
 
@@ -464,7 +479,7 @@ void* fear_eglGetProcAddress(const char* procname) {
     return (void*)universal_safe_stub;
 }
 
-__eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname) {
+FEAR_EXPORT __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname) {
     return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(fear_eglGetProcAddress(procname));
 }
 
