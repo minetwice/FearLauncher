@@ -108,7 +108,7 @@ add_library(fearrender SHARED
 )
 
 set_target_properties(fearrender PROPERTIES
-    OUTPUT_NAME "fearrender"
+    OUTPUT_NAME "GLFear"
     CXX_VISIBILITY_PRESET default
     C_VISIBILITY_PRESET default
 )

@@ -128,8 +128,28 @@ public class JREUtils {
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 break;
             case "fear_engine":
-                Logger.appendToLog("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
+                boolean isZinkActive = false;
+                try {
+                    preloadVulkan();
+                    isZinkActive = true;
+                } catch (Throwable t) {
+                    isZinkActive = false;
+                }
 
+                if (isZinkActive) {
+                    Logger.appendToLog("[FearRender] Configuring Mali-safe Zink environment profile");
+                    envMap.put("GALLIUM_DRIVER", "zink");
+                    envMap.put("ZINK_USE_CI", "1");
+                    envMap.put("MESA_GLTHREAD", "false");
+                    envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                    envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                    envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                    envMap.put("MESA_NO_MINMAX_CACHE", "1");
+                } else {
+                    Logger.appendToLog("[FearRender] Configuring GLES environment profile");
+                }
+
+                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -392,9 +412,31 @@ public class JREUtils {
                 }
                 break;
             case "fear_engine":
-                renderLibrary = "libfearrender.so";
-                useGles = true;
-                glesVersion = 3;
+                boolean vulkanOk = false;
+                String vkVer = "none";
+                try {
+                    preloadVulkan();
+                    vulkanOk = true;
+                    vkVer = "1.3";
+                } catch (Throwable t) {
+                    vulkanOk = false;
+                    vkVer = "none";
+                }
+
+                if (vulkanOk) {
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
+                    Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
+                    renderLibrary = "libEGL_mesa.so";
+                    useGles = false;
+                    bypassNamespace = true;
+                    glesVersion = 3;
+                } else {
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES");
+                    Logger.appendToLog("[FearRender] Zink unavailable -> GLES fallback");
+                    renderLibrary = "libGLFear.so";
+                    useGles = true;
+                    glesVersion = 3;
+                }
                 break;
             case "freedreno_kgsl":
                 preloadVk = false;

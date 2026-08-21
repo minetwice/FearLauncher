@@ -4,11 +4,22 @@
 #include <string>
 #include <GLES3/gl32.h>
 
+#include <vector>
+#include <cstdint>
+
 // Core GLSL Translation function
 std::string FearTranslateGLSL(
     const char* sourceCode,
     GLenum shaderType,
     bool* translationSuccess
+);
+
+// Module 1: GLSL to SPIR-V Cross-Compiler Pipeline
+std::vector<uint32_t> FearCompileGLSLToSPIRV(
+    const char* sourceCode,
+    GLenum shaderType,
+    const char* shaderName,
+    bool* compileSuccess
 );
 
 // String Helpers

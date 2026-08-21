@@ -1,5 +1,6 @@
 #include "fear_shader_translator.h"
 #include "fear_shader_logger.h"
+#include <shaderc/shaderc.hpp>
 #include <algorithm>
 
 // String Helpers implementation
@@ -93,6 +94,30 @@ std::string FearTranslateGLSL(
                      glsl.find("buffer") != std::string::npos ||
                      glsl.find("layout(std430") != std::string::npos;
 
+    // Clean up Desktop ARB & NV extensions that cause GLES compiler syntax errors
+    removeLinesContaining(glsl, "#extension GL_ARB_");
+    removeLinesContaining(glsl, "#extension GL_EXT_gpu_shader4");
+    if (glsl.find("#extension GL_NV_shader_noperspective_interpolation") != std::string::npos) {
+        removeLinesContaining(glsl, "#extension GL_NV_shader_noperspective_interpolation");
+        static bool logged_noperspective = false;
+        if (!logged_noperspective) {
+            LOG_INFO("[Quasar] Stripped noperspective qualifiers");
+            logged_noperspective = true;
+        }
+    }
+
+    // Strip noperspective qualifiers
+    if (glsl.find("noperspective") != std::string::npos) {
+        replaceAll(glsl, "noperspective in ", "smooth in ");
+        replaceAll(glsl, "noperspective out ", "smooth out ");
+        replaceAll(glsl, "noperspective ", "smooth ");
+        static bool logged_noperspective = false;
+        if (!logged_noperspective) {
+            LOG_INFO("[Quasar] Stripped noperspective qualifiers");
+            logged_noperspective = true;
+        }
+    }
+
     // STEP 2.1 - VERSION DIRECTIVE REPLACEMENT:
     size_t version_pos = glsl.find("#version");
     bool has_version = false;
@@ -131,20 +156,30 @@ std::string FearTranslateGLSL(
     }
 
     // SECTION B10: MOBILE DEFINES & EXTENSIONS
-    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n#define FEAR_SHADOW_MAP_RES 1024\n";
+    std::string mobile_defines = "\n#define MC_ANDROID\n#define FEAR_MOBILE\n#define FEAR_MAX_SHADOWS 2\n#define FEAR_MAX_LIGHTS 4\n#define FEAR_SHADOW_MAP_RES 1024\n#define FEAR_RENDER_ENGINE_4_6\n";
     if (glsl.find("dFdx") != std::string::npos || glsl.find("dFdy") != std::string::npos || glsl.find("fwidth") != std::string::npos) {
         mobile_defines += "#extension GL_OES_standard_derivatives : enable\n";
     }
+    if (glsl.find("gl_FragDepth") != std::string::npos || glsl.find("gl_FragDepthEXT") != std::string::npos) {
+        mobile_defines += "#extension GL_EXT_frag_depth : enable\n";
+    }
     insertAfterLine(glsl, target_version, mobile_defines);
 
-    // STEP 2.2 - PRECISION QUALIFIER INJECTION:
-    bool has_precision = (glsl.find("precision") != std::string::npos);
-    if (!has_precision) {
-        std::string inject_text = "precision highp float;\nprecision highp int;";
-        if (isFragmentShader(shaderType) || isCompute) {
-            inject_text += "\nprecision mediump sampler2D;\nprecision mediump sampler2DArray;";
-        }
-        insertAfterLine(glsl, target_version, inject_text);
+    // STEP 2.2 - PRECISION QUALIFIER INJECTION FOR MALI/ADRENO COLOR STABILITY:
+    std::string inject_precision = "precision highp float;\nprecision highp int;\n"
+                                   "precision highp sampler2D;\nprecision highp sampler2DArray;\n"
+                                   "precision highp sampler3D;\nprecision highp samplerCube;\n"
+                                   "precision highp sampler2DShadow;\nprecision highp sampler2DArrayShadow;\n";
+    if (isCompute) {
+        inject_precision += "precision highp image2D;\nprecision highp uimage2D;\nprecision highp iimage2D;\n";
+    }
+
+    if (glsl.find("precision ") == std::string::npos) {
+        insertAfterLine(glsl, target_version, inject_precision);
+    } else {
+        // Upgrade mediump float to highp float for color and lighting calculations on Mali/Adreno GPUs
+        replaceAll(glsl, "precision mediump float;", "precision highp float;");
+        replaceAll(glsl, "precision lowp float;", "precision highp float;");
     }
 
     // FIX 1: COMPUTE SHADER FIXES
@@ -206,21 +241,97 @@ std::string FearTranslateGLSL(
         replaceAll(glsl, "varying ", "out ");
     }
 
-    // STEP 2.5 - FRAGMENT SHADER SPECIFIC RULES:
+    // STEP 2.5 - FRAGMENT SHADER SPECIFIC RULES (MRT & Output translation):
     if (isFragmentShader(shaderType)) {
         replaceAll(glsl, "varying ", "in ");
         replaceAll(glsl, "noperspective in ", "in ");
         replaceAll(glsl, "noperspective out ", "out ");
         replaceAll(glsl, "flat varying ", "flat in ");
 
-        if (glsl.find("gl_FragColor") != std::string::npos || glsl.find("gl_FragData[0]") != std::string::npos) {
-            if (glsl.find("out vec4 FragColor;") == std::string::npos) {
-                insertAfterLine(glsl, target_version, "out vec4 FragColor;");
+        // Frag Depth
+        replaceAll(glsl, "gl_FragDepthEXT", "gl_FragDepth");
+
+        // Multiple Render Targets (gl_FragData[0..7]) translation for Solas & Complementary shaders
+        bool uses_fragdata = false;
+        for (int i = 0; i < 8; i++) {
+            std::string fragDataName = "gl_FragData[" + std::to_string(i) + "]";
+            if (glsl.find(fragDataName) != std::string::npos) {
+                uses_fragdata = true;
+                std::string targetOutName = "fear_FragData" + std::to_string(i);
+                std::string decl = "layout(location = " + std::to_string(i) + ") out vec4 " + targetOutName + ";";
+                if (glsl.find(targetOutName) == std::string::npos) {
+                    insertAfterLine(glsl, target_version, decl);
+                }
+                replaceAll(glsl, fragDataName, targetOutName);
+            }
+        }
+
+        if (!uses_fragdata && glsl.find("gl_FragColor") != std::string::npos) {
+            if (glsl.find("out vec4 FragColor;") == std::string::npos && glsl.find("fear_FragData0") == std::string::npos) {
+                insertAfterLine(glsl, target_version, "layout(location = 0) out vec4 FragColor;");
             }
             replaceAll(glsl, "gl_FragColor", "FragColor");
-            replaceAll(glsl, "gl_FragData[0]", "FragColor");
         }
     }
 
     return glsl;
+}
+
+// Module 1 Implementation: Runtime GLSL-to-SPIRV Cross-Compiler Pipeline using Shaderc
+std::vector<uint32_t> FearCompileGLSLToSPIRV(
+    const char* sourceCode,
+    GLenum shaderType,
+    const char* shaderName,
+    bool* compileSuccess
+) {
+    if (!sourceCode) {
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    bool transSuccess = false;
+    std::string sanitizedGLSL = FearTranslateGLSL(sourceCode, shaderType, &transSuccess);
+    if (!transSuccess || sanitizedGLSL.empty()) {
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    // Convert GLES version headers to Vulkan GLSL (#version 450)
+    if (sanitizedGLSL.find("#version 300 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 300 es", "#version 450");
+    } else if (sanitizedGLSL.find("#version 310 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 310 es", "#version 450");
+    } else if (sanitizedGLSL.find("#version 320 es") != std::string::npos) {
+        replaceAll(sanitizedGLSL, "#version 320 es", "#version 450");
+    }
+
+    // Remove GLES-specific extension directives and precision statements incompatible with Vulkan GLSL (#version 450)
+    removeLinesContaining(sanitizedGLSL, "#extension GL_OES_");
+    removeLinesContaining(sanitizedGLSL, "#extension GL_EXT_frag_depth");
+    removeLinesContaining(sanitizedGLSL, "precision ");
+
+    shaderc::Compiler compiler;
+    shaderc::CompileOptions options;
+
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+    options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+    shaderc_shader_kind kind = shaderc_glsl_fragment_shader;
+    if (shaderType == GL_VERTEX_SHADER) {
+        kind = shaderc_glsl_vertex_shader;
+    } else if (shaderType == GL_COMPUTE_SHADER) {
+        kind = shaderc_glsl_compute_shader;
+    }
+
+    std::string nameStr = shaderName ? shaderName : "minecraft_glsl_shader";
+    shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(sanitizedGLSL, kind, nameStr.c_str(), options);
+
+    if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
+        LOG_WARNING("[FearRender SPIRV Compiler Warning] %s - Falling back to GLES Translation Pipeline", module.GetErrorMessage().c_str());
+        if (compileSuccess) *compileSuccess = false;
+        return {};
+    }
+
+    if (compileSuccess) *compileSuccess = true;
+    return {module.cbegin(), module.cend()};
 }

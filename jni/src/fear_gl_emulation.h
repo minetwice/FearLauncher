@@ -18,6 +18,12 @@ void fear_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GL
 void fear_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 void fear_glBindTextureUnit(GLuint unit, GLuint texture);
 
+// Module 2: Extension Emulation API
+uint64_t fear_glGetTextureHandleARB(GLuint texture);
+void fear_glMakeTextureHandleResidentARB(uint64_t handle);
+void fear_glMakeTextureHandleNonResidentARB(uint64_t handle);
+void fear_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+
 }
 
 #endif // FEAR_GL_EMULATION_H

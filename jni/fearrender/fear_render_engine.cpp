@@ -38,6 +38,8 @@ static void detectGLContext() {
     if (real_glGetString) {
         const unsigned char* version = real_glGetString(GL_VERSION);
         const unsigned char* renderer = real_glGetString(GL_RENDERER);
+        const unsigned char* vendor = real_glGetString(GL_VENDOR);
+        const unsigned char* sh_ver = real_glGetString(0x8B8C /* GL_SHADING_LANGUAGE_VERSION */);
 
         if (!version) return; // GL context not ready yet
 
@@ -45,10 +47,29 @@ static void detectGLContext() {
 
         std::string ver_str = (const char*)version;
         std::string rend_str = renderer ? (const char*)renderer : "";
+        std::string vend_str = vendor ? (const char*)vendor : "";
+        std::string sh_str = sh_ver ? (const char*)sh_ver : "";
 
-        if (ver_str.find("OpenGL ES") != std::string::npos) {
+        std::string combined = ver_str + " " + rend_str + " " + vend_str + " " + sh_str;
+        std::string lower_c = combined;
+        std::transform(lower_c.begin(), lower_c.end(), lower_c.begin(), ::tolower);
+
+        bool is_mobile = (lower_c.find("openltw") != std::string::npos ||
+                          lower_c.find("ltw") != std::string::npos ||
+                          lower_c.find("fogltlogles") != std::string::npos ||
+                          lower_c.find("mali") != std::string::npos ||
+                          lower_c.find("adreno") != std::string::npos ||
+                          lower_c.find("powervr") != std::string::npos ||
+                          lower_c.find("snapdragon") != std::string::npos ||
+                          lower_c.find("tegra") != std::string::npos ||
+                          lower_c.find("llvmpipe") != std::string::npos ||
+                          lower_c.find("virgl") != std::string::npos ||
+                          lower_c.find("opengl es") != std::string::npos ||
+                          lower_c.find("glsl es") != std::string::npos);
+
+        if (is_mobile) {
             g_isGLESContext = true;
-            LOG_INFO("[FearRender] core=FOGLTLOGLES integrated, backend=GLES");
+            LOG_INFO("[Quasar] Mobile context detected via renderer string: %s (isGLES=true es=3.2)", rend_str.c_str());
             LOG_INFO("[FearRender] Context: GLES 3.2 | GL_VERSION: %s | GL_RENDERER: %s", ver_str.c_str(), rend_str.c_str());
         } else {
             g_isGLESContext = false;
@@ -203,11 +224,11 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
         LOG_WARNING("[FearShader] Level 2 (FOGLTLOGLES) failed with unknown error");
     }
 
-    // Level 3: Fear JavaTranspiler fallback
+    // Level 3: Fear Core GLSL Translation fallback (PC to Mobile translation)
     bool success = false;
-    std::string translated = FearTranspileGLSL(full_source.c_str(), type, 320, &success);
+    std::string translated = FearTranslateGLSL(full_source.c_str(), type, &success);
     if (success && !translated.empty()) {
-        LOG_INFO("[FearShader] Winner: Level 3 (Fear JavaTranspiler fallback)");
+        LOG_INFO("[FearShader] Winner: Level 3 (Fear Core Desktop-to-Mobile GLSL Translation)");
         const char* cstr = translated.c_str();
         real_glShaderSource(shader, 1, &cstr, nullptr);
         return;
@@ -497,16 +518,22 @@ void fear_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textar
         real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
     }
 
-    // FBO incomplete check fallback
+    // FBO incomplete check fallback & downgrade loop
     typedef GLenum (*glCheckFramebufferStatus_pfn)(GLenum);
     static glCheckFramebufferStatus_pfn real_glCheckFramebufferStatus = (glCheckFramebufferStatus_pfn)dlsym(RTLD_NEXT, "glCheckFramebufferStatus");
     if (real_glCheckFramebufferStatus) {
         GLenum status = real_glCheckFramebufferStatus(target);
-        if (status != 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */) {
-            LOG_WARNING("[FearRender] FBO attachment incomplete (status 0x%X), recreating attachment with RGBA8 format", status);
+        int attempt = 1;
+        while (status != 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */ && attempt <= 4) {
+            LOG_WARNING("[Quasar] FBO downgrade attempt %d: status=0x%X", attempt, status);
             if (real_glFramebufferTexture2D) {
                 real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
             }
+            status = real_glCheckFramebufferStatus(target);
+            attempt++;
+        }
+        if (status == 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */) {
+            LOG_INFO("[Quasar] FBO status reached COMPLETE: 0x8CD5");
         }
     }
 }

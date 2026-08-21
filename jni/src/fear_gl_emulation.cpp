@@ -2,6 +2,7 @@
 #include "fear_shader_logger.h"
 #include <dlfcn.h>
 #include <mutex>
+#include <unordered_map>
 
 static std::mutex g_emulationMutex;
 static int g_emulationCounts[16] = {0};
@@ -181,6 +182,50 @@ void fear_glBindTextureUnit(GLuint unit, GLuint texture) {
     if (real_glActiveTexture && real_glBindTexture) {
         real_glActiveTexture(GL_TEXTURE0 + unit);
         real_glBindTexture(GL_TEXTURE_2D, texture);
+    }
+}
+
+// Module 2 Implementation: OpenGL-to-Vulkan Extension Emulation Layer
+static std::unordered_map<uint64_t, GLuint> g_bindlessTextureRegistry;
+static std::mutex g_bindlessRegistryMutex;
+
+uint64_t fear_glGetTextureHandleARB(GLuint texture) {
+    logEmulation(12, "glGetTextureHandleARB (emulated bindless handle)");
+    uint64_t handle = 0xFEA1000000000000ULL | (uint64_t)texture;
+    std::lock_guard<std::mutex> lock(g_bindlessRegistryMutex);
+    g_bindlessTextureRegistry[handle] = texture;
+    return handle;
+}
+
+void fear_glMakeTextureHandleResidentARB(uint64_t handle) {
+    logEmulation(13, "glMakeTextureHandleResidentARB");
+    GLuint texID = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_bindlessRegistryMutex);
+        auto it = g_bindlessTextureRegistry.find(handle);
+        if (it != g_bindlessTextureRegistry.end()) {
+            texID = it->second;
+        }
+    }
+    if (texID != 0) {
+        typedef void (*glBindTexture_pfn)(GLenum, GLuint);
+        static glBindTexture_pfn real_glBindTexture = (glBindTexture_pfn)dlsym(RTLD_NEXT, "glBindTexture");
+        if (real_glBindTexture) {
+            real_glBindTexture(GL_TEXTURE_2D, texID);
+        }
+    }
+}
+
+void fear_glMakeTextureHandleNonResidentARB(uint64_t handle) {
+    logEmulation(14, "glMakeTextureHandleNonResidentARB");
+}
+
+void fear_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format) {
+    logEmulation(15, "glBindImageTexture");
+    typedef void (*glBindImageTexture_pfn)(GLuint, GLuint, GLint, GLboolean, GLint, GLenum, GLenum);
+    static glBindImageTexture_pfn real_fn = (glBindImageTexture_pfn)dlsym(RTLD_NEXT, "glBindImageTexture");
+    if (real_fn) {
+        real_fn(unit, texture, level, layered, layer, access, format);
     }
 }
 
