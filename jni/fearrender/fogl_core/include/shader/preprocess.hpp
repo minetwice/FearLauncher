@@ -109,11 +109,17 @@ namespace ShaderConverter::GLSLRegexPreprocessor {
         std::string curLine;
 
         while (std::getline(iss, curLine)) {
+            bool isUseless = false;
             for (const auto& extension : uselessExtensionsSet) {
                 if (curLine.find(extension) != std::string::npos) {
-                    out << curLine << '\n';
+                    isUseless = true;
+                    break;
                 }
             }
+            if (!isUseless) {
+                out << curLine << '\n';
+            }
         }
+        source = out.str();
     }
 }
