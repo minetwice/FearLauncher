@@ -425,6 +425,12 @@ void fear_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei
             if (format == 0x80E0) format = 0x1907 /* GL_RGB */;
         }
 
+        // RGB9_E5 (0x8F99) -> RGBA16F / RGBA8
+        if (internalformat == 0x8F99 /* GL_RGB9_E5 */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearRender] format downgrade: RGB9_E5 -> RGBA16F");
+        }
+
         // SRGB white color fix
         if (internalformat == 0x8C43 /* GL_SRGB8_ALPHA8 */) {
             internalformat = 0x8058 /* GL_RGBA8 */;
