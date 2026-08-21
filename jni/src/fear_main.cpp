@@ -1,51 +1,38 @@
-#include <jni.h>
-#include <android/log.h>
-#include <string>
-#include "fear_hooks.h"
-#include "fear_backend.h"
+#include "fear_render.h"
 
-#define TAG "FEAR_RENDERER"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
+bool g_fear_initialized = false;
+bool g_fake_depth_fbo_ready = false;
+bool g_is_mali_gpu = true; // Default for Motorola Edge 60 Fusion (Mali-G615 MC2)
 
-static std::string g_jvmCachePath = "";
+void fear_init_deferred_if_needed(void) {
+    if (g_fear_initialized) return;
 
-extern "C" {
+    if (eglGetCurrentContext() == EGL_NO_CONTEXT) {
+        return; // Must defer until context exists
+    }
 
-int getTranslatedShaderCountInternal();
-void initShaderCacheSystem(const std::string& cacheDir, int launcherVersion);
-void clearShaderCacheDir();
+    g_fear_initialized = true;
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-    LOGI("Fear Renderer Native Library Loading...");
-    initialize_fear_hooks();
-    detect_hardware_and_select_backend();
-    return JNI_VERSION_1_6;
-}
+    LOGI("[FearRender] backend=GLES core=FOGLTLOGLES+guards");
 
-JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_initFearShaderEngine(JNIEnv* env, jclass clazz, jstring cachePath, jint version) {
-    if (cachePath) {
-        const char* path = env->GetStringUTFChars(cachePath, nullptr);
-        g_jvmCachePath = path;
-        env->ReleaseStringUTFChars(cachePath, path);
-        initShaderCacheSystem(g_jvmCachePath, version);
-        LOGI("Fear Shader Engine initialized from JNI.");
+    // Detect GPU vendor
+    typedef const GLubyte* (*pfn_glGetString)(GLenum);
+    pfn_glGetString real_glGetString = (pfn_glGetString) dlsym(RTLD_DEFAULT, "glGetString");
+    if (real_glGetString) {
+        const char* renderer = (const char*) real_glGetString(GL_RENDERER);
+        if (renderer && strstr(renderer, "Adreno")) {
+            g_is_mali_gpu = false;
+        }
+    }
+
+    // Initialize FakeDepthFramebuffer
+    typedef void (*pfn_glGenFramebuffers)(GLsizei, GLuint*);
+    pfn_glGenFramebuffers real_glGenFramebuffers = (pfn_glGenFramebuffers) dlsym(RTLD_DEFAULT, "glGenFramebuffers");
+
+    if (real_glGenFramebuffers) {
+        GLuint fakeFbo = 0;
+        real_glGenFramebuffers(1, &fakeFbo);
+        g_fake_depth_fbo_ready = true;
+        LOGI("[FearRender] FakeDepthFramebuffer ready=true");
     }
 }
-
-JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_destroyFearShaderEngine(JNIEnv* env, jclass clazz) {
-    LOGI("Fear Shader Engine destroyed from JNI.");
-}
-
-JNIEXPORT jstring JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_getShaderCachePath(JNIEnv* env, jclass clazz) {
-    return env->NewStringUTF(g_jvmCachePath.c_str());
-}
-
-JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_clearShaderCache(JNIEnv* env, jclass clazz) {
-    clearShaderCacheDir();
-}
-
-JNIEXPORT jint JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_getTranslatedShaderCount(JNIEnv* env, jclass clazz) {
-    return getTranslatedShaderCountInternal();
-}
-
-} // extern "C"

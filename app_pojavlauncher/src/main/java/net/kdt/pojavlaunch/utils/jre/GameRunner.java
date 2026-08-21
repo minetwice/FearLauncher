@@ -340,7 +340,11 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLFear.so");
+        if (rendererName.equals("fear_engine")) {
+            javaArgList.add("-Dorg.lwjgl.opengl.libname=libfear_render.so");
+        } else {
+            javaArgList.add("-Dorg.lwjgl.opengl.libname=libGL.so");
+        }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
@@ -351,9 +355,9 @@ public class GameRunner {
             try {
                 System.loadLibrary("fear_render");
                 String cachePath = activity.getFilesDir().getAbsolutePath() + "/fear_shader_cache";
-                JREUtils.initFearShaderEngine(cachePath, 1 /* version number */);
+                JREUtils.initFearShaderEngine(cachePath, 1);
             } catch (Throwable t) {
-                Log.e("GameRunner", "Failed to initialize Fear Shader Engine", t);
+                Log.w("GameRunner", "Fear Render initialization status: " + t.getMessage());
             }
         }
 
