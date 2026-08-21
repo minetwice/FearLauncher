@@ -186,7 +186,7 @@ public class GameRunner {
         }
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("fear_engine") || rendererName.equals("mh_drive");
+        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("mh_drive");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
@@ -340,22 +340,12 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLFear.so");
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGL.so");
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
 
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
-
-        if (rendererName.equals("fear_engine") || rendererName.equals("mh_drive") || rendererName.equals("opengles3_ltw")) {
-            try {
-                System.loadLibrary("fear_render");
-                String cachePath = activity.getFilesDir().getAbsolutePath() + "/fear_shader_cache";
-                JREUtils.initFearShaderEngine(cachePath, 1 /* version number */);
-            } catch (Throwable t) {
-                Log.e("GameRunner", "Failed to initialize Fear Shader Engine", t);
-            }
-        }
 
         try {
             JavaRunner.nativeSetupExit(activity);

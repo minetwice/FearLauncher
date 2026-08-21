@@ -1,6 +1,0 @@
-#ifndef BUILD_INFO_H
-#define BUILD_INFO_H
-
-#define RENDERER_VERSION "@RENDERER_VERSION@"
-
-#endif // BUILD_INFO_H

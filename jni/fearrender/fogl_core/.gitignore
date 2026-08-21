@@ -1,6 +1,0 @@
-.cache/
-build/
-compile_commands.json
-build_info/*.hpp
-.vscode
-.idea

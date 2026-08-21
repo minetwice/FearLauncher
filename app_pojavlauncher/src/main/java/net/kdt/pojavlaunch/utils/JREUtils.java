@@ -35,7 +35,7 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             // Filter lines in-memory for speed and "Manufactured" feel
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -126,116 +126,6 @@ public class JREUtils {
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
-                break;
-            case "fear_engine":
-                boolean isZinkActive = false;
-                try {
-                    preloadVulkan();
-                    isZinkActive = true;
-                } catch (Throwable t) {
-                    isZinkActive = false;
-                }
-
-                if (isZinkActive) {
-                    Logger.appendToLog("[FearRender] Configuring Mali-safe Zink environment profile");
-                    envMap.put("GALLIUM_DRIVER", "zink");
-                    envMap.put("ZINK_USE_CI", "1");
-                    envMap.put("MESA_GLTHREAD", "false");
-                    envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                    envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-                    envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                    envMap.put("MESA_NO_MINMAX_CACHE", "1");
-                } else {
-                    Logger.appendToLog("[FearRender] Configuring GLES environment profile");
-                }
-
-                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_USEVBO", "1");
-                envMap.put("LIBGL_BATCH", "1");
-                envMap.put("LIBGL_SHRINK", "0");
-                envMap.put("LIBGL_FASTEDID", "1");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "46"); // Signal full Desktop OpenGL 4.6 core compatibility
-                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29"); // Fake desktop GL profile for Complementary/Solas
-                envMap.put("LIBGL_NOTEXTURERECT", "0"); // Set to 0 to enable correct non-power-of-two sampler lookups in modern shaders
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
-                envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_ALWAYSCURRENT", "1");
-                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1"); // Prevent context loss
-                envMap.put("LIBGL_OBJ", "1");
-                envMap.put("LIBGL_VAO", "1");
-                envMap.put("LIBGL_MDI", "1");
-                envMap.put("LIBGL_FB", "1"); // Use depth-precision standard FBO mode (fixes borders/sea fog rendering mismatches)
-                envMap.put("LIBGL_FPE", "1");
-                envMap.put("LIBGL_GAMMA", "1.0");
-                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                // Shaders (Iris, etc.) permissions and crash mitigation parameters:
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-                envMap.put("allow_glsl_extension_directive_midshader", "true");
-                envMap.put("allow_higher_compat_version", "true");
-                envMap.put("force_glsl_extensions_warn", "true");
-
-                // High performance optimizations, caching, frame stability & low heat mitigation:
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "1024MB");
-                envMap.put("vblank_mode", "0"); // Disable vblank syncing to boost FPS beyond 150+
-                envMap.put("force_s3tc_enable", "true"); // Compress textures in hardware to reduce memory/heat
-                envMap.put("glsl_zero_init", "true"); // Clean GPU memory state to mitigate rendering/shader glitches
-                envMap.put("allow_multisample_filter", "false"); // Disable heavy filters to reduce thermals
-                envMap.put("always_use_fast_path", "true");
-
-                // Mitigate PVP, entity loading, and cursor focus fog glitches:
-                envMap.put("LIBGL_RESCALE_NORMAL", "1"); // Ensure correct lighting/fog vectors when transforming view matrix
-                envMap.put("MESA_NO_MINMAX_CACHE", "1"); // Skip heavy minmax operations during active item swapping in PvP
-                envMap.put("LIBGL_CLIPPED", "1"); // Enable aggressive hardware frustum clipping to stop rendering out-of-view entities
-                envMap.put("allow_glsl_extension_directive_midshader", "true");
-
-                // Universal SoC compatibility layers (Snapdragon Adreno, Moto Edge, MediaTek Dimensity, Mali GPUs):
-                envMap.put("allow_glsl_layout_qualifier_override", "true");
-                envMap.put("allow_glsl_builtin_const_expression", "true");
-                envMap.put("allow_glsl_relaxed_es", "true");
-                envMap.put("glsl_correct_derivatives_after_discard", "true");
-                envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
-                envMap.put("LIBGL_DEPTH", "24"); // Force high-fidelity depth buffers for shaders across all screen configurations
-                envMap.put("allow_higher_compat_version", "true");
-
-                // Explicitly strip or replace non-supported NV features/keywords on non-compatible hardware:
-                envMap.put("glsl_ignore_unsupported_extensions", "true");
-                envMap.put("glsl_ignore_noperspective", "true");
-                envMap.put("LIBGL_GLSL_STRIP", "noperspective"); // Force GL4ES / LTW backend parser to ignore 'noperspective'
-                envMap.put("LIBGL_GLSL_REPLACE", "noperspective=flat"); // Map noperspective to standard flat interpolation fallback if parsed
-
-                // Mali and Low-End GPU Emulation Overrides:
-                envMap.put("LIBGL_NO_VBO_BOUNDS", "1"); // Avoid hardware out-of-bounds pointer crashes on older Mali drivers
-                envMap.put("LIBGL_ES", "3"); // Force minimum GLES v3 API translation
-                envMap.put("allow_glsl_extension_directive_midshader", "true");
-                envMap.put("glsl_correct_derivatives_after_discard", "true");
-
-                // MediaTek Dimensity Octa-Core High-Thread Compiler & Extension Emulations:
-                envMap.put("pan_shader_compile_threads", "4"); // Utilize 4xA78 High Performance Cores for compiling shader programs
-                envMap.put("mali_debug", "nocluster"); // Stabilize shader dispatching across Mali octa-core threads
-                envMap.put("glsl_compiler_options", "relaxed");
-                envMap.put("LIBGL_ALLOW_INDEXED_DRAWS", "1");
-                envMap.put("force_s3tc_enable", "true");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-
-                // Advanced G-Buffer, MRT Emulation & Desktop Shader Transpilation patches:
-                envMap.put("LIBGL_GLSL_STRIP", "noperspective");
-                envMap.put("LIBGL_GLSL_PATCH", "1"); // Enable automatic highp precision qualifiers on-the-fly for G-Buffers
-                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8"); // Enable Multi-Render Targets (MRT) up to 8 attachments (gcolor, gnormal, etc.)
-                envMap.put("gl_draw_buffers_override", "true");
-                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F"); // High-fidelity floats matching desktop specifications
-                envMap.put("glsl_force_highp", "true"); // Guarantee high precision floats in shaders on all ARM architectures
-
-                // High-precision float depth and color attachments to fix shadow and ray color glitches under FEAR Engine:
-                envMap.put("LIBGL_FLOAT_COLOR", "1");
-                envMap.put("LIBGL_FLOAT_DEPTH", "1");
-                envMap.put("LIBGL_DEPTH", "24");
-                envMap.put("LIBGL_COLOR_RESCALE", "1");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -411,33 +301,6 @@ public class JREUtils {
                     Log.w("JREUtils", "MH DRIVE specific native wrapper layers omitted or pre-installed inside system path.");
                 }
                 break;
-            case "fear_engine":
-                boolean vulkanOk = false;
-                String vkVer = "none";
-                try {
-                    preloadVulkan();
-                    vulkanOk = true;
-                    vkVer = "1.3";
-                } catch (Throwable t) {
-                    vulkanOk = false;
-                    vkVer = "none";
-                }
-
-                if (vulkanOk) {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
-                    Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
-                    renderLibrary = "libEGL_mesa.so";
-                    useGles = false;
-                    bypassNamespace = true;
-                    glesVersion = 3;
-                } else {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES");
-                    Logger.appendToLog("[FearRender] Zink unavailable -> GLES fallback");
-                    renderLibrary = "libGLFear.so";
-                    useGles = true;
-                    glesVersion = 3;
-                }
-                break;
             case "freedreno_kgsl":
                 preloadVk = false;
             case "vulkan_zink":
@@ -478,13 +341,6 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
-
-    // Fear Shader Engine JNI Bridge Declarations
-    public static native void initFearShaderEngine(String cachePath, int version);
-    public static native void destroyFearShaderEngine();
-    public static native String getShaderCachePath();
-    public static native void clearShaderCache();
-    public static native int getTranslatedShaderCount();
 
     //public static native void initializeHooks();
     // Obtain AWT screen pixels to render on Android SurfaceView

@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("FearLauncher")
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../jni ${CMAKE_CURRENT_BINARY_DIR}/fearrender_build)
-
 add_library(pojavexec SHARED
         affinity.c
         jvm_hooks/emui_iterator_fix_hook.c
