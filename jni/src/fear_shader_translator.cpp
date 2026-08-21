@@ -94,9 +94,29 @@ std::string FearTranslateGLSL(
                      glsl.find("buffer") != std::string::npos ||
                      glsl.find("layout(std430") != std::string::npos;
 
-    // Clean up Desktop ARB extensions that cause GLES compiler syntax errors
+    // Clean up Desktop ARB & NV extensions that cause GLES compiler syntax errors
     removeLinesContaining(glsl, "#extension GL_ARB_");
     removeLinesContaining(glsl, "#extension GL_EXT_gpu_shader4");
+    if (glsl.find("#extension GL_NV_shader_noperspective_interpolation") != std::string::npos) {
+        removeLinesContaining(glsl, "#extension GL_NV_shader_noperspective_interpolation");
+        static bool logged_noperspective = false;
+        if (!logged_noperspective) {
+            LOG_INFO("[Quasar] Stripped noperspective qualifiers");
+            logged_noperspective = true;
+        }
+    }
+
+    // Strip noperspective qualifiers
+    if (glsl.find("noperspective") != std::string::npos) {
+        replaceAll(glsl, "noperspective in ", "smooth in ");
+        replaceAll(glsl, "noperspective out ", "smooth out ");
+        replaceAll(glsl, "noperspective ", "smooth ");
+        static bool logged_noperspective = false;
+        if (!logged_noperspective) {
+            LOG_INFO("[Quasar] Stripped noperspective qualifiers");
+            logged_noperspective = true;
+        }
+    }
 
     // STEP 2.1 - VERSION DIRECTIVE REPLACEMENT:
     size_t version_pos = glsl.find("#version");
