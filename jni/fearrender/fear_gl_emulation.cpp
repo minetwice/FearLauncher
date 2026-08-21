@@ -7,11 +7,13 @@ void initGLFixedFunctionEmulation() {
 }
 
 void pushMatrix(int mode) {
-    FFPE::Rendering::Matrices::pushMatrix(mode);
+    FFPE::Rendering::Matrices::setCurrentMatrix(mode);
+    FFPE::Rendering::Matrices::pushCurrentMatrix();
 }
 
 void popMatrix(int mode) {
-    FFPE::Rendering::Matrices::popMatrix(mode);
+    FFPE::Rendering::Matrices::setCurrentMatrix(mode);
+    FFPE::Rendering::Matrices::popTopMatrix();
 }
 
 void beginImmediateMode(GLenum mode) {

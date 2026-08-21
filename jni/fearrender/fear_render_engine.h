@@ -12,6 +12,13 @@ void destroyFearRenderEngine();
 const char* getFearRenderVersion();
 int getFearRenderStrategyLevel(const char* shaderHash);
 
+std::string executeStrategyL1ToL8(
+    const char* sourceCode,
+    GLenum shaderType,
+    int* winningLevel,
+    bool* compilationSuccess
+);
+
 // GL Interception Wrappers for Fear Render 3.0
 GLuint fear_glCreateShader(GLenum type);
 void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
