@@ -54,6 +54,7 @@ public class MainMenuFragment extends Fragment {
 
     private static final String[] CHAT_MESSAGES = {
         "⏽ [SYSTEM] Boot sequence initialized successfully.",
+        "⎈ [SYSTEM] Active rendering pipeline: FEAR CORE.",
         "⛋ [SYSTEM] Checking hardware specifications: OK.",
         "⚙ [CORE] JRE execution parameters: LOCKED.",
         "⚡ [CORE] Mesa driver emulation layer: ACTIVE.",
@@ -835,6 +836,7 @@ public class MainMenuFragment extends Fragment {
         if (id == null) return "HOLY GL4ES";
         String idLower = id.toLowerCase(java.util.Locale.US);
         if (idLower.contains("ltw")) return "LTW (GLES 3)";
+        if (idLower.contains("fear")) return "FEAR ENGINE";
         if (idLower.contains("vulkan") || idLower.contains("zink")) return "ZINK (VULKAN)";
         if (idLower.contains("freedreno")) return "FREEDRENO (KGSL)";
         if (idLower.contains("angle")) return "ANGLE ENGINE";

@@ -1,0 +1,50 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build_frozen:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cxxstandard:
+          - 14
+          - 17
+          - 2a
+        include:
+          - compiler: g++-10
+            stdlib: libstdc++
+          - compiler: g++-11
+            stdlib: libstdc++
+          - compiler: g++-12
+            stdlib: libstdc++
+          - compiler: g++-13
+            stdlib: libstdc++
+          - compiler: clang++-13
+            stdlib: libc++
+          - compiler: clang++-14
+            stdlib: libc++
+          - compiler: clang++-16
+            stdlib: libstdc++
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Prepare
+      run: cmake -E make_directory build
+
+    - name: Configure
+      working-directory: build
+      env:
+          CXX: ${{matrix.compiler}}
+          CXXFLAGS: -std=c++${{matrix.cxxstandard}} -stdlib=${{matrix.stdlib}}
+      run: cmake -DCMAKE_BUILD_TYPE=DEBUG "-Dfrozen.coverage=ON" -DCMAKE_VERBOSE_MAKEFILE=ON ..
+
+    - name: Build
+      working-directory: build
+      run: cmake --build .
+
+    - name: Test
+      working-directory: build
+      run: cmake --build . --target test

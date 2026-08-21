@@ -35,7 +35,7 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             // Filter lines in-memory for speed and "Manufactured" feel
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -92,6 +92,21 @@ public class JREUtils {
     // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "fear_engine":
+                Logger.appendToLog("[FearRender] backend=GLES core=FOGLTLOGLES+guards");
+                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_SHRINK", "0");
+                envMap.put("LIBGL_FASTEDID", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GL", "32");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "3.2");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "320");
+                envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
+                break;
             case "mh_drive":
                 // MH DRIVE (Mali Hybrid Optimization Engine)
                 Logger.appendToLog("[MH DRIVE] MULTI-TRACK MALI ENGINE INITIALIZED...");
@@ -289,6 +304,11 @@ public class JREUtils {
         boolean preloadVk = true;
         int glesVersion;
         switch (renderer){
+            case "fear_engine":
+                renderLibrary = "libfear_render.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
             case "mh_drive":
                 // Map to dynamic linking wrapper containing MH DRIVE Track 1 and integrated GLES/Vulkan overrides
                 renderLibrary = "libltw.so";
@@ -341,6 +361,13 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
+
+    // Fear Shader Engine JNI Bridge Declarations
+    public static native void initFearShaderEngine(String cachePath, int version);
+    public static native void destroyFearShaderEngine();
+    public static native String getShaderCachePath();
+    public static native void clearShaderCache();
+    public static native int getTranslatedShaderCount();
 
     //public static native void initializeHooks();
     // Obtain AWT screen pixels to render on Android SurfaceView
