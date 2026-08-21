@@ -432,7 +432,7 @@ public class JREUtils {
                     glesVersion = 3;
                 } else {
                     Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES");
-                    Logger.appendToLog("[FearRender] Zink unavailable -> GLES fallback");
+                    Logger.appendToLog("[FearRender] backend=GLES core=FOGLTLOGLES+guards");
                     renderLibrary = "libGLFear.so";
                     useGles = true;
                     glesVersion = 3;

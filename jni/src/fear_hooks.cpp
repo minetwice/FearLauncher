@@ -38,17 +38,18 @@ static void universal_safe_stub() {
 static void initEGLGLESHandles() {
     static std::once_flag flag;
     std::call_once(flag, []() {
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
-        g_eglHandle = dlopen("libEGL.so", RTLD_GLOBAL | RTLD_LAZY);
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260819-B compiled " __DATE__ " " __TIME__);
+        // 2.1 Resolve EGL functions via dlsym(RTLD_DEFAULT, name) or loaded system libEGL
+        g_eglHandle = RTLD_DEFAULT;
         g_glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
-        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] EGL handle: RTLD_DEFAULT, GLES handle: %p", g_glesHandle);
     });
 }
 
 static EGLContext getCurrentEGLContext() {
     initEGLGLESHandles();
     typedef EGLContext (*eglGetCurrentContext_pfn)();
-    static eglGetCurrentContext_pfn real_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetCurrentContext");
+    static eglGetCurrentContext_pfn real_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(RTLD_DEFAULT, "eglGetCurrentContext");
     return real_eglGetCurrentContext ? real_eglGetCurrentContext() : EGL_NO_CONTEXT;
 }
 
@@ -118,7 +119,7 @@ void* resolve_fear_symbol(const char* symbol) {
 FEAR_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
     initEGLGLESHandles();
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
-    static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
+    static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(RTLD_DEFAULT, "eglCreateContext");
     EGLContext ctx = real_eglCreateContext ? real_eglCreateContext(dpy, config, share_context, attrib_list) : EGL_NO_CONTEXT;
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
     return ctx;
@@ -127,9 +128,9 @@ FEAR_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
 FEAR_EXPORT EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     initEGLGLESHandles();
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
-    static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
+    static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(RTLD_DEFAULT, "eglMakeCurrent");
     EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
-    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, (res == EGL_TRUE) ? "TRUE" : "FALSE");
 
     if (ctx == EGL_NO_CONTEXT) {
         __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender][EGL] eglMakeCurrent passed EGL_NO_CONTEXT tid=%d (retaining internal state)", gettid());
@@ -173,20 +174,12 @@ FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetIntegerv without context");
             logged = true;
-        }
-        tryEmergencyContext();
-        if (isContextCurrent()) {
-            typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-            static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
-            if (real_glGetIntegerv) {
-                real_glGetIntegerv(pname, params);
-                return;
-            }
         }
         if (pname == GL_MAX_TEXTURE_SIZE) *params = 16384;
         else if (pname == 0x821D /* GL_MAX_DRAW_BUFFERS */) *params = 8;
+        else if (pname == 0x8872 /* GL_MAX_TEXTURE_IMAGE_UNITS */) *params = 16;
         else *params = 0;
         return;
     }
@@ -329,12 +322,25 @@ FEAR_EXPORT void glDrawElements(GLenum mode, GLsizei count, GLenum type, const v
 }
 
 const unsigned char* fear_glGetString(unsigned int name) {
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetString without context");
+            logged = true;
+        }
+        if (name == GL_VERSION) return (const unsigned char*)"OpenGL ES 3.2 (Fear Render)";
+        if (name == GL_SHADING_LANGUAGE_VERSION) return (const unsigned char*)"OpenGL ES GLSL ES 3.20";
+        if (name == GL_RENDERER) return (const unsigned char*)"Fear Render (Mali-G615 GLES 3.2)";
+        if (name == GL_VENDOR) return (const unsigned char*)"Fear Render";
+        return (const unsigned char*)"";
+    }
+
     if (name == GL_VERSION) {
-        return (const unsigned char*)"4.6 (Fear Render)";
+        return (const unsigned char*)"OpenGL ES 3.2 (Fear Render)";
     } else if (name == GL_SHADING_LANGUAGE_VERSION) {
-        return (const unsigned char*)"4.60";
+        return (const unsigned char*)"OpenGL ES GLSL ES 3.20";
     } else if (name == GL_RENDERER) {
-        return (const unsigned char*)"Fear Render";
+        return (const unsigned char*)"Fear Render (Mali-G615 GLES 3.2)";
     } else if (name == GL_VENDOR) {
         return (const unsigned char*)"Fear Render";
     } else if (name == GL_EXTENSIONS) {
