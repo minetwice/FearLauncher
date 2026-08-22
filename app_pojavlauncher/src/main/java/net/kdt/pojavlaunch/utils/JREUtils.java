@@ -190,17 +190,17 @@ public class JREUtils {
                     }
                 }
                 break;
-        }
+            }
     }
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
 
-        // Prevent OptiFine (and other error-reporting stuff in Minecraft) from balooning the log
+        // Prevent OptiFine (and other error-reporting stuff in Minecraft) from balooming the log
         envMap.put("LIBGL_NOERROR", "1");
 
         // On certain GLES drivers, overloading default functions shader hack fails, so disable it
-        envMap.put("LIBGL_NOINTOVLHACK", "1");
+        envMap.put("LIBGL_NOINTOULHACK", "1");
 
         // Fix white color on banner and sheep, since GL4ES 1.1.5
         envMap.put("LIBGL_NORMALIZE", "1");
@@ -220,7 +220,7 @@ public class JREUtils {
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
 		// This is currently required for YSM mod to function
-		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
+		File modRuntimeDir = new File(Tools.DER_CACHE, "app_runtime_mod");
 		if (!modRuntimeDir.exists()) {
     		modRuntimeDir.mkdirs();
 		}
@@ -234,13 +234,13 @@ public class JREUtils {
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         envMap.put("EGL_PLATFORM", "android");
 
-        if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+        if(LauncherPreferences.PREF_BIG_CORE_AFFINITR’ envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
         if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
         }
 
-        if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
+        if(LauncherPreferences.PREF_FREEDRENO_SYSPEM) {
             // We could also apply the FD_MESA_DEBUG only if freedreno is active but why making things complicated?
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
@@ -309,14 +309,14 @@ public class JREUtils {
                         String lastString = parsedArguments.get(arraySize - 1);
                         // Looking for list elements
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
-                                parsedSubString.contains(",")){
+                                parsedSubString.contains(",")) {
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
                     }
                     parsedArguments.add(parsedSubString);
                 }
-                else Log.w("JAVA ARGS PARSER", "Removed improper arguments: " + parsedSubString);
+                else Log.w("DAVA ARGS PARSER", "Removed improper arguments: " + parsedSubString);
             }
         }
         return parsedArguments;
@@ -359,7 +359,7 @@ public class JREUtils {
                 }
 
                 if (vulkanOk) {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK,");
                     Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
                     renderLibrary = "libEGL_mesa.so";
                     useGles = false;
@@ -384,6 +384,20 @@ public class JREUtils {
                 break;
             case "opengles3_ltw" :
                 renderLibrary = "libltw.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
+            case "custom_inject":
+                // Custom Render Injection - load external renderer plugin .so
+                Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
+                boolean pluginLoaded = RenderPluginManager.loadPluginFromPrefs(null);
+                if (pluginLoaded) {
+                    Logger.appendToLog("[FearRender] Custom renderer plugin loaded: "
+                        + RenderPluginManager.getPluginName() + " v" + RenderPluginManager.getPluginVersion());
+                } else {
+                    Logger.appendToLog("[FearRender] No custom renderer plugin path set, using Fear Render fallback");
+                }
+                renderLibrary = "libGLFear.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
@@ -461,6 +475,14 @@ public class JREUtils {
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
+
+    // Custom Render Plugin Injection JNI Bridge Declarations
+    public static native boolean loadRenderPlugin(String pluginPath);
+    public static native void unloadRenderPlugin();
+    public static native boolean isRenderPluginLoaded();
+    public static native String getRenderPluginName();
+    public static native String getRenderPluginVersion();
+    public static native int getRenderPluginOverrideCount();
 
     //public static native void initializeHooks();
     // Obtain AWT screen pixels to render on Android SurfaceView
