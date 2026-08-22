@@ -1,5 +1,6 @@
 #include "fear_hooks.h"
 #include "fear_gl_emulation.h"
+#include "fear_plugin_loader.h"
 #include "fear_render_engine.h"
 #include "es/utils.hpp"
 #include "main.hpp"
@@ -223,6 +224,10 @@ FEAR_EXPORT void glfwMakeContextCurrent(void* window) {
 }
 
 FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glGetIntegerv");
+        if (fn) { typedef void (*pfn)(GLenum, GLint*); ((pfn)fn)(pname, params); return; }
+    }
     if (!params) return;
 
     if (!isContextCurrent()) {
@@ -248,6 +253,10 @@ FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
 }
 
 FEAR_EXPORT void glGetFloatv(GLenum pname, GLfloat* params) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glGetFloatv");
+        if (fn) { typedef void (*pfn)(GLenum, GLfloat*); ((pfn)fn)(pname, params); return; }
+    }
     if (!params) return;
     if (!isContextCurrent()) {
         static bool logged = false;
@@ -264,6 +273,10 @@ FEAR_EXPORT void glGetFloatv(GLenum pname, GLfloat* params) {
 }
 
 FEAR_EXPORT void glGetBooleanv(GLenum pname, GLboolean* params) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glGetBooleanv");
+        if (fn) { typedef void (*pfn)(GLenum, GLboolean*); ((pfn)fn)(pname, params); return; }
+    }
     if (!params) return;
     if (!isContextCurrent()) {
         static bool logged = false;
@@ -280,6 +293,10 @@ FEAR_EXPORT void glGetBooleanv(GLenum pname, GLboolean* params) {
 }
 
 FEAR_EXPORT void glEnable(GLenum cap) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glEnable");
+        if (fn) { typedef void (*pfn)(GLenum); ((pfn)fn)(cap); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -294,6 +311,10 @@ FEAR_EXPORT void glEnable(GLenum cap) {
 }
 
 FEAR_EXPORT void glDisable(GLenum cap) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glDisable");
+        if (fn) { typedef void (*pfn)(GLenum); ((pfn)fn)(cap); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -308,6 +329,10 @@ FEAR_EXPORT void glDisable(GLenum cap) {
 }
 
 FEAR_EXPORT void glBindTexture(GLenum target, GLuint texture) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glBindTexture");
+        if (fn) { typedef void (*pfn)(GLenum, GLuint); ((pfn)fn)(target, texture); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -322,6 +347,10 @@ FEAR_EXPORT void glBindTexture(GLenum target, GLuint texture) {
 }
 
 FEAR_EXPORT void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glClearColor");
+        if (fn) { typedef void (*pfn)(GLfloat, GLfloat, GLfloat, GLfloat); ((pfn)fn)(red, green, blue, alpha); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -336,6 +365,10 @@ FEAR_EXPORT void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat 
 }
 
 FEAR_EXPORT void glClear(GLbitfield mask) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glClear");
+        if (fn) { typedef void (*pfn)(GLbitfield); ((pfn)fn)(mask); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -350,6 +383,10 @@ FEAR_EXPORT void glClear(GLbitfield mask) {
 }
 
 FEAR_EXPORT void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glDrawArrays");
+        if (fn) { typedef void (*pfn)(GLenum, GLint, GLsizei); ((pfn)fn)(mode, first, count); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -364,6 +401,10 @@ FEAR_EXPORT void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
 }
 
 FEAR_EXPORT void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
+    if (fear_plugin_is_loaded()) {
+        void* fn = fear_plugin_get_proc("glDrawElements");
+        if (fn) { typedef void (*pfn)(GLenum, GLsizei, GLenum, const void*); ((pfn)fn)(mode, count, type, indices); return; }
+    }
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
@@ -396,8 +437,16 @@ const unsigned char* fear_glGetString(unsigned int name) {
     } else if (name == GL_SHADING_LANGUAGE_VERSION) {
         return (const unsigned char*)"OpenGL ES GLSL ES 3.20";
     } else if (name == GL_RENDERER) {
+        if (fear_plugin_is_loaded()) {
+            const char* pluginName = fear_plugin_get_name();
+            if (pluginName) return (const unsigned char*)pluginName;
+        }
         return (const unsigned char*)"Fear Render (Mali-G615 GLES 3.2)";
     } else if (name == GL_VENDOR) {
+        if (fear_plugin_is_loaded()) {
+            const char* pluginName = fear_plugin_get_name();
+            if (pluginName) return (const unsigned char*)pluginName;
+        }
         return (const unsigned char*)"Fear Render";
     } else if (name == GL_EXTENSIONS) {
         if (isContextCurrent()) {
@@ -432,38 +481,7 @@ const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
     if (name == GL_EXTENSIONS) {
         static const char* extensions[] = {
             "GL_OES_element_index_uint",
-            "GL_OES_depth_texture",
-            "GL_OES_depth24",
-            "GL_OES_texture_3D",
-            "GL_OES_texture_float",
-            "GL_OES_texture_half_float",
-            "GL_OES_texture_half_float_linear",
-            "GL_OES_texture_npot",
-            "GL_OES_mapbuffer",
-            "GL_OES_packed_depth_stencil",
-            "GL_OES_standard_derivatives",
-            "GL_OES_vertex_array_object",
-            "GL_OES_compressed_ETC1_RGB8_texture",
-            "GL_EXT_texture_format_BGRA8888",
-            "GL_EXT_color_buffer_float",
-            "GL_EXT_color_buffer_half_float",
-            "GL_ARB_direct_state_access",
-            "GL_ARB_buffer_storage",
-            "GL_ARB_shader_image_load_store",
-            "GL_NV_conditional_render",
-            "GL_EXT_gpu_shader4",
-            "GL_EXT_texture_buffer",
-            "GL_EXT_texture_cube_map_array",
-            "GL_OES_EGL_image_external_essl3",
-            "GL_NV_shader_noperspective_interpolation",
-            "GL_ARB_shader_objects",
-            "GL_ARB_vertex_shader",
-            "GL_ARB_fragment_shader",
-            "GL_EXT_blend_equation_separate",
-            "GL_EXT_geometry_shader4",
-            "GL_EXT_gpu_program_parameters",
-            "GL_ARB_instanced_arrays",
-            "GL_ARB_draw_instanced"
+            "GL_OES_depth_texture","GL_OES_depth24","GL_OES_texture_3D","GL_OES_texture_float","GL_OES_texture_half_float","GL_OES_texture_half_float_linear","GL_OES_texture_npot","GL_OES_mapbuffer","GL_OES_packed_depth_stencil","GL_OES_standard_derivatives","GL_OES_vertex_array_object","GL_OES_compressed_ETC1_RGB8_texture","GL_EXT_texture_format_BGRA8888","GL_EXT_color_buffer_float","GL_EXT_color_buffer_half_float","GL_ARB_direct_state_access","GL_ARB_buffer_storage","GL_ARB_shader_image_load_store","GL_NV_conditional_render","GL_EXT_gpu_shader4","GL_EXT_texture_buffer","GL_EXT_texture_cube_map_array","GL_OES_EGL_image_external_essl3","GL_NV_shader_noperspective_interpolation","GL_ARB_shader_objects","GL_ARB_vertex_shader","GL_ARB_fragment_shader","GL_EXT_blend_equation_separate","GL_EXT_geometry_shader4","GL_EXT_gpu_program_parameters","GL_ARB_instanced_arrays","GL_ARB_draw_instanced"
         };
         unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
         if (index < size) {
@@ -488,6 +506,17 @@ FEAR_EXPORT const unsigned char* glGetStringi(unsigned int name, unsigned int in
 
 void* fear_eglGetProcAddress(const char* procname) {
     if (procname == nullptr) return (void*)universal_safe_stub;
+
+    // === CUSTOM RENDER PLUGIN INJECTION POINT ===
+    // If a custom renderer plugin is loaded, check it FIRST.
+    // This allows external plugins to override ANY GL/EGL function.
+    if (fear_plugin_is_loaded()) {
+        void* pluginFn = fear_plugin_get_proc(procname);
+        if (pluginFn) {
+            return pluginFn;
+        }
+    }
+    // === END PLUGIN INJECTION POINT ===
 
     if (strcmp(procname, "eglMakeCurrent") == 0) return (void*)eglMakeCurrent;
     if (strcmp(procname, "eglCreateContext") == 0) return (void*)eglCreateContext;
@@ -568,6 +597,16 @@ void initialize_fear_hooks() {
         std::this_thread::sleep_for(std::chrono::seconds(2));
         __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Auto-continued past GLFW warning");
     }).detach();
+
+    if (fear_plugin_is_loaded()) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender",
+            "[FearRender] Custom renderer plugin active: %s v%s (overrides: %d)",
+            fear_plugin_get_name(), fear_plugin_get_version(),
+            fear_plugin_get_override_count());
+    } else {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender",
+            "[FearRender] No custom renderer plugin loaded (using built-in Fear Render)");
+    }
 
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "Fear Hooking Engine successfully activated.");
 }
