@@ -37,6 +37,8 @@ import java.io.InputStream;
  * Fragment for any settings video related
  */
 public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment {
+    private ActivityResultLauncher<String[]> pluginPickerLauncher;
+
     @Override
     public void onCreatePreferences(Bundle b, String str) {
         addPreferencesFromResource(R.xml.pref_video);
@@ -88,21 +90,10 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
             });
         }
 
-        computeVisibility();
-    }
-
-    private void openPluginFileChooser() {
-        try {
-            pluginPickerLauncher.launch(new String[]{"*/*"});
-        } catch (Exception e) {
-            android.util.Log.e("VideoPrefs", "No file picker available", e);
-        }
-    }
-
-    private final ActivityResultLauncher<String[]> pluginPickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.OpenMultipleDocuments()) {
-                @Override
-                public void onActivityResult(java.util.List<Uri> uris) {
+        // Initialize the plugin file picker launcher
+        pluginPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenMultipleDocuments(),
+                uris -> {
                     if (uris == null || uris.isEmpty()) return;
                     Uri uri = uris.get(0);
                     if (uri == null) return;
@@ -131,13 +122,24 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
                         String pluginPath = pluginFile.getAbsolutePath();
                         LauncherPreferences.DEFAULT_PREF.edit().putString("customRendererPath", pluginPath).apply();
                         LauncherPreferences.PREF_CUSTOM_RENDERER_PATH = pluginPath;
-                        Preference customRendererPref = findPreference("customRendererPath");
-                        if (customRendererPref != null) customRendererPref.setSummary("Selected: " + fileName);
+                        Preference pref = findPreference("customRendererPath");
+                        if (pref != null) pref.setSummary("Selected: " + fileName);
                     } catch (Exception e) {
                         android.util.Log.e("VideoPrefs", "Failed to copy plugin file", e);
                     }
                 }
-            };
+        );
+
+        computeVisibility();
+    }
+
+    private void openPluginFileChooser() {
+        try {
+            pluginPickerLauncher.launch(new String[]{"*/*"});
+        } catch (Exception e) {
+            android.util.Log.e("VideoPrefs", "No file picker available", e);
+        }
+    }
 
     @Override
     public void onResume() {
