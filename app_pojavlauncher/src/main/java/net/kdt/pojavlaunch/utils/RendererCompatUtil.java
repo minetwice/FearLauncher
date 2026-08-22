@@ -56,6 +56,36 @@ public class RendererCompatUtil {
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
+        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
+        List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
+        for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
+            String pluginId = "plugin:" + plugin.getId();
+            String displayName = plugin.getDisplayName();
+            if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
+                displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
+            }
+            if (!rendererIds.contains(pluginId)) {
+                rendererIds.add(pluginId);
+                rendererNames.add(displayName);
+            }
+        }
+
+        // Check for local custom .so renderers in PojavLauncher/renderers directory
+        File customRenderersDir = new File(Tools.DIR_GAME_HOME, "renderers");
+        if (customRenderersDir.exists() && customRenderersDir.isDirectory()) {
+            File[] files = customRenderersDir.listFiles((dir, name) -> name.endsWith(".so"));
+            if (files != null) {
+                for (File file : files) {
+                    String rendererId = "custom_so:" + file.getAbsolutePath();
+                    String displayName = "Custom Renderer (" + file.getName() + ")";
+                    if (!rendererIds.contains(rendererId)) {
+                        rendererIds.add(rendererId);
+                        rendererNames.add(displayName);
+                    }
+                }
+            }
+        }
+
         sCompatibleRenderers = new RenderersList(rendererIds,
                 rendererNames.toArray(new String[0]));
 
