@@ -74,6 +74,9 @@ public class LauncherPreferences {
 
     public static boolean PREF_FREEDRENO_SYSMEM = false;
 
+    // Custom Render Injection plugin path
+    public static String PREF_CUSTOM_RENDERER_PATH = "";
+
 
     public static void loadPreferences(Context ctx) {
         //Required for CTRLDEF_FILE and MultiRT
@@ -117,6 +120,7 @@ public class LauncherPreferences {
         PREF_VERIFY_FILES = DEFAULT_PREF.getBoolean("checkGameFiles", true);
         PREF_RAPID_START = DEFAULT_PREF.getBoolean("fastStartupCheck", true);
         PREF_FREEDRENO_SYSMEM = DEFAULT_PREF.getBoolean("freedrenoSysmem", false);
+        PREF_CUSTOM_RENDERER_PATH = DEFAULT_PREF.getString("customRendererPath", "");
 
         String argLwjglLibname = "-Dorg.lwjgl.opengl.libname=";
         for (String arg : JREUtils.parseJavaArguments(PREF_CUSTOM_JAVA_ARGS)) {
@@ -138,83 +142,3 @@ public class LauncherPreferences {
         }
     }
 
-    /**
-     * This functions aims at finding the best default RAM amount,
-     * according to the RAM amount of the physical device.
-     * Put not enough RAM ? Minecraft will lag and crash.
-     * Put too much RAM ?
-     * The GC will lag, android won't be able to breathe properly.
-     * @param ctx Context needed to get the total memory of the device.
-     * @return The best default value found.
-     */
-    private static int findBestRAMAllocation(Context ctx){
-        int deviceRam = Tools.getTotalDeviceMemory(ctx);
-        if (deviceRam < 1024) return 296;
-        if (deviceRam < 1536) return 448;
-        if (deviceRam < 2048) return 656;
-        // Limit the max for 32 bits devices more harshly
-        if (is32BitsDevice()) return 696;
-
-        if (deviceRam < 3064) return 936;
-        if (deviceRam < 4096) return 1144;
-        if (deviceRam < 6144) return 1536;
-        return 2048; //Default RAM allocation for 64 bits
-    }
-
-    /// Find a correct resolution for the device
-    ///
-    /// Some devices are shipped with a ridiculously high resolution, which can cause performance issues
-    /// This function will try to find a resolution that is good enough for the device
-    private static int findBestResolution(Context context, boolean isDevicePowerful) {
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        int minSide = Math.min(metrics.widthPixels, metrics.heightPixels);
-        int targetSide = isDevicePowerful ? 1080 : 720;
-        if (minSide <= targetSide) return 100; // No need to scale down
-
-        float ratio = (100f * targetSide / minSide);
-        // The value must match the seekbar values
-        int increment = context.getResources().getInteger(R.integer.resolution_seekbar_increment);
-        return (int) (Math.ceil(ratio / increment) * increment);
-    }
-
-    /// Check if the device is considered powerful.
-    /// Powerful devices will have some energy saving tweaks enabled by default
-    private static boolean isDevicePowerful(Context context) {
-        if (SDK_INT < Build.VERSION_CODES.Q) return false;
-        if (Tools.getTotalDeviceMemory(context) <= 4096) return false;
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        if (Math.min(metrics.widthPixels, metrics.heightPixels) < 1080) return false;
-        if (Runtime.getRuntime().availableProcessors() <= 4) return false;
-        if (hasAllCoreSameFreq()) return false;
-        return true;
-    }
-
-    private static boolean hasAllCoreSameFreq() {
-        int coreCount = Runtime.getRuntime().availableProcessors();
-        try {
-            String freq0 = Tools.read("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq");
-            String freqX = Tools.read("/sys/devices/system/cpu/cpu" + (coreCount - 1) + "/cpufreq/cpuinfo_max_freq");
-            if(freq0.equals(freqX)) return true;
-        } catch (IOException e) {
-            Log.e("LauncherPreferences", "Failed to read CPU frequencies", e);
-        }
-        return false;
-    }
-
-    /** Check if the device has a display cutout */
-    public static boolean hasNotch(Activity activity) {
-        if (Build.VERSION.SDK_INT < P) return false;
-        try {
-            final Rect cutout;
-            if(SDK_INT >= Build.VERSION_CODES.S){
-                cutout = activity.getWindowManager().getCurrentWindowMetrics().getWindowInsets().getDisplayCutout().getBoundingRects().get(0);
-            } else {
-                cutout = activity.getWindow().getDecorView().getRootWindowInsets().getDisplayCutout().getBoundingRects().get(0);
-            }
-            return cutout.width() != 0 || cutout.height() != 0;
-        }catch (Exception e){
-            Log.i("NOTCH DETECTION", "No notch detected, or the device if in split screen mode");
-            return false;
-        }
-    }
-}
