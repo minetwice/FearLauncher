@@ -74,6 +74,9 @@ public class LauncherPreferences {
 
     public static boolean PREF_FREEDRENO_SYSMEM = false;
 
+    // Custom Render Injection plugin path
+    public static String PREF_CUSTOM_RENDERER_PATH = "";
+
 
     public static void loadPreferences(Context ctx) {
         //Required for CTRLDEF_FILE and MultiRT
@@ -117,6 +120,7 @@ public class LauncherPreferences {
         PREF_VERIFY_FILES = DEFAULT_PREF.getBoolean("checkGameFiles", true);
         PREF_RAPID_START = DEFAULT_PREF.getBoolean("fastStartupCheck", true);
         PREF_FREEDRENO_SYSMEM = DEFAULT_PREF.getBoolean("freedrenoSysmem", false);
+        PREF_CUSTOM_RENDERER_PATH = DEFAULT_PREF.getString("customRendererPath", "");
 
         String argLwjglLibname = "-Dorg.lwjgl.opengl.libname=";
         for (String arg : JREUtils.parseJavaArguments(PREF_CUSTOM_JAVA_ARGS)) {
