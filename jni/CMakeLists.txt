@@ -102,7 +102,6 @@ add_library(fearrender SHARED
     src/fear_shader_cache.cpp
     src/fear_glsl_transpiler.cpp
     src/fear_gl_emulation.cpp
-    src/fear_plugin_loader.cpp
     fearrender/fear_render_engine.cpp
     fearrender/fear_shader_strategy.cpp
     ${FOGL_SOURCES}

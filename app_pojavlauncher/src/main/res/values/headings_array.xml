@@ -7,7 +7,6 @@
         <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
         <item name="4">@string/mcl_setting_renderer_ltw</item>
         <item name="5">MH DRIVE (Mali Hybrid Optimization Engine)</item>
-        <item name="6">Custom Render Injection (Plugin)</item>
     </string-array>
 
     <string-array name="menu_customcontrol">
@@ -45,7 +44,6 @@
         <item>freedreno_kgsl</item> <!-- freedreno gallium driver with OpenGL 4.6 -->
         <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->
         <item>mh_drive</item>
-        <item>custom_inject</item> <!-- Custom Render Injection (Plugin) -->
     </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>

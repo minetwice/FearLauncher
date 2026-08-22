@@ -23,22 +23,11 @@ import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.CustomSeekBarPreference;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.RendererCompatUtil;
-import net.kdt.pojavlaunch.utils.RenderPluginManager;
-
-import android.content.Intent;
-import android.net.Uri;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 
 /**
  * Fragment for any settings video related
  */
 public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment {
-    private ActivityResultLauncher<String[]> pluginPickerLauncher;
-
     @Override
     public void onCreatePreferences(Bundle b, String str) {
         addPreferencesFromResource(R.xml.pref_video);
@@ -76,69 +65,7 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         rendererListPreference.setEntries(renderersList.rendererDisplayNames);
         rendererListPreference.setEntryValues(renderersList.rendererIds.toArray(new String[0]));
 
-        // Custom renderer plugin path preference
-        Preference customRendererPref = findPreference("customRendererPath");
-        if (customRendererPref != null) {
-            customRendererPref.setVisible("custom_inject".equals(LauncherPreferences.PREF_RENDERER));
-            String currentPath = LauncherPreferences.PREF_CUSTOM_RENDERER_PATH;
-            if (currentPath != null && !currentPath.isEmpty()) {
-                customRendererPref.setSummary("Selected: " + new File(currentPath).getName());
-            }
-            customRendererPref.setOnPreferenceClickListener(preference -> {
-                openPluginFileChooser();
-                return true;
-            });
-        }
-
-        // Initialize the plugin file picker launcher
-        pluginPickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.OpenMultipleDocuments(),
-                uris -> {
-                    if (uris == null || uris.isEmpty()) return;
-                    Uri uri = uris.get(0);
-                    if (uri == null) return;
-                    try {
-                        File pluginDir = new File(requireContext().getFilesDir(), "render_plugins");
-                        if (!pluginDir.exists()) pluginDir.mkdirs();
-                        String fileName = "custom_renderer.so";
-                        android.database.Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null);
-                        if (cursor != null) {
-                            int nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
-                            if (nameIdx >= 0 && cursor.moveToFirst()) {
-                                String displayName = cursor.getString(nameIdx);
-                                if (displayName != null && displayName.endsWith(".so")) fileName = displayName;
-                            }
-                            cursor.close();
-                        }
-                        File pluginFile = new File(pluginDir, fileName);
-                        try (InputStream is = requireContext().getContentResolver().openInputStream(uri);
-                             FileOutputStream fos = new FileOutputStream(pluginFile)) {
-                            byte[] buffer = new byte[8192];
-                            int bytesRead;
-                            while ((bytesRead = is.read(buffer)) != -1) fos.write(buffer, 0, bytesRead);
-                        }
-                        pluginFile.setReadable(true, false);
-                        pluginFile.setExecutable(true, false);
-                        String pluginPath = pluginFile.getAbsolutePath();
-                        LauncherPreferences.DEFAULT_PREF.edit().putString("customRendererPath", pluginPath).apply();
-                        LauncherPreferences.PREF_CUSTOM_RENDERER_PATH = pluginPath;
-                        Preference pref = findPreference("customRendererPath");
-                        if (pref != null) pref.setSummary("Selected: " + fileName);
-                    } catch (Exception e) {
-                        android.util.Log.e("VideoPrefs", "Failed to copy plugin file", e);
-                    }
-                }
-        );
-
         computeVisibility();
-    }
-
-    private void openPluginFileChooser() {
-        try {
-            pluginPickerLauncher.launch(new String[]{"*/*"});
-        } catch (Exception e) {
-            android.util.Log.e("VideoPrefs", "No file picker available", e);
-        }
     }
 
     @Override
@@ -194,9 +121,5 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     private void computeVisibility(){
         requirePreference("force_vsync", SwitchPreferenceCompat.class)
                 .setVisible(LauncherPreferences.PREF_USE_ALTERNATE_SURFACE);
-        Preference customRendererPref = findPreference("customRendererPath");
-        if (customRendererPref != null) {
-            customRendererPref.setVisible("custom_inject".equals(LauncherPreferences.PREF_RENDERER));
-        }
     }
 }
