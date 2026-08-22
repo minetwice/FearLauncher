@@ -284,6 +284,7 @@ public class JREUtils {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
+
 		// This is currently required for YSM mod to function
 		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
 		if (!modRuntimeDir.exists()) {
@@ -452,6 +453,22 @@ public class JREUtils {
                 useGles = true;
                 glesVersion = 3;
                 break;
+            case "custom_inject":
+                // Custom Render Injection - load external renderer plugin .so
+                Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
+                // Load the plugin from saved preferences
+                boolean pluginLoaded = RenderPluginManager.loadPluginFromPrefs(null);
+                if (pluginLoaded) {
+                    Logger.appendToLog("[FearRender] Custom renderer plugin loaded: "
+                        + RenderPluginManager.getPluginName() + " v" + RenderPluginManager.getPluginVersion());
+                } else {
+                    Logger.appendToLog("[FearRender] No custom renderer plugin path set, using Fear Render fallback");
+                }
+                // Use libGLFear.so as the base renderer - the plugin hooks into the dispatch chain
+                renderLibrary = "libGLFear.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
             case "opengles2":
             case "opengles2_5":
             case "opengles3":
@@ -485,6 +502,14 @@ public class JREUtils {
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
+
+    // Custom Render Plugin Injection JNI Bridge Declarations
+    public static native boolean loadRenderPlugin(String pluginPath);
+    public static native void unloadRenderPlugin();
+    public static native boolean isRenderPluginLoaded();
+    public static native String getRenderPluginName();
+    public static native String getRenderPluginVersion();
+    public static native int getRenderPluginOverrideCount();
 
     //public static native void initializeHooks();
     // Obtain AWT screen pixels to render on Android SurfaceView
