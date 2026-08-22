@@ -91,6 +91,42 @@ public class JREUtils {
 
     // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
+        if (renderer != null && (renderer.startsWith("plugin:") || renderer.startsWith("custom_so:") || renderer.contains("mobileglue"))) {
+            Logger.appendToLog("[CustomRenderer] Setting up environment for custom renderer: " + renderer);
+            envMap.put("LIBGL_ES", "3");
+            envMap.put("LIBGL_USEVBO", "1");
+            envMap.put("LIBGL_BATCH", "1");
+            envMap.put("LIBGL_MIPMAP", "3");
+            envMap.put("LIBGL_NOERROR", "1");
+            envMap.put("LIBGL_GL", "46");
+            envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+            envMap.put("LIBGL_NOTEXTURERECT", "0");
+            envMap.put("LIBGL_FBOTEXTURE2D", "1");
+            envMap.put("LIBGL_GLSL", "1");
+            envMap.put("LIBGL_ALWAYSCURRENT", "1");
+            envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
+            envMap.put("LIBGL_FB", "1");
+            envMap.put("LIBGL_FPE", "1");
+            envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+            envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+            envMap.put("allow_glsl_extension_directive_midshader", "true");
+            envMap.put("allow_higher_compat_version", "true");
+            envMap.put("allow_glsl_relaxed_es", "true");
+            envMap.put("glsl_ignore_unsupported_extensions", "true");
+            envMap.put("glsl_ignore_noperspective", "true");
+            envMap.put("LIBGL_GLSL_STRIP", "noperspective");
+
+            // Mobile Glue specific environment variables
+            envMap.put("MG_MOBILEGLUES", "1");
+            envMap.put("MG_MOBILEGLUES_VERSION", "2000");
+
+            // Custom shader cache directory
+            File mgCacheDir = new File(Tools.DIR_GAME_HOME, "MG");
+            if (!mgCacheDir.exists()) mgCacheDir.mkdirs();
+            envMap.put("MG_LOG_DIR", mgCacheDir.getAbsolutePath());
+            return;
+        }
+
         switch(renderer) {
             case "mh_drive":
                 // MH DRIVE (Mali Hybrid Optimization Engine)
@@ -399,6 +435,66 @@ public class JREUtils {
         boolean bypassNamespace = false;
         boolean preloadVk = true;
         int glesVersion;
+
+        if (renderer != null && renderer.startsWith("plugin:")) {
+            String appId = renderer.substring("plugin:".length());
+            Logger.appendToLog("[CustomRenderer] Attempting to load plugin: " + appId);
+            Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+            LibraryPlugin plugin = (context != null) ? LibraryPlugin.discoverPlugin(context, appId) : null;
+            if (plugin == null && context != null) {
+                // Retry discovery across all plugins if direct lookup fails
+                List<LibraryPlugin> plugins = LibraryPlugin.discoverRendererPlugins(context);
+                for (LibraryPlugin p : plugins) {
+                    if (p.getId().equalsIgnoreCase(appId)) {
+                        plugin = p;
+                        break;
+                    }
+                }
+            }
+            if (plugin != null) {
+                String libDir = plugin.getLibraryPath();
+                Logger.appendToLog("[CustomRenderer] Found plugin library path: " + libDir);
+                File libDirFile = new File(libDir);
+                if (libDirFile.exists() && libDirFile.isDirectory()) {
+                    File[] candidates = libDirFile.listFiles((dir, name) -> name.endsWith(".so"));
+                    if (candidates != null && candidates.length > 0) {
+                        // Look for libEGL_mesa.so, libltw.so, libgl4es.so, libmobileglues.so, or use the first available .so
+                        File chosenSo = candidates[0];
+                        for (File candidate : candidates) {
+                            String name = candidate.getName();
+                            if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL")) {
+                                chosenSo = candidate;
+                                break;
+                            }
+                        }
+                        renderLibrary = chosenSo.getAbsolutePath();
+                        Logger.appendToLog("[CustomRenderer] Selected plugin library: " + renderLibrary);
+                        useGles = true;
+                        glesVersion = 3;
+                        if (!configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
+                            Log.e("RENDER_LIBRARY", "Failed to load custom plugin renderer " + renderLibrary);
+                            return null;
+                        }
+                        return renderLibrary;
+                    }
+                }
+            }
+            Log.e("RENDER_LIBRARY", "Plugin renderer package not available or library missing: " + appId);
+            return null;
+        }
+
+        if (renderer != null && renderer.startsWith("custom_so:")) {
+            renderLibrary = renderer.substring("custom_so:".length());
+            Logger.appendToLog("[CustomRenderer] Loading custom .so renderer: " + renderLibrary);
+            useGles = true;
+            glesVersion = 3;
+            if (!configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
+                Log.e("RENDER_LIBRARY", "Failed to load custom .so renderer " + renderLibrary);
+                return null;
+            }
+            return renderLibrary;
+        }
+
         switch (renderer){
             case "mh_drive":
                 // Map to dynamic linking wrapper containing MH DRIVE Track 1 and integrated GLES/Vulkan overrides
