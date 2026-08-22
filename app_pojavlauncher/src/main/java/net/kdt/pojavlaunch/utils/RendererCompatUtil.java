@@ -50,8 +50,8 @@ public class RendererCompatUtil {
             }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
-            // freedreno is available only on Adreno GPUs
-            if(rendererId.contains("freedreno") && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
+            // freedreno and turnip are available primarily on Adreno GPUs
+            if((rendererId.contains("freedreno") || rendererId.contains("turnip")) && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);

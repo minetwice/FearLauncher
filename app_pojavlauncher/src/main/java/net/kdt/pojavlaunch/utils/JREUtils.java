@@ -273,6 +273,27 @@ public class JREUtils {
                 envMap.put("LIBGL_DEPTH", "24");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 break;
+            case "angle_vulkan":
+                envMap.put("ANGLE_DEFAULT_BACKEND", "vulkan");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                break;
+            case "virgl_renderer":
+                envMap.put("GALLIUM_DRIVER", "virpipe");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("VIRGL_DEBUG", "display");
+                break;
+            case "turnip_zink":
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("TU_DEBUG", "sysmem");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                setUseTurnip(true);
+                break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
@@ -534,6 +555,13 @@ public class JREUtils {
                     glesVersion = 3;
                 }
                 break;
+            case "angle_vulkan":
+                renderLibrary = "libEGL_angle.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
+            case "virgl_renderer":
+            case "turnip_zink":
             case "freedreno_kgsl":
                 preloadVk = false;
             case "vulkan_zink":
