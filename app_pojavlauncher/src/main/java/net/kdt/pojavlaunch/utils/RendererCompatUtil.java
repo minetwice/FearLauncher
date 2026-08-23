@@ -22,7 +22,7 @@ public class RendererCompatUtil {
     public static boolean checkVulkanSupport(PackageManager packageManager) {
         if(SDK_INT >= Build.VERSION_CODES.N) {
             return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
-                   packageManager.hasSystemFeature(PackageManager.FEATURE_VULKA_HARDWARE_VERSION);
+                   packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
         }
         return false;
     }
