@@ -36,8 +36,8 @@ public class QuasarRenderer {
         // Step 1: probeCapabilities
         try {
             mCapabilityTable = DeviceCapabilityProbe.probeCapabilities(context);
-        } catch (Throwable t) {
-            Log.e(TAG, "[Quasar] Step 1 Failed: DeviceCapabilityProbe.probeCapabilities threw an error. Falling back to conservative table.", t);
+        } catch (Throwable e) {
+            Log.e(TAG, "[Quasar] Step 1 Failed: DeviceCapabilityProbe.probeCapabilities threw an error. Falling back to conservative table.", e);
             mCapabilityTable = new CapabilityTable();
             mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
         }
@@ -45,16 +45,16 @@ public class QuasarRenderer {
         // Step 2: selectBackend
         try {
             mSelectedBackend = BackendSelector.selectBackend(mCapabilityTable);
-        } catch (Throwable t) {
-            Log.e(TAG, "[Quasar] Step 2 Failed: BackendSelector.selectBackend threw an error. Falling back to GL4ES_GLES.", t);
+        } catch (Throwable e) {
+            Log.e(TAG, "[Quasar] Step 2 Failed: BackendSelector.selectBackend threw an error. Falling back to GL4ES_GLES.", e);
             mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
         }
 
         // Step 3: new ShaderCache(...)
         try {
             mShaderCache = new ShaderCache(baseCacheDir);
-        } catch (Throwable t) {
-            Log.e(TAG, "[Quasar] Step 3 Failed: new ShaderCache(...) threw an error. Shader caching disabled.", t);
+        } catch (Throwable e) {
+            Log.e(TAG, "[Quasar] Step 3 Failed: new ShaderCache(...) threw an error. Shader caching disabled.", e);
             mShaderCache = null;
             mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
         }
@@ -62,8 +62,8 @@ public class QuasarRenderer {
         // Step 4: new QuasarRenderSystem(...)
         try {
             mRenderSystem = new QuasarRenderSystem(mCapabilityTable);
-        } catch (Throwable t) {
-            Log.e(TAG, "[Quasar] Step 4 Failed: new QuasarRenderSystem(...) threw an error. Falling back to GL4ES_GLES.", t);
+        } catch (Throwable e) {
+            Log.e(TAG, "[Quasar] Step 4 Failed: new QuasarRenderSystem(...) threw an error. Falling back to GL4ES_GLES.", e);
             mRenderSystem = null;
             mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
         }
@@ -73,8 +73,8 @@ public class QuasarRenderer {
             if (mRenderSystem != null) {
                 mRenderSystem.initializeIrisBridge();
             }
-        } catch (Throwable t) {
-            Log.e(TAG, "[Quasar] Step 5 Failed: initializeIrisBridge() threw an error. Falling back to GL4ES_GLES.", t);
+        } catch (Throwable e) {
+            Log.e(TAG, "[Quasar] Step 5 Failed: initializeIrisBridge() threw an error. Falling back to GL4ES_GLES.", e);
             mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
         }
 

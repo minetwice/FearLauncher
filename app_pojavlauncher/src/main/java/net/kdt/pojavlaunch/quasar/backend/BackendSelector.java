@@ -18,8 +18,14 @@ public class BackendSelector {
 
     public static BackendType selectBackend(CapabilityTable caps) {
         if (caps != null && caps.hasVulkan) {
-            Log.i(TAG, "[Quasar] Selected Primary Backend Candidate: ZINK_VULKAN (OpenGL-over-Vulkan)");
-            return BackendType.ZINK_VULKAN;
+            Log.i(TAG, "[Quasar] Candidate Backend: ZINK_VULKAN. Performing runtime verification...");
+            if (verifyZinkInitialization()) {
+                Log.i(TAG, "[Quasar] Selected Primary Backend: ZINK_VULKAN (OpenGL-over-Vulkan)");
+                return BackendType.ZINK_VULKAN;
+            } else {
+                Log.w(TAG, "[Quasar] Zink runtime verification failed during selection! Falling back to GL4ES_GLES.");
+                return BackendType.GL4ES_GLES;
+            }
         } else {
             Log.i(TAG, "[Quasar] Selected Fallback Backend: GL4ES_GLES (Direct GLES)");
             return BackendType.GL4ES_GLES;
