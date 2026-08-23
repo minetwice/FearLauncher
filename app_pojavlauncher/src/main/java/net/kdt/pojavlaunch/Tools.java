@@ -94,6 +94,10 @@ public final class Tools {
 
     public static final String URL_HOME = "https://pojavlauncherteam.github.io";
     public static String NATIVE_LIB_DIR;
+    public static String RENDERER_DIR = null;
+    public static String MOBILEGLES_DIR = null;
+    public static String MOBILEGL_DIR = null;
+    public static String NG_GL4ES_DIR = null;
     public static String DIR_DATA; //Initialized later to get context
     public static File DIR_CACHE;
     public static String MULTIRT_HOME;
@@ -163,6 +167,10 @@ public final class Tools {
     public static void initEarlyConstants(Context ctx) {
         DIR_CACHE = ctx.getCacheDir();
         DIR_DATA = ctx.getFilesDir().getParent();
+        RENDERER_DIR = DIR_DATA + "/renderer";
+        MOBILEGLES_DIR = RENDERER_DIR + "/mobileglues";
+        MOBILEGL_DIR = RENDERER_DIR + "/mobilegl";
+        NG_GL4ES_DIR = RENDERER_DIR + "/nggl4es";
         MULTIRT_HOME = DIR_DATA + "/runtimes";
         DIR_ACCOUNT_NEW = DIR_DATA + "/accounts";
         NATIVE_LIB_DIR = ctx.getApplicationInfo().nativeLibraryDir;
