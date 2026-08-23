@@ -7,10 +7,6 @@
         <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
         <item name="4">@string/mcl_setting_renderer_ltw</item>
         <item name="5">MH DRIVE (Mali Hybrid Optimization Engine)</item>
-        <item name="6">MobileGlues (OpenGL 4.0, 1.17+)</item>
-        <item name="7">MobileGL</item>
-        <item name="8">Krypton Wrapper (NG-GL4ES)</item>
-        <item name="9">Custom Render Injection</item>
     </string-array>
 
     <string-array name="menu_customcontrol">
@@ -42,18 +38,13 @@
     </string-array>
 
     <string-array name="renderer_values">
-        <item>fear_engine</item>
-        <item>opengles2</item>
-        <item>vulkan_zink</item>
-        <item>freedreno_kgsl</item>
-        <item>opengles3_ltw</item>
+        <item>fear_engine</item> <!-- Fear Render (Standalone FOGL core) -->
+        <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->
+        <item>vulkan_zink</item> <!-- zink with OpenGL (undef) -->
+        <item>freedreno_kgsl</item> <!-- freedreno gallium driver with OpenGL 4.6 -->
+        <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->
         <item>mh_drive</item>
-        <item>opengles3_mges</item>
-        <item>opengles3_mggl</item>
-        <item>opengles3_nggl4es</item>
-        <item>custom_inject</item>
     </string-array>
-
     <string-array name="download_source_names">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>
@@ -62,4 +53,5 @@
         <item>default</item>
         <item>bmclapi</item>
     </string-array>
+
 </resources>

@@ -27,12 +27,14 @@ public class JREUtils {
             int failCount = 0;
             while (failCount < 15) {
                 try {
+                    // Optimized high-speed log retrieval: no filtering at process level to avoid buffer backup
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
 
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
+                            // Filter lines in-memory for speed and "Manufactured" feel
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
@@ -43,7 +45,7 @@ public class JREUtils {
                     if (exitCode != 0) {
                         Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
                         failCount++;
-                        Thread.sleep(500 * failCount);
+                        Thread.sleep(500 * failCount); // Exponential backoff
                     }
                 } catch (Exception e) {
                     Log.e("jrelog-logcat", "Log stream error", e);
@@ -60,12 +62,14 @@ public class JREUtils {
         BufferedReader reader = new BufferedReader(new FileReader(customEnvFile));
         String line;
         while ((line = reader.readLine()) != null) {
+            // Not use split() as only split first one
             int index = line.indexOf("=");
             envMap.put(line.substring(0, index), line.substring(index + 1));
         }
         reader.close();
     }
 
+    // Sets up ANGLE driver environment
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
@@ -85,9 +89,11 @@ public class JREUtils {
         envMap.put("POJAV_FFMPEG_PATH", ffmpeg.resolveAbsolutePath("libffmpeg.so"));
     }
 
+    // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "mh_drive":
+                // MH DRIVE (Mali Hybrid Optimization Engine)
                 Logger.appendToLog("[MH DRIVE] MULTI-TRACK MALI ENGINE INITIALIZED...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
@@ -112,6 +118,8 @@ public class JREUtils {
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 envMap.put("LIBGL_NO_VBO_BOUNDS", "1");
+
+                // High-precision float depth and color attachments to fix shadow and ray color glitches:
                 envMap.put("LIBGL_FLOAT_COLOR", "1");
                 envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
@@ -136,7 +144,7 @@ public class JREUtils {
                     envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                     envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                     envMap.put("MESA_NO_MINMAX_CACHE", "1");
-                    envMap.put("MESA_NO_ERROR", "0");
+                    envMap.put("MESA_NO_ERROR", "0"); // Disable force no-error for Sodium compatibility
                 } else {
                     Logger.appendToLog("[FearRender] Configuring GLES environment profile");
                 }
@@ -148,68 +156,53 @@ public class JREUtils {
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 envMap.put("gl_draw_buffers_override", "true");
+
+                // GLSL behavior
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("allow_glsl_layout_qualifier_override", "true");
                 envMap.put("glsl_ignore_noperspective", "true");
+
+                // Shader Cache
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("vblank_mode", "0");
+
+                // Extensions
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                // HACK: GLSL version override for Mesa-based renderers (i.e. Zink)
+                // Required to run the game properly on some mobile Vulkan drivers (Minecraft fails to compile shaders without)
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 break;
             case "freedreno_kgsl":
                 if(GLInfoUtils.getGlInfo().isAdreno()) {
                     envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "kgsl");
+                    // On Adreno 5XX and lower only Core 3.1 is exposed by default due to missing hardware extensions.
+                    // 3.3 is required for modern Minecraft so let's force 3.3 if running on such GPU - it's known to be working.
                     if(GLInfoUtils.getGlInfo().isAdreno500Lower()) {
                         envMap.put("MESA_GL_VERSION_OVERRIDE", "3.3");
                         envMap.put("MESA_GLSL_VERSION_OVERRIDE", "330");
                     }
                 }
                 break;
-            case "opengles3_mges":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_GL", "40");
-                break;
-            case "opengles3_mggl":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_GL", "40");
-                break;
-            case "opengles3_nggl4es":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_GL", "31");
-                break;
-            case "custom_inject":
-                Logger.appendToLog("[FearRender] Custom Render Injection mode selected - loading external renderer plugin");
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                break;
         }
     }
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
+
+        // Prevent OptiFine (and other error-reporting stuff in Minecraft) from balooning the log
         envMap.put("LIBGL_NOERROR", "1");
+
+        // On certain GLES drivers, overloading default functions shader hack fails, so disable it
         envMap.put("LIBGL_NOINTOVLHACK", "1");
+
+        // Fix white color on banner and sheep, since GL4ES 1.1.5
         envMap.put("LIBGL_NORMALIZE", "1");
 
         if(PREF_DUMP_SHADERS)
@@ -217,6 +210,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
+        // The OPEN GL version is changed according
         envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
 
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
@@ -225,16 +219,18 @@ public class JREUtils {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
-        File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
-        if (!modRuntimeDir.exists()) {
-            modRuntimeDir.mkdirs();
-        }
-        envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
+		// This is currently required for YSM mod to function
+		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
+		if (!modRuntimeDir.exists()) {
+		modRuntimeDir.mkdirs();
+		}
+		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
         setupRendererEnv(envMap, renderer);
 
+        // HACK
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         envMap.put("EGL_PLATFORM", "android");
 
@@ -245,6 +241,7 @@ public class JREUtils {
         }
 
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
+            // We could also apply the FD_MESA_DEBUG only if freedreno is active but why making things complicated?
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
             envMap.put("TU_DEBUG", "sysmem");
@@ -263,17 +260,31 @@ public class JREUtils {
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
+
+        // Force LWJGL to use the Freetype library intended for it, instead of using the one
+        // that we ship with Java (since it may be older than what's needed)
+        //
         Tools.fullyExit();
     }
 
+    /**
+     * Parse and separate java arguments in a user friendly fashion
+     * It supports multi line and absence of spaces between arguments
+     * The function also supports auto-removal of improper arguments, although it may miss some.
+     *
+     * @param args The un-parsed argument list.
+     * @return Parsed args as an ArrayList
+     */
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
         args = args.trim().replace(" ", "");
+        //For each prefixes, we separate args.
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
                 int start = args.indexOf(prefix);
                 if(start == -1) break;
+                //Get the end of the current argument by checking the nearest separator
                 int end = -1;
                 for(String separator: separators){
                     int tempEnd = args.indexOf(separator, start + prefix.length());
@@ -284,15 +295,19 @@ public class JREUtils {
                     }
                     end = Math.min(end, tempEnd);
                 }
+                //Fallback
                 if(end == -1) end = args.length();
 
+                //Extract it
                 String parsedSubString = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
 
+                //Check if two args aren't bundled together by mistake
                 if(parsedSubString.indexOf('=') == parsedSubString.lastIndexOf('=')) {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
+                        // Looking for list elements
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
                                 parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
@@ -307,6 +322,11 @@ public class JREUtils {
         return parsedArguments;
     }
 
+    /**
+     * Open the render library in accordance to the settings.
+     * It will fallback if it fails to load the library.
+     * @return The name of the loaded library
+     */
     public static String loadGraphicsLibrary(String renderer){
         String renderLibrary;
         boolean useGles;
@@ -315,6 +335,7 @@ public class JREUtils {
         int glesVersion;
         switch (renderer){
             case "mh_drive":
+                // Map to dynamic linking wrapper containing MH DRIVE Track 1 and integrated GLES/Vulkan overrides
                 renderLibrary = "libltw.so";
                 useGles = true;
                 glesVersion = 3;
@@ -357,33 +378,12 @@ public class JREUtils {
             case "vulkan_zink":
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
-                bypassNamespace = true;
+                bypassNamespace = true; // Mesa is linked to a bunch of libraries not available in the pojavexec namespace
                 glesVersion = 3;
-                if(preloadVk) preloadVulkan();
+                if(preloadVk) preloadVulkan(); // Zink requires Vulkan library to be preloaded
                 break;
             case "opengles3_ltw" :
                 renderLibrary = "libltw.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_mges":
-                renderLibrary = "libmobileglues.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_mggl":
-                renderLibrary = "libMobileGL.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_nggl4es":
-                renderLibrary = "libng_gl4es.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "custom_inject":
-                Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
-                renderLibrary = "libGLFear.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
@@ -407,7 +407,7 @@ public class JREUtils {
     public static String probeEGLPlatform() {
         try {
             Os.setenv("EGL_PLATFORM", "android", true);
-            long eglDisplay = eglGetDisplay(0);
+            long eglDisplay = eglGetDisplay(0 /* EGL_DEFAULT_DISPLAY */);
             if (eglDisplay != 0) {
                 int[] major = new int[1];
                 int[] minor = new int[1];
@@ -455,12 +455,15 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
+    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
+    //public static native void initializeHooks();
+    // Obtain AWT screen pixels to render on Android SurfaceView
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
