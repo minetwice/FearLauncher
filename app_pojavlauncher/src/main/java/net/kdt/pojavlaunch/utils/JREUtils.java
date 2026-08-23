@@ -19,6 +19,7 @@ import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
+import net.kdt.pojavlaunch.quasar.QuasarRenderer;
 
 public class JREUtils {
     public static void redirectAndPrintJRELog() {
@@ -232,6 +233,25 @@ public class JREUtils {
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_NORMALIZE", "1");
                 envMap.put("LIBGL_NOINTOVLHACK", "1");
+                break;
+            case "quasar":
+                Logger.appendToLog("[Quasar] Initializing Quasar renderer environment...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_NORMALIZE", "1");
+                envMap.put("LIBGL_NOINTOVLHACK", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("allow_higher_compat_version", "true");
+                envMap.put("allow_glsl_relaxed_es", "true");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("vblank_mode", "0");
                 break;
         }
     }
@@ -448,6 +468,18 @@ public class JREUtils {
             case "custom_inject":
                 Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
                 renderLibrary = "libGLFear.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
+            case "quasar":
+                Logger.appendToLog("[Quasar] Loading Quasar renderer...");
+                try {
+                    net.kdt.pojavlaunch.quasar.QuasarRenderer.getInstance().initialize(
+                        net.kdt.pojavlaunch.lifecycle.ContextExecutor.getContext());
+                } catch (Exception e) {
+                    Log.w("JREUtils", "Quasar initialization failed, falling back to GL4ES", e);
+                }
+                renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
