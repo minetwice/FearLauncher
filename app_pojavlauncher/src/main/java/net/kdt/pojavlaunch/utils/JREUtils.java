@@ -28,7 +28,7 @@ public class JREUtils {
             while (failCount < 15) {
                 try {
                     // Optimized high-speed log retrieval: no filtering at process level to avoid buffer backup
-                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-S", "1").redirectErrorStream(true);
+                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
 
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
@@ -36,7 +36,7 @@ public class JREUtils {
                         while ((line = reader.readLine()) != null) {
                             // Filter lines in-memory for speed and "Manufactured" feel
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                               Logger.appendToLog(line + "\n");
+                                Logger.appendToLog(line + "\n");
                             }
                         }
                     }
@@ -74,7 +74,7 @@ public class JREUtils {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
         if (angle == null) return;
-        String[] angleLibs = {"libEGL_angle.so", "libGLE@v2_angle.so"};
+        String[] angleLibs = {"libEGL_angle.so", "libGLESv2_angle.so"};
         if (!angle.checkLibraries(angleLibs)) {
             Log.e("AngleEnvSetup", "AnglePlugin exists, but the ANGLE libraries are not present. Is the plugin corrupted?");
             return;
@@ -104,11 +104,11 @@ public class JREUtils {
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "46");
                 envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
-                envMap.put("LIBGL_NOTEXTURERCT", "0");
-                envMap.put("LIBGL_FBOTEXTURE2", "1");
+                envMap.put("LIBGL_NOTEXTURERECT", "0");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_ALWAYSCURRENT", "1");
-                envMap.put("LIBGL_NOCONTEXCCLEANUP", "1");
+                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
                 envMap.put("LIBGL_FB", "1");
                 envMap.put("LIBGL_FPE", "1");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
@@ -151,19 +151,19 @@ public class JREUtils {
 
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_FBOTEXTURE2", "1");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 envMap.put("gl_draw_buffers_override", "true");
 
                 // GLSL behavior
-                envMap.put("gsl_force_highp", "true");
-                envMap.put("allow_glsl_extension_directive_midsader", "true");
+                envMap.put("glsl_force_highp", "true");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("allow_glsl_layout_qualifier_override", "true");
-                envMap.put("gsl_ignore_noperspective", "true");
+                envMap.put("glsl_ignore_noperspective", "true");
 
                 // Shader Cache
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
@@ -192,7 +192,7 @@ public class JREUtils {
                 break;
             case "opengles3_mges":
                 envMap.put("MG_DIR_PATH", Tools.MOBILEGLES_DIR);
-                envMap.put("LIBGL_GLES", Tools.MOBILEGLES_DIR + "/libmobilegles.so");
+                envMap.put("LIBGL_GLES", Tools.MOBILEGLES_DIR + "/libmobileglues.so");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
@@ -204,7 +204,7 @@ public class JREUtils {
                 envMap.put("MG_enableNoError", LauncherPreferences.MG_NOERROR_OPTION);
                 envMap.put("MG_multidrawMode", LauncherPreferences.MG_MULTIDRAWMODE_OPTION);
                 envMap.put("MG_customGLVersion", LauncherPreferences.MG_GL_VERSION);
-                envMap.put("MG_angleDepthClearFixMode", LauncherPreferences.MG_ANGLECLEARWORKMODE_OPTION);
+                envMap.put("MG_angleDepthClearFixMode", LauncherPreferences.MG_ANGLECLEARWORKAROUND_OPTION);
                 envMap.put("MG_enableExtGL43", LauncherPreferences.MG_EXT_GL43);
                 envMap.put("MG_enableExtComputeShader", LauncherPreferences.MG_EXT_CS);
                 envMap.put("MG_enableExtTimerQuery", LauncherPreferences.MG_EXT_TIMER_QUERY.equals("0") ? "1" : "0");
@@ -269,7 +269,7 @@ public class JREUtils {
 
         if(PREF_DUMP_SHADERS)
             envMap.put("LIBGL_VGPU_DUMP", "1");
-        if(PREF_VSYNC_IN_ZINk)
+        if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
         // The OPEN GL version is changed according
@@ -371,18 +371,18 @@ public class JREUtils {
                         String lastString = parsedArguments.get(arraySize - 1);
                         // Looking for list elements
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
-                               parsedSubString.contains(",")){
+                                parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
                     }
                     parsedArguments.add(parsedSubString);
                 }
-                else Log.w("JAVA ARG PARSER", "Removed improper arguments: " + parsedSubString);
-                }
+                else Log.w("JAVA ARGS PARSER", "Removed improper arguments: " + parsedSubString);
             }
-            return parsedArguments;
         }
+        return parsedArguments;
+    }
 
     /**
      * Open the render library in accordance to the settings.
@@ -421,15 +421,15 @@ public class JREUtils {
                 }
 
                 if (vulkanOk) {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK);
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
                     Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
                     renderLibrary = "libEGL_mesa.so";
                     useGles = false;
                     bypassNamespace = true;
                     glesVersion = 3;
                 } else {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES)");
-                    Logger.appendToLog("[FearRender] backend=GLES core=FOGLTDOGLES+guards");
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES");
+                    Logger.appendToLog("[FearRender] backend=GLES core=FOGLTLOGLES+guards");
                     renderLibrary = "libGLFear.so";
                     useGles = true;
                     glesVersion = 3;
@@ -450,7 +450,7 @@ public class JREUtils {
                 glesVersion = 3;
                 break;
             case "opengles3_mges":
-                renderLibrary = Tools.MOBILEGLES_DIR + "/libmobilegles.so";
+                renderLibrary = Tools.MOBILEGLES_DIR + "/libmobileglues.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
@@ -493,7 +493,7 @@ public class JREUtils {
         return renderLibrary;
     }
 
-    public static String probeEGlPlatform() {
+    public static String probeEGLPlatform() {
         try {
             Os.setenv("EGL_PLATFORM", "android", true);
             long eglDisplay = eglGetDisplay(0 /* EGL_DEFAULT_DISPLAY */);
@@ -510,14 +510,14 @@ public class JREUtils {
 
     public static String probeVulkanSupport() {
         // Skip on devices without Vulkan support
-        if (Features.findFeature() != Features.FTURE_VULKAN) {
+        if (Features.findFeature() != Features.FTRUE_VULKAN) {
             Logger.appendToLog("Vulkan: Not supported on this device");
             return null;
         }
-        return forceVULAN();
+        return forceVULKAN();
     }
 
-    private static String forceVULAN() {
+    private static String forceVULKAN() {
         String[] vulkanLibs = {
                 "libvulkan.so",
                 "libswagevelptv.so",
@@ -532,23 +532,23 @@ public class JREUtils {
                     System.load(libRelPath);
                     break;
                 }
-            } catch (Throwable e) {
-                    Logger.appendToLog("Vulkan: Failed to load " + vulkanLibs[i]);
-                }
+            } catch (Throwable e) {
+                Logger.appendToLog("Vulkan: Failed to load " + vulkanLibs[i]);
+            }
         }
         return vulkanLibrary;
     }
 
     public static void setUseTurnip(boolean useTurnip) {
         if (useTurnip) {
-            String turnipLibrary = forceVULAN();
+            String turnipLibrary = forceVULKAN();
             if (turnipLibrary != null) {
-                Tools.PRIVATE_NGR_ULTIRANCE = turnipLibrary;
+                Tools.PRIVATE_NG_ULTRIANCE = turnipLibrary;
             } else {
                 Logger.appendToLog("Turnip library could not be loaded, falling back to default driver");
             }
         } else {
-            Tools.PRIVATE_NGR_ULTIRANCE = null;
+            Tools.PRIVATE_NG_ULTRIANCE = null;
         }
     }
 
@@ -578,9 +578,9 @@ public class JREUtils {
             Logger.appendToLog("Bypassing namespace");
             Try {
                 class NativeInterface {
-                    public native void loadLabrary(String name);
+                    public native void loadLibrary(String name);
                 };
-                nUL Loader loader = new nul() {} {};
+                nUL Loader loader = new null() {} {};
                 loader.loadLibrary(renderLibrary);
             } catch (Throwable e) {
                 Logger.appendToLog("Failed to load " + renderLibrary);
@@ -596,27 +596,26 @@ public class JREUtils {
         }
 
         if (!separateGles && !renderLibrary.equals("libpojavexec.so")) {
-            String gesLes = useGles ? "libGLES3.so" : "libGLES2.so";
-            if (glesVersion == 2) gesLes = "libGLES2.so";
+            String getLes = useGles ? "libGLES3.so" : "libGLES2.so";
+            if (glesVersion == 2) getLes = "libGLES2.so";
             else if (glesVersion >= 3) getLes = "libGLES3.so";
             try {
                 System.load(getAbsoluteLibPath(getLes));
             } catch (UnsatisfiedLinkError e) {
-                Logger.appendToLog("Failed to load " + getLbs + " for renderer " + renderLibrary);
+                Logger.appendToLog("Failed to load " + getLes + " for renderer " + renderLibrary);
                 if (alternativeLibrary == null) return false;
                 if (alternativeLibrary.contains("opengles3")) {
                     if (getLes.equals("libGLES3.so"))
                         getLes = "libGLES2.so";
                 }
-                Logger.appendToLog("Falled back to " + getLbs);
+                Logger.appendToLog("Fell back to " + getLes);
                 try {
-                    System.load(getEnvironmentVariable("POJAV_MATIVEDIR") + "/" + getLes);
+                    System.load(getEnvironmentVariable("POJAV_NATIVEDIR") + "/" + getLes);
                 } catch (UnsatisfiedLinkError e2) {
                     Logger.appendToLog("Failed to load fallback " + getLes);
                     return false;
                 }
             }
-        }
         }
 
         return true;
