@@ -22,7 +22,7 @@ public class RendererCompatUtil {
     public static boolean checkVulkanSupport(PackageManager packageManager) {
         if(SDK_INT >= Build.VERSION_CODES.N) {
             return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
-                    packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
+                   packageManager.hasSystemFeature(PackageManager.FEATURE_VULKA_HARDWARE_VERSION);
         }
         return false;
     }
@@ -34,23 +34,20 @@ public class RendererCompatUtil {
         String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
         String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
         boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
-        // Current Mesa requires API29+
         boolean deviceCompatibleMesa = SDK_INT >= 29;
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
-        // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
-            if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive")) {
+            if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive") || rendererId.equals("quasar")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
             }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
-            // freedreno is available only on Adreno GPUs
             if(rendererId.contains("freedreno") && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
             rendererIds.add(rendererId);
@@ -58,13 +55,12 @@ public class RendererCompatUtil {
         }
         sCompatibleRenderers = new RenderersList(rendererIds,
                 rendererNames.toArray(new String[0]));
-
         return sCompatibleRenderers;
     }
 
     /** Checks if the renderer Id is compatible with the current device */
     public static boolean checkRendererCompatible(Context context, String rendererName) {
-         return getCompatibleRenderers(context).rendererIds.contains(rendererName);
+        return getCompatibleRenderers(context).rendererIds.contains(rendererName);
     }
 
     /** Releases the cache of compatible renderers. */
