@@ -383,12 +383,6 @@ public class JREUtils {
                 break;
             case "custom_inject":
                 Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
-                String customPluginPath = LauncherPreferences.PREF_CUSTOM_RENDERER_PATH;
-                if (customPluginPath != null && !customPluginPath.isEmpty()) {
-                    Logger.appendToLog("[FearRender] Loading custom renderer from: " + customPluginPath);
-                } else {
-                    Logger.appendToLog("[FearRender] No custom renderer path set, using Fear Render fallback");
-                }
                 renderLibrary = "libGLFear.so";
                 useGles = true;
                 glesVersion = 3;
