@@ -19,7 +19,6 @@ import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
-import net.kdt.pojavlaunch.utils.RenderPluginManager;
 
 public class JREUtils {
     public static void redirectAndPrintJRELog() {
@@ -197,6 +196,7 @@ public class JREUtils {
                 envMap.put("LIBGL_GL", "31");
                 break;
             case "custom_inject":
+                Logger.appendToLog("[FearRender] Custom Render Injection mode selected - loading external renderer plugin");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
@@ -383,12 +383,11 @@ public class JREUtils {
                 break;
             case "custom_inject":
                 Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
-                boolean pluginLoaded = RenderPluginManager.loadPluginFromPrefs(null);
-                if (pluginLoaded) {
-                    Logger.appendToLog("[FearRender] Custom renderer plugin loaded: "
-                        + RenderPluginManager.getPluginName() + " v" + RenderPluginManager.getPluginVersion());
+                String customPluginPath = LauncherPreferences.PREF_CUSTOM_RENDERER_PATH;
+                if (customPluginPath != null && !customPluginPath.isEmpty()) {
+                    Logger.appendToLog("[FearRender] Loading custom renderer from: " + customPluginPath);
                 } else {
-                    Logger.appendToLog("[FearRender] No custom renderer plugin path set, using Fear Render fallback");
+                    Logger.appendToLog("[FearRender] No custom renderer path set, using Fear Render fallback");
                 }
                 renderLibrary = "libGLFear.so";
                 useGles = true;
@@ -467,13 +466,6 @@ public class JREUtils {
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
-
-    public static native boolean loadRenderPlugin(String pluginPath);
-    public static native void unloadRenderPlugin();
-    public static native boolean isRenderPluginLoaded();
-    public static native String getRenderPluginName();
-    public static native String getRenderPluginVersion();
-    public static native int getRenderPluginOverrideCount();
 
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {

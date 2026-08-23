@@ -36,8 +36,8 @@ public class RendererCompatUtil {
  boolean deviceCompatibleMesa = SDK_INT >= 29;
  boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
  boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
- List rendererIds = new ArrayList<>(defaultRenderers.length);
- List rendererNames = new ArrayList<>(defaultRendererNames.length);
+ List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
+ List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
  for(int i = 0; i < defaultRenderers.length; i++) {
  String rendererId = defaultRenderers[i];
  if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive") ||
@@ -70,10 +70,10 @@ public class RendererCompatUtil {
  }
 
  public static class RenderersList {
- public final List rendererIds;
+ public final List<String> rendererIds;
  public final String[] rendererDisplayNames;
 
- public RenderersList(List rendererIds, String[] rendererDisplayNames) {
+ public RenderersList(List<String> rendererIds, String[] rendererDisplayNames) {
  this.rendererIds = rendererIds;
  this.rendererDisplayNames = rendererDisplayNames;
  }
