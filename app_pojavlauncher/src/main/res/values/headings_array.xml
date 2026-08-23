@@ -56,7 +56,7 @@
         <item>quasar</item>
     </string-array>
 
-    <string-array name="download_source">
+    <string-array name="download_source_names">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>
     </string-array>
