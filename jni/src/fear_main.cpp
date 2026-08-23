@@ -1,6 +1,8 @@
 #include <jni.h>
 #include <android/log.h>
 #include <string>
+#include <dlfcn.h>
+#include <EGL/egl.h>
 #include "fear_hooks.h"
 #include "fear_backend.h"
 
@@ -46,6 +48,44 @@ JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_clearShaderCache(
 
 JNIEXPORT jint JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_getTranslatedShaderCount(JNIEnv* env, jclass clazz) {
     return getTranslatedShaderCountInternal();
+}
+
+JNIEXPORT jlong JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_eglGetDisplay(JNIEnv* env, jclass clazz, jlong display) {
+    typedef EGLDisplay (*eglGetDisplay_pfn)(EGLNativeDisplayType);
+    static eglGetDisplay_pfn p_eglGetDisplay = (eglGetDisplay_pfn)dlsym(RTLD_DEFAULT, "eglGetDisplay");
+    if (p_eglGetDisplay) {
+        return (jlong)(intptr_t)p_eglGetDisplay((EGLNativeDisplayType)(intptr_t)display);
+    }
+    return 0;
+}
+
+JNIEXPORT jboolean JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_eglInitialize(JNIEnv* env, jclass clazz, jlong display, jintArray majorArr, jintArray minorArr) {
+    typedef EGLBoolean (*eglInitialize_pfn)(EGLDisplay, EGLint*, EGLint*);
+    static eglInitialize_pfn p_eglInitialize = (eglInitialize_pfn)dlsym(RTLD_DEFAULT, "eglInitialize");
+    if (p_eglInitialize && display != 0) {
+        EGLint major = 0, minor = 0;
+        EGLBoolean res = p_eglInitialize((EGLDisplay)(intptr_t)display, &major, &minor);
+        if (res == EGL_TRUE) {
+            if (majorArr) {
+                jint maj = major;
+                env->SetIntArrayRegion(majorArr, 0, 1, &maj);
+            }
+            if (minorArr) {
+                jint min = minor;
+                env->SetIntArrayRegion(minorArr, 0, 1, &min);
+            }
+            return JNI_TRUE;
+        }
+    }
+    return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_eglTerminate(JNIEnv* env, jclass clazz, jlong display) {
+    typedef EGLBoolean (*eglTerminate_pfn)(EGLDisplay);
+    static eglTerminate_pfn p_eglTerminate = (eglTerminate_pfn)dlsym(RTLD_DEFAULT, "eglTerminate");
+    if (p_eglTerminate && display != 0) {
+        p_eglTerminate((EGLDisplay)(intptr_t)display);
+    }
 }
 
 } // extern "C"

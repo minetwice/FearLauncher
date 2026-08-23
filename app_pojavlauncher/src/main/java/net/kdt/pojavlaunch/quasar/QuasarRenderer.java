@@ -11,7 +11,7 @@ import net.kdt.pojavlaunch.quasar.transpile.ShaderCache;
 import net.kdt.pojavlaunch.quasar.iris.QuasarRenderSystem;
 
 /**
- * QuasarRenderer - Main entry point and lifecycle manager for Quasar rendering subsystem.
+ * QuasarRenderer - Entry point and lifecycle manager with step-by-step try-catch error recovery.
  */
 public class QuasarRenderer {
     private static final String TAG = "QuasarRenderer";
@@ -20,7 +20,7 @@ public class QuasarRenderer {
     private CapabilityTable mCapabilityTable;
     private ShaderCache mShaderCache;
     private QuasarRenderSystem mRenderSystem;
-    private BackendSelector.BackendType mSelectedBackend;
+    private BackendSelector.BackendType mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
 
     public static synchronized QuasarRenderer getInstance() {
         if (sInstance == null) {
@@ -30,16 +30,52 @@ public class QuasarRenderer {
     }
 
     public void initialize(Context context, File baseCacheDir) {
-        Log.i(TAG, "[Quasar] Initializing Quasar Translation Subsystem...");
-        mCapabilityTable = DeviceCapabilityProbe.probeCapabilities(context);
-        mSelectedBackend = BackendSelector.selectBackend(mCapabilityTable);
-        mShaderCache = new ShaderCache(baseCacheDir);
-        mRenderSystem = new QuasarRenderSystem(mCapabilityTable);
-        mRenderSystem.initializeIrisBridge();
+        Log.i(TAG, "[Quasar] Starting Quasar Translation Subsystem initialization...");
+
+        // Step 1: Device Capability Probe
+        try {
+            mCapabilityTable = DeviceCapabilityProbe.probeCapabilities(context);
+        } catch (Throwable t) {
+            Log.e(TAG, "[Quasar] Step 1 Failed: DeviceCapabilityProbe threw an error. Using fallback capability table.", t);
+            mCapabilityTable = new CapabilityTable();
+        }
+
+        // Step 2: Backend Selection
+        try {
+            mSelectedBackend = BackendSelector.selectBackend(mCapabilityTable);
+        } catch (Throwable t) {
+            Log.e(TAG, "[Quasar] Step 2 Failed: BackendSelector error. Falling back to GL4ES_GLES.", t);
+            mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
+        }
+
+        // Step 3: Shader Cache Setup
+        try {
+            mShaderCache = new ShaderCache(baseCacheDir);
+        } catch (Throwable t) {
+            Log.e(TAG, "[Quasar] Step 3 Failed: ShaderCache initialization error.", t);
+            mShaderCache = null;
+        }
+
+        // Step 4: Iris RenderSystem Bridge Initialization
+        try {
+            mRenderSystem = new QuasarRenderSystem(mCapabilityTable);
+            mRenderSystem.initializeIrisBridge();
+        } catch (Throwable t) {
+            Log.e(TAG, "[Quasar] Step 4 Failed: Iris bridge error. Re-enabling safe fallback state.", t);
+            mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
+        }
+
+        Log.i(TAG, "[Quasar] Initialization finished. Active Backend: " + mSelectedBackend);
     }
 
     public void configureEnvironment(Map<String, String> env, String cacheDir) {
-        BackendSelector.applyBackendEnvironment(mSelectedBackend, env, cacheDir);
+        try {
+            mSelectedBackend = BackendSelector.verifyAndApplyBackend(mSelectedBackend, env, cacheDir);
+        } catch (Throwable t) {
+            Log.e(TAG, "[Quasar] Error applying backend environment. Forcing GL4ES fallback.", t);
+            mSelectedBackend = BackendSelector.BackendType.GL4ES_GLES;
+            BackendSelector.applyBackendEnvironment(mSelectedBackend, env, cacheDir);
+        }
     }
 
     public CapabilityTable getCapabilityTable() {
@@ -52,5 +88,9 @@ public class QuasarRenderer {
 
     public QuasarRenderSystem getRenderSystem() {
         return mRenderSystem;
+    }
+
+    public BackendSelector.BackendType getSelectedBackend() {
+        return mSelectedBackend;
     }
 }

@@ -6,7 +6,7 @@ import android.util.Log;
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 
 /**
- * DeviceCapabilityProbe - Probes device capabilities and returns populated CapabilityTable.
+ * DeviceCapabilityProbe - Probes device capabilities and returns populated CapabilityTable with conservative fallback.
  */
 public class DeviceCapabilityProbe {
     private static final String TAG = "DeviceCapabilityProbe";
@@ -15,22 +15,30 @@ public class DeviceCapabilityProbe {
         CapabilityTable table = new CapabilityTable();
 
         if (context != null) {
-            PackageManager pm = context.getPackageManager();
-            if (pm != null && pm.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)) {
-                table.hasVulkan = true;
-                table.vulkanMajorVersion = 1;
-                table.vulkanMinorVersion = 3;
+            try {
+                PackageManager pm = context.getPackageManager();
+                if (pm != null && pm.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)) {
+                    table.hasVulkan = true;
+                    table.vulkanMajorVersion = 1;
+                    table.vulkanMinorVersion = 3;
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "[Quasar] PackageManager query for Vulkan feature failed: " + t.getMessage());
             }
         }
 
         try {
             GLInfoUtils.GLInfo glInfo = GLInfoUtils.getGlInfo();
-            if (glInfo != null) {
-                table.isAdreno = glInfo.isAdreno();
-                table.isMali = glInfo.renderer != null && (glInfo.renderer.contains("Mali") || glInfo.renderer.contains("mali"));
+            if (glInfo != null && glInfo.renderer != null) {
+                String renderer = glInfo.renderer.toLowerCase();
+                if (renderer.contains("adreno")) {
+                    table.isAdreno = true;
+                } else if (renderer.contains("mali")) {
+                    table.isMali = true;
+                }
             }
         } catch (Throwable t) {
-            Log.w(TAG, "GLInfo query failed: " + t.getMessage());
+            Log.w(TAG, "[Quasar] GLInfo query failed: " + t.getMessage());
         }
 
         if (table.isMali) {
@@ -45,6 +53,17 @@ public class DeviceCapabilityProbe {
             table.supportsASTCTextures = true;
             table.supportsFloat32Depth = true;
             Log.i(TAG, "[Quasar] Profile: Qualcomm Adreno GPU detected. Enabled ASTC and compute extensions.");
+        } else {
+            // Conservative fallback for unknown / unrecognized GPU vendors
+            table.isMali = false;
+            table.isAdreno = false;
+            table.supportsComputeShaders = false;
+            table.supportsGeometryShaders = false;
+            table.supportsImageAtomics = false;
+            table.supportsASTCTextures = false;
+            table.supportsFloat16Color = false;
+            table.supportsFloat32Depth = false;
+            Log.w(TAG, "[Quasar] Profile: Unknown/Unrecognized GPU vendor detected. Applied safest conservative profile (all advanced features disabled).");
         }
 
         Log.i(TAG, "[Quasar] Capability Table Probed: " + table.toString());
