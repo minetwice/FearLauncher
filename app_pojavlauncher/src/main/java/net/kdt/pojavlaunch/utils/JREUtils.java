@@ -190,49 +190,6 @@ public class JREUtils {
                     }
                 }
                 break;
-            case "opengles3_mges":
-                envMap.put("MG_DIR_PATH", Tools.MOBILEGLES_DIR);
-                envMap.put("LIBGL_GLES", Tools.MOBILEGLES_DIR + "/libmobileglues.so");
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_GL", "40");
-                envMap.put("MG_maxGlslCacheSize", LauncherPreferences.MG_GLSL_CACHE_SIZE);
-                envMap.put("MG_enableANGLE", LauncherPreferences.MG_ANGLE_OPTION);
-                envMap.put("MG_enableNoError", LauncherPreferences.MG_NOERROR_OPTION);
-                envMap.put("MG_multidrawMode", LauncherPreferences.MG_MULTIDRAWMODE_OPTION);
-                envMap.put("MG_customGLVersion", LauncherPreferences.MG_GL_VERSION);
-                envMap.put("MG_angleDepthClearFixMode", LauncherPreferences.MG_ANGLECLEARWORKAROUND_OPTION);
-                envMap.put("MG_enableExtGL43", LauncherPreferences.MG_EXT_GL43);
-                envMap.put("MG_enableExtComputeShader", LauncherPreferences.MG_EXT_CS);
-                envMap.put("MG_enableExtTimerQuery", LauncherPreferences.MG_EXT_TIMER_QUERY.equals("0") ? "1" : "0");
-                envMap.put("MG_enableExtDirectStateAccess", LauncherPreferences.MG_EXT_DIRECT_STATE_ACCESS);
-                envMap.put("MG_fsr1Setting", LauncherPreferences.MG_ENABLE_FSR1);
-                break;
-            case "opengles3_mggl":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_GL", "40");
-                break;
-            case "opengles3_nggl4es":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_GL", "31");
-                break;
-            case "custom_inject":
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                break;
         }
     }
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
@@ -427,27 +384,6 @@ public class JREUtils {
                 break;
             case "opengles3_ltw" :
                 renderLibrary = "libltw.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_mges":
-                renderLibrary = Tools.MOBILEGLES_DIR + "/libmobileglues.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_mggl":
-                renderLibrary = Tools.MOBILEGL_DIR + "/libMobileGL.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "opengles3_nggl4es":
-                renderLibrary = Tools.NG_GL4ES_DIR + "/libng_gl4es.so";
-                useGles = true;
-                glesVersion = 3;
-                break;
-            case "custom_inject":
-                Logger.appendToLog("[FearRender] Custom Render Injection mode selected");
-                renderLibrary = "libGLFear.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
