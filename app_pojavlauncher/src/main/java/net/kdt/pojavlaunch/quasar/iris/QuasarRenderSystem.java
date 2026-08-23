@@ -2,6 +2,9 @@ package net.kdt.pojavlaunch.quasar.iris;
 
 import android.util.Log;
 
+import net.kdt.pojavlaunch.quasar.transpile.GlslangCompiler;
+import net.kdt.pojavlaunch.quasar.transpile.SpirvCrossTranspiler;
+
 /**
  * QuasarRenderSystem bridges Quasar into Iris's existing IrisRenderSystem interface.
  *
