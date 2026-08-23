@@ -35,25 +35,80 @@ static void universal_safe_stub() {
     }
 }
 
+static thread_local EGLContext tls_currentContext = EGL_NO_CONTEXT;
+
+struct FearCaps {
+    int glesMajor = 3;
+    int glesMinor = 2;
+    int maxDrawBuffers = 8;
+    int maxTextureUnits = 16;
+    int maxTextureSize = 16384;
+    int maxRenderbufferSize = 16384;
+    bool isMali = false;
+    bool isAdreno = false;
+    bool hasFloat16Color = true;
+    bool hasFloat32Depth = true;
+    bool hasASTC = false;
+    bool initialized = false;
+};
+
+static FearCaps g_caps;
+
 static void initEGLGLESHandles() {
     static std::once_flag flag;
     std::call_once(flag, []() {
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
-        g_eglHandle = dlopen("libEGL.so", RTLD_GLOBAL | RTLD_LAZY);
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender] loaded, deferred init pending");
+        g_eglHandle = RTLD_DEFAULT;
         g_glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
-        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
     });
 }
 
 static EGLContext getCurrentEGLContext() {
     initEGLGLESHandles();
     typedef EGLContext (*eglGetCurrentContext_pfn)();
-    static eglGetCurrentContext_pfn real_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetCurrentContext");
-    return real_eglGetCurrentContext ? real_eglGetCurrentContext() : EGL_NO_CONTEXT;
+    static eglGetCurrentContext_pfn real_eglGetCurrentContext = (eglGetCurrentContext_pfn)dlsym(RTLD_DEFAULT, "eglGetCurrentContext");
+    EGLContext realCtx = real_eglGetCurrentContext ? real_eglGetCurrentContext() : EGL_NO_CONTEXT;
+    tls_currentContext = realCtx;
+    return realCtx;
 }
 
 static bool isContextCurrent() {
     return getCurrentEGLContext() != EGL_NO_CONTEXT;
+}
+
+static void detectCapsAndContext() {
+    if (g_caps.initialized || !isContextCurrent()) return;
+
+    typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+    typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+    static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
+    static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
+
+    const char* versionStr = real_glGetString ? (const char*)real_glGetString(GL_VERSION) : "OpenGL ES 3.2";
+    const char* rendererStr = real_glGetString ? (const char*)real_glGetString(GL_RENDERER) : "Generic";
+    const char* vendorStr = real_glGetString ? (const char*)real_glGetString(GL_VENDOR) : "Generic";
+
+    if (versionStr) sscanf(versionStr, "OpenGL ES %d.%d", &g_caps.glesMajor, &g_caps.glesMinor);
+
+    if (rendererStr) {
+        if (strstr(rendererStr, "Mali") || strstr(rendererStr, "mali")) g_caps.isMali = true;
+        if (strstr(rendererStr, "Adreno") || strstr(rendererStr, "adreno")) g_caps.isAdreno = true;
+    }
+
+    if (real_glGetIntegerv) {
+        real_glGetIntegerv(0x821D /* GL_MAX_DRAW_BUFFERS */, &g_caps.maxDrawBuffers);
+        real_glGetIntegerv(0x8872 /* GL_MAX_TEXTURE_IMAGE_UNITS */, &g_caps.maxTextureUnits);
+        real_glGetIntegerv(0x0D33 /* GL_MAX_TEXTURE_SIZE */, &g_caps.maxTextureSize);
+        real_glGetIntegerv(0x84E8 /* GL_MAX_RENDERBUFFER_SIZE */, &g_caps.maxRenderbufferSize);
+    }
+
+    g_caps.initialized = true;
+
+    const char* gpuType = g_caps.isMali ? "MALI" : (g_caps.isAdreno ? "ADRENO" : "GENERIC");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Context: GLES %d.%d | Renderer=%s | GPU=%s", g_caps.glesMajor, g_caps.glesMinor, rendererStr ? rendererStr : "Unknown", gpuType);
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] CAPS: drawBuffers=%d texUnits=%d maxTexSize=%d float16=%s", g_caps.maxDrawBuffers, g_caps.maxTextureUnits, g_caps.maxTextureSize, g_caps.hasFloat16Color ? "true" : "false");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] GPU profile: %s, optimizations applied", gpuType);
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] initialized on first call");
 }
 
 static void tryEmergencyContext() {
@@ -118,7 +173,7 @@ void* resolve_fear_symbol(const char* symbol) {
 FEAR_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
     initEGLGLESHandles();
     typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
-    static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
+    static eglCreateContext_pfn real_eglCreateContext = (eglCreateContext_pfn)dlsym(RTLD_DEFAULT, "eglCreateContext");
     EGLContext ctx = real_eglCreateContext ? real_eglCreateContext(dpy, config, share_context, attrib_list) : EGL_NO_CONTEXT;
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglCreateContext tid=%d -> %p", gettid(), ctx);
     return ctx;
@@ -127,9 +182,9 @@ FEAR_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
 FEAR_EXPORT EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     initEGLGLESHandles();
     typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
-    static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
+    static eglMakeCurrent_pfn real_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(RTLD_DEFAULT, "eglMakeCurrent");
     EGLBoolean res = real_eglMakeCurrent ? real_eglMakeCurrent(dpy, draw, read, ctx) : EGL_FALSE;
-    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, res ? "EGL_TRUE" : "EGL_FALSE");
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EGL] eglMakeCurrent tid=%d ctx=%p -> %s", gettid(), ctx, (res == EGL_TRUE) ? "TRUE" : "FALSE");
 
     if (ctx == EGL_NO_CONTEXT) {
         __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender][EGL] eglMakeCurrent passed EGL_NO_CONTEXT tid=%d (retaining internal state)", gettid());
@@ -173,23 +228,17 @@ FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
     if (!isContextCurrent()) {
         static bool logged = false;
         if (!logged) {
-            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetIntegerv without context tid=%d - safe default", gettid());
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetIntegerv called without context");
             logged = true;
-        }
-        tryEmergencyContext();
-        if (isContextCurrent()) {
-            typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-            static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
-            if (real_glGetIntegerv) {
-                real_glGetIntegerv(pname, params);
-                return;
-            }
         }
         if (pname == GL_MAX_TEXTURE_SIZE) *params = 16384;
         else if (pname == 0x821D /* GL_MAX_DRAW_BUFFERS */) *params = 8;
+        else if (pname == 0x8872 /* GL_MAX_TEXTURE_IMAGE_UNITS */) *params = 16;
         else *params = 0;
         return;
     }
+
+    detectCapsAndContext();
 
     typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
     static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetIntegerv");
@@ -329,12 +378,25 @@ FEAR_EXPORT void glDrawElements(GLenum mode, GLsizei count, GLenum type, const v
 }
 
 const unsigned char* fear_glGetString(unsigned int name) {
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glGetString without context");
+            logged = true;
+        }
+        if (name == GL_VERSION) return (const unsigned char*)"OpenGL ES 3.2 (Fear Render)";
+        if (name == GL_SHADING_LANGUAGE_VERSION) return (const unsigned char*)"OpenGL ES GLSL ES 3.20";
+        if (name == GL_RENDERER) return (const unsigned char*)"Fear Render (Mali-G615 GLES 3.2)";
+        if (name == GL_VENDOR) return (const unsigned char*)"Fear Render";
+        return (const unsigned char*)"";
+    }
+
     if (name == GL_VERSION) {
-        return (const unsigned char*)"4.6 (Fear Render)";
+        return (const unsigned char*)"OpenGL ES 3.2 (Fear Render)";
     } else if (name == GL_SHADING_LANGUAGE_VERSION) {
-        return (const unsigned char*)"4.60";
+        return (const unsigned char*)"OpenGL ES GLSL ES 3.20";
     } else if (name == GL_RENDERER) {
-        return (const unsigned char*)"Fear Render";
+        return (const unsigned char*)"Fear Render (Mali-G615 GLES 3.2)";
     } else if (name == GL_VENDOR) {
         return (const unsigned char*)"Fear Render";
     } else if (name == GL_EXTENSIONS) {

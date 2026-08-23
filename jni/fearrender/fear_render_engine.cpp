@@ -161,37 +161,71 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
         }
     }
 
-    // FIX 1: Compute shader fixes
-    if (type == GL_COMPUTE_SHADER ||
-        full_source.find("layout(local_size_") != std::string::npos ||
-        full_source.find("buffer") != std::string::npos ||
-        full_source.find("layout(std430") != std::string::npos) {
+    // FIX: Compute shader compatibility
+    // Only fix if this is ACTUALLY a compute shader (by type) AND
+    // the source genuinely has issues. Don't blindly replace.
+    if (type == GL_COMPUTE_SHADER) {
+        bool needsFix = false;
 
-        bool fixed = false;
-        if (full_source.find("uint i = ivec2(gl_FragCoord.xy).x;") != std::string::npos) {
-            replaceAll(full_source, "uint i = ivec2(gl_FragCoord.xy).x;", "uint i = gl_GlobalInvocationID.x;");
-            fixed = true;
-        }
-        if (full_source.find("gl_FragCoord.xy") != std::string::npos) {
-            replaceAll(full_source, "gl_FragCoord.xy", "vec2(gl_GlobalInvocationID.xy)");
-            fixed = true;
-        }
-        if (full_source.find("gl_FragCoord") != std::string::npos) {
-            replaceAll(full_source, "gl_FragCoord", "vec4(gl_GlobalInvocationID.xy, 0.0, 1.0)");
-            fixed = true;
-        }
-
-        if (full_source.find("layout(local_size_") == std::string::npos) {
-            std::string layout_qualifier = "\n#ifndef QUASAR_COMPUTE_LAYOUT\n#define QUASAR_COMPUTE_LAYOUT\nlayout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;\n#endif\n";
-            size_t main_pos = full_source.find("void main");
-            if (main_pos != std::string::npos) {
-                full_source.insert(main_pos, layout_qualifier);
-                fixed = true;
+        // Check if compute shader is missing local_size layout
+        if (full_source.find("layout(local_size_") == std::string::npos &&
+            full_source.find("layout (local_size_") == std::string::npos) {
+            // Missing workgroup size - inject default
+            std::string layoutQualifier =
+                "\n#ifndef FEAR_COMPUTE_LAYOUT\n"
+                "#define FEAR_COMPUTE_LAYOUT\n"
+                "layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;\n"
+                "#endif\n";
+            size_t mainPos = full_source.find("void main");
+            if (mainPos != std::string::npos) {
+                full_source.insert(mainPos, layoutQualifier);
+                needsFix = true;
             }
         }
 
-        if (fixed) {
-            LOG_INFO("[FearRender] Compute shader fixed: gl_FragCoord -> gl_GlobalInvocationID");
+        // Check if compute shader incorrectly uses gl_FragCoord
+        // Only fix if gl_GlobalInvocationID is NOT already present
+        if (full_source.find("gl_GlobalInvocationID") == std::string::npos) {
+            size_t fragCoordPos = full_source.find("gl_FragCoord");
+            bool inComment = false;
+            bool inString = false;
+            bool actuallyUsed = false;
+
+            // Walk the source to check if gl_FragCoord is in actual code
+            for (size_t i = 0; i < full_source.size(); i++) {
+                if (i == fragCoordPos && !inComment && !inString) {
+                    actuallyUsed = true;
+                    break;
+                }
+                if (i < full_source.size() - 1) {
+                    if (!inComment && !inString &&
+                        full_source[i] == '/' && full_source[i+1] == '/') {
+                        inComment = true;
+                    }
+                    if (inComment && full_source[i] == '\n') {
+                        inComment = false;
+                    }
+                    if (!inComment && full_source[i] == '"') {
+                        inString = !inString;
+                    }
+                }
+            }
+
+            if (actuallyUsed) {
+                replaceAll(full_source, "gl_FragCoord.xy",
+                    "vec2(float(gl_GlobalInvocationID.x), float(gl_GlobalInvocationID.y))");
+                replaceAll(full_source, "gl_FragCoord.x",
+                    "float(gl_GlobalInvocationID.x)");
+                replaceAll(full_source, "gl_FragCoord.y",
+                    "float(gl_GlobalInvocationID.y)");
+                replaceAll(full_source, "gl_FragCoord",
+                    "vec4(float(gl_GlobalInvocationID.x), float(gl_GlobalInvocationID.y), 0.0, 1.0)");
+                needsFix = true;
+            }
+        }
+
+        if (needsFix) {
+            LOG_INFO("[FearRender] Compute shader compatibility fix applied");
         }
     }
 
@@ -224,14 +258,20 @@ void fear_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* stri
         LOG_WARNING("[FearShader] Level 2 (FOGLTLOGLES) failed with unknown error");
     }
 
-    // Level 3: Fear Core GLSL Translation fallback (PC to Mobile translation)
-    bool success = false;
-    std::string translated = FearTranslateGLSL(full_source.c_str(), type, &success);
-    if (success && !translated.empty()) {
-        LOG_INFO("[FearShader] Winner: Level 3 (Fear Core Desktop-to-Mobile GLSL Translation)");
-        const char* cstr = translated.c_str();
-        real_glShaderSource(shader, 1, &cstr, nullptr);
-        return;
+    // Level 3-5: Strategy Ladder (L3 full transform -> L5 minimal transform)
+    {
+        int winningLevel = 0;
+        bool compileSuccess = false;
+
+        std::string transformed = executeStrategyL1ToL8(
+            full_source.c_str(), type, &winningLevel, &compileSuccess);
+
+        if (compileSuccess && !transformed.empty()) {
+            LOG_INFO("[FearShader] Winner: Level %d (Strategy Ladder)", winningLevel);
+            const char* cstr = transformed.c_str();
+            real_glShaderSource(shader, 1, &cstr, nullptr);
+            return;
+        }
     }
 
     // Level 4: Passthrough
@@ -425,6 +465,12 @@ void fear_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei
             if (format == 0x80E0) format = 0x1907 /* GL_RGB */;
         }
 
+        // RGB9_E5 (0x8F99) -> RGBA16F / RGBA8
+        if (internalformat == 0x8F99 /* GL_RGB9_E5 */) {
+            internalformat = 0x881A /* GL_RGBA16F */;
+            LOG_INFO("[FearRender] format downgrade: RGB9_E5 -> RGBA16F");
+        }
+
         // SRGB white color fix
         if (internalformat == 0x8C43 /* GL_SRGB8_ALPHA8 */) {
             internalformat = 0x8058 /* GL_RGBA8 */;
@@ -510,31 +556,123 @@ void fear_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei wi
     }
 }
 
-void fear_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) {
+void fear_glFramebufferTexture2D(GLenum target, GLenum attachment,
+        GLenum textarget, GLuint texture, GLint level) {
+    detectGLContext();
+
     typedef void (*glFramebufferTexture2D_pfn)(GLenum, GLenum, GLenum, GLuint, GLint);
-    static glFramebufferTexture2D_pfn real_glFramebufferTexture2D = (glFramebufferTexture2D_pfn)dlsym(RTLD_NEXT, "glFramebufferTexture2D");
+    static glFramebufferTexture2D_pfn real_glFramebufferTexture2D =
+        (glFramebufferTexture2D_pfn)dlsym(RTLD_NEXT, "glFramebufferTexture2D");
 
-    if (real_glFramebufferTexture2D) {
-        real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
-    }
-
-    // FBO incomplete check fallback & downgrade loop
     typedef GLenum (*glCheckFramebufferStatus_pfn)(GLenum);
-    static glCheckFramebufferStatus_pfn real_glCheckFramebufferStatus = (glCheckFramebufferStatus_pfn)dlsym(RTLD_NEXT, "glCheckFramebufferStatus");
-    if (real_glCheckFramebufferStatus) {
-        GLenum status = real_glCheckFramebufferStatus(target);
-        int attempt = 1;
-        while (status != 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */ && attempt <= 4) {
-            LOG_WARNING("[Quasar] FBO downgrade attempt %d: status=0x%X", attempt, status);
-            if (real_glFramebufferTexture2D) {
+    static glCheckFramebufferStatus_pfn real_glCheckFramebufferStatus =
+        (glCheckFramebufferStatus_pfn)dlsym(RTLD_NEXT, "glCheckFramebufferStatus");
+
+    typedef void (*glBindTexture_pfn)(GLenum, GLuint);
+    static glBindTexture_pfn real_glBindTexture =
+        (glBindTexture_pfn)dlsym(RTLD_NEXT, "glBindTexture");
+
+    typedef void (*glGetTexLevelParameteriv_pfn)(GLenum, GLint, GLenum, GLint*);
+    static glGetTexLevelParameteriv_pfn real_glGetTexLevelParameteriv =
+        (glGetTexLevelParameteriv_pfn)dlsym(RTLD_NEXT, "glGetTexLevelParameteriv");
+
+    if (!real_glFramebufferTexture2D) return;
+
+    // First attempt: attach as-is
+    real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
+
+    if (!g_isGLESContext || !real_glCheckFramebufferStatus) return;
+
+    // Check status
+    GLenum status = real_glCheckFramebufferStatus(target);
+    int attempt = 1;
+
+    while (status != 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */ && attempt <= 3) {
+        LOG_WARNING("[Quasar] FBO repair attempt %d: status=0x%X attachment=0x%X",
+                    attempt, status, attachment);
+
+        // Only attempt repair on color attachments
+        if (attachment >= 0x8CE0 /* GL_COLOR_ATTACHMENT0 */ &&
+            attachment <= 0x8CEF /* GL_COLOR_ATTACHMENT15 */) {
+
+            // Query the texture's current internal format
+            GLint texFormat = 0;
+            if (real_glBindTexture && real_glGetTexLevelParameteriv && texture != 0) {
+                GLenum bindTarget = (textarget == 0x8D63 /* GL_TEXTURE_2D_ARRAY */)
+                    ? 0x8D63 : 0x0DE1 /* GL_TEXTURE_2D */;
+                real_glBindTexture(bindTarget, texture);
+                real_glGetTexLevelParameteriv(bindTarget, 0,
+                    0x8E1C /* GL_TEXTURE_INTERNAL_FORMAT */, &texFormat);
+            }
+
+            // Downgrade the format
+            GLint newFormat = 0; // 0 = can't downgrade further
+            switch (texFormat) {
+                case 0x8814 /* GL_RGBA32F */:
+                    newFormat = 0x881A /* GL_RGBA16F */;
+                    break;
+                case 0x881A /* GL_RGBA16F */:
+                    newFormat = 0x8058 /* GL_RGBA8 */;
+                    break;
+                case 0x881B /* GL_RGB16F */:
+                    newFormat = 0x8051 /* GL_RGB8 */;
+                    break;
+                case 0x8815 /* GL_RGB32F */:
+                    newFormat = 0x881A /* GL_RGBA16F */;
+                    break;
+                case 0x8F99 /* GL_RGB9_E5 */:
+                    newFormat = 0x8058 /* GL_RGBA8 */;
+                    break;
+                default:
+                    newFormat = 0x8058 /* GL_RGBA8 */; // fallback to safest
+                    break;
+            }
+
+            if (newFormat != 0 && texture != 0) {
+                LOG_INFO("[Quasar] FBO repair: downgrading texture format "
+                         "0x%X -> 0x%X for attachment 0x%X",
+                         texFormat, newFormat, attachment);
+
+                real_glFramebufferTexture2D(target, attachment, textarget, 0, level);
+
+                // Re-allocate the texture with the safer format
+                GLint texWidth = 0, texHeight = 0;
+                if (real_glBindTexture && real_glGetTexLevelParameteriv) {
+                    GLenum bindTarget = (textarget == 0x8D63)
+                        ? 0x8D63 : 0x0DE1;
+                    real_glBindTexture(bindTarget, texture);
+                    real_glGetTexLevelParameteriv(bindTarget, 0,
+                        0x1000 /* GL_TEXTURE_WIDTH */, &texWidth);
+                    real_glGetTexLevelParameteriv(bindTarget, 0,
+                        0x1001 /* GL_TEXTURE_HEIGHT */, &texHeight);
+                }
+
+                // Re-upload with safer format (via our wrapper)
+                if (texWidth > 0 && texHeight > 0) {
+                    fear_glTexImage2D(textarget, 0, newFormat,
+                        texWidth, texHeight, 0,
+                        0x1908 /* GL_RGBA */, 0x1406 /* GL_UNSIGNED_BYTE */, nullptr);
+                }
+
+                // Re-attach
                 real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
             }
-            status = real_glCheckFramebufferStatus(target);
-            attempt++;
+        } else {
+            // Depth attachment: downgrade depth format
+            LOG_INFO("[Quasar] FBO repair: depth attachment, detaching non-float depth");
+            real_glFramebufferTexture2D(target, attachment, textarget, 0, level);
+            real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
         }
-        if (status == 0x8CD5 /* GL_FRAMEBUFFER_COMPLETE */) {
-            LOG_INFO("[Quasar] FBO status reached COMPLETE: 0x8CD5");
-        }
+
+        status = real_glCheckFramebufferStatus(target);
+        attempt++;
+    }
+
+    if (status == 0x8CD5) {
+        LOG_INFO("[Quasar] FBO status reached COMPLETE after %d attempts", attempt - 1);
+    } else {
+        LOG_ERROR("[Quasar] FBO still INCOMPLETE (0x%X) after %d attempts, rendering may be broken",
+                  status, attempt - 1);
     }
 }
 

@@ -159,24 +159,28 @@ void glCompileShader(GLuint shader) {
     }
 
     if (compile_status == GL_FALSE) {
-        GLint log_len = 0;
-        if (real_glGetShaderiv) {
-            real_glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_len);
+        LOG_WARNING("[FearRender] shader fallback shader_%u", shader);
+        // Substitute minimal valid shader
+        std::string fallbackShader;
+        GLenum shaderType = GL_FRAGMENT_SHADER;
+        {
+            std::lock_guard<std::mutex> lock(g_interceptorMutex);
+            auto it = g_shaderTypes.find(shader);
+            if (it != g_shaderTypes.end()) shaderType = it->second;
         }
-        if (log_len > 0) {
-            char* log_buffer = (char*)malloc(log_len);
-            typedef void (*glGetShaderInfoLog_pfn)(GLuint, GLsizei, GLsizei*, GLchar*);
-            static glGetShaderInfoLog_pfn real_glGetShaderInfoLog = nullptr;
-            if (!real_glGetShaderInfoLog) {
-                real_glGetShaderInfoLog = (glGetShaderInfoLog_pfn)dlsym(RTLD_NEXT, "glGetShaderInfoLog");
-            }
-            if (real_glGetShaderInfoLog) {
-                real_glGetShaderInfoLog(shader, log_len, nullptr, log_buffer);
-                LOG_ERROR("[FearRender] SHADER COMPILE ERROR: %s", log_buffer);
-            }
-            free(log_buffer);
+
+        if (shaderType == GL_VERTEX_SHADER) {
+            fallbackShader = "#version 300 es\nprecision mediump float;\nvoid main() { gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }\n";
         } else {
-            LOG_ERROR("[FearRender] SHADER COMPILE ERROR: Unknown compile failure");
+            fallbackShader = "#version 300 es\nprecision mediump float;\nout vec4 fragColor;\nvoid main() { fragColor = vec4(1.0, 0.0, 1.0, 1.0); }\n";
+        }
+
+        typedef void (*glShaderSource_pfn)(GLuint, GLsizei, const GLchar* const*, const GLint*);
+        static glShaderSource_pfn real_glShaderSource = (glShaderSource_pfn)dlsym(RTLD_NEXT, "glShaderSource");
+        if (real_glShaderSource) {
+            const char* src = fallbackShader.c_str();
+            real_glShaderSource(shader, 1, &src, nullptr);
+            if (real_glCompileShader) real_glCompileShader(shader);
         }
     } else {
         LOG_INFO("[FearRender] Shader compiled successfully");

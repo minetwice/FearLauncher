@@ -36,7 +36,7 @@
         <item>@string/quick_setting_title</item>
         <item>@string/mcl_option_customcontrol</item>
     </string-array>
-    
+
     <string-array name="renderer_values">
         <item>fear_engine</item> <!-- Fear Render (Standalone FOGL core) -->
         <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->

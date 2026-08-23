@@ -37,12 +37,105 @@ std::string executeStrategyL1ToL8(
         return trans;
     }
 
-    // L5: Minimal string translator (#version + precision only)
-    trans = "#version 300 es\nprecision highp float;\nprecision highp int;\n" + original;
-    if (winningLevel) *winningLevel = 5;
-    if (compilationSuccess) *compilationSuccess = true;
-    LOG_INFO("[FearRender] <shader>: compiled via L5 in 1ms");
-    return trans;
+    // L5: Minimal string transform (version + precision + keyword fixes)
+    {
+        std::string minimal = original;
+        // Version mapping
+        if (minimal.find("#version 110") != std::string::npos ||
+            minimal.find("#version 120") != std::string::npos) {
+            size_t pos = minimal.find("#version ");
+            size_t endPos = minimal.find('\n', pos);
+            minimal.replace(pos, endPos - pos, "#version 300 es");
+        } else if (minimal.find("#version 130") != std::string::npos ||
+                   minimal.find("#version 140") != std::string::npos ||
+                   minimal.find("#version 150") != std::string::npos) {
+            size_t pos = minimal.find("#version ");
+            size_t endPos = minimal.find('\n', pos);
+            minimal.replace(pos, endPos - pos, "#version 300 es");
+        } else if (minimal.find("#version 330") != std::string::npos ||
+                   minimal.find("#version 400") != std::string::npos ||
+                   minimal.find("#version 410") != std::string::npos ||
+                   minimal.find("#version 420") != std::string::npos ||
+                   minimal.find("#version 430") != std::string::npos ||
+                   minimal.find("#version 440") != std::string::npos ||
+                   minimal.find("#version 450") != std::string::npos ||
+                   minimal.find("#version 460") != std::string::npos) {
+            size_t pos = minimal.find("#version ");
+            size_t endPos = minimal.find('\n', pos);
+            minimal.replace(pos, endPos - pos, "#version 320 es");
+        }
+
+        // Precision (inject after #version line if missing)
+        if (minimal.find("precision highp float;") == std::string::npos) {
+            size_t versionEnd = minimal.find('\n');
+            if (versionEnd != std::string::npos) {
+                minimal.insert(versionEnd + 1,
+                    "precision highp float;\nprecision highp int;\n");
+            }
+        }
+
+        // Keyword fixes (string replace)
+        replaceAll(minimal, "texture2D(", "texture(");
+        replaceAll(minimal, "texture2DLod(", "textureLod(");
+        replaceAll(minimal, "textureCube(", "texture(");
+        replaceAll(minimal, "texture3D(", "texture(");
+        replaceAll(minimal, "shadow2D(", "texture(");
+        replaceAll(minimal, "texture2DProj(", "textureProj(");
+
+        // For fragment shaders: gl_FragColor -> out vec4
+        if (shaderType == GL_FRAGMENT_SHADER) {
+            if (minimal.find("gl_FragColor") != std::string::npos) {
+                replaceAll(minimal, "gl_FragColor",
+                    "quasar_out0");
+                // Insert out declaration after precision
+                size_t precEnd = minimal.find("precision highp int;");
+                if (precEnd != std::string::npos) {
+                    size_t insertPos = minimal.find('\n', precEnd);
+                    if (insertPos != std::string::npos) {
+                        minimal.insert(insertPos + 1,
+                            "layout(location = 0) out vec4 quasar_out0;\n");
+                    }
+                }
+            }
+            // gl_FragData[N] -> layout(location=N) out vec4 quasar_outN
+            replaceAll(minimal, "gl_FragData[0]", "quasar_out0");
+            replaceAll(minimal, "gl_FragData[1]", "quasar_out1");
+            replaceAll(minimal, "gl_FragData[2]", "quasar_out2");
+            replaceAll(minimal, "gl_FragData[3]", "quasar_out3");
+            // Add out declarations for any quasar_outN found
+            for (int i = 0; i < 4; i++) {
+                std::string varName = "quasar_out" + std::to_string(i);
+                if (minimal.find(varName) != std::string::npos &&
+                    minimal.find("layout(location = " + std::to_string(i) + ") out") == std::string::npos) {
+                    size_t precEnd = minimal.find("precision highp int;");
+                    if (precEnd != std::string::npos) {
+                        size_t insertPos = minimal.find('\n', precEnd);
+                        if (insertPos != std::string::npos) {
+                            minimal.insert(insertPos + 1,
+                                "layout(location = " + std::to_string(i) +
+                                ") out vec4 " + varName + ";\n");
+                        }
+                    }
+                }
+            }
+
+            // varying -> in (fragment shader)
+            replaceAll(minimal, "varying ", "in ");
+        } else if (shaderType == GL_VERTEX_SHADER) {
+            // attribute -> in (vertex shader)
+            replaceAll(minimal, "attribute ", "in ");
+            // varying -> out (vertex shader)
+            replaceAll(minimal, "varying ", "out ");
+        }
+
+        // noperspective -> smooth
+        replaceAll(minimal, "noperspective", "smooth");
+
+        if (winningLevel) *winningLevel = 5;
+        if (compilationSuccess) *compilationSuccess = true;
+        LOG_INFO("[FearRender] <shader>: compiled via L5 (minimal transform)");
+        return minimal;
+    }
 
     // L7: Feature-strip mode (strip shadows/SSR/volumetrics)
     // L8: Passthrough original
