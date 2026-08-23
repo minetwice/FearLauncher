@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("Quasar")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -127,7 +127,6 @@ public class JREUtils {
                 } catch (Throwable t) {
                     isZinkActive = false;
                 }
-
                 if (isZinkActive) {
                     Logger.appendToLog("[FearRender] Configuring Mali-safe Zink environment profile");
                     envMap.put("GALLIUM_DRIVER", "zink");
@@ -140,7 +139,6 @@ public class JREUtils {
                 } else {
                     Logger.appendToLog("[FearRender] Configuring GLES environment profile");
                 }
-
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
@@ -148,17 +146,14 @@ public class JREUtils {
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 envMap.put("gl_draw_buffers_override", "true");
-
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("allow_glsl_layout_qualifier_override", "true");
                 envMap.put("glsl_ignore_noperspective", "true");
-
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("vblank_mode", "0");
-
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 break;
             case "vulkan_zink":
@@ -220,21 +215,20 @@ public class JREUtils {
                 break;
             case "quasar":
                 Logger.appendToLog("[Quasar] Initializing Quasar renderer environment...");
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("EGL_PLATFORM", "android");
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_NO_MINMAX_CACHE", "1");
+                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_GL", "46");
-                envMap.put("LIBGL_GLSL", "1");
-                envMap.put("LIBGL_FB", "1");
-                envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
+                envMap.put("gl_draw_buffers_override", "true");
                 envMap.put("glsl_force_highp", "true");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
@@ -252,16 +246,12 @@ public class JREUtils {
         envMap.put("LIBGL_NOERROR", "1");
         envMap.put("LIBGL_NOINTOVLHACK", "1");
         envMap.put("LIBGL_NORMALIZE", "1");
-
         if(PREF_DUMP_SHADERS)
             envMap.put("LIBGL_VGPU_DUMP", "1");
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
-
         envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
-
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
-
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
@@ -271,28 +261,21 @@ public class JREUtils {
 		modRuntimeDir.mkdirs();
 		}
 		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
-
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
         setupRendererEnv(envMap, renderer);
-
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         envMap.put("EGL_PLATFORM", "android");
-
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-
         if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
         }
-
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
             envMap.put("TU_DEBUG", "sysmem");
         }
-
         overrideEnvVars(envMap);
-
         for (Map.Entry<String, String> env : envMap.entrySet()) {
             Logger.appendToLog("Added custom env: " + env.getKey() + "=" + env.getValue());
             try {
@@ -375,7 +358,6 @@ public class JREUtils {
                     vulkanOk = false;
                     vkVer = "none";
                 }
-
                 if (vulkanOk) {
                     Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
                     Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
@@ -428,10 +410,30 @@ public class JREUtils {
                 break;
             case "quasar":
                 Logger.appendToLog("[Quasar] Loading Quasar renderer...");
-                Logger.appendToLog("[Quasar] Using FearRender GL core (FOGLTLOGLES+guards) for OpenGL 4.6 compatibility");
-                renderLibrary = "libGLFear.so";
-                useGles = true;
-                glesVersion = 3;
+                boolean quasarVkOk = false;
+                String quasarVkVer = "none";
+                try {
+                    preloadVulkan();
+                    quasarVkOk = true;
+                    quasarVkVer = "1.3";
+                } catch (Throwable t) {
+                    quasarVkOk = false;
+                    quasarVkVer = "none";
+                }
+                if (quasarVkOk) {
+                    Logger.appendToLog("[Quasar] probe: vulkan=" + quasarVkVer + " -> ZINK");
+                    Logger.appendToLog("[Quasar] backend=ZINK (Vulkan: 1.3)");
+                    renderLibrary = "libEGL_mesa.so";
+                    useGles = false;
+                    bypassNamespace = true;
+                    glesVersion = 3;
+                } else {
+                    Logger.appendToLog("[Quasar] probe: vulkan=" + quasarVkVer + " -> GLES");
+                    Logger.appendToLog("[Quasar] backend=GLES core=FOGLTLOGLES+guards");
+                    renderLibrary = "libGLFear.so";
+                    useGles = true;
+                    glesVersion = 3;
+                }
                 break;
             case "opengles2":
             case "opengles2_5":
@@ -442,7 +444,6 @@ public class JREUtils {
                 glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
                 break;
         }
-
         if (!configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion)) {
             Log.e("RENDER_LIBRARY","Failed to load renderer " + renderLibrary );
             return null;
@@ -466,7 +467,6 @@ public class JREUtils {
         } catch (Exception e) {
             Log.w("FearRender", "EGL probe: android platform failed: " + e.getMessage());
         }
-
         try {
             Os.setenv("EGL_PLATFORM", "surfaceless", true);
             long eglDisplay = eglGetDisplay(0);
@@ -482,7 +482,6 @@ public class JREUtils {
         } catch (Exception e) {
             Log.w("FearRender", "EGL probe: surfaceless platform failed: " + e.getMessage());
         }
-
         Log.e("FearRender", "EGL probe: ALL platforms failed, EGL not available");
         return null;
     }
