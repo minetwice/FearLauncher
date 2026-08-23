@@ -19,7 +19,6 @@ import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
-import net.kdt.pojavlaunch.quasar.QuasarRenderer;
 
 public class JREUtils {
     public static void redirectAndPrintJRELog() {
@@ -29,7 +28,7 @@ public class JREUtils {
             while (failCount < 15) {
                 try {
                     // Optimized high-speed log retrieval: no filtering at process level to avoid buffer backup
-                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
+                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-S", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
 
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
@@ -37,7 +36,7 @@ public class JREUtils {
                         while ((line = reader.readLine()) != null) {
                             // Filter lines in-memory for speed and "Manufactured" feel
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "\n");
+                               Logger.appendToLog(line + "\n");
                             }
                         }
                     }
@@ -75,7 +74,7 @@ public class JREUtils {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
         if (angle == null) return;
-        String[] angleLibs = {"libEGL_angle.so", "libGLESv2_angle.so"};
+        String[] angleLibs = {"libEGL_angle.so", "libGLE@v2_angle.so"};
         if (!angle.checkLibraries(angleLibs)) {
             Log.e("AngleEnvSetup", "AnglePlugin exists, but the ANGLE libraries are not present. Is the plugin corrupted?");
             return;
@@ -105,11 +104,11 @@ public class JREUtils {
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "46");
                 envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
-                envMap.put("LIBGL_NOTEXTURERECT", "0");
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_NOTEXTURERCT", "0");
+                envMap.put("LIBGL_FBOTEXTURE2", "1");
                 envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_ALWAYSCURRENT", "1");
-                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
+                envMap.put("LIBGL_NOCONTEXCCLEANUP", "1");
                 envMap.put("LIBGL_FB", "1");
                 envMap.put("LIBGL_FPE", "1");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
@@ -152,19 +151,19 @@ public class JREUtils {
 
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_FBOTEXTURE2", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 envMap.put("gl_draw_buffers_override", "true");
 
                 // GLSL behavior
-                envMap.put("glsl_force_highp", "true");
-                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("gsl_force_highp", "true");
+                envMap.put("allow_glsl_extension_directive_midsader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("allow_glsl_layout_qualifier_override", "true");
-                envMap.put("glsl_ignore_noperspective", "true");
+                envMap.put("gsl_ignore_noperspective", "true");
 
                 // Shader Cache
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
@@ -193,7 +192,7 @@ public class JREUtils {
                 break;
             case "opengles3_mges":
                 envMap.put("MG_DIR_PATH", Tools.MOBILEGLES_DIR);
-                envMap.put("LIBGL_GLES", Tools.MOBILEGLES_DIR + "/libmobileglues.so");
+                envMap.put("LIBGL_GLES", Tools.MOBILEGLES_DIR + "/libmobilegles.so");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
@@ -205,7 +204,7 @@ public class JREUtils {
                 envMap.put("MG_enableNoError", LauncherPreferences.MG_NOERROR_OPTION);
                 envMap.put("MG_multidrawMode", LauncherPreferences.MG_MULTIDRAWMODE_OPTION);
                 envMap.put("MG_customGLVersion", LauncherPreferences.MG_GL_VERSION);
-                envMap.put("MG_angleDepthClearFixMode", LauncherPreferences.MG_ANGLECLEARWORKAROUND_OPTION);
+                envMap.put("MG_angleDepthClearFixMode", LauncherPreferences.MG_ANGLECLEARWORKMODE_OPTION);
                 envMap.put("MG_enableExtGL43", LauncherPreferences.MG_EXT_GL43);
                 envMap.put("MG_enableExtComputeShader", LauncherPreferences.MG_EXT_CS);
                 envMap.put("MG_enableExtTimerQuery", LauncherPreferences.MG_EXT_TIMER_QUERY.equals("0") ? "1" : "0");
@@ -270,7 +269,7 @@ public class JREUtils {
 
         if(PREF_DUMP_SHADERS)
             envMap.put("LIBGL_VGPU_DUMP", "1");
-        if(PREF_VSYNC_IN_ZINK)
+        if(PREF_VSYNC_IN_ZINk)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
         // The OPEN GL version is changed according
@@ -372,18 +371,18 @@ public class JREUtils {
                         String lastString = parsedArguments.get(arraySize - 1);
                         // Looking for list elements
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
-                                parsedSubString.contains(",")){
+                               parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
                     }
                     parsedArguments.add(parsedSubString);
                 }
-                else Log.w("JAVA ARGS PARSER", "Removed improper arguments: " + parsedSubString);
+                else Log.w("JAVA ARG PARSER", "Removed improper arguments: " + parsedSubString);
+                }
             }
+            return parsedArguments;
         }
-        return parsedArguments;
-    }
 
     /**
      * Open the render library in accordance to the settings.
@@ -422,15 +421,15 @@ public class JREUtils {
                 }
 
                 if (vulkanOk) {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK");
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> ZINK);
                     Logger.appendToLog("[FearRender] backend=ZINK (Vulkan: 1.3)");
                     renderLibrary = "libEGL_mesa.so";
                     useGles = false;
                     bypassNamespace = true;
                     glesVersion = 3;
                 } else {
-                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES");
-                    Logger.appendToLog("[FearRender] backend=GLES core=FOGLTLOGLES+guards");
+                    Logger.appendToLog("[FearRender] probe: vulkan=" + vkVer + " -> GLES)");
+                    Logger.appendToLog("[FearRender] backend=GLES core=FOGLTDOGLES+guards");
                     renderLibrary = "libGLFear.so";
                     useGles = true;
                     glesVersion = 3;
@@ -451,7 +450,7 @@ public class JREUtils {
                 glesVersion = 3;
                 break;
             case "opengles3_mges":
-                renderLibrary = Tools.MOBILEGLES_DIR + "/libmobileglues.so";
+                renderLibrary = Tools.MOBILEGLES_DIR + "/libmobilegles.so";
                 useGles = true;
                 glesVersion = 3;
                 break;
@@ -473,12 +472,6 @@ public class JREUtils {
                 break;
             case "quasar":
                 Logger.appendToLog("[Quasar] Loading Quasar renderer...");
-                try {
-                    net.kdt.pojavlaunch.quasar.QuasarRenderer.getInstance().initialize(
-                        net.kdt.pojavlaunch.lifecycle.ContextExecutor.getContext());
-                } catch (Exception e) {
-                    Log.w("JREUtils", "Quasar initialization failed, falling back to GL4ES", e);
-                }
                 renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 glesVersion = 3;
@@ -500,69 +493,8 @@ public class JREUtils {
         return renderLibrary;
     }
 
-    public static String probeEGLPlatform() {
+    public static String probeEGlPlatform() {
         try {
             Os.setenv("EGL_PLATFORM", "android", true);
             long eglDisplay = eglGetDisplay(0 /* EGL_DEFAULT_DISPLAY */);
             if (eglDisplay != 0) {
-                int[] major = new int[1];
-                int[] minor = new int[1];
-                if (eglInitialize(eglDisplay, major, minor)) {
-                    eglTerminate(eglDisplay);
-                    Log.i("FearRender", "EGL probe: android platform OK (EGL " + major[0] + "." + minor[0] + ")");
-                    return "android";
-                }
-            }
-        } catch (Exception e) {
-            Log.w("FearRender", "EGL probe: android platform failed: " + e.getMessage());
-        }
-
-        try {
-            Os.setenv("EGL_PLATFORM", "surfaceless", true);
-            long eglDisplay = eglGetDisplay(0);
-            if (eglDisplay != 0) {
-                int[] major = new int[1];
-                int[] minor = new int[1];
-                if (eglInitialize(eglDisplay, major, minor)) {
-                    eglTerminate(eglDisplay);
-                    Log.i("FearRender", "EGL probe: surfaceless platform OK (EGL " + major[0] + "." + minor[0] + ")");
-                    return "surfaceless";
-                }
-            }
-        } catch (Exception e) {
-            Log.w("FearRender", "EGL probe: surfaceless platform failed: " + e.getMessage());
-        }
-
-        Log.e("FearRender", "EGL probe: ALL platforms failed, EGL not available");
-        return null;
-    }
-
-    public static int getDetectedVersion() {
-        return GLInfoUtils.getGlInfo().glesMajorVersion;
-    }
-
-    public static native long eglGetDisplay(long display);
-    public static native boolean eglInitialize(long display, int[] major, int[] minor);
-    public static native void eglTerminate(long display);
-    public static native int chdir(String path);
-
-    public static native void setLdLibraryPath(String ldLibraryPath);
-    public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
-    public static native void preloadVulkan();
-    public static native void setUseTurnip(boolean enable);
-
-    // Fear Shader Engine JNI Bridge Declarations
-    public static native void initFearShaderEngine(String cachePath, int version);
-    public static native void destroyFearShaderEngine();
-    public static native String getShaderCachePath();
-    public static native void clearShaderCache();
-    public static native int getTranslatedShaderCount();
-
-    //public static native void initializeHooks();
-    // Obtain AWT screen pixels to render on Android SurfaceView
-    public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
-    static {
-        System.loadLibrary("pojavexec");
-        System.loadLibrary("pojavexec_awt");
-    }
-}
