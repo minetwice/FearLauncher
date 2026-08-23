@@ -54,7 +54,7 @@ public class DeviceCapabilityProbe {
             table.supportsFloat32Depth = true;
             Log.i(TAG, "[Quasar] Profile: Qualcomm Adreno GPU detected. Enabled ASTC and compute extensions.");
         } else {
-            // Conservative fallback for unknown / unrecognized GPU vendors
+            // Conservative fallback for unknown / unrecognized GPU vendors (e.g. PowerVR, ImgTec, SwiftShader, Vivante)
             table.isMali = false;
             table.isAdreno = false;
             table.supportsComputeShaders = false;
@@ -63,7 +63,7 @@ public class DeviceCapabilityProbe {
             table.supportsASTCTextures = false;
             table.supportsFloat16Color = false;
             table.supportsFloat32Depth = false;
-            Log.w(TAG, "[Quasar] Profile: Unknown/Unrecognized GPU vendor detected. Applied safest conservative profile (all advanced features disabled).");
+            Log.w(TAG, "[Quasar] Profile: Unknown/Unrecognized GPU vendor detected. Applied safest conservative profile (all advanced features explicitly disabled).");
         }
 
         Log.i(TAG, "[Quasar] Capability Table Probed: " + table.toString());
