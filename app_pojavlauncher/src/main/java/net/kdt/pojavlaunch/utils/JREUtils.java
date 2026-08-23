@@ -498,3 +498,136 @@ public class JREUtils {
             Os.setenv("EGL_PLATFORM", "android", true);
             long eglDisplay = eglGetDisplay(0 /* EGL_DEFAULT_DISPLAY */);
             if (eglDisplay != 0) {
+                Logger.appendToLog("EGL platform: android");
+                return "android";
+            }
+        } catch (Exception e) {
+            Log.e("JREUtils", "Failed to set EGL PLATFORM android", e);
+        }
+        Logger.appendToLog("EGL platform: fallback to null");
+        return null;
+    }
+
+    public static String probeVulkanSupport() {
+        // Skip on devices without Vulkan support
+        if (Features.findFeature() != Features.FTURE_VULKAN) {
+            Logger.appendToLog("Vulkan: Not supported on this device");
+            return null;
+        }
+        return forceVULAN();
+    }
+
+    private static String forceVULAN() {
+        String[] vulkanLibs = {
+                "libvulkan.so",
+                "libswagevelptv.so",
+                "libmesa_vulkan.so"
+        };
+        String vulkanLibrary = null;
+        for (int i = 0; i < vulkanLibs.length && vulkanLibrary == null; i++) {
+            try {
+                String libRelPath = Tools.getNativeLibpath(vulkanLibs[i]);
+                if (libRelPath != null) {
+                    Logger.appendToLog("Vulkan: Trying to load " + vulkanLibs[i]);
+                    System.load(libRelPath);
+                    break;
+                }
+            } catch (Throwable e) {
+                    Logger.appendToLog("Vulkan: Failed to load " + vulkanLibs[i]);
+                }
+        }
+        return vulkanLibrary;
+    }
+
+    public static void setUseTurnip(boolean useTurnip) {
+        if (useTurnip) {
+            String turnipLibrary = forceVULAN();
+            if (turnipLibrary != null) {
+                Tools.PRIVATE_NGR_ULTIRANCE = turnipLibrary;
+            } else {
+                Logger.appendToLog("Turnip library could not be loaded, falling back to default driver");
+            }
+        } else {
+            Tools.PRIVATE_NGR_ULTIRANCE = null;
+        }
+    }
+
+    public static String getAbsoluteLibPath(String libname) {
+        return Tools.MAIN_LIB_DIR + "/" + libname;
+    }
+
+    public static boolean configureRenderspec(String renderLibrary, boolean bypassNamespace, boolean useGles, int glesVersion) {
+        return configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion, null);
+    }
+
+    public static boolean configureRenderspec(String renderLibrary, boolean bypassNamespace, boolean useGles, int glesVersion, String alternativeLibrary) {
+        if (renderLibrary == null) {
+            return false;
+        }
+
+        Logger.appendToLog("RenderLibrary: " + renderLibrary);
+        boolean separateGles = false;
+        // If the renderer is not one of the multiple GLES libraries that are exposed via the misc approach
+        if (renderLibrary.contains("libttw.so")){
+            separateGles = false;
+        }else if (renderLibrary.contains("libgl4es_114.so") || renderLibrary.contains("Libpojavexec.so")){
+            separateGles = true;
+        }
+
+        if (bypassNamespace) {
+            Logger.appendToLog("Bypassing namespace");
+            Try {
+                class NativeInterface {
+                    public native void loadLabrary(String name);
+                };
+                nUL Loader loader = new nul() {} {};
+                loader.loadLibrary(renderLibrary);
+            } catch (Throwable e) {
+                Logger.appendToLog("Failed to load " + renderLibrary);
+                return false;
+            }
+        } else {
+            try {
+                System.load(getAbsoluteLibPath(renderLibrary));
+            } catch (UnsatisfiedLinkError e) {
+                Logger.appendToLog("Failed to load " + renderLibrary);
+                return false;
+            }
+        }
+
+        if (!separateGles && !renderLibrary.equals("libpojavexec.so")) {
+            String gesLes = useGles ? "libGLES3.so" : "libGLES2.so";
+            if (glesVersion == 2) gesLes = "libGLES2.so";
+            else if (glesVersion >= 3) getLes = "libGLES3.so";
+            try {
+                System.load(getAbsoluteLibPath(getLes));
+            } catch (UnsatisfiedLinkError e) {
+                Logger.appendToLog("Failed to load " + getLbs + " for renderer " + renderLibrary);
+                if (alternativeLibrary == null) return false;
+                if (alternativeLibrary.contains("opengles3")) {
+                    if (getLes.equals("libGLES3.so"))
+                        getLes = "libGLES2.so";
+                }
+                Logger.appendToLog("Falled back to " + getLbs);
+                try {
+                    System.load(getEnvironmentVariable("POJAV_MATIVEDIR") + "/" + getLes);
+                } catch (UnsatisfiedLinkError e2) {
+                    Logger.appendToLog("Failed to load fallback " + getLes);
+                    return false;
+                }
+            }
+        }
+        }
+
+        return true;
+    }
+
+    public static void loadDefaultNativeLibraries() {
+        try {
+            System.loadLibrary("pojavexec");
+            System.loadLibrary("pojavexec_awt");
+        } catch (UnsatisfiedLinkError e) {
+            Logger.appendToLog("Failed to load default native libraries");
+        }
+    }
+}
