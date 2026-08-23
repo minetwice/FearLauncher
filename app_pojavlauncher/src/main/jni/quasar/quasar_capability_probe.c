@@ -1,1 +1,414 @@
-Ly8KLy8gUXVhc2FyIENhcGFiaWxpdHkgUHJvYmUg4oCUIFZ1bGthbiBkZXZpY2UgZmVhdHVyZSBkZXRlY3Rpb24gdmlhIGRsb3Blbi9kbHN5bQovLwovLyBUaGlzIGZpbGUgcHJvYmVzIHRoZSBkZXZpY2UncyBWdWxrYW4gY2FwYWJpbGl0aWVzIGJ5IGR5bmFtaWNhbGx5IGxvYWRpbmcKLy8gbGlidnVsa2FuLnNvIGFuZCBjYWxsaW5nIHZrR2V0UGh5c2ljYWxEZXZpY2VGZWF0dXJlcyAvIHZrR2V0UGh5c2ljYWxEZXZpY2VQcm9wZXJ0aWVzLgovLwovLyBSZXN1bHRzIGFyZSByZXR1cm5lZCBhcyBhIEpTT04gc3RyaW5nIHRvIEphdmEgZm9yIHBhcnNpbmcuCi8vCgojaW5jbHVkZSA8am5pLmg+CiNpbmNsdWRlIDxkbGZjbi5oPgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0ZGxpYi5oPgojaW5jbHVkZSA8c3RyaW5nLmg+CgojZGVmaW5lIFRBRyAiUXVhc2FyUHJvYmUiCiNpbmNsdWRlICJsb2cuaCIKCi8vIFdlIGRlZmluZSBtaW5pbWFsIFZ1bGthbiB0eXBlcyBoZXJlIHRvIGJlIGNvbXBsZXRlbHkgc2VsZi1jb250YWluZWQuCi8vIFRoaXMgYXZvaWRzIGFueSBkZXBlbmRlbmN5IG9uIDx2dWxrYW4vdnVsa2FuLmg+IHdoaWNoIG1heSBub3QgYmUgYXZhaWxhYmxlCi8vIGF0IGFsbCBBUEkgbGV2ZWxzIGluIHRoZSBOREsuCgojaW5jbHVkZSA8c3RkaW50Lmg+CgojZGVmaW5lIFZLX01BS0VfVkVSU0lPTihtYWpvciwgbWlub3IsIHBhdGNoKSBcCiAgICAoKCh1aW50MzJfdCkobWFqb3IpIDw8IDIyKSB8ICgodWludDMyX3QpKG1pbm9yKSA8PCAxMikgfCAodWludDMyX3QpKHBhdGNoKSkKCiNkZWZpbmUgVktfQVBJX1ZFUlNJT05fMV8wIFZLX01BS0VfVkVSU0lPTigxLCAwLCAwKQojZGVmaW5lIFZLX0FQSV9WRVJTSU9OXzFfMSBWS19NQUtFX1ZFUlNJT04oMSwgMSwgMCkKI2RlZmluZSBWS19BUElfVkVSU0lPTl8xXzIgVktfTUFLRV9WRVJTSU9OKDEsIDIsIDApCgojZGVmaW5lIFZLX1NVQ0NFU1MgMAojZGVmaW5lIFZLX0VSUk9SX0lOSVRJQUxJWkFUSU9OX0ZBSUxFRCAtOQoKI2RlZmluZSBWS19TVFJUQ1VSRV9UWVBFX0FQUExJQ0FUSU9OX0lORk8gMAojZGVmaW5lIFZLX1NUUlVDVFVSRV9UWVBFX0lOU1RBTkNFX0NSRUFURV9JTkZPIDEKCiNkZWZpbmUgVktfTUFYX1BIWVNJQ0FMX0RFVklDRV9OQU1FX1NJWkUgMjU2CiNkZWZpbmUgVktfTUFYX0VYVEVOU0lPTl9OQU1FX1NJWkUgMjU2Cgp0eXBlZGVmIGludDMyX3QgVmtSZXN1bHQ7CnR5cGVkZWYgdWludDMyX3QgVmtGbGFnczsKdHlwZWRlZiBzdHJ1Y3QgVmtJbnN0YW5jZV9UKiBWa0luc3RhbmNlOwp0eXBlZGVmIHN0cnVjdCBWa1BoeXNpY2FsRGV2aWNlX1QqIFZrUGh5c2ljYWxEZXZpY2U7Cgp0eXBlZGVmIHN0cnVjdCB7CiAgICB1aW50MzJfdCBhcGlWZXJzaW9uOwp9IFZrQXBwbGljYXRpb25JbmZvX3BhcnQ7Cgp0eXBlZGVmIHN0cnVjdCB7CiAgICBjb25zdCB2b2lkKiBwTmV4dDsKICAgIGNvbnN0IHZvaWQqIHBBcHBsaWNhdGlvbkluZm87CiAgICBjb25zdCB2b2lkKiBwcEVuYWJsZWRMYXllck5hbWVzOwogICAgdWludDMyX3QgZW5hYmxlZExheWVyQ291bnQ7CiAgICBjb25zdCB2b2lkKiBwcEVuYWJsZWRFeHRlbnNpb25OYW1lczsKICAgIHVpbnQzMl90IGVuYWJsZWRFeHRlbnNpb25Db3VudDsKICAgIGNvbnN0IHZvaWQqIHBOZXh0MjsKfSBWa0luc3RhbmNlQ3JlYXRlSW5mb19wYXJ0OwoKLy8gVmtQaHlzaWNhbERldmljZUZlYXR1cmVzIOKAlCBlYWNoIGZpZWxkIGlzIFZrQm9vbDMyICh1aW50MzJfdCkKLy8gV2Ugb25seSBjYXJlIGFib3V0IGEgc3Vic2V0LCBidXQgdGhlIHN0cnVjdCBoYXMgfjU1IGZpZWxkcy4KLy8gUmF0aGVyIHRoYW4gZGVmaW5lIHRoZW0gYWxsLCB3ZSdsbCByZWFkIHNwZWNpZmljIG9mZnNldHMuCi8vIFRoZSBzdHJ1Y3QgbGF5b3V0IGlzOiBlYWNoIFZrQm9vbDMyIGlzIDQgYnl0ZXMsIHBhY2tlZCBpbiBkZWNsYXJhdGlvbiBvcmRlci4KLy8gV2UgZGVmaW5lIHRoZSBmdWxsIHN0cnVjdCBiYXNlZCBvbiB0aGUgVnVsa2FuIHNwZWMuCgp0eXBlZGVmIHN0cnVjdCB7CiAgICB1aW50MzJfdCByb2J1c3RCdWZmZXJBY2Nlc3M7ICAgICAgICAgICAgICAgICAgICAgICAgLy8gMAogICAgdWludDMyX3QgZnVsbERyYXdJbmRleFVpbnQzMjsgICAgICAgICAgICAgICAgICAvLyAxCiAgICB1aW50MzJfdCBpbWFnZUN1YmVBcnJheTsgICAgICAgICAgICAgICAgICAgICAgICAvLyAyCiAgICB1aW50MzJfdCBpbmRlcGVuZGVudEJsZW5kOyAgICAgICAgICAgICAgICAgICAgIC8vIDMKICAgIHVpbnQzMl90IGdlb21ldHJ5U2hhZGVyOyAgICAgICAgICAgICAgICAgICAgICAgLy8gNAogICAgdWludDMyX3QgdGVzc2VsbGF0aW9uU2hhZGVyOyAgICAgICAgICAgICAgICAgICAvLyA1CiAgICB1aW50MzJfdCBzYW1wbGVSYXRlU2hhZGluZzsgICAgICAgICAgICAgICAgICAgIC8vIDYKICAgIHVpbnQzMl90IGR1YWxTcmNCbGVuZDsgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyA3CiAgICB1aW50MzJfdCBsb2dpY09wOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyA4CiAgICB1aW50MzJfdCBtdWx0aURyYXdJbmRpcmVjdDsgICAgICAgICAgICAgICAgICAgIC8vIDkKICAgIHVpbnQzMl90IGRyYXdJbmRpcmVjdEZpcnN0SW5zdGFuY2U7ICAgICAgICAgICAgLy8gMTAKICAgIHVpbnQzMl90IGRlcHRoQ2xhbXA7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAxMQogICAgdWludDMyX3QgZGVwdGhCaWFzQ2xhbXA7ICAgICAgICAgICAgICAgICAgICAgICAvLyAxMgogICAgdWludDMyX3QgZmlsbE1vZGVOb25Tb2xpZDsgICAgICAgICAgICAgICAgICAgICAvLyAxMwogICAgdWludDMyX3QgZGVwdGhCb3VuZHM7ICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gMTQKICAgIHVpbnQzMl90IHdpZGVMaW5lczsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAxNQogICAgdWludDMyX3QgbGFyZ2VQb2ludHM7ICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gMTYKICAgIHVpbnQzMl90IGFscGhhVG9PbmU7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAxNwogICAgdWludDMyX3QgbXVsdGlWaWV3cG9ydDsgICAgICAgICAgICAgICAgICAgICAgICAvLyAxOAogICAgdWludDMyX3Qgc2FtcGxlckFuaXNvdHJvcHk7ICAgICAgICAgICAgICAgICAgICAvLyAxOQogICAgdWludDMyX3QgdGV4dHVyZUNvbXByZXNzaW9uRVRDMjsgICAgICAgICAgICAgICAgICAgLy8gMjAKICAgIHVpbnQzMl90IHRleHR1cmVDb21wcmVzc2lvbkFTVENUX0xEUjsgICAgICAgICAgIC8vIDIxCiAgICB1aW50MzJfdCB0ZXh0dXJlQ29tcHJlc3Npb25CQzsgICAgICAgICAgICAgICAgICAgICAvLyAyMgogICAgdWludDMyX3Qgb2NjbHVzaW9uUXVlcnlQcmVjaXNlOyAgICAgICAgICAgICAgICAgICAvLyAyMwogICAgdWludDMyX3QgcGlwZWxpbmVTdGF0aXN0aWNzUXVlcnk7ICAgICAgICAgICAgICAvLyAyNAogICAgdWludDMyX3QgdmVydGV4UGlwZWxpbmVTdG9yZXNBbmRBdG9taWNzOyAgICAgICAvLyAyNQogICAgdWludDMyX3QgZnJhZ21lbnRTdG9yZXNBbmRBdG9taWNzOyAgICAgICAgICAgICAvLyAyNgogICAgdWludDMyX3Qgc2hhZGVyVGVzc2VsbGF0aW9uQW5kR2VvbWV0cnlQb2ludFNpemU7IC8vIDI3CiAgICB1aW50MzJfdCBzaGFkZXJJbWFnZUdhdGhlckV4dGVuZGVkOyAgICAgICAgICAgIC8vIDI4CiAgICB1aW50MzJfdCBzaGFkZXJTdG9yYWdlSW1hZ2VFeHRlbmRlZEZvcm1hdHM7ICAgIC8vIDI5CiAgICB1aW50MzJfdCBzaGFkZXJTdG9yYWdlSW1hZ2VNdWx0aXNhbXBsZTsgICAgICAgIC8vIDMwCiAgICB1aW50MzJfdCBzaGFkZXJTdG9yYWdlSW1hZ2VSZWFkV2l0aG91dEZvcm1hdDsgICAvLyAzMQogICAgdWludDMyX3Qgc2hhZGVyU3RvcmFnZUltYWdlV3JpdGVXaXRob3V0Rm9ybWF0OyAvLyAzMgogICAgdWludDMyX3Qgc2hhZGVyVW5pZm9ybUJ1ZmZlckFycmF5RHluYW1pY0luZGV4aW5nOyAvLyAzMwogICAgdWludDMyX3Qgc2hhZGVyU2FtcGxlZEltYWdlQXJyYXlEeW5hbWljSW5kZXhpbmc7IC8vIDM0CiAgICB1aW50MzJfdCBzaGFkZXJTdG9yYWdlQnVmZmVyQXJyYXlEeW5hbWljSW5kZXhpbmc7IC8vIDM1CiAgICB1aW50MzJfdCBzaGFkZXJTdG9yYWdlSW1hZ2VBcnJheUR5bmFtaWNJbmRleGluZzsgLy8gMzYKICAgIHVpbnQzMl90IHNoYWRlckNsaXBEaXN0YW5jZTsgICAgICAgICAgICAgICAgICAgLy8gMzcKICAgIHVpbnQzMl90IHNoYWRlckN1bGxEaXN0YW5jZTsgICAgICAgICAgICAgICAgICAgLy8gMzgKICAgIHVpbnQzMl90IHNoYWRlckZsb2F0NjQ7ICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAzOQogICAgdWludDMyX3Qgc2hhZGVySW50NjQ7ICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vIDQwCiAgICB1aW50MzJfdCBzaGFkZXJJbnQxNjsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vIDQxCiAgICB1aW50MzJfdCBzaGFkZXJSZXNvdXJjZVJlc2lkZW5jeTsgICAgICAgICAgICAgIC8vIDQyCiAgICB1aW50MzJfdCBzaGFkZXJSZXNvdXJjZU1pbkxvZDsgICAgICAgICAgICAgICAgLy8gNDMKICAgIHVpbnQzMl90IHNwYXJzZUJpbmRpbmc7ICAgICAgICAgICAgICAgICAgICAgICAgICAvLyA0NAogICAgdWludDMyX3Qgc3BhcnNlUmVzaWRlbmN5QnVmZmVyOyAgICAgICAgICAgICAgLy8gNDUKICAgIHVpbnQzMl90IHNwYXJzZVJlc2lkZW5jeUltYWdlMkQ7ICAgICAgICAgICAgICAvLyA0NgogICAgdWludDMyX3Qgc3BhcnNlUmVzaWRlbmN5SW1hZ2UzRDsgICAgICAgICAgICAgIC8vIDQ3CiAgICB1aW50MzJfdCBzcGFyc2VSZXNpZGVuY3kyU2FtcGxlczsgICAgICAgICAgICAvLyA0OAogICAgdWludDMyX3Qgc3BhcnNlUmVzaWRlbmN5NFNhbXBsZXM7ICAgICAgICAgICAgIC8vIDQ5CiAgICB1aW50MzJfdCBzcGFyc2VSZXNpZGVuY3k4U2FtcGxlczsgICAgICAgICAgICAgLy8gNTAKICAgIHVpbnQzMl90IHNwYXJzZVJlc2lkZW5jeTE2U2FtcGxlczsgICAgICAgICAgIC8vIDUxCiAgICB1aW50MzJfdCBzcGFyc2VSZXNpZGVuY3lBbGlhc2VkOyAgICAgICAgICAgICAvLyA1MgogICAgdWludDMyX3QgdmFyaWFibGVNdWx0aXNhbXBsZVJhdGU7ICAgICAgICAgICAgLy8gNTMKICAgIHVpbnQzMl90IGluaGVyaXRlZFF1ZXJpZXM7ICAgICAgICAgICAgICAgICAgIC8vIDU0Cn0gVmtQaHlzaWNhbERldmljZUZlYXR1cmVzX21pbjsKCnR5cGVkZWYgc3RydWN0IHsKICAgIHVpbnQzMl90IHNUeXBlOwogICAgY29uc3Qgdm9pZCogcE5leHQ7CiAgICB1aW50MzJfdCBhcGlWZXJzaW9uOwogICAgdWludDMyX3QgZHJpdmVyVmVyc2lvbDsKICAgIHVpbnQzMl90IHZlbmRvcklEOwogICAgdWludDMyX3QgZGV2aWNlSUQ7CiAgICB1aW50MzJfdCBkZXZpY2VUeXBlOwogICAgY2hhciBkZXZpY2VOYW1lW1ZLX01BWF9QSFlTSUNBTF9ERVZJQ0VfTkFNRV9TSVpFXTsKICAgIHVpbnQ4X3QgcGlwZWxpbmVDYWNoZVVVSURbMTZdOwogICAgdWludDMyX3QgbGltaXRzX3BhZFs2NF07IC8vIFZrUGh5c2ljYWxEZXZpY2VMaW1pdHMgaXMgbGFyZ2UsIHdlIHNraXAgaXQKICAgIHVpbnQzMl90IHNwYXJzZV9wYWRbMl07IC8vIFZrUGh5c2ljYWxEZXZpY2VTcGFyc2VQcm9wZXJ0aWVzCn0gVmtQaHlzaWNhbERldmljZVByb3BlcnRpZXNfbWluOwoKdHlwZWRlZiBzdHJ1Y3QgewogICAgY2hhciBleHRlbnNpb25OYW1lW1ZLX01BWF9FWFRFTlNJT05fTkFNRV9TSVpFXTsKICAgIHVpbnQzMl90IHNwZWNWZXJzaW9uOwp9IFZrRXh0ZW5zaW9uUHJvcGVydGllc19taW47CgovLyBGdW5jdGlvbiBwb2ludGVyIHR5cGVkZWZzCnR5cGVkZWYgVmtSZXN1bHQgKCpQRk5fdmtDcmVhdGVJbnN0YW5jZV9wdHIpKGNvbnN0IHZvaWQqLCBjb25zdCB2b2lkKiwgVmtJbnN0YW5jZSopOwp0eXBlZGVmIHZvaWQgKCpQRk5fdmtEZXN0cm95SW5zdGFuY2VfcHRyKShWa0luc3RhbmNlLCBjb25zdCB2b2lkKik7CnR5cGVkZWYgVmtSZXN1bHQgKCpQRk5fdmtFbnVtZXJhdGVQaHlzaWNhbERldmljZXNfcHRyKShWa0luc3RhbmNlLCB1aW50MzJfdCosIFZrUGh5c2ljYWxEZXZpY2UqKTsKdHlwZWRlZiB2b2lkICgqUEZOX3ZrR2V0UGh5c2ljYWxEZXZpY2VGZWF0dXJlc19wdHIpKFZrUGh5c2ljYWxEZXZpY2UsIFZrUGh5c2ljYWxEZXZpY2VGZWF0dXJlc19taW4qKTsKdHlwZWRlZiB2b2lkICgqUEZOX3ZrR2V0UGh5c2ljYWxEZXZpY2VQcm9wZXJ0aWVzX3B0cikoVmtQaHlzaWNhbERldmljZSwgVmtQaHlzaWNhbERldmljZVByb3BlcnRpZXNfbWluKik7CnR5cGVkZWYgVmtSZXN1bHQgKCpQRk5fdmtFbnVtZXJhdGVEZXZpY2VFeHRlbnNpb25Qcm9wZXJ0aWVzX3B0cikoVmtQaHlzaWNhbERldmljZSwgY29uc3QgY2hhciosIHVpbnQzMl90KiwgVmtFeHRlbnNpb25Qcm9wZXJ0aWVzX21pbiopOwoKLy8gdmtHZXRJbnN0YW5jZVByb2NBZGRyIHJldHVybnMgdm9pZCogKFBGTF92a1ZvaWRGdW5jdGlvbikKdHlwZWRlZiB2b2lkKiAoKlBGTF92a0dldEluc3RhbmNlUHJvY0FkZHJfcHRyKShWa0luc3RhbmNlLCBjb25zdCBjaGFyKik7CgovLyBIZWxwZXI6IGFwcGVuZCBhIGJvb2xlYW4gZmllbGQgdG8gSlNPTiBzdHJpbmcKc3RhdGljIHZvaWQgYXBwZW5kX2Jvb2woY2hhcioganNvbiwgaW50KiBwb3MsIGludCBtYXgsIGNvbnN0IGNoYXIqIGtleSwgdWludDMyX3QgdmFsdWUsIGludCogZmlyc3QpIHsKICAgIGlmICgqcG9zIDwgbWF4KSB7CiAgICAgICAgKnBvcyArPSBzbnByaW50Zihqc29uICsgKnBvcywgbWF4IC0gKnBvcywgIiVzXFwiJXNcXCI6JXMiLAogICAgICAgICAgICAgICAgICAgICAgICAgKnRlcm0gPyAiIiA6ICIsIiwga2V5LCB2YWx1ZSA/ICJ0cnVlIiA6ICJmYWxzZSIpOwogICAgICAgICpmaXJzdCA9IDA7CiAgICB9Cn0KCi8vIEhlbHBlcjogYXBwZW5kIGEgc3RyaW5nIGZpZWxkIHRvIEpTT04Kc3RhdGljIHZvaWQgYXBwZW5kX3N0cmluZyhjaGFyKioganNvbiwgaW50KiBwb3MsIGludCBtYXgsIGNvbnN0IGNoYXIqIGtleSwgY29uc3QgY2hhciogdmFsdWUsIGludCogZmlyc3QpIHsKICAgIGlmICgqcG9zIDwgbWF4KSB7CiAgICAgICAgLy8gRXNjYXBlIHF1b3RlcyBpbiB2YWx1ZSAoc2ltcGxlIGFwcHJvYWNoIOKAlCBkZXZpY2UgbmFtZXMgcmFyZWx5IGhhdmUgcXVvdGVzKQogICAgICAgICpwb3MgKz0gc25wcmludGYoanNvbiArICpwb3MsIG1heCAtICpwb3MsICIlc1xcIiVzXFwiOlxcIiVzXFwiIiwKICAgICAgICAgICAgICAgICAgICAgICAgICpmaXJzdCA/ICIiIDogIiwiLCBrZXksIHZhbHVlKTsKICAgICAgICAqZmlyc3QgPSAwOwogICAgfQp9CgovLyBIZWxwZXI6IGFwcGVuZCBhbiBpbnQgZmllbGQgdG8gSlNPbgpzdGF0aWMgdm9pZCBhcHBlbmRfaW50KGNoYXIqIGpzb24sIGludCogcG9zLCBpbnQgbWF4LCBjb25zdCBjaGFyKiBrZXksIHVpbnQzMl90IHZhbHVlLCBpbnQqIGZpcnN0KSB7CiAgICBpZiAoKnBvcyA8IG1heCkgewogICAgICAgICpwb3MgKz0gc25wcmludGYoanNvbiArICpwb3MsIG1heCAtICpwb3MsICIlc1xcIiVzXFwiOiV1IiwKICAgICAgICAgICAgICAgICAgICAgICAgICpmaXJzdCA/ICIiIDogIiwiLCBrZXksIHZhbHVlKTsKICAgICAgICAqZmlyc3QgPSAwOwogICAgfQp9CgpKTklFeHBvcnQganN0cmluZyBKTklNQVAKSmF2YV9uZXRfa2R0X3BvamF2bGF1bmNoX3F1YXNhcl9jYXBhYmlsaXR5X0RldmljZUNhcGFiaWxpdHlQcm9iZV9uYXRpdmVQcm9iZVZ1bGthbihKTklFbnYgKmVudiwgamNsYXNzIGNsYXp6KSB7CiAgICBMT0dJKCJRdWFzYXJQcm9iZTogU3RhcnRpbmcgVnVsa2FuIGNhcGFiaWxpdHkgcHJvYmUuLi4iKTsKCiAgICAvLyBTdGVwIDE6IGRsb3BlbiBsaWJ2dWxrYW4uc28KICAgIHZvaWQqIGxpYnZ1bGthbiA9IGRsb3BlbigibGlidnVsa2FuLnNvIiwgUlRMRF9MQVpZIHwgUlRMRF9MT0NBTCk7CiAgICBpZiAoIWxpYnZ1bGthbikgewogICAgICAgIExPR1coIlF1YXNhclByb2JlOiBGYWlsZWQgdG8gbG9hZCBsaWJ2dWxrYW4uc28g4oCUIFZ1bGthbiBub3QgYXZhaWxhYmxlIik7CiAgICAgICAgcmV0dXJuICgqZW52KS0+TmV3U3RyaW5nVVRGKGVudiwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcImRsb3Blbl9mYWlsZWRcIn0iKTsKICAgIH0KICAgIExPR0koIlF1YXNhclByb2JlOiBsaWJ2dWxrYW4uc28gbG9hZGVkIHN1Y2Nlc3NmdWxseSIpOwoKICAgIC8vIFN0ZXAgMjogR2V0IHZrR2V0SW5zdGFuY2VQcm9jQWRkcgogICAgUEZOX3ZrR2V0SW5zdGFuY2VQcm9jQWRkcl9wdHIgdmtHZXRJbnN0YW5jZVByb2NBZGRyID0KICAgICAgICAoUEZOX3ZrR2V0SW5zdGFuY2VQcm9jQWRkcl9wdHIpIGRsc3ltKGxpYnZ1bGthbiwgInZrR2V0SW5zdGFuY2VQcm9jQWRkciIpOwogICAgaWYgKCF2a0dldEluc3RhbmNlUHJvY0FkZHIpIHsKICAgICAgICBMT0dFKCJRdWFzYXJQcm9iZTogdmtHZXRJbnN0YW5jZVByb2NBZGRyIG5vdCBmb3VuZCIpOwogICAgICAgIGRsY2xvc2UobGlidnVsa2FuKTsKICAgICAgICByZXR1cm4gKCplbnYpLT5OZXdTdHJpbmdVVEYoZW52iwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcIm5vX2dldF9wcm9jX2FkZHJcIn0iKTsKICAgIH0KCiAgICAvLyBTdGVwIDM6IEdldCB2a0NyZWF0ZUluc3RhbmNlCiAgICBQRk5fdmtDcmVhdGVJbnN0YW5jZV9wdHIgdmtDcmVhdGVJbnN0YW5jZSA9CiAgICAgICAgKFBGTF92a0NyZWF0ZUluc3RhbmNlZV9wdHIpIHZrR2V0SW5zdGFuY2VQcm9jQWRkcigtEsbE2Dx7DLrtgywiIik7CiAgICBpZiAoIXZrQ3JlYXRlSW5zdGFuY2UpIHsKICAgICAgICBMT0dFKCJRdWFzYXJQcm9iZTogdmtDcmVhdGVJbnN0YW5jZSBub3QgZm91bmQiKTsKICAgICAgICBkbGNsb3NlKGxpYnZ1bGthbik7CiAgICAgICAgcmV0dXJuICgqZW52KS0+TmV3U3RyaW5nVVRGKGVudiwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcIm5vX2NyZWF0ZV9pbnN0YW5jZVwifSIpOwogICAgfQoKICAgIC8vIFN0ZXAgNDogQ3JlYXRlIGEgVmtJbnN0YW5jZQogICAgLy8gVXNlIFZrQXBwbGljYXRpb25JbmZvIHdpdGggYXBpVmVyc2lvbiA9IFZLX0FQSV9WRVJTSU9OXzFfMCBmb3IgbWF4aW11bSBjb21wYXRpYmlsaXR5CiAgICBzdHJ1Y3QgewogICAgICAgIHVpbnQzMl90IHNUeXBlOwogICAgICAgIGNvbnN0IHZvaWQqIHBOb20uZHQ7CiAgICAgICAgY29uc3QgY2hhciogcEFwcGxpY2F0aW9uTmFtZTsKICAgICAgICB1aW50MzJfdCBhcHBsaWNhdGlvblZlcnNpb247CiAgICAgICAgY29uc3QgY2hhciogcEVuZ2luZU5hbWU7CiAgICAgICAgdWludDMyX3QgZW5naW5lVmVyc2lvbTsKICAgICAgICB1aW50MzJfdCBhcGlWZXJzaW9uOwogICAgfSBhcHBJbmZvID0gewogICAgICAgIC5zVHlwZSA9IFZLX1NUUlVDVFVSRV9UWVBFX0FQUExJQ0FUSU9OX0lORk8sCiAgICAgICAgLnBOZXh0ID0gTlVMTCwKICAgICAgICAucEFwcGxpY2F0aW9uTmFtZSA9ICJRdWFzYXJQcm9iZSIsCiAgICAgICAgLmFwcGxpY2F0aW9uVmVyc2lvbiA9IDEsCiAgICAgICAgLnBFbmdpbmVOYW1lID0gIlF1YXNhciIsCiAgICAgICAgLmVuZ2luZVZlcnNpb24gPSAxLAogICAgICAgIC5hcGlWZXJzaW9uID0gVktfQVBJX1ZFUlNJT05fMV8wCiAgICB9OwoKICAgIHN0cnVjdCB7CiAgICAgICAgdWludDMyX3Qgc1R5cGU7CiAgICAgICAgY29uc3Qgdm9pZCogcE5leHQ7CiAgICAgICAgY29uc3Qgdm9pZCogcEFwcGxpY2F0aW9uSW5mbzsKICAgICAgICBjb25zdCB2b2lkKiBwcEVuYWJsZWRMYXllck5hbWVzOwogICAgICAgIHVpbnQzMl90IGVuYWJsZWRMYXllckNvdW50OwogICAgICAgIGNvbnN0IHZvaWQqIHBwRW5hYmxlZEV4dGVuc2lvbk5hbWVzOwogICAgICAgIHVpbnQzMl90IGVuYWJsZWRFeHRlbnNpb25Db3VudDsKICAgIH0gY3JlYXRlSW5mbyA9IHsKICAgICAgICAuc1R5cGUgPSBWS19TVFJVQ1RVUkVfVFlQRV9JTlNUQU5DRV9DUkVBVEVfSU5GTywsCiAgICAgICAgLnBOZXh0ID0gTlVMTCwKICAgICAgICAucEFwcGxpY2F0aW9uSW5mbyA9ICZhcHBJbmZvLAogICAgICAgIC5wcEVuYWJsZWRMYXllck5hbWVzID0gTlVMTCwKICAgICAgICAuZW5hYmxlZExheWVyQ291bnQgPSAwLAogICAgICAgIC5wcEVuYWJsZWRFeHRlbnNpb25OYW1lcyA9IE5VTEwsCiAgICAgICAgLmVuYWJsZWRFeHRlbnNpb25Db3VudCA9IDAKICAgIH07CgogICAgVmtJbnN0YW5jZSBpbnN0YW5jZSA9IE5VTEw7CiAgICBWa1Jlc3VsdCByZXN1bHQgPSB2a0NyZWF0ZUluc3RhbmNlKCZjcmVhdGVJbmZvLCBOVUxMLCAmaW5zdGFuY2UpOwogICAgaWYgKHJlc3VsdCAhPSBWS19TVUNDRVNTIHx8ICFpbnN0YW5jZSkgewogICAgICAgIExPR0UoIlF1YXNhclByb2JlOiB2a0NyZWF0ZUluc3RhbmNlIGZhaWxlZCB3aXRoIHJlc3VsdCAlZCIsIHJlc3VsdCk7CiAgICAgICAgZGxjbG9zZShsaWJ2dWxrYW4pOwogICAgICAgIGNoYXIgZXJySnNvblsxMjhdOwogICAgICAgIHNucHJpbnRmKGVyckpzb24sIHNpemVvZihlcnJKc29uKSwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcImNyZWF0ZV9pbnN0YW5jZV9mYWlsZWRcIixcInJlc3VsdFwiOiVkfSIsIHJlc3VsdCk7CiAgICAgICAgcmV0dXJuICgqZW52KS0+TmV3U3RyaW5nVVRGKGVudiwgZXJySnNvbik7CiAgICB9CiAgICBMT0dJKCJRdWFzYXJQcm9iZTogVmtJbnN0YW5jZSBjcmVhdGVkIHN1Y2Nlc3NmdWxseSIpOwoKICAgIC8vIFN0ZXAgNTogR2V0IGluc3RhbmNlLWxldmVsIGZ1bmN0aW9uIHBvaW50ZXJzCiAgICBQRk5fdmtFbnVtZXJhdGVQaHlzaWNhbERldmljZXNfcHRyIHZrRW51bWVyYXRlUGh5c2ljYWxEZXZpY2VzID0KICAgICAgICAoUEZOX3ZrRW51bWVyYXRlUGh5c2ljYWxEZXZpY2VzX3B0cikgdmtHZXRJbnN0YW5jZVByb2NBZGRyKGluc3RhbmNlLCAidmtFbnVtZXJhdGVQaHlzaWNhbERldmljZXMiKTsKICAgIFBGTF92a0dldFBoeXNpY2FsRGV2aWNlRmVhdHVyZXNfcHRyIHZrR2V0UGh5c2ljYWxEZXZpY2VGZWF0dXJlcyA9CiAgICAgICAgKFBGTF92a0dldFBoeXNpY2FsRGV2aWNlRmVhdHVyZXNfcHRyKSB2a0dldEluc3RhbmNlUHJvY0FkZHIoaW5zdGFuY2UsICJ2a0dldFBoeXNpY2FsRGV2aWNlRmVhdHVyZXMiKTsKICAgIFBGTF92a0dldFBoeXNpY2FsRGV2aWNlUHJvcGVydGllc19wdHIgdmtHZXRQaHlzaWNhbERldmljZVByb3BlcnRpZXMgPQogICAgICAgIChQRk5fdmtHZXRQaHlzaWNhbERldmljZVByb3BlcnRpZXNfcHRyKSB2a0dldEluc3RhbmNlUHJvY0FkZHIoaW5zdGFuY2UsICJ2a0dldFBoeXNpY2FsRGV2aWNlUHJvcGVydGllcyIpOwogICAgUEZOX3ZrRW51bWVyYXRlRGV2aWNlRXh0ZW5zaW9uUHJvcGVydGllc19wdHIgdmtFbnVtZXJhdGVEZXZpY2VFeHRlbnNpb25Qcm9wZXJ0aWVzID0KICAgICAgICAoUEZOX3ZrRW51bWVyYXRlRGV2aWNlRXh0ZW5zaW9uUHJvcGVydGllc19wdHIpIHZrR2V0SW5zdGFuY2VQcm9jQWRkcihpbnN0YW5jZSwgInZrRW51bWVyYXRlRGV2aWNlRXh0ZW5zaW9uUHJvcGVydGllcyIpOwogICAgUEZOX3ZrRGVzdHJveUluc3RhbmNlX3B0ciB2a0Rlc3Ryb3lJbnN0YW5jZSA9CiAgICAgICAgKFBGTF92a0Rlc3Ryb3lJbnN0YW5jZV9wdHIpIHZrR2V0SW5zdGFuY2VQcm9jQWRkcihpbnN0YW5jZSwgInZrRGVzdHJveUluc3RhbmNlIik7CgogICAgaWYgKCF2a0VudW1lcmF0ZVBoeXNpY2FsRGV2aWNlcyB8fCAhdmtHZXRQaHlzaWNhbERldmljZUZlYXR1cmVzIHx8ICF2a0dldFBoeXNpY2FsRGV2aWNlUHJvcGVydGllcyB8fCAhdmtEZXN0cm95SW5zdGFuY2UpIHsKICAgICAgICBMT0dFKCJRdWFzYXJQcm9iZTogRmFpbGVkIHRvIGdldCBpbnN0YW5jZS1sZXZlbCBmdW5jdGlvbiBwb2ludGVycyIpOwogICAgICAgIGlmICh2a0Rlc3Ryb3lJbnN0YW5jZSkgdmtEZXN0cm95SW5zdGFuY2UoaW5zdGFuY2UsIE5VTEwpOwogICAgICAgIGRsY2xvc2UobGlidnVsa2FuKTsKICAgICAgICByZXR1cm4gKCplbnYpLT5OZXdTdHJpbmdVVEYoZW52iwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcIm1pc3NpbmdfZnVuY3Rpb25zXCJ9Iik7CiAgICB9CgogICAgLy8gU3RlcCA2OiBFbnVtZXJhdGUgcGh5c2ljYWwgZGV2aWNlcwogICAgdWludDMyX3QgZGV2aWNlQ291bnQgPSAwOwogICAgcmVzdWx0ID0gdmtFbnVtZXJhdGVQaHlzaWNhbERldmljZXMoaW5zdGFuY2UsICZkZXZpY2VDb3VudCwgTlVMTCk7CiAgICBpZiAocmVzdWx0ICE9IFZLX1NVQ0NFU1MgfHwgZGV2aWNlQ291bnQgPT0gMCkgewogICAgICAgIExPR0UoIlF1YXNhclByb2JlOiBObyBWdWxrYW4gcGh5c2ljYWwgZGV2aWNlcyBmb3VuZCAocmVzdWx0PSVkLCBjb3VudD0lZCkiLCByZXN1bHQsIGRldmljZUNvdW50KTsKICAgICAgICB2a0Rlc3Ryb3lJbnN0YW5jZShpbnN0YW5jZSwgTlVMTCk7CiAgICAgICAgZGxjbG9zZShsaWJ2dWxrYW4pOwogICAgICAgIHJldHVybiAoKmVudiktPk5ld1N0cmluZ1VURihlbnYsICJ7XCJhdmFpbGFibGVcIjpmYWxzZSxcImVycm9yXCI6XCJub19kZXZpY2VzXCJ9Iik7CiAgICB9CiAgICBMT0dJKCJRdWFzYXJQcm9iZTogRm91bmQgJWQgcGh5c2ljYWwgZGV2aWNlKHMpIiwgZGV2aWNlQ291bnQpOwoKICAgIC8vIEdldCB0aGUgZmlyc3QgcGh5c2ljYWwgZGV2aWNlCiAgICBWa1BoeXNpY2FsRGV2aWNlIHBoeXNpY2FsRGV2aWNlID0gTlVMTDsKICAgIHJlc3VsdCA9IHZrRW51bWVyYXRlUGh5c2ljYWxEZXZpY2VzKGluc3RhbmNlLCAmZGV2aWNlQ291bnQsICZwaHlzaWNhbERldmljZSk7CiAgICBpZiAocmVzdWx0ICE9IFZLX1NVQ0NFU1MgfHwgIXBoeXNpY2FsRGV2aWNlKSB7CiAgICAgICAgTE9HRSgiUXVhc2FyUHJvYmU6IEZhaWxlZCB0byBnZXQgcGh5c2ljYWwgZGV2aWNlIGhhbmRsZSIpOwogICAgICAgIHZrRGVzdHJveUluc3RhbmNlKGluc3RhbmNlLCBOVUxMKTsKICAgICAgICBkbGNsb3NlKGxpYnZ1bGthbik7CiAgICAgICAgcmV0dXJuICgqZW52KS0+TmV3U3RyaW5nVVRGKGVudiwgIntcImF2YWlsYWJsZVwiOmZhbHNlLFwiZXJyb3JcIjpcImRldmljZV9nZXRfZmFpbGVkXCJ9Iik7CiAgICB9CgogICAgLy8gU3RlcCA3OiBHZXQgcGh5c2ljYWwgZGV2aWNlIGZlYXR1cmVzCiAgICBWa1BoeXNpY2FsRGV2aWNlRmVhdHVyZXNfbWluIGZlYXR1cmVzOwogICAgbWVtc2V0KCZmZWF0dXJlcywgMCwgc2l6ZW9mKGZlYXR1cmVzKSk7CiAgICB2a0dldFBoeXNpY2FsRGV2aWNlRmVhdHVyZXMocGh5c2ljYWxEZXZpY2UsICZmZWF0dXJlcyk7CgogICAgLy8gU3RlcCA4OiBHZXQgcGh5c2ljYWwgZGV2aWNlIHByb3BlcnRpZXMKICAgIFZrUGh5c2ljYWxEZXZpY2VQcm9wZXJ0aWVzX21pbiBwcm9wZXJ0aWVzOwogICAgbWVtc2V0KCZwcm9wZXJ0aWVzLCAwLCBzaXplb2YocHJvcGVydGllcykpOwogICAgdmtHZXRQaHlzaWNhbERldmljZVByb3BlcnRpZXMocGh5c2ljYWxEZXZpY2UsICZwcm9wZXJ0aWVzKTsKICAgIExPR0koIlF1YXNhclByb2JlOiBEZXZpY2U6ICVzICh2ZW5kb3I9MHgleCwgYXBpPTB4JXgpIiwgcHJvcGVydGllcy5kZXZpY2VOYW1lLCBwcm9wZXJ0aWVzLnZlbmRvcklELCBwcm9wZXJ0aWVzLmFwaVZlcnNpb24pOwoKICAgIC8vIFN0ZXAgOTogRGV0ZWN0IEdQVSB2ZW5kb3IgZnJvbSB2ZW5kb3JJRAogICAgY29uc3QgY2hhciogZ3B1VmVuZG9yID0gInVua25vd24iOwogICAgc3dpdGNoIChwcm9wZXJ0aWVzLnZlbmRvcklEKSB7CiAgICAgICAgY2FzZSAweDEwMDI6IGdwdVZlbmRvciA9ICJhbWQiOyBicmVhazsKICAgICAgICBjYXNlIDB4MTBERTogZ3B1VmVuZG9yID0gIm52aWRpYSI7IGJyZWFrOwogICAgICAgIGNhc2UgMHg4MDg2OiBncHVWZW5kb3IgPSAiaW50ZWwiOyBicmVhazsKICAgICAgICBjYXNlIDB4NTE0MzogZ3B1VmVuZG9yID0gImFkcmVubyI7IGJyZWFrOyAgLy8gUXVhbGNvbW0gKEFkcmVubykKICAgICAgICBjYXNlIDB4MTNCNTogZ3B1VmVuZG9yID0gImFybSI7IGJyZWFrOyAgICAgIC8vIEFSTSAoTWFsaSkKICAgICAgICBjYXNlIDB4MTAxMDogZ3B1VmVuZG9yID0gIm1hbGkiOyBicmVhazsgICAgICAvLyBBUk0gKE1hbGksIGFsdGVybmF0ZSkKICAgICAgICBjYXNlIDB4MTAwMDU6IGdwdVZlbmRvciA9ICJwb3dlcnZyIjsgYnJlYWs7IC8vIEltYWdpbmF0aW9uIChQb3dlclZSKQogICAgICAgIGRlZmF1bHQ6CiAgICAgICAgICAgIC8vIFRyeSB0byBkZXRlY3QgZnJvbSBkZXZpY2UgbmFtZQogICAgICAgICAgICBpZiAoc3Ryc3RyKHByb3BlcnRpZXMuZGV2aWNlTmFtZSwgIkFkcmVubyIpIHx8IHN0cnN0cihwcm9wZXJ0aWVzLmRldmljZU5hbWUsICJhZHJlbm8iKSkgewogICAgICAgICAgICAgICAgZ3B1VmVuZG9yID0gImFkcmVubyI7CiAgICAgICAgICAgIH0gZWxzZSBpZiAoc3Ryc3RyKHByb3BlcnRpZXMuZGV2aWNlTmFtZSwgIk1hbGkiKSB8fCBzdHJzdHIocHJvcGVydGllcy5kZXZpY2VOYW1lLCAibWFsaSIpKSB7CiAgICAgICAgICAgICAgICBncHVWZW5kb3IgPSAibWFsaSI7CiAgICAgICAgICAgIH0gZWxzZSBpZiAoc3Ryc3RyKHByb3BlcnRpZXMuZGV2aWNlTmFtZSwgIlBvd2VyVlIiKSB8fCBzdHJzdHIocHJvcGVydGllcy5kZXZpY2VOYW1lLCAicG93ZXJ2ciIpKSB7CiAgICAgICAgICAgICAgICBncHVWZW5kb3IgPSAicG93ZXJ2ciI7CiAgICAgICAgICAgIH0gZWxzZSBpZiAoc3Ryc3RyKHByb3BlcnRpZXMuZGV2aWNlTmFtZSwgIlR1cm5pcCIpIHx8IHN0cnN0cihwcm9wZXJ0aWVzLmRldmljZU5hbWUsICJ0dXJuaXAiKSkgewogICAgICAgICAgICAgICAgZ3B1VmVuZG9yID0gImFkcmVubyI7IC8vIFR1cm5pcCBpcyB0aGUgb3Blbi1zb3VyY2UgQWRyZW5vIGRyaXZlcgogICAgICAgICAgICB9IGVsc2UgaWYgKHN0cnN0cihwcm9wZXJ0aWVzLmRldmljZU5hbWUsICJsbHZtcGlwZSIpIHx8IHN0cnN0cihwcm9wZXJ0aWVzLmRldmljZU5hbWUsICJzd2lmdHNoYWRlciIpKSB7CiAgICAgICAgICAgICAgICBncHVWZW5kb3IgPSAic29mdHdhcmUiOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGJyZWFrOwogICAgfQogICAgTE9HSSgiUXVhc2FyUHJvYmU6IERldGVjdGVkIEdQVSB2ZW5kb3I6ICVzIiwgZ3B1VmVuZG9yKTsKCiAgICAvLyBTdGVwIDEwOiBFbnVtZXJhdGUgZGV2aWNlIGV4dGVuc2lvbnMKICAgIGNoYXIgZXh0SnNvblsyMDQ4XTsKICAgIGludCBleHRQb3MgPSAwOwogICAgZXh0UG9zICs9IHNucHJpbnRmKGV4dEpzb24sIHNpemVvZihleHRKc29uKSwgIlsiKTsKCiAgICBpZiAodmtFbnVtZXJhdGVEZXZpY2VFeHRlbnNpb25Qcm9wZXJ0aWVzKSB7CiAgICAgICAgdWludDMyX3QgZXh0Q291bnQgPSAwOwogICAgICAgIHJlc3VsdCA9IHZrRW51bWVyYXRlRGV2aWNlRXh0ZW5zaW9uUHJvcGVydGllcyhwaHlzaWNhbERldmljZSwgTlVMTCwgJmV4dENvdW50LCBOVUxMKTsKICAgICAgICBpZiAocmVzdWx0ID09IFZLX1NVQ0NFU1MgJiYgZXh0Q291bnQgPiAwKSB7CiAgICAgICAgICAgIFZrRXh0ZW5zaW9uUHJvcGVydGllc19taW4qIGV4dHMgPSAoVmtFeHRlbnNpb25Qcm9wZXJ0aWVzX21pbiopbWFsbG9jKGV4dENvdW50ICogc2l6ZW9mKFZrRXh0ZW5zaW9uUHJvcGVydGllc19taW4pKTsKICAgICAgICAgICAgaWYgKGV4dHMpIHsKICAgICAgICAgICAgICAgIHJlc3VsdCA9IHZrRW51bWVyYXRlRGV2aWNlRXh0ZW5zaW9uUHJvcGVydGllcyhwaHlzaWNhbERldmljZSwgTlVMTCwgJmV4dENvdW50LCBleHRzKTsKICAgICAgICAgICAgICAgIGlmIChyZXN1bHQgPT0gVktfU1VDQ0VTUykgewogICAgICAgICAgICAgICAgICAgIExPR0koIlF1YXNhclByb2JlOiBGb3VuZCAlZCBkZXZpY2UgZXh0ZW5zaW9ucyIsIGV4dENvdW50KTsKICAgICAgICAgICAgICAgICAgICBmb3IgKHVpbnQzMl90IGkgPSAwOyBpIDwgZXh0Q291bnQgJiYgZXh0UG9zIDwgKGludClzaXplb2YoZXh0SnNvbikgLSAyNTY7IGkrKykgewogICAgICAgICAgICAgICAgICAgICAgICBleHRQb3MgKz0gc25wcmludGYoZXh0SnNvbiArIGV4dFBvcywgc2l6ZW9mKGV4dEpzb24pIC0gZXh0UG9zLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiVzXFwiJVNcXCIiLCBpID4gMCA/ICIsIiA6ICIiLCBleHRzW2ldLmV4dGVuc2lvbk5hbWUpOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIGZyZWUoZXh0cyk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9CiAgICBleHRQb3MgKz0gc25wcmludGYoZXh0SnNvbiArIGV4dFBvcywgc2l6ZW9mKGV4dEpzb24pIC0gZXh0UG9zLCAiXSIpOwoKICAgIC8vIFN0ZXAgMTE6IEJ1aWxkIEpTT04gcmVzdWx0CiAgICBjaGFyIGpzb25bODE5Ml07CiAgICBpbnQgcG9zID0gMDsKICAgIGludCBmaXJzdCA9IDE7CgogICAgcG9zICs9IHNucHJpbnRmKGpzb24sIHNpemVvZihqc29uKSwgIntw7CgogICAgYXBwZW5kX3N0cmluZyhqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJhdmFpbGFibGUiLCAidHJ1ZSIsICZmaXJzdCk7CiAgICBhcHBlbmRfc3RyaW5nKGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgImRldmljZU5hbWUiLCBwcm9wZXJ0aWVzLmRldmljZU5hbWUsICZmaXJzdCk7CiAgICBhcHBlbmRfc3RyaW5nKGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgImdwdVZlbmRvciIsIGdwdVZlbmRvciwgJmZpcnN0KTsKICAgIGFwcGVuZF9pbnQoanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAidmVuZG9ySUQiLCBwcm9wZXJ0aWVzLnZlbmRvcklELCAmZmlyc3QpOwogICAgYXBwZW5kX2ludChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJkZXZpY2VJRCIsIHByb3BlcnRpZXMuZGV2aWNlSUQsICZmaXJzdCk7CiAgICBhcHBlbmRfaW50KGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgImFwaVZlcnNpb24iLCBwcm9wZXJ0aWVzLmFwaVZlcnNpb24sICZmaXJzdCk7CiAgICBhcHBlbmRfaW50KGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgImRyaXZlclZlcnNpb24iLCBwcm9wZXJ0aWVzLmRyaXZlclZlcnNpb24sICZmaXJzdCk7CiAgICBhcHBlbmRfaW50KGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgImRldmljZVR5cGUiLCBwcm9wZXJ0aWVzLmRldmljZVR5cGUsICZmaXJzdCk7CgogICAgLy8gRmVhdHVyZSBmbGFncwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAiZ2VvbWV0cnlTaGFkZXIiLCBmZWF0dXJlcy5nZW9tZXRyeVNoYWRlciwgJmZpcnN0KTsKICAgIGFwcGVuZF9ib29sKGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgInRlc3NlbGxhdGlvblNoYWRlciIsIGZlYXR1cmVzLnRlc3NlbGxhdGlvblNoYWRlciwgJmZpcnN0KTsKICAgIGFwcGVuZF9ib29sKGpzb24sICZwb3MsIHNpemVvZihqc29uKSwgIm11bHRpRHJhd0luZGlyZWN0IiwgZmVhdHVyZXMubXVsdGlEcmF3SW5kaXJlY3QsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJzaGFkZXJTdG9yYWdlSW1hZ2VFeHRlbmRlZEZvcm1hdHMiLCBmZWF0dXJlcy5zaGFkZXJTdG9yYWdlSW1hZ2VFeHRlbmRlZEZvcm1hdHMsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJzaGFkZXJTdG9yYWdlSW1hZ2VXcml0ZVdpdGhvdXRGb3JtYXQiLCBmZWF0dXJlcy5zaGFkZXJTdG9yYWdlSW1hZ2VXcml0ZVdpdGhvdXRGb3JtYXQsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJzaGFkZXJTdG9yYWdlSW1hZ2VSZWFkV2l0aG91dEZvcm1hdCIsIGZlYXR1cmVzLnNoYWRlclN0b3JhZ2VJbWFnZVJlYWRXaXRob3V0Rm9ybWF0LCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAic2hhZGVySW1hZ2VHYXRoZXJFeHRlbmRlZCIsIGZlYXR1cmVzLnNoYWRlckltYWdlR2F0aGVyRXh0ZW5kZWQsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJ2ZXJ0ZXhQaXBlbGluZVN0b3Jlc0FuZEF0b21pY3MiLCBmZWF0dXJlcy52ZXJ0ZXhQaXBlbGluZVN0b3Jlc0FuZEF0b21pY3MsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJmcmFnbWVudFN0b3Jlc0FuZEF0b21pY3MiLCBmZWF0dXJlcy5mcmFnbWVudFN0b3Jlc0FuZEF0b21pY3MsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJzaGFkZXJJbnQ2NCIsIGZlYXR1cmVzLnNoYWRlckludDY0LCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAic2hhZGVyRmxvYXQ2NCIsIGZlYXR1cmVzLnNoYWRlckZsb2F0NjQsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJzaGFkZXJJbnQxNiIsIGZlYXR1cmVzLnNoYWRlckludDE2LCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAic2hhZGVyQ2xpcERpc3RhbmNlIiwgZmVhdHVyZXMuc2hhZGVyQ2xpcERpc3RhbmNlLCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAic2hhZGVyQ3VsbERpc3RhbmNlIiwgZmVhdHVyZXMuc2hhZGVyQ3VsbERpc3RhbmNlLCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAic3BhcnNlQmluZGluZyIsIGZlYXR1cmVzLnNwYXJzZUJpbmRpbmcsICZmaXJzdCk7CiAgICBhcHBlbmRfYm9vbChqc29uLCAmcG9zLCBzaXplb2YoanNvbiksICJwaXBlbGluZVN0YXRpc3RpY3NRdWVyeSIsIGZlYXR1cmVzLnBpcGVsaW5lU3RhdGlzdGljc1F1ZXJ5LCAmZmlyc3QpOwogICAgYXBwZW5kX2Jvb2woanNvbiwgJnBvcywgc2l6ZW9mKGpzb24pLCAib2NjbHVzaW9uUXVlcnlQcmVjaXNlIiwgZmVhdHVyZXMub2NjbHVzaW9uUXVlcnlQcmVjaXNlLCAmZmlyc3QpOwoKICAgIC8vIEV4dGVuc2lvbnMgYXJyYXkKICAgIGlmIChwb3MgPCAoaW50KXNpemVvZihqc29uKSAtIDEwMCkgewogICAgICAgIHBvcyArPSBzbnByaW50Zihqc29uICsgcG9zLCBzaXplb2YoanNvbikgLSBwb3MsICIsXCJleHRlbnNpb25zXCI6JXMiLCBleHRKc29uKTsKICAgIH0KCiAgICBwb3MgKz0gc25wcmludGYoanNvbiArIHBvcywgc2l6ZW9mKGpzb24pIC0gcG9zLCAifSIpOwoKICAgIC8vIFN0ZXAgMTI6IENsZWFudXAKICAgIHZrRGVzdHJveUluc3RhbmNlKGluc3RhbmNlLCBOVUxMKTsKICAgIGRsY2xvc2UobGlidnVsa2FuKTsKCiAgICBMT0dJKCJRdWFzYXJQcm9iZTogUHJvYmUgY29tcGxldGUsIEpTT04gbGVuZ3RoOiAlZCIsIHBvcyk7CiAgICBMT0dEKCJRdWFzYXJQcm9iZTogSlNPTjogJXMiLCBqc29uKTsKCiAgICByZXR1cm4gKCplbnYpLT5OZXdTdHJpbmdVVEYoZW52LCBqc29uKTsKfQo=
+//
+// Quasar Capability Probe — Vulkan device feature detection via dlopen/dlsym
+//
+// This file probes the device's Vulkan capabilities by dynamically loading
+// libvulkan.so and calling vkGetPhysicalDeviceFeatures / vkGetPhysicalDeviceProperties.
+//
+// Results are returned as a JSON string to Java for parsing.
+//
+
+#include <jni.h>
+#include <dlfcn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TAG "QuasarProbe"
+#include "log.h"
+
+// We define minimal Vulkan types here to be completely self-contained.
+// This avoids any dependency on <vulkan/vulkan.h> which may not be available
+// at all API levels in the NDK.
+
+#include <stdint.h>
+
+#define VK_MAKE_VERSION(major, minor, patch) \
+    (((uint32_t)(major) << 22) | ((uint32_t)(minor) << 12) | (uint32_t)(patch))
+
+#define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
+#define VK_API_VERSION_1_1 VK_MAKE_VERSION(1, 1, 0)
+#define VK_API_VERSION_1_2 VK_MAKE_VERSION(1, 2, 0)
+
+#define VK_SUCCESS 0
+#define VK_ERROR_INITIALIZATION_FAILED -9
+
+#define VK_STRUCTURE_TYPE_APPLICATION_INFO 0
+#define VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO 1
+
+#define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE 256
+#define VK_MAX_EXTENSION_NAME_SIZE 256
+
+typedef int32_t VkResult;
+typedef uint32_t VkFlags;
+typedef struct VkInstance_T* VkInstance;
+typedef struct VkPhysicalDevice_T* VkPhysicalDevice;
+
+typedef struct {
+    uint32_t apiVersion;
+} VkApplicationInfo_part;
+
+typedef struct {
+    const void* pNext;
+    const void* pApplicationInfo;
+    const void* ppEnabledLayerNames;
+    uint32_t enabledLayerCount;
+    const void* ppEnabledExtensionNames;
+    uint32_t enabledExtensionCount;
+    const void* pNext2;
+} VkInstanceCreateInfo_part;
+
+// VkPhysicalDeviceFeatures — each field is VkBool32 (uint32_t)
+// We only care about a subset, but the struct has ~55 fields.
+// Rather than define them all, we'll read specific offsets.
+// The struct layout is: each VkBool32 is 4 bytes, packed in declaration order.
+// We define the full struct based on the Vulkan spec.
+
+typedef struct {
+    uint32_t robustBufferAccess;                    // 0
+    uint32_t fullDrawIndexUint32;                  // 1
+    uint32_t imageCubeArray;                       // 2
+    uint32_t independentBlend;                     // 3
+    uint32_t geometryShader;                       // 4
+    uint32_t tessellationShader;                   // 5
+    uint32_t sampleRateShading;                    // 6
+    uint32_t dualSrcBlend;                         // 7
+    uint32_t logicOp;                              // 8
+    uint32_t multiDrawIndirect;                    // 9
+    uint32_t drawIndirectFirstInstance;            // 10
+    uint32_t depthClamp;                           // 11
+    uint32_t depthBiasClamp;                       // 12
+    uint32_t fillModeNonSolid;                     // 13
+    uint32_t depthBounds;                          // 14
+    uint32_t wideLines;                            // 15
+    uint32_t largePoints;                          // 16
+    uint32_t alphaToOne;                           // 17
+    uint32_t multiViewport;                        // 18
+    uint32_t samplerAnisotropy;                    // 19
+    uint32_t textureCompressionETC2;               // 20
+    uint32_t textureCompressionASTC_LDR;           // 21
+    uint32_t textureCompressionBC;                 // 22
+    uint32_t occlusionQueryPrecise;                // 23
+    uint32_t pipelineStatisticsQuery;              // 24
+    uint32_t vertexPipelineStoresAndAtomics;       // 25
+    uint32_t fragmentStoresAndAtomics;             // 26
+    uint32_t shaderTessellationAndGeometryPointSize; // 27
+    uint32_t shaderImageGatherExtended;            // 28
+    uint32_t shaderStorageImageExtendedFormats;    // 29
+    uint32_t shaderStorageImageMultisample;        // 30
+    uint32_t shaderStorageImageReadWithoutFormat;   // 31
+    uint32_t shaderStorageImageWriteWithoutFormat; // 32
+    uint32_t shaderUniformBufferArrayDynamicIndexing; // 33
+    uint32_t shaderSampledImageArrayDynamicIndexing; // 34
+    uint32_t shaderStorageBufferArrayDynamicIndexing; // 35
+    uint32_t shaderStorageImageArrayDynamicIndexing; // 36
+    uint32_t shaderClipDistance;                   // 37
+    uint32_t shaderCullDistance;                   // 38
+    uint32_t shaderFloat64;                        // 39
+    uint32_t shaderInt64;                          // 40
+    uint32_t shaderInt16;                          // 41
+    uint32_t shaderResourceResidency;              // 42
+    uint32_t shaderResourceMinLod;                  // 43
+    uint32_t sparseBinding;                        // 44
+    uint32_t sparseResidencyBuffer;                // 45
+    uint32_t sparseResidencyImage2D;                // 46
+    uint32_t sparseResidencyImage3D;                // 47
+    uint32_t sparseResidency2Samples;              // 48
+    uint32_t sparseResidency4Samples;              // 49
+    uint32_t sparseResidency8Samples;              // 50
+    uint32_t sparseResidency16Samples;             // 51
+    uint32_t sparseResidencyAliased;               // 52
+    uint32_t variableMultisampleRate;              // 53
+    uint32_t inheritedQueries;                     // 54
+} VkPhysicalDeviceFeatures_min;
+
+typedef struct {
+    uint32_t sType;
+    const void* pNext;
+    uint32_t apiVersion;
+    uint32_t driverVersion;
+    uint32_t vendorID;
+    uint32_t deviceID;
+    uint32_t deviceType;
+    char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+    uint8_t pipelineCacheUUID[16];
+    uint32_t limits_pad[64]; // VkPhysicalDeviceLimits is large, we skip it
+    uint32_t sparse_pad[2]; // VkPhysicalDeviceSparseProperties
+} VkPhysicalDeviceProperties_min;
+
+typedef struct {
+    char extensionName[VK_MAX_EXTENSION_NAME_SIZE];
+    uint32_t specVersion;
+} VkExtensionProperties_min;
+
+// Function pointer typedefs
+typedef VkResult (*PFN_vkCreateInstance_ptr)(const void*, const void*, VkInstance*);
+typedef void (*PFN_vkDestroyInstance_ptr)(VkInstance, const void*);
+typedef VkResult (*PFN_vkEnumeratePhysicalDevices_ptr)(VkInstance, uint32_t*, VkPhysicalDevice*);
+typedef void (*PFN_vkGetPhysicalDeviceFeatures_ptr)(VkPhysicalDevice, VkPhysicalDeviceFeatures_min*);
+typedef void (*PFN_vkGetPhysicalDeviceProperties_ptr)(VkPhysicalDevice, VkPhysicalDeviceProperties_min*);
+typedef VkResult (*PFN_vkEnumerateDeviceExtensionProperties_ptr)(VkPhysicalDevice, const char*, uint32_t*, VkExtensionProperties_min*);
+
+// vkGetInstanceProcAddr returns void* (PFN_vkVoidFunction)
+typedef void* (*PFN_vkGetInstanceProcAddr_ptr)(VkInstance, const char*);
+
+// Helper: append a boolean field to JSON string
+static void append_bool(char* json, int* pos, int max, const char* key, uint32_t value, int* first) {
+    if (*pos < max) {
+        *pos += snprintf(json + *pos, max - *pos, "%s\"%s\":%s",
+                         *first ? "" : ",", key, value ? "true" : "false");
+        *first = 0;
+    }
+}
+
+// Helper: append a string field to JSON
+static void append_string(char* json, int* pos, int max, const char* key, const char* value, int* first) {
+    if (*pos < max) {
+        // Escape quotes in value (simple approach — device names rarely have quotes)
+        *pos += snprintf(json + *pos, max - *pos, "%s\"%s\":\"%s\"",
+                         *first ? "" : ",", key, value);
+        *first = 0;
+    }
+}
+
+// Helper: append an int field to JSON
+static void append_int(char* json, int* pos, int max, const char* key, uint32_t value, int* first) {
+    if (*pos < max) {
+        *pos += snprintf(json + *pos, max - *pos, "%s\"%s\":%u",
+                         *first ? "" : ",", key, value);
+        *first = 0;
+    }
+}
+
+JNIEXPORT jstring JNICALL
+Java_net_kdt_pojavlaunch_quasar_capability_DeviceCapabilityProbe_nativeProbeVulkan(JNIEnv *env, jclass clazz) {
+    LOGI("QuasarProbe: Starting Vulkan capability probe...");
+
+    // Step 1: dlopen libvulkan.so
+    void* libvulkan = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+    if (!libvulkan) {
+        LOGW("QuasarProbe: Failed to load libvulkan.so — Vulkan not available");
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"dlopen_failed\"}");
+    }
+    LOGI("QuasarProbe: libvulkan.so loaded successfully");
+
+    // Step 2: Get vkGetInstanceProcAddr
+    PFN_vkGetInstanceProcAddr_ptr vkGetInstanceProcAddr =
+        (PFN_vkGetInstanceProcAddr_ptr) dlsym(libvulkan, "vkGetInstanceProcAddr");
+    if (!vkGetInstanceProcAddr) {
+        LOGE("QuasarProbe: vkGetInstanceProcAddr not found");
+        dlclose(libvulkan);
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"no_get_proc_addr\"}");
+    }
+
+    // Step 3: Get vkCreateInstance
+    PFN_vkCreateInstance_ptr vkCreateInstance =
+        (PFN_vkCreateInstance_ptr) vkGetInstanceProcAddr(NULL, "vkCreateInstance");
+    if (!vkCreateInstance) {
+        LOGE("QuasarProbe: vkCreateInstance not found");
+        dlclose(libvulkan);
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"no_create_instance\"}");
+    }
+
+    // Step 4: Create a VkInstance
+    // Use VkApplicationInfo with apiVersion = VK_API_VERSION_1_0 for maximum compatibility
+    struct {
+        uint32_t sType;
+        const void* pNext;
+        const char* pApplicationName;
+        uint32_t applicationVersion;
+        const char* pEngineName;
+        uint32_t engineVersion;
+        uint32_t apiVersion;
+    } appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = NULL,
+        .pApplicationName = "QuasarProbe",
+        .applicationVersion = 1,
+        .pEngineName = "Quasar",
+        .engineVersion = 1,
+        .apiVersion = VK_API_VERSION_1_0
+    };
+
+    struct {
+        uint32_t sType;
+        const void* pNext;
+        const void* pApplicationInfo;
+        const void* ppEnabledLayerNames;
+        uint32_t enabledLayerCount;
+        const void* ppEnabledExtensionNames;
+        uint32_t enabledExtensionCount;
+    } createInfo = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = NULL,
+        .pApplicationInfo = &appInfo,
+        .ppEnabledLayerNames = NULL,
+        .enabledLayerCount = 0,
+        .ppEnabledExtensionNames = NULL,
+        .enabledExtensionCount = 0
+    };
+
+    VkInstance instance = NULL;
+    VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
+    if (result != VK_SUCCESS || !instance) {
+        LOGE("QuasarProbe: vkCreateInstance failed with result %d", result);
+        dlclose(libvulkan);
+        char errJson[128];
+        snprintf(errJson, sizeof(errJson), "{\"available\":false,\"error\":\"create_instance_failed\",\"result\":%d}", result);
+        return (*env)->NewStringUTF(env, errJson);
+    }
+    LOGI("QuasarProbe: VkInstance created successfully");
+
+    // Step 5: Get instance-level function pointers
+    PFN_vkEnumeratePhysicalDevices_ptr vkEnumeratePhysicalDevices =
+        (PFN_vkEnumeratePhysicalDevices_ptr) vkGetInstanceProcAddr(instance, "vkEnumeratePhysicalDevices");
+    PFN_vkGetPhysicalDeviceFeatures_ptr vkGetPhysicalDeviceFeatures =
+        (PFN_vkGetPhysicalDeviceFeatures_ptr) vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures");
+    PFN_vkGetPhysicalDeviceProperties_ptr vkGetPhysicalDeviceProperties =
+        (PFN_vkGetPhysicalDeviceProperties_ptr) vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties");
+    PFN_vkEnumerateDeviceExtensionProperties_ptr vkEnumerateDeviceExtensionProperties =
+        (PFN_vkEnumerateDeviceExtensionProperties_ptr) vkGetInstanceProcAddr(instance, "vkEnumerateDeviceExtensionProperties");
+    PFN_vkDestroyInstance_ptr vkDestroyInstance =
+        (PFN_vkDestroyInstance_ptr) vkGetInstanceProcAddr(instance, "vkDestroyInstance");
+
+    if (!vkEnumeratePhysicalDevices || !vkGetPhysicalDeviceFeatures || !vkGetPhysicalDeviceProperties || !vkDestroyInstance) {
+        LOGE("QuasarProbe: Failed to get instance-level function pointers");
+        if (vkDestroyInstance) vkDestroyInstance(instance, NULL);
+        dlclose(libvulkan);
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"missing_functions\"}");
+    }
+
+    // Step 6: Enumerate physical devices
+    uint32_t deviceCount = 0;
+    result = vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
+    if (result != VK_SUCCESS || deviceCount == 0) {
+        LOGE("QuasarProbe: No Vulkan physical devices found (result=%d, count=%d)", result, deviceCount);
+        vkDestroyInstance(instance, NULL);
+        dlclose(libvulkan);
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"no_devices\"}");
+    }
+    LOGI("QuasarProbe: Found %d physical device(s)", deviceCount);
+
+    // Get the first physical device
+    VkPhysicalDevice physicalDevice = NULL;
+    result = vkEnumeratePhysicalDevices(instance, &deviceCount, &physicalDevice);
+    if (result != VK_SUCCESS || !physicalDevice) {
+        LOGE("QuasarProbe: Failed to get physical device handle");
+        vkDestroyInstance(instance, NULL);
+        dlclose(libvulkan);
+        return (*env)->NewStringUTF(env, "{\"available\":false,\"error\":\"device_get_failed\"}");
+    }
+
+    // Step 7: Get physical device features
+    VkPhysicalDeviceFeatures_min features;
+    memset(&features, 0, sizeof(features));
+    vkGetPhysicalDeviceFeatures(physicalDevice, &features);
+
+    // Step 8: Get physical device properties
+    VkPhysicalDeviceProperties_min properties;
+    memset(&properties, 0, sizeof(properties));
+    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+    LOGI("QuasarProbe: Device: %s (vendor=0x%x, api=0x%x)", properties.deviceName, properties.vendorID, properties.apiVersion);
+
+    // Step 9: Detect GPU vendor from vendorID
+    const char* gpuVendor = "unknown";
+    switch (properties.vendorID) {
+        case 0x1002: gpuVendor = "amd"; break;
+        case 0x10DE: gpuVendor = "nvidia"; break;
+        case 0x8086: gpuVendor = "intel"; break;
+        case 0x5143: gpuVendor = "adreno"; break;  // Qualcomm (Adreno)
+        case 0x13B5: gpuVendor = "arm"; break;      // ARM (Mali)
+        case 0x1010: gpuVendor = "mali"; break;      // ARM (Mali, alternate)
+        case 0x10005: gpuVendor = "powervr"; break; // Imagination (PowerVR)
+        default:
+            // Try to detect from device name
+            if (strstr(properties.deviceName, "Adreno") || strstr(properties.deviceName, "adreno")) {
+                gpuVendor = "adreno";
+            } else if (strstr(properties.deviceName, "Mali") || strstr(properties.deviceName, "mali")) {
+                gpuVendor = "mali";
+            } else if (strstr(properties.deviceName, "PowerVR") || strstr(properties.deviceName, "powervr")) {
+                gpuVendor = "powervr";
+            } else if (strstr(properties.deviceName, "Turnip") || strstr(properties.deviceName, "turnip")) {
+                gpuVendor = "adreno"; // Turnip is the open-source Adreno driver
+            } else if (strstr(properties.deviceName, "llvmpipe") || strstr(properties.deviceName, "swiftshader")) {
+                gpuVendor = "software";
+            }
+            break;
+    }
+    LOGI("QuasarProbe: Detected GPU vendor: %s", gpuVendor);
+
+    // Step 10: Enumerate device extensions
+    char extJson[2048];
+    int extPos = 0;
+    extPos += snprintf(extJson, sizeof(extJson), "[");
+
+    if (vkEnumerateDeviceExtensionProperties) {
+        uint32_t extCount = 0;
+        result = vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extCount, NULL);
+        if (result == VK_SUCCESS && extCount > 0) {
+            VkExtensionProperties_min* exts = (VkExtensionProperties_min*)malloc(extCount * sizeof(VkExtensionProperties_min));
+            if (exts) {
+                result = vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extCount, exts);
+                if (result == VK_SUCCESS) {
+                    LOGI("QuasarProbe: Found %d device extensions", extCount);
+                    for (uint32_t i = 0; i < extCount && extPos < (int)sizeof(extJson) - 256; i++) {
+                        extPos += snprintf(extJson + extPos, sizeof(extJson) - extPos,
+                                          "%s\"%s\"", i > 0 ? "," : "", exts[i].extensionName);
+                    }
+                }
+                free(exts);
+            }
+        }
+    }
+    extPos += snprintf(extJson + extPos, sizeof(extJson) - extPos, "]");
+
+    // Step 11: Build JSON result
+    char json[8192];
+    int pos = 0;
+    int first = 1;
+
+    pos += snprintf(json, sizeof(json), "{");
+
+    append_string(json, &pos, sizeof(json), "available", "true", &first);
+    append_string(json, &pos, sizeof(json), "deviceName", properties.deviceName, &first);
+    append_string(json, &pos, sizeof(json), "gpuVendor", gpuVendor, &first);
+    append_int(json, &pos, sizeof(json), "vendorID", properties.vendorID, &first);
+    append_int(json, &pos, sizeof(json), "deviceID", properties.deviceID, &first);
+    append_int(json, &pos, sizeof(json), "apiVersion", properties.apiVersion, &first);
+    append_int(json, &pos, sizeof(json), "driverVersion", properties.driverVersion, &first);
+    append_int(json, &pos, sizeof(json), "deviceType", properties.deviceType, &first);
+
+    // Feature flags
+    append_bool(json, &pos, sizeof(json), "geometryShader", features.geometryShader, &first);
+    append_bool(json, &pos, sizeof(json), "tessellationShader", features.tessellationShader, &first);
+    append_bool(json, &pos, sizeof(json), "multiDrawIndirect", features.multiDrawIndirect, &first);
+    append_bool(json, &pos, sizeof(json), "shaderStorageImageExtendedFormats", features.shaderStorageImageExtendedFormats, &first);
+    append_bool(json, &pos, sizeof(json), "shaderStorageImageWriteWithoutFormat", features.shaderStorageImageWriteWithoutFormat, &first);
+    append_bool(json, &pos, sizeof(json), "shaderStorageImageReadWithoutFormat", features.shaderStorageImageReadWithoutFormat, &first);
+    append_bool(json, &pos, sizeof(json), "shaderImageGatherExtended", features.shaderImageGatherExtended, &first);
+    append_bool(json, &pos, sizeof(json), "vertexPipelineStoresAndAtomics", features.vertexPipelineStoresAndAtomics, &first);
+    append_bool(json, &pos, sizeof(json), "fragmentStoresAndAtomics", features.fragmentStoresAndAtomics, &first);
+    append_bool(json, &pos, sizeof(json), "shaderInt64", features.shaderInt64, &first);
+    append_bool(json, &pos, sizeof(json), "shaderFloat64", features.shaderFloat64, &first);
+    append_bool(json, &pos, sizeof(json), "shaderInt16", features.shaderInt16, &first);
+    append_bool(json, &pos, sizeof(json), "shaderClipDistance", features.shaderClipDistance, &first);
+    append_bool(json, &pos, sizeof(json), "shaderCullDistance", features.shaderCullDistance, &first);
+    append_bool(json, &pos, sizeof(json), "sparseBinding", features.sparseBinding, &first);
+    append_bool(json, &pos, sizeof(json), "pipelineStatisticsQuery", features.pipelineStatisticsQuery, &first);
+    append_bool(json, &pos, sizeof(json), "occlusionQueryPrecise", features.occlusionQueryPrecise, &first);
+
+    // Extensions array
+    if (pos < (int)sizeof(json) - 100) {
+        pos += snprintf(json + pos, sizeof(json) - pos, ",\"extensions\":%s", extJson);
+    }
+
+    pos += snprintf(json + pos, sizeof(json) - pos, "}");
+
+    // Step 12: Cleanup
+    vkDestroyInstance(instance, NULL);
+    dlclose(libvulkan);
+
+    LOGI("QuasarProbe: Probe complete, JSON length: %d", pos);
+    LOGD("QuasarProbe: JSON: %s", json);
+
+    return (*env)->NewStringUTF(env, json);
+}
