@@ -49,14 +49,29 @@ public class LibraryPlugin {
         String libraryPath;
         try {
             PackageInfo pluginPackage = ctx.getPackageManager().getPackageInfo(appId, PackageManager.GET_SHARED_LIBRARY_FILES);
-            libraryPath = pluginPackage.applicationInfo.nativeLibraryDir;
-            CharSequence label = pluginPackage.applicationInfo.loadLabel(ctx.getPackageManager());
-            String name = (label != null) ? label.toString() : appId;
-            return new LibraryPlugin(appId, libraryPath, name);
+            if (pluginPackage != null && pluginPackage.applicationInfo != null) {
+                libraryPath = pluginPackage.applicationInfo.nativeLibraryDir;
+                CharSequence label = pluginPackage.applicationInfo.loadLabel(ctx.getPackageManager());
+                String name = (label != null) ? label.toString() : appId;
+                return new LibraryPlugin(appId, libraryPath, name);
+            }
         } catch (Exception e){
-            Log.d(TAG, "Plugin discover failed for " + appId + ": " + e.getMessage());
-            return null;
+            // Ignore
         }
+
+        // Secondary attempt using getApplicationInfo
+        try {
+            ApplicationInfo appInfo = ctx.getPackageManager().getApplicationInfo(appId, PackageManager.GET_META_DATA);
+            if (appInfo != null && appInfo.nativeLibraryDir != null) {
+                libraryPath = appInfo.nativeLibraryDir;
+                CharSequence label = appInfo.loadLabel(ctx.getPackageManager());
+                String name = (label != null) ? label.toString() : appId;
+                return new LibraryPlugin(appId, libraryPath, name);
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Plugin discover failed for " + appId + ": " + e.getMessage());
+        }
+        return null;
     }
 
     /**
