@@ -3,6 +3,8 @@ package net.kdt.pojavlaunch.quasar.capability;
 import android.content.Context;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 /**
  * DeviceCapabilityProbe queries the device's actual GPU capabilities at runtime.
  *
@@ -10,12 +12,13 @@ import android.util.Log;
  * - Vulkan: vkGetPhysicalDeviceFeatures, vkGetPhysicalDeviceProperties, extension list
  * - GLES fallback: GL_EXTENSIONS, GL_MAX_* limits
  *
+ * The Vulkan probe is implemented in native code (quasar_capability_probe.c)
+ * which dlopens libvulkan.so, creates a VkInstance, and queries the first
+ * physical device's features and properties. The result is returned as JSON.
+ *
  * The result is a CapabilityTable that distinguishes Mali vs Adreno gaps
  * (e.g., compute shader support, multiple render targets, image atomics,
  * geometry shader emulation availability).
- *
- * TODO: Implement actual Vulkan probing via JNI/NDK. Currently uses Java-side
- * detection only (GL extensions string, Build.BRAND, etc.)
  */
 public class DeviceCapabilityProbe {
     private static final String TAG = "Quasar-CapabilityProbe";
@@ -29,32 +32,107 @@ public class DeviceCapabilityProbe {
         Log.i(TAG, "Probing device GPU capabilities...");
         CapabilityTable table = new CapabilityTable();
 
-        // --- Detect GPU vendor from Build properties ---
-        String gpuVendor = detectGpuVendor();
+        // --- Probe Vulkan via native code ---
+        String vulkanJson = null;
+        try {
+            vulkanJson = nativeProbeVulkan();
+        } catch (UnsatisfiedLinkError e) {
+            Log.w(TAG, "Native probe not available (libquasar_probe.so not loaded), using fallback", e);
+        }
+
+        if (vulkanJson != null) {
+            try {
+                JSONObject json = new JSONObject(vulkanJson);
+                boolean available = json.optBoolean("available", false);
+
+                if (available) {
+                    Log.i(TAG, "Vulkan probe successful, parsing results...");
+                    table.setHasVulkan(true);
+                    table.setVulkanApiVersion(json.optInt("apiVersion", 0));
+                    table.setVulkanDeviceName(json.optString("deviceName", ""));
+                    table.setGpuVendor(json.optString("gpuVendor", "unknown"));
+
+                    // Feature flags from Vulkan
+                    table.setHasGeometryShaders(json.optBoolean("geometryShader", false));
+                    table.setHasTessellation(json.optBoolean("tessellationShader", false));
+                    table.setHasMultiDrawIndirect(json.optBoolean("multiDrawIndirect", false));
+
+                    // Image load/store = shaderStorageImageExtendedFormats || shaderStorageImageWriteWithoutFormat
+                    table.setHasImageLoadStore(
+                            json.optBoolean("shaderStorageImageExtendedFormats", false) ||
+                            json.optBoolean("shaderStorageImageWriteWithoutFormat", false));
+
+                    // SSBO = vertexPipelineStoresAndAtomics || fragmentStoresAndAtomics
+                    table.setHasSSBO(
+                            json.optBoolean("vertexPipelineStoresAndAtomics", false) ||
+                            json.optBoolean("fragmentStoresAndAtomics", false));
+
+                    // Compute shader — Vulkan 1.0+ always supports compute
+                    table.setHasComputeShaders(true);
+
+                    Log.i(TAG, "Vulkan device: " + table.getVulkanDeviceName()
+                            + " (vendor=" + table.getGpuVendor()
+                            + ", api=0x" + Integer.toHexString(table.getVulkanApiVersion()) + ")");
+                    Log.i(TAG, "Features: geom=" + table.hasGeometryShaders()
+                            + ", tess=" + table.hasTessellation()
+                            + ", compute=" + table.hasComputeShaders()
+                            + ", imgLoadStore=" + table.hasImageLoadStore()
+                            + ", ssbo=" + table.hasSSBO()
+                            + ", mdi=" + table.hasMultiDrawIndirect());
+
+                    // Parse extensions array
+                    if (json.has("extensions")) {
+                        org.json.JSONArray extArray = json.getJSONArray("extensions");
+                        String[] exts = new String[extArray.length()];
+                        for (int i = 0; i < extArray.length(); i++) {
+                            exts[i] = extArray.getString(i);
+                        }
+                        table.setVulkanExtensions(exts);
+                        Log.i(TAG, "Found " + exts.length + " Vulkan device extensions");
+                    }
+                } else {
+                    Log.w(TAG, "Vulkan not available: " + json.optString("error", "unknown"));
+                    table.setHasVulkan(false);
+                    // Fall back to Java-side detection
+                    probeGlesFallback(table, context);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to parse Vulkan probe JSON", e);
+                table.setHasVulkan(false);
+                probeGlesFallback(table, context);
+            }
+        } else {
+            // Native probe not available — use Java-side fallback detection
+            Log.w(TAG, "Native probe returned null, using Java-side fallback");
+            probeGlesFallback(table, context);
+        }
+
+        // --- Apply vendor-specific gaps ---
+        applyVendorSpecificGaps(table, table.getGpuVendor());
+
+        Log.i(TAG, "Capability probe complete: " + table.toString());
+        return table;
+    }
+
+    /**
+     * Fallback detection using Java-side APIs when the native probe is unavailable.
+     */
+    private void probeGlesFallback(CapabilityTable table, Context context) {
+        Log.i(TAG, "Using Java-side fallback capability detection...");
+
+        // Detect GPU vendor from Build properties
+        String gpuVendor = detectGpuVendorJava();
         table.setGpuVendor(gpuVendor);
-        Log.i(TAG, "Detected GPU vendor: " + gpuVendor);
+        Log.i(TAG, "Detected GPU vendor (Java): " + gpuVendor);
 
-        // --- Detect Vulkan availability ---
-        boolean hasVulkan = detectVulkan(context);
+        // Detect Vulkan availability via PackageManager
+        boolean hasVulkan = detectVulkanJava(context);
         table.setHasVulkan(hasVulkan);
-        Log.i(TAG, "Vulkan available: " + hasVulkan);
-
-        // TODO: If Vulkan is available, call vkGetPhysicalDeviceFeatures and
-        // vkGetPhysicalDeviceProperties via JNI to populate:
-        // - Geometry shader support
-        // - Compute shader support
-        // - Tessellation support
-        // - Image load/store support
-        // - SSBO support
-        // - Multi-draw indirect support
-        // - Max image units
-        // - Max compute work group count/size
-        //
-        // For now, set conservative defaults based on vendor knowledge:
+        Log.i(TAG, "Vulkan available (PackageManager): " + hasVulkan);
 
         if (hasVulkan) {
-            // Vulkan 1.1+ devices generally support all features we need
-            table.setVulkanApiVersion(0x402000); // Assume Vulkan 1.2 for now
+            // Assume Vulkan 1.1+ if PackageManager reports Vulkan support
+            table.setVulkanApiVersion(0x401000);
             table.setHasGeometryShaders(true);
             table.setHasComputeShaders(true);
             table.setHasTessellation(true);
@@ -62,7 +140,6 @@ public class DeviceCapabilityProbe {
             table.setHasSSBO(true);
             table.setHasMultiDrawIndirect(true);
         } else {
-            // No Vulkan — fall back to GLES capabilities
             table.setVulkanApiVersion(0);
             table.setHasGeometryShaders(false);
             table.setHasComputeShaders(false);
@@ -70,55 +147,31 @@ public class DeviceCapabilityProbe {
             table.setHasImageLoadStore(false);
             table.setHasSSBO(false);
             table.setHasMultiDrawIndirect(false);
-
-            // TODO: Probe GLES version and extension list
-            Log.w(TAG, "Vulkan not available — GLES probing not yet implemented, using conservative defaults");
+            Log.w(TAG, "No Vulkan — using conservative GLES defaults");
         }
-
-        // --- Set vendor-specific capability gaps ---
-        applyVendorSpecificGaps(table, gpuVendor);
-
-        Log.i(TAG, "Capability probe complete: " + table.toString());
-        return table;
     }
 
     /**
-     * Detect the GPU vendor from system properties.
-     * @return "mali", "adreno", "powervr", or "unknown"
+     * Detect GPU vendor using Java system properties.
      */
-    private String detectGpuVendor() {
+    private String detectGpuVendorJava() {
         String brand = android.os.Build.BRAND.toLowerCase();
-
-        if (brand.contains("qualcomm") || brand.contains("samsung") && android.os.Build.HARDWARE.contains("qcom")) {
-            return "adreno";
-        }
-
-        if (brand.contains("samsung") || brand.contains("mediatek")) {
-            return "mali";
-        }
-
-        if (brand.contains("mediatek")) {
-            return "powervr";
-        }
-
+        if (brand.contains("qualcomm")) return "adreno";
+        if (brand.contains("samsung") || brand.contains("mediatek")) return "mali";
         return "unknown";
     }
 
     /**
-     * Detect if the device supports Vulkan.
-     * Uses PackageManager to check for Vulkan feature flags.
+     * Detect Vulkan availability via PackageManager feature flags.
      */
-    private boolean detectVulkan(Context context) {
-        if (android.os.Build.VERSION.SDK_INT < 24) {
-            return false;
-        }
+    private boolean detectVulkanJava(Context context) {
+        if (android.os.Build.VERSION.SDK_INT < 24) return false;
         return context.getPackageManager()
                 .hasSystemFeature("android.hardware.vulkan.level");
     }
 
     /**
      * Apply vendor-specific capability gaps and workarounds.
-     * This is where we handle known Mali vs Adreno differences.
      */
     private void applyVendorSpecificGaps(CapabilityTable table, String vendor) {
         switch (vendor) {
@@ -126,12 +179,10 @@ public class DeviceCapabilityProbe {
                 Log.i(TAG, "Applying Mali-specific capability adjustments");
                 table.setHasImageAtomics(false);
                 break;
-
             case "adreno":
                 Log.i(TAG, "Applying Adreno-specific capability adjustments");
                 table.setHasImageAtomics(true);
                 break;
-
             case "powervr":
                 Log.i(TAG, "Applying PowerVR-specific capability adjustments");
                 if (!table.hasVulkan()) {
@@ -140,11 +191,32 @@ public class DeviceCapabilityProbe {
                 }
                 table.setHasImageAtomics(false);
                 break;
-
+            case "software":
+                Log.i(TAG, "Software renderer detected (llvmpipe/swiftshader)");
+                table.setHasImageAtomics(false);
+                break;
             default:
                 Log.w(TAG, "Unknown GPU vendor, using conservative defaults");
                 table.setHasImageAtomics(false);
                 break;
+        }
+    }
+
+    // --- Native method ---
+
+    /**
+     * Native Vulkan capability probe.
+     * Returns a JSON string with device features and properties, or
+     * {"available":false,"error":"..."} if Vulkan is not available.
+     */
+    private static native String nativeProbeVulkan();
+
+    static {
+        try {
+            System.loadLibrary("quasar_probe");
+            Log.i(TAG, "libquasar_probe.so loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            Log.w(TAG, "libquasar_probe.so not available — native probe disabled", e);
         }
     }
 }
