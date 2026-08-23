@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item>Fear Render - Standalone (FOGL core)</item>
-        <item>@string/mcl_setting_renderer_gles2_4</item>
-        <item>@string/mcl_setting_renderer_vulkan_zink</item>
-        <item>@string/mcl_setting_renderer_freedreno_kgsl</item>
-        <item>@string/mcl_setting_renderer_ltw</item>
-        <item>MH DRIVE (Mali Hybrid Optimization Engine)</item>
-        <item>MobileGlues</item>
-        <item>MobileGL</item>
-        <item>Krypton (ng_gl4es)</item>
-        <item>Custom Render Injection</item>
-        <item>Quasar Renderer (Shader Transpilation)</item>
+        <item name="0">Fear Render - Standalone (FOGL core)</item>
+        <item name="1">@string/mcl_setting_renderer_gles2_4</item>
+        <item name="2">@string/mcl_setting_renderer_vulkan_zink</item>
+        <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
+        <item name="4">@string/mcl_setting_renderer_ltw</item>
+        <item name="5">MH DRIVE (Mali Hybrid Optimization Engine)</item>
+        <item name="6">MobileGlues</item>
+        <item name="7">MobileGL</item>
+        <item name="8">Krypton (ng_gl4es)</item>
+        <item name="9">Custom Render Injection</item>
+        <item name="10">Quasar Renderer (Shader Transpilation)</item>
     </string-array>
 
-    <string-array name="customctrl_buttons">
-        <item>@string/customctrl_addbutton</item>
-        <item>@string/customctrl_addbutton_drawer</item>
-        <item>@string/customctrl_addbutton_joystick</item>
-        <item>@string/global_load</item>
-        <item>@string/global_save</item>
-        <item>@string/customctrl_selectdefault</item>
-        <item>@string/customctrl_editor_exit</item>
+    <string-array name="menu_customcontrol">
+        <item name="0">@string/customctrl_addbutton</item>
+        <item name="1">@string/customctrl_addbutton_drawer</item>
+        <item name="2">@string/customctrl_addbutton_joystick</item>
+        <item name="2">@string/global_load</item>
+        <item name="3">@string/global_save</item>
+        <item name="4">@string/customctrl_selectdefault</item>
+        <item name="5">@string/customctrl_editor_exit</item>
     </string-array>
 
-    <string-array name="customctrl_buttons_advanced">
-        <item>@string/customctrl_addbutton</item>
-        <item>@string/customctrl_addbutton_drawer</item>
-        <item>@string/customctrl_addbutton_joystick</item>
-        <item>@string/global_load</item>
-        <item>@string/global_save</item>
-        <item>@string/customctrl_selectdefault</item>
-        <item>@string/customctrl_export</item>
+    <string-array name="menu_customcontrol_customactivity">
+        <item name="0">@string/customctrl_addbutton</item>
+        <item name="1">@string/customctrl_addbutton_drawer</item>
+        <item name="2">@string/customctrl_addbutton_joystick</item>
+        <item name="3">@string/global_load</item>
+        <item name="4">@string/global_save</item>
+        <item name="5">@string/customctrl_selectdefault</item>
+        <item name="6">@string/customctrl_export</item>
     </string-array>
 
-    <string-array name="java_quick_settings">
+    <string-array name="menu_ingame">
         <item>@string/control_forceclose</item>
         <item>@string/control_viewout</item>
         <item>@string/control_customkey</item>
@@ -55,12 +55,10 @@
         <item>custom_inject</item>
         <item>quasar</item>
     </string-array>
-
     <string-array name="download_source_names">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>
     </string-array>
-
     <string-array name="download_source_values">
         <item>default</item>
         <item>bmclapi</item>
