@@ -63,43 +63,4 @@
             android:title="@string/preference_vsync_in_zink_title"
             />
     </PreferenceCategory>
-
-    <PreferenceCategory android:title="MobileGlues Settings">
-        <androidx.preference.ListPreference
-            android:key="mg_angle_option"
-            android:title="Use ANGLE as OpenGL ES driver"
-            android:defaultValue="0"
-            android:entries="@array/mg_angle_entries"
-            android:entryValues="@array/mg_angle_values"
-            app2:useSimpleSummaryProvider="true"/>
-
-        <androidx.preference.ListPreference
-            android:key="mg_glsl_cache_size"
-            android:title="Max GLSL Cache Size"
-            android:defaultValue="30"
-            android:entries="@array/mg_cache_entries"
-            android:entryValues="@array/mg_cache_values"
-            app2:useSimpleSummaryProvider="true"/>
-
-        <androidx.preference.ListPreference
-            android:key="mg_noerror_option"
-            android:title="OpenGL Error Setting"
-            android:defaultValue="0"
-            android:entries="@array/mg_noerror_entries"
-            android:entryValues="@array/mg_noerror_values"
-            app2:useSimpleSummaryProvider="true"/>
-
-        <androidx.preference.ListPreference
-            android:key="mg_angle_clear_workaround"
-            android:title="ANGLE Depth Clear Workaround"
-            android:defaultValue="0"
-            android:entries="@array/mg_angle_clear_entries"
-            android:entryValues="@array/mg_angle_clear_values"
-            app2:useSimpleSummaryProvider="true"/>
-
-        <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="mg_enable_fsr1"
-            android:title="(Experimental) Enable built-in FSR1"/>
-    </PreferenceCategory>
 </PreferenceScreen>
