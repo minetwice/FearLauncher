@@ -1,35 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item name="0">Fear Render - Standalone (FOGL core)</item>
-        <item name="1">@string/mcl_setting_renderer_gles2_4</item>
-        <item name="2">@string/mcl_setting_renderer_vulkan_zink</item>
-        <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
-        <item name="4">@string/mcl_setting_renderer_ltw</item>
-        <item name="5">MH DRIVE (Mali Hybrid Optimization Engine)</item>
+        <item>Fear Render - Standalone (FOGL core)</item>
+        <item>@string/mcl_setting_renderer_gles2_4</item>
+        <item>@string/mcl_setting_renderer_vulkan_zink</item>
+        <item>@string/mcl_setting_renderer_freedreno_kgsl</item>
+        <item>@string/mcl_setting_renderer_ltw</item>
+        <item>MH DRIVE (Mali Hybrid Optimization Engine)</item>
+        <item>MobileGlues</item>
+        <item>MobileGL</item>
+        <item>Krypton (ng_gl4es)</item>
+        <item>Custom Render Injection</item>
+        <item>Quasar Renderer (Shader Transpilation)</item>
     </string-array>
 
-    <string-array name="menu_customcontrol">
-        <item name="0">@string/customctrl_addbutton</item>
-        <item name="1">@string/customctrl_addbutton_drawer</item>
-        <item name="2">@string/customctrl_addbutton_joystick</item>
-        <item name="2">@string/global_load</item>
-        <item name="3">@string/global_save</item>
-        <item name="4">@string/customctrl_selectdefault</item>
-        <item name="5">@string/customctrl_editor_exit</item>
+    <string-array name="customctrl_buttons">
+        <item>@string/customctrl_addbutton</item>
+        <item>@string/customctrl_addbutton_drawer</item>
+        <item>@string/customctrl_addbutton_joystick</item>
+        <item>@string/global_load</item>
+        <item>@string/global_save</item>
+        <item>@string/customctrl_selectdefault</item>
+        <item>@string/customctrl_editor_exit</item>
     </string-array>
 
-    <string-array name="menu_customcontrol_customactivity">
-        <item name="0">@string/customctrl_addbutton</item>
-        <item name="1">@string/customctrl_addbutton_drawer</item>
-        <item name="2">@string/customctrl_addbutton_joystick</item>
-        <item name="3">@string/global_load</item>
-        <item name="4">@string/global_save</item>
-        <item name="5">@string/customctrl_selectdefault</item>
-        <item name="6">@string/customctrl_export</item>
+    <string-array name="customctrl_buttons_advanced">
+        <item>@string/customctrl_addbutton</item>
+        <item>@string/customctrl_addbutton_drawer</item>
+        <item>@string/customctrl_addbutton_joystick</item>
+        <item>@string/global_load</item>
+        <item>@string/global_save</item>
+        <item>@string/customctrl_selectdefault</item>
+        <item>@string/customctrl_export</item>
     </string-array>
 
-    <string-array name="menu_ingame">
+    <string-array name="java_quick_settings">
         <item>@string/control_forceclose</item>
         <item>@string/control_viewout</item>
         <item>@string/control_customkey</item>
@@ -38,17 +43,24 @@
     </string-array>
 
     <string-array name="renderer_values">
-        <item>fear_engine</item> <!-- Fear Render (Standalone FOGL core) -->
-        <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->
-        <item>vulkan_zink</item> <!-- zink with OpenGL (undef) -->
-        <item>freedreno_kgsl</item> <!-- freedreno gallium driver with OpenGL 4.6 -->
-        <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->
+        <item>fear_engine</item>
+        <item>opengles2</item>
+        <item>vulkan_zink</item>
+        <item>freedreno_kgsl</item>
+        <item>opengles3_ltw</item>
         <item>mh_drive</item>
+        <item>opengles3_mges</item>
+        <item>opengles3_mggl</item>
+        <item>opengles3_nggl4es</item>
+        <item>custom_inject</item>
+        <item>quasar</item>
     </string-array>
-    <string-array name="download_source_names">
+
+    <string-array name="download_source">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>
     </string-array>
+
     <string-array name="download_source_values">
         <item>default</item>
         <item>bmclapi</item>
