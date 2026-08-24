@@ -48,7 +48,7 @@ static const unsigned char* glGetString_hook(unsigned int name) {
     } else if (name == GL_VENDOR) {
         return (const unsigned char*)"NVIDIA Corporation";
     } else if (name == GL_EXTENSIONS) {
-        return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+        return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_ARB_shader_texture_lod GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
     }
 
     typedef const unsigned char* (*glGetString_pfn)(unsigned int);
@@ -76,7 +76,7 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
             "GL_EXT_texture_buffer",
             "GL_EXT_texture_cube_map_array",
             "GL_OES_EGL_image_external_essl3",
-            "GL_NV_shader_noperspective_interpolation",
+            "GL_ARB_shader_texture_lod",
             "GL_ARB_shader_objects",
             "GL_ARB_vertex_shader",
             "GL_ARB_fragment_shader",
