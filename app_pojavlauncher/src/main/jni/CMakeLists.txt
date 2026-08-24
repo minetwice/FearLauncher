@@ -45,24 +45,20 @@ target_link_libraries(quasar_probe PRIVATE log dl)
 
 # ===== Quasar Shader Transpilation Library =====
 # FearRender submodule already provides glslang + SPIRV-Cross via FetchContent.
-# We just compile the C API wrapper (spirv_cross_c.cpp) directly and link
-# against FearRender's existing spirv-cross-glsl target.
+# We reuse those targets and compile the SPIRV-Cross C API wrapper ourselves.
 
 if(TARGET glslang AND TARGET spirv-cross-glsl)
-    # Find SPIRV-Cross headers from FearRender's FetchContent
+    # Get source dirs from FearRender's FetchContent targets
     get_target_property(SPIRV_CROSS_SRC_DIR spirv-cross-glsl SOURCE_DIR)
-    set(SPIRV_CROSS_INCLUDE_DIR "${SPIRV_CROSS_SRC_DIR}")
-
-    # Find glslang headers
     get_target_property(GLSLANG_SRC_DIR glslang SOURCE_DIR)
-    set(GLSLANG_INCLUDE_DIR "${GLSLANG_SRC_DIR}")
 
     add_library(quasar_shader SHARED
         quasar/quasar_shader_bridge.cpp
+        ${SPIRV_CROSS_SRC_DIR}/spirv_cross_c.cpp
     )
     target_include_directories(quasar_shader PRIVATE
-        ${GLSLANG_INCLUDE_DIR}
-        ${SPIRV_CROSS_INCLUDE_DIR}
+        ${GLSLANG_SRC_DIR}
+        ${SPIRV_CROSS_SRC_DIR}
     )
     target_link_libraries(quasar_shader PRIVATE
         glslang
