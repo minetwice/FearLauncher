@@ -29,7 +29,6 @@ public class JREUtils {
                 try {
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
-
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
@@ -38,7 +37,6 @@ public class JREUtils {
                             }
                         }
                     }
-
                     int exitCode = p.waitFor();
                     if (exitCode != 0) {
                         Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
@@ -215,25 +213,27 @@ public class JREUtils {
                 break;
             case "quasar":
                 Logger.appendToLog("[Quasar] Initializing Quasar renderer environment...");
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("EGL_PLATFORM", "android");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_NO_MINMAX_CACHE", "1");
-                envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_NORMALIZE", "1");
+                envMap.put("LIBGL_NOINTOVLHACK", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_DEPTH", "24");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
-                envMap.put("gl_draw_buffers_override", "true");
-                envMap.put("glsl_force_highp", "true");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
-                envMap.put("allow_glsl_layout_qualifier_override", "true");
-                envMap.put("glsl_ignore_noperspective", "true");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
@@ -410,30 +410,10 @@ public class JREUtils {
                 break;
             case "quasar":
                 Logger.appendToLog("[Quasar] Loading Quasar renderer...");
-                boolean quasarVkOk = false;
-                String quasarVkVer = "none";
-                try {
-                    preloadVulkan();
-                    quasarVkOk = true;
-                    quasarVkVer = "1.3";
-                } catch (Throwable t) {
-                    quasarVkOk = false;
-                    quasarVkVer = "none";
-                }
-                if (quasarVkOk) {
-                    Logger.appendToLog("[Quasar] probe: vulkan=" + quasarVkVer + " -> ZINK");
-                    Logger.appendToLog("[Quasar] backend=ZINK (Vulkan: 1.3)");
-                    renderLibrary = "libEGL_mesa.so";
-                    useGles = false;
-                    bypassNamespace = true;
-                    glesVersion = 3;
-                } else {
-                    Logger.appendToLog("[Quasar] probe: vulkan=" + quasarVkVer + " -> GLES");
-                    Logger.appendToLog("[Quasar] backend=GLES core=FOGLTLOGLES+guards");
-                    renderLibrary = "libGLFear.so";
-                    useGles = true;
-                    glesVersion = 3;
-                }
+                Logger.appendToLog("[Quasar] backend=LTW (Mali-optimized GLES->GL translator)");
+                renderLibrary = "libltw.so";
+                useGles = true;
+                glesVersion = 3;
                 break;
             case "opengles2":
             case "opengles2_5":
@@ -494,18 +474,15 @@ public class JREUtils {
     public static native boolean eglInitialize(long display, int[] major, int[] minor);
     public static native void eglTerminate(long display);
     public static native int chdir(String path);
-
     public static native void setLdLibraryPath(String ldLibraryPath);
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
-
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
-
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
