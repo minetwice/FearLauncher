@@ -7,6 +7,7 @@ import net.kdt.pojavlaunch.quasar.backend.BackendSelector;
 import net.kdt.pojavlaunch.quasar.backend.RenderBackend;
 import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
 import net.kdt.pojavlaunch.quasar.capability.DeviceCapabilityProbe;
+import net.kdt.pojavlaunch.quasar.stage.QuasarPipeline;
 import net.kdt.pojavlaunch.quasar.transpile.ShaderCache;
 
 /**
@@ -29,6 +30,7 @@ public class QuasarRenderer {
     private CapabilityTable capabilityTable;
     private RenderBackend activeBackend;
     private ShaderCache shaderCache;
+    private QuasarPipeline pipeline;
     private boolean initialized = false;
 
     private QuasarRenderer() {}
@@ -59,6 +61,9 @@ public class QuasarRenderer {
         shaderCache = new ShaderCache(context);
         Log.i(TAG, "Shader cache initialized at: " + shaderCache.getCachePath());
 
+        pipeline = new QuasarPipeline(capabilityTable, shaderCache);
+        Log.i(TAG, "5-Stage Quasar Shader Translator Net pipeline initialized!");
+
         Log.i(TAG, "Selecting render backend...");
         activeBackend = BackendSelector.select(capabilityTable);
         Log.i(TAG, "Selected backend: " + activeBackend.getBackendName());
@@ -79,6 +84,10 @@ public class QuasarRenderer {
         return shaderCache;
     }
 
+    public QuasarPipeline getPipeline() {
+        return pipeline;
+    }
+
     public boolean isInitialized() {
         return initialized;
     }
@@ -93,6 +102,7 @@ public class QuasarRenderer {
             shaderCache.flush();
             shaderCache = null;
         }
+        pipeline = null;
         capabilityTable = null;
         initialized = false;
         Log.i(TAG, "Quasar shutdown complete");

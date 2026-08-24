@@ -2,6 +2,8 @@ package net.kdt.pojavlaunch.quasar.iris;
 
 import android.util.Log;
 
+import net.kdt.pojavlaunch.quasar.QuasarRenderer;
+import net.kdt.pojavlaunch.quasar.stage.QuasarPipeline;
 import net.kdt.pojavlaunch.quasar.transpile.GlslangCompiler;
 import net.kdt.pojavlaunch.quasar.transpile.SpirvCrossTranspiler;
 
@@ -90,28 +92,28 @@ public class QuasarRenderSystem {
      * @return The transpiled GLSL source, or the original if transpilation fails
      */
     public static String transpileShader(String shaderSource, int shaderStage, String shaderName) {
-        Log.d(TAG, "Transpiling shader: " + shaderName + " (stage=" + shaderStage + ")");
+        Log.d(TAG, "Transpiling shader through 5-Stage Quasar Net: " + shaderName + " (stage=" + shaderStage + ")");
 
-        // Step 1: Compile GLSL -> SPIR-V
-        int[] spirv = GlslangCompiler.compileToSPIRV(shaderStage, shaderSource, shaderName);
-        if (spirv == null) {
-            Log.w(TAG, "GLSL->SPIR-V failed for " + shaderName + ", using original source");
-            return shaderSource;
+        QuasarRenderer renderer = QuasarRenderer.getInstance();
+        if (renderer.isInitialized() && renderer.getPipeline() != null) {
+            return renderer.getPipeline().processShader(shaderSource, shaderStage, shaderName);
         }
 
-        // Step 2: Cross-compile SPIR-V -> target GLSL
-        // TODO: Determine target GLSL version based on active backend and device capabilities
-        int targetVersion = 330;
-        boolean isGLES = false;
+        // Fallback: create temporary pipeline on demand if QuasarRenderer is not initialized yet
+        QuasarPipeline tempPipeline = new QuasarPipeline(null, null);
+        String transpiled = tempPipeline.processShader(shaderSource, shaderStage, shaderName);
 
-        String transpiled = SpirvCrossTranspiler.transpileToGLSL(spirv, targetVersion, isGLES);
-        if (transpiled == null) {
-            Log.w(TAG, "SPIR-V->GLSL failed for " + shaderName + ", using original source");
-            return shaderSource;
+        // Native Glslang -> SPIRV-Cross fallback if native library is loaded
+        if (GlslangCompiler.isAvailable() && SpirvCrossTranspiler.isAvailable()) {
+            int[] spirv = GlslangCompiler.compileToSPIRV(shaderStage, transpiled, shaderName);
+            if (spirv != null) {
+                String spirvTranspiled = SpirvCrossTranspiler.transpileToGLSL(spirv, 300, true);
+                if (spirvTranspiled != null && !spirvTranspiled.isEmpty()) {
+                    return spirvTranspiled;
+                }
+            }
         }
 
-        Log.d(TAG, "Successfully transpiled " + shaderName
-                + " (" + shaderSource.length() + " -> " + transpiled.length() + " chars)");
         return transpiled;
     }
 

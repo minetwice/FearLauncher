@@ -131,12 +131,12 @@ static char* strip_unsupported_glsl(const char* source) {
 
     while (src < src_end) {
         /* Check for "noperspective" keyword (preceded by whitespace, not part of identifier) */
-        if (src + 12 <= src_end && strncmp(src, "noperspective", 12) == 0) {
+        if (src + 13 <= src_end && strncmp(src, "noperspective", 13) == 0) {
             /* Make sure it's a standalone keyword (next char is space/tab/newline) */
-            char next_ch = (src + 12 < src_end) ? src[12] : ' ';
+            char next_ch = (src + 13 < src_end) ? src[13] : ' ';
             if (next_ch == ' ' || next_ch == '\t' || next_ch == '\n' || next_ch == '\r') {
                 /* Skip the keyword and the trailing space */
-                src += 12;
+                src += 13;
                 /* Skip one trailing space if present */
                 if (src < src_end && (*src == ' ' || *src == '\t')) {
                     src++;
