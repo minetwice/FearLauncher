@@ -50,19 +50,9 @@ target_link_libraries(quasar_probe PRIVATE log dl)
 #   git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross.git third_party/SPIRV-Cross
 
 set(QUASAR_THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
-set(QUASAR_HAS_GLSLANG OFF)
-set(QUASAR_HAS_SPIRVCROSS OFF)
 
-if(EXISTS "${QUASAR_THIRDPARTY_DIR}/glslang/CMakeLists.txt")
-    set(QUASAR_HAS_GLSLANG ON)
-endif()
-if(EXISTS "${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross/CMakeLists.txt")
-    set(QUASAR_HAS_SPIRVCROSS ON)
-endif()
-
-if(QUASAR_HAS_GLSLANG AND QUASAR_HAS_SPIRVCROSS)
-
-    # --- glslang: build as static library, NO SPIRV-Tools dependency ---
+# Check if glslang/SPIRV-Cross targets already exist (from FearRender submodule)
+if(NOT TARGET glslang AND EXISTS "${QUASAR_THIRDPARTY_DIR}/glslang/CMakeLists.txt")
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     set(ENABLE_SPIRV ON CACHE BOOL "" FORCE)
     set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
@@ -75,8 +65,12 @@ if(QUASAR_HAS_GLSLANG AND QUASAR_HAS_SPIRVCROSS)
     set(ENABLE_PCH OFF CACHE BOOL "" FORCE)
     set(BUILD_EXTERNAL OFF CACHE BOOL "" FORCE)
     add_subdirectory(${QUASAR_THIRDPARTY_DIR}/glslang ${CMAKE_CURRENT_BINARY_DIR}/glslang_build)
+    message(STATUS "Quasar: glslang built from third_party")
+else()
+    message(STATUS "Quasar: glslang target already exists (from FearRender)")
+endif()
 
-    # --- SPIRV-Cross: build as static library with GLSL backend + C API ---
+if(NOT TARGET spirv-cross-c AND EXISTS "${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross/CMakeLists.txt")
     set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
     set(SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
     set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
@@ -90,8 +84,13 @@ if(QUASAR_HAS_GLSLANG AND QUASAR_HAS_SPIRVCROSS)
     set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "" FORCE)
     set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "" FORCE)
     add_subdirectory(${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross ${CMAKE_CURRENT_BINARY_DIR}/spirvcross_build)
+    message(STATUS "Quasar: SPIRV-Cross built from third_party")
+else()
+    message(STATUS "Quasar: spirv-cross-c target already exists (from FearRender)")
+endif()
 
-    # --- Quasar shader JNI bridge library ---
+# Build the JNI bridge library if both dependencies are available
+if(TARGET glslang AND TARGET spirv-cross-c)
     add_library(quasar_shader SHARED
         quasar/quasar_shader_bridge.cpp
     )
@@ -106,9 +105,9 @@ if(QUASAR_HAS_GLSLANG AND QUASAR_HAS_SPIRVCROSS)
         spirv-cross-c
         log
     )
-    message(STATUS "Quasar shader transpilation library: ENABLED (glslang + SPIRV-Cross)")
+    message(STATUS "Quasar shader transpilation library: ENABLED")
 else()
-    message(WARNING "Quasar shader transpilation: DISABLED (glslang/SPIRV-Cross not found in third_party/)")
+    message(WARNING "Quasar shader transpilation: DISABLED (glslang or spirv-cross-c not found)")
 endif()
 
 add_library(pojavexec_awt SHARED
