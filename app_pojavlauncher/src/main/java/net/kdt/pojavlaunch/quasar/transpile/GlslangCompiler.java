@@ -8,33 +8,32 @@ import android.util.Log;
  *
  * Pipeline: Desktop GLSL -> SPIR-V (via glslang)
  *
- * The C API of glslang is used (glslang_c_interface.h) which provides:
- * - glslang_initialize_process() — call once at startup
- * - glslang_shader_create() / glslang_shader_preprocess() / glslang_shader_parse()
- * - glslang_program_create() / glslang_program_add_shader() / glslang_program_link()
- * - glslang_program_SPIRV_generate() — generates SPIR-V bytecode
- * - glslang_program_SPIRV_get_ptr() / glslang_program_SPIRV_get_size() — retrieve SPIR-V
- *
- * TODO: Implement JNI bridge to libglslang.so. The native library must be built
- * as part of the Quasar native module (separate from FearLauncher's existing
- * pojavexec native library).
- *
- * Native build:
- * - Clone glslang and SPIRV-Tools sources
- * - Build with NDK CMake using android.toolchain.cmake
- * - Produce libglslang.so for arm64-v8a and armeabi-v7a
+ * The native library libquasar_shader.so is loaded at class init time.
+ * It links against static glslang + SPIRV-Cross libraries.
  */
 public class GlslangCompiler {
     private static final String TAG = "Quasar-GlslangCompiler";
     private static boolean initialized = false;
+    private static boolean nativeAvailable = false;
 
     // Shader stages (matching glslang_stage_t)
     public static final int STAGE_VERTEX = 0;
-    public static final int STAGE_FRAGMENT = 4;
     public static final int STAGE_GEOMETRY = 1;
     public static final int STAGE_TESSELLATION_CONTROL = 2;
     public static final int STAGE_TESSELLATION_EVALUATION = 3;
+    public static final int STAGE_FRAGMENT = 4;
     public static final int STAGE_COMPUTE = 5;
+
+    static {
+        try {
+            System.loadLibrary("quasar_shader");
+            nativeAvailable = true;
+            Log.i(TAG, "libquasar_shader.so loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            nativeAvailable = false;
+            Log.w(TAG, "libquasar_shader.so not available - shader transpilation disabled", e);
+        }
+    }
 
     /**
      * Initialize the glslang library. Must be called once before any compilation.
@@ -44,14 +43,17 @@ public class GlslangCompiler {
             Log.w(TAG, "Glslang already initialized");
             return;
         }
+        if (!nativeAvailable) {
+            Log.e(TAG, "Native library not available");
+            return;
+        }
         Log.i(TAG, "Initializing glslang compiler...");
         try {
             nativeInitialize();
             initialized = true;
             Log.i(TAG, "Glslang initialized successfully");
         } catch (UnsatisfiedLinkError e) {
-            Log.e(TAG, "Failed to load glslang native library", e);
-            throw new RuntimeException("Glslang native library not available", e);
+            Log.e(TAG, "Failed to initialize glslang native library", e);
         }
     }
 
@@ -64,18 +66,24 @@ public class GlslangCompiler {
      * @return The SPIR-V bytecode as an int[] array, or null if compilation failed
      */
     public static int[] compileToSPIRV(int stage, String sourceCode, String fileName) {
-        if (!initialized) {
-            Log.e(TAG, "Glslang not initialized — call initialize() first");
+        if (!nativeAvailable) {
+            Log.e(TAG, "Native library not available");
             return null;
         }
+        if (!initialized) {
+            initialize();
+            if (!initialized) {
+                Log.e(TAG, "Glslang not initialized");
+                return null;
+            }
+        }
         Log.d(TAG, "Compiling " + fileName + " (stage=" + stage + ") to SPIR-V...");
-
         try {
             int[] spirv = nativeCompileToSPIRV(stage, sourceCode, fileName);
-            if (spirv == null) {
-                Log.e(TAG, "Compilation failed for " + fileName);
+            if (spirv != null) {
+                Log.d(TAG, "Compiled " + fileName + " -> " + spirv.length + " SPIR-V words");
             } else {
-                Log.d(TAG, "Compiled " + fileName + " to " + spirv.length + " SPIR-V words");
+                Log.e(TAG, "Compilation failed for " + fileName);
             }
             return spirv;
         } catch (UnsatisfiedLinkError e) {
@@ -84,23 +92,15 @@ public class GlslangCompiler {
         }
     }
 
-    /**
-     * Shutdown the glslang library and release resources.
-     */
-    public static synchronized void shutdown() {
-        if (!initialized) return;
-        Log.i(TAG, "Shutting down glslang...");
-        try {
-            nativeShutdown();
-        } catch (UnsatisfiedLinkError e) {
-            Log.w(TAG, "Native shutdown failed", e);
-        }
-        initialized = false;
+    public static boolean isAvailable() {
+        return nativeAvailable;
     }
 
-    // --- Native methods (implemented in libquasar_glslang.so) ---
+    public static boolean isInitialized() {
+        return initialized;
+    }
 
+    // --- Native methods ---
     private static native void nativeInitialize();
     private static native int[] nativeCompileToSPIRV(int stage, String sourceCode, String fileName);
-    private static native void nativeShutdown();
 }
