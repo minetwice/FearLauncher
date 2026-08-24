@@ -44,70 +44,37 @@ target_include_directories(quasar_probe PRIVATE .)
 target_link_libraries(quasar_probe PRIVATE log dl)
 
 # ===== Quasar Shader Transpilation Library =====
-# Requires glslang and SPIRV-Cross sources in third_party/
-# CI clones them automatically; for local builds run:
-#   git clone --depth 1 https://github.com/KhronosGroup/glslang.git third_party/glslang
-#   git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross.git third_party/SPIRV-Cross
+# FearRender submodule already provides glslang + SPIRV-Cross via FetchContent.
+# We just compile the C API wrapper (spirv_cross_c.cpp) directly and link
+# against FearRender's existing spirv-cross-glsl target.
 
-set(QUASAR_THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+if(TARGET glslang AND TARGET spirv-cross-glsl)
+    # Find SPIRV-Cross headers from FearRender's FetchContent
+    get_target_property(SPIRV_CROSS_SRC_DIR spirv-cross-glsl SOURCE_DIR)
+    set(SPIRV_CROSS_INCLUDE_DIR "${SPIRV_CROSS_SRC_DIR}")
 
-# Check if glslang/SPIRV-Cross targets already exist (from FearRender submodule)
-if(NOT TARGET glslang AND EXISTS "${QUASAR_THIRDPARTY_DIR}/glslang/CMakeLists.txt")
-    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-    set(ENABLE_SPIRV ON CACHE BOOL "" FORCE)
-    set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
-    set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
-    set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
-    set(GLSLANG_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLSLANG_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-    set(ENABLE_RTTI OFF CACHE BOOL "" FORCE)
-    set(ENABLE_EXCEPTIONS OFF CACHE BOOL "" FORCE)
-    set(ENABLE_PCH OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXTERNAL OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${QUASAR_THIRDPARTY_DIR}/glslang ${CMAKE_CURRENT_BINARY_DIR}/glslang_build)
-    message(STATUS "Quasar: glslang built from third_party")
-else()
-    message(STATUS "Quasar: glslang target already exists (from FearRender)")
-endif()
+    # Find glslang headers
+    get_target_property(GLSLANG_SRC_DIR glslang SOURCE_DIR)
+    set(GLSLANG_INCLUDE_DIR "${GLSLANG_SRC_DIR}")
 
-if(NOT TARGET spirv-cross-c AND EXISTS "${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross/CMakeLists.txt")
-    set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_GLSL ON CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_CPP OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_REFLECT OFF CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_ENABLE_C_API ON CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "" FORCE)
-    set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "" FORCE)
-    add_subdirectory(${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross ${CMAKE_CURRENT_BINARY_DIR}/spirvcross_build)
-    message(STATUS "Quasar: SPIRV-Cross built from third_party")
-else()
-    message(STATUS "Quasar: spirv-cross-c target already exists (from FearRender)")
-endif()
-
-# Build the JNI bridge library if both dependencies are available
-if(TARGET glslang AND TARGET spirv-cross-c)
     add_library(quasar_shader SHARED
         quasar/quasar_shader_bridge.cpp
     )
     target_include_directories(quasar_shader PRIVATE
-        ${QUASAR_THIRDPARTY_DIR}/glslang
-        ${QUASAR_THIRDPARTY_DIR}/SPIRV-Cross
+        ${GLSLANG_INCLUDE_DIR}
+        ${SPIRV_CROSS_INCLUDE_DIR}
     )
     target_link_libraries(quasar_shader PRIVATE
         glslang
         SPIRV
         glslang-default-resource-limits
-        spirv-cross-c
+        spirv-cross-glsl
         log
     )
-    message(STATUS "Quasar shader transpilation library: ENABLED")
+    target_compile_definitions(quasar_shader PRIVATE SPIRV_CROSS_C_API_GLSL=1)
+    message(STATUS "Quasar shader transpilation library: ENABLED (using FearRender glslang+SPIRV-Cross)")
 else()
-    message(WARNING "Quasar shader transpilation: DISABLED (glslang or spirv-cross-c not found)")
+    message(WARNING "Quasar shader transpilation: DISABLED (glslang or spirv-cross-glsl not found)")
 endif()
 
 add_library(pojavexec_awt SHARED
