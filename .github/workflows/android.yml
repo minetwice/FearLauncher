@@ -20,6 +20,11 @@ jobs:
         with:
           submodules: true
 
+      - name: Clone glslang + SPIRV-Cross for Quasar shader transpilation
+        run: |
+          git clone --depth 1 https://github.com/KhronosGroup/glslang.git app_pojavlauncher/src/main/jni/third_party/glslang
+          git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross.git app_pojavlauncher/src/main/jni/third_party/SPIRV-Cross
+
       - name: Get LTW (Lightweight Java Launcher Library)
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
@@ -36,7 +41,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 🔥🔥🔥 ये है नया Cache Method – सीधे Gradle Caches को Store/Restore करेगा 🔥🔥🔥
       - name: Cache Gradle Dependencies
         uses: actions/cache@v4
         with:
@@ -55,7 +59,6 @@ jobs:
       - name: Create out directory
         run: mkdir out
 
-      # ⚠️ तुम अपने खुद के release के लिए ये conditions बदल सकते हो
       - name: Build Publishing .aab (only for your own releases)
         if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
         run: |
