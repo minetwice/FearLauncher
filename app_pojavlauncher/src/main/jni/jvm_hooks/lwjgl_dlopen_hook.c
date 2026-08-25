@@ -9,6 +9,7 @@
 #include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define TAG __FILE_NAME__
 #include <log.h>
@@ -106,14 +107,36 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
     return (const unsigned char*)"";
 }
 
+/* Desktop-only / Mali-hostile extension names to drop entire #extension lines for */
+static int is_stripped_extension_line(const char* line) {
+    static const char* bad[] = {
+        "GL_NV_shader_noperspective_interpolation",
+        "GL_ARB_shader_storage_buffer_object",
+        "GL_ARB_shader_image_load_store",
+        "GL_ARB_compute_shader",
+        "GL_ARB_geometry_shader4",
+        "GL_EXT_geometry_shader4",
+        "GL_ARB_tessellation_shader",
+        "GL_NV_gpu_shader5",
+        "GL_ARB_gpu_shader5",
+        "GL_ARB_shader_bit_encoding",
+        "GL_ARB_shader_subroutine",
+        "GL_EXT_shader_image_load_store",
+        "GL_ARB_shader_atomic_counters",
+        "GL_ARB_shader_draw_parameters",
+        NULL
+    };
+    for (int i = 0; bad[i]; i++) {
+        if (strstr(line, bad[i]) != NULL) return 1;
+    }
+    return 0;
+}
+
 /**
- * Strip unsupported GLSL keywords and extension directives from shader source
- * before it reaches the GLSL compiler. This fixes compatibility with shaderpacks
- * that use desktop-only features not supported by mobile GLSL compilers (LTW/Mali).
- *
- * Currently strips:
- * - "noperspective " keyword (GL_NV_shader_noperspective_interpolation)
- * - "#extension GL_NV_shader_noperspective_interpolation" directive
+ * Mobile GLSL sanitizer for Mali/Adreno GLES:
+ * - strip noperspective keyword
+ * - strip unsupported #extension lines
+ * - inject precision highp float/int if missing (reduces green NaN pixels / flicker)
  */
 static char* strip_unsupported_glsl(const char* source) {
     if (source == NULL) return NULL;
@@ -121,51 +144,95 @@ static char* strip_unsupported_glsl(const char* source) {
     size_t src_len = strlen(source);
     if (src_len == 0) return NULL;
 
-    /* Allocate buffer same size - stripped result will always be <= source size */
-    char* result = (char*) malloc(src_len + 1);
+    /* Extra room for precision inject */
+    size_t alloc = src_len + 128;
+    char* result = (char*) malloc(alloc);
     if (result == NULL) return NULL;
 
     const char* src = source;
     char* dst = result;
     const char* src_end = source + src_len;
+    int has_precision_float = 0;
+    int has_precision_int = 0;
+    int after_version = 0;
+    int injected = 0;
+
+    if (strstr(source, "precision") != NULL && strstr(source, "float") != NULL) {
+        has_precision_float = 1;
+    }
+    if (strstr(source, "precision") != NULL &&
+        (strstr(source, "precision highp int") != NULL ||
+         strstr(source, "precision mediump int") != NULL ||
+         strstr(source, "precision lowp int") != NULL)) {
+        has_precision_int = 1;
+    }
 
     while (src < src_end) {
-        /* Check for "noperspective" keyword (preceded by whitespace, not part of identifier) */
+        /* noperspective keyword */
         if (src + 12 <= src_end && strncmp(src, "noperspective", 12) == 0) {
-            /* Make sure it's a standalone keyword (next char is space/tab/newline) */
             char next_ch = (src + 12 < src_end) ? src[12] : ' ';
             if (next_ch == ' ' || next_ch == '\t' || next_ch == '\n' || next_ch == '\r') {
-                /* Skip the keyword and the trailing space */
                 src += 12;
-                /* Skip one trailing space if present */
-                if (src < src_end && (*src == ' ' || *src == '\t')) {
-                    src++;
-                }
+                if (src < src_end && (*src == ' ' || *src == '\t')) src++;
                 continue;
             }
         }
 
-        /* Check for "#extension GL_NV_shader_noperspective_interpolation" directive */
-        if (src + 12 <= src_end && strncmp(src, "#extension", 10) == 0) {
-            /* Find the end of this line */
+        /* #extension lines for desktop-only features */
+        if (src + 10 <= src_end && strncmp(src, "#extension", 10) == 0) {
             const char* line_end = strchr(src, '\n');
             if (line_end == NULL) line_end = src_end;
-            size_t line_len = line_end - src;
-
-            /* Check if this line mentions noperspective */
+            size_t line_len = (size_t)(line_end - src);
             char ext_line[512];
             if (line_len < sizeof(ext_line)) {
                 memcpy(ext_line, src, line_len);
                 ext_line[line_len] = '\0';
-                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL) {
-                    /* Skip the entire line including the newline */
+                if (is_stripped_extension_line(ext_line)) {
                     src = (line_end < src_end) ? line_end + 1 : src_end;
                     continue;
                 }
             }
         }
 
-        /* Copy character as-is */
+        /* Track #version line end -> inject precision after first newline following it */
+        if (!after_version && src + 8 <= src_end && strncmp(src, "#version", 8) == 0) {
+            const char* line_end = strchr(src, '\n');
+            if (line_end == NULL) {
+                /* copy rest and break */
+                size_t rem = (size_t)(src_end - src);
+                memcpy(dst, src, rem);
+                dst += rem;
+                src = src_end;
+                break;
+            }
+            size_t line_len = (size_t)(line_end - src + 1);
+            memcpy(dst, src, line_len);
+            dst += line_len;
+            src = line_end + 1;
+            after_version = 1;
+
+            if (!injected && (!has_precision_float || !has_precision_int)) {
+                /* highp reduces mediump overflow -> green skin pixels / shimmer on Mali */
+                const char* inject =
+                    "#ifndef GL_ES\n"
+                    "/* Quasar mobile precision inject */\n"
+                    "#endif\n"
+                    "#ifdef GL_ES\n"
+                    "precision highp float;\n"
+                    "precision highp int;\n"
+                    "#endif\n";
+                /* Always inject; desktop compilers ignore under #ifdef GL_ES when not ES.
+                   On true ES path this is required. On desktop-translated path harmless. */
+                size_t ilen = strlen(inject);
+                if ((size_t)(dst - result) + ilen + (size_t)(src_end - src) + 8 < alloc) {
+                    memcpy(dst, inject, ilen);
+                    dst += ilen;
+                    injected = 1;
+                }
+            }
+            continue;
+        }
+
         *dst++ = *src++;
     }
 
@@ -200,7 +267,7 @@ static void glShaderSource_hook(unsigned int shader, unsigned int count, const c
             const char* new_strings[1] = { stripped };
             int new_length = (int) strlen(stripped);
             real_glShaderSource(shader, 1, new_strings, &new_length);
-            LOGI("glShaderSource_hook: Stripped noperspective from shader (original=%zu bytes, stripped=%zu bytes)", strlen(original), strlen(stripped));
+            LOGI("glShaderSource_hook: mobile-sanitized shader (original=%zu bytes, stripped=%zu bytes)", strlen(original), strlen(stripped));
         } else {
             real_glShaderSource(shader, count, string, length);
         }
@@ -233,7 +300,7 @@ static void glShaderSource_hook(unsigned int shader, unsigned int count, const c
 
         if (modified) {
             real_glShaderSource(shader, count, new_strings, new_lengths);
-            LOGI("glShaderSource_hook: Stripped noperspective from multi-string shader (%u strings)", count);
+            LOGI("glShaderSource_hook: mobile-sanitized multi-string shader (%u strings)", count);
         } else {
             real_glShaderSource(shader, count, string, length);
         }
@@ -308,8 +375,8 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
 static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   __attribute__((unused)) jclass class,
                   jlong handle,
-                  jlong symbol_ptr) {
-    const char* symbol = (const char*) symbol_ptr;
+                  jlong name_ptr) {
+    const char* symbol = (const char*) name_ptr;
     if (symbol != NULL) {
         if (strcmp(symbol, "eglGetProcAddress") == 0) {
             printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol directly\n");
