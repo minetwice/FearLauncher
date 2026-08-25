@@ -1,50 +1,79 @@
 package net.kdt.pojavlaunch.quasar.transpile;
 
-import java.util.regex.Pattern;
+import android.opengl.GLES20;
 
 /**
  * ShaderPreprocessor provides pre-compilation modifications for GLSL source code
  * before it is submitted to glShaderSource on Android (GLES 3.2 / LTW / Mali-G615 MC2).
  *
- * It fixes:
- * 1. 'noperspective' interpolation qualifier errors (reserved in GLES 3.2).
- * 2. GL_ARB_shader_texture_lod -> GL_EXT_shader_texture_lod extension replacement for Solas Shaders.
- * 3. Legacy texture2DLod / textureCubeLod function calls -> textureLod.
- * 4. Silencing GL_NV_shader_noperspective_interpolation extension warnings.
+ * It resolves:
+ * 1. Complementary Shaders compilation errors (GL_NV_shader_noperspective_interpolation, noperspective keyword).
+ * 2. Visual glitches (green patches, TV wave scanline effects) on Mali GPUs via safe division.
+ * 3. Texture LOD extension mapping (GL_ARB_shader_texture_lod -> GL_EXT_shader_texture_lod).
+ * 4. GLES fragment output declarations and precision injection.
  */
 public class ShaderPreprocessor {
 
-    public static String fix(String shaderSource) {
-        if (shaderSource == null || shaderSource.isEmpty()) {
-            return shaderSource;
+    public static String fix(String source, int shaderType) {
+        if (source == null || source.isEmpty()) {
+            return source;
         }
 
-        String source = shaderSource;
+        String result = source;
 
-        // 1. Remove 'noperspective' keyword (reserved in GLES)
-        source = source.replaceAll("\\bnoperspective\\b", " ");
+        // FIX 1: noperspective -> smooth (GLES 3.2 defaults to smooth interpolation)
+        result = result.replaceAll("\\bnoperspective\\b", "smooth");
 
-        // 2. Replace ARB texture LOD extension with EXT version for GLES
-        source = source.replaceAll(
-            "#extension\\s+GL_ARB_shader_texture_lod\\s*:",
-            "#extension GL_EXT_shader_texture_lod :"
+        // FIX 2: ARB texture LOD -> EXT extension for GLES
+        result = result.replaceAll(
+            "#extension\\s+GL_ARB_shader_texture_lod\\s*:\\s*\\w+",
+            "#extension GL_EXT_shader_texture_lod : enable"
         );
 
-        // 3. Replace texture2DLod and textureCubeLod with textureLod
-        source = source.replaceAll("\\btexture2DLod\\s*\\(", "textureLod(");
-        source = source.replaceAll("\\btextureCubeLod\\s*\\(", "textureLod(");
+        // FIX 3: Legacy texture2DLod / textureCubeLod -> textureLod
+        result = result.replaceAll("\\btexture2DLod\\s*\\(", "textureLod(");
+        result = result.replaceAll("\\btextureCubeLod\\s*\\(", "textureLod(");
 
-        // 4. Disable NV shader noperspective interpolation directive or suppress warning safely after #version
-        if (!source.contains("GL_NV_shader_noperspective_interpolation")) {
-            source = insertAfterVersionLine(source, "#extension GL_NV_shader_noperspective_interpolation : disable");
+        // FIX 4: Disable unsupported NV extension safely after #version directive
+        if (!result.contains("GL_NV_shader_noperspective_interpolation")) {
+            result = insertAfterVersionLine(result, "#extension GL_NV_shader_noperspective_interpolation : disable");
         } else {
-            source = source.replaceAll(
+            result = result.replaceAll(
                 "#extension\\s+GL_NV_shader_noperspective_interpolation\\s*:\\s*(enable|require)",
                 "#extension GL_NV_shader_noperspective_interpolation : disable"
             );
         }
 
-        return source;
+        // FIX 5: GLES fragment shader precision & layout output
+        if (shaderType == GLES20.GL_FRAGMENT_SHADER) {
+            if (!result.contains("precision highp float;")) {
+                result = insertAfterVersionLine(result, "precision highp float;");
+            }
+            if (result.contains("out vec4 fragColor;") && !result.contains("layout(location = 0)")) {
+                result = result.replace(
+                    "out vec4 fragColor;",
+                    "layout(location = 0) out vec4 fragColor;"
+                );
+            }
+        }
+
+        // FIX 6: Safe division for scanline / TV wave / green patch visual artifacts on Mali GPUs
+        result = result.replaceAll(
+            "(\\w+)\\s*/\\s*gl_FragCoord\\.w",
+            "$1 / max(gl_FragCoord.w, 0.001)"
+        );
+
+        // FIX 7: texture2D/Cube -> texture (for GLES modern versions)
+        if (!result.contains("#version 120") && !result.contains("#version 130")) {
+            result = result.replaceAll("\\btexture2D\\s*\\(", "texture(");
+            result = result.replaceAll("\\btextureCube\\s*\\(", "texture(");
+        }
+
+        return result;
+    }
+
+    public static String fix(String source) {
+        return fix(source, GLES20.GL_FRAGMENT_SHADER);
     }
 
     private static String insertAfterVersionLine(String code, String insertText) {
