@@ -10,9 +10,10 @@ import android.util.Log;
  * - Select the render backend (Zink vs GL4ES)
  * - Determine which shader passes can run (full vs degraded)
  * - Key the shader cache (different devices need different transpiled output)
+ * - Drive ShaderPreprocessor (e.g. strip GL_NV_shader_noperspective_interpolation on Mali)
  */
 public class CapabilityTable implements java.io.Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private static final String TAG = "CapabilityTable";
 
     // GPU vendor
@@ -32,6 +33,8 @@ public class CapabilityTable implements java.io.Serializable {
     private boolean hasSSBO = false;
     private boolean hasMultiDrawIndirect = false;
     private boolean hasImageAtomics = false;
+    /** Desktop-style noperspective interpolation (GL_NV_shader_noperspective_interpolation). Rare on Mali GLES. */
+    private boolean hasNoperspectiveInterpolation = false;
 
     // GLES fallback capabilities
     private int glesVersion = 0;
@@ -81,6 +84,9 @@ public class CapabilityTable implements java.io.Serializable {
     public boolean hasImageAtomics() { return hasImageAtomics; }
     public void setHasImageAtomics(boolean v) { this.hasImageAtomics = v; }
 
+    public boolean hasNoperspectiveInterpolation() { return hasNoperspectiveInterpolation; }
+    public void setHasNoperspectiveInterpolation(boolean v) { this.hasNoperspectiveInterpolation = v; }
+
     public int getGlesVersion() { return glesVersion; }
     public void setGlesVersion(int v) { this.glesVersion = v; }
 
@@ -110,7 +116,8 @@ public class CapabilityTable implements java.io.Serializable {
                 + "_ts" + (hasTessellation ? 1 : 0)
                 + "_ils" + (hasImageLoadStore ? 1 : 0)
                 + "_ssbo" + (hasSSBO ? 1 : 0)
-                + "_mdi" + (hasMultiDrawIndirect ? 1 : 0);
+                + "_mdi" + (hasMultiDrawIndirect ? 1 : 0)
+                + "_npi" + (hasNoperspectiveInterpolation ? 1 : 0);
     }
 
     /**
@@ -125,6 +132,7 @@ public class CapabilityTable implements java.io.Serializable {
             case "ssbo": return hasSSBO;
             case "multi_draw_indirect": return hasMultiDrawIndirect;
             case "image_atomics": return hasImageAtomics;
+            case "noperspective": return hasNoperspectiveInterpolation;
             default:
                 Log.w(TAG, "Unknown feature: " + featureName);
                 return false;
@@ -143,6 +151,7 @@ public class CapabilityTable implements java.io.Serializable {
                 + ", ssbo=" + hasSSBO
                 + ", multiDrawIndirect=" + hasMultiDrawIndirect
                 + ", imageAtomics=" + hasImageAtomics
+                + ", noperspective=" + hasNoperspectiveInterpolation
                 + "}";
     }
 }
