@@ -142,16 +142,10 @@ std::string FearTranslateGLSL(
 
     std::string target_version = "#version 310 es";
     if (has_version) {
-        if (version_num == "100" || version_num == "110" || version_num == "120" ||
-            version_num == "130" || version_num == "140" || version_num == "150" ||
-            version_num == "330") {
-            target_version = isCompute ? "#version 310 es" : "#version 300 es";
-        } else {
-            target_version = "#version 320 es";
-        }
+        target_version = isCompute ? "#version 310 es" : "#version 320 es";
         glsl.replace(version_pos, version_line_end - version_pos, target_version);
     } else {
-        target_version = isCompute ? "#version 310 es" : "#version 300 es";
+        target_version = isCompute ? "#version 310 es" : "#version 320 es";
         glsl = target_version + "\n" + glsl;
     }
 
