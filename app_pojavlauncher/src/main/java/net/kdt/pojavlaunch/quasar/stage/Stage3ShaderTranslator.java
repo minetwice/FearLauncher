@@ -3,6 +3,7 @@ package net.kdt.pojavlaunch.quasar.stage;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
+import net.kdt.pojavlaunch.quasar.transpile.ShaderPreprocessor;
 
 /**
  * Stage 3: Desktop OpenGL to GLES/Vulkan Transpiler Net.
@@ -22,28 +23,18 @@ public class Stage3ShaderTranslator {
 
         Log.d(TAG, "[Stage 3] Translating shader for Android target: " + detection.shaderName);
 
-        String glsl = sourceCode;
+        // Preprocess GLSL (fixes noperspective, GL_ARB_shader_texture_lod, textureLod, and NV extension warnings)
+        String glsl = ShaderPreprocessor.fix(sourceCode);
 
-        // 1. Strip GL_NV_shader_noperspective_interpolation extension directives
-        glsl = removeLinesContaining(glsl, "#extension GL_NV_shader_noperspective_interpolation");
+        // Clean up remaining unsupported extensions
         glsl = removeLinesContaining(glsl, "#extension GL_ARB_");
         glsl = removeLinesContaining(glsl, "#extension GL_EXT_gpu_shader4");
 
-        // 2. Strip noperspective qualifier keywords
-        if (glsl.contains("noperspective")) {
-            glsl = glsl.replaceAll("noperspective\\s+in\\s+", "smooth in ");
-            glsl = glsl.replaceAll("noperspective\\s+out\\s+", "smooth out ");
-            glsl = glsl.replaceAll("noperspective\\s+", "smooth ");
-            glsl = glsl.replaceAll("noperspective", "");
-        }
-
-        // 3. Texture sampling functions conversion (desktop -> modern GLES/GLSL)
+        // Texture sampling functions conversion (desktop -> modern GLES/GLSL)
         glsl = glsl.replace("texture2D(", "texture(");
         glsl = glsl.replace("texture2DProj(", "textureProj(");
-        glsl = glsl.replace("texture2DLod(", "textureLod(");
         glsl = glsl.replace("texture2DGrad(", "textureGrad(");
         glsl = glsl.replace("textureCube(", "texture(");
-        glsl = glsl.replace("textureCubeLod(", "textureLod(");
         glsl = glsl.replace("texture3D(", "texture(");
         glsl = glsl.replace("texture1D(", "texture(");
         glsl = glsl.replace("shadow2D(", "texture(");
@@ -83,8 +74,10 @@ public class Stage3ShaderTranslator {
                 }
             }
 
-            if (glsl.contains("gl_FragColor") && !glsl.contains("FragColor") && !glsl.contains("quasar_FragData0")) {
-                glsl = insertAfterVersion(glsl, targetVersion, "layout(location = 0) out vec4 FragColor;");
+            if (glsl.contains("gl_FragColor") && !glsl.contains("quasar_FragData0")) {
+                if (!glsl.contains("out vec4 FragColor")) {
+                    glsl = insertAfterVersion(glsl, targetVersion, "layout(location = 0) out vec4 FragColor;");
+                }
                 glsl = glsl.replace("gl_FragColor", "FragColor");
             }
         }
