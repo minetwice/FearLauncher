@@ -270,7 +270,27 @@ static char* patch_es_compat_glsl(const char* source) {
         }
     }
 
-    // 4. Precision injection for Fragment Shaders
+    // 4. Upgrade #version directive to #version 320 es if desktop #version exists
+    char* ver = strstr(result, "#version");
+    if (ver) {
+        char* line_end = strchr(ver, '\n');
+        if (line_end) {
+            size_t old_line_len = line_end - ver;
+            const char* new_ver = "#version 320 es";
+            size_t new_ver_len = strlen(new_ver);
+            if (old_line_len != new_ver_len || strncmp(ver, new_ver, new_ver_len) != 0) {
+                size_t tail_len = strlen(line_end);
+                memmove(ver + new_ver_len, line_end, tail_len + 1);
+                memcpy(ver, new_ver, new_ver_len);
+                modified = 1;
+                if (debug) {
+                    LOGI("LTW_DEBUG: Rewrote version directive to #version 320 es");
+                }
+            }
+        }
+    }
+
+    // 5. Synthesis of compat builtins & fragment outputs (gl_FragData / gl_FragColor / ftransform)
     int is_frag = (strstr(result, "gl_FragColor") != NULL ||
                    strstr(result, "gl_FragData") != NULL ||
                    strstr(result, "out vec4") != NULL ||
@@ -278,25 +298,78 @@ static char* patch_es_compat_glsl(const char* source) {
                    strstr(result, "out mediump vec4") != NULL ||
                    strstr(result, "out lowp vec4") != NULL);
 
-    int has_precision = (strstr(result, "precision highp float") != NULL ||
-                         strstr(result, "precision mediump float") != NULL ||
-                         strstr(result, "precision lowp float") != NULL);
-
-    if (is_frag && !has_precision) {
-        char* ver = strstr(result, "#version");
-        if (ver) {
-            char* line_end = strchr(ver, '\n');
-            if (line_end) {
-                const char* prec_stmt = "\n#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\nprecision highp int;\n#endif\n";
-                size_t prec_len = strlen(prec_stmt);
-                size_t tail_len = strlen(line_end);
-
-                memmove(line_end + prec_len, line_end, tail_len + 1);
-                memcpy(line_end, prec_stmt, prec_len);
-                modified = 1;
-                if (debug) {
-                    LOGI("LTW_DEBUG: Injected highp precision statement for fragment shader");
+    if (is_frag) {
+        // Handle gl_FragData[0..7] -> ltw_FragData0..7
+        char injected_decls[512] = "";
+        for (int i = 0; i < 8; i++) {
+            char target_data[32];
+            snprintf(target_data, sizeof(target_data), "gl_FragData[%d]", i);
+            p = result;
+            if (strstr(p, target_data) != NULL) {
+                char replacement_var[32];
+                snprintf(replacement_var, sizeof(replacement_var), "ltw_FragData%d ", i);
+                size_t target_len = strlen(target_data);
+                while ((p = strstr(p, target_data)) != NULL) {
+                    memcpy(p, replacement_var, target_len);
+                    modified = 1;
+                    p += target_len;
                 }
+                char decl[64];
+                snprintf(decl, sizeof(decl), "layout(location = %d) out vec4 ltw_FragData%d;\n", i, i);
+                strcat(injected_decls, decl);
+            }
+        }
+
+        // Handle gl_FragColor -> ltw_FragColor
+        if (strstr(result, "gl_FragColor") != NULL) {
+            p = result;
+            while ((p = strstr(p, "gl_FragColor")) != NULL) {
+                memcpy(p, "ltw_FragColor", 12);
+                modified = 1;
+                p += 12;
+            }
+            strcat(injected_decls, "layout(location = 0) out vec4 ltw_FragColor;\n");
+        }
+
+        // Precision injection for Fragment Shaders
+        int has_precision = (strstr(result, "precision highp float") != NULL ||
+                             strstr(result, "precision mediump float") != NULL ||
+                             strstr(result, "precision lowp float") != NULL);
+
+        if (!has_precision) {
+            strcat(injected_decls, "#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\nprecision highp int;\n#endif\n");
+        }
+
+        if (injected_decls[0] != '\0') {
+            ver = strstr(result, "#version");
+            if (ver) {
+                char* line_end = strchr(ver, '\n');
+                if (line_end) {
+                    size_t decls_len = strlen(injected_decls);
+                    size_t tail_len = strlen(line_end);
+                    memmove(line_end + decls_len, line_end, tail_len + 1);
+                    memcpy(line_end, injected_decls, decls_len);
+                    modified = 1;
+                    if (debug) {
+                        LOGI("LTW_DEBUG: Injected fragment output declarations & precision statement");
+                    }
+                }
+            }
+        }
+    } else {
+        // Vertex Shader synthesis (ftransform)
+        p = result;
+        while ((p = strstr(p, "ftransform()")) != NULL) {
+            // Replace ftransform() (12 chars) with (gl_Pos) space padding if needed
+            char prev = (p > result) ? p[-1] : ' ';
+            char next = p[12];
+            if (!is_word_char(prev) && !is_word_char(next)) {
+                // Synthesize ftransform() -> gl_Position
+                memcpy(p, "gl_Position ", 12);
+                modified = 1;
+                p += 12;
+            } else {
+                p += 1;
             }
         }
     }
