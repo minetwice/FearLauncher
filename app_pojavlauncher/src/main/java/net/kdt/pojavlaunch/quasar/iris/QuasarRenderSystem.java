@@ -2,7 +2,10 @@ package net.kdt.pojavlaunch.quasar.iris;
 
 import android.util.Log;
 
+import net.kdt.pojavlaunch.quasar.QuasarRenderer;
+import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
 import net.kdt.pojavlaunch.quasar.transpile.GlslangCompiler;
+import net.kdt.pojavlaunch.quasar.transpile.ShaderPreprocessor;
 import net.kdt.pojavlaunch.quasar.transpile.SpirvCrossTranspiler;
 
 /**
@@ -22,14 +25,11 @@ import net.kdt.pojavlaunch.quasar.transpile.SpirvCrossTranspiler;
  * This allows Iris's shader-loading and rendering logic to call into Quasar
  * without modification.
  *
- * TODO: This is the most complex integration point. It requires:
- * 1. Understanding the full DSAAccess interface (~30+ methods)
- * 2. Implementing each method to route through Zink/GL4ES
- * 3. Handling shader compilation differently (intercepting ShaderCreator
- *    to transpile GLSL before passing to the GL driver)
- * 4. Managing framebuffers and render targets through the Quasar backend
- *
- * For now, this is a stub that documents the integration plan.
+ * Shader path (Mali/Adreno fix):
+ * 1. ShaderPreprocessor strips desktop-only extensions (esp. NV noperspective)
+ *    and replaces the noperspective keyword so Mali GLES accepts the source.
+ * 2. GlslangCompiler: GLSL -> SPIR-V
+ * 3. SpirvCrossTranspiler: SPIR-V -> GLES GLSL (300/310 ES)
  */
 public class QuasarRenderSystem {
     private static final String TAG = "Quasar-RenderSystem";
@@ -76,42 +76,66 @@ public class QuasarRenderSystem {
     /**
      * Transpile a shader source string for the current device.
      *
-     * This is the key integration point: when Iris tries to compile a shader
-     * (via ShaderCreator.createShader -> glShaderSource -> glCompileShader),
-     * Quasar intercepts the GLSL source and runs it through:
-     * 1. GlslangCompiler: GLSL -> SPIR-V
-     * 2. SpirvCrossTranspiler: SPIR-V -> target GLSL (adjusted for device capabilities)
-     *
-     * The transpiled source is then passed to the GL driver instead of the original.
+     * When Iris tries to compile a shader (ShaderCreator -> glShaderSource),
+     * Quasar intercepts the GLSL source and runs:
+     * 1. ShaderPreprocessor (Mali/Adreno extension + keyword fixes)
+     * 2. GlslangCompiler: GLSL -> SPIR-V
+     * 3. SpirvCrossTranspiler: SPIR-V -> target GLSL ES
      *
      * @param shaderSource The original desktop GLSL source
      * @param shaderStage The shader stage (vertex, fragment, etc.)
      * @param shaderName The shader name (for logging)
-     * @return The transpiled GLSL source, or the original if transpilation fails
+     * @return The transpiled GLSL source, or the preprocessed original if SPIR-V path fails
      */
     public static String transpileShader(String shaderSource, int shaderStage, String shaderName) {
         Log.d(TAG, "Transpiling shader: " + shaderName + " (stage=" + shaderStage + ")");
 
-        // Step 1: Compile GLSL -> SPIR-V
-        int[] spirv = GlslangCompiler.compileToSPIRV(shaderStage, shaderSource, shaderName);
-        if (spirv == null) {
-            Log.w(TAG, "GLSL->SPIR-V failed for " + shaderName + ", using original source");
-            return shaderSource;
+        CapabilityTable caps = null;
+        try {
+            if (QuasarRenderer.getInstance().isInitialized()) {
+                caps = QuasarRenderer.getInstance().getCapabilityTable();
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not read CapabilityTable, using mobile-safe defaults", e);
         }
 
-        // Step 2: Cross-compile SPIR-V -> target GLSL
-        // TODO: Determine target GLSL version based on active backend and device capabilities
-        int targetVersion = 330;
-        boolean isGLES = false;
+        // Step 0: Preprocess for Mali / GLES (strip NV noperspective etc.)
+        String preprocessed = ShaderPreprocessor.preprocess(shaderSource, caps, shaderName);
+
+        // Step 1: Compile GLSL -> SPIR-V
+        int[] spirv = GlslangCompiler.compileToSPIRV(shaderStage, preprocessed, shaderName);
+        if (spirv == null) {
+            Log.w(TAG, "GLSL->SPIR-V failed for " + shaderName + ", using preprocessed source");
+            return preprocessed;
+        }
+
+        // Step 2: Cross-compile SPIR-V -> target GLSL ES for Android
+        int targetVersion = SpirvCrossTranspiler.GLSL_VERSION_300;
+        boolean isGLES = true;
+        if (caps != null) {
+            int gles = caps.getGlesVersion();
+            if (gles >= 320) {
+                targetVersion = SpirvCrossTranspiler.GLSL_VERSION_320;
+            } else if (gles >= 310) {
+                targetVersion = SpirvCrossTranspiler.GLSL_VERSION_310;
+            }
+            // Prefer GLES path on mobile; only use desktop if explicitly desktop-like
+            String vendor = caps.getGpuVendor();
+            if ("amd".equalsIgnoreCase(vendor) || "nvidia".equalsIgnoreCase(vendor)
+                    || "intel".equalsIgnoreCase(vendor)) {
+                isGLES = false;
+                targetVersion = SpirvCrossTranspiler.GLSL_VERSION_330;
+            }
+        }
 
         String transpiled = SpirvCrossTranspiler.transpileToGLSL(spirv, targetVersion, isGLES);
         if (transpiled == null) {
-            Log.w(TAG, "SPIR-V->GLSL failed for " + shaderName + ", using original source");
-            return shaderSource;
+            Log.w(TAG, "SPIR-V->GLSL failed for " + shaderName + ", using preprocessed source");
+            return preprocessed;
         }
 
         Log.d(TAG, "Successfully transpiled " + shaderName
-                + " (" + shaderSource.length() + " -> " + transpiled.length() + " chars)");
+                + " (" + shaderSource.length() + " -> " + transpiled.length() + " chars, gles=" + isGLES + ")");
         return transpiled;
     }
 
