@@ -25,6 +25,22 @@
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
 
+static void* g_ltw_handle = NULL;
+
+static void* get_gl_proc(const char* name) {
+    void* proc = NULL;
+    if (g_ltw_handle != NULL) {
+        proc = dlsym(g_ltw_handle, name);
+    }
+    if (!proc) {
+        proc = dlsym(RTLD_DEFAULT, name);
+    }
+    if (!proc) {
+        proc = dlsym(RTLD_NEXT, name);
+    }
+    return proc;
+}
+
 static void glMemoryBarrier_stub(unsigned int barriers) {
     typedef void (*glFlush_pfn)();
     static glFlush_pfn real_glFlush = NULL;
@@ -106,148 +122,399 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
     return (const unsigned char*)"";
 }
 
+static inline int is_word_char(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_');
+}
+
+static int is_ltw_debug_enabled(void) {
+    const char* env = getenv("LTW_DEBUG");
+    return (env && strcmp(env, "1") == 0);
+}
+
+static void dump_shader_if_requested(const char* prefix, const char* source) {
+    const char* dump_env = getenv("LTW_SHADER_DUMP");
+    if (!dump_env || strcmp(dump_env, "1") != 0) return;
+
+    static int counter = 0;
+    counter++;
+
+    const char* cache_dir = getenv("MESA_GLSL_CACHE_DIR");
+    if (!cache_dir) cache_dir = getenv("MOD_ANDROID_RUNTIME");
+    if (!cache_dir) cache_dir = "/sdcard";
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/quasar_shader_%04d_%s.glsl", cache_dir, counter, prefix);
+    FILE* f = fopen(path, "w");
+    if (f) {
+        fputs(source, f);
+        fclose(f);
+    }
+}
+
 /**
- * Strip unsupported GLSL keywords and extension directives from shader source
- * before it reaches the GLSL compiler. This fixes compatibility with shaderpacks
- * that use desktop-only features not supported by mobile GLSL compilers (LTW/Mali).
- *
- * Currently strips:
- * - "noperspective " keyword (GL_NV_shader_noperspective_interpolation)
- * - "#extension GL_NV_shader_noperspective_interpolation" directive
+ * Generic ES-compatibility shader patcher.
+ * Applied to every shader before forwarding to driver.
+ * Preserves line numbers, sanitizes unsupported extensions, rewrites noperspective,
+ * converts desktop sampler functions to ES, and injects highp precision where needed.
  */
-static char* strip_unsupported_glsl(const char* source) {
+static char* patch_es_compat_glsl(const char* source) {
     if (source == NULL) return NULL;
 
     size_t src_len = strlen(source);
     if (src_len == 0) return NULL;
 
-    /* Allocate buffer same size - stripped result will always be <= source size */
-    char* result = (char*) malloc(src_len + 1);
+    int debug = is_ltw_debug_enabled();
+
+    size_t buf_capacity = src_len + 512;
+    char* result = (char*) malloc(buf_capacity);
     if (result == NULL) return NULL;
 
-    const char* src = source;
-    char* dst = result;
-    const char* src_end = source + src_len;
+    memcpy(result, source, src_len + 1);
 
-    while (src < src_end) {
-        /* Check for "noperspective" keyword (preceded by whitespace, not part of identifier) */
-        if (src + 13 <= src_end && strncmp(src, "noperspective", 13) == 0) {
-            /* Make sure it's a standalone keyword (next char is space/tab/newline) */
-            char next_ch = (src + 13 < src_end) ? src[13] : ' ';
-            if (next_ch == ' ' || next_ch == '\t' || next_ch == '\n' || next_ch == '\r') {
-                /* Skip the keyword and the trailing space */
-                src += 13;
-                /* Skip one trailing space if present */
-                if (src < src_end && (*src == ' ' || *src == '\t')) {
-                    src++;
+    int modified = 0;
+
+    // 1. Sanitize unsupported #extension directives into //extension comments
+    static const char* const unsupported_exts[] = {
+        "GL_NV_shader_noperspective_interpolation",
+        "GL_ARB_shader_texture_lod",
+        "GL_EXT_gpu_shader4",
+        "GL_ARB_gpu_shader5",
+        "GL_ARB_draw_instanced",
+        "GL_ARB_explicit_attrib_location",
+        "GL_ARB_shader_draw_parameters",
+        "GL_ARB_shading_language_420pack",
+        "GL_ARB_bindless_texture",
+        "GL_ARB_texture_rectangle",
+        NULL
+    };
+
+    char* line = result;
+    while (line && *line) {
+        char* line_end = strchr(line, '\n');
+        char* ext_pos = strstr(line, "#extension");
+        if (ext_pos && (!line_end || ext_pos < line_end)) {
+            for (int i = 0; unsupported_exts[i] != NULL; i++) {
+                const char* ext_name = unsupported_exts[i];
+                char* found = strstr(ext_pos, ext_name);
+                if (found && (!line_end || found < line_end)) {
+                    ext_pos[0] = '/';
+                    ext_pos[1] = '/';
+                    modified = 1;
+                    if (debug) {
+                        LOGI("LTW_DEBUG: Sanitized extension directive %s", ext_name);
+                    }
+                    break;
                 }
-                continue;
             }
         }
-
-        /* Check for "#extension GL_NV_shader_noperspective_interpolation" directive */
-        if (src + 12 <= src_end && strncmp(src, "#extension", 10) == 0) {
-            /* Find the end of this line */
-            const char* line_end = strchr(src, '\n');
-            if (line_end == NULL) line_end = src_end;
-            size_t line_len = line_end - src;
-
-            /* Check if this line mentions noperspective */
-            char ext_line[512];
-            if (line_len < sizeof(ext_line)) {
-                memcpy(ext_line, src, line_len);
-                ext_line[line_len] = '\0';
-                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL) {
-                    /* Skip the entire line including the newline */
-                    src = (line_end < src_end) ? line_end + 1 : src_end;
-                    continue;
-                }
-            }
-        }
-
-        /* Copy character as-is */
-        *dst++ = *src++;
+        line = line_end ? line_end + 1 : NULL;
     }
 
-    *dst = '\0';
+    // 2. Replace 'noperspective' qualifier with 13 spaces
+    char* p = result;
+    while ((p = strstr(p, "noperspective")) != NULL) {
+        char prev = (p > result) ? p[-1] : ' ';
+        char next = p[13];
+        if (!is_word_char(prev) && !is_word_char(next)) {
+            memset(p, ' ', 13);
+            modified = 1;
+            if (debug) {
+                LOGI("LTW_DEBUG: Replaced noperspective qualifier with spaces");
+            }
+            p += 13;
+        } else {
+            p += 1;
+        }
+    }
+
+    // 3. Desktop GLSL -> GLES function renames (padded with spaces to preserve length)
+    typedef struct {
+        const char* name;
+        size_t len;
+        const char* replacement;
+    } FuncRename;
+
+    static const FuncRename renames[] = {
+        {"texture2DProjLod", 16, "textureProjLod  "},
+        {"texture2DLod",     12, "textureLod  "},
+        {"texture3DLod",     12, "textureLod  "},
+        {"textureCubeLod",   14, "textureLod    "},
+        {"texture2DGradARB", 16, "textureGrad   "},
+        {"texture2DGrad",    13, "textureGrad  "},
+        {"texture2DProj",    13, "textureProj "},
+        {"texture2D",        9,  "texture  "},
+        {"textureCube",      11, "texture   "},
+        {"texture3D",        9,  "texture  "},
+        {"texture1D",        9,  "texture  "},
+        {"shadow2DProj",     12, "textureProj "},
+        {"shadow2D",         8,  "texture "},
+        {NULL, 0, NULL}
+    };
+
+    for (int i = 0; renames[i].name != NULL; i++) {
+        const FuncRename* r = &renames[i];
+        p = result;
+        while ((p = strstr(p, r->name)) != NULL) {
+            char prev = (p > result) ? p[-1] : ' ';
+            char next = p[r->len];
+            if (!is_word_char(prev) && !is_word_char(next)) {
+                memcpy(p, r->replacement, r->len);
+                modified = 1;
+                if (debug) {
+                    LOGI("LTW_DEBUG: Renamed function %s -> %s", r->name, r->replacement);
+                }
+                p += r->len;
+            } else {
+                p += 1;
+            }
+        }
+    }
+
+    // 4. Precision injection for Fragment Shaders
+    int is_frag = (strstr(result, "gl_FragColor") != NULL ||
+                   strstr(result, "gl_FragData") != NULL ||
+                   strstr(result, "out vec4") != NULL ||
+                   strstr(result, "out highp vec4") != NULL ||
+                   strstr(result, "out mediump vec4") != NULL ||
+                   strstr(result, "out lowp vec4") != NULL);
+
+    int has_precision = (strstr(result, "precision highp float") != NULL ||
+                         strstr(result, "precision mediump float") != NULL ||
+                         strstr(result, "precision lowp float") != NULL);
+
+    if (is_frag && !has_precision) {
+        char* ver = strstr(result, "#version");
+        if (ver) {
+            char* line_end = strchr(ver, '\n');
+            if (line_end) {
+                const char* prec_stmt = "\n#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\nprecision highp int;\n#endif\n";
+                size_t prec_len = strlen(prec_stmt);
+                size_t tail_len = strlen(line_end);
+
+                memmove(line_end + prec_len, line_end, tail_len + 1);
+                memcpy(line_end, prec_stmt, prec_len);
+                modified = 1;
+                if (debug) {
+                    LOGI("LTW_DEBUG: Injected highp precision statement for fragment shader");
+                }
+            }
+        }
+    }
+
+    if (modified) {
+        dump_shader_if_requested("pre_patch", source);
+        dump_shader_if_requested("post_patch", result);
+    }
+
     return result;
 }
 
 /**
- * Hooked glShaderSource that strips unsupported GLSL keywords before compilation.
- * This intercepts ALL shader source submissions (vertex, fragment, geometry, etc.)
- * and removes keywords that LTW's GLSL compiler doesn't support.
+ * Hooked glShaderSource that applies ES-compatibility patching before compilation.
  */
 typedef void (*glShaderSource_pfn)(unsigned int shader, unsigned int count, const char* const* string, const int* length);
 
 static void glShaderSource_hook(unsigned int shader, unsigned int count, const char* const* string, const int* length) {
     static glShaderSource_pfn real_glShaderSource = NULL;
     if (!real_glShaderSource) {
-        real_glShaderSource = (glShaderSource_pfn) dlsym(RTLD_DEFAULT, "glShaderSource");
-        if (!real_glShaderSource) {
-            real_glShaderSource = (glShaderSource_pfn) dlsym(RTLD_NEXT, "glShaderSource");
-        }
+        real_glShaderSource = (glShaderSource_pfn) get_gl_proc("glShaderSource");
     }
     if (!real_glShaderSource) {
         LOGE("glShaderSource_hook: real glShaderSource not found!");
         return;
     }
 
-    if (count == 1 && string != NULL && string[0] != NULL) {
-        const char* original = string[0];
-        char* stripped = strip_unsupported_glsl(original);
-        if (stripped != NULL && strcmp(stripped, original) != 0) {
-            const char* new_strings[1] = { stripped };
-            int new_length = (int) strlen(stripped);
-            real_glShaderSource(shader, 1, new_strings, &new_length);
-            LOGI("glShaderSource_hook: Stripped noperspective from shader (original=%zu bytes, stripped=%zu bytes)", strlen(original), strlen(stripped));
-        } else {
-            real_glShaderSource(shader, count, string, length);
-        }
-        if (stripped != NULL) free(stripped);
-    } else if (count > 0 && count <= 64 && string != NULL) {
-        const char* new_strings[64];
-        char* stripped_ptrs[64];
-        int modified = 0;
-        int new_lengths[64];
-
-        for (unsigned int i = 0; i < count; i++) {
-            stripped_ptrs[i] = NULL;
-            if (string[i] != NULL) {
-                stripped_ptrs[i] = strip_unsupported_glsl(string[i]);
-                if (stripped_ptrs[i] != NULL) {
-                    new_strings[i] = stripped_ptrs[i];
-                    new_lengths[i] = (int) strlen(stripped_ptrs[i]);
-                    if (strcmp(stripped_ptrs[i], string[i]) != 0) {
-                        modified = 1;
-                    }
-                } else {
-                    new_strings[i] = string[i];
-                    new_lengths[i] = length ? length[i] : (int) strlen(string[i]);
-                }
-            } else {
-                new_strings[i] = NULL;
-                new_lengths[i] = 0;
-            }
-        }
-
-        if (modified) {
-            real_glShaderSource(shader, count, new_strings, new_lengths);
-            LOGI("glShaderSource_hook: Stripped noperspective from multi-string shader (%u strings)", count);
-        } else {
-            real_glShaderSource(shader, count, string, length);
-        }
-
-        for (unsigned int i = 0; i < count; i++) {
-            if (stripped_ptrs[i] != NULL) free(stripped_ptrs[i]);
-        }
-    } else {
+    if (count <= 0 || string == NULL) {
         real_glShaderSource(shader, count, string, length);
+        return;
+    }
+
+    // Concatenate input strings into single source buffer
+    size_t total_len = 0;
+    for (unsigned int i = 0; i < count; i++) {
+        if (string[i]) {
+            total_len += (length && length[i] >= 0) ? (size_t)length[i] : strlen(string[i]);
+        }
+    }
+
+    char* full_source = (char*) malloc(total_len + 1);
+    if (full_source == NULL) {
+        real_glShaderSource(shader, count, string, length);
+        return;
+    }
+
+    size_t offset = 0;
+    for (unsigned int i = 0; i < count; i++) {
+        if (string[i]) {
+            size_t len = (length && length[i] >= 0) ? (size_t)length[i] : strlen(string[i]);
+            memcpy(full_source + offset, string[i], len);
+            offset += len;
+        }
+    }
+    full_source[offset] = '\0';
+
+    char* patched = patch_es_compat_glsl(full_source);
+    int total_len_int = (int) total_len;
+    if (patched != NULL) {
+        const char* patched_ptrs[1] = { patched };
+        int patched_len = (int) strlen(patched);
+        real_glShaderSource(shader, 1, patched_ptrs, &patched_len);
+        free(patched);
+    } else {
+        const char* full_ptrs[1] = { full_source };
+        real_glShaderSource(shader, 1, full_ptrs, &total_len_int);
+    }
+
+    free(full_source);
+}
+
+#define GL_FRAMEBUFFER_SRGB 0x8DB9
+
+static int g_srgb_enabled = 0;
+
+static void glEnable_hook(unsigned int cap) {
+    if (cap == GL_FRAMEBUFFER_SRGB) {
+        g_srgb_enabled = 1;
+    }
+    typedef void (*glEnable_pfn)(unsigned int);
+    static glEnable_pfn real_glEnable = NULL;
+    if (!real_glEnable) real_glEnable = (glEnable_pfn) get_gl_proc("glEnable");
+    if (real_glEnable) {
+        real_glEnable(cap);
+    }
+}
+
+static void glDisable_hook(unsigned int cap) {
+    if (cap == GL_FRAMEBUFFER_SRGB) {
+        g_srgb_enabled = 0;
+    }
+    typedef void (*glDisable_pfn)(unsigned int);
+    static glDisable_pfn real_glDisable = NULL;
+    if (!real_glDisable) real_glDisable = (glDisable_pfn) get_gl_proc("glDisable");
+    if (real_glDisable) {
+        real_glDisable(cap);
+    }
+}
+
+static unsigned char glIsEnabled_hook(unsigned int cap) {
+    if (cap == GL_FRAMEBUFFER_SRGB) {
+        return (unsigned char) g_srgb_enabled;
+    }
+    typedef unsigned char (*glIsEnabled_pfn)(unsigned int);
+    static glIsEnabled_pfn real_glIsEnabled = NULL;
+    if (!real_glIsEnabled) real_glIsEnabled = (glIsEnabled_pfn) get_gl_proc("glIsEnabled");
+    if (real_glIsEnabled) {
+        return real_glIsEnabled(cap);
+    }
+    return 0;
+}
+
+static unsigned int eglSwapBuffers_hook(void* dpy, void* surface) {
+    typedef unsigned int (*eglSwapBuffers_pfn)(void*, void*);
+    static eglSwapBuffers_pfn real_eglSwapBuffers = NULL;
+    if (!real_eglSwapBuffers) real_eglSwapBuffers = (eglSwapBuffers_pfn) get_gl_proc("eglSwapBuffers");
+    if (real_eglSwapBuffers) {
+        return real_eglSwapBuffers(dpy, surface);
+    }
+    return 0;
+}
+
+static inline unsigned int preserve_format(unsigned int format) {
+    switch (format) {
+        case 0x881A: // GL_RGBA16F
+        case 0x8814: // GL_RGBA32F
+        case 0x881B: // GL_RGB16F
+        case 0x8815: // GL_RGB32F
+        case 0x822F: // GL_RG16F
+        case 0x8230: // GL_RG32F
+        case 0x822D: // GL_R16F
+        case 0x822E: // GL_R32F
+        case 0x8C3A: // GL_R11F_G11F_B10F
+        case 0x8C43: // GL_SRGB8_ALPHA8
+        case 0x8C41: // GL_SRGB8
+        case 0x8051: // GL_RGB8
+        case 0x8058: // GL_RGBA8
+        case 0x81A6: // GL_DEPTH_COMPONENT24
+        case 0x8CAC: // GL_DEPTH_COMPONENT32F
+        case 0x88F0: // GL_DEPTH24_STENCIL8
+        case 0x8CAD: // GL_DEPTH32F_STENCIL8
+            return format;
+        default:
+            return format;
+    }
+}
+
+static void glTexImage2D_hook(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format, unsigned int type, const void* pixels) {
+    int preserved_fmt = (int) preserve_format((unsigned int) internalformat);
+    typedef void (*glTexImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    static glTexImage2D_pfn real_glTexImage2D = NULL;
+    if (!real_glTexImage2D) real_glTexImage2D = (glTexImage2D_pfn) get_gl_proc("glTexImage2D");
+    if (real_glTexImage2D) {
+        real_glTexImage2D(target, level, preserved_fmt, width, height, border, format, type, pixels);
+    }
+}
+
+static void glTexStorage2D_hook(unsigned int target, int levels, unsigned int internalformat, int width, int height) {
+    unsigned int preserved_fmt = preserve_format(internalformat);
+    typedef void (*glTexStorage2D_pfn)(unsigned int, int, unsigned int, int, int);
+    static glTexStorage2D_pfn real_glTexStorage2D = NULL;
+    if (!real_glTexStorage2D) real_glTexStorage2D = (glTexStorage2D_pfn) get_gl_proc("glTexStorage2D");
+    if (real_glTexStorage2D) {
+        real_glTexStorage2D(target, levels, preserved_fmt, width, height);
+    }
+}
+
+static void glRenderbufferStorage_hook(unsigned int target, unsigned int internalformat, int width, int height) {
+    unsigned int preserved_fmt = preserve_format(internalformat);
+    typedef void (*glRenderbufferStorage_pfn)(unsigned int, unsigned int, int, int);
+    static glRenderbufferStorage_pfn real_glRenderbufferStorage = NULL;
+    if (!real_glRenderbufferStorage) real_glRenderbufferStorage = (glRenderbufferStorage_pfn) get_gl_proc("glRenderbufferStorage");
+    if (real_glRenderbufferStorage) {
+        real_glRenderbufferStorage(target, preserved_fmt, width, height);
+    }
+}
+
+static void glFramebufferTexture2D_hook(unsigned int target, unsigned int attachment, unsigned int textarget, unsigned int texture, int level) {
+    typedef void (*glFramebufferTexture2D_pfn)(unsigned int, unsigned int, unsigned int, unsigned int, int);
+    static glFramebufferTexture2D_pfn real_glFramebufferTexture2D = NULL;
+    if (!real_glFramebufferTexture2D) real_glFramebufferTexture2D = (glFramebufferTexture2D_pfn) get_gl_proc("glFramebufferTexture2D");
+    if (real_glFramebufferTexture2D) {
+        real_glFramebufferTexture2D(target, attachment, textarget, texture, level);
+    }
+}
+
+static void glDrawBuffers_hook(int n, const unsigned int* bufs) {
+    typedef void (*glDrawBuffers_pfn)(int, const unsigned int*);
+    static glDrawBuffers_pfn real_glDrawBuffers = NULL;
+    if (!real_glDrawBuffers) real_glDrawBuffers = (glDrawBuffers_pfn) get_gl_proc("glDrawBuffers");
+    if (real_glDrawBuffers) {
+        real_glDrawBuffers(n, bufs);
+    }
+}
+
+static void glReadPixels_hook(int x, int y, int width, int height, unsigned int format, unsigned int type, void* pixels) {
+    typedef void (*glReadPixels_pfn)(int, int, int, int, unsigned int, unsigned int, void*);
+    static glReadPixels_pfn real_glReadPixels = NULL;
+    if (!real_glReadPixels) real_glReadPixels = (glReadPixels_pfn) get_gl_proc("glReadPixels");
+    if (real_glReadPixels) {
+        real_glReadPixels(x, y, width, height, format, type, pixels);
+    }
+}
+
+static void glBlitFramebuffer_hook(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned int mask, unsigned int filter) {
+    typedef void (*glBlitFramebuffer_pfn)(int, int, int, int, int, int, int, int, unsigned int, unsigned int);
+    static glBlitFramebuffer_pfn real_glBlitFramebuffer = NULL;
+    if (!real_glBlitFramebuffer) real_glBlitFramebuffer = (glBlitFramebuffer_pfn) get_gl_proc("glBlitFramebuffer");
+    if (real_glBlitFramebuffer) {
+        real_glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
     }
 }
 
 static void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
+    if (strcmp(procname, "eglGetProcAddress") == 0) {
+        return (void*) eglGetProcAddress_hook;
+    }
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
         LOGI("eglGetProcAddress_hook: Intercepted and returned custom glMemoryBarrier stub!");
         return (void*) glMemoryBarrier_stub;
@@ -261,14 +528,22 @@ static void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "glShaderSource") == 0) {
         return (void*) glShaderSource_hook;
     }
+    if (strcmp(procname, "glEnable") == 0) return (void*) glEnable_hook;
+    if (strcmp(procname, "glDisable") == 0) return (void*) glDisable_hook;
+    if (strcmp(procname, "glIsEnabled") == 0) return (void*) glIsEnabled_hook;
+    if (strcmp(procname, "eglSwapBuffers") == 0) return (void*) eglSwapBuffers_hook;
+    if (strcmp(procname, "glTexImage2D") == 0) return (void*) glTexImage2D_hook;
+    if (strcmp(procname, "glTexStorage2D") == 0) return (void*) glTexStorage2D_hook;
+    if (strcmp(procname, "glRenderbufferStorage") == 0 || strcmp(procname, "glRenderbufferStorageEXT") == 0) return (void*) glRenderbufferStorage_hook;
+    if (strcmp(procname, "glFramebufferTexture2D") == 0 || strcmp(procname, "glFramebufferTexture2DEXT") == 0) return (void*) glFramebufferTexture2D_hook;
+    if (strcmp(procname, "glDrawBuffers") == 0 || strcmp(procname, "glDrawBuffersARB") == 0) return (void*) glDrawBuffers_hook;
+    if (strcmp(procname, "glReadPixels") == 0) return (void*) glReadPixels_hook;
+    if (strcmp(procname, "glBlitFramebuffer") == 0 || strcmp(procname, "glBlitFramebufferEXT") == 0) return (void*) glBlitFramebuffer_hook;
 
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
     if (!real_eglGetProcAddress) {
-        real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (!real_eglGetProcAddress) {
-            real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_NEXT, "eglGetProcAddress");
-        }
+        real_eglGetProcAddress = (eglGetProcAddress_pfn) get_gl_proc("eglGetProcAddress");
     }
     if (real_eglGetProcAddress) {
         return real_eglGetProcAddress(procname);
@@ -291,7 +566,11 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if(strstr(filename, "libGLFear.so") == filename) {
         printf("LWJGL linkerhook: replacing OpenGL with renderspec driver\n");
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
-        return (jlong) rspec->egl_acquire(rspec->egl_path);
+        void* handle = rspec->egl_acquire(rspec->egl_path);
+        if (handle != NULL) {
+            g_ltw_handle = handle;
+        }
+        return (jlong) handle;
     }
 
     // This hook also serves the task of mitigating a bug: the idea is that since, on Android 10 and
@@ -311,25 +590,9 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (symbol != NULL) {
-        if (strcmp(symbol, "eglGetProcAddress") == 0) {
-            printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol directly\n");
-            return (jlong) eglGetProcAddress_hook;
-        }
-        if (strcmp(symbol, "glGetString") == 0) {
-            printf("LWJGL linkerhook: successfully hooked glGetString symbol directly\n");
-            return (jlong) glGetString_hook;
-        }
-        if (strcmp(symbol, "glGetStringi") == 0) {
-            printf("LWJGL linkerhook: successfully hooked glGetStringi symbol directly\n");
-            return (jlong) glGetStringi_hook;
-        }
-        if (strcmp(symbol, "glShaderSource") == 0) {
-            printf("LWJGL linkerhook: successfully hooked glShaderSource symbol directly\n");
-            return (jlong) glShaderSource_hook;
-        }
-        if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
-            printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
-            return (jlong) glMemoryBarrier_stub;
+        void* hooked_proc = eglGetProcAddress_hook(symbol);
+        if (hooked_proc != NULL) {
+            return (jlong) hooked_proc;
         }
     }
 

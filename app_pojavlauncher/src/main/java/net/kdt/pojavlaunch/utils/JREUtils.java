@@ -113,7 +113,7 @@ public class JREUtils {
                 envMap.put("LIBGL_FLOAT_COLOR", "1");
                 envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
-                envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("LIBGL_COLOR_RESCALE", "0");
                 envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
                 envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 break;

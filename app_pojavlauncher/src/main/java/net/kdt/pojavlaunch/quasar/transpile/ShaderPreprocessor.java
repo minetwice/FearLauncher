@@ -21,26 +21,34 @@ public class ShaderPreprocessor {
 
         String source = shaderSource;
 
-        // 1. Remove 'noperspective' keyword (reserved in GLES)
-        source = source.replaceAll("\\bnoperspective\\b", " ");
-
-        // 2. Replace ARB texture LOD extension with EXT version for GLES
+        // 1. Sanitize unsupported extension directives into single-line comments
         source = source.replaceAll(
-            "#extension\\s+GL_ARB_shader_texture_lod\\s*:",
-            "#extension GL_EXT_shader_texture_lod :"
+            "(?m)^\\s*#\\s*extension\\s+(GL_NV_shader_noperspective_interpolation|GL_ARB_shader_texture_lod|GL_EXT_gpu_shader4|GL_ARB_gpu_shader5|GL_ARB_draw_instanced|GL_ARB_explicit_attrib_location|GL_ARB_shader_draw_parameters|GL_ARB_shading_language_420pack|GL_ARB_bindless_texture)\\b.*",
+            "// extension directive commented for GLES compatibility"
         );
 
-        // 3. Replace texture2DLod and textureCubeLod with textureLod
-        source = source.replaceAll("\\btexture2DLod\\s*\\(", "textureLod(");
-        source = source.replaceAll("\\btextureCubeLod\\s*\\(", "textureLod(");
+        // 2. Remove 'noperspective' interpolation qualifier (reserved keyword in GLES 3.2)
+        source = source.replaceAll("\\bnoperspective\\b", "             ");
 
-        // 4. Disable NV shader noperspective interpolation directive or suppress warning safely after #version
-        if (!source.contains("GL_NV_shader_noperspective_interpolation")) {
-            source = insertAfterVersionLine(source, "#extension GL_NV_shader_noperspective_interpolation : disable");
-        } else {
-            source = source.replaceAll(
-                "#extension\\s+GL_NV_shader_noperspective_interpolation\\s*:\\s*(enable|require)",
-                "#extension GL_NV_shader_noperspective_interpolation : disable"
+        // 3. Desktop GLSL -> GLES function renames
+        source = source.replaceAll("\\btexture2DProjLod\\b", "textureProjLod  ");
+        source = source.replaceAll("\\btexture2DLod\\b", "textureLod  ");
+        source = source.replaceAll("\\btexture3DLod\\b", "textureLod  ");
+        source = source.replaceAll("\\btextureCubeLod\\b", "textureLod    ");
+        source = source.replaceAll("\\btexture2DGradARB\\b", "textureGrad   ");
+        source = source.replaceAll("\\btexture2DGrad\\b", "textureGrad  ");
+        source = source.replaceAll("\\btexture2DProj\\b", "textureProj ");
+        source = source.replaceAll("\\btexture2D\\b", "texture  ");
+        source = source.replaceAll("\\btextureCube\\b", "texture   ");
+        source = source.replaceAll("\\btexture3D\\b", "texture  ");
+        source = source.replaceAll("\\btexture1D\\b", "texture  ");
+        source = source.replaceAll("\\bshadow2DProj\\b", "textureProj ");
+        source = source.replaceAll("\\bshadow2D\\b", "texture ");
+
+        // 4. Precision statement normalization for fragment shaders
+        if ((source.contains("gl_FragColor") || source.contains("gl_FragData") || source.contains("out vec4") || source.contains("Fragment")) && !source.contains("precision ")) {
+            source = insertAfterVersionLine(source,
+                "#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\nprecision highp int;\n#endif"
             );
         }
 
