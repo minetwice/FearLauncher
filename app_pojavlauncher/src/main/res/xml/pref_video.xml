@@ -63,4 +63,18 @@
             android:title="@string/preference_vsync_in_zink_title"
             />
     </PreferenceCategory>
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="quasar_shader_fixes"
+            android:summary="@string/preference_quasar_shader_fixes_desc"
+            android:title="@string/preference_quasar_shader_fixes_title"
+            android:dependency="renderer"
+            app2:dependencyValue="quasar"/>
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="quasar_force_gles31"
+            android:summary="@string/preference_quasar_force_gles31_desc"
+            android:title="@string/preference_quasar_force_gles31_title"
+            android:dependency="renderer"
+            app2:dependencyValue="quasar"/>
 </PreferenceScreen>

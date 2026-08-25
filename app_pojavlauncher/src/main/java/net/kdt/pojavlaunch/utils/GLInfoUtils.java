@@ -193,5 +193,73 @@ public class GLInfoUtils {
         public boolean isArm() {
             return (renderer.contains("Mali") || renderer.contains("Immortalis")) && vendor.equals("ARM");
         }
+
+        /**
+         * Check if this GPU needs shader fallbacks (Mali GPUs typically do)
+         * @return true if shader fallbacks are needed
+         */
+        public boolean needsShaderFallbacks() {
+            // Mali GPUs need fallbacks for missing extensions
+            if (isArm()) {
+                // Older Mali models definitely need fallbacks
+                if (renderer.contains("Mali-T") || renderer.contains("Mali-G5") || 
+                    renderer.contains("Mali-G6") || renderer.contains("Mali-B")) {
+                    return true;
+                }
+                // Newer Mali models might still need some fallbacks
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Check if framebuffer fetch is supported on this GPU
+         * @return true if framebuffer fetch is supported
+         */
+        public boolean supportsFramebufferFetch() {
+            // Mali GPUs typically don't support framebuffer fetch
+            return !isArm();
+        }
+
+        /**
+         * Get the best GLSL version for this GPU
+         * @return GLSL version string (e.g., "#version 310 es
+")
+         */
+        public String getBestGlslVersion() {
+            if (isArm()) {
+                // Mali GPUs work best with GLSL ES 3.0 or 3.1
+                if (glesMajorVersion >= 3) {
+                    return "#version 310 es
+";
+                }
+                return "#version 300 es
+";
+            }
+            if (isAdreno()) {
+                return "#version 310 es
+";
+            }
+            return "#version 100
+";
+        }
+
+        /**
+         * Check if complementary blending is supported
+         * @return true if complementary blending works correctly
+         */
+        public boolean supportsComplementaryBlending() {
+            // Mali GPUs have issues with certain blending modes
+            return !isArm();
+        }
+
+        /**
+         * Get GPU information as a formatted string
+         * @return Formatted GPU information
+         */
+        public String getInfoString() {
+            return "Vendor: " + vendor + ", Renderer: " + renderer + 
+                   ", GLES: " + glesMajorVersion + ", Needs Fallbacks: " + needsShaderFallbacks();
+        }
     }
 }

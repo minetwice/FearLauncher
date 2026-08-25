@@ -39,6 +39,11 @@ public class RendererCompatUtil {
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
         // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        // Quasar is an optional renderer with Mali GPU optimizations
+        boolean appHasQuasar = new File(Tools.NATIVE_LIB_DIR, "libquasar.so").exists();
+        GLInfo glInfo = GLInfoUtils.getGlInfo();
+        boolean deviceSupportsQuasar = glInfo.glesMajorVersion >= 3;
+        
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
@@ -48,6 +53,8 @@ public class RendererCompatUtil {
             // freedreno is available only on Adreno GPUs
             if(rendererId.contains("freedreno") && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+            // Quasar renderer - requires GLES 3.0+ and the library
+            if(rendererId.equals("quasar") && (!deviceSupportsQuasar || !appHasQuasar)) continue;
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
@@ -59,7 +66,12 @@ public class RendererCompatUtil {
 
     /** Checks if the renderer Id is compatible with the current device */
     public static boolean checkRendererCompatible(Context context, String rendererName) {
-         return getCompatibleRenderers(context).rendererIds.contains(rendererName);
+        if(rendererName.equals("quasar")) {
+            GLInfo glInfo = GLInfoUtils.getGlInfo();
+            boolean hasQuasarLib = new File(Tools.NATIVE_LIB_DIR, "libquasar.so").exists();
+            return glInfo.glesMajorVersion >= 3 && hasQuasarLib;
+        }
+        return getCompatibleRenderers(context).rendererIds.contains(rendererName);
     }
 
     /** Releases the cache of compatible renderers. */

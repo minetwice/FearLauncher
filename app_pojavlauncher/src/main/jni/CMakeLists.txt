@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.22.1)
 
 project("FearLauncher")
@@ -47,3 +46,11 @@ add_library(awt_xawt SHARED
         awt_xawt/xawt_fake.c
 )
 target_link_libraries(awt_xawt PRIVATE awt_headless)
+
+# Quasar Helper Library for Mali GPU shader fixes
+add_library(quasar SHARED
+        quasar_helper.c
+)
+
+target_include_directories(quasar PRIVATE .)
+target_link_libraries(quasar PRIVATE log GLESv3)

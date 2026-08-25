@@ -73,6 +73,11 @@ public class LauncherPreferences {
 
     public static boolean PREF_FREEDRENO_SYSMEM = false;
 
+    // Quasar Renderer Preferences
+    public static boolean PREF_QUASAR_ENABLE_SHADER_FIXES = true;
+    public static boolean PREF_QUASAR_FORCE_GLES31 = false;
+
+
 
     public static void loadPreferences(Context ctx) {
         //Required for CTRLDEF_FILE and MultiRT
@@ -116,6 +121,9 @@ public class LauncherPreferences {
         PREF_VERIFY_FILES = DEFAULT_PREF.getBoolean("checkGameFiles", true);
         PREF_RAPID_START = DEFAULT_PREF.getBoolean("fastStartupCheck", true);
         PREF_FREEDRENO_SYSMEM = DEFAULT_PREF.getBoolean("freedrenoSysmem", false);
+        PREF_QUASAR_ENABLE_SHADER_FIXES = DEFAULT_PREF.getBoolean("quasar_shader_fixes", true);
+        PREF_QUASAR_FORCE_GLES31 = DEFAULT_PREF.getBoolean("quasar_force_gles31", false);
+
 
         String argLwjglLibname = "-Dorg.lwjgl.opengl.libname=";
         for (String arg : JREUtils.parseJavaArguments(PREF_CUSTOM_JAVA_ARGS)) {

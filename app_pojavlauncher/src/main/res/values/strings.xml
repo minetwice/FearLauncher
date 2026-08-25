@@ -58,6 +58,7 @@
     <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - all versions, mid</string>
     <string name="mcl_setting_renderer_freedreno_kgsl">Freedreno - all versions, fast, Adreno-only</string>
     <string name="mcl_setting_renderer_ltw">LTW (OpenGL ES 3) - 1.17+ only, fast</string>
+    <string name="mcl_setting_renderer_quasar">Quasar (OpenGL ES 3.1) - All versions, optimized for Mali/Adreno</string>
     <string name="mcl_setting_veroption_release">Release</string>
     <string name="mcl_setting_veroption_snapshot">Snapshot</string>
     <string name="mcl_setting_veroption_oldalpha">Old-alpha</string>
@@ -464,4 +465,8 @@ If you want to use the official download source, press \"Switch to official site
 
 <!-- Shown in version text when no instance is selected -->
 <string name="no_instance_selected">No version selected</string>
+    <string name="preference_quasar_shader_fixes_title">Enable Quasar Shader Fixes</string>
+    <string name="preference_quasar_shader_fixes_desc">Apply fixes for Mali GPU shader compatibility</string>
+    <string name="preference_quasar_force_gles31_title">Force OpenGL ES 3.1</string>
+    <string name="preference_quasar_force_gles31_desc">Force GLES 3.1 context (may improve performance on newer devices)</string>
 </resources>
