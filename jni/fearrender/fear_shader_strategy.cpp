@@ -70,11 +70,25 @@ std::string executeStrategyL1ToL8(
             size_t versionEnd = minimal.find('\n');
             if (versionEnd != std::string::npos) {
                 minimal.insert(versionEnd + 1,
-                    "precision highp float;\nprecision highp int;\n");
+                    "precision highp float;\n"
+                    "precision highp int;\n"
+                    "precision highp sampler2D;\n"
+                    "precision highp sampler3D;\n"
+                    "precision highp samplerCube;\n"
+                    "precision highp sampler2DShadow;\n"
+                    "precision highp sampler2DArray;\n"
+                    "precision highp isampler2D;\n"
+                    "precision highp usampler2D;\n");
             }
         }
 
         // Keyword fixes (string replace)
+        // Remove desktop specific extensions that break mobile compilers
+        replaceAll(minimal, "#extension GL_EXT_gpu_shader4 : enable", "");
+        replaceAll(minimal, "#extension GL_ARB_gpu_shader5 : enable", "");
+        replaceAll(minimal, "#extension GL_ARB_explicit_attrib_location : enable", "");
+        replaceAll(minimal, "#extension GL_ARB_shading_language_420pack : enable", "");
+
         replaceAll(minimal, "texture2D(", "texture(");
         replaceAll(minimal, "texture2DLod(", "textureLod(");
         replaceAll(minimal, "textureCube(", "texture(");
