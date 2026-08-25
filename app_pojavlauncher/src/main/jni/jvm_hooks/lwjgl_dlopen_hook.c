@@ -357,19 +357,51 @@ static char* patch_es_compat_glsl(const char* source) {
             }
         }
     } else {
-        // Vertex Shader synthesis (ftransform)
+        // Vertex Shader synthesis (ftransform, gl_MultiTexCoord, gl_TextureMatrix, gl_ModelViewMatrix, gl_ProjectionMatrix)
         p = result;
         while ((p = strstr(p, "ftransform()")) != NULL) {
-            // Replace ftransform() (12 chars) with (gl_Pos) space padding if needed
             char prev = (p > result) ? p[-1] : ' ';
             char next = p[12];
             if (!is_word_char(prev) && !is_word_char(next)) {
-                // Synthesize ftransform() -> gl_Position
                 memcpy(p, "gl_Position ", 12);
                 modified = 1;
                 p += 12;
             } else {
                 p += 1;
+            }
+        }
+
+        char injected_vert_decls[512] = "";
+        if (strstr(result, "gl_MultiTexCoord0") != NULL && strstr(result, "in vec4 gl_MultiTexCoord0") == NULL) {
+            strcat(injected_vert_decls, "in vec4 gl_MultiTexCoord0;\n");
+        }
+        if (strstr(result, "gl_MultiTexCoord1") != NULL && strstr(result, "in vec4 gl_MultiTexCoord1") == NULL) {
+            strcat(injected_vert_decls, "in vec4 gl_MultiTexCoord1;\n");
+        }
+        if (strstr(result, "gl_TextureMatrix") != NULL && strstr(result, "uniform mat4 gl_TextureMatrix") == NULL) {
+            strcat(injected_vert_decls, "uniform mat4 gl_TextureMatrix[8];\n");
+        }
+        if (strstr(result, "gl_ModelViewMatrix") != NULL && strstr(result, "uniform mat4 gl_ModelViewMatrix") == NULL) {
+            strcat(injected_vert_decls, "uniform mat4 gl_ModelViewMatrix;\n");
+        }
+        if (strstr(result, "gl_ProjectionMatrix") != NULL && strstr(result, "uniform mat4 gl_ProjectionMatrix") == NULL) {
+            strcat(injected_vert_decls, "uniform mat4 gl_ProjectionMatrix;\n");
+        }
+
+        if (injected_vert_decls[0] != '\0') {
+            ver = strstr(result, "#version");
+            if (ver) {
+                char* line_end = strchr(ver, '\n');
+                if (line_end) {
+                    size_t decls_len = strlen(injected_vert_decls);
+                    size_t tail_len = strlen(line_end);
+                    memmove(line_end + decls_len, line_end, tail_len + 1);
+                    memcpy(line_end, injected_vert_decls, decls_len);
+                    modified = 1;
+                    if (debug) {
+                        LOGI("LTW_DEBUG: Injected vertex attribute & matrix uniform declarations");
+                    }
+                }
             }
         }
     }
