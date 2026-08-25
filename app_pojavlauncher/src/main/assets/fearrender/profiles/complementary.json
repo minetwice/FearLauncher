@@ -1,14 +1,24 @@
 {
   "packName": "Complementary Reimagined",
-  "version": "1.0",
+  "version": "1.1",
   "targetEsVersion": 320,
   "defines": [
     "FEAR_MOBILE",
-    "FEAR_MAX_SHADOWS 2",
-    "FEAR_MAX_LIGHTS 4"
+    "FEAR_MAX_SHADOWS 1",
+    "FEAR_MAX_LIGHTS 2",
+    "SHADOW_QUALITY 0",
+    "TAA_MODE 0"
   ],
   "disabledFeatures": [
     "SSR_ENABLED",
-    "VOLUMETRIC_CLOUDS"
+    "VOLUMETRIC_CLOUDS",
+    "MOTION_BLUR",
+    "TAA",
+    "TEMPORAL_FILTER",
+    "COLORED_SHADOWS",
+    "CLOUD_SHADOWS",
+    "PIXELATED_SHADOWS",
+    "DOF",
+    "BLOOM_HIGH"
   ]
 }
