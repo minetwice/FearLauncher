@@ -18,7 +18,7 @@ import org.json.JSONObject;
  *
  * The result is a CapabilityTable that distinguishes Mali vs Adreno gaps
  * (e.g., compute shader support, multiple render targets, image atomics,
- * geometry shader emulation availability).
+ * geometry shader emulation availability, noperspective interpolation).
  */
 public class DeviceCapabilityProbe {
     private static final String TAG = "Quasar-CapabilityProbe";
@@ -172,16 +172,23 @@ public class DeviceCapabilityProbe {
 
     /**
      * Apply vendor-specific capability gaps and workarounds.
+     * Mali GLES drivers typically lack GL_NV_shader_noperspective_interpolation,
+     * which Complementary / Solas shaderpacks request — mark it unsupported so
+     * ShaderPreprocessor strips the extension and keyword.
      */
     private void applyVendorSpecificGaps(CapabilityTable table, String vendor) {
         switch (vendor) {
             case "mali":
+            case "arm":
                 Log.i(TAG, "Applying Mali-specific capability adjustments");
                 table.setHasImageAtomics(false);
+                table.setHasNoperspectiveInterpolation(false);
                 break;
             case "adreno":
                 Log.i(TAG, "Applying Adreno-specific capability adjustments");
                 table.setHasImageAtomics(true);
+                // Some Adreno GLES paths also reject NV noperspective; stay safe
+                table.setHasNoperspectiveInterpolation(false);
                 break;
             case "powervr":
                 Log.i(TAG, "Applying PowerVR-specific capability adjustments");
@@ -190,14 +197,17 @@ public class DeviceCapabilityProbe {
                     table.setHasSSBO(false);
                 }
                 table.setHasImageAtomics(false);
+                table.setHasNoperspectiveInterpolation(false);
                 break;
             case "software":
                 Log.i(TAG, "Software renderer detected (llvmpipe/swiftshader)");
                 table.setHasImageAtomics(false);
+                table.setHasNoperspectiveInterpolation(false);
                 break;
             default:
                 Log.w(TAG, "Unknown GPU vendor, using conservative defaults");
                 table.setHasImageAtomics(false);
+                table.setHasNoperspectiveInterpolation(false);
                 break;
         }
     }
