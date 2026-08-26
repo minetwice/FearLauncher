@@ -12,6 +12,7 @@ import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
  * - Fixes compute shader invocation coordinates (gl_FragCoord -> gl_GlobalInvocationID).
  * - Ensures local workgroup size layouts for compute passes.
  * - Injects mobile definitions (#define MC_ANDROID, #define QUASAR_MOBILE, etc.).
+ * - Injects Mali-specific polyfills for missing functionality.
  */
 public class Stage4ShaderRefiner {
     private static final String TAG = "Quasar-Stage4Refiner";
@@ -26,7 +27,10 @@ public class Stage4ShaderRefiner {
         String glsl = sourceCode;
         String vendor = capability != null ? capability.getGpuVendor().toLowerCase() : "unknown";
 
-        // 1. Mobile GPU Macros
+        // 1. Inject Mali-specific polyfills FIRST (before other modifications)
+        glsl = MaliPolyfillInjector.injectPolyfills(glsl, capability);
+
+        // 2. Mobile GPU Macros
         StringBuilder macros = new StringBuilder();
         macros.append("\n#define MC_ANDROID 1\n#define QUASAR_MOBILE 1\n");
         if (vendor.contains("mali")) {
@@ -43,7 +47,7 @@ public class Stage4ShaderRefiner {
             }
         }
 
-        // 2. Precision Qualifier Injection for Mali & Adreno Color Stability
+        // 3. Precision Qualifier Injection for Mali & Adreno Color Stability
         if (!glsl.contains("precision ")) {
             String precisionBlock = "precision highp float;\nprecision highp int;\n" +
                     "precision highp sampler2D;\nprecision highp sampler2DArray;\n" +
@@ -59,7 +63,7 @@ public class Stage4ShaderRefiner {
             glsl = glsl.replace("precision lowp float;", "precision highp float;");
         }
 
-        // 3. Compute Shader Refinement
+        // 4. Compute Shader Refinement
         if (detection.isCompute) {
             if (glsl.contains("gl_FragCoord.xy")) {
                 glsl = glsl.replace("gl_FragCoord.xy", "vec2(gl_GlobalInvocationID.xy)");
