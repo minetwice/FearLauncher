@@ -104,18 +104,19 @@ public class JREUtils {
             case "custom_inject":
                 envMap.put("LIBGL_ES", "3");
                 break;
-            case "quasar":
-                Logger.appendToLog("[Quasar] Initializing Quasar renderer environment (Mesa Zink / Turnip)...");
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("EGL_PLATFORM", "android");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_NO_MINMAX_CACHE", "1");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_NO_ERROR", "0");
-                envMap.put("vblank_mode", "0");
+            case "quasar": {
+                boolean maliGpu = false;
+                try { maliGpu = GLInfoUtils.getGlInfo().isArm(); } catch (Throwable ignored) {}
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_NORMALIZE", "1");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA8,RGBA32F");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
@@ -123,27 +124,53 @@ public class JREUtils {
                 envMap.put("glsl_ignore_noperspective", "true");
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("gl_draw_buffers_override", "true");
-                envMap.put("MESA_EXTENSION_OVERRIDE",
-                        "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array "
-                      + "GL_OES_EGL_image_external_essl3 GL_ARB_shader_objects GL_ARB_vertex_shader "
-                      + "GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 "
-                      + "GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced "
-                      + "GL_ARB_shader_texture_lod GL_EXT_shader_texture_lod "
-                      + "GL_ARB_framebuffer_object GL_ARB_draw_buffers");
-                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA8,RGBA32F");
-                envMap.put("LIBGL_FLOAT_COLOR", "1");
-                envMap.put("LIBGL_FLOAT_DEPTH", "1");
-                envMap.put("LIBGL_COLOR_RESCALE", "1");
-                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_FBOTEXTURE2D", "1");
-                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("vblank_mode", "0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                if (LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
-                    envMap.put("TU_DEBUG", "sysmem");
-                    envMap.put("FD_MESA_DEBUG", "sysmem");
+                if (maliGpu) {
+                    Logger.appendToLog("[Quasar] Env profile: Mali LTW+ShaderShield (Zink EGL unstable)");
+                    envMap.put("LIBGL_GL", "46");
+                    envMap.put("LIBGL_GLSL", "1");
+                    envMap.put("LIBGL_FB", "1");
+                    envMap.put("LIBGL_FPE", "1");
+                    envMap.put("LIBGL_DEPTH", "24");
+                    envMap.put("LIBGL_NOINTOVLHACK", "1");
+                    envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                    envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                    envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                    envMap.put("MESA_EXTENSION_OVERRIDE",
+                            "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array "
+                          + "GL_OES_EGL_image_external_essl3 GL_ARB_shader_objects GL_ARB_vertex_shader "
+                          + "GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 "
+                          + "GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced "
+                          + "GL_ARB_shader_texture_lod GL_EXT_shader_texture_lod");
+                } else {
+                    Logger.appendToLog("[Quasar] Env profile: Mesa Zink / Turnip");
+                    envMap.put("GALLIUM_DRIVER", "zink");
+                    envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                    envMap.put("EGL_PLATFORM", "android");
+                    envMap.put("ZINK_DESCRIPTORS", "lazy");
+                    envMap.put("mesa_glthread", "false");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                    envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                    envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                    envMap.put("MESA_NO_MINMAX_CACHE", "1");
+                    envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                    envMap.put("MESA_NO_ERROR", "0");
+                    envMap.put("MESA_EXTENSION_OVERRIDE",
+                            "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array "
+                          + "GL_OES_EGL_image_external_essl3 GL_ARB_shader_objects GL_ARB_vertex_shader "
+                          + "GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 "
+                          + "GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced "
+                          + "GL_ARB_shader_texture_lod GL_EXT_shader_texture_lod "
+                          + "GL_ARB_framebuffer_object GL_ARB_draw_buffers");
+                    if (LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
+                        envMap.put("TU_DEBUG", "sysmem");
+                        envMap.put("FD_MESA_DEBUG", "sysmem");
+                    }
                 }
                 break;
+            }
         }
     }
 
@@ -155,7 +182,11 @@ public class JREUtils {
         envMap.put("LIBGL_NORMALIZE", "1");
         if (PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
         if (PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
-        envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        if ("quasar".equals(renderer)) {
+            envMap.put("LIBGL_ES", "3");
+        } else {
+            envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        }
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");
@@ -198,6 +229,14 @@ public class JREUtils {
         for (Map.Entry<String, String> env : envMap.entrySet()) {
             Logger.appendToLog("Added custom env: " + env.getKey() + "=" + env.getValue());
             try { Os.setenv(env.getKey(), env.getValue(), true); } catch (NullPointerException e) { Log.e("JREUtils", e.toString()); }
+        }
+        if ("quasar".equals(renderer)) {
+            try {
+                Os.setenv("LIBGL_ES", "3", true);
+                Logger.appendToLog("Added custom env: LIBGL_ES=3 (Quasar force)");
+            } catch (Exception e) {
+                Log.e("JREUtils", "Failed to force LIBGL_ES=3: " + e);
+            }
         }
     }
 
@@ -265,13 +304,27 @@ public class JREUtils {
             case "custom_inject":
                 renderLibrary = "libGLFear.so"; useGles = true; glesVersion = 3; break;
             case "quasar": {
+                boolean adreno = false;
+                boolean mali = false;
+                try {
+                    adreno = GLInfoUtils.getGlInfo().isAdreno();
+                    mali = GLInfoUtils.getGlInfo().isArm();
+                } catch (Throwable ignored) {}
+
+                if (mali && !adreno) {
+                    Logger.appendToLog("[Quasar] Mali detected — Zink EGL is unstable on this GPU (GLFW 65542)");
+                    Logger.appendToLog("[Quasar] backend=LTW+ShaderShield (Mali stable window path)");
+                    renderLibrary = "libltw.so";
+                    useGles = true;
+                    glesVersion = 3;
+                    break;
+                }
+
                 boolean vkOk = false;
                 try { preloadVulkan(); vkOk = true; } catch (Throwable t) {
                     Logger.appendToLog("[Quasar] Vulkan preload failed: " + t.getMessage());
                 }
                 if (vkOk) {
-                    boolean adreno = false;
-                    try { adreno = GLInfoUtils.getGlInfo().isAdreno(); } catch (Throwable ignored) {}
                     if (adreno && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
                         try {
                             setUseTurnip(true);
@@ -280,7 +333,7 @@ public class JREUtils {
                             Logger.appendToLog("[Quasar] backend=ZINK (system Vulkan)");
                         }
                     } else {
-                        Logger.appendToLog("[Quasar] backend=ZINK (Mali/system Vulkan → Mesa Zink)");
+                        Logger.appendToLog("[Quasar] backend=ZINK (system Vulkan → Mesa Zink)");
                     }
                     renderLibrary = "libEGL_mesa.so";
                     useGles = false;
