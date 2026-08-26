@@ -7,20 +7,13 @@ import net.kdt.pojavlaunch.quasar.backend.BackendSelector;
 import net.kdt.pojavlaunch.quasar.backend.RenderBackend;
 import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
 import net.kdt.pojavlaunch.quasar.capability.DeviceCapabilityProbe;
+import net.kdt.pojavlaunch.quasar.gl.ModernGLCompat;
+import net.kdt.pojavlaunch.quasar.gl.OpenGLFeatureCatalog;
 import net.kdt.pojavlaunch.quasar.transpile.ShaderCache;
 
 /**
- * QuasarRenderer is the entry point for the Quasar rendering subsystem.
- *
- * Quasar is a translation + compatibility layer that allows PC Java Edition
- * shaderpacks (Iris-compatible: Complementary, BSL, etc., and legacy OptiFine
- * shaders) to run on Android across both Mali (ARM) and Adreno (Qualcomm) GPUs.
- *
- * Lifecycle:
- * 1. probe() - detect device capabilities at launcher startup
- * 2. selectBackend() - choose Zink (primary) or GL4ES (fallback)
- * 3. loadShaderpack() - transpile and cache shaders
- * 4. renderFrame() - per-frame rendering through the selected backend
+ * QuasarRenderer — entry point. Extreme path:
+ * probe → ModernGLCompat (GL 3.3–4.6 → ES) → ShaderShield → backend.
  */
 public class QuasarRenderer {
     private static final String TAG = "QuasarRenderer";
@@ -40,21 +33,21 @@ public class QuasarRenderer {
         return instance;
     }
 
-    /**
-     * Initialize Quasar: probe device capabilities and select backend.
-     * Call this at launcher startup, before any shaderpack is loaded.
-     */
     public void initialize(Context context) {
         if (initialized) {
             Log.w(TAG, "Quasar already initialized, skipping");
             return;
         }
 
-        Log.i(TAG, "Initializing Quasar renderer subsystem...");
+        Log.i(TAG, "Initializing Quasar renderer subsystem (extreme GL compat)...");
 
         DeviceCapabilityProbe probe = new DeviceCapabilityProbe();
         capabilityTable = probe.probe(context);
         Log.i(TAG, "Device capability table: " + capabilityTable.toString());
+
+        ModernGLCompat.activate(capabilityTable);
+        Log.i(TAG, ModernGLCompat.statusLine());
+        Log.i(TAG, "OpenGLFeatureCatalog size=" + OpenGLFeatureCatalog.size());
 
         shaderCache = new ShaderCache(context);
         Log.i(TAG, "Shader cache initialized at: " + shaderCache.getCachePath());
@@ -85,6 +78,7 @@ public class QuasarRenderer {
 
     public void shutdown() {
         Log.i(TAG, "Shutting down Quasar renderer subsystem...");
+        ModernGLCompat.deactivate();
         if (activeBackend != null) {
             activeBackend.cleanup();
             activeBackend = null;
