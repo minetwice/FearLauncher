@@ -5,33 +5,22 @@ import android.util.Log;
 import net.kdt.pojavlaunch.quasar.capability.CapabilityTable;
 
 /**
- * BackendSelector chooses the best render backend based on the device's
- * capability table.
- *
- * Selection logic:
- * - If Vulkan is available AND supports the required features -> ZinkBackend
- * - If Vulkan is not available or insufficient -> GL4ESBackend (fallback)
+ * Chooses Zink/Turnip when any Vulkan is available; GL4ES only as hard fallback.
+ * LTW is never selected from Quasar Java — JREUtils only uses it if Vulkan preload fails.
  */
 public class BackendSelector {
     private static final String TAG = "Quasar-BackendSelector";
 
-    /**
-     * Select the best backend for the given device capabilities.
-     * @param table The device capability table
-     * @return The selected RenderBackend
-     */
     public static RenderBackend select(CapabilityTable table) {
-        Log.i(TAG, "Selecting backend. Vulkan available: " + table.hasVulkan()
-                + ", API version: " + table.getVulkanApiVersion());
+        boolean vk = table != null && table.hasVulkan();
+        int api = table != null ? table.getVulkanApiVersion() : 0;
+        Log.i(TAG, "Selecting backend. Vulkan=" + vk + " api=0x" + Integer.toHexString(api));
 
-        if (table.hasVulkan() && table.getVulkanApiVersion() >= 0x401000) {
-            // Vulkan 1.1+ — Zink should work
-            Log.i(TAG, "Vulkan 1.1+ available, selecting Zink backend");
+        if (vk || api > 0) {
+            Log.i(TAG, "Selecting Zink/Turnip backend");
             return new ZinkBackend(table);
         }
-
-        // Fallback to GL4ES
-        Log.i(TAG, "Vulkan not available or too old, selecting GL4ES fallback backend");
+        Log.i(TAG, "No Vulkan — GL4ES fallback (shaders limited)");
         return new GL4ESBackend(table);
     }
 }
