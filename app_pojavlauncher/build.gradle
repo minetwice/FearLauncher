@@ -313,23 +313,39 @@ afterEvaluate {
         doFirst {
             fileTree(dir: 'libs', include: ['*.aar']).each { File aarFile ->
                 try {
-                    def zipFile = new java.util.zip.ZipFile(aarFile)
-                    boolean needsPatch = false
-                    zipFile.entries().each { entry ->
-                        if (entry.name.endsWith("MaliPolyfillInjector.java")) {
-                            needsPatch = true
+                    File tempFile = new File(aarFile.parent, aarFile.name + ".tmp")
+                    boolean modified = false
+                    aarFile.withInputStream { is ->
+                        tempFile.withOutputStream { os ->
+                            def zis = new java.util.zip.ZipInputStream(is)
+                            def zos = new java.util.zip.ZipOutputStream(os)
+                            def entry
+                            byte[] buffer = new byte[8192]
+                            while ((entry = zis.nextEntry) != null) {
+                                if (entry.name.endsWith(".java")) {
+                                    modified = true
+                                } else {
+                                    def newEntry = new java.util.zip.ZipEntry(entry.name)
+                                    zos.putNextEntry(newEntry)
+                                    int len
+                                    while ((len = zis.read(buffer)) > 0) {
+                                        zos.write(buffer, 0, len)
+                                    }
+                                    zos.closeEntry()
+                                }
+                            }
+                            zos.finish()
                         }
                     }
-                    zipFile.close()
-                    if (needsPatch) {
-                        logger.lifecycle("Patching AAR: ${aarFile.name}")
-                        exec {
-                            commandLine 'zip', '-d', aarFile.absolutePath, '*MaliPolyfillInjector.java'
-                            ignoreExitValue true
-                        }
+                    if (modified) {
+                        logger.lifecycle("Removed uncompiled .java sources from AAR: ${aarFile.name}")
+                        aarFile.delete()
+                        tempFile.renameTo(aarFile)
+                    } else {
+                        tempFile.delete()
                     }
                 } catch (Exception e) {
-                    // Ignore non-zip or unreadable AARs
+                    logger.warn("Failed to clean AAR ${aarFile.name}: ${e.message}")
                 }
             }
         }
