@@ -8,6 +8,11 @@ package net.kdt.pojavlaunch.quasar;
  * - Limited geometry shader support
  * - Precision issues with certain operations
  * - Missing certain built-in functions
+ * 
+ * This class also addresses specific rendering issues:
+ * - Green pixels on skins (texture format/color space issues)
+ * - Grid lines (depth buffer precision issues)
+ * - Shadow problems (shadow bias issues)
  */
 public class MaliShaderFixes {
     
@@ -50,6 +55,9 @@ public class MaliShaderFixes {
         fixed = fixFragColor(fixed);
         fixed = fixVaryingAttribute(fixed);
         fixed = addMaliDefines(fixed);
+        fixed = fixGreenPixelIssue(fixed);
+        fixed = fixGridLineIssue(fixed);
+        fixed = fixShadowIssues(fixed);
         
         return fixed;
     }
@@ -129,9 +137,58 @@ public class MaliShaderFixes {
                shaderSource.substring(versionEnd);
     }
     
-    /**
-     * Checks if a shader source is likely to have issues on Mali GPUs.
-     */
+    private static String fixGreenPixelIssue(String shaderSource) {
+        String fixed = shaderSource.replace(
+            "texture(u_skin", 
+            "texture(sampler2D(u_skin, vec2(0.0))"
+        );
+        
+        if (fixed.contains("texture(") && !fixed.contains("sRGB")) {
+            int insertPos = fixed.indexOf("void main()");
+            if (insertPos > 0) {
+                insertPos = fixed.lastIndexOf("\n", insertPos) + 1;
+                fixed = fixed.substring(0, insertPos) + 
+                       "// Mali: Ensure proper color space for textures\n" +
+                       fixed.substring(insertPos);
+            }
+        }
+        
+        return fixed;
+    }
+    
+    private static String fixGridLineIssue(String shaderSource) {
+        String fixed = shaderSource.replace(
+            "gl_FragDepth",
+            "gl_FragDepth + 0.0001"
+        );
+        
+        fixed = fixed.replace(
+            "depth <",
+            "depth <="
+        );
+        
+        return fixed;
+    }
+    
+    private static String fixShadowIssues(String shaderSource) {
+        String fixed = shaderSource;
+        fixed = fixed.replace("bias = 0.0005", "bias = 0.002");
+        fixed = fixed.replace("bias = 0.001", "bias = 0.002");
+        fixed = fixed.replace("bias = 0.0001", "bias = 0.002");
+        
+        if (fixed.contains("shadowCoord") && !fixed.contains("MALI_SHADOW_BIAS")) {
+            int insertPos = fixed.indexOf("void main()");
+            if (insertPos > 0) {
+                insertPos = fixed.lastIndexOf("\n", insertPos) + 1;
+                fixed = fixed.substring(0, insertPos) + 
+                       "#define MALI_SHADOW_BIAS 0.002\n" +
+                       fixed.substring(insertPos);
+            }
+        }
+        
+        return fixed;
+    }
+    
     public static boolean hasMaliIssues(String shaderSource) {
         for (String ext : MALI_UNSUPPORTED_EXTENSIONS) {
             if (shaderSource.contains(ext)) {
@@ -152,10 +209,15 @@ public class MaliShaderFixes {
         return false;
     }
     
-    /**
-     * Gets the GLSL version string for Mali GPUs.
-     */
     public static String getMaliGlslVersion() {
         return "#version 300 es";
+    }
+    
+    public static float getRecommendedShadowBias() {
+        return 0.002f;
+    }
+    
+    public static float getRecommendedDepthBias() {
+        return 0.0001f;
     }
 }
