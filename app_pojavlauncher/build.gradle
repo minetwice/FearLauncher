@@ -309,6 +309,36 @@ afterEvaluate {
     }
 }
 
+    tasks.register('patchAarDependencies') {
+        doFirst {
+            fileTree(dir: 'libs', include: ['*.aar']).each { File aarFile ->
+                try {
+                    def zipFile = new java.util.zip.ZipFile(aarFile)
+                    boolean needsPatch = false
+                    zipFile.entries().each { entry ->
+                        if (entry.name.endsWith("MaliPolyfillInjector.java")) {
+                            needsPatch = true
+                        }
+                    }
+                    zipFile.close()
+                    if (needsPatch) {
+                        logger.lifecycle("Patching AAR: ${aarFile.name}")
+                        exec {
+                            commandLine 'zip', '-d', aarFile.absolutePath, '*MaliPolyfillInjector.java'
+                            ignoreExitValue true
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore non-zip or unreadable AARs
+                }
+            }
+        }
+    }
+
+    tasks.matching { it.name.contains("JavaWithJavac") }.configureEach {
+        dependsOn 'patchAarDependencies'
+    }
+
 dependencies {
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'commons-codec:commons-codec:1.19.0'
