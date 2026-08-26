@@ -125,7 +125,7 @@ static int is_stripped_extension_line(const char* line) {
  * Missing extensions / reserved keywords must not kill the pack —
  * we strip or rewrite so the driver always gets compilable source.
  *
- * - noperspective (13 chars) → /*noperspective*/
+ * - noperspective (13 chars) -> comment-out the keyword
  * - drop unsupported #extension lines
  * - inject precision highp (reduces green NaN / TV flicker on Mali)
  */
@@ -148,7 +148,7 @@ static char* strip_unsupported_glsl(const char* source) {
 
     while (src < src_end) {
         /* ---- noperspective keyword (exact 13 chars + non-identifier boundary) ----
-         * Previous bug used length 12 → keyword never fully removed → Mali hard-fail. */
+         * Previous bug used length 12; keyword was never fully removed; Mali hard-fail. */
         if (src + 13 <= src_end && memcmp(src, "noperspective", 13) == 0) {
             char next_ch = (src + 13 < src_end) ? src[13] : ' ';
             char prev_ch = (src > source) ? *(src - 1) : ' ';
@@ -186,7 +186,7 @@ static char* strip_unsupported_glsl(const char* source) {
             }
         }
 
-        /* ---- #version → inject highp precision after it (Mali green-pixel / flicker fix) ---- */
+        /* ---- #version: inject highp precision after it (Mali green-pixel / flicker fix) ---- */
         if (!after_version && src + 8 <= src_end && memcmp(src, "#version", 8) == 0) {
             const char* line_end = memchr(src, '\n', (size_t)(src_end - src));
             if (line_end == NULL) {
