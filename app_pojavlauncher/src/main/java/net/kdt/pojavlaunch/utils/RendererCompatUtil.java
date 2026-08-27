@@ -1,63 +1,81 @@
 package net.kdt.pojavlaunch.utils;
 
+import static android.os.Build.VERSION.SDK_INT;
+
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.os.Build;
 
-import net.kdt.pojavlaunch.R;
+import net.kdt.pojavlaunch.Architecture;
+import net.kdt.pojavlaunch.Tools;
 
-/**
- * Utility class for renderer compatibility checks and JNI library
- * resolution. Used to determine which renderers should be visible
- * in the launcher UI and how to load their native libraries.
- */
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import git.artdeell.mojo.R;
+
 public class RendererCompatUtil {
+    private static RenderersList sCompatibleRenderers;
 
-    /**
-     * Check if a renderer ID should be hidden from the default renderer list
-     * (only shown in advanced/debug mode).
-     */
-    public static boolean isAdvancedRenderer(String rendererId) {
-        if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive") || rendererId.equals("quasar") || rendererId.equals("quasar_v2")) {
-            return false;
+    public static boolean checkVulkanSupport(PackageManager packageManager) {
+        if(SDK_INT >= Build.VERSION_CODES.N) {
+            return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
+                   packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
         }
         return false;
     }
 
-    /**
-     * Check if a renderer requires Vulkan support.
-     */
-    public static boolean requiresVulkan(String rendererId) {
-        return rendererId.equals("vulkan_zink") ||
-               rendererId.equals("freedreno_kgsl") ||
-               rendererId.equals("fear_engine");
-    }
-
-    /**
-     * Check if a renderer uses a custom GL translation library
-     * (not the system OpenGL ES driver directly).
-     */
-    public static boolean usesCustomGLLibrary(String rendererId) {
-        return rendererId.equals("quasar") ||
-               rendererId.equals("quasar_v2") ||
-               rendererId.equals("opengles3_ltw") ||
-               rendererId.equals("opengles3_mges") ||
-               rendererId.equals("opengles3_mggl") ||
-               rendererId.equals("opengles3_nggl4es") ||
-               rendererId.equals("custom_inject") ||
-               rendererId.equals("fear_engine") ||
-               rendererId.equals("mh_drive");
-    }
-
-    /**
-     * Get the display name for a renderer ID.
-     */
-    public static String getDisplayName(Context context, String rendererId) {
-        String[] names = context.getResources().getStringArray(R.array.renderer);
-        String[] values = context.getResources().getStringArray(R.array.renderer_values);
-        for (int i = 0; i < values.length; i++) {
-            if (values[i].equals(rendererId)) {
-                return names[i];
+    /** Return the renderers that are compatible with this device */
+    public static RenderersList getCompatibleRenderers(Context context) {
+        if(sCompatibleRenderers != null) return sCompatibleRenderers;
+        Resources resources = context.getResources();
+        String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
+        String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
+        boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
+        boolean deviceCompatibleMesa = SDK_INT >= 29;
+        boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
+        boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
+        List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
+        for(int i = 0; i < defaultRenderers.length; i++) {
+            String rendererId = defaultRenderers[i];
+            if(rendererId.equals("fear_engine") || rendererId.equals("mh_drive") || rendererId.equals("quasar") || rendererId.equals("quasar_v2")) {
+                rendererIds.add(rendererId);
+                rendererNames.add(defaultRendererNames[i]);
+                continue;
             }
+            if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
+            if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
+            if(rendererId.contains("freedreno") && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
+            if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+            rendererIds.add(rendererId);
+            rendererNames.add(defaultRendererNames[i]);
         }
-        return rendererId;
+        sCompatibleRenderers = new RenderersList(rendererIds,
+                rendererNames.toArray(new String[0]));
+        return sCompatibleRenderers;
+    }
+
+    /** Checks if the renderer Id is compatible with the current device */
+    public static boolean checkRendererCompatible(Context context, String rendererName) {
+        return getCompatibleRenderers(context).rendererIds.contains(rendererName);
+    }
+
+    /** Releases the cache of compatible renderers. */
+    public static void releaseRenderersCache() {
+        sCompatibleRenderers = null;
+        System.gc();
+    }
+
+    public static class RenderersList {
+        public final List<String> rendererIds;
+        public final String[] rendererDisplayNames;
+
+        public RenderersList(List<String> rendererIds, String[] rendererDisplayNames) {
+            this.rendererIds = rendererIds;
+            this.rendererDisplayNames = rendererDisplayNames;
+        }
     }
 }
