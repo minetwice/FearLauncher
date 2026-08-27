@@ -428,7 +428,7 @@ public class JREUtils {
                 Logger.appendToLog("[QuasarV2] Loading native GL translator...");
                 Logger.appendToLog("[QuasarV2] backend=libquasar_gl.so (custom OpenGL-to-GLES translator)");
                 renderLibrary = "libquasar_gl.so";
-                useGles = false;
+                useGles = true;
                 glesVersion = 3;
                 break;
             case "opengles2":

@@ -1,9 +1,6 @@
 /*
  * QuasarV2 - Custom OpenGL-to-GLES Translator
- * Step 1: Core EGL context + GL function passthrough scaffold
- *
- * This library acts as a fake OpenGL library for LWJGL3.
- * It creates a GLES 3.2 context and translates desktop GL calls to GLES.
+ * Core EGL context + GL function passthrough + EGL passthrough
  */
 
 #include <jni.h>
@@ -18,6 +15,10 @@
 
 #define TAG "QuasarV2"
 #include <log.h>
+
+/* ============================================================
+ * Type definitions for GL function pointers
+ * ============================================================ */
 
 typedef void (*PFN_glShaderSource)(GLuint, GLsizei, const GLchar* const*, const GLint*);
 typedef void (*PFN_glCompileShader)(GLuint);
@@ -64,7 +65,6 @@ typedef void (*PFN_glDeleteFramebuffers)(GLsizei, const GLuint*);
 typedef void (*PFN_glBindFramebuffer)(GLenum, GLuint);
 typedef void (*PFN_glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint);
 typedef void (*PFN_glDrawBuffers)(GLsizei, const GLenum*);
-typedef void (*PFN_glCheckFramebufferStatus)(GLenum);
 typedef const GLubyte* (*PFN_glGetString)(GLenum);
 typedef const GLubyte* (*PFN_glGetStringi)(GLenum, GLuint);
 typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
@@ -118,7 +118,6 @@ static struct {
     PFN_glBindFramebuffer glBindFramebuffer;
     PFN_glFramebufferTexture2D glFramebufferTexture2D;
     PFN_glDrawBuffers glDrawBuffers;
-    PFN_glCheckFramebufferStatus glCheckFramebufferStatus;
     PFN_glGetString glGetString;
     PFN_glGetStringi glGetStringi;
     PFN_glGetIntegerv glGetIntegerv;
@@ -127,13 +126,180 @@ static struct {
 } gles;
 
 PFN_eglGetProcAddress real_eglGetProcAddress = NULL;
-static void* g_egl_handle = NULL;
+
+/* Real EGL function pointers (from system libEGL.so) */
+static void* g_egl_lib = NULL;
+
+typedef EGLDisplay (*PFN_eglGetDisplay)(EGLNativeDisplayType);
+typedef EGLBoolean (*PFN_eglInitialize)(EGLDisplay, EGLint*, EGLint*);
+typedef EGLBoolean (*PFN_eglChooseConfig)(EGLDisplay, const EGLint*, EGLConfig*, EGLint, EGLint*);
+typedef EGLContext (*PFN_eglCreateContext)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
+typedef EGLSurface (*PFN_eglCreateWindowSurface)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint*);
+typedef EGLSurface (*PFN_eglCreatePbufferSurface)(EGLDisplay, EGLConfig, const EGLint*);
+typedef EGLBoolean (*PFN_eglMakeCurrent)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
+typedef EGLBoolean (*PFN_eglSwapBuffers)(EGLDisplay, EGLSurface);
+typedef EGLBoolean (*PFN_eglDestroyContext)(EGLDisplay, EGLContext);
+typedef EGLBoolean (*PFN_eglDestroySurface)(EGLDisplay, EGLSurface);
+typedef EGLBoolean (*PFN_eglTerminate)(EGLDisplay);
+typedef EGLint (*PFN_eglGetError)(void);
+typedef const char* (*PFN_eglQueryString)(EGLDisplay, EGLint);
+typedef EGLBoolean (*PFN_eglGetConfigAttrib)(EGLDisplay, EGLConfig, EGLint, EGLint*);
+typedef EGLBoolean (*PFN_eglGetConfigs)(EGLDisplay, EGLConfig*, EGLint, EGLint*);
+typedef EGLBoolean (*PFN_eglSurfaceAttrib)(EGLDisplay, EGLSurface, EGLint, EGLint);
+typedef EGLBoolean (*PFN_eglBindAPI)(EGLenum);
+typedef EGLBoolean (*PFN_eglReleaseThread)(void);
+typedef EGLBoolean (*PFN_eglWaitClient)(void);
+typedef EGLBoolean (*PFN_eglWaitNative)(EGLint);
+typedef EGLBoolean (*PFN_eglSwapInterval)(EGLDisplay, EGLint);
+typedef EGLBoolean (*PFN_eglQuerySurface)(EGLDisplay, EGLSurface, EGLint, EGLint*);
+typedef EGLBoolean (*PFN_eglQueryContext)(EGLDisplay, EGLContext, EGLint, EGLint*);
+typedef EGLSurface (*PFN_eglGetCurrentSurface)(EGLint);
+typedef EGLContext (*PFN_eglGetCurrentContext)(void);
+typedef EGLDisplay (*PFN_eglGetCurrentDisplay)(void);
+
+static PFN_eglGetDisplay real_eglGetDisplay;
+static PFN_eglInitialize real_eglInitialize;
+static PFN_eglChooseConfig real_eglChooseConfig;
+static PFN_eglCreateContext real_eglCreateContext;
+static PFN_eglCreateWindowSurface real_eglCreateWindowSurface;
+static PFN_eglCreatePbufferSurface real_eglCreatePbufferSurface;
+static PFN_eglMakeCurrent real_eglMakeCurrent;
+static PFN_eglSwapBuffers real_eglSwapBuffers;
+static PFN_eglDestroyContext real_eglDestroyContext;
+static PFN_eglDestroySurface real_eglDestroySurface;
+static PFN_eglTerminate real_eglTerminate;
+static PFN_eglGetError real_eglGetError;
+static PFN_eglQueryString real_eglQueryString;
+static PFN_eglGetConfigAttrib real_eglGetConfigAttrib;
+static PFN_eglGetConfigs real_eglGetConfigs;
+static PFN_eglSurfaceAttrib real_eglSurfaceAttrib;
+static PFN_eglBindAPI real_eglBindAPI;
+static PFN_eglReleaseThread real_eglReleaseThread;
+static PFN_eglWaitClient real_eglWaitClient;
+static PFN_eglWaitNative real_eglWaitNative;
+static PFN_eglSwapInterval real_eglSwapInterval;
+static PFN_eglQuerySurface real_eglQuerySurface;
+static PFN_eglQueryContext real_eglQueryContext;
+static PFN_eglGetCurrentSurface real_eglGetCurrentSurface;
+static PFN_eglGetCurrentContext real_eglGetCurrentContext;
+static PFN_eglGetCurrentDisplay real_eglGetCurrentDisplay;
+
+static void load_real_egl() {
+    if (g_egl_lib) return;
+    g_egl_lib = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
+    if (!g_egl_lib) {
+        LOGE("QuasarV2: Failed to load libEGL.so: %s", dlerror());
+        return;
+    }
+    real_eglGetDisplay = (PFN_eglGetDisplay) dlsym(g_egl_lib, "eglGetDisplay");
+    real_eglInitialize = (PFN_eglInitialize) dlsym(g_egl_lib, "eglInitialize");
+    real_eglChooseConfig = (PFN_eglChooseConfig) dlsym(g_egl_lib, "eglChooseConfig");
+    real_eglCreateContext = (PFN_eglCreateContext) dlsym(g_egl_lib, "eglCreateContext");
+    real_eglCreateWindowSurface = (PFN_eglCreateWindowSurface) dlsym(g_egl_lib, "eglCreateWindowSurface");
+    real_eglCreatePbufferSurface = (PFN_eglCreatePbufferSurface) dlsym(g_egl_lib, "eglCreatePbufferSurface");
+    real_eglMakeCurrent = (PFN_eglMakeCurrent) dlsym(g_egl_lib, "eglMakeCurrent");
+    real_eglSwapBuffers = (PFN_eglSwapBuffers) dlsym(g_egl_lib, "eglSwapBuffers");
+    real_eglDestroyContext = (PFN_eglDestroyContext) dlsym(g_egl_lib, "eglDestroyContext");
+    real_eglDestroySurface = (PFN_eglDestroySurface) dlsym(g_egl_lib, "eglDestroySurface");
+    real_eglTerminate = (PFN_eglTerminate) dlsym(g_egl_lib, "eglTerminate");
+    real_eglGetError = (PFN_eglGetError) dlsym(g_egl_lib, "eglGetError");
+    real_eglQueryString = (PFN_eglQueryString) dlsym(g_egl_lib, "eglQueryString");
+    real_eglGetConfigAttrib = (PFN_eglGetConfigAttrib) dlsym(g_egl_lib, "eglGetConfigAttrib");
+    real_eglGetConfigs = (PFN_eglGetConfigs) dlsym(g_egl_lib, "eglGetConfigs");
+    real_eglSurfaceAttrib = (PFN_eglSurfaceAttrib) dlsym(g_egl_lib, "eglSurfaceAttrib");
+    real_eglBindAPI = (PFN_eglBindAPI) dlsym(g_egl_lib, "eglBindAPI");
+    real_eglReleaseThread = (PFN_eglReleaseThread) dlsym(g_egl_lib, "eglReleaseThread");
+    real_eglWaitClient = (PFN_eglWaitClient) dlsym(g_egl_lib, "eglWaitClient");
+    real_eglWaitNative = (PFN_eglWaitNative) dlsym(g_egl_lib, "eglWaitNative");
+    real_eglSwapInterval = (PFN_eglSwapInterval) dlsym(g_egl_lib, "eglSwapInterval");
+    real_eglQuerySurface = (PFN_eglQuerySurface) dlsym(g_egl_lib, "eglQuerySurface");
+    real_eglQueryContext = (PFN_eglQueryContext) dlsym(g_egl_lib, "eglQueryContext");
+    real_eglGetCurrentSurface = (PFN_eglGetCurrentSurface) dlsym(g_egl_lib, "eglGetCurrentSurface");
+    real_eglGetCurrentContext = (PFN_eglGetCurrentContext) dlsym(g_egl_lib, "eglGetCurrentContext");
+    real_eglGetCurrentDisplay = (PFN_eglGetCurrentDisplay) dlsym(g_egl_lib, "eglGetCurrentDisplay");
+    real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_lib, "eglGetProcAddress");
+    LOGI("QuasarV2: Real EGL functions loaded from libEGL.so");
+}
+
+/* ============================================================
+ * EGL function passthrough (exported as our EGL functions)
+ * ============================================================ */
+
+EGLDisplay eglGetDisplay(EGLNativeDisplayType display_id) {
+    if (!real_eglGetDisplay) load_real_egl();
+    if (real_eglGetDisplay) return real_eglGetDisplay(display_id);
+    return EGL_NO_DISPLAY;
+}
+EGLBoolean eglInitialize(EGLDisplay dpy, EGLint* major, EGLint* minor) {
+    if (!real_eglInitialize) load_real_egl();
+    if (real_eglInitialize) return real_eglInitialize(dpy, major, minor);
+    return EGL_FALSE;
+}
+EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list, EGLConfig* configs, EGLint config_size, EGLint* num_config) {
+    if (!real_eglChooseConfig) load_real_egl();
+    if (real_eglChooseConfig) return real_eglChooseConfig(dpy, attrib_list, configs, config_size, num_config);
+    return EGL_FALSE;
+}
+EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
+    if (!real_eglCreateContext) load_real_egl();
+    if (real_eglCreateContext) return real_eglCreateContext(dpy, config, share_context, attrib_list);
+    return EGL_NO_CONTEXT;
+}
+EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint* attrib_list) {
+    if (!real_eglCreateWindowSurface) load_real_egl();
+    if (real_eglCreateWindowSurface) return real_eglCreateWindowSurface(dpy, config, win, attrib_list);
+    return EGL_NO_SURFACE;
+}
+EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint* attrib_list) {
+    if (!real_eglCreatePbufferSurface) load_real_egl();
+    if (real_eglCreatePbufferSurface) return real_eglCreatePbufferSurface(dpy, config, attrib_list);
+    return EGL_NO_SURFACE;
+}
+EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
+    if (!real_eglMakeCurrent) load_real_egl();
+    EGLBoolean ret = EGL_FALSE;
+    if (real_eglMakeCurrent) ret = real_eglMakeCurrent(dpy, draw, read, ctx);
+    if (ret && !gles.glGetString) init_gles_functions();
+    return ret;
+}
+EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) { if (real_eglSwapBuffers) return real_eglSwapBuffers(dpy, surface); return EGL_FALSE; }
+EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx) { if (real_eglDestroyContext) return real_eglDestroyContext(dpy, ctx); return EGL_FALSE; }
+EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface surface) { if (real_eglDestroySurface) return real_eglDestroySurface(dpy, surface); return EGL_FALSE; }
+EGLBoolean eglTerminate(EGLDisplay dpy) { if (real_eglTerminate) return real_eglTerminate(dpy); return EGL_FALSE; }
+EGLint eglGetError(void) { if (real_eglGetError) return real_eglGetError(); return EGL_NOT_INITIALIZED; }
+const char* eglQueryString(EGLDisplay dpy, EGLint name) { if (real_eglQueryString) return real_eglQueryString(dpy, name); return NULL; }
+EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint* value) { if (real_eglGetConfigAttrib) return real_eglGetConfigAttrib(dpy, config, attribute, value); return EGL_FALSE; }
+EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig* configs, EGLint config_size, EGLint* num_config) { if (real_eglGetConfigs) return real_eglGetConfigs(dpy, configs, config_size, num_config); return EGL_FALSE; }
+EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) { if (real_eglSurfaceAttrib) return real_eglSurfaceAttrib(dpy, surface, attribute, value); return EGL_FALSE; }
+EGLBoolean eglBindAPI(EGLenum api) { if (real_eglBindAPI) return real_eglBindAPI(api); return EGL_FALSE; }
+EGLBoolean eglReleaseThread(void) { if (real_eglReleaseThread) return real_eglReleaseThread(); return EGL_FALSE; }
+EGLBoolean eglWaitClient(void) { if (real_eglWaitClient) return real_eglWaitClient(); return EGL_FALSE; }
+EGLBoolean eglWaitNative(EGLint engine) { if (real_eglWaitNative) return real_eglWaitNative(engine); return EGL_FALSE; }
+EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) { if (real_eglSwapInterval) return real_eglSwapInterval(dpy, interval); return EGL_FALSE; }
+EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint* value) { if (real_eglQuerySurface) return real_eglQuerySurface(dpy, surface, attribute, value); return EGL_FALSE; }
+EGLBoolean eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint* value) { if (real_eglQueryContext) return real_eglQueryContext(dpy, ctx, attribute, value); return EGL_FALSE; }
+EGLSurface eglGetCurrentSurface(EGLint readdraw) { if (real_eglGetCurrentSurface) return real_eglGetCurrentSurface(readdraw); return EGL_NO_SURFACE; }
+EGLContext eglGetCurrentContext(void) { if (real_eglGetCurrentContext) return real_eglGetCurrentContext(); return EGL_NO_CONTEXT; }
+EGLDisplay eglGetCurrentDisplay(void) { if (real_eglGetCurrentDisplay) return real_eglGetCurrentDisplay(); return EGL_NO_DISPLAY; }
+
+/* Our eglGetProcAddress intercepts GL function lookups */
+EGLAPI void* EGLAPIENTRY eglGetProcAddress(const char* procname) {
+    if (!real_eglGetProcAddress) load_real_egl();
+    if (procname == NULL) return NULL;
+    if (strcmp(procname, "glShaderSource") == 0) return (void*) glShaderSource;
+    if (strcmp(procname, "glGetString") == 0) return (void*) glGetString;
+    if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi;
+    if (strcmp(procname, "glGetIntegerv") == 0) return (void*) glGetIntegerv;
+    if (real_eglGetProcAddress) return real_eglGetProcAddress(procname);
+    return NULL;
+}
+
+/* ============================================================
+ * GLES function resolution
+ * ============================================================ */
 
 static void* resolve_gles(const char* name) {
-    if (!real_eglGetProcAddress) {
-        if (!g_egl_handle) g_egl_handle = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
-        if (g_egl_handle) real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_handle, "eglGetProcAddress");
-    }
+    if (!real_eglGetProcAddress) load_real_egl();
     if (real_eglGetProcAddress) {
         void* ptr = real_eglGetProcAddress(name);
         if (ptr) return ptr;
@@ -160,56 +326,30 @@ static void init_gles_functions() {
     RESOLVE(glTexParameteri); RESOLVE(glGenVertexArrays); RESOLVE(glDeleteVertexArrays);
     RESOLVE(glBindVertexArray); RESOLVE(glGenFramebuffers); RESOLVE(glDeleteFramebuffers);
     RESOLVE(glBindFramebuffer); RESOLVE(glFramebufferTexture2D); RESOLVE(glDrawBuffers);
-    RESOLVE(glCheckFramebufferStatus);
     RESOLVE(glGetString); RESOLVE(glGetStringi); RESOLVE(glGetIntegerv); RESOLVE(glFlush); RESOLVE(glFinish);
     LOGI("QuasarV2: GLES functions resolved");
 }
+
+/* ============================================================
+ * JNI functions
+ * ============================================================ */
 
 extern void quasar_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 
 JNIEXPORT jint JNICALL
 Java_net_kdt_pojavlaunch_quasar_QuasarV2_initEGL(JNIEnv* env, jclass cls, jint width, jint height) {
-    LOGI("QuasarV2: Initializing EGL context (%dx%d)", width, height);
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (display == EGL_NO_DISPLAY) { LOGE("QuasarV2: eglGetDisplay failed"); return -1; }
-    EGLint major, minor;
-    if (!eglInitialize(display, &major, &minor)) { LOGE("QuasarV2: eglInitialize failed"); return -1; }
-    LOGI("QuasarV2: EGL %d.%d initialized", major, minor);
-    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-        EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_DEPTH_SIZE, 24, EGL_STENCIL_SIZE, 8, EGL_NONE };
-    EGLConfig config; EGLint num_configs;
-    if (!eglChooseConfig(display, config_attribs, &config, 1, &num_configs) || num_configs == 0) { LOGE("QuasarV2: eglChooseConfig failed"); return -1; }
-    EGLint surface_attribs[] = { EGL_WIDTH, width > 0 ? width : 16, EGL_HEIGHT, height > 0 ? height : 16, EGL_NONE };
-    EGLSurface surface = eglCreatePbufferSurface(display, config, surface_attribs);
-    if (surface == EGL_NO_SURFACE) { LOGE("QuasarV2: eglCreatePbufferSurface failed"); return -1; }
-    EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_CONTEXT_MINOR_VERSION, 2, EGL_NONE };
-    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
-    if (context == EGL_NO_CONTEXT) { context_attribs[3] = 1; context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
-        if (context == EGL_NO_CONTEXT) { context_attribs[3] = 0; context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
-            if (context == EGL_NO_CONTEXT) { LOGE("QuasarV2: Failed to create GLES 3.x context"); return -1; } } }
-    if (!eglMakeCurrent(display, surface, surface, context)) { LOGE("QuasarV2: eglMakeCurrent failed"); return -1; }
-    init_gles_functions();
-    if (gles.glGetString) {
-        LOGI("QuasarV2: GL Version: %s", gles.glGetString(GL_VERSION));
-        LOGI("QuasarV2: GL Renderer: %s", gles.glGetString(GL_RENDERER));
-    }
-    LOGI("QuasarV2: EGL context ready");
+    LOGI("QuasarV2: initEGL stub called - real EGL is handled by passthrough");
     return 0;
 }
 
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_quasar_QuasarV2_shutdownEGL(JNIEnv* env, jclass cls) {
-    LOGI("QuasarV2: Shutting down EGL context");
-    EGLDisplay display = eglGetCurrentDisplay();
-    if (display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        EGLContext context = eglGetCurrentContext();
-        EGLSurface surface = eglGetCurrentSurface(EGL_DRAW);
-        if (context != EGL_NO_CONTEXT) eglDestroyContext(display, context);
-        if (surface != EGL_NO_SURFACE) eglDestroySurface(display, surface);
-        eglTerminate(display);
-    }
+    LOGI("QuasarV2: shutdownEGL called");
 }
+
+/* ============================================================
+ * glGetString - Fake desktop GL version
+ * ============================================================ */
 
 static const char* FAKE_EXTENSIONS_LIST[] = {
     "GL_ARB_direct_state_access", "GL_ARB_buffer_storage", "GL_ARB_shader_image_load_store",
@@ -256,6 +396,10 @@ void glGetIntegerv(GLenum pname, GLint* params) {
     }
     if (params) *params = 0;
 }
+
+/* ============================================================
+ * GL function passthrough
+ * ============================================================ */
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) {
     quasar_glShaderSource(shader, count, string, length);
@@ -307,16 +451,14 @@ void glDrawBuffers(GLsizei n, const GLenum* b) { if (gles.glDrawBuffers) gles.gl
 void glFlush(void) { if (gles.glFlush) gles.glFlush(); }
 void glFinish(void) { if (gles.glFinish) gles.glFinish(); }
 
+/* glXGetProcAddress for LWJGL3 compatibility */
 void* glXGetProcAddress(const char* procname) {
     if (procname == NULL) return NULL;
     if (strcmp(procname, "glShaderSource") == 0) return (void*) glShaderSource;
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (void*) glGetIntegerv;
-    if (!real_eglGetProcAddress) {
-        if (!g_egl_handle) g_egl_handle = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
-        if (g_egl_handle) real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_handle, "eglGetProcAddress");
-    }
+    if (!real_eglGetProcAddress) load_real_egl();
     if (real_eglGetProcAddress) return real_eglGetProcAddress(procname);
     return NULL;
 }
