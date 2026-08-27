@@ -3,7 +3,7 @@
  * Intercepts glShaderSource and transpiles desktop GLSL to GLSL ES 320
  *
  * Step 1: Basic implementation - strips noperspective keyword and
- * extension directive. Full glslang→SPIRV-Cross transpilation in Step 2.
+ * extension directive. Full glslang->SPIRV-Cross transpilation in Step 2.
  */
 
 #include <GLES3/gl32.h>
@@ -15,25 +15,26 @@
 #define TAG "QuasarV2"
 #include <log.h>
 
-/* Real glShaderSource from the GLES driver (resolved from quasar_gl_core.c) */
-typedef void (*glShaderSource_t)(GLuint, GLsizei, const GLchar* const*, const GLint*);
-extern glShaderSource_t real_eglGetProcAddress;
+/* Function pointer type for real glShaderSource from the GLES driver */
+typedef void (*PFN_glShaderSource)(GLuint, GLsizei, const GLchar* const*, const GLint*);
+typedef void* (*PFN_eglGetProcAddress)(const char*);
+
+/* Extern reference to the real eglGetProcAddress from quasar_gl_core.c */
+extern PFN_eglGetProcAddress real_eglGetProcAddress;
 
 /* Resolve the real glShaderSource from the Mali driver */
-static glShaderSource_t get_real_glShaderSource() {
-    static glShaderSource_t real = NULL;
+static PFN_glShaderSource get_real_glShaderSource() {
+    static PFN_glShaderSource real = NULL;
     if (real) return real;
 
-    /* Get it from the real eglGetProcAddress */
     if (real_eglGetProcAddress) {
-        real = (glShaderSource_t) real_eglGetProcAddress("glShaderSource");
+        real = (PFN_glShaderSource) real_eglGetProcAddress("glShaderSource");
         if (real) return real;
     }
 
-    /* Fallback: dlsym from libGLESv3.so */
     void* handle = dlopen("libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL);
     if (handle) {
-        real = (glShaderSource_t) dlsym(handle, "glShaderSource");
+        real = (PFN_glShaderSource) dlsym(handle, "glShaderSource");
         if (real) return real;
     }
 
@@ -43,8 +44,6 @@ static glShaderSource_t get_real_glShaderSource() {
 
 /* ============================================================
  * Shader source preprocessing
- * Step 1: Strip unsupported keywords and extensions
- * Step 2 (TODO): Full glslang→SPIRV-Cross transpilation
  * ============================================================ */
 
 static char* strip_unsupported_glsl(const char* source) {
@@ -61,7 +60,6 @@ static char* strip_unsupported_glsl(const char* source) {
     const char* src_end = source + src_len;
 
     while (src < src_end) {
-        /* Strip "noperspective" keyword */
         if (src + 12 <= src_end && strncmp(src, "noperspective", 12) == 0) {
             char next_ch = (src + 12 < src_end) ? src[12] : ' ';
             if (next_ch == ' ' || next_ch == '\t' || next_ch == '\n' || next_ch == '\r') {
@@ -71,7 +69,6 @@ static char* strip_unsupported_glsl(const char* source) {
             }
         }
 
-        /* Strip "#extension GL_NV_shader_noperspective_interpolation" line */
         if (src + 12 <= src_end && strncmp(src, "#extension", 10) == 0) {
             const char* line_end = strchr(src, '\n');
             if (line_end == NULL) line_end = src_end;
@@ -100,7 +97,7 @@ static char* strip_unsupported_glsl(const char* source) {
 
 void quasar_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) {
     static int hook_count = 0;
-    glShaderSource_t real = get_real_glShaderSource();
+    PFN_glShaderSource real = get_real_glShaderSource();
     if (!real) {
         LOGE("QuasarV2: No real glShaderSource, cannot upload shader!");
         return;
@@ -115,7 +112,7 @@ void quasar_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* st
             int new_length = (int) strlen(stripped);
             real(shader, 1, new_strings, &new_length);
             hook_count++;
-            LOGI("QuasarV2: Shader #%d transpiled (stripped noperspective, %zu→%zu bytes)",
+            LOGI("QuasarV2: Shader #%d transpiled (stripped noperspective, %zu->%zu bytes)",
                  hook_count, strlen(original), strlen(stripped));
         } else {
             real(shader, count, string, length);

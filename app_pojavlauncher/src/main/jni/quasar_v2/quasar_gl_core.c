@@ -19,149 +19,142 @@
 #include <log.h>
 
 /* ============================================================
- * EGL Context Management
+ * Type definitions
  * ============================================================ */
 
-static EGLDisplay g_display = EGL_NO_DISPLAY;
-static EGLContext g_context = EGL_NO_CONTEXT;
-static EGLSurface g_surface = EGL_NO_SURFACE;
-static EGLConfig g_config = NULL;
+typedef void (*PFN_glShaderSource)(GLuint, GLsizei, const GLchar* const*, const GLint*);
+typedef void (*PFN_glCompileShader)(GLuint);
+typedef GLuint (*PFN_glCreateShader)(GLenum);
+typedef void (*PFN_glDeleteShader)(GLuint);
+typedef void (*PFN_glAttachShader)(GLuint, GLuint);
+typedef void (*PFN_glLinkProgram)(GLuint);
+typedef void (*PFN_glUseProgram)(GLuint);
+typedef GLuint (*PFN_glCreateProgram)(void);
+typedef void (*PFN_glDeleteProgram)(GLuint);
+typedef void (*PFN_glGetShaderiv)(GLuint, GLenum, GLint*);
+typedef void (*PFN_glGetShaderInfoLog)(GLuint, GLsizei, GLsizei*, GLchar*);
+typedef void (*PFN_glGetProgramiv)(GLuint, GLenum, GLint*);
+typedef void (*PFN_glGetProgramInfoLog)(GLuint, GLsizei, GLsizei*, GLchar*);
 
-/* Real GLES function pointers (resolved from the Mali driver) */
-typedef void (*glShaderSource_t)(GLuint, GLsizei, const GLchar* const*, const GLint*);
-typedef void (*glCompileShader_t)(GLuint);
-typedef GLuint (*glCreateShader_t)(GLenum);
-typedef void (*glDeleteShader_t)(GLuint);
-typedef void (*glAttachShader_t)(GLuint, GLuint);
-typedef void (*glLinkProgram_t)(GLuint);
-typedef void (*glUseProgram_t)(GLuint);
-typedef GLuint (*glCreateProgram_t)(void);
-typedef void (*glDeleteProgram_t)(GLuint);
-typedef void (*glGetShaderiv_t)(GLuint, GLenum, GLint*);
-typedef void (*glGetShaderInfoLog_t)(GLuint, GLsizei, GLsizei*, GLchar*);
-typedef void (*glGetProgramiv_t)(GLuint, GLenum, GLint*);
-typedef void (*glGetProgramInfoLog_t)(GLuint, GLsizei, GLsizei*, GLchar*);
+typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
+typedef void (*PFN_glBufferData)(GLenum, GLsizeiptr, const void*, GLenum);
+typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
+typedef void (*PFN_glGenBuffers)(GLsizei, GLuint*);
+typedef void (*PFN_glDeleteBuffers)(GLsizei, const GLuint*);
+typedef void (*PFN_glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void*);
+typedef void (*PFN_glEnableVertexAttribArray)(GLuint);
+typedef void (*PFN_glDisableVertexAttribArray)(GLuint);
+typedef void (*PFN_glDrawArrays)(GLenum, GLint, GLsizei);
+typedef void (*PFN_glDrawElements)(GLenum, GLsizei, GLenum, const void*);
+typedef void (*PFN_glViewport)(GLint, GLint, GLsizei, GLsizei);
+typedef void (*PFN_glClearColor)(GLfloat, GLfloat, GLfloat, GLfloat);
+typedef void (*PFN_glClear)(GLbitfield);
+typedef void (*PFN_glEnable)(GLenum);
+typedef void (*PFN_glDisable)(GLenum);
+typedef void (*PFN_glBlendFunc)(GLenum, GLenum);
+typedef void (*PFN_glDepthFunc)(GLenum);
+typedef void (*PFN_glActiveTexture)(GLenum);
+typedef void (*PFN_glBindTexture)(GLenum, GLuint);
+typedef void (*PFN_glGenTextures)(GLsizei, GLuint*);
+typedef void (*PFN_glDeleteTextures)(GLsizei, const GLuint*);
+typedef void (*PFN_glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*);
+typedef void (*PFN_glTexSubImage2D)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void*);
+typedef void (*PFN_glTexParameteri)(GLenum, GLenum, GLint);
+typedef void (*PFN_glGenVertexArrays)(GLsizei, GLuint*);
+typedef void (*PFN_glDeleteVertexArrays)(GLsizei, const GLuint*);
+typedef void (*PFN_glBindVertexArray)(GLuint);
+typedef void (*PFN_glGenFramebuffers)(GLsizei, GLuint*);
+typedef void (*PFN_glDeleteFramebuffers)(GLsizei, const GLuint*);
+typedef void (*PFN_glBindFramebuffer)(GLenum, GLuint);
+typedef void (*PFN_glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint);
+typedef void (*PFN_glDrawBuffers)(GLsizei, const GLenum*);
+typedef void (*PFN_glCheckFramebufferStatus)(GLenum);
 
-typedef void (*glBindBuffer_t)(GLenum, GLuint);
-typedef void (*glBufferData_t)(GLenum, GLsizeiptr, const void*, GLenum);
-typedef void (*glBufferSubData_t)(GLenum, GLintptr, GLsizeiptr, const void*);
-typedef void (*glGenBuffers_t)(GLsizei, GLuint*);
-typedef void (*glDeleteBuffers_t)(GLsizei, const GLuint*);
-typedef void (*glVertexAttribPointer_t)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void*);
-typedef void (*glEnableVertexAttribArray_t)(GLuint);
-typedef void (*glDisableVertexAttribArray_t)(GLuint);
-typedef void (*glDrawArrays_t)(GLenum, GLint, GLsizei);
-typedef void (*glDrawElements_t)(GLenum, GLsizei, GLenum, const void*);
-typedef void (*glViewport_t)(GLint, GLint, GLsizei, GLsizei);
-typedef void (*glClearColor_t)(GLfloat, GLfloat, GLfloat, GLfloat);
-typedef void (*glClear_t)(GLbitfield);
-typedef void (*glEnable_t)(GLenum);
-typedef void (*glDisable_t)(GLenum);
-typedef void (*glBlendFunc_t)(GLenum, GLenum);
-typedef void (*glDepthFunc_t)(GLenum);
-typedef void (*glActiveTexture_t)(GLenum);
-typedef void (*glBindTexture_t)(GLenum, GLuint);
-typedef void (*glGenTextures_t)(GLsizei, GLuint*);
-typedef void (*glDeleteTextures_t)(GLsizei, const GLuint*);
-typedef void (*glTexImage2D_t)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*);
-typedef void (*glTexSubImage2D_t)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void*);
-typedef void (*glTexParameteri_t)(GLenum, GLenum, GLint);
-typedef void (*glGenVertexArrays_t)(GLsizei, GLuint*);
-typedef void (*glDeleteVertexArrays_t)(GLsizei, const GLuint*);
-typedef void (*glBindVertexArray_t)(GLuint);
-typedef void (*glGenFramebuffers_t)(GLsizei, GLuint*);
-typedef void (*glDeleteFramebuffers_t)(GLsizei, const GLuint*);
-typedef void (*glBindFramebuffer_t)(GLenum, GLuint);
-typedef void (*glFramebufferTexture2D_t)(GLenum, GLenum, GLenum, GLuint, GLint);
-typedef void (*glDrawBuffers_t)(GLsizei, const GLenum*);
-typedef void (*glCheckFramebufferStatus_t)(GLenum);
+typedef const GLubyte* (*PFN_glGetString)(GLenum);
+typedef const GLubyte* (*PFN_glGetStringi)(GLenum, GLuint);
+typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
+typedef void (*PFN_glFlush)(void);
+typedef void (*PFN_glFinish)(void);
 
-typedef const GLubyte* (*glGetString_t)(GLenum);
-typedef const GLubyte* (*glGetStringi_t)(GLenum, GLuint);
-typedef void (*glGetIntegerv_t)(GLenum, GLint*);
-typedef void (*glFlush_t)(void);
-typedef void (*glFinish_t)(void);
+typedef void* (*PFN_eglGetProcAddress)(const char*);
 
 /* Function pointer table */
 static struct {
-    glShaderSource_t glShaderSource;
-    glCompileShader_t glCompileShader;
-    glCreateShader_t glCreateShader;
-    glDeleteShader_t glDeleteShader;
-    glAttachShader_t glAttachShader;
-    glLinkProgram_t glLinkProgram;
-    glUseProgram_t glUseProgram;
-    glCreateProgram_t glCreateProgram;
-    glDeleteProgram_t glDeleteProgram;
-    glGetShaderiv_t glGetShaderiv;
-    glGetShaderInfoLog_t glGetShaderInfoLog;
-    glGetProgramiv_t glGetProgramiv;
-    glGetProgramInfoLog_t glGetProgramInfoLog;
+    PFN_glShaderSource glShaderSource;
+    PFN_glCompileShader glCompileShader;
+    PFN_glCreateShader glCreateShader;
+    PFN_glDeleteShader glDeleteShader;
+    PFN_glAttachShader glAttachShader;
+    PFN_glLinkProgram glLinkProgram;
+    PFN_glUseProgram glUseProgram;
+    PFN_glCreateProgram glCreateProgram;
+    PFN_glDeleteProgram glDeleteProgram;
+    PFN_glGetShaderiv glGetShaderiv;
+    PFN_glGetShaderInfoLog glGetShaderInfoLog;
+    PFN_glGetProgramiv glGetProgramiv;
+    PFN_glGetProgramInfoLog glGetProgramInfoLog;
 
-    glBindBuffer_t glBindBuffer;
-    glBufferData_t glBufferData;
-    glBufferSubData_t glBufferSubData;
-    glGenBuffers_t glGenBuffers;
-    glDeleteBuffers_t glDeleteBuffers;
-    glVertexAttribPointer_t glVertexAttribPointer;
-    glEnableVertexAttribArray_t glEnableVertexAttribArray;
-    glDisableVertexAttribArray_t glDisableVertexAttribArray;
-    glDrawArrays_t glDrawArrays;
-    glDrawElements_t glDrawElements;
-    glViewport_t glViewport;
-    glClearColor_t glClearColor;
-    glClear_t glClear;
-    glEnable_t glEnable;
-    glDisable_t glDisable;
-    glBlendFunc_t glBlendFunc;
-    glDepthFunc_t glDepthFunc;
-    glActiveTexture_t glActiveTexture;
-    glBindTexture_t glBindTexture;
-    glGenTextures_t glGenTextures;
-    glDeleteTextures_t glDeleteTextures;
-    glTexImage2D_t glTexImage2D;
-    glTexSubImage2D_t glTexSubImage2D;
-    glTexParameteri_t glTexParameteri;
-    glGenVertexArrays_t glGenVertexArrays;
-    glDeleteVertexArrays_t glDeleteVertexArrays;
-    glBindVertexArray_t glBindVertexArray;
-    glGenFramebuffers_t glGenFramebuffers;
-    glDeleteFramebuffers_t glDeleteFramebuffers;
-    glBindFramebuffer_t glBindFramebuffer;
-    glFramebufferTexture2D_t glFramebufferTexture2D;
-    glDrawBuffers_t glDrawBuffers;
-    glCheckFramebufferStatus_t glCheckFramebufferStatus;
+    PFN_glBindBuffer glBindBuffer;
+    PFN_glBufferData glBufferData;
+    PFN_glBufferSubData glBufferSubData;
+    PFN_glGenBuffers glGenBuffers;
+    PFN_glDeleteBuffers glDeleteBuffers;
+    PFN_glVertexAttribPointer glVertexAttribPointer;
+    PFN_glEnableVertexAttribArray glEnableVertexAttribArray;
+    PFN_glDisableVertexAttribArray glDisableVertexAttribArray;
+    PFN_glDrawArrays glDrawArrays;
+    PFN_glDrawElements glDrawElements;
+    PFN_glViewport glViewport;
+    PFN_glClearColor glClearColor;
+    PFN_glClear glClear;
+    PFN_glEnable glEnable;
+    PFN_glDisable glDisable;
+    PFN_glBlendFunc glBlendFunc;
+    PFN_glDepthFunc glDepthFunc;
+    PFN_glActiveTexture glActiveTexture;
+    PFN_glBindTexture glBindTexture;
+    PFN_glGenTextures glGenTextures;
+    PFN_glDeleteTextures glDeleteTextures;
+    PFN_glTexImage2D glTexImage2D;
+    PFN_glTexSubImage2D glTexSubImage2D;
+    PFN_glTexParameteri glTexParameteri;
+    PFN_glGenVertexArrays glGenVertexArrays;
+    PFN_glDeleteVertexArrays glDeleteVertexArrays;
+    PFN_glBindVertexArray glBindVertexArray;
+    PFN_glGenFramebuffers glGenFramebuffers;
+    PFN_glDeleteFramebuffers glDeleteFramebuffers;
+    PFN_glBindFramebuffer glBindFramebuffer;
+    PFN_glFramebufferTexture2D glFramebufferTexture2D;
+    PFN_glDrawBuffers glDrawBuffers;
+    PFN_glCheckFramebufferStatus glCheckFramebufferStatus;
 
-    glGetString_t glGetString;
-    glGetStringi_t glGetStringi;
-    glGetIntegerv_t glGetIntegerv;
-    glFlush_t glFlush;
-    glFinish_t glFinish;
+    PFN_glGetString glGetString;
+    PFN_glGetStringi glGetStringi;
+    PFN_glGetIntegerv glGetIntegerv;
+    PFN_glFlush glFlush;
+    PFN_glFinish glFinish;
 } gles;
 
+static PFN_eglGetProcAddress real_eglGetProcAddress = NULL;
 static void* g_egl_handle = NULL;
 
 /* Resolve a GLES function pointer */
 static void* resolve_gles(const char* name) {
-    /* Try eglGetProcAddress first */
-    typedef void* (*eglGetProcAddress_t)(const char*);
-    static eglGetProcAddress_t eglGetProcAddress = NULL;
-    if (!eglGetProcAddress) {
+    if (!real_eglGetProcAddress) {
         if (!g_egl_handle) g_egl_handle = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
-        if (g_egl_handle) eglGetProcAddress = (eglGetProcAddress_t) dlsym(g_egl_handle, "eglGetProcAddress");
+        if (g_egl_handle) real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_handle, "eglGetProcAddress");
     }
-    if (eglGetProcAddress) {
-        void* ptr = eglGetProcAddress(name);
+    if (real_eglGetProcAddress) {
+        void* ptr = real_eglGetProcAddress(name);
         if (ptr) return ptr;
     }
-    /* Fallback: try dlsym from libGLESv3.so */
     static void* gles_handle = NULL;
     if (!gles_handle) gles_handle = dlopen("libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL);
     if (gles_handle) return dlsym(gles_handle, name);
     return NULL;
 }
 
-#define RESOLVE(name) gles.name = (name##_t) resolve_gles(#name)
+#define RESOLVE(name) gles.name = (PFN_##name) resolve_gles(#name)
 
 static void init_gles_functions() {
     RESOLVE(glShaderSource);
@@ -218,33 +211,32 @@ static void init_gles_functions() {
     RESOLVE(glFlush);
     RESOLVE(glFinish);
 
-    LOGI("QuasarV2: GLES functions resolved (%d functions)", (int)(sizeof(gles)/sizeof(void*)));
+    LOGI("QuasarV2: GLES functions resolved");
 }
 
 /* ============================================================
  * EGL Context Creation
  * ============================================================ */
 
-/* Forward declaration - implemented in quasar_shader_hook.c */
 extern void quasar_glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 
-int quasar_init_egl(int width, int height) {
+JNIEXPORT jint JNICALL
+Java_net_kdt_pojavlaunch_quasar_QuasarV2_initEGL(JNIEnv* env, jclass cls, jint width, jint height) {
     LOGI("QuasarV2: Initializing EGL context (%dx%d)", width, height);
 
-    g_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (g_display == EGL_NO_DISPLAY) {
+    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display == EGL_NO_DISPLAY) {
         LOGE("QuasarV2: eglGetDisplay failed");
         return -1;
     }
 
     EGLint major, minor;
-    if (!eglInitialize(g_display, &major, &minor)) {
+    if (!eglInitialize(display, &major, &minor)) {
         LOGE("QuasarV2: eglInitialize failed");
         return -1;
     }
     LOGI("QuasarV2: EGL %d.%d initialized", major, minor);
 
-    /* Request GLES 3.2 context with float color attachments */
     EGLint config_attribs[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
@@ -257,101 +249,73 @@ int quasar_init_egl(int width, int height) {
         EGL_NONE
     };
 
+    EGLConfig config;
     EGLint num_configs;
-    if (!eglChooseConfig(g_display, config_attribs, &g_config, 1, &num_configs) || num_configs == 0) {
+    if (!eglChooseConfig(display, config_attribs, &config, 1, &num_configs) || num_configs == 0) {
         LOGE("QuasarV2: eglChooseConfig failed");
         return -1;
     }
 
-    /* Create pbuffer surface for offscreen rendering */
     EGLint surface_attribs[] = {
         EGL_WIDTH, width > 0 ? width : 16,
         EGL_HEIGHT, height > 0 ? height : 16,
         EGL_NONE
     };
-    g_surface = eglCreatePbufferSurface(g_display, g_config, surface_attribs);
-    if (g_surface == EGL_NO_SURFACE) {
+    EGLSurface surface = eglCreatePbufferSurface(display, config, surface_attribs);
+    if (surface == EGL_NO_SURFACE) {
         LOGE("QuasarV2: eglCreatePbufferSurface failed");
         return -1;
     }
 
-    /* Create GLES 3.2 context */
     EGLint context_attribs[] = {
         EGL_CONTEXT_CLIENT_VERSION, 3,
         EGL_CONTEXT_MINOR_VERSION, 2,
         EGL_NONE
     };
-    g_context = eglCreateContext(g_display, g_config, EGL_NO_CONTEXT, context_attribs);
-    if (g_context == EGL_NO_CONTEXT) {
-        /* Try GLES 3.1, then 3.0 */
+    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
+    if (context == EGL_NO_CONTEXT) {
         context_attribs[3] = 1;
-        g_context = eglCreateContext(g_display, g_config, EGL_NO_CONTEXT, context_attribs);
-        if (g_context == EGL_NO_CONTEXT) {
+        context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
+        if (context == EGL_NO_CONTEXT) {
             context_attribs[3] = 0;
-            context_attribs[2] = EGL_CONTEXT_CLIENT_VERSION;
-            context_attribs[3] = 3;
-            context_attribs[4] = EGL_NONE;
-            g_context = eglCreateContext(g_display, g_config, EGL_NO_CONTEXT, context_attribs);
-            if (g_context == EGL_NO_CONTEXT) {
+            context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
+            if (context == EGL_NO_CONTEXT) {
                 LOGE("QuasarV2: Failed to create GLES 3.x context");
                 return -1;
             }
         }
     }
 
-    if (!eglMakeCurrent(g_display, g_surface, g_surface, g_context)) {
+    if (!eglMakeCurrent(display, surface, surface, context)) {
         LOGE("QuasarV2: eglMakeCurrent failed");
         return -1;
     }
 
-    /* Initialize GLES function table */
     init_gles_functions();
 
-    /* Log GL version */
     if (gles.glGetString) {
         const GLubyte* version = gles.glGetString(GL_VERSION);
         const GLubyte* renderer = gles.glGetString(GL_RENDERER);
-        const GLubyte* vendor = gles.glGetString(GL_VENDOR);
         LOGI("QuasarV2: GL Version: %s", version ? (const char*)version : "unknown");
         LOGI("QuasarV2: GL Renderer: %s", renderer ? (const char*)renderer : "unknown");
-        LOGI("QuasarV2: GL Vendor: %s", vendor ? (const char*)vendor : "unknown");
     }
 
     LOGI("QuasarV2: EGL context ready");
     return 0;
 }
 
-void quasar_shutdown_egl() {
+JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_quasar_QuasarV2_shutdownEGL(JNIEnv* env, jclass cls) {
     LOGI("QuasarV2: Shutting down EGL context");
-    if (g_display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(g_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (g_context != EGL_NO_CONTEXT) eglDestroyContext(g_display, g_context);
-        if (g_surface != EGL_NO_SURFACE) eglDestroySurface(g_display, g_surface);
-        eglTerminate(g_display);
+    EGLDisplay display = eglGetCurrentDisplay();
+    if (display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        EGLContext context = eglGetCurrentContext();
+        EGLSurface surface = eglGetCurrentSurface(EGL_DRAW);
+        if (context != EGL_NO_CONTEXT) eglDestroyContext(display, context);
+        if (surface != EGL_NO_SURFACE) eglDestroySurface(display, surface);
+        eglTerminate(display);
     }
-    g_display = EGL_NO_DISPLAY;
-    g_context = EGL_NO_CONTEXT;
-    g_surface = EGL_NO_SURFACE;
-}
-
-/* ============================================================
- * EGL Functions (exported for LWJGL3)
- * ============================================================ */
-
-EGLDisplay quasar_eglGetDisplay(EGLNativeDisplayType display) {
-    return eglGetDisplay(display);
-}
-
-EGLBoolean quasar_eglInitialize(EGLDisplay display, EGLint* major, EGLint* minor) {
-    return eglInitialize(display, major, minor);
-}
-
-EGLBoolean quasar_eglTerminate(EGLDisplay display) {
-    return eglTerminate(display);
-}
-
-EGLBoolean quasar_eglMakeCurrent(EGLDisplay display, EGLSurface draw, EGLSurface read, EGLContext context) {
-    return eglMakeCurrent(display, draw, read, context);
 }
 
 /* ============================================================
@@ -361,20 +325,7 @@ EGLBoolean quasar_eglMakeCurrent(EGLDisplay display, EGLSurface draw, EGLSurface
 static const char* FAKE_GL_VERSION = "4.6.0 QuasarV2 1.0";
 static const char* FAKE_GL_RENDERER = "QuasarV2 Translator (Mali-G615)";
 static const char* FAKE_GL_VENDOR = "QuasarV2";
-static const char* FAKE_EXTENSIONS =
-    "GL_ARB_direct_state_access GL_ARB_buffer_storage "
-    "GL_ARB_shader_image_load_store GL_NV_conditional_render "
-    "GL_EXT_gpu_shader4 GL_EXT_texture_buffer "
-    "GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 "
-    "GL_ARB_shader_texture_lod GL_ARB_shader_objects "
-    "GL_ARB_vertex_shader GL_ARB_fragment_shader "
-    "GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 "
-    "GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays "
-    "GL_ARB_draw_instanced GL_ARB_framebuffer_object "
-    "GL_ARB_texture_float GL_ARB_color_buffer_float "
-    "GL_ARB_half_float_vertex GL_ARB_half_float_pixel "
-    "GL_ARB_depth_buffer_float GL_ARB_draw_buffers "
-    "GL_ARB_shader_storage_buffer_object GL_ARB_uniform_buffer_object";
+static const char* FAKE_GLSL_VERSION = "4.60 QuasarV2";
 
 static const char* FAKE_EXTENSIONS_LIST[] = {
     "GL_ARB_direct_state_access",
@@ -411,8 +362,8 @@ const GLubyte* glGetString(GLenum name) {
         case GL_VERSION:  return (const GLubyte*)FAKE_GL_VERSION;
         case GL_RENDERER: return (const GLubyte*)FAKE_GL_RENDERER;
         case GL_VENDOR:   return (const GLubyte*)FAKE_GL_VENDOR;
-        case GL_EXTENSIONS: return (const GLubyte*)FAKE_EXTENSIONS;
-        case GL_SHADING_LANGUAGE_VERSION: return (const GLubyte*)"4.60 QuasarV2";
+        case GL_EXTENSIONS: return (const GLubyte*)""; /* Use glGetStringi instead */
+        case GL_SHADING_LANGUAGE_VERSION: return (const GLubyte*)FAKE_GLSL_VERSION;
     }
     if (gles.glGetString) return gles.glGetString(name);
     return (const GLubyte*)"";
@@ -429,9 +380,8 @@ const GLubyte* glGetStringi(GLenum name, GLuint index) {
 void glGetIntegerv(GLenum pname, GLint* params) {
     if (gles.glGetIntegerv) {
         gles.glGetIntegerv(pname, params);
-        /* Override some values for desktop GL compatibility */
         switch(pname) {
-            case 0x8B4D: /* GL_MAX_VARYING_FLOATS - Iris checks this */
+            case 0x8B4D: /* GL_MAX_VARYING_FLOATS */
                 *params = 60;
                 break;
             case 0x8824: /* GL_MAX_DRAW_BUFFERS */
@@ -453,9 +403,7 @@ void glGetIntegerv(GLenum pname, GLint* params) {
  * GL Functions - Pass through to GLES driver
  * ============================================================ */
 
-/* Shader functions use our hook for glShaderSource */
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) {
-    /* Route through our shader hook for transpilation */
     quasar_glShaderSource(shader, count, string, length);
 }
 
@@ -472,23 +420,19 @@ void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar*
 void glGetProgramiv(GLuint program, GLenum pname, GLint* params) { if (gles.glGetProgramiv) gles.glGetProgramiv(program, pname, params); }
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog) { if (gles.glGetProgramInfoLog) gles.glGetProgramInfoLog(program, bufSize, length, infoLog); }
 
-/* Buffer functions */
 void glBindBuffer(GLenum target, GLuint buffer) { if (gles.glBindBuffer) gles.glBindBuffer(target, buffer); }
 void glBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage) { if (gles.glBufferData) gles.glBufferData(target, size, data, usage); }
 void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) { if (gles.glBufferSubData) gles.glBufferSubData(target, offset, size, data); }
 void glGenBuffers(GLsizei n, GLuint* buffers) { if (gles.glGenBuffers) gles.glGenBuffers(n, buffers); }
 void glDeleteBuffers(GLsizei n, const GLuint* buffers) { if (gles.glDeleteBuffers) gles.glDeleteBuffers(n, buffers); }
 
-/* Vertex functions */
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) { if (gles.glVertexAttribPointer) gles.glVertexAttribPointer(index, size, type, normalized, stride, pointer); }
 void glEnableVertexAttribArray(GLuint index) { if (gles.glEnableVertexAttribArray) gles.glEnableVertexAttribArray(index); }
 void glDisableVertexAttribArray(GLuint index) { if (gles.glDisableVertexAttribArray) gles.glDisableVertexAttribArray(index); }
 
-/* Draw functions */
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) { if (gles.glDrawArrays) gles.glDrawArrays(mode, first, count); }
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) { if (gles.glDrawElements) gles.glDrawElements(mode, count, type, indices); }
 
-/* State functions */
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) { if (gles.glViewport) gles.glViewport(x, y, width, height); }
 void glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a) { if (gles.glClearColor) gles.glClearColor(r, g, b, a); }
 void glClear(GLbitfield mask) { if (gles.glClear) gles.glClear(mask); }
@@ -497,7 +441,6 @@ void glDisable(GLenum cap) { if (gles.glDisable) gles.glDisable(cap); }
 void glBlendFunc(GLenum sfactor, GLenum dfactor) { if (gles.glBlendFunc) gles.glBlendFunc(sfactor, dfactor); }
 void glDepthFunc(GLenum func) { if (gles.glDepthFunc) gles.glDepthFunc(func); }
 
-/* Texture functions */
 void glActiveTexture(GLenum texture) { if (gles.glActiveTexture) gles.glActiveTexture(texture); }
 void glBindTexture(GLenum target, GLuint texture) { if (gles.glBindTexture) gles.glBindTexture(target, texture); }
 void glGenTextures(GLsizei n, GLuint* textures) { if (gles.glGenTextures) gles.glGenTextures(n, textures); }
@@ -506,51 +449,41 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) { if (gles.glTexSubImage2D) gles.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels); }
 void glTexParameteri(GLenum target, GLenum pname, GLint param) { if (gles.glTexParameteri) gles.glTexParameteri(target, pname, param); }
 
-/* VAO functions */
 void glGenVertexArrays(GLsizei n, GLuint* arrays) { if (gles.glGenVertexArrays) gles.glGenVertexArrays(n, arrays); }
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) { if (gles.glDeleteVertexArrays) gles.glDeleteVertexArrays(n, arrays); }
 void glBindVertexArray(GLuint array) { if (gles.glBindVertexArray) gles.glBindVertexArray(array); }
 
-/* Framebuffer functions */
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers) { if (gles.glGenFramebuffers) gles.glGenFramebuffers(n, framebuffers); }
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers) { if (gles.glDeleteFramebuffers) gles.glDeleteFramebuffers(n, framebuffers); }
 void glBindFramebuffer(GLenum target, GLuint framebuffer) { if (gles.glBindFramebuffer) gles.glBindFramebuffer(target, framebuffer); }
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) { if (gles.glFramebufferTexture2D) gles.glFramebufferTexture2D(target, attachment, textarget, texture, level); }
 void glDrawBuffers(GLsizei n, const GLenum* bufs) { if (gles.glDrawBuffers) gles.glDrawBuffers(n, bufs); }
 
-/* Sync */
 void glFlush(void) { if (gles.glFlush) gles.glFlush(); }
 void glFinish(void) { if (gles.glFinish) gles.glFinish(); }
 
 /* ============================================================
- * eglGetProcAddress - Function resolver for LWJGL3
+ * glXGetProcAddress - Function resolver for LWJGL3
+ * LWJGL3 uses glXGetProcAddress to resolve GL functions on Linux.
+ * We export this to provide our hooked functions.
  * ============================================================ */
 
-eglGetProcAddress_t real_eglGetProcAddress = NULL;
-
-void* eglGetProcAddress(const char* procname) {
+void* glXGetProcAddress(const char* procname) {
     if (procname == NULL) return NULL;
 
-    /* Return our own implementations for intercepted functions */
     if (strcmp(procname, "glShaderSource") == 0) return (void*) glShaderSource;
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (void*) glGetIntegerv;
 
-    /* For everything else, delegate to real GLES driver */
     if (!real_eglGetProcAddress) {
         if (!g_egl_handle) g_egl_handle = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
-        if (g_egl_handle) real_eglGetProcAddress = (eglGetProcAddress_t) dlsym(g_egl_handle, "eglGetProcAddress");
+        if (g_egl_handle) real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_handle, "eglGetProcAddress");
     }
     if (real_eglGetProcAddress) return real_eglGetProcAddress(procname);
     return NULL;
 }
 
-/* Also export glXGetProcAddress for LWJGL3's Linux symbol resolver */
-void* glXGetProcAddress(const char* procname) {
-    return eglGetProcAddress(procname);
-}
-
 void* glXGetProcAddressARB(const char* procname) {
-    return eglGetProcAddress(procname);
+    return glXGetProcAddress(procname);
 }
