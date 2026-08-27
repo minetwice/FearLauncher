@@ -105,10 +105,13 @@ public class JREUtils {
                 envMap.put("LIBGL_ES", "3");
                 break;
             case "quasar": {
-                Logger.appendToLog("[Quasar] Env profile: QuasarCore (FearCore + ShaderShield)");
+                // FearCore=gl4es: must advertise GL ≥3.0 or MC 1.17+/Sodium GLFW fails with 65543.
+                // LIBGL_GL=46 was ignored → defaulted to 2.1. Use 3.3 (Sodium minimum).
+                Logger.appendToLog("[Quasar] Env profile: QuasarCore (FearCore/gl4es GLES3 + GL 3.3)");
                 envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_GL", "46");
-                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_GL", "3.3");
+                envMap.put("LIBGL_VERSION", "3.3");
+                envMap.put("LIBGL_GLSL", "330");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_NORMALIZE", "1");
@@ -131,16 +134,9 @@ public class JREUtils {
                 envMap.put("gl_draw_buffers_override", "true");
                 envMap.put("vblank_mode", "0");
                 envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "330");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "3.3");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_EXTENSION_OVERRIDE",
-                        "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array "
-                      + "GL_OES_EGL_image_external_essl3 GL_ARB_shader_objects GL_ARB_vertex_shader "
-                      + "GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 "
-                      + "GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced "
-                      + "GL_ARB_shader_texture_lod GL_EXT_shader_texture_lod "
-                      + "GL_ARB_framebuffer_object GL_ARB_draw_buffers");
                 envMap.remove("GALLIUM_DRIVER");
                 envMap.remove("MESA_LOADER_DRIVER_OVERRIDE");
                 break;
@@ -204,9 +200,13 @@ public class JREUtils {
         if ("quasar".equals(renderer)) {
             try {
                 Os.setenv("LIBGL_ES", "3", true);
-                Logger.appendToLog("Added custom env: LIBGL_ES=3 (Quasar force)");
+                Os.setenv("LIBGL_GL", "3.3", true);
+                Os.setenv("LIBGL_VERSION", "3.3", true);
+                Os.setenv("LIBGL_GLSL", "330", true);
+                Os.setenv("EGL_PLATFORM", "android", true);
+                Logger.appendToLog("Added custom env: LIBGL_ES=3 LIBGL_GL=3.3 LIBGL_VERSION=3.3 (Quasar force GL3)");
             } catch (Exception e) {
-                Log.e("JREUtils", "Failed to force LIBGL_ES=3: " + e);
+                Log.e("JREUtils", "Failed to force Quasar GL3 env: " + e);
             }
         }
     }
@@ -276,6 +276,14 @@ public class JREUtils {
                 renderLibrary = "libGLFear.so"; useGles = true; glesVersion = 3; break;
             case "quasar": {
                 Logger.appendToLog("[Quasar] backend=QUASAR_CORE (FearCore desktop→GLES translator)");
+                try {
+                    Os.setenv("LIBGL_ES", "3", true);
+                    Os.setenv("LIBGL_GL", "3.3", true);
+                    Os.setenv("LIBGL_VERSION", "3.3", true);
+                    Os.setenv("LIBGL_GLSL", "330", true);
+                } catch (Exception e) {
+                    Log.w("JREUtils", "Quasar pre-load env: " + e);
+                }
                 try {
                     System.loadLibrary("fear_render");
                     Logger.appendToLog("[Quasar] fear_render interceptor loaded");
