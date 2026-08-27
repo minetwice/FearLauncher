@@ -119,6 +119,7 @@ static struct {
     PFN_glGetIntegerv glGetIntegerv;
     PFN_glFlush glFlush;
     PFN_glFinish glFinish;
+    int initialized;
 } gles;
 
 PFN_eglGetProcAddress real_eglGetProcAddress = NULL;
@@ -178,6 +179,8 @@ static PFN_eglGetCurrentSurface real_eglGetCurrentSurface;
 static PFN_eglGetCurrentContext real_eglGetCurrentContext;
 static PFN_eglGetCurrentDisplay real_eglGetCurrentDisplay;
 
+static void init_gles_functions(void);
+
 static void load_real_egl() {
     if (g_egl_lib) return;
     g_egl_lib = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
@@ -210,6 +213,13 @@ static void load_real_egl() {
     real_eglGetCurrentDisplay = (PFN_eglGetCurrentDisplay) dlsym(g_egl_lib, "eglGetCurrentDisplay");
     real_eglGetProcAddress = (PFN_eglGetProcAddress) dlsym(g_egl_lib, "eglGetProcAddress");
     LOGI("QuasarV2: Real EGL functions loaded from libEGL.so");
+    /* Try to init GLES right away - in case glGetIntegerv is called before eglMakeCurrent */
+    init_gles_functions();
+}
+
+static void ensure_init() {
+    if (!g_egl_lib) load_real_egl();
+    if (!gles.initialized) init_gles_functions();
 }
 
 EGLDisplay eglGetDisplay(EGLNativeDisplayType display_id) { if (!real_eglGetDisplay) load_real_egl(); if (real_eglGetDisplay) return real_eglGetDisplay(display_id); return EGL_NO_DISPLAY; }
@@ -219,13 +229,11 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
 EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint* attrib_list) { if (!real_eglCreateWindowSurface) load_real_egl(); if (real_eglCreateWindowSurface) return real_eglCreateWindowSurface(dpy, config, win, attrib_list); return EGL_NO_SURFACE; }
 EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint* attrib_list) { if (!real_eglCreatePbufferSurface) load_real_egl(); if (real_eglCreatePbufferSurface) return real_eglCreatePbufferSurface(dpy, config, attrib_list); return EGL_NO_SURFACE; }
 
-static void init_gles_functions(void);
-
 EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     if (!real_eglMakeCurrent) load_real_egl();
     EGLBoolean ret = EGL_FALSE;
     if (real_eglMakeCurrent) ret = real_eglMakeCurrent(dpy, draw, read, ctx);
-    if (ret && !gles.glGetString) init_gles_functions();
+    if (ret) init_gles_functions();
     return ret;
 }
 EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) { if (real_eglSwapBuffers) return real_eglSwapBuffers(dpy, surface); return EGL_FALSE; }
@@ -270,6 +278,7 @@ static void* resolve_gles(const char* name) {
 #define RESOLVE(name) gles.name = (PFN_##name) resolve_gles(#name)
 
 static void init_gles_functions() {
+    if (gles.initialized) return;
     RESOLVE(glShaderSource); RESOLVE(glCompileShader); RESOLVE(glCreateShader); RESOLVE(glDeleteShader);
     RESOLVE(glAttachShader); RESOLVE(glLinkProgram); RESOLVE(glUseProgram); RESOLVE(glCreateProgram);
     RESOLVE(glDeleteProgram); RESOLVE(glGetShaderiv); RESOLVE(glGetShaderInfoLog); RESOLVE(glGetProgramiv);
@@ -284,6 +293,7 @@ static void init_gles_functions() {
     RESOLVE(glBindVertexArray); RESOLVE(glGenFramebuffers); RESOLVE(glDeleteFramebuffers);
     RESOLVE(glBindFramebuffer); RESOLVE(glFramebufferTexture2D); RESOLVE(glDrawBuffers);
     RESOLVE(glGetString); RESOLVE(glGetStringi); RESOLVE(glGetIntegerv); RESOLVE(glFlush); RESOLVE(glFinish);
+    gles.initialized = 1;
     LOGI("QuasarV2: GLES functions resolved");
 }
 
@@ -310,6 +320,12 @@ static const char* FAKE_EXTENSIONS_LIST[] = {
 };
 static const int FAKE_EXTENSIONS_COUNT = sizeof(FAKE_EXTENSIONS_LIST)/sizeof(FAKE_EXTENSIONS_LIST[0]);
 
+/* Forward declarations for our own functions used by eglGetProcAddress */
+const GLubyte* glGetString(GLenum name);
+const GLubyte* glGetStringi(GLenum name, GLuint index);
+void glGetIntegerv(GLenum pname, GLint* params);
+void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
+
 const GLubyte* glGetString(GLenum name) {
     switch(name) {
         case GL_VERSION:  return (const GLubyte*)"4.6.0 QuasarV2 1.0";
@@ -318,39 +334,61 @@ const GLubyte* glGetString(GLenum name) {
         case GL_EXTENSIONS: return (const GLubyte*)"";
         case GL_SHADING_LANGUAGE_VERSION: return (const GLubyte*)"4.60 QuasarV2";
     }
+    ensure_init();
     if (gles.glGetString) return gles.glGetString(name);
     return (const GLubyte*)"";
 }
+
 const GLubyte* glGetStringi(GLenum name, GLuint index) {
     if (name == GL_EXTENSIONS && index < (GLuint)FAKE_EXTENSIONS_COUNT) return (const GLubyte*)FAKE_EXTENSIONS_LIST[index];
+    ensure_init();
     if (gles.glGetStringi) return gles.glGetStringi(name, index);
     return (const GLubyte*)"";
 }
+
 void glGetIntegerv(GLenum pname, GLint* params) {
-    if (gles.glGetIntegerv) { gles.glGetIntegerv(pname, params);
+    if (!params) return;
+    ensure_init();
+    if (gles.glGetIntegerv) {
+        gles.glGetIntegerv(pname, params);
         switch(pname) {
             case 0x8B4D: *params = 60; break;
             case 0x8824: if (*params < 8) *params = 8; break;
             case 0x8B49: if (*params < 4096) *params = 4096; break;
             case 0x8B4A: if (*params < 4096) *params = 4096; break;
-        } return;
+        }
+        return;
     }
-    if (params) *params = 0;
+    /* Fallback: return reasonable defaults so LWJGL doesn't crash */
+    *params = 0;
+    switch(pname) {
+        case 0x8B4D: *params = 60; break;  /* GL_MAX_VARYING_FLOATS */
+        case 0x8824: *params = 8; break;   /* GL_MAX_DRAW_BUFFERS */
+        case 0x8B49: *params = 4096; break; /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
+        case 0x8B4A: *params = 4096; break; /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
+        case 0x851C: *params = 16; break;  /* GL_MAX_TEXTURE_COORDS */
+        case 0x807A: *params = 32; break;   /* GL_MAX_TEXTURE_IMAGE_UNITS */
+        case 0x8B4B: *params = 32; break;   /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
+        case 0x8842: *params = 32; break;   /* GL_MAX_TEXTURE_UNITS */
+        case 0x84E8: *params = 16; break;  /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+        case 0x8DFB: *params = 16; break;   /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
+        case 0x8DFC: *params = 16; break;   /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+    }
 }
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) { quasar_glShaderSource(shader, count, string, length); }
-void glCompileShader(GLuint s) { if (gles.glCompileShader) gles.glCompileShader(s); }
-GLuint glCreateShader(GLenum t) { return gles.glCreateShader ? gles.glCreateShader(t) : 0; }
+void glCompileShader(GLuint s) { ensure_init(); if (gles.glCompileShader) gles.glCompileShader(s); }
+GLuint glCreateShader(GLenum t) { ensure_init(); return gles.glCreateShader ? gles.glCreateShader(t) : 0; }
 void glDeleteShader(GLuint s) { if (gles.glDeleteShader) gles.glDeleteShader(s); }
 void glAttachShader(GLuint p, GLuint s) { if (gles.glAttachShader) gles.glAttachShader(p, s); }
 void glLinkProgram(GLuint p) { if (gles.glLinkProgram) gles.glLinkProgram(p); }
 void glUseProgram(GLuint p) { if (gles.glUseProgram) gles.glUseProgram(p); }
-GLuint glCreateProgram(void) { return gles.glCreateProgram ? gles.glCreateProgram() : 0; }
+GLuint glCreateProgram(void) { ensure_init(); return gles.glCreateProgram ? gles.glCreateProgram() : 0; }
 void glDeleteProgram(GLuint p) { if (gles.glDeleteProgram) gles.glDeleteProgram(p); }
-void glGetShaderiv(GLuint s, GLenum p, GLint* v) { if (gles.glGetShaderiv) gles.glGetShaderiv(s, p, v); }
-void glGetShaderInfoLog(GLuint s, GLsizei b, GLsizei* l, GLchar* i) { if (gles.glGetShaderInfoLog) gles.glGetShaderInfoLog(s, b, l, i); }
-void glGetProgramiv(GLuint p, GLenum n, GLint* v) { if (gles.glGetProgramiv) gles.glGetProgramiv(p, n, v); }
-void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) { if (gles.glGetProgramInfoLog) gles.glGetProgramInfoLog(p, b, l, i); }
+void glGetShaderiv(GLuint s, GLenum p, GLint* v) { if (gles.glGetShaderiv) gles.glGetShaderiv(s, p, v); else if (v) *v = 0; }
+void glGetShaderInfoLog(GLuint s, GLsizei b, GLsizei* l, GLchar* i) { if (gles.glGetShaderInfoLog) gles.glGetShaderInfoLog(s, b, l, i); else if (l) *l = 0; }
+void glGetProgramiv(GLuint p, GLenum n, GLint* v) { if (gles.glGetProgramiv) gles.glGetProgramiv(p, n, v); else if (v) *v = 0; }
+void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) { if (gles.glGetProgramInfoLog) gles.glGetProgramInfoLog(p, b, l, i); else if (l) *l = 0; }
 void glBindBuffer(GLenum t, GLuint b) { if (gles.glBindBuffer) gles.glBindBuffer(t, b); }
 void glBufferData(GLenum t, GLsizeiptr s, const void* d, GLenum u) { if (gles.glBufferData) gles.glBufferData(t, s, d, u); }
 void glBufferSubData(GLenum t, GLintptr o, GLsizeiptr s, const void* d) { if (gles.glBufferSubData) gles.glBufferSubData(t, o, s, d); }
@@ -392,7 +430,7 @@ void* glXGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (void*) glGetIntegerv;
-    if (!real_eglGetProcAddress) load_real_egl();
+    ensure_init();
     if (real_eglGetProcAddress) return (void*) real_eglGetProcAddress(procname);
     return NULL;
 }
