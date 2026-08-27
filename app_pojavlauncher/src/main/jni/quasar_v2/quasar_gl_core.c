@@ -307,6 +307,10 @@ JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_quasar_QuasarV2_shutdownEGL(JNIE
     LOGI("QuasarV2: shutdownEGL called");
 }
 
+/* ============================================================
+ * glGetString - Fake desktop GL version
+ * ============================================================ */
+
 static const char* FAKE_EXTENSIONS_LIST[] = {
     "GL_ARB_direct_state_access", "GL_ARB_buffer_storage", "GL_ARB_shader_image_load_store",
     "GL_NV_conditional_render", "GL_EXT_gpu_shader4", "GL_EXT_texture_buffer",
@@ -349,7 +353,12 @@ const GLubyte* glGetStringi(GLenum name, GLuint index) {
 void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
     ensure_init();
-    if (gles.glGetIntegerv) {
+    /* CRITICAL: Check if an EGL context is current before calling real GLES.
+     * LWJGL calls glGetIntegerv BEFORE eglMakeCurrent, so calling the real
+     * Mali GLES function with no context causes "No context is current" crash. */
+    EGLContext current_ctx = EGL_NO_CONTEXT;
+    if (real_eglGetCurrentContext) current_ctx = real_eglGetCurrentContext();
+    if (current_ctx != EGL_NO_CONTEXT && gles.glGetIntegerv) {
         gles.glGetIntegerv(pname, params);
         switch(pname) {
             case 0x8B4D: *params = 60; break;
@@ -359,22 +368,29 @@ void glGetIntegerv(GLenum pname, GLint* params) {
         }
         return;
     }
-    /* Fallback: return reasonable defaults so LWJGL doesn't crash */
+    /* No context current OR GLES not available - return safe hardcoded defaults */
     *params = 0;
     switch(pname) {
-        case 0x8B4D: *params = 60; break;  /* GL_MAX_VARYING_FLOATS */
-        case 0x8824: *params = 8; break;   /* GL_MAX_DRAW_BUFFERS */
-        case 0x8B49: *params = 4096; break; /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
-        case 0x8B4A: *params = 4096; break; /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
-        case 0x851C: *params = 16; break;  /* GL_MAX_TEXTURE_COORDS */
-        case 0x807A: *params = 32; break;   /* GL_MAX_TEXTURE_IMAGE_UNITS */
-        case 0x8B4B: *params = 32; break;   /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
-        case 0x8842: *params = 32; break;   /* GL_MAX_TEXTURE_UNITS */
-        case 0x84E8: *params = 16; break;  /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
-        case 0x8DFB: *params = 16; break;   /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
-        case 0x8DFC: *params = 16; break;   /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+        case 0x8B4D: *params = 60; break;           /* GL_MAX_VARYING_FLOATS */
+        case 0x8824: *params = 8; break;             /* GL_MAX_DRAW_BUFFERS */
+        case 0x8B49: *params = 4096; break;         /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
+        case 0x8B4A: *params = 4096; break;         /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
+        case 0x851C: *params = 16; break;           /* GL_MAX_TEXTURE_COORDS */
+        case 0x807A: *params = 32; break;            /* GL_MAX_TEXTURE_IMAGE_UNITS */
+        case 0x8B4B: *params = 32; break;            /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
+        case 0x8842: *params = 32; break;            /* GL_MAX_TEXTURE_UNITS */
+        case 0x84E8: *params = 16; break;           /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+        case 0x8DFB: *params = 16; break;            /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
+        case 0x8DFC: *params = 16; break;            /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+        case 0x8B4C: *params = 64; break;            /* GL_MAX_VERTEX_ATTRIBS */
+        case 0x8DFD: *params = 64; break;            /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
+        case 0x8A32: *params = 256; break;           /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
     }
 }
+
+/* ============================================================
+ * GL function passthrough
+ * ============================================================ */
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length) { quasar_glShaderSource(shader, count, string, length); }
 void glCompileShader(GLuint s) { ensure_init(); if (gles.glCompileShader) gles.glCompileShader(s); }
@@ -424,13 +440,14 @@ void glDrawBuffers(GLsizei n, const GLenum* b) { if (gles.glDrawBuffers) gles.gl
 void glFlush(void) { if (gles.glFlush) gles.glFlush(); }
 void glFinish(void) { if (gles.glFinish) gles.glFinish(); }
 
+/* glXGetProcAddress for LWJGL3 compatibility */
 void* glXGetProcAddress(const char* procname) {
     if (procname == NULL) return NULL;
-    if (strcmp(procname, "glShaderSource") == 0) return (void*) glShaderSource;
-    if (strcmp(procname, "glGetString") == 0) return (void*) glGetString;
-    if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi;
-    if (strcmp(procname, "glGetIntegerv") == 0) return (void*) glGetIntegerv;
-    ensure_init();
+    if (strcmp(procname, "glShaderSource") == 0) return (__eglMustCastToProperFunctionPointerType) glShaderSource;
+    if (strcmp(procname, "glGetString") == 0) return (__eglMustCastToProperFunctionPointerType) glGetString;
+    if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
+    if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
+    if (!real_eglGetProcAddress) load_real_egl();
     if (real_eglGetProcAddress) return (void*) real_eglGetProcAddress(procname);
     return NULL;
 }
