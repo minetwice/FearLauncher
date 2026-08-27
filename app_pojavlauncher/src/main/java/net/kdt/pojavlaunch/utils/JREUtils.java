@@ -239,6 +239,14 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_EXTENSION_OVERRIDE", "GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced");
                 break;
+            case "quasar_v2":
+                Logger.appendToLog("[QuasarV2] Initializing native GL translator environment...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_NORMALIZE", "1");
+                envMap.put("LIBGL_NOINTOVLHACK", "1");
+                break;
         }
     }
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
@@ -414,6 +422,13 @@ public class JREUtils {
                 Logger.appendToLog("[Quasar] backend=LTW (Mali-optimized GLES->GL translator)");
                 renderLibrary = "libltw.so";
                 useGles = true;
+                glesVersion = 3;
+                break;
+            case "quasar_v2":
+                Logger.appendToLog("[QuasarV2] Loading native GL translator...");
+                Logger.appendToLog("[QuasarV2] backend=libquasar_gl.so (custom OpenGL-to-GLES translator)");
+                renderLibrary = "libquasar_gl.so";
+                useGles = false;
                 glesVersion = 3;
                 break;
             case "opengles2":
