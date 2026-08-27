@@ -73,6 +73,23 @@ else()
     message(WARNING "Quasar shader transpilation: DISABLED (glslang or spirv-cross-glsl not found)")
 endif()
 
+# ===== QuasarV2 - Custom OpenGL-to-GLES Translator =====
+# libquasar_gl.so: Acts as the OpenGL library for LWJGL3
+# Translates desktop GL calls to GLES 3.2 and transpiles shaders
+
+add_library(quasar_gl SHARED
+    quasar_v2/quasar_gl_core.c
+    quasar_v2/quasar_shader_hook.c
+)
+target_include_directories(quasar_gl PRIVATE .)
+target_link_libraries(quasar_gl PRIVATE
+    log
+    dl
+    EGL
+    GLESv3
+)
+message(STATUS "QuasarV2 GL translator library: ENABLED")
+
 add_library(pojavexec_awt SHARED
  awt_bridge.c
 )
@@ -85,3 +102,4 @@ add_library(awt_xawt SHARED
  awt_xawt/xawt_fake.c
 )
 target_link_libraries(awt_xawt PRIVATE awt_headless)
+
