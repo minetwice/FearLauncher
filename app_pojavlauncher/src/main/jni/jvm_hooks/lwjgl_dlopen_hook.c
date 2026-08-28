@@ -40,6 +40,94 @@ static void glMemoryBarrier_stub(unsigned int barriers) {
     LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
 }
 
+/* DSA Emulation helper function prototypes */
+typedef void (*glGenTextures_pfn)(int, unsigned int*);
+typedef void (*glBindTexture_pfn)(unsigned int, unsigned int);
+typedef void (*glGenFramebuffers_pfn)(int, unsigned int*);
+typedef void (*glBindFramebuffer_pfn)(unsigned int, unsigned int);
+typedef void (*glGenBuffers_pfn)(int, unsigned int*);
+typedef void (*glBindBuffer_pfn)(unsigned int, unsigned int);
+typedef void (*glGenVertexArrays_pfn)(int, unsigned int*);
+typedef void (*glBindVertexArray_pfn)(unsigned int);
+typedef void (*glGenRenderbuffers_pfn)(int, unsigned int*);
+
+static void glCreateTextures_stub(unsigned int target, int n, unsigned int* textures) {
+    static glGenTextures_pfn p_gen = NULL;
+    if (!p_gen) p_gen = (glGenTextures_pfn) dlsym(RTLD_DEFAULT, "glGenTextures");
+    if (!p_gen) p_gen = (glGenTextures_pfn) dlsym(RTLD_NEXT, "glGenTextures");
+    if (p_gen && textures) p_gen(n, textures);
+}
+
+static void glBindTextureUnit_stub(unsigned int unit, unsigned int texture) {
+    typedef void (*glActiveTexture_pfn)(unsigned int);
+    static glActiveTexture_pfn p_act = NULL;
+    static glBindTexture_pfn p_bind = NULL;
+    if (!p_act) p_act = (glActiveTexture_pfn) dlsym(RTLD_DEFAULT, "glActiveTexture");
+    if (!p_act) p_act = (glActiveTexture_pfn) dlsym(RTLD_NEXT, "glActiveTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_NEXT, "glBindTexture");
+    if (p_act && p_bind) {
+        p_act(0x84C0 + unit);
+        p_bind(0x0DE1, texture); // GL_TEXTURE_2D
+    }
+}
+
+static void glCreateFramebuffers_stub(int n, unsigned int* framebuffers) {
+    static glGenFramebuffers_pfn p_gen = NULL;
+    if (!p_gen) p_gen = (glGenFramebuffers_pfn) dlsym(RTLD_DEFAULT, "glGenFramebuffers");
+    if (!p_gen) p_gen = (glGenFramebuffers_pfn) dlsym(RTLD_NEXT, "glGenFramebuffers");
+    if (p_gen && framebuffers) p_gen(n, framebuffers);
+}
+
+static void glCreateBuffers_stub(int n, unsigned int* buffers) {
+    static glGenBuffers_pfn p_gen = NULL;
+    if (!p_gen) p_gen = (glGenBuffers_pfn) dlsym(RTLD_DEFAULT, "glGenBuffers");
+    if (!p_gen) p_gen = (glGenBuffers_pfn) dlsym(RTLD_NEXT, "glGenBuffers");
+    if (p_gen && buffers) p_gen(n, buffers);
+}
+
+static void glCreateVertexArrays_stub(int n, unsigned int* arrays) {
+    static glGenVertexArrays_pfn p_gen = NULL;
+    if (!p_gen) p_gen = (glGenVertexArrays_pfn) dlsym(RTLD_DEFAULT, "glGenVertexArrays");
+    if (!p_gen) p_gen = (glGenVertexArrays_pfn) dlsym(RTLD_NEXT, "glGenVertexArrays");
+    if (p_gen && arrays) p_gen(n, arrays);
+}
+
+static void glCreateRenderbuffers_stub(int n, unsigned int* renderbuffers) {
+    static glGenRenderbuffers_pfn p_gen = NULL;
+    if (!p_gen) p_gen = (glGenRenderbuffers_pfn) dlsym(RTLD_DEFAULT, "glGenRenderbuffers");
+    if (!p_gen) p_gen = (glGenRenderbuffers_pfn) dlsym(RTLD_NEXT, "glGenRenderbuffers");
+    if (p_gen && renderbuffers) p_gen(n, renderbuffers);
+}
+
+static void glNamedBufferData_stub(unsigned int buffer, long size, const void* data, unsigned int usage) {
+    typedef void (*glBufferData_pfn)(unsigned int, long, const void*, unsigned int);
+    static glBindBuffer_pfn p_bind = NULL;
+    static glBufferData_pfn p_data = NULL;
+    if (!p_bind) p_bind = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
+    if (!p_bind) p_bind = (glBindBuffer_pfn) dlsym(RTLD_NEXT, "glBindBuffer");
+    if (!p_data) p_data = (glBufferData_pfn) dlsym(RTLD_DEFAULT, "glBufferData");
+    if (!p_data) p_data = (glBufferData_pfn) dlsym(RTLD_NEXT, "glBufferData");
+    if (p_bind && p_data) {
+        p_bind(0x8892, buffer); // GL_ARRAY_BUFFER
+        p_data(0x8892, size, data, usage);
+    }
+}
+
+static void glTextureParameteri_stub(unsigned int texture, unsigned int pname, int param) {
+    static glBindTexture_pfn p_bind = NULL;
+    typedef void (*glTexParameteri_pfn)(unsigned int, unsigned int, int);
+    static glTexParameteri_pfn p_param = NULL;
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_NEXT, "glBindTexture");
+    if (!p_param) p_param = (glTexParameteri_pfn) dlsym(RTLD_DEFAULT, "glTexParameteri");
+    if (!p_param) p_param = (glTexParameteri_pfn) dlsym(RTLD_NEXT, "glTexParameteri");
+    if (p_bind && p_param) {
+        p_bind(0x0DE1, texture);
+        p_param(0x0DE1, pname, param);
+    }
+}
+
 static const unsigned char* glGetString_hook(unsigned int name) {
     if (name == GL_VERSION) {
         return (const unsigned char*)"4.6.0 NVIDIA 545.29";
@@ -48,7 +136,7 @@ static const unsigned char* glGetString_hook(unsigned int name) {
     } else if (name == GL_VENDOR) {
         return (const unsigned char*)"NVIDIA Corporation";
     } else if (name == GL_EXTENSIONS) {
-        return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_ARB_shader_texture_lod GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+        return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_ARB_shader_texture_lod GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced GL_ARB_multi_bind GL_ARB_explicit_attrib_location GL_ARB_separate_shader_objects GL_ARB_get_program_binary GL_ARB_gpu_shader5 GL_ARB_texture_query_levels GL_ARB_texture_gather";
     }
 
     typedef const unsigned char* (*glGetString_pfn)(unsigned int);
@@ -84,7 +172,14 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
             "GL_EXT_geometry_shader4",
             "GL_EXT_gpu_program_parameters",
             "GL_ARB_instanced_arrays",
-            "GL_ARB_draw_instanced"
+            "GL_ARB_draw_instanced",
+            "GL_ARB_multi_bind",
+            "GL_ARB_explicit_attrib_location",
+            "GL_ARB_separate_shader_objects",
+            "GL_ARB_get_program_binary",
+            "GL_ARB_gpu_shader5",
+            "GL_ARB_texture_query_levels",
+            "GL_ARB_texture_gather"
         };
         unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
         if (index < size) {
@@ -145,19 +240,22 @@ static char* strip_unsupported_glsl(const char* source) {
             }
         }
 
-        /* Check for "#extension GL_NV_shader_noperspective_interpolation" directive */
-        if (src + 12 <= src_end && strncmp(src, "#extension", 10) == 0) {
+        /* Check for unsupported "#extension ..." directives (e.g. GL_NV_shader_noperspective, GL_ARB_gpu_shader5, GL_ARB_explicit_attrib_location, etc.) */
+        if (src + 10 <= src_end && strncmp(src, "#extension", 10) == 0) {
             /* Find the end of this line */
             const char* line_end = strchr(src, '\n');
             if (line_end == NULL) line_end = src_end;
             size_t line_len = line_end - src;
 
-            /* Check if this line mentions noperspective */
             char ext_line[512];
             if (line_len < sizeof(ext_line)) {
                 memcpy(ext_line, src, line_len);
                 ext_line[line_len] = '\0';
-                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL) {
+                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL ||
+                    strstr(ext_line, "GL_ARB_gpu_shader5") != NULL ||
+                    strstr(ext_line, "GL_ARB_explicit_attrib_location") != NULL ||
+                    strstr(ext_line, "GL_ARB_shader_bit_encoding") != NULL ||
+                    strstr(ext_line, "GL_ARB_shader_texture_lod") != NULL) {
                     /* Skip the entire line including the newline */
                     src = (line_end < src_end) ? line_end + 1 : src_end;
                     continue;
@@ -320,6 +418,14 @@ static void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "glGetIntegerv") == 0) {
         return (void*) glGetIntegerv_hook;
     }
+    if (strcmp(procname, "glCreateTextures") == 0) return (void*) glCreateTextures_stub;
+    if (strcmp(procname, "glBindTextureUnit") == 0) return (void*) glBindTextureUnit_stub;
+    if (strcmp(procname, "glCreateFramebuffers") == 0) return (void*) glCreateFramebuffers_stub;
+    if (strcmp(procname, "glCreateBuffers") == 0) return (void*) glCreateBuffers_stub;
+    if (strcmp(procname, "glCreateVertexArrays") == 0) return (void*) glCreateVertexArrays_stub;
+    if (strcmp(procname, "glCreateRenderbuffers") == 0) return (void*) glCreateRenderbuffers_stub;
+    if (strcmp(procname, "glNamedBufferData") == 0) return (void*) glNamedBufferData_stub;
+    if (strcmp(procname, "glTextureParameteri") == 0) return (void*) glTextureParameteri_stub;
 
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
@@ -390,6 +496,14 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: successfully hooked glGetIntegerv symbol directly\n");
             return (jlong) glGetIntegerv_hook;
         }
+        if (strcmp(symbol, "glCreateTextures") == 0) return (jlong) glCreateTextures_stub;
+        if (strcmp(symbol, "glBindTextureUnit") == 0) return (jlong) glBindTextureUnit_stub;
+        if (strcmp(symbol, "glCreateFramebuffers") == 0) return (jlong) glCreateFramebuffers_stub;
+        if (strcmp(symbol, "glCreateBuffers") == 0) return (jlong) glCreateBuffers_stub;
+        if (strcmp(symbol, "glCreateVertexArrays") == 0) return (jlong) glCreateVertexArrays_stub;
+        if (strcmp(symbol, "glCreateRenderbuffers") == 0) return (jlong) glCreateRenderbuffers_stub;
+        if (strcmp(symbol, "glNamedBufferData") == 0) return (jlong) glNamedBufferData_stub;
+        if (strcmp(symbol, "glTextureParameteri") == 0) return (jlong) glTextureParameteri_stub;
         if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
