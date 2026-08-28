@@ -76,6 +76,11 @@ endif()
 # ===== QuasarV2 - Custom OpenGL-to-GLES Translator =====
 # libquasar_gl.so: Acts as the OpenGL library for LWJGL3
 # Translates desktop GL calls to GLES 3.2 and transpiles shaders
+#
+# CRITICAL: Do NOT link against EGL or GLESv3!
+# We resolve all real EGL/GLES functions at runtime via dlopen+dlsym.
+# If we link against them, dlsym(libquasar_gl.so, "glGetIntegerv") would
+# find Mali's function instead of ours, causing crashes.
 
 add_library(quasar_gl SHARED
     quasar_v2/quasar_gl_core.c
@@ -86,10 +91,8 @@ target_compile_options(quasar_gl PRIVATE -fvisibility=default)
 target_link_libraries(quasar_gl PRIVATE
     log
     dl
-    EGL
-    GLESv3
 )
-message(STATUS "QuasarV2 GL translator library: ENABLED")
+message(STATUS "QuasarV2 GL translator library: ENABLED (no EGL/GLES link - dlopen only)")
 
 add_library(pojavexec_awt SHARED
  awt_bridge.c
