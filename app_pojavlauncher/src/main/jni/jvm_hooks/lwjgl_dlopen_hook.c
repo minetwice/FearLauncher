@@ -246,6 +246,62 @@ static void glShaderSource_hook(unsigned int shader, unsigned int count, const c
     }
 }
 
+/**
+ * Hooked glGetIntegerv that checks for EGL context before calling real GLES.
+ * LWJGL calls glGetIntegerv BEFORE eglMakeCurrent, so calling the real
+ * Mali GLES function with no context causes "No context is current" crash.
+ */
+static void glGetIntegerv_hook(unsigned int pname, int* params) {
+    if (!params) return;
+    /* Check if an EGL context is current */
+    typedef void* (*eglGetCurrentContext_pfn)(void);
+    static eglGetCurrentContext_pfn real_eglGetCurrentContext = NULL;
+    if (!real_eglGetCurrentContext) {
+        real_eglGetCurrentContext = (eglGetCurrentContext_pfn) dlsym(RTLD_DEFAULT, "eglGetCurrentContext");
+        if (!real_eglGetCurrentContext) {
+            real_eglGetCurrentContext = (eglGetCurrentContext_pfn) dlsym(RTLD_NEXT, "eglGetCurrentContext");
+        }
+    }
+    void* current_ctx = NULL;
+    if (real_eglGetCurrentContext) current_ctx = real_eglGetCurrentContext();
+
+    if (current_ctx != NULL) {
+        /* Context is current - call real glGetIntegerv */
+        typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+        static glGetIntegerv_pfn real_glGetIntegerv = NULL;
+        if (!real_glGetIntegerv) {
+            real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+            if (!real_glGetIntegerv) {
+                real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_NEXT, "glGetIntegerv");
+            }
+        }
+        if (real_glGetIntegerv) {
+            real_glGetIntegerv(pname, params);
+            return;
+        }
+    }
+    /* No context current - return safe hardcoded defaults */
+    *params = 0;
+    switch(pname) {
+        case 0x8B4D: *params = 60; break;    /* GL_MAX_VARYING_FLOATS */
+        case 0x8824: *params = 8; break;      /* GL_MAX_DRAW_BUFFERS */
+        case 0x8B49: *params = 4096; break;   /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
+        case 0x8B4A: *params = 4096; break;   /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
+        case 0x851C: *params = 16; break;     /* GL_MAX_TEXTURE_COORDS */
+        case 0x807A: *params = 32; break;     /* GL_MAX_TEXTURE_IMAGE_UNITS */
+        case 0x8B4B: *params = 32; break;     /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
+        case 0x8842: *params = 32; break;     /* GL_MAX_TEXTURE_UNITS */
+        case 0x84E8: *params = 16; break;     /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+        case 0x8DFB: *params = 16; break;     /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
+        case 0x8DFC: *params = 16; break;     /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+        case 0x8B4C: *params = 64; break;     /* GL_MAX_VERTEX_ATTRIBS */
+        case 0x8DFD: *params = 64; break;     /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
+        case 0x8A32: *params = 256; break;    /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
+        default: *params = 0; break;
+    }
+    LOGI("glGetIntegerv_hook: No context, returning hardcoded defaults for pname=0x%x", pname);
+}
+
 static void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
@@ -260,6 +316,9 @@ static void* eglGetProcAddress_hook(const char* procname) {
     }
     if (strcmp(procname, "glShaderSource") == 0) {
         return (void*) glShaderSource_hook;
+    }
+    if (strcmp(procname, "glGetIntegerv") == 0) {
+        return (void*) glGetIntegerv_hook;
     }
 
     typedef void* (*eglGetProcAddress_pfn)(const char*);
@@ -326,6 +385,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glShaderSource") == 0) {
             printf("LWJGL linkerhook: successfully hooked glShaderSource symbol directly\n");
             return (jlong) glShaderSource_hook;
+        }
+        if (strcmp(symbol, "glGetIntegerv") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glGetIntegerv symbol directly\n");
+            return (jlong) glGetIntegerv_hook;
         }
         if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
