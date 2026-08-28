@@ -477,10 +477,10 @@ Q_EXPORT GLenum glGetError(void) {
     typedef GLenum (*fn)(void); static fn real = (fn)q_sym("glGetError"); return real ? real() : GL_NO_ERROR;
 }
 
-Q_EXPORT void* eglGetProcAddress(const char* name) {
+Q_EXPORT __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* name) {
     quasar_init_handles();
     if (!name) return nullptr;
-    #define MAP(n) if (strcmp(name, #n) == 0) return (void*)n;
+    #define MAP(n) if (strcmp(name, #n) == 0) return (__eglMustCastToProperFunctionPointerType)(void*)n;
     MAP(glGetString) MAP(glGetStringi) MAP(glGetIntegerv)
     MAP(glGenSamplers) MAP(glDeleteSamplers) MAP(glBindSampler) MAP(glIsSampler)
     MAP(glSamplerParameteri) MAP(glSamplerParameterf)
@@ -501,12 +501,12 @@ Q_EXPORT void* eglGetProcAddress(const char* name) {
     static eglGPA real_egl = (eglGPA)q_sym("eglGetProcAddress");
     if (real_egl) {
         void* p = real_egl(name);
-        if (p) return p;
+        if (p) return (__eglMustCastToProperFunctionPointerType)p;
     }
     void* p = q_sym(name);
-    if (p) return p;
+    if (p) return (__eglMustCastToProperFunctionPointerType)p;
     static void (*noop)() = [](){};
-    return (void*)noop;
+    return (__eglMustCastToProperFunctionPointerType)(void*)noop;
 }
 
 Q_EXPORT void quasar_core_boot() {
