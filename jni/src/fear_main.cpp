@@ -5,8 +5,18 @@
 #define TAG "FEAR_RENDERER"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 
-extern "C" void quasar_core_boot();
 extern "C" void detect_hardware_and_select_backend();
+
+#if defined(QUASAR_PURE)
+extern "C" void quasar_core_boot();
+#else
+/* FOGL / GLFear path: optional full hook init if linked */
+extern "C" void initialize_fear_hooks() __attribute__((weak));
+static void quasar_core_boot() {
+    if (initialize_fear_hooks)
+        initialize_fear_hooks();
+}
+#endif
 
 static std::string g_jvmCachePath;
 
@@ -17,7 +27,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     LOGI("Fear Renderer Native Library Loading...");
     quasar_core_boot();
     detect_hardware_and_select_backend();
+#if defined(QUASAR_PURE)
     LOGI("QuasarCore pure GLES3 backend ready (no LTW/gl4es/Glues)");
+#else
+    LOGI("FearRender FOGL path ready");
+#endif
     return JNI_VERSION_1_6;
 }
 
