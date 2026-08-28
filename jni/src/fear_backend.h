@@ -3,7 +3,15 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void detect_hardware_and_select_backend();
+
+#ifdef __cplusplus
+}
+#endif
 
 // Module 4: Hardware Specific Workarounds API
 struct FearGPUWorkarounds {

@@ -2,10 +2,10 @@
 #include <jni.h>
 #include <string>
 
+#include "fear_backend.h"
+
 #define TAG "FEAR_RENDERER"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
-
-extern "C" void detect_hardware_and_select_backend();
 
 #if defined(QUASAR_PURE)
 extern "C" void quasar_core_boot();

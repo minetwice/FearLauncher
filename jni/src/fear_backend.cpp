@@ -16,7 +16,7 @@ bool isUsingZink() {
     return galliumDriver != nullptr && strcmp(galliumDriver, "zink") == 0;
 }
 
-void detect_hardware_and_select_backend() {
+extern "C" void detect_hardware_and_select_backend() {
     if (isUsingZink()) {
         LOGI("[FearRender] backend=ZINK (Vulkan: 1.3)");
     } else {
@@ -43,12 +43,12 @@ FearGPUWorkarounds fear_get_gpu_workarounds() {
 
     if (strstr(renderer, "Adreno") || strstr(renderer, "adreno") || strstr(renderer, "Qualcomm")) {
         wa.is_adreno = true;
-        wa.bypass_spirv_validation_fail = true; // Qualcomm Adreno driver SPIR-V validation workaround
+        wa.bypass_spirv_validation_fail = true;
         wa.min_uniform_buffer_offset_alignment = 64;
         LOGI("[FearBackend Workarounds] Qualcomm Adreno detected: SPIR-V driver validation bypass enabled.");
     } else if (strstr(renderer, "Mali") || strstr(renderer, "mali") || strstr(renderer, "ARM")) {
         wa.is_mali = true;
-        wa.min_uniform_buffer_offset_alignment = 256; // ARM Mali UBO alignment quirk workaround
+        wa.min_uniform_buffer_offset_alignment = 256;
         wa.bypass_spirv_validation_fail = false;
         LOGI("[FearBackend Workarounds] ARM Mali detected: Uniform buffer alignment forced to 256 bytes.");
     } else {
