@@ -15,7 +15,6 @@ endif()
 
 add_compile_options(-Wall -Wextra -O2 -fPIC -Wno-unused-parameter -Wno-missing-field-initializers -DFMT_HEADER_ONLY=1)
 
-# Disable unnecessary executables/tests in dependencies to speed up build
 set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
 set(SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
@@ -34,7 +33,6 @@ set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
 set(SPIRV_TOOLS_BUILD_STATIC ON CACHE BOOL "" FORCE)
 
-# Check if full local vendor tree exists
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/spirv-cross/CMakeLists.txt" AND
    EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/third_party/spirv-tools/CMakeLists.txt")
     add_subdirectory(fearrender/fogl_core/deps/spirv-cross EXCLUDE_FROM_ALL)
@@ -148,3 +146,36 @@ target_link_libraries(fearrender PRIVATE
     spirv-cross-core
     spirv-cross-glsl
 )
+
+# ═══════════════════════════════════════════════════════════
+# QUASAR PURE CORE — own GLES3 translator (no LTW/gl4es/Glues)
+# Output: libfear_render.so  ← LWJGL org.lwjgl.opengl.libname
+# ═══════════════════════════════════════════════════════════
+add_library(fear_render SHARED
+    src/fear_main.cpp
+    src/fear_backend.cpp
+    src/fear_memory.cpp
+    src/quasar_core.cpp
+)
+
+set_target_properties(fear_render PROPERTIES
+    OUTPUT_NAME "fear_render"
+    CXX_VISIBILITY_PRESET default
+    C_VISIBILITY_PRESET default
+)
+
+target_include_directories(fear_render PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_definitions(fear_render PRIVATE QUASAR_PURE=1)
+
+target_link_libraries(fear_render PRIVATE
+    ${log-lib}
+    ${android-lib}
+    ${egl-lib}
+    ${glesv3-lib}
+    dl
+)
+
+message(STATUS "Quasar pure GLES3 backend: libfear_render.so")
