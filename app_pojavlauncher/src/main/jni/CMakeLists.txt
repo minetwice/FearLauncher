@@ -82,6 +82,7 @@ add_library(quasar_gl SHARED
     quasar_v2/quasar_shader_hook.c
 )
 target_include_directories(quasar_gl PRIVATE .)
+target_compile_options(quasar_gl PRIVATE -fvisibility=default)
 target_link_libraries(quasar_gl PRIVATE
     log
     dl
