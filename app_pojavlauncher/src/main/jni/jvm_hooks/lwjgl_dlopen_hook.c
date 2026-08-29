@@ -351,6 +351,31 @@ static void glShaderSource_hook(unsigned int shader, unsigned int count, const c
  */
 static void glGetIntegerv_hook(unsigned int pname, int* params) {
     if (!params) return;
+
+    /* Handle Desktop GL spoofed queries first to prevent GLES driver errors or crash during Blaze3D init */
+    switch (pname) {
+        case 0x821B: *params = 4; return;    /* GL_MAJOR_VERSION */
+        case 0x821C: *params = 6; return;    /* GL_MINOR_VERSION */
+        case 0x821D: *params = 24; return;   /* GL_NUM_EXTENSIONS */
+        case 0x821E: *params = 0; return;    /* GL_CONTEXT_FLAGS */
+        case 0x9126: *params = 1; return;    /* GL_CONTEXT_PROFILE_MASK (GL_CONTEXT_CORE_PROFILE_BIT) */
+        case 0x8B4D: *params = 60; return;   /* GL_MAX_VARYING_FLOATS */
+        case 0x8824: *params = 8; return;    /* GL_MAX_DRAW_BUFFERS */
+        case 0x8B49: *params = 4096; return;  /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
+        case 0x8B4A: *params = 4096; return;  /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
+        case 0x851C: *params = 16; return;    /* GL_MAX_TEXTURE_COORDS */
+        case 0x807A: *params = 32; return;    /* GL_MAX_TEXTURE_IMAGE_UNITS */
+        case 0x8B4B: *params = 32; return;    /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
+        case 0x8842: *params = 32; return;    /* GL_MAX_TEXTURE_UNITS */
+        case 0x84E8: *params = 16; return;    /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+        case 0x8DFB: *params = 16; return;    /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
+        case 0x8DFC: *params = 16; return;    /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+        case 0x8B4C: *params = 64; return;    /* GL_MAX_VERTEX_ATTRIBS */
+        case 0x8DFD: *params = 64; return;    /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
+        case 0x8A32: *params = 256; return;   /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
+        case 0x0D33: *params = 16384; return; /* GL_MAX_TEXTURE_SIZE */
+    }
+
     /* Check if an EGL context is current */
     typedef void* (*eglGetCurrentContext_pfn)(void);
     static eglGetCurrentContext_pfn real_eglGetCurrentContext = NULL;
@@ -378,26 +403,10 @@ static void glGetIntegerv_hook(unsigned int pname, int* params) {
             return;
         }
     }
-    /* No context current - return safe hardcoded defaults */
+
+    /* Fallback if no context or real call failed */
     *params = 0;
-    switch(pname) {
-        case 0x8B4D: *params = 60; break;    /* GL_MAX_VARYING_FLOATS */
-        case 0x8824: *params = 8; break;      /* GL_MAX_DRAW_BUFFERS */
-        case 0x8B49: *params = 4096; break;   /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
-        case 0x8B4A: *params = 4096; break;   /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
-        case 0x851C: *params = 16; break;     /* GL_MAX_TEXTURE_COORDS */
-        case 0x807A: *params = 32; break;     /* GL_MAX_TEXTURE_IMAGE_UNITS */
-        case 0x8B4B: *params = 32; break;     /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
-        case 0x8842: *params = 32; break;     /* GL_MAX_TEXTURE_UNITS */
-        case 0x84E8: *params = 16; break;     /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
-        case 0x8DFB: *params = 16; break;     /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
-        case 0x8DFC: *params = 16; break;     /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
-        case 0x8B4C: *params = 64; break;     /* GL_MAX_VERTEX_ATTRIBS */
-        case 0x8DFD: *params = 64; break;     /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
-        case 0x8A32: *params = 256; break;    /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
-        default: *params = 0; break;
-    }
-    LOGI("glGetIntegerv_hook: No context, returning hardcoded defaults for pname=0x%x", pname);
+    LOGI("glGetIntegerv_hook: No context, returning 0 for pname=0x%x", pname);
 }
 
 static void* eglGetProcAddress_hook(const char* procname) {
