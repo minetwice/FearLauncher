@@ -5,9 +5,52 @@
 #include "quasar_state.h"
 #include <stdlib.h>
 #include <string.h>
+#include <dlfcn.h>
 
 #define TAG "Quasar-State"
 #include <log.h>
+
+typedef void (*PFN_glViewport)(GLint, GLint, GLsizei, GLsizei);
+typedef void (*PFN_glEnable)(GLenum);
+typedef void (*PFN_glDisable)(GLenum);
+typedef void (*PFN_glBlendFuncSeparate)(GLenum, GLenum, GLenum, GLenum);
+typedef void (*PFN_glDepthFunc)(GLenum);
+typedef void (*PFN_glDepthMask)(GLboolean);
+typedef void (*PFN_glCullFace)(GLenum);
+typedef void (*PFN_glFrontFace)(GLenum);
+
+static struct {
+    PFN_glViewport glViewport;
+    PFN_glEnable glEnable;
+    PFN_glDisable glDisable;
+    PFN_glBlendFuncSeparate glBlendFuncSeparate;
+    PFN_glDepthFunc glDepthFunc;
+    PFN_glDepthMask glDepthMask;
+    PFN_glCullFace glCullFace;
+    PFN_glFrontFace glFrontFace;
+    int inited;
+} gles_state_funcs;
+
+static void* resolve_func(const char* name) {
+    static void* gles_handle = NULL;
+    if (!gles_handle) gles_handle = dlopen("libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL);
+    if (!gles_handle) gles_handle = dlopen("libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL);
+    if (gles_handle) return dlsym(gles_handle, name);
+    return NULL;
+}
+
+static void resolve_gles_funcs() {
+    if (gles_state_funcs.inited) return;
+    gles_state_funcs.glViewport = (PFN_glViewport) resolve_func("glViewport");
+    gles_state_funcs.glEnable = (PFN_glEnable) resolve_func("glEnable");
+    gles_state_funcs.glDisable = (PFN_glDisable) resolve_func("glDisable");
+    gles_state_funcs.glBlendFuncSeparate = (PFN_glBlendFuncSeparate) resolve_func("glBlendFuncSeparate");
+    gles_state_funcs.glDepthFunc = (PFN_glDepthFunc) resolve_func("glDepthFunc");
+    gles_state_funcs.glDepthMask = (PFN_glDepthMask) resolve_func("glDepthMask");
+    gles_state_funcs.glCullFace = (PFN_glCullFace) resolve_func("glCullFace");
+    gles_state_funcs.glFrontFace = (PFN_glFrontFace) resolve_func("glFrontFace");
+    gles_state_funcs.inited = 1;
+}
 
 static quasar_context_t g_main_context;
 
@@ -39,35 +82,43 @@ quasar_context_t* quasar_get_current_context(void) {
 }
 
 static void handle_viewport(quasar_context_t *ctx) {
-    glViewport(ctx->viewport[0], ctx->viewport[1], ctx->viewport[2], ctx->viewport[3]);
+    resolve_gles_funcs();
+    if (gles_state_funcs.glViewport) {
+        gles_state_funcs.glViewport(ctx->viewport[0], ctx->viewport[1], ctx->viewport[2], ctx->viewport[3]);
+    }
 }
 
 static void handle_blend(quasar_context_t *ctx) {
+    resolve_gles_funcs();
     if (ctx->blend_enabled) {
-        glEnable(GL_BLEND);
-        glBlendFuncSeparate(ctx->blend_src_rgb, ctx->blend_dst_rgb, ctx->blend_src_a, ctx->blend_dst_a);
+        if (gles_state_funcs.glEnable) gles_state_funcs.glEnable(GL_BLEND);
+        if (gles_state_funcs.glBlendFuncSeparate) {
+            gles_state_funcs.glBlendFuncSeparate(ctx->blend_src_rgb, ctx->blend_dst_rgb, ctx->blend_src_a, ctx->blend_dst_a);
+        }
     } else {
-        glDisable(GL_BLEND);
+        if (gles_state_funcs.glDisable) gles_state_funcs.glDisable(GL_BLEND);
     }
 }
 
 static void handle_depth(quasar_context_t *ctx) {
+    resolve_gles_funcs();
     if (ctx->depth_test) {
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(ctx->depth_func);
+        if (gles_state_funcs.glEnable) gles_state_funcs.glEnable(GL_DEPTH_TEST);
+        if (gles_state_funcs.glDepthFunc) gles_state_funcs.glDepthFunc(ctx->depth_func);
     } else {
-        glDisable(GL_DEPTH_TEST);
+        if (gles_state_funcs.glDisable) gles_state_funcs.glDisable(GL_DEPTH_TEST);
     }
-    glDepthMask(ctx->depth_mask);
+    if (gles_state_funcs.glDepthMask) gles_state_funcs.glDepthMask(ctx->depth_mask);
 }
 
 static void handle_cull(quasar_context_t *ctx) {
+    resolve_gles_funcs();
     if (ctx->cull_face) {
-        glEnable(GL_CULL_FACE);
-        glCullFace(ctx->cull_mode);
-        glFrontFace(ctx->front_face);
+        if (gles_state_funcs.glEnable) gles_state_funcs.glEnable(GL_CULL_FACE);
+        if (gles_state_funcs.glCullFace) gles_state_funcs.glCullFace(ctx->cull_mode);
+        if (gles_state_funcs.glFrontFace) gles_state_funcs.glFrontFace(ctx->front_face);
     } else {
-        glDisable(GL_CULL_FACE);
+        if (gles_state_funcs.glDisable) gles_state_funcs.glDisable(GL_CULL_FACE);
     }
 }
 

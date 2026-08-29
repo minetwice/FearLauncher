@@ -357,7 +357,7 @@ void glGetIntegerv(GLenum pname, GLint* params) {
     switch (pname) {
         case 0x821B: *params = 4; return;    /* GL_MAJOR_VERSION */
         case 0x821C: *params = 6; return;    /* GL_MINOR_VERSION */
-        case 0x821D: *params = 26; return;   /* GL_NUM_EXTENSIONS */
+        case 0x821D: *params = 24; return;   /* GL_NUM_EXTENSIONS */
         case 0x821E: *params = 0; return;    /* GL_CONTEXT_FLAGS */
         case 0x9126: *params = 1; return;    /* GL_CONTEXT_PROFILE_MASK */
         case 0x8B4D: *params = 60; return;   /* GL_MAX_VARYING_FLOATS */
