@@ -60,6 +60,8 @@ typedef void (*PFN_glBindVertexArray)(GLuint);
 typedef void (*PFN_glGenFramebuffers)(GLsizei, GLuint*);
 typedef void (*PFN_glDeleteFramebuffers)(GLsizei, const GLuint*);
 typedef void (*PFN_glBindFramebuffer)(GLenum, GLuint);
+typedef void (*PFN_glGenRenderbuffers)(GLsizei, GLuint*);
+typedef void (*PFN_glBindRenderbuffer)(GLenum, GLuint);
 typedef void (*PFN_glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint);
 typedef void (*PFN_glDrawBuffers)(GLsizei, const GLenum*);
 typedef void (*PFN_glGenerateMipmap)(GLenum);
@@ -118,6 +120,8 @@ static struct {
     PFN_glGenFramebuffers glGenFramebuffers;
     PFN_glDeleteFramebuffers glDeleteFramebuffers;
     PFN_glBindFramebuffer glBindFramebuffer;
+    PFN_glGenRenderbuffers glGenRenderbuffers;
+    PFN_glBindRenderbuffer glBindRenderbuffer;
     PFN_glFramebufferTexture2D glFramebufferTexture2D;
     PFN_glDrawBuffers glDrawBuffers;
     PFN_glGenerateMipmap glGenerateMipmap;
@@ -232,6 +236,33 @@ static void ensure_init() {
     if (!gles.initialized) init_gles_functions();
 }
 
+/* Forward declarations for our own functions used by eglGetProcAddress */
+const GLubyte* glGetString(GLenum name);
+const GLubyte* glGetStringi(GLenum name, GLuint index);
+void glGetIntegerv(GLenum pname, GLint* params);
+void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
+
+void glCreateTextures(GLenum target, GLsizei n, GLuint* textures);
+void glBindTextureUnit(GLuint unit, GLuint texture);
+void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels);
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
+void glGenerateTextureMipmap(GLuint texture);
+void glCreateBuffers(GLsizei n, GLuint* buffers);
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
+void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum* bufs);
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
+void glCreateVertexArrays(GLsizei n, GLuint* arrays);
+void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers);
+void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+
 EGLDisplay eglGetDisplay(EGLNativeDisplayType display_id) { if (!real_eglGetDisplay) load_real_egl(); if (real_eglGetDisplay) return real_eglGetDisplay(display_id); return EGL_NO_DISPLAY; }
 EGLBoolean eglInitialize(EGLDisplay dpy, EGLint* major, EGLint* minor) { if (!real_eglInitialize) load_real_egl(); if (real_eglInitialize) return real_eglInitialize(dpy, major, minor); return EGL_FALSE; }
 EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list, EGLConfig* configs, EGLint config_size, EGLint* num_config) { if (!real_eglChooseConfig) load_real_egl(); if (real_eglChooseConfig) return real_eglChooseConfig(dpy, attrib_list, configs, config_size, num_config); return EGL_FALSE; }
@@ -321,7 +352,8 @@ static void init_gles_functions() {
     RESOLVE(glGenTextures); RESOLVE(glDeleteTextures); RESOLVE(glTexImage2D); RESOLVE(glTexStorage2D); RESOLVE(glTexSubImage2D);
     RESOLVE(glTexParameteri); RESOLVE(glGenVertexArrays); RESOLVE(glDeleteVertexArrays);
     RESOLVE(glBindVertexArray); RESOLVE(glGenFramebuffers); RESOLVE(glDeleteFramebuffers);
-    RESOLVE(glBindFramebuffer); RESOLVE(glFramebufferTexture2D); RESOLVE(glDrawBuffers);
+    RESOLVE(glBindFramebuffer); RESOLVE(glGenRenderbuffers); RESOLVE(glBindRenderbuffer);
+    RESOLVE(glFramebufferTexture2D); RESOLVE(glDrawBuffers);
     RESOLVE(glGenerateMipmap); RESOLVE(glRenderbufferStorage); RESOLVE(glFramebufferRenderbuffer);
     RESOLVE(glCheckFramebufferStatus);
     RESOLVE(glGetString); RESOLVE(glGetStringi); RESOLVE(glGetIntegerv); RESOLVE(glFlush); RESOLVE(glFinish);
@@ -356,37 +388,6 @@ static const char* FAKE_EXTENSIONS_LIST[] = {
 };
 static const int FAKE_EXTENSIONS_COUNT = sizeof(FAKE_EXTENSIONS_LIST)/sizeof(FAKE_EXTENSIONS_LIST[0]);
 
-/* Forward declarations for our own functions used by eglGetProcAddress */
-const GLubyte* glGetString(GLenum name);
-const GLubyte* glGetStringi(GLenum name, GLuint index);
-void glGetIntegerv(GLenum pname, GLint* params);
-void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
-
-void glCreateTextures(GLenum target, GLsizei n, GLuint* textures);
-void glBindTextureUnit(GLuint unit, GLuint texture);
-void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
-void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels);
-void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
-void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
-void glGenerateTextureMipmap(GLuint texture);
-void glCreateBuffers(GLsizei n, GLuint* buffers);
-void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
-void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
-void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
-void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum* bufs);
-GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
-void glCreateVertexArrays(GLsizei n, GLuint* arrays);
-void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers);
-void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
-
-/* ============================================================
- * DSA (Direct State Access) Software Emulation Layer
- * Critical for Minecraft 1.21.11, Sodium, & Iris Mod compatibility
- * ============================================================ */
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
     ensure_init();
