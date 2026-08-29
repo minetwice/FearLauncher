@@ -128,6 +128,90 @@ static void glTextureParameteri_stub(unsigned int texture, unsigned int pname, i
     }
 }
 
+static void glTextureStorage2D_stub(unsigned int texture, int levels, unsigned int internalformat, int width, int height) {
+    typedef void (*glTexStorage2D_pfn)(unsigned int, int, unsigned int, int, int);
+    typedef void (*glTexImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    static glBindTexture_pfn p_bind = NULL;
+    static glTexStorage2D_pfn p_stor = NULL;
+    static glTexImage2D_pfn p_img = NULL;
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_NEXT, "glBindTexture");
+    if (!p_stor) p_stor = (glTexStorage2D_pfn) dlsym(RTLD_DEFAULT, "glTexStorage2D");
+    if (!p_stor) p_stor = (glTexStorage2D_pfn) dlsym(RTLD_NEXT, "glTexStorage2D");
+    if (!p_img) p_img = (glTexImage2D_pfn) dlsym(RTLD_DEFAULT, "glTexImage2D");
+    if (!p_img) p_img = (glTexImage2D_pfn) dlsym(RTLD_NEXT, "glTexImage2D");
+
+    if (p_bind) p_bind(0x0DE1, texture); // GL_TEXTURE_2D
+    if (p_stor) {
+        p_stor(0x0DE1, levels, internalformat, width, height);
+    } else if (p_img) {
+        unsigned int format = 0x1908; // GL_RGBA
+        unsigned int type = 0x1401; // GL_UNSIGNED_BYTE
+        if (internalformat == 0x1902 || internalformat == 0x81A5 || internalformat == 0x81A6 || internalformat == 0x8C3E) {
+            format = 0x1902; type = 0x1405; // GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
+        } else if (internalformat == 0x88F0 || internalformat == 0x8CAD) {
+            format = 0x84F9; type = 0x84FA; // GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
+        }
+        p_img(0x0DE1, 0, (int)internalformat, width, height, 0, format, type, NULL);
+    }
+}
+
+static void glTextureSubImage2D_stub(unsigned int texture, int level, int xoffset, int yoffset, int width, int height, unsigned int format, unsigned int type, const void* pixels) {
+    typedef void (*glTexSubImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    static glBindTexture_pfn p_bind = NULL;
+    static glTexSubImage2D_pfn p_sub = NULL;
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_NEXT, "glBindTexture");
+    if (!p_sub) p_sub = (glTexSubImage2D_pfn) dlsym(RTLD_DEFAULT, "glTexSubImage2D");
+    if (!p_sub) p_sub = (glTexSubImage2D_pfn) dlsym(RTLD_NEXT, "glTexSubImage2D");
+    if (p_bind && p_sub) {
+        p_bind(0x0DE1, texture);
+        p_sub(0x0DE1, level, xoffset, yoffset, width, height, format, type, pixels);
+    }
+}
+
+static void glGenerateTextureMipmap_stub(unsigned int texture) {
+    typedef void (*glGenerateMipmap_pfn)(unsigned int);
+    static glBindTexture_pfn p_bind = NULL;
+    static glGenerateMipmap_pfn p_gen = NULL;
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!p_bind) p_bind = (glBindTexture_pfn) dlsym(RTLD_NEXT, "glBindTexture");
+    if (!p_gen) p_gen = (glGenerateMipmap_pfn) dlsym(RTLD_DEFAULT, "glGenerateMipmap");
+    if (!p_gen) p_gen = (glGenerateMipmap_pfn) dlsym(RTLD_NEXT, "glGenerateMipmap");
+    if (p_bind && p_gen) {
+        p_bind(0x0DE1, texture);
+        p_gen(0x0DE1);
+    }
+}
+
+static void glNamedBufferSubData_stub(unsigned int buffer, long offset, long size, const void* data) {
+    typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
+    static glBindBuffer_pfn p_bind = NULL;
+    static glBufferSubData_pfn p_sub = NULL;
+    if (!p_bind) p_bind = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
+    if (!p_bind) p_bind = (glBindBuffer_pfn) dlsym(RTLD_NEXT, "glBindBuffer");
+    if (!p_sub) p_sub = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubData");
+    if (!p_sub) p_sub = (glBufferSubData_pfn) dlsym(RTLD_NEXT, "glBufferSubData");
+    if (p_bind && p_sub) {
+        p_bind(0x8892, buffer);
+        p_sub(0x8892, offset, size, data);
+    }
+}
+
+static void glNamedFramebufferTexture_stub(unsigned int framebuffer, unsigned int attachment, unsigned int texture, int level) {
+    typedef void (*glFramebufferTexture2D_pfn)(unsigned int, unsigned int, unsigned int, unsigned int, int);
+    static glBindFramebuffer_pfn p_bind = NULL;
+    static glFramebufferTexture2D_pfn p_tex = NULL;
+    if (!p_bind) p_bind = (glBindFramebuffer_pfn) dlsym(RTLD_DEFAULT, "glBindFramebuffer");
+    if (!p_bind) p_bind = (glBindFramebuffer_pfn) dlsym(RTLD_NEXT, "glBindFramebuffer");
+    if (!p_tex) p_tex = (glFramebufferTexture2D_pfn) dlsym(RTLD_DEFAULT, "glFramebufferTexture2D");
+    if (!p_tex) p_tex = (glFramebufferTexture2D_pfn) dlsym(RTLD_NEXT, "glFramebufferTexture2D");
+    if (p_bind && p_tex) {
+        p_bind(0x8D40, framebuffer);
+        p_tex(0x8D40, attachment, 0x0DE1, texture, level);
+    }
+}
+
 static const unsigned char* glGetString_hook(unsigned int name) {
     if (name == GL_VERSION) {
         return (const unsigned char*)"4.6.0 NVIDIA 545.29";
@@ -430,11 +514,16 @@ static void* eglGetProcAddress_hook(const char* procname) {
     }
     if (strcmp(procname, "glCreateTextures") == 0) return (void*) glCreateTextures_stub;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (void*) glBindTextureUnit_stub;
+    if (strcmp(procname, "glTextureStorage2D") == 0) return (void*) glTextureStorage2D_stub;
+    if (strcmp(procname, "glTextureSubImage2D") == 0) return (void*) glTextureSubImage2D_stub;
+    if (strcmp(procname, "glGenerateTextureMipmap") == 0) return (void*) glGenerateTextureMipmap_stub;
     if (strcmp(procname, "glCreateFramebuffers") == 0) return (void*) glCreateFramebuffers_stub;
+    if (strcmp(procname, "glNamedFramebufferTexture") == 0) return (void*) glNamedFramebufferTexture_stub;
     if (strcmp(procname, "glCreateBuffers") == 0) return (void*) glCreateBuffers_stub;
     if (strcmp(procname, "glCreateVertexArrays") == 0) return (void*) glCreateVertexArrays_stub;
     if (strcmp(procname, "glCreateRenderbuffers") == 0) return (void*) glCreateRenderbuffers_stub;
     if (strcmp(procname, "glNamedBufferData") == 0) return (void*) glNamedBufferData_stub;
+    if (strcmp(procname, "glNamedBufferSubData") == 0) return (void*) glNamedBufferSubData_stub;
     if (strcmp(procname, "glTextureParameteri") == 0) return (void*) glTextureParameteri_stub;
 
     typedef void* (*eglGetProcAddress_pfn)(const char*);
@@ -508,11 +597,16 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
         if (strcmp(symbol, "glCreateTextures") == 0) return (jlong) glCreateTextures_stub;
         if (strcmp(symbol, "glBindTextureUnit") == 0) return (jlong) glBindTextureUnit_stub;
+        if (strcmp(symbol, "glTextureStorage2D") == 0) return (jlong) glTextureStorage2D_stub;
+        if (strcmp(symbol, "glTextureSubImage2D") == 0) return (jlong) glTextureSubImage2D_stub;
+        if (strcmp(symbol, "glGenerateTextureMipmap") == 0) return (jlong) glGenerateTextureMipmap_stub;
         if (strcmp(symbol, "glCreateFramebuffers") == 0) return (jlong) glCreateFramebuffers_stub;
+        if (strcmp(symbol, "glNamedFramebufferTexture") == 0) return (jlong) glNamedFramebufferTexture_stub;
         if (strcmp(symbol, "glCreateBuffers") == 0) return (jlong) glCreateBuffers_stub;
         if (strcmp(symbol, "glCreateVertexArrays") == 0) return (jlong) glCreateVertexArrays_stub;
         if (strcmp(symbol, "glCreateRenderbuffers") == 0) return (jlong) glCreateRenderbuffers_stub;
         if (strcmp(symbol, "glNamedBufferData") == 0) return (jlong) glNamedBufferData_stub;
+        if (strcmp(symbol, "glNamedBufferSubData") == 0) return (jlong) glNamedBufferSubData_stub;
         if (strcmp(symbol, "glTextureParameteri") == 0) return (jlong) glTextureParameteri_stub;
         if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");

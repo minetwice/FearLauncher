@@ -362,6 +362,27 @@ const GLubyte* glGetStringi(GLenum name, GLuint index);
 void glGetIntegerv(GLenum pname, GLint* params);
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 
+void glCreateTextures(GLenum target, GLsizei n, GLuint* textures);
+void glBindTextureUnit(GLuint unit, GLuint texture);
+void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels);
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
+void glGenerateTextureMipmap(GLuint texture);
+void glCreateBuffers(GLsizei n, GLuint* buffers);
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage);
+void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
+void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum* bufs);
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
+void glCreateVertexArrays(GLsizei n, GLuint* arrays);
+void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers);
+void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+
 /* ============================================================
  * DSA (Direct State Access) Software Emulation Layer
  * Critical for Minecraft 1.21.11, Sodium, & Iris Mod compatibility
