@@ -352,40 +352,39 @@ const GLubyte* glGetStringi(GLenum name, GLuint index) {
 
 void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
+
+    /* Handle Desktop GL queries first so LWJGL/Blaze3D startup never fails even if EGL context is not active */
+    switch (pname) {
+        case 0x821B: *params = 4; return;    /* GL_MAJOR_VERSION */
+        case 0x821C: *params = 6; return;    /* GL_MINOR_VERSION */
+        case 0x821D: *params = 26; return;   /* GL_NUM_EXTENSIONS */
+        case 0x821E: *params = 0; return;    /* GL_CONTEXT_FLAGS */
+        case 0x9126: *params = 1; return;    /* GL_CONTEXT_PROFILE_MASK */
+        case 0x8B4D: *params = 60; return;   /* GL_MAX_VARYING_FLOATS */
+        case 0x8824: *params = 8; return;    /* GL_MAX_DRAW_BUFFERS */
+        case 0x8B49: *params = 4096; return;  /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
+        case 0x8B4A: *params = 4096; return;  /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
+        case 0x851C: *params = 16; return;    /* GL_MAX_TEXTURE_COORDS */
+        case 0x807A: *params = 32; return;    /* GL_MAX_TEXTURE_IMAGE_UNITS */
+        case 0x8B4B: *params = 32; return;    /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
+        case 0x8842: *params = 32; return;    /* GL_MAX_TEXTURE_UNITS */
+        case 0x84E8: *params = 16; return;    /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+        case 0x8DFB: *params = 16; return;    /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
+        case 0x8DFC: *params = 16; return;    /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
+        case 0x8B4C: *params = 64; return;    /* GL_MAX_VERTEX_ATTRIBS */
+        case 0x8DFD: *params = 64; return;    /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
+        case 0x8A32: *params = 256; return;   /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
+        case 0x0D33: *params = 16384; return; /* GL_MAX_TEXTURE_SIZE */
+    }
+
     ensure_init();
-    /* CRITICAL: Check if an EGL context is current before calling real GLES.
-     * LWJGL calls glGetIntegerv BEFORE eglMakeCurrent, so calling the real
-     * Mali GLES function with no context causes "No context is current" crash. */
     EGLContext current_ctx = EGL_NO_CONTEXT;
     if (real_eglGetCurrentContext) current_ctx = real_eglGetCurrentContext();
     if (current_ctx != EGL_NO_CONTEXT && gles.glGetIntegerv) {
         gles.glGetIntegerv(pname, params);
-        switch(pname) {
-            case 0x8B4D: *params = 60; break;
-            case 0x8824: if (*params < 8) *params = 8; break;
-            case 0x8B49: if (*params < 4096) *params = 4096; break;
-            case 0x8B4A: if (*params < 4096) *params = 4096; break;
-        }
         return;
     }
-    /* No context current OR GLES not available - return safe hardcoded defaults */
     *params = 0;
-    switch(pname) {
-        case 0x8B4D: *params = 60; break;           /* GL_MAX_VARYING_FLOATS */
-        case 0x8824: *params = 8; break;             /* GL_MAX_DRAW_BUFFERS */
-        case 0x8B49: *params = 4096; break;         /* GL_MAX_VERTEX_UNIFORM_COMPONENTS */
-        case 0x8B4A: *params = 4096; break;         /* GL_MAX_FRAGMENT_UNIFORM_COMPONENTS */
-        case 0x851C: *params = 16; break;           /* GL_MAX_TEXTURE_COORDS */
-        case 0x807A: *params = 32; break;            /* GL_MAX_TEXTURE_IMAGE_UNITS */
-        case 0x8B4B: *params = 32; break;            /* GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS */
-        case 0x8842: *params = 32; break;            /* GL_MAX_TEXTURE_UNITS */
-        case 0x84E8: *params = 16; break;           /* GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
-        case 0x8DFB: *params = 16; break;            /* GL_MAX_VERTEX_OUTPUT_COMPONENTS */
-        case 0x8DFC: *params = 16; break;            /* GL_MAX_FRAGMENT_INPUT_COMPONENTS */
-        case 0x8B4C: *params = 64; break;            /* GL_MAX_VERTEX_ATTRIBS */
-        case 0x8DFD: *params = 64; break;            /* GL_MAX_GEOMETRY_OUTPUT_VERTICES */
-        case 0x8A32: *params = 256; break;           /* GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS */
-    }
 }
 
 /* ============================================================
