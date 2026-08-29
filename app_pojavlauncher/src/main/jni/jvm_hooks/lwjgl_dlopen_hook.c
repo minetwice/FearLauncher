@@ -153,37 +153,38 @@ static const unsigned char* glGetString_hook(unsigned int name) {
     return (const unsigned char*)"";
 }
 
+static const char* g_quasar_extensions[] = {
+    "GL_ARB_direct_state_access",
+    "GL_ARB_buffer_storage",
+    "GL_ARB_shader_image_load_store",
+    "GL_NV_conditional_render",
+    "GL_EXT_gpu_shader4",
+    "GL_EXT_texture_buffer",
+    "GL_EXT_texture_cube_map_array",
+    "GL_OES_EGL_image_external_essl3",
+    "GL_ARB_shader_texture_lod",
+    "GL_ARB_shader_objects",
+    "GL_ARB_vertex_shader",
+    "GL_ARB_fragment_shader",
+    "GL_EXT_blend_equation_separate",
+    "GL_EXT_geometry_shader4",
+    "GL_EXT_gpu_program_parameters",
+    "GL_ARB_instanced_arrays",
+    "GL_ARB_draw_instanced",
+    "GL_ARB_multi_bind",
+    "GL_ARB_explicit_attrib_location",
+    "GL_ARB_separate_shader_objects",
+    "GL_ARB_get_program_binary",
+    "GL_ARB_gpu_shader5",
+    "GL_ARB_texture_query_levels",
+    "GL_ARB_texture_gather"
+};
+static const unsigned int g_quasar_extensions_count = sizeof(g_quasar_extensions) / sizeof(g_quasar_extensions[0]);
+
 static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int index) {
     if (name == GL_EXTENSIONS) {
-        static const char* extensions[] = {
-            "GL_ARB_direct_state_access",
-            "GL_ARB_buffer_storage",
-            "GL_ARB_shader_image_load_store",
-            "GL_NV_conditional_render",
-            "GL_EXT_gpu_shader4",
-            "GL_EXT_texture_buffer",
-            "GL_EXT_texture_cube_map_array",
-            "GL_OES_EGL_image_external_essl3",
-            "GL_ARB_shader_texture_lod",
-            "GL_ARB_shader_objects",
-            "GL_ARB_vertex_shader",
-            "GL_ARB_fragment_shader",
-            "GL_EXT_blend_equation_separate",
-            "GL_EXT_geometry_shader4",
-            "GL_EXT_gpu_program_parameters",
-            "GL_ARB_instanced_arrays",
-            "GL_ARB_draw_instanced",
-            "GL_ARB_multi_bind",
-            "GL_ARB_explicit_attrib_location",
-            "GL_ARB_separate_shader_objects",
-            "GL_ARB_get_program_binary",
-            "GL_ARB_gpu_shader5",
-            "GL_ARB_texture_query_levels",
-            "GL_ARB_texture_gather"
-        };
-        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
-        if (index < size) {
-            return (const unsigned char*)extensions[index];
+        if (index < g_quasar_extensions_count) {
+            return (const unsigned char*)g_quasar_extensions[index];
         }
     }
 
@@ -356,7 +357,7 @@ static void glGetIntegerv_hook(unsigned int pname, int* params) {
     switch (pname) {
         case 0x821B: *params = 4; return;    /* GL_MAJOR_VERSION */
         case 0x821C: *params = 6; return;    /* GL_MINOR_VERSION */
-        case 0x821D: *params = 24; return;   /* GL_NUM_EXTENSIONS */
+        case 0x821D: *params = g_quasar_extensions_count; return;   /* GL_NUM_EXTENSIONS */
         case 0x821E: *params = 0; return;    /* GL_CONTEXT_FLAGS */
         case 0x9126: *params = 1; return;    /* GL_CONTEXT_PROFILE_MASK (GL_CONTEXT_CORE_PROFILE_BIT) */
         case 0x8B4D: *params = 60; return;   /* GL_MAX_VARYING_FLOATS */
