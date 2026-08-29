@@ -51,6 +51,7 @@ typedef void (*PFN_glBindTexture)(GLenum, GLuint);
 typedef void (*PFN_glGenTextures)(GLsizei, GLuint*);
 typedef void (*PFN_glDeleteTextures)(GLsizei, const GLuint*);
 typedef void (*PFN_glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*);
+typedef void (*PFN_glTexStorage2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
 typedef void (*PFN_glTexSubImage2D)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void*);
 typedef void (*PFN_glTexParameteri)(GLenum, GLenum, GLint);
 typedef void (*PFN_glGenVertexArrays)(GLsizei, GLuint*);
@@ -61,6 +62,10 @@ typedef void (*PFN_glDeleteFramebuffers)(GLsizei, const GLuint*);
 typedef void (*PFN_glBindFramebuffer)(GLenum, GLuint);
 typedef void (*PFN_glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint);
 typedef void (*PFN_glDrawBuffers)(GLsizei, const GLenum*);
+typedef void (*PFN_glGenerateMipmap)(GLenum);
+typedef void (*PFN_glRenderbufferStorage)(GLenum, GLenum, GLsizei, GLsizei);
+typedef void (*PFN_glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint);
+typedef GLenum (*PFN_glCheckFramebufferStatus)(GLenum);
 typedef const GLubyte* (*PFN_glGetString)(GLenum);
 typedef const GLubyte* (*PFN_glGetStringi)(GLenum, GLuint);
 typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
@@ -104,6 +109,7 @@ static struct {
     PFN_glGenTextures glGenTextures;
     PFN_glDeleteTextures glDeleteTextures;
     PFN_glTexImage2D glTexImage2D;
+    PFN_glTexStorage2D glTexStorage2D;
     PFN_glTexSubImage2D glTexSubImage2D;
     PFN_glTexParameteri glTexParameteri;
     PFN_glGenVertexArrays glGenVertexArrays;
@@ -114,6 +120,10 @@ static struct {
     PFN_glBindFramebuffer glBindFramebuffer;
     PFN_glFramebufferTexture2D glFramebufferTexture2D;
     PFN_glDrawBuffers glDrawBuffers;
+    PFN_glGenerateMipmap glGenerateMipmap;
+    PFN_glRenderbufferStorage glRenderbufferStorage;
+    PFN_glFramebufferRenderbuffer glFramebufferRenderbuffer;
+    PFN_glCheckFramebufferStatus glCheckFramebufferStatus;
     PFN_glGetString glGetString;
     PFN_glGetStringi glGetStringi;
     PFN_glGetIntegerv glGetIntegerv;
@@ -263,6 +273,26 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname)
     if (strcmp(procname, "glGetString") == 0) return (__eglMustCastToProperFunctionPointerType) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
+    if (strcmp(procname, "glCreateTextures") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateTextures;
+    if (strcmp(procname, "glBindTextureUnit") == 0) return (__eglMustCastToProperFunctionPointerType) glBindTextureUnit;
+    if (strcmp(procname, "glTextureStorage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage1D;
+    if (strcmp(procname, "glTextureStorage2D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage2D;
+    if (strcmp(procname, "glTextureStorage3D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage3D;
+    if (strcmp(procname, "glTextureSubImage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureSubImage1D;
+    if (strcmp(procname, "glTextureSubImage2D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureSubImage2D;
+    if (strcmp(procname, "glTextureParameteri") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureParameteri;
+    if (strcmp(procname, "glGenerateTextureMipmap") == 0) return (__eglMustCastToProperFunctionPointerType) glGenerateTextureMipmap;
+    if (strcmp(procname, "glCreateBuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateBuffers;
+    if (strcmp(procname, "glNamedBufferData") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedBufferData;
+    if (strcmp(procname, "glNamedBufferSubData") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedBufferSubData;
+    if (strcmp(procname, "glCreateFramebuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateFramebuffers;
+    if (strcmp(procname, "glNamedFramebufferTexture") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferTexture;
+    if (strcmp(procname, "glNamedFramebufferRenderbuffer") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferRenderbuffer;
+    if (strcmp(procname, "glNamedFramebufferDrawBuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferDrawBuffers;
+    if (strcmp(procname, "glCheckNamedFramebufferStatus") == 0) return (__eglMustCastToProperFunctionPointerType) glCheckNamedFramebufferStatus;
+    if (strcmp(procname, "glCreateVertexArrays") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateVertexArrays;
+    if (strcmp(procname, "glCreateRenderbuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateRenderbuffers;
+    if (strcmp(procname, "glNamedRenderbufferStorage") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedRenderbufferStorage;
     if (real_eglGetProcAddress) return (__eglMustCastToProperFunctionPointerType) real_eglGetProcAddress(procname);
     return NULL;
 }
@@ -288,10 +318,12 @@ static void init_gles_functions() {
     RESOLVE(glDisableVertexAttribArray); RESOLVE(glDrawArrays); RESOLVE(glDrawElements);
     RESOLVE(glViewport); RESOLVE(glClearColor); RESOLVE(glClear); RESOLVE(glEnable); RESOLVE(glDisable);
     RESOLVE(glBlendFunc); RESOLVE(glDepthFunc); RESOLVE(glActiveTexture); RESOLVE(glBindTexture);
-    RESOLVE(glGenTextures); RESOLVE(glDeleteTextures); RESOLVE(glTexImage2D); RESOLVE(glTexSubImage2D);
+    RESOLVE(glGenTextures); RESOLVE(glDeleteTextures); RESOLVE(glTexImage2D); RESOLVE(glTexStorage2D); RESOLVE(glTexSubImage2D);
     RESOLVE(glTexParameteri); RESOLVE(glGenVertexArrays); RESOLVE(glDeleteVertexArrays);
     RESOLVE(glBindVertexArray); RESOLVE(glGenFramebuffers); RESOLVE(glDeleteFramebuffers);
     RESOLVE(glBindFramebuffer); RESOLVE(glFramebufferTexture2D); RESOLVE(glDrawBuffers);
+    RESOLVE(glGenerateMipmap); RESOLVE(glRenderbufferStorage); RESOLVE(glFramebufferRenderbuffer);
+    RESOLVE(glCheckFramebufferStatus);
     RESOLVE(glGetString); RESOLVE(glGetStringi); RESOLVE(glGetIntegerv); RESOLVE(glFlush); RESOLVE(glFinish);
     gles.initialized = 1;
     LOGI("QuasarV2: GLES functions resolved");
@@ -329,6 +361,139 @@ const GLubyte* glGetString(GLenum name);
 const GLubyte* glGetStringi(GLenum name, GLuint index);
 void glGetIntegerv(GLenum pname, GLint* params);
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
+
+/* ============================================================
+ * DSA (Direct State Access) Software Emulation Layer
+ * Critical for Minecraft 1.21.11, Sodium, & Iris Mod compatibility
+ * ============================================================ */
+
+void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
+    ensure_init();
+    if (gles.glGenTextures) gles.glGenTextures(n, textures);
+}
+
+void glBindTextureUnit(GLuint unit, GLuint texture) {
+    ensure_init();
+    if (gles.glActiveTexture) gles.glActiveTexture(GL_TEXTURE0 + unit);
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+}
+
+void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexImage2D) gles.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+}
+
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexStorage2D) {
+        gles.glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
+    } else if (gles.glTexImage2D) {
+        GLenum format = GL_RGBA;
+        GLenum type = GL_UNSIGNED_BYTE;
+        if (internalformat == GL_DEPTH_COMPONENT || internalformat == GL_DEPTH_COMPONENT16 || internalformat == GL_DEPTH_COMPONENT24 || internalformat == GL_DEPTH_COMPONENT32F) {
+            format = GL_DEPTH_COMPONENT;
+            type = GL_UNSIGNED_INT;
+        } else if (internalformat == GL_DEPTH24_STENCIL8 || internalformat == GL_DEPTH32F_STENCIL8) {
+            format = GL_DEPTH_STENCIL;
+            type = GL_UNSIGNED_INT_24_8;
+        }
+        gles.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
+    }
+}
+
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexImage2D) gles.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+}
+
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexSubImage2D) gles.glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, width, 1, format, type, pixels);
+}
+
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexSubImage2D) gles.glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, pixels);
+}
+
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glTexParameteri) gles.glTexParameteri(GL_TEXTURE_2D, pname, param);
+}
+
+void glGenerateTextureMipmap(GLuint texture) {
+    ensure_init();
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glGenerateMipmap) gles.glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void glCreateBuffers(GLsizei n, GLuint* buffers) {
+    ensure_init();
+    if (gles.glGenBuffers) gles.glGenBuffers(n, buffers);
+}
+
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage) {
+    ensure_init();
+    if (gles.glBindBuffer) gles.glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    if (gles.glBufferData) gles.glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+}
+
+void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data) {
+    ensure_init();
+    if (gles.glBindBuffer) gles.glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    if (gles.glBufferSubData) gles.glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+}
+
+void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
+    ensure_init();
+    if (gles.glGenFramebuffers) gles.glGenFramebuffers(n, framebuffers);
+}
+
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) {
+    ensure_init();
+    if (gles.glBindFramebuffer) gles.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    if (gles.glFramebufferTexture2D) gles.glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, level);
+}
+
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) {
+    ensure_init();
+    if (gles.glBindFramebuffer) gles.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    if (gles.glFramebufferRenderbuffer) gles.glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, renderbuffertarget, renderbuffer);
+}
+
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum* bufs) {
+    ensure_init();
+    if (gles.glBindFramebuffer) gles.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    if (gles.glDrawBuffers) gles.glDrawBuffers(n, bufs);
+}
+
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) {
+    ensure_init();
+    if (gles.glBindFramebuffer) gles.glBindFramebuffer(target, framebuffer);
+    return gles.glCheckFramebufferStatus ? gles.glCheckFramebufferStatus(target) : GL_FRAMEBUFFER_COMPLETE;
+}
+
+void glCreateVertexArrays(GLsizei n, GLuint* arrays) {
+    ensure_init();
+    if (gles.glGenVertexArrays) gles.glGenVertexArrays(n, arrays);
+}
+
+void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers) {
+    ensure_init();
+    if (gles.glGenRenderbuffers) gles.glGenRenderbuffers(n, renderbuffers);
+}
+
+void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height) {
+    ensure_init();
+    if (gles.glBindRenderbuffer) gles.glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+    if (gles.glRenderbufferStorage) gles.glRenderbufferStorage(GL_RENDERBUFFER, internalformat, width, height);
+}
 
 const GLubyte* glGetString(GLenum name) {
     switch(name) {
@@ -446,6 +611,26 @@ void* glXGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (__eglMustCastToProperFunctionPointerType) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
+    if (strcmp(procname, "glCreateTextures") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateTextures;
+    if (strcmp(procname, "glBindTextureUnit") == 0) return (__eglMustCastToProperFunctionPointerType) glBindTextureUnit;
+    if (strcmp(procname, "glTextureStorage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage1D;
+    if (strcmp(procname, "glTextureStorage2D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage2D;
+    if (strcmp(procname, "glTextureStorage3D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage3D;
+    if (strcmp(procname, "glTextureSubImage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureSubImage1D;
+    if (strcmp(procname, "glTextureSubImage2D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureSubImage2D;
+    if (strcmp(procname, "glTextureParameteri") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureParameteri;
+    if (strcmp(procname, "glGenerateTextureMipmap") == 0) return (__eglMustCastToProperFunctionPointerType) glGenerateTextureMipmap;
+    if (strcmp(procname, "glCreateBuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateBuffers;
+    if (strcmp(procname, "glNamedBufferData") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedBufferData;
+    if (strcmp(procname, "glNamedBufferSubData") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedBufferSubData;
+    if (strcmp(procname, "glCreateFramebuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateFramebuffers;
+    if (strcmp(procname, "glNamedFramebufferTexture") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferTexture;
+    if (strcmp(procname, "glNamedFramebufferRenderbuffer") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferRenderbuffer;
+    if (strcmp(procname, "glNamedFramebufferDrawBuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedFramebufferDrawBuffers;
+    if (strcmp(procname, "glCheckNamedFramebufferStatus") == 0) return (__eglMustCastToProperFunctionPointerType) glCheckNamedFramebufferStatus;
+    if (strcmp(procname, "glCreateVertexArrays") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateVertexArrays;
+    if (strcmp(procname, "glCreateRenderbuffers") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateRenderbuffers;
+    if (strcmp(procname, "glNamedRenderbufferStorage") == 0) return (__eglMustCastToProperFunctionPointerType) glNamedRenderbufferStorage;
     if (!real_eglGetProcAddress) load_real_egl();
     if (real_eglGetProcAddress) return (void*) real_eglGetProcAddress(procname);
     return NULL;
