@@ -389,15 +389,52 @@ static const char* FAKE_EXTENSIONS_LIST[] = {
 static const int FAKE_EXTENSIONS_COUNT = sizeof(FAKE_EXTENSIONS_LIST)/sizeof(FAKE_EXTENSIONS_LIST[0]);
 
 
+#define MAX_TRACKED_TEXTURES 4096
+static struct {
+    GLuint texture_id;
+    GLenum target;
+} g_texture_targets[MAX_TRACKED_TEXTURES];
+static size_t g_texture_target_count = 0;
+
+static void register_texture_target(GLuint texture, GLenum target) {
+    if (texture == 0) return;
+    for (size_t i = 0; i < g_texture_target_count; i++) {
+        if (g_texture_targets[i].texture_id == texture) {
+            g_texture_targets[i].target = target;
+            return;
+        }
+    }
+    if (g_texture_target_count < MAX_TRACKED_TEXTURES) {
+        g_texture_targets[g_texture_target_count].texture_id = texture;
+        g_texture_targets[g_texture_target_count].target = target;
+        g_texture_target_count++;
+    }
+}
+
+static GLenum get_texture_target(GLuint texture) {
+    for (size_t i = 0; i < g_texture_target_count; i++) {
+        if (g_texture_targets[i].texture_id == texture) {
+            return g_texture_targets[i].target;
+        }
+    }
+    return GL_TEXTURE_2D; // Default fallback
+}
+
 void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
     ensure_init();
     if (gles.glGenTextures) gles.glGenTextures(n, textures);
+    if (textures) {
+        for (GLsizei i = 0; i < n; i++) {
+            register_texture_target(textures[i], target);
+        }
+    }
 }
 
 void glBindTextureUnit(GLuint unit, GLuint texture) {
     ensure_init();
+    GLenum target = get_texture_target(texture);
     if (gles.glActiveTexture) gles.glActiveTexture(GL_TEXTURE0 + unit);
-    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+    if (gles.glBindTexture) gles.glBindTexture(target, texture);
 }
 
 void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width) {

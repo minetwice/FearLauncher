@@ -52,14 +52,30 @@ static char* strip_unsupported_glsl(const char* source) {
     size_t src_len = strlen(source);
     if (src_len == 0) return NULL;
 
-    char* result = (char*) malloc(src_len + 1);
+    /* Extra buffer size for precision injections if needed */
+    char* result = (char*) malloc(src_len + 1024);
     if (result == NULL) return NULL;
 
     const char* src = source;
     char* dst = result;
     const char* src_end = source + src_len;
 
+    /* Inject GLES ES precision header if shader contains #version or desktop GLSL tag */
+    if (strstr(source, "#version") != NULL && strstr(source, "precision highp") == NULL) {
+        const char* header = "#version 320 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\nprecision highp sampler3D;\nprecision highp samplerCube;\n";
+        size_t hlen = strlen(header);
+        memcpy(dst, header, hlen);
+        dst += hlen;
+
+        /* Skip original #version line */
+        if (strncmp(src, "#version", 8) == 0) {
+            const char* line_end = strchr(src, '\n');
+            if (line_end) src = line_end + 1;
+        }
+    }
+
     while (src < src_end) {
+        /* Strip "noperspective" keyword */
         if (src + 12 <= src_end && strncmp(src, "noperspective", 12) == 0) {
             char next_ch = (src + 12 < src_end) ? src[12] : ' ';
             if (next_ch == ' ' || next_ch == '\t' || next_ch == '\n' || next_ch == '\r') {
@@ -69,7 +85,8 @@ static char* strip_unsupported_glsl(const char* source) {
             }
         }
 
-        if (src + 12 <= src_end && strncmp(src, "#extension", 10) == 0) {
+        /* Strip unsupported #extension directives */
+        if (src + 10 <= src_end && strncmp(src, "#extension", 10) == 0) {
             const char* line_end = strchr(src, '\n');
             if (line_end == NULL) line_end = src_end;
             size_t line_len = line_end - src;
@@ -77,7 +94,11 @@ static char* strip_unsupported_glsl(const char* source) {
             if (line_len < sizeof(ext_line)) {
                 memcpy(ext_line, src, line_len);
                 ext_line[line_len] = '\0';
-                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL) {
+                if (strstr(ext_line, "GL_NV_shader_noperspective") != NULL ||
+                    strstr(ext_line, "GL_ARB_gpu_shader5") != NULL ||
+                    strstr(ext_line, "GL_ARB_explicit_attrib_location") != NULL ||
+                    strstr(ext_line, "GL_ARB_shader_bit_encoding") != NULL ||
+                    strstr(ext_line, "GL_ARB_shader_texture_lod") != NULL) {
                     src = (line_end < src_end) ? line_end + 1 : src_end;
                     continue;
                 }
