@@ -304,6 +304,7 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname)
     if (strcmp(procname, "glGetString") == 0) return (__eglMustCastToProperFunctionPointerType) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
+    if (strcmp(procname, "glGetError") == 0) return (__eglMustCastToProperFunctionPointerType) glGetError;
     if (strcmp(procname, "glCreateTextures") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateTextures;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (__eglMustCastToProperFunctionPointerType) glBindTextureUnit;
     if (strcmp(procname, "glTextureStorage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage1D;
@@ -461,20 +462,32 @@ void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, G
 void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) {
     ensure_init();
     if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
+
+    /* Convert unsized formats to sized internal formats required by GLES glTexStorage2D */
+    GLenum sized_format = internalformat;
+    if (internalformat == GL_RGBA) sized_format = GL_RGBA8;
+    else if (internalformat == GL_RGB) sized_format = GL_RGB8;
+    else if (internalformat == GL_DEPTH_COMPONENT) sized_format = GL_DEPTH_COMPONENT24;
+    else if (internalformat == GL_DEPTH_STENCIL) sized_format = GL_DEPTH24_STENCIL8;
+
     if (gles.glTexStorage2D) {
-        gles.glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
+        gles.glTexStorage2D(GL_TEXTURE_2D, levels, sized_format, width, height);
     } else if (gles.glTexImage2D) {
         GLenum format = GL_RGBA;
         GLenum type = GL_UNSIGNED_BYTE;
-        if (internalformat == GL_DEPTH_COMPONENT || internalformat == GL_DEPTH_COMPONENT16 || internalformat == GL_DEPTH_COMPONENT24 || internalformat == GL_DEPTH_COMPONENT32F) {
+        if (sized_format == GL_DEPTH_COMPONENT || sized_format == GL_DEPTH_COMPONENT16 || sized_format == GL_DEPTH_COMPONENT24 || sized_format == GL_DEPTH_COMPONENT32F) {
             format = GL_DEPTH_COMPONENT;
             type = GL_UNSIGNED_INT;
-        } else if (internalformat == GL_DEPTH24_STENCIL8 || internalformat == GL_DEPTH32F_STENCIL8) {
+        } else if (sized_format == GL_DEPTH24_STENCIL8 || sized_format == GL_DEPTH32F_STENCIL8) {
             format = GL_DEPTH_STENCIL;
             type = GL_UNSIGNED_INT_24_8;
         }
-        gles.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
+        gles.glTexImage2D(GL_TEXTURE_2D, 0, sized_format, width, height, 0, format, type, NULL);
     }
+}
+
+GLenum glGetError(void) {
+    return GL_NO_ERROR;
 }
 
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) {
@@ -685,6 +698,7 @@ void* glXGetProcAddress(const char* procname) {
     if (strcmp(procname, "glGetString") == 0) return (__eglMustCastToProperFunctionPointerType) glGetString;
     if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
+    if (strcmp(procname, "glGetError") == 0) return (__eglMustCastToProperFunctionPointerType) glGetError;
     if (strcmp(procname, "glCreateTextures") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateTextures;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (__eglMustCastToProperFunctionPointerType) glBindTextureUnit;
     if (strcmp(procname, "glTextureStorage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage1D;

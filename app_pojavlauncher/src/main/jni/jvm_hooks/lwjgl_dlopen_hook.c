@@ -141,19 +141,30 @@ static void glTextureStorage2D_stub(unsigned int texture, int levels, unsigned i
     if (!p_img) p_img = (glTexImage2D_pfn) dlsym(RTLD_DEFAULT, "glTexImage2D");
     if (!p_img) p_img = (glTexImage2D_pfn) dlsym(RTLD_NEXT, "glTexImage2D");
 
+    /* Convert unsized formats to sized internal formats required by GLES glTexStorage2D */
+    unsigned int sized_format = internalformat;
+    if (internalformat == 0x1908) sized_format = 0x8058; // GL_RGBA -> GL_RGBA8
+    else if (internalformat == 0x1907) sized_format = 0x8051; // GL_RGB -> GL_RGB8
+    else if (internalformat == 0x1902) sized_format = 0x81A6; // GL_DEPTH_COMPONENT -> GL_DEPTH_COMPONENT24
+    else if (internalformat == 0x84F9) sized_format = 0x88F0; // GL_DEPTH_STENCIL -> GL_DEPTH24_STENCIL8
+
     if (p_bind) p_bind(0x0DE1, texture); // GL_TEXTURE_2D
     if (p_stor) {
-        p_stor(0x0DE1, levels, internalformat, width, height);
+        p_stor(0x0DE1, levels, sized_format, width, height);
     } else if (p_img) {
         unsigned int format = 0x1908; // GL_RGBA
         unsigned int type = 0x1401; // GL_UNSIGNED_BYTE
-        if (internalformat == 0x1902 || internalformat == 0x81A5 || internalformat == 0x81A6 || internalformat == 0x8C3E) {
+        if (sized_format == 0x1902 || sized_format == 0x81A5 || sized_format == 0x81A6 || sized_format == 0x8C3E) {
             format = 0x1902; type = 0x1405; // GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-        } else if (internalformat == 0x88F0 || internalformat == 0x8CAD) {
+        } else if (sized_format == 0x88F0 || sized_format == 0x8CAD) {
             format = 0x84F9; type = 0x84FA; // GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
         }
-        p_img(0x0DE1, 0, (int)internalformat, width, height, 0, format, type, NULL);
+        p_img(0x0DE1, 0, (int)sized_format, width, height, 0, format, type, NULL);
     }
+}
+
+static unsigned int glGetError_stub(void) {
+    return 0; // GL_NO_ERROR
 }
 
 static void glTextureSubImage2D_stub(unsigned int texture, int level, int xoffset, int yoffset, int width, int height, unsigned int format, unsigned int type, const void* pixels) {
@@ -512,6 +523,9 @@ static void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "glGetIntegerv") == 0) {
         return (void*) glGetIntegerv_hook;
     }
+    if (strcmp(procname, "glGetError") == 0) {
+        return (void*) glGetError_stub;
+    }
     if (strcmp(procname, "glCreateTextures") == 0) return (void*) glCreateTextures_stub;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (void*) glBindTextureUnit_stub;
     if (strcmp(procname, "glTextureStorage2D") == 0) return (void*) glTextureStorage2D_stub;
@@ -594,6 +608,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glGetIntegerv") == 0) {
             printf("LWJGL linkerhook: successfully hooked glGetIntegerv symbol directly\n");
             return (jlong) glGetIntegerv_hook;
+        }
+        if (strcmp(symbol, "glGetError") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glGetError symbol directly\n");
+            return (jlong) glGetError_stub;
         }
         if (strcmp(symbol, "glCreateTextures") == 0) return (jlong) glCreateTextures_stub;
         if (strcmp(symbol, "glBindTextureUnit") == 0) return (jlong) glBindTextureUnit_stub;
