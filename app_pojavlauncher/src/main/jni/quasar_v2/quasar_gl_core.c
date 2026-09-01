@@ -376,15 +376,30 @@ JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_quasar_QuasarV2_shutdownEGL(JNIE
  * ============================================================ */
 
 static const char* FAKE_EXTENSIONS_LIST[] = {
-    "GL_ARB_direct_state_access", "GL_ARB_buffer_storage", "GL_ARB_shader_image_load_store",
-    "GL_NV_conditional_render", "GL_EXT_gpu_shader4", "GL_EXT_texture_buffer",
-    "GL_EXT_texture_cube_map_array", "GL_OES_EGL_image_external_essl3",
-    "GL_ARB_shader_texture_lod", "GL_ARB_shader_objects", "GL_ARB_vertex_shader",
-    "GL_ARB_fragment_shader", "GL_EXT_blend_equation_separate", "GL_EXT_geometry_shader4",
-    "GL_EXT_gpu_program_parameters", "GL_ARB_instanced_arrays", "GL_ARB_draw_instanced",
-    "GL_ARB_framebuffer_object", "GL_ARB_texture_float", "GL_ARB_color_buffer_float",
-    "GL_ARB_half_float_vertex", "GL_ARB_half_float_pixel", "GL_ARB_depth_buffer_float",
-    "GL_ARB_draw_buffers", "GL_ARB_shader_storage_buffer_object", "GL_ARB_uniform_buffer_object"
+    "GL_ARB_direct_state_access",
+    "GL_ARB_buffer_storage",
+    "GL_ARB_shader_image_load_store",
+    "GL_NV_conditional_render",
+    "GL_EXT_gpu_shader4",
+    "GL_EXT_texture_buffer",
+    "GL_EXT_texture_cube_map_array",
+    "GL_OES_EGL_image_external_essl3",
+    "GL_ARB_shader_texture_lod",
+    "GL_ARB_shader_objects",
+    "GL_ARB_vertex_shader",
+    "GL_ARB_fragment_shader",
+    "GL_EXT_blend_equation_separate",
+    "GL_EXT_geometry_shader4",
+    "GL_EXT_gpu_program_parameters",
+    "GL_ARB_instanced_arrays",
+    "GL_ARB_draw_instanced",
+    "GL_ARB_multi_bind",
+    "GL_ARB_explicit_attrib_location",
+    "GL_ARB_separate_shader_objects",
+    "GL_ARB_get_program_binary",
+    "GL_ARB_gpu_shader5",
+    "GL_ARB_texture_query_levels",
+    "GL_ARB_texture_gather"
 };
 static const int FAKE_EXTENSIONS_COUNT = sizeof(FAKE_EXTENSIONS_LIST)/sizeof(FAKE_EXTENSIONS_LIST[0]);
 
