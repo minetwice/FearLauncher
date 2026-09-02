@@ -12,6 +12,7 @@ namespace FearXextream {
     }
 
     void StateTracker::setBlendState(bool enabled, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (m_blendState.enabled != enabled ||
             m_blendState.srcRGB != srcRGB || m_blendState.dstRGB != dstRGB ||
             m_blendState.srcAlpha != srcAlpha || m_blendState.dstAlpha != dstAlpha) {
@@ -32,6 +33,7 @@ namespace FearXextream {
     }
 
     void StateTracker::setDepthState(bool testEnabled, bool writeMask, GLenum func) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (m_depthState.testEnabled != testEnabled) {
             m_depthState.testEnabled = testEnabled;
             if (testEnabled) glEnable(GL_DEPTH_TEST);
@@ -50,6 +52,7 @@ namespace FearXextream {
     }
 
     void StateTracker::setRasterizerState(bool cullEnabled, GLenum cullFace, GLenum frontFace) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (m_rasterizerState.cullEnabled != cullEnabled) {
             m_rasterizerState.cullEnabled = cullEnabled;
             if (cullEnabled) glEnable(GL_CULL_FACE);
@@ -68,6 +71,7 @@ namespace FearXextream {
     }
 
     void StateTracker::bindTexture(GLenum target, GLuint texture) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (target == GL_TEXTURE_2D && m_boundTexture2D != texture) {
             m_boundTexture2D = texture;
             glBindTexture(target, texture);
@@ -75,6 +79,7 @@ namespace FearXextream {
     }
 
     void StateTracker::bindFramebuffer(GLenum target, GLuint framebuffer) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (m_boundFramebuffer != framebuffer) {
             m_boundFramebuffer = framebuffer;
             glBindFramebuffer(target, framebuffer);

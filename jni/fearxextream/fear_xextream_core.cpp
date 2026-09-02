@@ -108,20 +108,27 @@ namespace FearXextream {
 // Exported C API Wrappers for LWJGL Dynamic Linker
 extern "C" {
     JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_initFearXextreamEngine(JNIEnv* env, jclass clazz, jstring cacheDirStr) {
-        const char* path = env->GetStringUTFChars(cacheDirStr, nullptr);
-        FearXextream::EngineConfig config;
-        config.cacheDirectory = path ? path : "";
-        FearXextream::ContextTracker::getInstance().initialize(config);
-        FearXextream::VulkanBackend::initVulkanInstance();
+        if (!env) return;
+        const char* path = cacheDirStr ? env->GetStringUTFChars(cacheDirStr, nullptr) : nullptr;
+        try {
+            FearXextream::EngineConfig config;
+            config.cacheDirectory = path ? path : "";
+            FearXextream::ContextTracker::getInstance().initialize(config);
+            FearXextream::VulkanBackend::initVulkanInstance();
 
-        FearXextream::TranspilerOptions transpilerOpts;
-        transpilerOpts.gpuArch = FearXextream::GPUArchitecture::GENERIC_MOBILE;
-        FearXextream::ShaderTranspiler transpiler(transpilerOpts);
+            FearXextream::TranspilerOptions transpilerOpts;
+            transpilerOpts.gpuArch = FearXextream::GPUArchitecture::GENERIC_MOBILE;
+            FearXextream::ShaderTranspiler transpiler(transpilerOpts);
 
-        // Initialize Texture Translator Format Remapping
-        FearXextream::TextureTranslator::getInstance().translateFormat(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
-        LOGI("FearXextream Engine: Shader Transpiler, State Tracker & Texture Translator Initialized!");
+            // Initialize Texture Translator Format Remapping
+            FearXextream::TextureTranslator::getInstance().translateFormat(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
+            LOGI("FearXextream Engine: Shader Transpiler, State Tracker & Texture Translator Initialized Successfully!");
+        } catch (const std::exception& e) {
+            LOGE("FearXextream Engine initialization exception: %s", e.what());
+        } catch (...) {
+            LOGE("FearXextream Engine initialization unknown exception caught.");
+        }
 
-        if (path) env->ReleaseStringUTFChars(cacheDirStr, path);
+        if (path && cacheDirStr) env->ReleaseStringUTFChars(cacheDirStr, path);
     }
 }

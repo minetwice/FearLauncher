@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cstdint>
 #include <vector>
+#include <mutex>
 #include <GLES3/gl32.h>
 
 namespace FearXextream {
@@ -58,6 +59,7 @@ namespace FearXextream {
         GLuint m_boundFramebuffer = 0;
 
         std::atomic<uint64_t> m_drawCalls{0};
+        mutable std::mutex m_mutex;
     };
 
 }
