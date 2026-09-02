@@ -85,6 +85,10 @@ endif()
 add_library(quasar_gl SHARED
     quasar_v2/quasar_gl_core.c
     quasar_v2/quasar_shader_hook.c
+    quasar_v2/quasar_state.c
+    quasar_v2/quasar_fbo.c
+    quasar_v2/quasar_caps.c
+    quasar_v2/quasar_cache.c
 )
 target_include_directories(quasar_gl PRIVATE .)
 target_compile_options(quasar_gl PRIVATE -fvisibility=default)
