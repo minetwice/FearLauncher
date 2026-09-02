@@ -43,11 +43,30 @@ public class RendererCompatUtil {
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
+            if(rendererId.equals("fear_xextream")) {
+                rendererIds.add(rendererId);
+                rendererNames.add(defaultRendererNames[i]);
+                continue;
+            }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
+        }
+
+        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
+        List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
+        for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
+            String pluginId = "plugin:" + plugin.getId();
+            String displayName = plugin.getDisplayName();
+            if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
+                displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
+            }
+            if (!rendererIds.contains(pluginId)) {
+                rendererIds.add(pluginId);
+                rendererNames.add(displayName);
+            }
         }
 
         sCompatibleRenderers = new RenderersList(rendererIds,

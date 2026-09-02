@@ -92,6 +92,21 @@ public class JREUtils {
     // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "fear_xextream":
+                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("allow_higher_compat_version", "true");
+                envMap.put("allow_glsl_relaxed_es", "true");
+                break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
@@ -243,7 +258,49 @@ public class JREUtils {
         boolean preloadVk = true;
         int glesVersion;
 
+        if (renderer != null && renderer.startsWith("plugin:")) {
+            String appId = renderer.substring("plugin:".length());
+            Logger.appendToLog("[CustomRenderer] Loading plugin: " + appId);
+            Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+            LibraryPlugin plugin = (context != null) ? LibraryPlugin.discoverPlugin(context, appId) : null;
+            if (plugin != null) {
+                String libDir = plugin.getLibraryPath();
+                File libDirFile = new File(libDir);
+                if (libDirFile.exists() && libDirFile.isDirectory()) {
+                    File[] candidates = libDirFile.listFiles((dir, name) -> name.endsWith(".so"));
+                    if (candidates != null && candidates.length > 0) {
+                        File chosenSo = candidates[0];
+                        for (File candidate : candidates) {
+                            String name = candidate.getName();
+                            if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL")) {
+                                chosenSo = candidate;
+                                break;
+                            }
+                        }
+                        renderLibrary = chosenSo.getAbsolutePath();
+                        useGles = true;
+                        glesVersion = 3;
+                        return renderLibrary;
+                    }
+                }
+            }
+            Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to LTW/GL4ES");
+            renderer = "opengles3_ltw";
+        }
+
         switch (renderer){
+            case "fear_xextream":
+                renderLibrary = "libltw.so";
+                useGles = true;
+                glesVersion = 3;
+                try {
+                    System.loadLibrary("FearXextream");
+                    String cachePath = Tools.DIR_GAME_HOME + "/fear_xextream_cache";
+                    initFearXextreamEngine(cachePath);
+                } catch (Throwable t) {
+                    Log.e("JREUtils", "FearXextream fallback to LTW backend", t);
+                }
+                break;
             case "vulkan_zink":
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
@@ -282,6 +339,9 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
+
+    // FearXextream Native Engine JNI Declaration
+    public static native void initFearXextreamEngine(String cachePath);
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);

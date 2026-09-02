@@ -148,3 +148,29 @@ target_link_libraries(fearrender PRIVATE
     spirv-cross-core
     spirv-cross-glsl
 )
+
+# FearXextream Engine Native Library
+add_library(fearxextream SHARED
+    fearxextream/fear_xextream_core.cpp
+)
+
+set_target_properties(fearxextream PROPERTIES
+    OUTPUT_NAME "FearXextream"
+    CXX_VISIBILITY_PRESET default
+    C_VISIBILITY_PRESET default
+)
+
+target_include_directories(fearxextream PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/fearxextream
+)
+
+find_library(vulkan-lib vulkan)
+
+target_link_libraries(fearxextream PRIVATE
+    ${log-lib}
+    ${android-lib}
+    ${egl-lib}
+    ${glesv3-lib}
+    ${vulkan-lib}
+    dl
+)
