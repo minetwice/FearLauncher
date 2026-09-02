@@ -152,6 +152,8 @@ target_link_libraries(fearrender PRIVATE
 # FearXextream Engine Native Library
 add_library(fearxextream SHARED
     fearxextream/fear_xextream_core.cpp
+    fearxextream/fear_xextream_shader_transpiler.cpp
+    fearxextream/fear_xextream_state_tracker.cpp
 )
 
 set_target_properties(fearxextream PROPERTIES

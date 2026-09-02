@@ -1,4 +1,6 @@
 #include "fear_xextream_core.h"
+#include "fear_xextream_shader_transpiler.h"
+#include "fear_xextream_state_tracker.h"
 #include <sstream>
 #include <dlfcn.h>
 
@@ -110,6 +112,12 @@ extern "C" {
         config.cacheDirectory = path ? path : "";
         FearXextream::ContextTracker::getInstance().initialize(config);
         FearXextream::VulkanBackend::initVulkanInstance();
+
+        FearXextream::TranspilerOptions transpilerOpts;
+        transpilerOpts.gpuArch = FearXextream::GPUArchitecture::GENERIC_MOBILE;
+        FearXextream::ShaderTranspiler transpiler(transpilerOpts);
+        LOGI("FearXextream Engine: Shader Transpiler & State Tracker Initialized!");
+
         if (path) env->ReleaseStringUTFChars(cacheDirStr, path);
     }
 }
