@@ -25,6 +25,10 @@
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
 
+static int flite_dummy_stub(void) {
+    return 0;
+}
+
 static void glMemoryBarrier_stub(unsigned int barriers) {
     typedef void (*glFlush_pfn)();
     static glFlush_pfn real_glFlush = NULL;
@@ -560,10 +564,10 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      jint jmode) {
     const char* filename = (const char*) filename_ptr;
 
-    // Handle libflite.so for Mojang Narrator gracefully on Android
-    if(filename != NULL && strstr(filename, "libflite.so") != NULL) {
-        LOGI("LWJGL linkerhook: Bypassing libflite.so load for Mojang Narrator");
-        return (jlong) dlopen(NULL, RTLD_LAZY);
+    // Handle libflite.so for Mojang Narrator gracefully on Android by returning dummy handle
+    if(filename != NULL && (strstr(filename, "libflite.so") != NULL || strstr(filename, "flite") != NULL)) {
+        LOGI("LWJGL linkerhook: Returning dummy handle for libflite.so (Mojang Narrator)");
+        return (jlong)(uintptr_t)0x464C4954; // Magic handle 'FLIT'
     }
 
     // Oveeride vulkan loading to let us load vulkan ourselves
@@ -593,7 +597,14 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   __attribute__((unused)) jclass class,
                   jlong handle,
                   jlong symbol_ptr) {
+    if (handle == (jlong)(uintptr_t)0x464C4954) {
+        return (jlong)(uintptr_t)flite_dummy_stub;
+    }
+
     const char* symbol = (const char*) symbol_ptr;
+    if (symbol != NULL && (strncmp(symbol, "flite_", 6) == 0 || strncmp(symbol, "usenglish_", 10) == 0 || strncmp(symbol, "cda_", 4) == 0)) {
+        return (jlong)(uintptr_t)flite_dummy_stub;
+    }
     if (symbol != NULL) {
         if (strcmp(symbol, "eglGetProcAddress") == 0) {
             printf("LWJGL linkerhook: successfully hooked eglGetProcAddress symbol directly\n");
