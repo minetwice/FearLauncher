@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item name="0">Fear Render - Standalone (FOGL core)</item>
-        <item name="1">@string/mcl_setting_renderer_gles2_4</item>
-        <item name="2">@string/mcl_setting_renderer_vulkan_zink</item>
-        <item name="3">@string/mcl_setting_renderer_freedreno_kgsl</item>
-        <item name="4">@string/mcl_setting_renderer_ltw</item>
-        <item name="5">MH DRIVE (Mali Hybrid Optimization Engine)</item>
-        <item name="6">ANGLE Engine (GLES via Vulkan Translation)</item>
-        <item name="7">VirGL Gallium Driver (Mesa VirGL Engine)</item>
-        <item name="8">Turnip / Krypton Zink (Adreno Hardware Engine)</item>
+        <item name="0">@string/mcl_setting_renderer_gles2_4</item>
+        <item name="1">@string/mcl_setting_renderer_vulkan_zink</item>
+        <item name="2">@string/mcl_setting_renderer_ltw</item>
     </string-array>
 
     <string-array name="menu_customcontrol">
@@ -41,15 +35,9 @@
     </string-array>
     
     <string-array name="renderer_values">
-        <item>fear_engine</item> <!-- Fear Render (Standalone FOGL core) -->
         <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->
-        <item>vulkan_zink</item> <!-- zink with OpenGL (undef) -->
-        <item>freedreno_kgsl</item> <!-- freedreno gallium driver with OpenGL 4.6 -->
+        <item>vulkan_zink</item> <!-- zink with OpenGL -->
         <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->
-        <item>mh_drive</item>
-        <item>angle_vulkan</item> <!-- ANGLE Engine -->
-        <item>virgl_renderer</item> <!-- VirGL Gallium Driver -->
-        <item>turnip_zink</item> <!-- Turnip / Krypton Zink -->
     </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>

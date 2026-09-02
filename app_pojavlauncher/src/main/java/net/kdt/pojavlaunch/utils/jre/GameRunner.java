@@ -186,7 +186,7 @@ public class GameRunner {
         }
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("fear_engine") || rendererName.equals("mh_drive");
+        boolean isLtw = rendererName.equals("opengles3_ltw");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
@@ -347,15 +347,6 @@ public class GameRunner {
 
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
 
-        if (rendererName.equals("fear_engine") || rendererName.equals("mh_drive") || rendererName.equals("opengles3_ltw")) {
-            try {
-                System.loadLibrary("fear_render");
-                String cachePath = activity.getFilesDir().getAbsolutePath() + "/fear_shader_cache";
-                JREUtils.initFearShaderEngine(cachePath, 1 /* version number */);
-            } catch (Throwable t) {
-                Log.e("GameRunner", "Failed to initialize Fear Shader Engine", t);
-            }
-        }
 
         try {
             JavaRunner.nativeSetupExit(activity);
