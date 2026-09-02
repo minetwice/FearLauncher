@@ -93,7 +93,7 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment...");
+                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment for Complementary & Iris Shaders...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -101,11 +101,26 @@ public class JREUtils {
                 envMap.put("LIBGL_NOERROR", "1");
                 envMap.put("LIBGL_GL", "46");
                 envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+                envMap.put("LIBGL_NOTEXTURERECT", "0");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_ALWAYSCURRENT", "1");
+                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_DEPTH", "24");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
+                envMap.put("glsl_ignore_unsupported_extensions", "true");
+                envMap.put("glsl_ignore_noperspective", "true");
+                envMap.put("glsl_force_highp", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");

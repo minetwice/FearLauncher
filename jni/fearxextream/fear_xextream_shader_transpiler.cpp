@@ -25,6 +25,11 @@ namespace FearXextream {
 
         output << "#define FEAR_XEXTREAM_ENGINE 1\n";
         output << "#define FEAR_XEXTREAM_VERSION 200\n";
+        // Desktop GL Emulation Macros for Complementary, Solas, Iris & OptiFine Shaders
+        output << "#define MC_GL_VENDOR_NVIDIA 1\n";
+        output << "#define MC_GL_RENDERER_GEFORCE 1\n";
+        output << "#define MC_GLSL_VERSION_460 1\n";
+        output << "#define SHADER_PACK_COMPAT 1\n";
 
         std::string processedCode = desktopGLSL;
 

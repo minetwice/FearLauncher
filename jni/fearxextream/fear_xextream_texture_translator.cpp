@@ -49,13 +49,14 @@ namespace FearXextream {
                 mapping.type = GL_UNSIGNED_BYTE;
                 mapping.requiresSRGBConversion = true;
                 break;
-            case GL_SRGB_ALPHA:
+#ifdef GL_SRGB8_ALPHA8
             case GL_SRGB8_ALPHA8:
                 mapping.mobileInternalFormat = GL_SRGB8_ALPHA8;
                 mapping.format = GL_RGBA;
                 mapping.type = GL_UNSIGNED_BYTE;
                 mapping.requiresSRGBConversion = true;
                 break;
+#endif
 
             // High Fidelity Depth / Shadow Map Textures
             case GL_DEPTH_COMPONENT:
