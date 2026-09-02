@@ -164,13 +164,10 @@ target_include_directories(fearxextream PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/fearxextream
 )
 
-find_library(vulkan-lib vulkan)
-
 target_link_libraries(fearxextream PRIVATE
     ${log-lib}
     ${android-lib}
     ${egl-lib}
     ${glesv3-lib}
-    ${vulkan-lib}
     dl
 )

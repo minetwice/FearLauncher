@@ -1,5 +1,9 @@
 #include "fear_xextream_core.h"
 #include <sstream>
+#include <dlfcn.h>
+
+typedef VkResult (*PFN_vkCreateInstance_t)(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*);
+typedef void (*PFN_vkDestroyInstance_t)(VkInstance, const VkAllocationCallbacks*);
 
 namespace FearXextream {
 
@@ -30,12 +34,14 @@ namespace FearXextream {
         ss << "precision highp int;\n";
         ss << "#define FEAR_XEXTREAM 1\n";
 
-        // Strip noperspective
+        // Strip noperspective safely
         std::string processed = source;
+        const std::string target = "noperspective";
+        const std::string replacement = "/* noperspective */";
         size_t pos = 0;
-        while ((pos = processed.find("noperspective", pos)) != std::string::npos) {
-            processed.replace(pos, 13, "/* noperspective */");
-            pos += 20;
+        while ((pos = processed.find(target, pos)) != std::string::npos) {
+            processed.replace(pos, target.length(), replacement);
+            pos += replacement.length();
         }
 
         ss << processed;
@@ -49,7 +55,22 @@ namespace FearXextream {
     }
 
     bool VulkanBackend::initVulkanInstance() {
-        LOGI("FearXextream VulkanBackend: Probing Vulkan drivers...");
+        LOGI("FearXextream VulkanBackend: Probing Vulkan drivers dynamically...");
+        void* handle = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+        if (!handle) {
+            LOGE("FearXextream VulkanBackend: libvulkan.so not available on device");
+            return false;
+        }
+
+        PFN_vkCreateInstance_t pfnCreateInstance = (PFN_vkCreateInstance_t)dlsym(handle, "vkCreateInstance");
+        PFN_vkDestroyInstance_t pfnDestroyInstance = (PFN_vkDestroyInstance_t)dlsym(handle, "vkDestroyInstance");
+
+        if (!pfnCreateInstance || !pfnDestroyInstance) {
+            LOGE("FearXextream VulkanBackend: vkCreateInstance or vkDestroyInstance symbol missing");
+            dlclose(handle);
+            return false;
+        }
+
         VkInstance instance = VK_NULL_HANDLE;
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -63,13 +84,15 @@ namespace FearXextream {
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
 
-        VkResult res = vkCreateInstance(&createInfo, nullptr, &instance);
+        VkResult res = pfnCreateInstance(&createInfo, nullptr, &instance);
         if (res == VK_SUCCESS && instance != VK_NULL_HANDLE) {
             LOGI("FearXextream VulkanBackend: Vulkan Instance Created Successfully!");
-            vkDestroyInstance(instance, nullptr);
+            pfnDestroyInstance(instance, nullptr);
+            dlclose(handle);
             return true;
         } else {
             LOGE("FearXextream VulkanBackend: Vulkan Instance Creation Failed (code %d)", res);
+            dlclose(handle);
             return false;
         }
     }
