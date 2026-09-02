@@ -560,6 +560,12 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      jint jmode) {
     const char* filename = (const char*) filename_ptr;
 
+    // Handle libflite.so for Mojang Narrator gracefully on Android
+    if(filename != NULL && strstr(filename, "libflite.so") != NULL) {
+        LOGI("LWJGL linkerhook: Bypassing libflite.so load for Mojang Narrator");
+        return (jlong) dlopen(NULL, RTLD_LAZY);
+    }
+
     // Oveeride vulkan loading to let us load vulkan ourselves
     if(strstr(filename, "libvulkan.so") == filename) {
         printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
