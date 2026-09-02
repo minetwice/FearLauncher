@@ -1,6 +1,7 @@
 #include "fear_xextream_core.h"
 #include "fear_xextream_shader_transpiler.h"
 #include "fear_xextream_state_tracker.h"
+#include "fear_xextream_texture_translator.h"
 #include <sstream>
 #include <dlfcn.h>
 
@@ -116,7 +117,10 @@ extern "C" {
         FearXextream::TranspilerOptions transpilerOpts;
         transpilerOpts.gpuArch = FearXextream::GPUArchitecture::GENERIC_MOBILE;
         FearXextream::ShaderTranspiler transpiler(transpilerOpts);
-        LOGI("FearXextream Engine: Shader Transpiler & State Tracker Initialized!");
+
+        // Initialize Texture Translator Format Remapping
+        FearXextream::TextureTranslator::getInstance().translateFormat(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
+        LOGI("FearXextream Engine: Shader Transpiler, State Tracker & Texture Translator Initialized!");
 
         if (path) env->ReleaseStringUTFChars(cacheDirStr, path);
     }
