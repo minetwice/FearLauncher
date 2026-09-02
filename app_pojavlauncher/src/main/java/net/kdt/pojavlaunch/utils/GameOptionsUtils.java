@@ -34,7 +34,6 @@ public class GameOptionsUtils {
      * on and causes MC to generate insanely large log files when starting again
      */
     private static void disableNarrator() {
-        if(parseIntDefault(MCOptionUtils.get("narrator"), 0) == 0) return;
         MCOptionUtils.set("narrator", "0");
     }
 
