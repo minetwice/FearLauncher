@@ -93,7 +93,7 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment for Complementary & Iris Shaders...");
+                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment for Mali GPUs & Complementary Shaders...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -120,7 +120,11 @@ public class JREUtils {
                 envMap.put("allow_glsl_relaxed_es", "true");
                 envMap.put("glsl_ignore_unsupported_extensions", "true");
                 envMap.put("glsl_ignore_noperspective", "true");
+                envMap.put("LIBGL_GLSL_STRIP", "noperspective");
+                envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
                 envMap.put("glsl_force_highp", "true");
+                envMap.put("mali_debug", "nocluster");
+                envMap.put("pan_shader_compile_threads", "4");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");

@@ -155,6 +155,7 @@ add_library(fearxextream SHARED
     fearxextream/fear_xextream_shader_transpiler.cpp
     fearxextream/fear_xextream_state_tracker.cpp
     fearxextream/fear_xextream_texture_translator.cpp
+    fearxextream/fear_xextream_mali_fixer.cpp
 )
 
 set_target_properties(fearxextream PROPERTIES

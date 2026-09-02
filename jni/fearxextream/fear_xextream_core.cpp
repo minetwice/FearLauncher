@@ -2,6 +2,7 @@
 #include "fear_xextream_shader_transpiler.h"
 #include "fear_xextream_state_tracker.h"
 #include "fear_xextream_texture_translator.h"
+#include "fear_xextream_mali_fixer.h"
 #include <sstream>
 #include <dlfcn.h>
 
@@ -122,7 +123,8 @@ extern "C" {
 
             // Initialize Texture Translator Format Remapping
             FearXextream::TextureTranslator::getInstance().translateFormat(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
-            LOGI("FearXextream Engine: Shader Transpiler, State Tracker & Texture Translator Initialized Successfully!");
+            FearXextream::MaliShaderFixer::configureMaliPipelineEnv();
+            LOGI("FearXextream Engine: Shader Transpiler, State Tracker, Texture Translator & Mali Fixer Initialized Successfully!");
         } catch (const std::exception& e) {
             LOGE("FearXextream Engine initialization exception: %s", e.what());
         } catch (...) {

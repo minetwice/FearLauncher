@@ -97,11 +97,16 @@ namespace FearXextream {
 
     void ShaderTranspiler::stripDesktopExtensions(std::string& code) {
         const std::vector<std::string> extensionsToStrip = {
+            "#extension GL_NV_shader_noperspective_interpolation : enable",
+            "#extension GL_NV_shader_noperspective_interpolation : require",
+            "#extension GL_NV_shader_noperspective_interpolation : warn",
             "#extension GL_ARB_gpu_shader5 : enable",
             "#extension GL_ARB_gpu_shader5 : require",
             "#extension GL_NV_gpu_shader5 : enable",
             "#extension GL_ARB_shading_language_420pack : enable",
-            "#extension GL_ARB_explicit_attrib_location : enable"
+            "#extension GL_ARB_explicit_attrib_location : enable",
+            "#extension GL_EXT_gpu_shader4 : enable",
+            "#extension GL_EXT_gpu_shader4 : require"
         };
 
         for (const auto& ext : extensionsToStrip) {
@@ -114,12 +119,31 @@ namespace FearXextream {
     }
 
     void ShaderTranspiler::sanitizeInterpolators(std::string& code) {
+        // 1. Remove any remaining GL_NV_shader_noperspective_interpolation extension lines
+        size_t nvExtPos = 0;
+        while ((nvExtPos = code.find("GL_NV_shader_noperspective_interpolation")) != std::string::npos) {
+            size_t lineStart = code.rfind('#', nvExtPos);
+            size_t lineEnd = code.find('\n', nvExtPos);
+            if (lineStart != std::string::npos && lineEnd != std::string::npos) {
+                code.replace(lineStart, lineEnd - lineStart, "// stripped extension");
+            } else {
+                code.replace(nvExtPos, 41, "GL_DISABLED_EXT");
+            }
+        }
+
+        // 2. Strip noperspective keyword and replace with smooth or empty space to prevent L0003 reserved keyword error on Mali
         const std::string target = "noperspective";
-        const std::string replacement = "/* noperspective */";
         size_t pos = 0;
         while ((pos = code.find(target, pos)) != std::string::npos) {
-            code.replace(pos, target.length(), replacement);
-            pos += replacement.length();
+            // Ensure noperspective is a whole word
+            bool validBefore = (pos == 0) || !isalnum(code[pos - 1]) && code[pos - 1] != '_';
+            bool validAfter = (pos + target.length() >= code.length()) || !isalnum(code[pos + target.length()]) && code[pos + target.length()] != '_';
+            if (validBefore && validAfter) {
+                code.replace(pos, target.length(), "smooth");
+                pos += 6;
+            } else {
+                pos += target.length();
+            }
         }
     }
 
