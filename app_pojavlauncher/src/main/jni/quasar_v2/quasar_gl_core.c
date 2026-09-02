@@ -240,6 +240,9 @@ static void ensure_init() {
 const GLubyte* glGetString(GLenum name);
 const GLubyte* glGetStringi(GLenum name, GLuint index);
 void glGetIntegerv(GLenum pname, GLint* params);
+GLenum glGetError(void);
+void glClearDepth(double depth);
+void glDepthRange(double nearVal, double farVal);
 void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint* textures);
@@ -305,6 +308,10 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname)
     if (strcmp(procname, "glGetStringi") == 0) return (__eglMustCastToProperFunctionPointerType) glGetStringi;
     if (strcmp(procname, "glGetIntegerv") == 0) return (__eglMustCastToProperFunctionPointerType) glGetIntegerv;
     if (strcmp(procname, "glGetError") == 0) return (__eglMustCastToProperFunctionPointerType) glGetError;
+    if (strcmp(procname, "glClearDepth") == 0) return (__eglMustCastToProperFunctionPointerType) glClearDepth;
+    if (strcmp(procname, "glDepthRange") == 0) return (__eglMustCastToProperFunctionPointerType) glDepthRange;
+    if (strcmp(procname, "glClearDepth") == 0) return (__eglMustCastToProperFunctionPointerType) glClearDepth;
+    if (strcmp(procname, "glDepthRange") == 0) return (__eglMustCastToProperFunctionPointerType) glDepthRange;
     if (strcmp(procname, "glCreateTextures") == 0) return (__eglMustCastToProperFunctionPointerType) glCreateTextures;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (__eglMustCastToProperFunctionPointerType) glBindTextureUnit;
     if (strcmp(procname, "glTextureStorage1D") == 0) return (__eglMustCastToProperFunctionPointerType) glTextureStorage1D;
@@ -490,10 +497,40 @@ GLenum glGetError(void) {
     return GL_NO_ERROR;
 }
 
+void glClearDepth(double depth) {
+    ensure_init();
+    typedef void (*PFN_glClearDepthf)(GLfloat);
+    static PFN_glClearDepthf real_glClearDepthf = NULL;
+    if (!real_glClearDepthf && real_eglGetProcAddress) {
+        real_glClearDepthf = (PFN_glClearDepthf) real_eglGetProcAddress("glClearDepthf");
+    }
+    if (real_glClearDepthf) real_glClearDepthf((GLfloat)depth);
+}
+
+void glDepthRange(double nearVal, double farVal) {
+    ensure_init();
+    typedef void (*PFN_glDepthRangef)(GLfloat, GLfloat);
+    static PFN_glDepthRangef real_glDepthRangef = NULL;
+    if (!real_glDepthRangef && real_eglGetProcAddress) {
+        real_glDepthRangef = (PFN_glDepthRangef) real_eglGetProcAddress("glDepthRangef");
+    }
+    if (real_glDepthRangef) real_glDepthRangef((GLfloat)nearVal, (GLfloat)farVal);
+}
+
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) {
     ensure_init();
-    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_2D, texture);
-    if (gles.glTexImage2D) gles.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    if (gles.glBindTexture) gles.glBindTexture(GL_TEXTURE_3D, texture);
+    if (gles.glTexStorage2D) {
+        /* GLES3 glTexStorage3D pointer resolution fallback */
+        typedef void (*PFN_glTexStorage3D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei);
+        static PFN_glTexStorage3D real_glTexStorage3D = NULL;
+        if (!real_glTexStorage3D && real_eglGetProcAddress) {
+            real_glTexStorage3D = (PFN_glTexStorage3D) real_eglGetProcAddress("glTexStorage3D");
+        }
+        if (real_glTexStorage3D) {
+            real_glTexStorage3D(GL_TEXTURE_3D, levels, internalformat, width, height, depth);
+        }
+    }
 }
 
 void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels) {

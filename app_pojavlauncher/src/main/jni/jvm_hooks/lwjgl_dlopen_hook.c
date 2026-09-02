@@ -171,6 +171,22 @@ static unsigned int glGetError_stub(void) {
     return 0; // GL_NO_ERROR
 }
 
+static void glClearDepth_hook(double depth) {
+    typedef void (*glClearDepthf_pfn)(float);
+    static glClearDepthf_pfn p_clr = NULL;
+    if (!p_clr) p_clr = (glClearDepthf_pfn) dlsym(RTLD_DEFAULT, "glClearDepthf");
+    if (!p_clr) p_clr = (glClearDepthf_pfn) dlsym(RTLD_NEXT, "glClearDepthf");
+    if (p_clr) p_clr((float) depth);
+}
+
+static void glDepthRange_hook(double zNear, double zFar) {
+    typedef void (*glDepthRangef_pfn)(float, float);
+    static glDepthRangef_pfn p_rng = NULL;
+    if (!p_rng) p_rng = (glDepthRangef_pfn) dlsym(RTLD_DEFAULT, "glDepthRangef");
+    if (!p_rng) p_rng = (glDepthRangef_pfn) dlsym(RTLD_NEXT, "glDepthRangef");
+    if (p_rng) p_rng((float) zNear, (float) zFar);
+}
+
 static void glTextureSubImage2D_stub(unsigned int texture, int level, int xoffset, int yoffset, int width, int height, unsigned int format, unsigned int type, const void* pixels) {
     typedef void (*glTexSubImage2D_pfn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
     static glBindTexture_pfn p_bind = NULL;
@@ -530,6 +546,12 @@ static void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "glGetError") == 0) {
         return (void*) glGetError_stub;
     }
+    if (strcmp(procname, "glClearDepth") == 0) {
+        return (void*) glClearDepth_hook;
+    }
+    if (strcmp(procname, "glDepthRange") == 0) {
+        return (void*) glDepthRange_hook;
+    }
     if (strcmp(procname, "glCreateTextures") == 0) return (void*) glCreateTextures_stub;
     if (strcmp(procname, "glBindTextureUnit") == 0) return (void*) glBindTextureUnit_stub;
     if (strcmp(procname, "glTextureStorage2D") == 0) return (void*) glTextureStorage2D_stub;
@@ -629,6 +651,14 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glGetError") == 0) {
             printf("LWJGL linkerhook: successfully hooked glGetError symbol directly\n");
             return (jlong) glGetError_stub;
+        }
+        if (strcmp(symbol, "glClearDepth") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glClearDepth symbol directly\n");
+            return (jlong) glClearDepth_hook;
+        }
+        if (strcmp(symbol, "glDepthRange") == 0) {
+            printf("LWJGL linkerhook: successfully hooked glDepthRange symbol directly\n");
+            return (jlong) glDepthRange_hook;
         }
         if (strcmp(symbol, "glCreateTextures") == 0) return (jlong) glCreateTextures_stub;
         if (strcmp(symbol, "glBindTextureUnit") == 0) return (jlong) glBindTextureUnit_stub;
