@@ -33,6 +33,17 @@ namespace FearXextream {
         output << "#define IRIS_FEATURE_SSBO 1\n";
         output << "#define IRIS_FEATURE_CUSTOM_IMAGES 1\n";
         output << "#define IRIS_FEATURE_FADE_VARIABLE 1\n";
+        // Unity / Unreal Engine Style Deferred Pipeline & ACES Color Grading Stubs
+        output << "#define UNREAL_UNITY_PIPELINE_ENGINE 1\n";
+        output << "#define ACES_TONEMAPPING 1\n";
+        output << "vec3 applyACESTonemap(vec3 color) {\n";
+        output << "    float a = 2.51;\n";
+        output << "    float b = 0.03;\n";
+        output << "    float c = 2.43;\n";
+        output << "    float d = 0.59;\n";
+        output << "    float e = 0.14;\n";
+        output << "    return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);\n";
+        output << "}\n";
 
         std::string processedCode = desktopGLSL;
 

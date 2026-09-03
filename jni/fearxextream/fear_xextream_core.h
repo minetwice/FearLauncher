@@ -41,6 +41,11 @@ namespace FearXextream {
         static bool compileSPIRV(const std::string& glslSource, std::vector<uint32_t>& spirvOutput);
     };
 
+    // Global C Export for Runtime Shader Transpilation Hook
+    extern "C" {
+        const char* FearXextreamTranspileShader(const char* sourceCode, uint32_t shaderType);
+    }
+
     class VulkanBackend {
     public:
         static bool initVulkanInstance();

@@ -3,6 +3,8 @@
 #include "fear_xextream_state_tracker.h"
 #include "fear_xextream_texture_translator.h"
 #include "fear_xextream_mali_fixer.h"
+#include "fear_xextream_dither_engine.h"
+#include "fear_xextream_gpu_signal.h"
 #include <sstream>
 #include <dlfcn.h>
 
@@ -106,8 +108,20 @@ namespace FearXextream {
     }
 }
 
-// Exported C API Wrappers for LWJGL Dynamic Linker
+// Global C Export for Runtime Shader Transpilation Hook
 extern "C" {
+    const char* FearXextreamTranspileShader(const char* sourceCode, uint32_t shaderType) {
+        if (!sourceCode) return "";
+        static thread_local std::string lastResult;
+        FearXextream::TranspilerOptions options;
+        options.gpuArch = FearXextream::GPUArchitecture::ARM_MALI;
+        FearXextream::ShaderTranspiler transpiler(options);
+        lastResult = transpiler.transpileGLSL(sourceCode, shaderType);
+        FearXextream::MaliShaderFixer::applyMaliWorkarounds(lastResult);
+        FearXextream::DitherEngine::getInstance().injectAntiFlickerLayer(lastResult, shaderType);
+        return lastResult.c_str();
+    }
+
     JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_initFearXextreamEngine(JNIEnv* env, jclass clazz, jstring cacheDirStr) {
         if (!env) return;
         const char* path = cacheDirStr ? env->GetStringUTFChars(cacheDirStr, nullptr) : nullptr;
@@ -121,10 +135,12 @@ extern "C" {
             transpilerOpts.gpuArch = FearXextream::GPUArchitecture::GENERIC_MOBILE;
             FearXextream::ShaderTranspiler transpiler(transpilerOpts);
 
-            // Initialize Texture Translator Format Remapping
+            // Initialize Texture Translator Format Remapping & GPU Signal Optimization
             FearXextream::TextureTranslator::getInstance().translateFormat(GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
             FearXextream::MaliShaderFixer::configureMaliPipelineEnv();
-            LOGI("FearXextream Engine: Shader Transpiler, State Tracker, Texture Translator & Mali Fixer Initialized Successfully!");
+            FearXextream::DitherEngine::getInstance().configureColorPrecision();
+            FearXextream::GPUSignalOptimizer::getInstance().optimizeGPUSignals();
+            LOGI("FearXextream Engine: Multi-Layer Signal, Dithering & GPU Optimizer Layers Initialized Successfully!");
         } catch (const std::exception& e) {
             LOGE("FearXextream Engine initialization exception: %s", e.what());
         } catch (...) {

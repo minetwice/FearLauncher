@@ -156,6 +156,8 @@ add_library(fearxextream SHARED
     fearxextream/fear_xextream_state_tracker.cpp
     fearxextream/fear_xextream_texture_translator.cpp
     fearxextream/fear_xextream_mali_fixer.cpp
+    fearxextream/fear_xextream_dither_engine.cpp
+    fearxextream/fear_xextream_gpu_signal.cpp
 )
 
 set_target_properties(fearxextream PROPERTIES
