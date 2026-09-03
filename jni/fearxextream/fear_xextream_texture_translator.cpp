@@ -58,13 +58,9 @@ namespace FearXextream {
                 break;
 #endif
 
-            // High Fidelity Depth / Shadow Map Textures
+            // High Fidelity Depth / Shadow Map Textures (Force 24-bit/32-bit depth for Mali shadow precision)
             case GL_DEPTH_COMPONENT:
             case GL_DEPTH_COMPONENT16:
-                mapping.mobileInternalFormat = GL_DEPTH_COMPONENT16;
-                mapping.format = GL_DEPTH_COMPONENT;
-                mapping.type = GL_UNSIGNED_SHORT;
-                break;
             case GL_DEPTH_COMPONENT24:
                 mapping.mobileInternalFormat = GL_DEPTH_COMPONENT24;
                 mapping.format = GL_DEPTH_COMPONENT;

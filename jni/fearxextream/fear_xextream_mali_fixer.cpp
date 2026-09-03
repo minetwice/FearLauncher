@@ -7,11 +7,13 @@
 namespace FearXextream {
 
     void MaliShaderFixer::applyMaliWorkarounds(std::string& shaderSource) {
-        // Mali GPU Shader Fix 1: Inject highp precision for all float variables
+        // Mali GPU Shader Fix 1: Inject highp precision for all float variables and sRGB linearization
         std::string maliHeader = "#define MALI_GPU_OPTIMIZED 1\n";
         maliHeader += "#define glsl_correct_derivatives_after_discard 1\n";
         maliHeader += "precision highp float;\n";
         maliHeader += "precision highp int;\n";
+        maliHeader += "precision highp sampler2D;\n";
+        maliHeader += "#define FEAR_MALI_DEPTH_CLAMP 1\n";
 
         // Mali GPU Shader Fix 2: Replace noperspective with smooth keyword
         const std::string target = "noperspective";

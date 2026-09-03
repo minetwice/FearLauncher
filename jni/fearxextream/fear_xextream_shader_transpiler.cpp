@@ -55,7 +55,19 @@ namespace FearXextream {
         // Step 5: Sanitize interpolation qualifiers (noperspective -> flat/smooth)
         sanitizeInterpolators(processedCode);
 
-        // Step 6: Inject Mali/Adreno fast math optimizations
+        // Step 6: Emulate Depth Clamping for Mali GPUs to fix shadow clipping and dark shadow glitches
+        if (shaderType == 0x8B31 /* GL_VERTEX_SHADER */) {
+            if (processedCode.find("gl_Position") != std::string::npos && processedCode.find("shadow") != std::string::npos) {
+                size_t mainPos = processedCode.rfind('}');
+                if (mainPos != std::string::npos) {
+                    std::string depthClampFix = "\n    // FearXextream Mali Depth Clamp Emulation for Shadows\n"
+                                                "    gl_Position.z = clamp(gl_Position.z, -gl_Position.w, gl_Position.w);\n";
+                    processedCode.insert(mainPos, depthClampFix);
+                }
+            }
+        }
+
+        // Step 7: Inject Mali/Adreno fast math optimizations
         injectHardwareOptimizations(processedCode);
 
         output << processedCode;

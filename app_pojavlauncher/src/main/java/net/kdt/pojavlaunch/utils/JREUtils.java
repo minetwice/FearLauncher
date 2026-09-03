@@ -113,6 +113,7 @@ public class JREUtils {
                 envMap.put("LIBGL_FLOAT_COLOR", "1");
                 envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
@@ -125,6 +126,7 @@ public class JREUtils {
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("mali_debug", "nocluster");
                 envMap.put("pan_shader_compile_threads", "4");
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
