@@ -13,7 +13,9 @@ namespace FearXextream {
         maliHeader += "precision highp float;\n";
         maliHeader += "precision highp int;\n";
         maliHeader += "precision highp sampler2D;\n";
+        maliHeader += "precision highp sampler3D;\n";
         maliHeader += "#define FEAR_MALI_DEPTH_CLAMP 1\n";
+        maliHeader += "#define FEAR_MALI_VOXEL_FALLBACK 1\n";
 
         // Mali GPU Shader Fix 2: Replace noperspective with smooth keyword
         const std::string target = "noperspective";

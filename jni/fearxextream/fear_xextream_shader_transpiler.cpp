@@ -30,6 +30,9 @@ namespace FearXextream {
         output << "#define MC_GL_RENDERER_GEFORCE 1\n";
         output << "#define MC_GLSL_VERSION_460 1\n";
         output << "#define SHADER_PACK_COMPAT 1\n";
+        output << "#define IRIS_FEATURE_SSBO 1\n";
+        output << "#define IRIS_FEATURE_CUSTOM_IMAGES 1\n";
+        output << "#define IRIS_FEATURE_FADE_VARIABLE 1\n";
 
         std::string processedCode = desktopGLSL;
 
