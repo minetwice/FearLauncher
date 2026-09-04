@@ -99,6 +99,11 @@ std::string FearTranslateGLSL(
     removeLinesContaining(glsl, "#extension GL_EXT_gpu_shader4");
     removeLinesContaining(glsl, "GL_NV_shader_noperspective_interpolation");
 
+    // Fix std430 SSBO layout qualifier error on GLES 3.1/3.2 drivers
+    if (glsl.find("std430") != std::string::npos) {
+        replaceAll(glsl, "std430", "std140");
+    }
+
     // Strip noperspective qualifiers and replace with smooth
     if (glsl.find("noperspective") != std::string::npos) {
         replaceAll(glsl, "noperspective in ", "smooth in ");
