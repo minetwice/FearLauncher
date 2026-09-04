@@ -41,9 +41,10 @@ namespace FearXextream {
         static bool compileSPIRV(const std::string& glslSource, std::vector<uint32_t>& spirvOutput);
     };
 
-    // Global C Export for Runtime Shader Transpilation Hook
+    // Global C Export for Runtime Shader Transpilation & Texture Swizzle Hooks
     extern "C" {
         const char* FearXextreamTranspileShader(const char* sourceCode, uint32_t shaderType);
+        void FearXextreamApplyTextureSwizzle(uint32_t target, uint32_t format, uint32_t internalFormat);
     }
 
     class VulkanBackend {

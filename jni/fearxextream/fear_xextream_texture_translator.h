@@ -27,6 +27,9 @@ namespace FearXextream {
 
         // Convert sRGB color vectors to Linear color space in C++ for CPU-generated textures
         static void convertSRGBToLinear(uint8_t* pixels, size_t pixelCount, int channels);
+
+        // Expert Mali GPU Texture Format & Swizzle Fix to prevent BGRA/RGBA color channel swap (green skies)
+        void applyMaliTextureSwizzleFix(GLenum target, GLenum format, GLenum internalFormat);
     };
 
 }

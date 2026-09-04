@@ -108,8 +108,12 @@ namespace FearXextream {
     }
 }
 
-// Global C Export for Runtime Shader Transpilation Hook
+// Global C Export for Runtime Shader Transpilation & Texture Swizzle Hooks
 extern "C" {
+    void FearXextreamApplyTextureSwizzle(uint32_t target, uint32_t format, uint32_t internalFormat) {
+        FearXextream::TextureTranslator::getInstance().applyMaliTextureSwizzleFix(target, format, internalFormat);
+    }
+
     const char* FearXextreamTranspileShader(const char* sourceCode, uint32_t shaderType) {
         if (!sourceCode) return "";
         static thread_local std::string lastResult;

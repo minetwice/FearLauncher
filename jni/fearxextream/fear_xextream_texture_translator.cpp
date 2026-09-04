@@ -108,4 +108,30 @@ namespace FearXextream {
         }
     }
 
+    void TextureTranslator::applyMaliTextureSwizzleFix(GLenum target, GLenum format, GLenum internalFormat) {
+        // Enforce strict 1-byte pixel unpack alignment to prevent Mali memory stride corruptions
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        #ifndef GL_TEXTURE_SWIZZLE_R
+        #define GL_TEXTURE_SWIZZLE_R 0x8E42
+        #define GL_TEXTURE_SWIZZLE_G 0x8E43
+        #define GL_TEXTURE_SWIZZLE_B 0x8E44
+        #define GL_TEXTURE_SWIZZLE_A 0x8E45
+        #endif
+
+        // Mali GPU BGRA / RGBA channel swap fix
+        if (format == 0x80E1 /* GL_BGRA_EXT */ || format == 0x80E0 /* GL_BGR_EXT */) {
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_RED);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
+        } else {
+            // Identity swizzle reset to prevent inverted color glitches (green skies)
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_RED);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_BLUE);
+            glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
+        }
+    }
+
 }
