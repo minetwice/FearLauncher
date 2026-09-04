@@ -311,12 +311,14 @@ public class JREUtils {
                         renderLibrary = chosenSo.getAbsolutePath();
                         useGles = true;
                         glesVersion = 3;
-                        return renderLibrary;
+                        if (configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
+                            return renderLibrary;
+                        }
                     }
                 }
             }
-            Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to LTW/GL4ES");
-            renderer = "opengles3_ltw";
+            Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to GL4ES");
+            renderer = "opengles2";
         }
 
         switch (renderer){
@@ -335,11 +337,21 @@ public class JREUtils {
                     useGles = false;
                     bypassNamespace = true;
                     glesVersion = 3;
+                    if (!configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion)) {
+                        Logger.appendToLog("[FearXextream] Mesa Zink EGL init failed -> Fallback to GL4ES");
+                        renderLibrary = "libgl4es_114.so";
+                        useGles = true;
+                        bypassNamespace = false;
+                        glesVersion = 3;
+                        configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion);
+                    }
                 } else {
-                    Logger.appendToLog("[FearXextream] Vulkan probe unavailable -> Fallback to GLES / LTW backend.");
-                    renderLibrary = "libltw.so";
+                    Logger.appendToLog("[FearXextream] Vulkan probe unavailable -> Fallback to GL4ES backend.");
+                    renderLibrary = "libgl4es_114.so";
                     useGles = true;
+                    bypassNamespace = false;
                     glesVersion = 3;
+                    configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion);
                 }
 
                 try {
@@ -349,7 +361,7 @@ public class JREUtils {
                 } catch (Throwable t) {
                     Log.e("JREUtils", "FearXextream native engine init failed", t);
                 }
-                break;
+                return renderLibrary;
             case "vulkan_zink":
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
