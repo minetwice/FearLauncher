@@ -93,7 +93,13 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Extreme High-FPS Engine Environment...");
+                Logger.appendToLog("[FearXextream] Initializing Mali-Safe Mesa Zink Engine Environment...");
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("ZINK_USE_CI", "1");
+                envMap.put("MESA_GLTHREAD", "false"); // Prevents Mali multithreading queue race condition crashes
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo"); // Fixes Mali Vulkan Swapchain crash
+                envMap.put("MESA_NO_MINMAX_CACHE", "1"); // Prevents Mali VRAM buffer corruption
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -125,16 +131,12 @@ public class JREUtils {
                 envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("mali_debug", "nocluster");
-                envMap.put("pan_shader_compile_threads", "8");
-                envMap.put("MESA_GLTHREAD", "true");
+                envMap.put("pan_shader_compile_threads", "4");
                 envMap.put("vblank_mode", "0");
                 envMap.put("force_s3tc_enable", "true");
                 envMap.put("glsl_zero_init", "true");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "2048MB");
-                envMap.put("MESA_NO_MINMAX_CACHE", "1");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
-                envMap.put("MESA_VK_WSI_REUSE_RESOURCES", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -319,15 +321,33 @@ public class JREUtils {
 
         switch (renderer){
             case "fear_xextream":
-                renderLibrary = "libltw.so";
-                useGles = true;
-                glesVersion = 3;
+                boolean vulkanOk = false;
+                try {
+                    preloadVulkan();
+                    vulkanOk = true;
+                } catch (Throwable t) {
+                    vulkanOk = false;
+                }
+
+                if (vulkanOk) {
+                    Logger.appendToLog("[FearXextream] Vulkan probe successful -> Mesa Zink backend initialized.");
+                    renderLibrary = "libEGL_mesa.so";
+                    useGles = false;
+                    bypassNamespace = true;
+                    glesVersion = 3;
+                } else {
+                    Logger.appendToLog("[FearXextream] Vulkan probe unavailable -> Fallback to GLES / LTW backend.");
+                    renderLibrary = "libltw.so";
+                    useGles = true;
+                    glesVersion = 3;
+                }
+
                 try {
                     System.loadLibrary("FearXextream");
                     String cachePath = Tools.DIR_GAME_HOME + "/fear_xextream_cache";
                     initFearXextreamEngine(cachePath);
                 } catch (Throwable t) {
-                    Log.e("JREUtils", "FearXextream fallback to LTW backend", t);
+                    Log.e("JREUtils", "FearXextream native engine init failed", t);
                 }
                 break;
             case "vulkan_zink":
