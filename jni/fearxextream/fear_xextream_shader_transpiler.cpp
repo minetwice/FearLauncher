@@ -148,13 +148,12 @@ namespace FearXextream {
         // 1. Remove any remaining GL_NV_shader_noperspective_interpolation extension lines
         size_t nvExtPos = 0;
         while ((nvExtPos = code.find("GL_NV_shader_noperspective_interpolation")) != std::string::npos) {
-            size_t lineStart = code.rfind('#', nvExtPos);
+            size_t lineStart = code.rfind('\n', nvExtPos);
+            if (lineStart == std::string::npos) lineStart = 0;
+            else lineStart += 1;
             size_t lineEnd = code.find('\n', nvExtPos);
-            if (lineStart != std::string::npos && lineEnd != std::string::npos) {
-                code.replace(lineStart, lineEnd - lineStart, "// stripped extension");
-            } else {
-                code.replace(nvExtPos, 41, "GL_DISABLED_EXT");
-            }
+            if (lineEnd == std::string::npos) lineEnd = code.length();
+            code.replace(lineStart, lineEnd - lineStart, "// stripped extension");
         }
 
         // 2. Strip noperspective keyword and replace with smooth or empty space to prevent L0003 reserved keyword error on Mali
