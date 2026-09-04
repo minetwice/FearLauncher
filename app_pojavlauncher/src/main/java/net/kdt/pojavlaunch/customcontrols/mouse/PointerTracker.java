@@ -28,10 +28,29 @@ public class PointerTracker {
             startTracking(motionEvent);
             trackedPointerIndex = 0;
         }
+
+        // Low-latency high-rate historical batch motion interpolation for 120Hz/144Hz smooth mouse movement
+        float deltaX = 0.0f;
+        float deltaY = 0.0f;
+        int historySize = motionEvent.getHistorySize();
+        if (historySize > 0) {
+            for (int h = 0; h < historySize; h++) {
+                float histX = motionEvent.getHistoricalX(trackedPointerIndex, h);
+                float histY = motionEvent.getHistoricalY(trackedPointerIndex, h);
+                deltaX += (histX - mLastX);
+                deltaY += (histY - mLastY);
+                mLastX = histX;
+                mLastY = histY;
+            }
+        }
+
         float trackedX = motionEvent.getX(trackedPointerIndex);
         float trackedY = motionEvent.getY(trackedPointerIndex);
-        mMotionVector[0] = trackedX - mLastX;
-        mMotionVector[1] = trackedY - mLastY;
+        deltaX += (trackedX - mLastX);
+        deltaY += (trackedY - mLastY);
+
+        mMotionVector[0] = deltaX;
+        mMotionVector[1] = deltaY;
         mLastX = trackedX;
         mLastY = trackedY;
         return trackedPointerIndex;

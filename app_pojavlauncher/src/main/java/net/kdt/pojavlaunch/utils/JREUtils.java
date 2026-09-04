@@ -93,7 +93,7 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Custom Vulkan/GL Engine Environment for Mali GPUs & Complementary Shaders...");
+                Logger.appendToLog("[FearXextream] Initializing Extreme High-FPS Engine Environment...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -125,8 +125,16 @@ public class JREUtils {
                 envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("mali_debug", "nocluster");
-                envMap.put("pan_shader_compile_threads", "4");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("pan_shader_compile_threads", "8");
+                envMap.put("MESA_GLTHREAD", "true");
+                envMap.put("vblank_mode", "0");
+                envMap.put("force_s3tc_enable", "true");
+                envMap.put("glsl_zero_init", "true");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "2048MB");
+                envMap.put("MESA_NO_MINMAX_CACHE", "1");
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
+                envMap.put("MESA_VK_WSI_REUSE_RESOURCES", "true");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
