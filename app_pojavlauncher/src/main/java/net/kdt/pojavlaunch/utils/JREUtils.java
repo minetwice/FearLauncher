@@ -323,12 +323,29 @@ public class JREUtils {
 
         switch (renderer){
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Mesa Zink Engine directly...");
-                preloadVulkan();
-                renderLibrary = "libEGL_mesa.so";
-                useGles = false;
-                bypassNamespace = true;
-                glesVersion = 3;
+                Logger.appendToLog("[FearXextream] Initializing Engine Graphics Backend...");
+                boolean vulkanOk = false;
+                try {
+                    preloadVulkan();
+                    vulkanOk = true;
+                } catch (Throwable t) {
+                    vulkanOk = false;
+                }
+
+                boolean isMaliGpu = GLInfoUtils.getGlInfo().isArm();
+                if (vulkanOk && !isMaliGpu) {
+                    Logger.appendToLog("[FearXextream] Non-Mali GPU detected -> Mesa Zink backend enabled.");
+                    renderLibrary = "libEGL_mesa.so";
+                    useGles = false;
+                    bypassNamespace = true;
+                    glesVersion = 3;
+                } else {
+                    Logger.appendToLog("[FearXextream] Mali GPU / GLES driver detected -> Optimized GL4ES/GLES engine enabled.");
+                    renderLibrary = "libgl4es_114.so";
+                    useGles = true;
+                    bypassNamespace = false;
+                    glesVersion = 3;
+                }
 
                 try {
                     System.loadLibrary("FearXextream");
