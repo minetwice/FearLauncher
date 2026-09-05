@@ -93,13 +93,7 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Mali-Safe Mesa Zink Engine Environment...");
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("ZINK_USE_CI", "1");
-                envMap.put("MESA_GLTHREAD", "false"); // Prevents Mali multithreading queue race condition crashes
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo"); // Fixes Mali Vulkan Swapchain crash
-                envMap.put("MESA_NO_MINMAX_CACHE", "1"); // Prevents Mali VRAM buffer corruption
+                Logger.appendToLog("[FearXextream] Initializing Standalone GLES Engine Environment...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -323,29 +317,11 @@ public class JREUtils {
 
         switch (renderer){
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing Engine Graphics Backend...");
-                boolean vulkanOk = false;
-                try {
-                    preloadVulkan();
-                    vulkanOk = true;
-                } catch (Throwable t) {
-                    vulkanOk = false;
-                }
-
-                boolean isMaliGpu = GLInfoUtils.getGlInfo().isArm();
-                if (vulkanOk && !isMaliGpu) {
-                    Logger.appendToLog("[FearXextream] Non-Mali GPU detected -> Mesa Zink backend enabled.");
-                    renderLibrary = "libEGL_mesa.so";
-                    useGles = false;
-                    bypassNamespace = true;
-                    glesVersion = 3;
-                } else {
-                    Logger.appendToLog("[FearXextream] Mali GPU / GLES driver detected -> Optimized GL4ES/GLES engine enabled.");
-                    renderLibrary = "libgl4es_114.so";
-                    useGles = true;
-                    bypassNamespace = false;
-                    glesVersion = 3;
-                }
+                Logger.appendToLog("[FearXextream] Initializing Standalone GLES Engine Backend...");
+                renderLibrary = "libgl4es_114.so";
+                useGles = true;
+                bypassNamespace = false;
+                glesVersion = 3;
 
                 try {
                     System.loadLibrary("FearXextream");
