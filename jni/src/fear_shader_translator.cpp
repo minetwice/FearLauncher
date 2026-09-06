@@ -1,5 +1,6 @@
 #include "fear_shader_translator.h"
 #include "fear_shader_logger.h"
+#include "fear_xextream_core.h"
 #include <shaderc/shaderc.hpp>
 #include <algorithm>
 
@@ -75,19 +76,21 @@ std::string FearTranslateGLSL(
     bool* translationSuccess
 ) {
     if (!sourceCode) {
-        *translationSuccess = false;
+        if (translationSuccess) *translationSuccess = false;
         return "";
     }
 
-    *translationSuccess = true;
+    if (translationSuccess) *translationSuccess = true;
 
     if (isGeometryShader(shaderType)) {
-        *translationSuccess = false;
+        if (translationSuccess) *translationSuccess = false;
         LOG_WARNING("[FearEngine] WARNING: Geometry shader detected - not supported on mobile, skipping");
         return "";
     }
 
-    std::string glsl(sourceCode);
+    // Process source through FearXextream Transpiler for Mali/Adreno shaders & Bliss fix
+    const char* transpiledCStr = FearXextream::FearXextreamTranspileShader(sourceCode, shaderType);
+    std::string glsl = transpiledCStr ? transpiledCStr : sourceCode;
 
     bool isCompute = isComputeShader(shaderType) ||
                      glsl.find("layout(local_size_") != std::string::npos ||
@@ -170,7 +173,6 @@ std::string FearTranslateGLSL(
     if (glsl.find("precision ") == std::string::npos) {
         insertAfterLine(glsl, target_version, inject_precision);
     } else {
-        // Upgrade mediump float to highp float for color and lighting calculations on Mali/Adreno GPUs
         replaceAll(glsl, "precision mediump float;", "precision highp float;");
         replaceAll(glsl, "precision lowp float;", "precision highp float;");
     }
@@ -244,7 +246,7 @@ std::string FearTranslateGLSL(
         // Frag Depth
         replaceAll(glsl, "gl_FragDepthEXT", "gl_FragDepth");
 
-        // Multiple Render Targets (gl_FragData[0..7]) translation for Solas & Complementary shaders
+        // Multiple Render Targets (gl_FragData[0..7]) translation
         bool uses_fragdata = false;
         for (int i = 0; i < 8; i++) {
             std::string fragDataName = "gl_FragData[" + std::to_string(i) + "]";
