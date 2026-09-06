@@ -340,7 +340,19 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLFear.so");
+        // Use the appropriate OpenGL library for LWJGL based on the renderer.
+        // When using LTW, LWJGL must load libltw.so — NOT libGLFear.so.
+        // Loading both libGLFear.so and libltw.so simultaneously causes both libraries
+        // to export the same GL symbols (glGetString, glMapBuffer, eglGetProcAddress, etc.),
+        // leading to recursive hooking, memory corruption, and JVM boot layer crash:
+        //   java.lang.ClassFormatError: Incompatible magic value 0 in class file
+        //       java/lang/invoke/DirectMethodHandle$Holder
+        // libGLFear.so should only be used as the LWJGL GL library for the fear_xextream renderer.
+        if (rendererName.equals("fear_xextream")) {
+            javaArgList.add("-Dorg.lwjgl.opengl.libname=libGLFear.so");
+        } else {
+            javaArgList.add("-Dorg.lwjgl.opengl.libname=" + rendererLibrary);
+        }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
