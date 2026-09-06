@@ -1,5 +1,6 @@
 package net.kdt.pojavlaunch.services;
 
+import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -9,9 +10,11 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Process;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import net.kdt.pojavlaunch.MainActivity;
 import git.artdeell.mojo.R;
@@ -53,11 +56,33 @@ public class GameService extends Service {
                 .setNotificationSilent();
 
         Notification notification = notificationBuilder.build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
-        } else {
-            startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Explicit specialUse type matches AndroidManifest foregroundServiceType
+                startForeground(
+                        NotificationUtils.NOTIFICATION_ID_GAME_SERVICE,
+                        notification,
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                );
+            } else {
+                startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+            }
+        } catch (ForegroundServiceStartNotAllowedException e) {
+            // Android 12+/14+/16: cannot promote to FGS while app is background-restricted
+            Log.e("GameService", "startForeground blocked by system (background restriction)", e);
+            try {
+                NotificationManagerCompat.from(this).notify(
+                        NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+            } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e("GameService", "startForeground failed", e);
+            try {
+                NotificationManagerCompat.from(this).notify(
+                        NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+            } catch (Exception ignored) {}
         }
+
         return START_NOT_STICKY; // non-sticky so android wont try restarting the game after the user uses the "Quit" button
     }
 
