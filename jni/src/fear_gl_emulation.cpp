@@ -2,10 +2,12 @@
 #include "fear_shader_logger.h"
 #include <dlfcn.h>
 #include <mutex>
+#include <atomic>
 #include <unordered_map>
 
 static std::mutex g_emulationMutex;
 static int g_emulationCounts[16] = {0};
+static std::atomic<GLuint> s_nextSamplerID{1};
 
 static void logEmulation(int idx, const char* name) {
     std::lock_guard<std::mutex> lock(g_emulationMutex);
@@ -183,6 +185,77 @@ void fear_glBindTextureUnit(GLuint unit, GLuint texture) {
         real_glActiveTexture(GL_TEXTURE0 + unit);
         real_glBindTexture(GL_TEXTURE_2D, texture);
     }
+}
+
+// Sampler Emulation Implementation
+void fear_glGenSamplers(GLsizei count, GLuint* samplers) {
+    if (!samplers || count <= 0) return;
+    typedef void (*glGenSamplers_pfn)(GLsizei, GLuint*);
+    static glGenSamplers_pfn real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_DEFAULT, "glGenSamplers");
+    if (!real_glGenSamplers) real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_DEFAULT, "glGenSamplersOES");
+
+    if (real_glGenSamplers) {
+        real_glGenSamplers(count, samplers);
+        bool valid = true;
+        for (GLsizei i = 0; i < count; ++i) {
+            if (samplers[i] == 0) { valid = false; break; }
+        }
+        if (valid) return;
+    }
+
+    for (GLsizei i = 0; i < count; ++i) {
+        samplers[i] = s_nextSamplerID.fetch_add(1);
+    }
+}
+
+void fear_glBindSampler(GLuint unit, GLuint sampler) {
+    typedef void (*glBindSampler_pfn)(GLuint, GLuint);
+    static glBindSampler_pfn real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_DEFAULT, "glBindSampler");
+    if (!real_glBindSampler) real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_DEFAULT, "glBindSamplerOES");
+    if (real_glBindSampler) real_glBindSampler(unit, sampler);
+}
+
+void fear_glDeleteSamplers(GLsizei count, const GLuint* samplers) {
+    if (!samplers || count <= 0) return;
+    typedef void (*glDeleteSamplers_pfn)(GLsizei, const GLuint*);
+    static glDeleteSamplers_pfn real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_DEFAULT, "glDeleteSamplers");
+    if (!real_glDeleteSamplers) real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_DEFAULT, "glDeleteSamplersOES");
+    if (real_glDeleteSamplers) real_glDeleteSamplers(count, samplers);
+}
+
+GLboolean fear_glIsSampler(GLuint sampler) {
+    typedef GLboolean (*glIsSampler_pfn)(GLuint);
+    static glIsSampler_pfn real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_DEFAULT, "glIsSampler");
+    if (!real_glIsSampler) real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_DEFAULT, "glIsSamplerOES");
+    return real_glIsSampler ? real_glIsSampler(sampler) : GL_TRUE;
+}
+
+void fear_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
+    typedef void (*glSamplerParameteri_pfn)(GLuint, GLenum, GLint);
+    static glSamplerParameteri_pfn real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteri");
+    if (!real_glSamplerParameteri) real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteriOES");
+    if (real_glSamplerParameteri) real_glSamplerParameteri(sampler, pname, param);
+}
+
+void fear_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) {
+    typedef void (*glSamplerParameterf_pfn)(GLuint, GLenum, GLfloat);
+    static glSamplerParameterf_pfn real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterf");
+    if (!real_glSamplerParameterf) real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfOES");
+    if (real_glSamplerParameterf) real_glSamplerParameterf(sampler, pname, param);
+}
+
+void fear_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* param) {
+    typedef void (*glSamplerParameteriv_pfn)(GLuint, GLenum, const GLint*);
+    static glSamplerParameteriv_pfn real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteriv");
+    if (!real_glSamplerParameteriv) real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterivOES");
+    if (real_glSamplerParameteriv) real_glSamplerParameteriv(sampler, pname, param);
+}
+
+void fear_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* param) {
+    typedef void (*glSamplerParameterfv_pfn)(GLuint, GLenum, const GLfloat*);
+    static glSamplerParameterfv_pfn real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfv");
+    if (!real_glSamplerParameterfv) real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfvOES");
+    if (real_glSamplerParameterfv) real_glSamplerParameterfv(sampler, pname, param);
 }
 
 // Module 2 Implementation: OpenGL-to-Vulkan Extension Emulation Layer
