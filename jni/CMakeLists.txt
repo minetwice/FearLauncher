@@ -116,6 +116,7 @@ set_target_properties(fearrender PROPERTIES
 target_include_directories(fearrender PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender
+    ${CMAKE_CURRENT_SOURCE_DIR}/fearxextream
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/include
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/build_info
     ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/fmt/include
@@ -158,6 +159,8 @@ add_library(fearxextream SHARED
     fearxextream/fear_xextream_mali_fixer.cpp
     fearxextream/fear_xextream_dither_engine.cpp
     fearxextream/fear_xextream_gpu_signal.cpp
+    src/fear_shader_translator.cpp
+    src/fear_shader_cache.cpp
 )
 
 set_target_properties(fearxextream PROPERTIES
@@ -168,7 +171,13 @@ set_target_properties(fearxextream PROPERTIES
 
 target_include_directories(fearxextream PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/fearxextream
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/fearrender/fogl_core/deps/shaderc/libshaderc/include
 )
+
+if(shaderc_SOURCE_DIR)
+    target_include_directories(fearxextream PRIVATE ${shaderc_SOURCE_DIR}/libshaderc/include)
+endif()
 
 target_link_libraries(fearxextream PRIVATE
     ${log-lib}
@@ -176,4 +185,5 @@ target_link_libraries(fearxextream PRIVATE
     ${egl-lib}
     ${glesv3-lib}
     dl
+    shaderc
 )

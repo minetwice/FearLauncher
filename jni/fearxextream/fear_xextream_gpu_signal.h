@@ -1,17 +1,21 @@
 #ifndef FEAR_XEXTREAM_GPU_SIGNAL_H
 #define FEAR_XEXTREAM_GPU_SIGNAL_H
 
+#include "fear_xextream_core.h"
+
 namespace FearXextream {
 
     class GPUSignalOptimizer {
     public:
         static GPUSignalOptimizer& getInstance();
-
-        // Maximize GPU accessibility (100% throughput) and tune driver execution passes
         void optimizeGPUSignals();
-
-        // Configure high-bandwidth tile memory pass for ARM Mali / Qualcomm Adreno
         void unlockTileMemoryPass();
+        void configureAdrenoLRZ();
+        void configureMaliTileBuffer();
+        void enforceFramePacing();
+
+    private:
+        GPUSignalOptimizer() = default;
     };
 
 }

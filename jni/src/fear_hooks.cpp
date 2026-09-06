@@ -167,6 +167,51 @@ FEAR_EXPORT void glfwMakeContextCurrent(void* window) {
     }
 }
 
+// Directly exported sampler & buffer symbols to satisfy LWJGL dlsym queries
+FEAR_EXPORT void glGenSamplers(GLsizei count, GLuint* samplers) {
+    fear_glGenSamplers(count, samplers);
+}
+
+FEAR_EXPORT void glBindSampler(GLuint unit, GLuint sampler) {
+    fear_glBindSampler(unit, sampler);
+}
+
+FEAR_EXPORT void glDeleteSamplers(GLsizei count, const GLuint* samplers) {
+    fear_glDeleteSamplers(count, samplers);
+}
+
+FEAR_EXPORT GLboolean glIsSampler(GLuint sampler) {
+    return fear_glIsSampler(sampler);
+}
+
+FEAR_EXPORT void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
+    fear_glSamplerParameteri(sampler, pname, param);
+}
+
+FEAR_EXPORT void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) {
+    fear_glSamplerParameterf(sampler, pname, param);
+}
+
+FEAR_EXPORT void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* param) {
+    fear_glSamplerParameteriv(sampler, pname, param);
+}
+
+FEAR_EXPORT void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* param) {
+    fear_glSamplerParameterfv(sampler, pname, param);
+}
+
+FEAR_EXPORT void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    return fear_glMapBufferRange(target, offset, length, access);
+}
+
+FEAR_EXPORT void* glMapBuffer(GLenum target, GLenum access) {
+    return fear_glMapBuffer(target, access);
+}
+
+FEAR_EXPORT GLboolean glUnmapBuffer(GLenum target) {
+    return fear_glUnmapBuffer(target);
+}
+
 FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
     if (!params) return;
 
@@ -440,6 +485,19 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glClear") == 0) return (void*)glClear;
     if (strcmp(procname, "glDrawArrays") == 0) return (void*)glDrawArrays;
     if (strcmp(procname, "glDrawElements") == 0) return (void*)glDrawElements;
+
+    if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) return (void*)fear_glGenSamplers;
+    if (strcmp(procname, "glBindSampler") == 0 || strcmp(procname, "glBindSamplerOES") == 0) return (void*)fear_glBindSampler;
+    if (strcmp(procname, "glDeleteSamplers") == 0 || strcmp(procname, "glDeleteSamplersOES") == 0) return (void*)fear_glDeleteSamplers;
+    if (strcmp(procname, "glIsSampler") == 0 || strcmp(procname, "glIsSamplerOES") == 0) return (void*)fear_glIsSampler;
+    if (strcmp(procname, "glSamplerParameteri") == 0 || strcmp(procname, "glSamplerParameteriOES") == 0) return (void*)fear_glSamplerParameteri;
+    if (strcmp(procname, "glSamplerParameterf") == 0 || strcmp(procname, "glSamplerParameterfOES") == 0) return (void*)fear_glSamplerParameterf;
+    if (strcmp(procname, "glSamplerParameteriv") == 0 || strcmp(procname, "glSamplerParameterivOES") == 0) return (void*)fear_glSamplerParameteriv;
+    if (strcmp(procname, "glSamplerParameterfv") == 0 || strcmp(procname, "glSamplerParameterfvOES") == 0) return (void*)fear_glSamplerParameterfv;
+
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0) return (void*)fear_glMapBufferRange;
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0) return (void*)fear_glMapBuffer;
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0) return (void*)fear_glUnmapBuffer;
 
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
     if (strcmp(procname, "glTextureBarrier") == 0) return (void*)fear_glTextureBarrier;

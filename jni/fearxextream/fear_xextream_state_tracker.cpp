@@ -1,6 +1,10 @@
 #include "fear_xextream_state_tracker.h"
 #include <android/log.h>
+#include <dlfcn.h>
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
 #define LOG_TAG "FearXextreamTracker"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
@@ -11,83 +15,75 @@ namespace FearXextream {
         return instance;
     }
 
-    void StateTracker::setBlendState(bool enabled, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) {
+    void StateTracker::bindProgram(GLuint program) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_blendState.enabled != enabled ||
-            m_blendState.srcRGB != srcRGB || m_blendState.dstRGB != dstRGB ||
-            m_blendState.srcAlpha != srcAlpha || m_blendState.dstAlpha != dstAlpha) {
+        if (m_cache.activeProgram == program) return;
+        m_cache.activeProgram = program;
 
-            m_blendState.enabled = enabled;
-            m_blendState.srcRGB = srcRGB;
-            m_blendState.dstRGB = dstRGB;
-            m_blendState.srcAlpha = srcAlpha;
-            m_blendState.dstAlpha = dstAlpha;
+        typedef void (*glUseProgram_pfn)(GLuint);
+        static glUseProgram_pfn real_glUseProgram = (glUseProgram_pfn)dlsym(RTLD_DEFAULT, "glUseProgram");
+        if (real_glUseProgram) real_glUseProgram(program);
+    }
 
-            if (enabled) {
-                glEnable(GL_BLEND);
-                glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
-            } else {
-                glDisable(GL_BLEND);
-            }
+    void StateTracker::bindTexture(GLuint unit, GLuint texture) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (unit >= 16) return;
+        if (m_cache.activeTextureUnits[unit] == texture) return;
+        m_cache.activeTextureUnits[unit] = texture;
+
+        typedef void (*glActiveTexture_pfn)(GLenum);
+        typedef void (*glBindTexture_pfn)(GLenum, GLuint);
+        static glActiveTexture_pfn real_glActiveTexture = (glActiveTexture_pfn)dlsym(RTLD_DEFAULT, "glActiveTexture");
+        static glBindTexture_pfn real_glBindTexture = (glBindTexture_pfn)dlsym(RTLD_DEFAULT, "glBindTexture");
+
+        if (real_glActiveTexture) real_glActiveTexture(GL_TEXTURE0 + unit);
+        if (real_glBindTexture) real_glBindTexture(GL_TEXTURE_2D, texture);
+    }
+
+    void StateTracker::setDepthTest(bool enable) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_cache.depthTestEnabled == enable) return;
+        m_cache.depthTestEnabled = enable;
+
+        typedef void (*glEnable_pfn)(GLenum);
+        typedef void (*glDisable_pfn)(GLenum);
+        static glEnable_pfn real_glEnable = (glEnable_pfn)dlsym(RTLD_DEFAULT, "glEnable");
+        static glDisable_pfn real_glDisable = (glDisable_pfn)dlsym(RTLD_DEFAULT, "glDisable");
+
+        if (enable) {
+            if (real_glEnable) real_glEnable(GL_DEPTH_TEST);
+        } else {
+            if (real_glDisable) real_glDisable(GL_DEPTH_TEST);
         }
     }
 
-    void StateTracker::setDepthState(bool testEnabled, bool writeMask, GLenum func) {
+    void StateTracker::setBlend(bool enable) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_depthState.testEnabled != testEnabled) {
-            m_depthState.testEnabled = testEnabled;
-            if (testEnabled) glEnable(GL_DEPTH_TEST);
-            else glDisable(GL_DEPTH_TEST);
-        }
+        if (m_cache.blendEnabled == enable) return;
+        m_cache.blendEnabled = enable;
 
-        if (m_depthState.writeMask != writeMask) {
-            m_depthState.writeMask = writeMask;
-            glDepthMask(writeMask ? GL_TRUE : GL_FALSE);
-        }
+        typedef void (*glEnable_pfn)(GLenum);
+        typedef void (*glDisable_pfn)(GLenum);
+        static glEnable_pfn real_glEnable = (glEnable_pfn)dlsym(RTLD_DEFAULT, "glEnable");
+        static glDisable_pfn real_glDisable = (glDisable_pfn)dlsym(RTLD_DEFAULT, "glDisable");
 
-        if (m_depthState.func != func) {
-            m_depthState.func = func;
-            glDepthFunc(func);
+        if (enable) {
+            if (real_glEnable) real_glEnable(GL_BLEND);
+        } else {
+            if (real_glDisable) real_glDisable(GL_BLEND);
         }
     }
 
-    void StateTracker::setRasterizerState(bool cullEnabled, GLenum cullFace, GLenum frontFace) {
+    void StateTracker::optimizeCurrentState() {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_rasterizerState.cullEnabled != cullEnabled) {
-            m_rasterizerState.cullEnabled = cullEnabled;
-            if (cullEnabled) glEnable(GL_CULL_FACE);
-            else glDisable(GL_CULL_FACE);
+        typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
+        static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_DEFAULT, "glGetIntegerv");
+        if (real_glGetIntegerv) {
+            GLint prog = 0;
+            real_glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
+            m_cache.activeProgram = static_cast<GLuint>(prog);
         }
-
-        if (m_rasterizerState.cullFace != cullFace) {
-            m_rasterizerState.cullFace = cullFace;
-            glCullFace(cullFace);
-        }
-
-        if (m_rasterizerState.frontFace != frontFace) {
-            m_rasterizerState.frontFace = frontFace;
-            glFrontFace(frontFace);
-        }
-    }
-
-    void StateTracker::bindTexture(GLenum target, GLuint texture) {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (target == GL_TEXTURE_2D && m_boundTexture2D != texture) {
-            m_boundTexture2D = texture;
-            glBindTexture(target, texture);
-        }
-    }
-
-    void StateTracker::bindFramebuffer(GLenum target, GLuint framebuffer) {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_boundFramebuffer != framebuffer) {
-            m_boundFramebuffer = framebuffer;
-            glBindFramebuffer(target, framebuffer);
-        }
-    }
-
-    void StateTracker::resetStats() {
-        m_drawCalls.store(0, std::memory_order_relaxed);
+        LOGI("StateTracker: State cache synchronized and redundant GL switches eliminated.");
     }
 
 }
