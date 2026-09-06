@@ -1,7 +1,6 @@
 package net.kdt.pojavlaunch.services;
 
 import android.annotation.SuppressLint;
-import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -77,33 +76,11 @@ public class ProgressService extends Service implements TaskCountListener {
         Log.d("ProgressService", "Started!");
         mNotificationBuilder.setContentText(getString(R.string.progresslayout_tasks_in_progress, ProgressKeeper.getTaskCount()));
         Notification notification = mNotificationBuilder.build();
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Explicit dataSync type matches AndroidManifest foregroundServiceType
-                startForeground(
-                        NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE,
-                        notification,
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                );
-            } else {
-                startForeground(NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE, notification);
-            }
-        } catch (ForegroundServiceStartNotAllowedException e) {
-            // Android 12+/14+/16: cannot promote to FGS while app is background-restricted
-            Log.e("ProgressService", "startForeground blocked by system (background restriction)", e);
-            try {
-                notificationManagerCompat.notify(
-                        NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE, notification);
-            } catch (Exception ignored) {}
-        } catch (Exception e) {
-            Log.e("ProgressService", "startForeground failed", e);
-            try {
-                notificationManagerCompat.notify(
-                        NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE, notification);
-            } catch (Exception ignored) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
+        } else {
+            startForeground(NotificationUtils.NOTIFICATION_ID_PROGRESS_SERVICE, notification);
         }
-
         if(ProgressKeeper.getTaskCount() < 1) stopSelf();
         else ProgressKeeper.addTaskCountListener(this, false);
 
