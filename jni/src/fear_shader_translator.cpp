@@ -1,8 +1,8 @@
 #include "fear_shader_translator.h"
 #include "fear_shader_logger.h"
-#include "fear_xextream_core.h"
 #include <shaderc/shaderc.hpp>
 #include <algorithm>
+#include <dlfcn.h>
 
 // String Helpers implementation
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
@@ -69,6 +69,8 @@ bool isFragmentShader(GLenum type) { return type == GL_FRAGMENT_SHADER; }
 bool isGeometryShader(GLenum type) { return type == GL_GEOMETRY_SHADER; }
 bool isComputeShader(GLenum type) { return type == GL_COMPUTE_SHADER; }
 
+typedef const char* (*FearXextreamTranspileShader_pfn)(const char*, uint32_t);
+
 // Main Core Translation function
 std::string FearTranslateGLSL(
     const char* sourceCode,
@@ -88,9 +90,19 @@ std::string FearTranslateGLSL(
         return "";
     }
 
-    // Process source through FearXextream Transpiler for Mali/Adreno shaders & Bliss fix
-    const char* transpiledCStr = FearXextream::FearXextreamTranspileShader(sourceCode, shaderType);
-    std::string glsl = transpiledCStr ? transpiledCStr : sourceCode;
+    // Dynamic symbol resolution for FearXextreamTranspileShader to avoid direct link dependency across separate .so targets
+    static FearXextreamTranspileShader_pfn pfnTranspile = (FearXextreamTranspileShader_pfn)dlsym(RTLD_DEFAULT, "FearXextreamTranspileShader");
+    if (!pfnTranspile) {
+        pfnTranspile = (FearXextreamTranspileShader_pfn)dlsym(RTLD_DEFAULT, "FearXextreamTranspileShader");
+    }
+
+    std::string glsl;
+    if (pfnTranspile) {
+        const char* transpiled = pfnTranspile(sourceCode, shaderType);
+        glsl = transpiled ? transpiled : sourceCode;
+    } else {
+        glsl = sourceCode;
+    }
 
     bool isCompute = isComputeShader(shaderType) ||
                      glsl.find("layout(local_size_") != std::string::npos ||
