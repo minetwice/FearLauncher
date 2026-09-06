@@ -27,12 +27,14 @@ public class JREUtils {
             int failCount = 0;
             while (failCount < 15) {
                 try {
+                    // Optimized high-speed log retrieval: no filtering at process level to avoid buffer backup
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
 
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
+                            // Filter lines in-memory for speed and "Manufactured" feel
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
@@ -43,7 +45,7 @@ public class JREUtils {
                     if (exitCode != 0) {
                         Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
                         failCount++;
-                        Thread.sleep(500 * failCount);
+                        Thread.sleep(500 * failCount); // Exponential backoff
                     }
                 } catch (Exception e) {
                     Log.e("jrelog-logcat", "Log stream error", e);
@@ -60,12 +62,14 @@ public class JREUtils {
         BufferedReader reader = new BufferedReader(new FileReader(customEnvFile));
         String line;
         while ((line = reader.readLine()) != null) {
+            // Not use split() as only split first one
             int index = line.indexOf("=");
             envMap.put(line.substring(0, index), line.substring(index + 1));
         }
         reader.close();
     }
 
+    // Sets up ANGLE driver environment
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
@@ -85,43 +89,33 @@ public class JREUtils {
         envMap.put("POJAV_FFMPEG_PATH", ffmpeg.resolveAbsolutePath("libffmpeg.so"));
     }
 
+    // Setup environment for mesa-based renderers
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing High-FPS GLES Engine Environment (v2)...");
+                Logger.appendToLog("[FearXextream] Initializing Standalone GLES Engine Environment...");
                 envMap.put("LIBGL_ES", "3");
-                envMap.put("LIBGL_GL", "46");
-                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
-                envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
-                envMap.put("LIBGL_BEGINEND", "1");
-                envMap.put("LIBGL_RECYCLEFBO", "1");
-                envMap.put("LIBGL_FB", "1");
-                envMap.put("LIBGL_FPE", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+                envMap.put("LIBGL_NOTEXTURERECT", "0");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_GLSL", "1");
                 envMap.put("LIBGL_ALWAYSCURRENT", "1");
                 envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
-                envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_NOINTOVLHACK", "1");
-                envMap.put("LIBGL_NORMALIZE", "1");
-                envMap.put("LIBGL_MIPMAP", "3");
-                envMap.put("LIBGL_COPY", "1");
-                envMap.put("LIBGL_AVOID16BITS", "1");
-                envMap.put("LIBGL_SHRINK", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
                 envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
-                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA8");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
                 envMap.put("LIBGL_FLOAT_COLOR", "1");
-                envMap.put("LIBGL_FLOAT_DEPTH", "0");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
-                envMap.put("LIBGL_COLOR_RESCALE", "0");
-                envMap.put("LIBGL_NOTEXTURERECT", "1");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "2048MB");
-                envMap.put("MESA_NO_ERROR", "1");
-                envMap.put("MESA_SHADER_CACHE_DISABLE", "false");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
@@ -129,24 +123,20 @@ public class JREUtils {
                 envMap.put("glsl_ignore_noperspective", "true");
                 envMap.put("LIBGL_GLSL_STRIP", "noperspective");
                 envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
-                envMap.put("glsl_force_highp", "false");
-                envMap.put("glsl_zero_init", "false");
+                envMap.put("glsl_force_highp", "true");
                 envMap.put("mali_debug", "nocluster");
                 envMap.put("pan_shader_compile_threads", "4");
                 envMap.put("vblank_mode", "0");
                 envMap.put("force_s3tc_enable", "true");
-                envMap.put("POJAV_VSYNC_IN_ZINK", "0");
-                envMap.put("FORCE_VSYNC", "false");
-                envMap.put("LIBGL_VSYNC", "0");
-                envMap.put("FEAR_XEXTREAM_FPS_MODE", "1");
-                envMap.put("FEAR_XEXTREAM_STATE_CACHE", "1");
-                envMap.put("FEAR_XEXTREAM_SKIP_DITHER", "1");
-                envMap.put("FEAR_XEXTREAM_FAST_MATH", "1");
-                envMap.put("FEAR_XEXTREAM_SHADER_CACHE", "1");
+                envMap.put("glsl_zero_init", "true");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "2048MB");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                // HACK: GLSL version override for Mesa-based renderers (i.e. Zink)
+                // Required to run the game properly on some mobile Vulkan drivers (Minecraft fails to compile shaders without)
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 break;
         }
@@ -154,8 +144,14 @@ public class JREUtils {
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
+
+        // Prevent OptiFine (and other error-reporting stuff in Minecraft) from balooning the log
         envMap.put("LIBGL_NOERROR", "1");
+
+        // On certain GLES drivers, overloading default functions shader hack fails, so disable it
         envMap.put("LIBGL_NOINTOVLHACK", "1");
+
+        // Fix white color on banner and sheep, since GL4ES 1.1.5
         envMap.put("LIBGL_NORMALIZE", "1");
 
         if(PREF_DUMP_SHADERS)
@@ -163,12 +159,16 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
+        // The OPEN GL version is changed according
         envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
+		// This is currently required for YSM mod to function
 		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
 		if (!modRuntimeDir.exists()) {
     		modRuntimeDir.mkdirs();
@@ -179,6 +179,7 @@ public class JREUtils {
         setupFfmpegEnv(context, envMap);
         setupRendererEnv(envMap, renderer);
 
+        // HACK
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         envMap.put("EGL_PLATFORM", "android");
 
@@ -189,6 +190,7 @@ public class JREUtils {
         }
 
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
+            // We could also apply the FD_MESA_DEBUG only if freedreno is active but why making things complicated?
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
             envMap.put("TU_DEBUG", "sysmem");
@@ -207,17 +209,31 @@ public class JREUtils {
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
+
+        // Force LWJGL to use the Freetype library intended for it, instead of using the one
+        // that we ship with Java (since it may be older than what's needed)
+        //
         Tools.fullyExit();
     }
 
+    /**
+     * Parse and separate java arguments in a user friendly fashion
+     * It supports multi line and absence of spaces between arguments
+     * The function also supports auto-removal of improper arguments, although it may miss some.
+     *
+     * @param args The un-parsed argument list.
+     * @return Parsed args as an ArrayList
+     */
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
         args = args.trim().replace(" ", "");
-        String[] separators = new String[]{"-XX:-","-XX:+", "-XX:", "--", "-D", "-X", "-javaagent:", "-verbose"};
+        //For each prefixes, we separate args.
+        String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
                 int start = args.indexOf(prefix);
                 if(start == -1) break;
+                //Get the end of the current argument by checking the nearest separator
                 int end = -1;
                 for(String separator: separators){
                     int tempEnd = args.indexOf(separator, start + prefix.length());
@@ -228,15 +244,19 @@ public class JREUtils {
                     }
                     end = Math.min(end, tempEnd);
                 }
+                //Fallback
                 if(end == -1) end = args.length();
 
+                //Extract it
                 String parsedSubString = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
 
+                //Check if two args aren't bundled together by mistake
                 if(parsedSubString.indexOf('=') == parsedSubString.lastIndexOf('=')) {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
+                        // Looking for list elements
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
                                 parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
@@ -251,6 +271,11 @@ public class JREUtils {
         return parsedArguments;
     }
 
+    /**
+     * Open the render library in accordance to the settings.
+     * It will fallback if it fails to load the library.
+     * @return The name of the loaded library
+     */
     public static String loadGraphicsLibrary(String renderer){
         String renderLibrary;
         boolean useGles;
@@ -292,38 +317,16 @@ public class JREUtils {
 
         switch (renderer){
             case "fear_xextream":
-                Logger.appendToLog("[FearXextream] Initializing High-FPS GLES Engine Backend (v2)...");
+                Logger.appendToLog("[FearXextream] Initializing Standalone GLES Engine Backend...");
                 renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 bypassNamespace = false;
                 glesVersion = 3;
 
                 try {
-                    boolean loaded = false;
-                    String[] nativeCandidates = new String[] {
-                            "FearXextream", "FearCore", "fear_render"
-                    };
-                    for (String libName : nativeCandidates) {
-                        try {
-                            System.loadLibrary(libName);
-                            Logger.appendToLog("[FearXextream] Loaded native lib: " + libName);
-                            loaded = true;
-                            break;
-                        } catch (UnsatisfiedLinkError ule) {
-                            Log.w("JREUtils", "Native lib not found: " + libName);
-                        }
-                    }
-                    if (loaded) {
-                        String cachePath = Tools.DIR_GAME_HOME + "/fear_xextream_cache";
-                        File cacheDir = new File(cachePath);
-                        if (!cacheDir.exists()) {
-                            cacheDir.mkdirs();
-                        }
-                        initFearXextreamEngine(cachePath);
-                        Logger.appendToLog("[FearXextream] Engine init OK, cache=" + cachePath);
-                    } else {
-                        Logger.appendToLog("[FearXextream] No native engine lib found; running pure GL4ES + env boosters");
-                    }
+                    System.loadLibrary("FearXextream");
+                    String cachePath = Tools.DIR_GAME_HOME + "/fear_xextream_cache";
+                    initFearXextreamEngine(cachePath);
                 } catch (Throwable t) {
                     Log.e("JREUtils", "FearXextream native engine init failed", t);
                 }
@@ -331,9 +334,9 @@ public class JREUtils {
             case "vulkan_zink":
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
-                bypassNamespace = true;
+                bypassNamespace = true; // Mesa is linked to a bunch of libraries not available in the pojavexec namespace
                 glesVersion = 3;
-                if(preloadVk) preloadVulkan();
+                if(preloadVk) preloadVulkan(); // Zink requires Vulkan library to be preloaded
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
@@ -367,14 +370,18 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
+    // FearXextream Native Engine JNI Declaration
     public static native void initFearXextreamEngine(String cachePath);
 
+    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
+    //public static native void initializeHooks();
+    // Obtain AWT screen pixels to render on Android SurfaceView
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");

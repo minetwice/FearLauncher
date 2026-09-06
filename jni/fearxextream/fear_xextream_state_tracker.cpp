@@ -25,7 +25,7 @@ namespace FearXextream {
         if (real_glUseProgram) real_glUseProgram(program);
     }
 
-    void StateTracker::bindTexture(uint32_t unit, GLuint texture) {
+    void StateTracker::bindTexture(GLuint unit, GLuint texture) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (unit >= 16) return;
         if (m_cache.activeTextureUnits[unit] == texture) return;
