@@ -15,15 +15,68 @@
 
 #include "../pojavexec.h"
 
-/**
- * Basically a verbatim implementation of ndlopen(), found at
- * https://github.com/PojavLauncherTeam/lwjgl3/blob/3.3.1/modules/lwjgl/core/src/generated/c/linux/org_lwjgl_system_linux_DynamicLinkLoader.c#L11
- * but with our own additions for stuff like vulkanmod.
- */
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
+
+static void universal_stub_void(void) {
+    LOGI("LWJGL linkerhook: universal GL stub executed");
+}
+
+static void glGenSamplers_fallback(int count, unsigned int* samplers) {
+    static unsigned int next_id = 1;
+    if (!samplers || count <= 0) return;
+    typedef void (*glGenSamplers_pfn)(int, unsigned int*);
+    static glGenSamplers_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplers");
+        if (!real_fn) real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplersOES");
+    }
+    if (real_fn) {
+        real_fn(count, samplers);
+        int valid = 1;
+        for (int i = 0; i < count; i++) {
+            if (samplers[i] == 0) { valid = 0; break; }
+        }
+        if (valid) return;
+    }
+    for (int i = 0; i < count; i++) {
+        samplers[i] = next_id++;
+    }
+    LOGI("LWJGL linkerhook: glGenSamplers fallback generated %d sampler(s)", count);
+}
+
+static void glBindSampler_fallback(unsigned int unit, unsigned int sampler) {
+    typedef void (*glBindSampler_pfn)(unsigned int, unsigned int);
+    static glBindSampler_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSampler");
+        if (!real_fn) real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSamplerOES");
+    }
+    if (real_fn) real_fn(unit, sampler);
+}
+
+static void glDeleteSamplers_fallback(int count, const unsigned int* samplers) {
+    if (!samplers || count <= 0) return;
+    typedef void (*glDeleteSamplers_pfn)(int, const unsigned int*);
+    static glDeleteSamplers_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplers");
+        if (!real_fn) real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplersOES");
+    }
+    if (real_fn) real_fn(count, samplers);
+}
+
+static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pname, int param) {
+    typedef void (*glSamplerParameteri_pfn)(unsigned int, unsigned int, int);
+    static glSamplerParameteri_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteri");
+        if (!real_fn) real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteriOES");
+    }
+    if (real_fn) real_fn(sampler, pname, param);
+}
 
 static void glMemoryBarrier_stub(unsigned int barriers) {
     typedef void (*glFlush_pfn)();
@@ -119,6 +172,58 @@ static void* eglGetProcAddress_hook(const char* procname) {
         return (void*) glGetStringi_hook;
     }
 
+    if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glGenSamplers_fallback;
+    }
+
+    if (strcmp(procname, "glBindSampler") == 0 || strcmp(procname, "glBindSamplerOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glBindSampler_fallback;
+    }
+
+    if (strcmp(procname, "glDeleteSamplers") == 0 || strcmp(procname, "glDeleteSamplersOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glDeleteSamplers_fallback;
+    }
+
+    if (strcmp(procname, "glSamplerParameteri") == 0 || strcmp(procname, "glSamplerParameteriOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glSamplerParameteri_fallback;
+    }
+
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
     if (!real_eglGetProcAddress) {
@@ -128,9 +233,14 @@ static void* eglGetProcAddress_hook(const char* procname) {
         }
     }
     if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+        void* sym = real_eglGetProcAddress(procname);
+        if (sym) return sym;
     }
-    return NULL;
+
+    void* sym = dlsym(RTLD_DEFAULT, procname);
+    if (sym) return sym;
+
+    return (void*) universal_stub_void;
 }
 
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
@@ -150,13 +260,6 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         return (jlong) rspec->egl_acquire(rspec->egl_path);
     }
-
-    // This hook also serves the task of mitigating a bug: the idea is that since, on Android 10 and
-    // earlier, the linker doesn't really do namespace nesting.
-    // It is not a problem as most of the libraries are in the launcher path, but when you try to run
-    // VulkanMod which loads shaderc outside of the default jni libs directory through this method,
-    // it can't load it because the path is not in the allowed paths for the anonymous namesapce.
-    // This method fixes the issue by being in libpojavexec, and thus being in the classloader namespace
 
     int mode = (int)jmode;
     return (jlong) dlopen(filename, mode);
@@ -184,10 +287,34 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
         }
+        if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glGenSamplers_fallback;
+        }
+        if (strcmp(symbol, "glBindSampler") == 0 || strcmp(symbol, "glBindSamplerOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glBindSampler_fallback;
+        }
+        if (strcmp(symbol, "glDeleteSamplers") == 0 || strcmp(symbol, "glDeleteSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glDeleteSamplers_fallback;
+        }
+        if (strcmp(symbol, "glSamplerParameteri") == 0 || strcmp(symbol, "glSamplerParameteriOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glSamplerParameteri_fallback;
+        }
     }
 
     // Call real dlsym
-    return (jlong) dlsym((void*) handle, symbol);
+    void* sym = dlsym((void*) handle, symbol);
+    if (!sym && symbol && strncmp(symbol, "gl", 2) == 0) {
+        return (jlong) universal_stub_void;
+    }
+    return (jlong) sym;
 }
 
 /**
