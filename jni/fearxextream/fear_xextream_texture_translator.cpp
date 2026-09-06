@@ -2,6 +2,9 @@
 #include <cmath>
 #include <android/log.h>
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
 #define LOG_TAG "FearXextreamTexture"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
@@ -21,7 +24,6 @@ namespace FearXextream {
         mapping.isFloatFormat = false;
 
         switch (desktopFormat) {
-            // High-precision floating point G-Buffer formats for shaders (colortex0-15, normals, depth, specular)
             case GL_RGBA16F:
                 mapping.mobileInternalFormat = GL_RGBA16F;
                 mapping.format = GL_RGBA;
@@ -41,7 +43,6 @@ namespace FearXextream {
                 mapping.isFloatFormat = true;
                 break;
 
-            // sRGB Color Space Formats for realistic Minecraft block textures and entity shading
             case GL_SRGB:
             case GL_SRGB8:
                 mapping.mobileInternalFormat = GL_SRGB8;
@@ -57,7 +58,6 @@ namespace FearXextream {
                 mapping.requiresSRGBConversion = true;
                 break;
 
-            // High Precision Depth & Shadow Maps (Mali/Adreno 24-bit / 32-bit float shadow maps)
             case GL_DEPTH_COMPONENT:
             case GL_DEPTH_COMPONENT16:
             case GL_DEPTH_COMPONENT24:
@@ -72,7 +72,6 @@ namespace FearXextream {
                 mapping.isFloatFormat = true;
                 break;
 
-            // Standard RGBA Fallbacks
             case GL_RGBA:
             case GL_RGBA8:
             default:
@@ -86,7 +85,6 @@ namespace FearXextream {
     }
 
     void TextureTranslator::applySamplerFixes(GLenum target, GLint minFilter, GLint magFilter, GLint wrapS, GLint wrapT) {
-        // Enforce CLAMP_TO_EDGE for non-power-of-two (NPOT) samplers to fix texture edge bleeding
         if (wrapS == GL_REPEAT) wrapS = GL_CLAMP_TO_EDGE;
         if (wrapT == GL_REPEAT) wrapT = GL_CLAMP_TO_EDGE;
 
@@ -108,7 +106,6 @@ namespace FearXextream {
     }
 
     void TextureTranslator::prepareUnpackAlignment() {
-        // Force 1-byte pixel unpack alignment to prevent Mali memory stride corruptions
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
@@ -122,14 +119,12 @@ namespace FearXextream {
         #define GL_TEXTURE_SWIZZLE_A 0x8E45
         #endif
 
-        // Mali GPU BGRA / BGR blue-red channel swizzle fix
         if (format == 0x80E1 /* GL_BGRA_EXT */ || format == 0x80E0 /* GL_BGR_EXT */) {
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_RED);
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
         } else {
-            // Reset to identity swizzle to prevent color glitches on normal RGBA textures
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, GL_RED);
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
             glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, GL_BLUE);

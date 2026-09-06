@@ -2,6 +2,9 @@
 #include <android/log.h>
 #include <dlfcn.h>
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
 #define LOG_TAG "FearXextreamTracker"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
@@ -14,7 +17,7 @@ namespace FearXextream {
 
     void StateTracker::bindProgram(GLuint program) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_cache.activeProgram == program) return; // Skip redundant glUseProgram
+        if (m_cache.activeProgram == program) return;
         m_cache.activeProgram = program;
 
         typedef void (*glUseProgram_pfn)(GLuint);
@@ -25,7 +28,7 @@ namespace FearXextream {
     void StateTracker::bindTexture(uint32_t unit, GLuint texture) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (unit >= 16) return;
-        if (m_cache.activeTextureUnits[unit] == texture) return; // Skip redundant glBindTexture
+        if (m_cache.activeTextureUnits[unit] == texture) return;
         m_cache.activeTextureUnits[unit] = texture;
 
         typedef void (*glActiveTexture_pfn)(GLenum);

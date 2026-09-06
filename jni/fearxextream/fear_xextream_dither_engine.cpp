@@ -1,6 +1,9 @@
 #include "fear_xextream_dither_engine.h"
 #include <android/log.h>
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
 #define LOG_TAG "FearXextreamDither"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
@@ -23,7 +26,6 @@ namespace FearXextream {
 
             injectColorEnhancerLayer(shaderSource, shaderType);
 
-            // Insert definitions after #version directive line
             size_t versionPos = shaderSource.find("#version");
             if (versionPos != std::string::npos) {
                 size_t lineEnd = shaderSource.find('\n', versionPos);
@@ -36,7 +38,6 @@ namespace FearXextream {
                 shaderSource = antiFlickerCode + shaderSource;
             }
 
-            // Locate main() and track brace depth to insert hook calls before main()'s closing brace
             size_t mainPos = shaderSource.find("void main");
             if (mainPos == std::string::npos) {
                 mainPos = shaderSource.find("main()");
