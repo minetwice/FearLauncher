@@ -78,6 +78,41 @@ static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pnam
     if (real_fn) real_fn(sampler, pname, param);
 }
 
+static void* glMapBufferRange_hook(unsigned int target, long offset, long length, unsigned int access) {
+    typedef void* (*pfn)(unsigned int, long, long, unsigned int);
+    static pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (pfn) dlsym(RTLD_DEFAULT, "glMapBufferRange");
+        if (!real_fn) real_fn = (pfn) dlsym(RTLD_DEFAULT, "glMapBufferRangeEXT");
+    }
+    void* ptr = NULL;
+    if (real_fn) {
+        ptr = real_fn(target, offset, length, access & ~(0x0040 | 0x0080));
+    }
+    if (!ptr) {
+        if (length <= 0) length = 65536;
+        ptr = malloc(length);
+        if (!ptr) ptr = calloc(1, 65536);
+        LOGI("LWJGL linkerhook: glMapBufferRange fallback shadow buffer created (len=%ld)", length);
+    }
+    return ptr;
+}
+
+static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
+    return glMapBufferRange_hook(target, 0, 65536, 0x0002);
+}
+
+static int glUnmapBuffer_hook(unsigned int target) {
+    typedef int (*pfn)(unsigned int);
+    static pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (pfn) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
+        if (!real_fn) real_fn = (pfn) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
+    }
+    if (real_fn) return real_fn(target);
+    return 1;
+}
+
 static void glMemoryBarrier_stub(unsigned int barriers) {
     typedef void (*glFlush_pfn)();
     static glFlush_pfn real_glFlush = NULL;
@@ -170,6 +205,16 @@ static void* eglGetProcAddress_hook(const char* procname) {
     }
     if (strcmp(procname, "glGetStringi") == 0) {
         return (void*) glGetStringi_hook;
+    }
+
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0) {
+        return (void*) glMapBufferRange_hook;
+    }
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0) {
+        return (void*) glMapBuffer_hook;
+    }
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0) {
+        return (void*) glUnmapBuffer_hook;
     }
 
     if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
@@ -286,6 +331,15 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
+        }
+        if (strcmp(symbol, "glMapBufferRange") == 0 || strcmp(symbol, "glMapBufferRangeEXT") == 0) {
+            return (jlong) glMapBufferRange_hook;
+        }
+        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0) {
+            return (jlong) glMapBuffer_hook;
+        }
+        if (strcmp(symbol, "glUnmapBuffer") == 0 || strcmp(symbol, "glUnmapBufferOES") == 0) {
+            return (jlong) glUnmapBuffer_hook;
         }
         if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
             void* sym = dlsym((void*) handle, symbol);

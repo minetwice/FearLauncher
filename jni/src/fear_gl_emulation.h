@@ -18,6 +18,11 @@ void fear_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GL
 void fear_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 void fear_glBindTextureUnit(GLuint unit, GLuint texture);
 
+// Buffer Mapping Fallback API
+void* fear_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+void* fear_glMapBuffer(GLenum target, GLenum access);
+GLboolean fear_glUnmapBuffer(GLenum target);
+
 // Sampler Emulation API
 void fear_glGenSamplers(GLsizei count, GLuint* samplers);
 void fear_glBindSampler(GLuint unit, GLuint sampler);

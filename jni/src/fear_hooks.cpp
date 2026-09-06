@@ -167,7 +167,7 @@ FEAR_EXPORT void glfwMakeContextCurrent(void* window) {
     }
 }
 
-// Directly exported sampler symbols to satisfy LWJGL dlsym queries
+// Directly exported sampler & buffer symbols to satisfy LWJGL dlsym queries
 FEAR_EXPORT void glGenSamplers(GLsizei count, GLuint* samplers) {
     fear_glGenSamplers(count, samplers);
 }
@@ -198,6 +198,18 @@ FEAR_EXPORT void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint*
 
 FEAR_EXPORT void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* param) {
     fear_glSamplerParameterfv(sampler, pname, param);
+}
+
+FEAR_EXPORT void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    return fear_glMapBufferRange(target, offset, length, access);
+}
+
+FEAR_EXPORT void* glMapBuffer(GLenum target, GLenum access) {
+    return fear_glMapBuffer(target, access);
+}
+
+FEAR_EXPORT GLboolean glUnmapBuffer(GLenum target) {
+    return fear_glUnmapBuffer(target);
 }
 
 FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
@@ -482,6 +494,10 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glSamplerParameterf") == 0 || strcmp(procname, "glSamplerParameterfOES") == 0) return (void*)fear_glSamplerParameterf;
     if (strcmp(procname, "glSamplerParameteriv") == 0 || strcmp(procname, "glSamplerParameterivOES") == 0) return (void*)fear_glSamplerParameteriv;
     if (strcmp(procname, "glSamplerParameterfv") == 0 || strcmp(procname, "glSamplerParameterfvOES") == 0) return (void*)fear_glSamplerParameterfv;
+
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0) return (void*)fear_glMapBufferRange;
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0) return (void*)fear_glMapBuffer;
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0) return (void*)fear_glUnmapBuffer;
 
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
     if (strcmp(procname, "glTextureBarrier") == 0) return (void*)fear_glTextureBarrier;
