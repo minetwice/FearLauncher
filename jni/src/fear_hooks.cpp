@@ -11,8 +11,6 @@
 #include <chrono>
 #include <mutex>
 #include <unistd.h>
-#include <unordered_map>
-#include <cstdlib>
 #include <EGL/egl.h>
 
 #define FEAR_EXPORT __attribute__((visibility("default")))
@@ -29,28 +27,6 @@ static void* g_glesHandle = nullptr;
 static int g_windowCreated = 0;
 static bool g_emergencyContextCreated = false;
 
-// ============================================================================
-// Shadow Buffer System for glMapBufferRange
-// ============================================================================
-// On Mali GPUs, glMapBufferRange is not supported (only GL_OES_mapbuffer).
-// gl4es translates it but returns NULL on Mali, causing
-// "Can't map buffer, opengl error 0" crash.
-// We intercept glMapBufferRange at the hook level and ALWAYS return a
-// CPU-side shadow buffer (malloc). On glUnmapBuffer, we upload via
-// glBufferSubData (supported in GLES 2.0 core).
-
-struct FearMappedBuffer {
-    GLenum target = 0;
-    GLuint bufferID = 0;
-    GLintptr offset = 0;
-    GLsizeiptr length = 0;
-    void* ptr = nullptr;
-    bool isShadow = false;
-};
-
-static std::unordered_map<GLuint, FearMappedBuffer> g_fearMappedBuffers;
-static std::mutex g_fearMappedMutex;
-
 static void universal_safe_stub() {
     static bool logged = false;
     if (!logged) {
@@ -62,7 +38,7 @@ static void universal_safe_stub() {
 static void initEGLGLESHandles() {
     static std::once_flag flag;
     std::call_once(flag, []() {
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260907-B compiled " __DATE__ " " __TIME__);
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "BUILD MARKER v20260819-A compiled " __DATE__ " " __TIME__);
         g_eglHandle = dlopen("libEGL.so", RTLD_GLOBAL | RTLD_LAZY);
         g_glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
         __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] EGL handle: %p, GLES handle: %p", g_eglHandle, g_glesHandle);
@@ -81,66 +57,49 @@ static bool isContextCurrent() {
 }
 
 static void tryEmergencyContext() {
-    if (g_emergencyContextCreated || !g_eglHandle) return;
-    initEGLGLESHandles();
-
-    EGLDisplay dpy;
-    {
-        typedef EGLDisplay (*eglGetDisplay_pfn)(EGLNativeDisplayType);
-        static eglGetDisplay_pfn p_eglGetDisplay = (eglGetDisplay_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetDisplay");
-        if (!p_eglGetDisplay) return;
-        dpy = p_eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        if (!dpy) return;
-    }
-
-    {
-        typedef EGLBoolean (*eglInitialize_pfn)(EGLDisplay, EGLint*, EGLint*);
-        static eglInitialize_pfn p_eglInitialize = (eglInitialize_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglInitialize");
-        if (!p_eglInitialize) return;
-        EGLint maj, min;
-        p_eglInitialize(dpy, &maj, &min);
-    }
-
-    EGLConfig config;
-    {
-        typedef EGLBoolean (*eglChooseConfig_pfn)(EGLDisplay, const EGLint*, EGLConfig*, EGLint, EGLint*);
-        static eglChooseConfig_pfn p_eglChooseConfig = (eglChooseConfig_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglChooseConfig");
-        if (!p_eglChooseConfig) return;
-        EGLint attrs[] = {EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE};
-        EGLint numConfigs = 0;
-        p_eglChooseConfig(dpy, attrs, &config, 1, &numConfigs);
-        if (numConfigs == 0) return;
-    }
-
-    EGLSurface surf;
-    {
-        typedef EGLSurface (*eglCreatePbufferSurface_pfn)(EGLDisplay, EGLConfig, const EGLint*);
-        static eglCreatePbufferSurface_pfn p_eglCreatePbufferSurface = (eglCreatePbufferSurface_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreatePbufferSurface");
-        if (!p_eglCreatePbufferSurface) return;
-        EGLint surfAttrs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
-        surf = p_eglCreatePbufferSurface(dpy, config, surfAttrs);
-        if (!surf) return;
-    }
-
-    EGLContext ctx;
-    {
-        typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
-        static eglCreateContext_pfn p_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
-        if (!p_eglCreateContext) return;
-        EGLint ctxAttrs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-        ctx = p_eglCreateContext(dpy, config, EGL_NO_CONTEXT, ctxAttrs);
-        if (!ctx) return;
-    }
-
-    {
-        typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
-        static eglMakeCurrent_pfn p_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
-        if (!p_eglMakeCurrent) return;
-        p_eglMakeCurrent(dpy, surf, surf, ctx);
-    }
-
+    if (!g_windowCreated || g_emergencyContextCreated) return;
     g_emergencyContextCreated = true;
-    __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender] Emergency EGL context created");
+
+    initEGLGLESHandles();
+    typedef EGLDisplay (*eglGetDisplay_pfn)(EGLNativeDisplayType);
+    typedef EGLBoolean (*eglInitialize_pfn)(EGLDisplay, EGLint*, EGLint*);
+    typedef EGLBoolean (*eglChooseConfig_pfn)(EGLDisplay, const EGLint*, EGLConfig*, EGLint, EGLint*);
+    typedef EGLSurface (*eglCreatePbufferSurface_pfn)(EGLDisplay, EGLConfig, const EGLint*);
+    typedef EGLContext (*eglCreateContext_pfn)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
+    typedef EGLBoolean (*eglMakeCurrent_pfn)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
+
+    eglGetDisplay_pfn p_eglGetDisplay = (eglGetDisplay_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglGetDisplay");
+    eglInitialize_pfn p_eglInitialize = (eglInitialize_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglInitialize");
+    eglChooseConfig_pfn p_eglChooseConfig = (eglChooseConfig_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglChooseConfig");
+    eglCreatePbufferSurface_pfn p_eglCreatePbufferSurface = (eglCreatePbufferSurface_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreatePbufferSurface");
+    eglCreateContext_pfn p_eglCreateContext = (eglCreateContext_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglCreateContext");
+    eglMakeCurrent_pfn p_eglMakeCurrent = (eglMakeCurrent_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_DEFAULT, "eglMakeCurrent");
+
+    if (p_eglGetDisplay && p_eglInitialize && p_eglChooseConfig && p_eglCreatePbufferSurface && p_eglCreateContext && p_eglMakeCurrent) {
+        EGLDisplay display = p_eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (display != EGL_NO_DISPLAY) {
+            p_eglInitialize(display, nullptr, nullptr);
+            EGLint configAttribs[] = {
+                EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+                EGL_NONE
+            };
+            EGLConfig config;
+            EGLint numConfigs = 0;
+            p_eglChooseConfig(display, configAttribs, &config, 1, &numConfigs);
+            if (numConfigs > 0) {
+                EGLint pbufAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
+                EGLSurface pbuf = p_eglCreatePbufferSurface(display, config, pbufAttribs);
+                EGLint ctxAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+                EGLContext ctx = p_eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
+                if (pbuf != EGL_NO_SURFACE && ctx != EGL_NO_CONTEXT) {
+                    if (p_eglMakeCurrent(display, pbuf, pbuf, ctx)) {
+                        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][EMERGENCY] self-context created tid=%d", gettid());
+                    }
+                }
+            }
+        }
+    }
 }
 
 extern "C" {
@@ -188,21 +147,46 @@ FEAR_EXPORT EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
 }
 
 void* glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
-    // Stub GLFW window creation — we already have an EGL surface from Java
+    typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
+    static glfwCreateWindow_pfn real_glfwCreateWindow = (glfwCreateWindow_pfn)dlsym(RTLD_NEXT, "glfwCreateWindow");
+    void* window = real_glfwCreateWindow ? real_glfwCreateWindow(width, height, title, monitor, share) : nullptr;
     g_windowCreated = 1;
-    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] glfwCreateWindow stubbed (%dx%d)", width, height);
-    return (void*)0x1;
+    __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] glfwCreateWindow -> %p", window);
+    if (isContextCurrent()) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] context verified on render thread");
+    }
+    return window;
 }
 
-void glfwSetWindowTitle(void* window, const char* title) {}
-int glfwWindowShouldClose(void* window) { return 0; }
-void glfwSwapBuffers(void* window) {
-    typedef void (*eglSwapBuffers_pfn)(EGLDisplay, EGLSurface);
-    static eglSwapBuffers_pfn real_eglSwapBuffers = (eglSwapBuffers_pfn)dlsym(g_eglHandle ? g_eglHandle : RTLD_NEXT, "eglSwapBuffers");
-    // Can't call directly without display/surface — this is handled by Java
+FEAR_EXPORT void glfwMakeContextCurrent(void* window) {
+    typedef void (*glfwMakeContextCurrent_pfn)(void*);
+    static glfwMakeContextCurrent_pfn real_fn = (glfwMakeContextCurrent_pfn)dlsym(RTLD_NEXT, "glfwMakeContextCurrent");
+    if (real_fn) real_fn(window);
+    if (isContextCurrent()) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] context verified on render thread");
+    }
 }
-void glfwPollEvents(void) {}
-void glfwTerminate(void) {}
+
+// Directly exported sampler & buffer symbols to satisfy LWJGL dlsym queries
+FEAR_EXPORT void glGenSamplers(GLsizei count, GLuint* samplers) {
+    fear_glGenSamplers(count, samplers);
+}
+
+FEAR_EXPORT void glBindSampler(GLuint unit, GLuint sampler) {
+    fear_glBindSampler(unit, sampler);
+}
+
+FEAR_EXPORT void glDeleteSamplers(GLsizei count, const GLuint* samplers) {
+    fear_glDeleteSamplers(count, samplers);
+}
+
+FEAR_EXPORT GLboolean glIsSampler(GLuint sampler) {
+    return fear_glIsSampler(sampler);
+}
+
+FEAR_EXPORT void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
+    fear_glSamplerParameteri(sampler, pname, param);
+}
 
 FEAR_EXPORT void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) {
     fear_glSamplerParameterf(sampler, pname, param);
@@ -216,159 +200,16 @@ FEAR_EXPORT void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloa
     fear_glSamplerParameterfv(sampler, pname, param);
 }
 
-// ============================================================================
-// Buffer Mapping — DIRECT shadow buffer implementation in the hook itself.
-// This is CRITICAL: the fear_glMapBufferRange in fear_gl_emulation.cpp
-// may not be called if LWJGL resolves glMapBufferRange via eglGetProcAddress
-// from libgl4es_114.so (which bypasses libGLFear.so's RTLD_LOCAL symbols).
-// By implementing the shadow buffer DIRECTLY in the FEAR_EXPORT wrapper,
-// we ensure it works regardless of how LWJGL resolves the function.
-// ============================================================================
-
 FEAR_EXPORT void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    static int callCount = 0;
-    if (callCount < 5) {
-        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] glMapBufferRange HOOK CALLED target=0x%X offset=%ld len=%ld access=0x%X", target, (long)offset, (long)length, access);
-        callCount++;
-    }
-
-    // Resolve glGetIntegerv to find the currently bound buffer ID.
-    // Use RTLD_NEXT to skip our own exports and find gl4es/GLES implementation.
-    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-    static glGetIntegerv_pfn real_glGetIntegerv = nullptr;
-    if (!real_glGetIntegerv) {
-        real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_NEXT, "glGetIntegerv");
-    }
-
-    GLuint bufferID = 0;
-    GLenum bindingPname = GL_ARRAY_BUFFER_BINDING;
-    if (target == GL_ELEMENT_ARRAY_BUFFER) bindingPname = GL_ELEMENT_ARRAY_BUFFER_BINDING;
-    else if (target == GL_UNIFORM_BUFFER) bindingPname = 0x8A28;
-    else if (target == GL_SHADER_STORAGE_BUFFER) bindingPname = 0x90D3;
-
-    if (real_glGetIntegerv) {
-        GLint b = 0;
-        real_glGetIntegerv(bindingPname, &b);
-        bufferID = static_cast<GLuint>(b);
-    }
-
-    // ALWAYS use shadow buffer — never attempt real glMapBufferRange.
-    // On Mali via gl4es, the real glMapBufferRange is broken (returns NULL).
-    GLsizeiptr allocLen = length;
-    if (allocLen <= 0) allocLen = 65536;
-    void* shadowPtr = malloc(allocLen);
-    if (!shadowPtr) {
-        shadowPtr = calloc(1, 65536);
-    }
-    if (!shadowPtr) {
-        __android_log_print(ANDROID_LOG_ERROR, "FearRender", "[FearRender] glMapBufferRange: malloc FAILED for len=%ld", (long)allocLen);
-        return nullptr;
-    }
-
-    FearMappedBuffer info;
-    info.target = target;
-    info.bufferID = bufferID;
-    info.offset = offset;
-    info.length = allocLen;
-    info.ptr = shadowPtr;
-    info.isShadow = true;
-
-    {
-        std::lock_guard<std::mutex> lock(g_fearMappedMutex);
-        g_fearMappedBuffers[bufferID] = info;
-    }
-
-    return shadowPtr;
-}
-
-// Alias for glMapBufferRangeEXT — some implementations look for this name
-FEAR_EXPORT void* glMapBufferRangeEXT(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    return glMapBufferRange(target, offset, length, access);
+    return fear_glMapBufferRange(target, offset, length, access);
 }
 
 FEAR_EXPORT void* glMapBuffer(GLenum target, GLenum access) {
-    // Get buffer size via glGetBufferParameteriv
-    typedef void (*glGetBufferParameteriv_pfn)(GLenum, GLenum, GLint*);
-    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = nullptr;
-    if (!real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)dlsym(RTLD_NEXT, "glGetBufferParameteriv");
-    }
-
-    GLint bufferSize = 65536;
-    if (real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv(target, GL_BUFFER_SIZE, &bufferSize);
-    }
-    if (bufferSize <= 0) bufferSize = 65536;
-
-    GLbitfield accessRange = GL_MAP_WRITE_BIT;
-    if (access == GL_READ_ONLY) accessRange = GL_MAP_READ_BIT;
-    else if (access == GL_READ_WRITE) accessRange = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-
-    return glMapBufferRange(target, 0, bufferSize, accessRange);
-}
-
-// Alias for glMapBufferOES
-FEAR_EXPORT void* glMapBufferOES(GLenum target, GLenum access) {
-    return glMapBuffer(target, access);
+    return fear_glMapBuffer(target, access);
 }
 
 FEAR_EXPORT GLboolean glUnmapBuffer(GLenum target) {
-    // Resolve glGetIntegerv to find buffer ID
-    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-    static getIntegerv_pfn real_glGetIntegerv = nullptr;
-    if (!real_glGetIntegerv) {
-        real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_NEXT, "glGetIntegerv");
-    }
-
-    GLuint bufferID = 0;
-    GLenum bindingPname = GL_ARRAY_BUFFER_BINDING;
-    if (target == GL_ELEMENT_ARRAY_BUFFER) bindingPname = GL_ELEMENT_ARRAY_BUFFER_BINDING;
-    else if (target == GL_UNIFORM_BUFFER) bindingPname = 0x8A28;
-    else if (target == GL_SHADER_STORAGE_BUFFER) bindingPname = 0x90D3;
-
-    if (real_glGetIntegerv) {
-        GLint b = 0;
-        real_glGetIntegerv(bindingPname, &b);
-        bufferID = static_cast<GLuint>(b);
-    }
-
-    FearMappedBuffer info;
-    bool found = false;
-    {
-        std::lock_guard<std::mutex> lock(g_fearMappedMutex);
-        auto it = g_fearMappedBuffers.find(bufferID);
-        if (it != g_fearMappedBuffers.end()) {
-            info = it->second;
-            g_fearMappedBuffers.erase(it);
-            found = true;
-        }
-    }
-
-    if (found && info.isShadow && info.ptr) {
-        // Upload shadow buffer data to real GPU buffer via glBufferSubData
-        typedef void (*glBufferSubData_pfn)(GLenum, GLintptr, GLsizeiptr, const void*);
-        static glBufferSubData_pfn real_glBufferSubData = nullptr;
-        if (!real_glBufferSubData) {
-            real_glBufferSubData = (glBufferSubData_pfn)dlsym(RTLD_NEXT, "glBufferSubData");
-        }
-        if (real_glBufferSubData) {
-            real_glBufferSubData(info.target, info.offset, info.length, info.ptr);
-        }
-        free(info.ptr);
-        return GL_TRUE;
-    }
-
-    // Non-shadow path: call real glUnmapBuffer
-    typedef GLboolean (*glUnmapBuffer_pfn)(GLenum);
-    static glUnmapBuffer_pfn real_glUnmapBuffer = nullptr;
-    if (!real_glUnmapBuffer) {
-        real_glUnmapBuffer = (glUnmapBuffer_pfn)dlsym(RTLD_NEXT, "glUnmapBuffer");
-    }
-    return real_glUnmapBuffer ? real_glUnmapBuffer(target) : GL_TRUE;
-}
-
-FEAR_EXPORT GLboolean glUnmapBufferOES(GLenum target) {
-    return glUnmapBuffer(target);
+    return fear_glUnmapBuffer(target);
 }
 
 FEAR_EXPORT void glGetIntegerv(GLenum pname, GLint* params) {
@@ -449,69 +290,179 @@ FEAR_EXPORT void glEnable(GLenum cap) {
 }
 
 FEAR_EXPORT void glDisable(GLenum cap) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDisable without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDisable_pfn)(GLenum);
     static glDisable_pfn real_glDisable = (glDisable_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDisable");
     if (real_glDisable) real_glDisable(cap);
 }
 
 FEAR_EXPORT void glBindTexture(GLenum target, GLuint texture) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glBindTexture without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glBindTexture_pfn)(GLenum, GLuint);
     static glBindTexture_pfn real_glBindTexture = (glBindTexture_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glBindTexture");
     if (real_glBindTexture) real_glBindTexture(target, texture);
 }
 
-FEAR_EXPORT void glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
-    if (!isContextCurrent()) return;
+FEAR_EXPORT void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glClearColor without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glClearColor_pfn)(GLfloat, GLfloat, GLfloat, GLfloat);
     static glClearColor_pfn real_glClearColor = (glClearColor_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glClearColor");
-    if (real_glClearColor) real_glClearColor(r, g, b, a);
+    if (real_glClearColor) real_glClearColor(red, green, blue, alpha);
 }
 
 FEAR_EXPORT void glClear(GLbitfield mask) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glClear without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glClear_pfn)(GLbitfield);
     static glClear_pfn real_glClear = (glClear_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glClear");
     if (real_glClear) real_glClear(mask);
 }
 
 FEAR_EXPORT void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDrawArrays without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDrawArrays_pfn)(GLenum, GLint, GLsizei);
     static glDrawArrays_pfn real_glDrawArrays = (glDrawArrays_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDrawArrays");
     if (real_glDrawArrays) real_glDrawArrays(mode, first, count);
 }
 
 FEAR_EXPORT void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
-    if (!isContextCurrent()) return;
+    if (!isContextCurrent()) {
+        static bool logged = false;
+        if (!logged) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender][GUARD] glDrawElements without context tid=%d - safe default", gettid());
+            logged = true;
+        }
+        return;
+    }
     typedef void (*glDrawElements_pfn)(GLenum, GLsizei, GLenum, const void*);
     static glDrawElements_pfn real_glDrawElements = (glDrawElements_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glDrawElements");
     if (real_glDrawElements) real_glDrawElements(mode, count, type, indices);
 }
 
-FEAR_EXPORT void glGenSamplers(GLsizei count, GLuint* samplers) {
-    fear_glGenSamplers(count, samplers);
-}
+const unsigned char* fear_glGetString(unsigned int name) {
+    if (name == GL_VERSION) {
+        return (const unsigned char*)"4.6 (Fear Render)";
+    } else if (name == GL_SHADING_LANGUAGE_VERSION) {
+        return (const unsigned char*)"4.60";
+    } else if (name == GL_RENDERER) {
+        return (const unsigned char*)"Fear Render";
+    } else if (name == GL_VENDOR) {
+        return (const unsigned char*)"Fear Render";
+    } else if (name == GL_EXTENSIONS) {
+        if (isContextCurrent()) {
+            typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+            static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
+            if (real_glGetString) {
+                const unsigned char* realExt = real_glGetString(GL_EXTENSIONS);
+                if (realExt && realExt[0] != '\0') return realExt;
+            }
+        }
+        static const char* fakeExt = "GL_OES_element_index_uint GL_OES_depth_texture GL_OES_depth24 GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_standard_derivatives GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_texture_format_BGRA8888 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Spoofed GL_EXTENSIONS string");
+        return (const unsigned char*)fakeExt;
+    }
 
-FEAR_EXPORT void glBindSampler(GLuint unit, GLuint sampler) {
-    fear_glBindSampler(unit, sampler);
-}
-
-FEAR_EXPORT void glDeleteSamplers(GLsizei count, const GLuint* samplers) {
-    fear_glDeleteSamplers(count, samplers);
-}
-
-FEAR_EXPORT GLboolean glIsSampler(GLuint sampler) {
-    return fear_glIsSampler(sampler);
-}
-
-FEAR_EXPORT void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
-    fear_glSamplerParameteri(sampler, pname, param);
+    if (isContextCurrent()) {
+        typedef const unsigned char* (*glGetString_pfn)(unsigned int);
+        static glGetString_pfn real_glGetString = (glGetString_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetString");
+        if (real_glGetString) {
+            const unsigned char* res = real_glGetString(name);
+            if (res && res[0] != '\0') return res;
+        }
+    }
+    return (const unsigned char*)"Fear Render";
 }
 
 FEAR_EXPORT const unsigned char* glGetString(unsigned int name) {
     return fear_glGetString(name);
+}
+
+const unsigned char* fear_glGetStringi(unsigned int name, unsigned int index) {
+    if (name == GL_EXTENSIONS) {
+        static const char* extensions[] = {
+            "GL_OES_element_index_uint",
+            "GL_OES_depth_texture",
+            "GL_OES_depth24",
+            "GL_OES_texture_3D",
+            "GL_OES_texture_float",
+            "GL_OES_texture_half_float",
+            "GL_OES_texture_half_float_linear",
+            "GL_OES_texture_npot",
+            "GL_OES_mapbuffer",
+            "GL_OES_packed_depth_stencil",
+            "GL_OES_standard_derivatives",
+            "GL_OES_vertex_array_object",
+            "GL_OES_compressed_ETC1_RGB8_texture",
+            "GL_EXT_texture_format_BGRA8888",
+            "GL_EXT_color_buffer_float",
+            "GL_EXT_color_buffer_half_float",
+            "GL_ARB_direct_state_access",
+            "GL_ARB_buffer_storage",
+            "GL_ARB_shader_image_load_store",
+            "GL_NV_conditional_render",
+            "GL_EXT_gpu_shader4",
+            "GL_EXT_texture_buffer",
+            "GL_EXT_texture_cube_map_array",
+            "GL_OES_EGL_image_external_essl3",
+            "GL_NV_shader_noperspective_interpolation",
+            "GL_ARB_shader_objects",
+            "GL_ARB_vertex_shader",
+            "GL_ARB_fragment_shader",
+            "GL_EXT_blend_equation_separate",
+            "GL_EXT_geometry_shader4",
+            "GL_EXT_gpu_program_parameters",
+            "GL_ARB_instanced_arrays",
+            "GL_ARB_draw_instanced"
+        };
+        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
+        if (index < size) {
+            return (const unsigned char*)extensions[index];
+        }
+    }
+
+    if (isContextCurrent()) {
+        typedef const unsigned char* (*glGetStringi_pfn)(unsigned int, unsigned int);
+        static glGetStringi_pfn real_glGetStringi = (glGetStringi_pfn)dlsym(g_glesHandle ? g_glesHandle : RTLD_NEXT, "glGetStringi");
+        if (real_glGetStringi) {
+            const unsigned char* res = real_glGetStringi(name, index);
+            if (res && res[0] != '\0') return res;
+        }
+    }
+    return (const unsigned char*)"";
 }
 
 FEAR_EXPORT const unsigned char* glGetStringi(unsigned int name, unsigned int index) {
@@ -544,10 +495,9 @@ void* fear_eglGetProcAddress(const char* procname) {
     if (strcmp(procname, "glSamplerParameteriv") == 0 || strcmp(procname, "glSamplerParameterivOES") == 0) return (void*)fear_glSamplerParameteriv;
     if (strcmp(procname, "glSamplerParameterfv") == 0 || strcmp(procname, "glSamplerParameterfvOES") == 0) return (void*)fear_glSamplerParameterfv;
 
-    // Buffer mapping — return our DIRECT hook implementations (not fear_ prefixed)
-    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0) return (void*)glMapBufferRange;
-    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0) return (void*)glMapBuffer;
-    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0) return (void*)glUnmapBuffer;
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0) return (void*)fear_glMapBufferRange;
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0) return (void*)fear_glMapBuffer;
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0) return (void*)fear_glUnmapBuffer;
 
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*)fear_glMemoryBarrier;
     if (strcmp(procname, "glTextureBarrier") == 0) return (void*)fear_glTextureBarrier;
@@ -609,18 +559,6 @@ void initialize_fear_hooks() {
     initEGLGLESHandles();
     setenv("TINYFD_SKIP", "1", 1);
     __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Tiny file dialogs stubbed for Android");
-
-    // CRITICAL: Re-open ourselves with RTLD_GLOBAL so our exported symbols
-    // (glMapBufferRange, eglGetProcAddress, etc.) become globally available.
-    // Without this, LWJGL loads libGLFear.so with RTLD_LOCAL, and when it calls
-    // eglGetProcAddress from libgl4es_114.so, it gets gl4es's broken
-    // glMapBufferRange instead of our shadow-buffer implementation.
-    void* selfHandle = dlopen("libGLFear.so", RTLD_GLOBAL | RTLD_LAZY);
-    if (selfHandle) {
-        __android_log_print(ANDROID_LOG_INFO, "FearRender", "[FearRender] Promoted libGLFear.so to RTLD_GLOBAL (handle=%p)", selfHandle);
-    } else {
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "[FearRender] Failed to promote libGLFear.so to RTLD_GLOBAL: %s", dlerror());
-    }
 
     std::thread([]() {
         std::this_thread::sleep_for(std::chrono::seconds(2));

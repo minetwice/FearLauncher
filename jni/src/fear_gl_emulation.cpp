@@ -31,18 +31,6 @@ static void logEmulation(int idx, const char* name) {
     }
 }
 
-// Helper: resolve a symbol from the real GLES driver library.
-// Opens libGLESv3.so / libGLESv2.so directly to avoid finding our own exports.
-static void* resolvegles(const char* name) {
-    static void* glesHandle = nullptr;
-    if (!glesHandle) {
-        glesHandle = dlopen("libGLESv3.so", RTLD_GLOBAL | RTLD_LAZY);
-        if (!glesHandle) glesHandle = dlopen("libGLESv2.so", RTLD_GLOBAL | RTLD_LAZY);
-    }
-    if (glesHandle) return dlsym(glesHandle, name);
-    return nullptr;
-}
-
 extern "C" {
 
 void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex) {
@@ -213,35 +201,15 @@ void fear_glBindTextureUnit(GLuint unit, GLuint texture) {
     }
 }
 
-// ============================================================================
 // Buffer Mapping Implementation
-// ============================================================================
-// CRITICAL: On Mali GPUs via gl4es, glMapBufferRange is fundamentally broken.
-// The Mali GLES driver only supports GL_OES_mapbuffer (whole-buffer mapping),
-// NOT GL_EXT_map_buffer_range. gl4es translates desktop glMapBufferRange to
-// GLES, but its implementation returns NULL or causes GL errors on Mali.
-//
-// Fix: ALWAYS use a CPU-side shadow buffer (malloc). The game writes vertex
-// data to this buffer. On glUnmapBuffer, we upload the data to the real GPU
-// buffer via glBufferSubData (which IS supported in GLES 2.0 core).
-// This is the standard GLES fallback for buffer mapping and works everywhere.
-//
-// We also use RTLD_NEXT (not RTLD_DEFAULT) for all dlsym calls to avoid
-// finding our own exported symbols (libGLFear.so exports glMapBufferRange etc.
-// via fear_hooks.cpp), which would cause infinite recursion.
-
 void* fear_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    // Resolve glGetIntegerv to find the currently bound buffer ID.
-    // glGetIntegerv IS exported by fear_hooks.cpp, so we MUST use RTLD_NEXT
-    // to skip our library and find the real gl4es/GLES implementation.
-    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-    static glGetIntegerv_pfn real_glGetIntegerv = nullptr;
-    if (!real_glGetIntegerv) {
-        real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_NEXT, "glGetIntegerv");
-        if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn)resolvegles("glGetIntegerv");
-    }
+    typedef void* (*glMapBufferRange_pfn)(GLenum, GLintptr, GLsizeiptr, GLbitfield);
+    static glMapBufferRange_pfn real_glMapBufferRange = (glMapBufferRange_pfn)dlsym(RTLD_DEFAULT, "glMapBufferRange");
 
     GLuint bufferID = 0;
+    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
+    static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
     GLenum bindingPname = GL_ARRAY_BUFFER_BINDING;
     if (target == GL_ELEMENT_ARRAY_BUFFER) bindingPname = GL_ELEMENT_ARRAY_BUFFER_BINDING;
     else if (target == GL_UNIFORM_BUFFER) bindingPname = 0x8A28;
@@ -253,15 +221,30 @@ void* fear_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, G
         bufferID = static_cast<GLuint>(b);
     }
 
-    // ALWAYS use shadow buffer — never attempt to call the real glMapBufferRange.
-    // On Mali via gl4es, the real glMapBufferRange is broken (returns NULL/error).
+    GLbitfield safeAccess = access & ~(0x0040 | 0x0080); // Strip persistent/coherent bits if unsupported
+    void* result = nullptr;
+    if (real_glMapBufferRange) {
+        result = real_glMapBufferRange(target, offset, length, safeAccess);
+    }
+
+    if (result != nullptr) {
+        std::lock_guard<std::mutex> lock(g_mappedBufferMutex);
+        MappedBufferInfo info;
+        info.target = target;
+        info.bufferID = bufferID;
+        info.offset = offset;
+        info.length = length;
+        info.access = access;
+        info.ptr = result;
+        info.isFallback = false;
+        g_mappedBuffers[bufferID] = info;
+        return result;
+    }
+
+    // Fallback: allocate non-null shadow buffer
     if (length <= 0) length = 65536;
     void* shadowPtr = malloc(length);
     if (!shadowPtr) shadowPtr = calloc(1, 65536);
-    if (!shadowPtr) {
-        LOG_INFO("[FearRender] glMapBufferRange: malloc failed for len=%ld", (long)length);
-        return nullptr;
-    }
 
     MappedBufferInfo info;
     info.target = target;
@@ -277,20 +260,14 @@ void* fear_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, G
         g_mappedBuffers[bufferID] = info;
     }
 
-    logEmulation(15, "glMapBufferRange shadow buffer");
+    LOG_INFO("[FearRender] glMapBufferRange fallback buffer mapped (target=0x%X, len=%ld)", target, (long)length);
     return shadowPtr;
 }
 
 void* fear_glMapBuffer(GLenum target, GLenum access) {
     GLint bufferSize = 65536;
     typedef void (*glGetBufferParameteriv_pfn)(GLenum, GLenum, GLint*);
-    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = nullptr;
-    if (!real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)dlsym(RTLD_NEXT, "glGetBufferParameteriv");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)resolvegles("glGetBufferParameteriv");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)dlsym(RTLD_NEXT, "glGetBufferParameterivOES");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)resolvegles("glGetBufferParameterivOES");
-    }
+    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn)dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
     if (real_glGetBufferParameteriv) {
         real_glGetBufferParameteriv(target, GL_BUFFER_SIZE, &bufferSize);
     }
@@ -304,24 +281,18 @@ void* fear_glMapBuffer(GLenum target, GLenum access) {
 }
 
 GLboolean fear_glUnmapBuffer(GLenum target) {
-    // Resolve glGetIntegerv via RTLD_NEXT (it's exported by fear_hooks.cpp,
-    // so RTLD_DEFAULT would find ourselves → infinite recursion).
-    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
-    static glGetIntegerv_pfn real_glGetIntegerv_unmap = nullptr;
-    if (!real_glGetIntegerv_unmap) {
-        real_glGetIntegerv_unmap = (glGetIntegerv_pfn)dlsym(RTLD_NEXT, "glGetIntegerv");
-        if (!real_glGetIntegerv_unmap) real_glGetIntegerv_unmap = (glGetIntegerv_pfn)resolvegles("glGetIntegerv");
-    }
-
     GLuint bufferID = 0;
+    typedef void (*glGetIntegerv_pfn)(GLenum, GLint*);
+    static glGetIntegerv_pfn real_glGetIntegerv = (glGetIntegerv_pfn)dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
     GLenum bindingPname = GL_ARRAY_BUFFER_BINDING;
     if (target == GL_ELEMENT_ARRAY_BUFFER) bindingPname = GL_ELEMENT_ARRAY_BUFFER_BINDING;
     else if (target == GL_UNIFORM_BUFFER) bindingPname = 0x8A28;
     else if (target == GL_SHADER_STORAGE_BUFFER) bindingPname = 0x90D3;
 
-    if (real_glGetIntegerv_unmap) {
+    if (real_glGetIntegerv) {
         GLint b = 0;
-        real_glGetIntegerv_unmap(bindingPname, &b);
+        real_glGetIntegerv(bindingPname, &b);
         bufferID = static_cast<GLuint>(b);
     }
 
@@ -338,15 +309,8 @@ GLboolean fear_glUnmapBuffer(GLenum target) {
     }
 
     if (found && info.isFallback && info.ptr) {
-        // Upload the shadow buffer data to the real GPU buffer via glBufferSubData.
-        // glBufferSubData is NOT exported by fear_hooks.cpp, so RTLD_NEXT will
-        // correctly find gl4es's implementation.
         typedef void (*glBufferSubData_pfn)(GLenum, GLintptr, GLsizeiptr, const void*);
-        static glBufferSubData_pfn real_glBufferSubData = nullptr;
-        if (!real_glBufferSubData) {
-            real_glBufferSubData = (glBufferSubData_pfn)dlsym(RTLD_NEXT, "glBufferSubData");
-            if (!real_glBufferSubData) real_glBufferSubData = (glBufferSubData_pfn)resolvegles("glBufferSubData");
-        }
+        static glBufferSubData_pfn real_glBufferSubData = (glBufferSubData_pfn)dlsym(RTLD_DEFAULT, "glBufferSubData");
         if (real_glBufferSubData) {
             real_glBufferSubData(info.target, info.offset, info.length, info.ptr);
         }
@@ -354,32 +318,17 @@ GLboolean fear_glUnmapBuffer(GLenum target) {
         return GL_TRUE;
     }
 
-    // Non-fallback path: call real glUnmapBuffer (shouldn't happen with always-shadow).
     typedef GLboolean (*glUnmapBuffer_pfn)(GLenum);
-    static glUnmapBuffer_pfn real_glUnmapBuffer = nullptr;
-    if (!real_glUnmapBuffer) {
-        real_glUnmapBuffer = (glUnmapBuffer_pfn)dlsym(RTLD_NEXT, "glUnmapBuffer");
-        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn)resolvegles("glUnmapBuffer");
-        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn)dlsym(RTLD_NEXT, "glUnmapBufferOES");
-        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn)resolvegles("glUnmapBufferOES");
-    }
+    static glUnmapBuffer_pfn real_glUnmapBuffer = (glUnmapBuffer_pfn)dlsym(RTLD_DEFAULT, "glUnmapBuffer");
     return real_glUnmapBuffer ? real_glUnmapBuffer(target) : GL_TRUE;
 }
 
-// ============================================================================
 // Sampler Emulation Implementation
-// ============================================================================
-
 void fear_glGenSamplers(GLsizei count, GLuint* samplers) {
     if (!samplers || count <= 0) return;
     typedef void (*glGenSamplers_pfn)(GLsizei, GLuint*);
-    static glGenSamplers_pfn real_glGenSamplers = nullptr;
-    if (!real_glGenSamplers) {
-        real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_NEXT, "glGenSamplers");
-        if (!real_glGenSamplers) real_glGenSamplers = (glGenSamplers_pfn)resolvegles("glGenSamplers");
-        if (!real_glGenSamplers) real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_NEXT, "glGenSamplersOES");
-        if (!real_glGenSamplers) real_glGenSamplers = (glGenSamplers_pfn)resolvegles("glGenSamplersOES");
-    }
+    static glGenSamplers_pfn real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_DEFAULT, "glGenSamplers");
+    if (!real_glGenSamplers) real_glGenSamplers = (glGenSamplers_pfn)dlsym(RTLD_DEFAULT, "glGenSamplersOES");
 
     if (real_glGenSamplers) {
         real_glGenSamplers(count, samplers);
@@ -397,86 +346,51 @@ void fear_glGenSamplers(GLsizei count, GLuint* samplers) {
 
 void fear_glBindSampler(GLuint unit, GLuint sampler) {
     typedef void (*glBindSampler_pfn)(GLuint, GLuint);
-    static glBindSampler_pfn real_glBindSampler = nullptr;
-    if (!real_glBindSampler) {
-        real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_NEXT, "glBindSampler");
-        if (!real_glBindSampler) real_glBindSampler = (glBindSampler_pfn)resolvegles("glBindSampler");
-        if (!real_glBindSampler) real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_NEXT, "glBindSamplerOES");
-        if (!real_glBindSampler) real_glBindSampler = (glBindSampler_pfn)resolvegles("glBindSamplerOES");
-    }
+    static glBindSampler_pfn real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_DEFAULT, "glBindSampler");
+    if (!real_glBindSampler) real_glBindSampler = (glBindSampler_pfn)dlsym(RTLD_DEFAULT, "glBindSamplerOES");
     if (real_glBindSampler) real_glBindSampler(unit, sampler);
 }
 
 void fear_glDeleteSamplers(GLsizei count, const GLuint* samplers) {
     if (!samplers || count <= 0) return;
     typedef void (*glDeleteSamplers_pfn)(GLsizei, const GLuint*);
-    static glDeleteSamplers_pfn real_glDeleteSamplers = nullptr;
-    if (!real_glDeleteSamplers) {
-        real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_NEXT, "glDeleteSamplers");
-        if (!real_glDeleteSamplers) real_glDeleteSamplers = (glDeleteSamplers_pfn)resolvegles("glDeleteSamplers");
-        if (!real_glDeleteSamplers) real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_NEXT, "glDeleteSamplersOES");
-        if (!real_glDeleteSamplers) real_glDeleteSamplers = (glDeleteSamplers_pfn)resolvegles("glDeleteSamplersOES");
-    }
+    static glDeleteSamplers_pfn real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_DEFAULT, "glDeleteSamplers");
+    if (!real_glDeleteSamplers) real_glDeleteSamplers = (glDeleteSamplers_pfn)dlsym(RTLD_DEFAULT, "glDeleteSamplersOES");
     if (real_glDeleteSamplers) real_glDeleteSamplers(count, samplers);
 }
 
 GLboolean fear_glIsSampler(GLuint sampler) {
     typedef GLboolean (*glIsSampler_pfn)(GLuint);
-    static glIsSampler_pfn real_glIsSampler = nullptr;
-    if (!real_glIsSampler) {
-        real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_NEXT, "glIsSampler");
-        if (!real_glIsSampler) real_glIsSampler = (glIsSampler_pfn)resolvegles("glIsSampler");
-        if (!real_glIsSampler) real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_NEXT, "glIsSamplerOES");
-        if (!real_glIsSampler) real_glIsSampler = (glIsSampler_pfn)resolvegles("glIsSamplerOES");
-    }
+    static glIsSampler_pfn real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_DEFAULT, "glIsSampler");
+    if (!real_glIsSampler) real_glIsSampler = (glIsSampler_pfn)dlsym(RTLD_DEFAULT, "glIsSamplerOES");
     return real_glIsSampler ? real_glIsSampler(sampler) : GL_TRUE;
 }
 
 void fear_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
     typedef void (*glSamplerParameteri_pfn)(GLuint, GLenum, GLint);
-    static glSamplerParameteri_pfn real_glSamplerParameteri = nullptr;
-    if (!real_glSamplerParameteri) {
-        real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_NEXT, "glSamplerParameteri");
-        if (!real_glSamplerParameteri) real_glSamplerParameteri = (glSamplerParameteri_pfn)resolvegles("glSamplerParameteri");
-        if (!real_glSamplerParameteri) real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_NEXT, "glSamplerParameteriOES");
-        if (!real_glSamplerParameteri) real_glSamplerParameteri = (glSamplerParameteri_pfn)resolvegles("glSamplerParameteriOES");
-    }
+    static glSamplerParameteri_pfn real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteri");
+    if (!real_glSamplerParameteri) real_glSamplerParameteri = (glSamplerParameteri_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteriOES");
     if (real_glSamplerParameteri) real_glSamplerParameteri(sampler, pname, param);
 }
 
 void fear_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) {
     typedef void (*glSamplerParameterf_pfn)(GLuint, GLenum, GLfloat);
-    static glSamplerParameterf_pfn real_glSamplerParameterf = nullptr;
-    if (!real_glSamplerParameterf) {
-        real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_NEXT, "glSamplerParameterf");
-        if (!real_glSamplerParameterf) real_glSamplerParameterf = (glSamplerParameterf_pfn)resolvegles("glSamplerParameterf");
-        if (!real_glSamplerParameterf) real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_NEXT, "glSamplerParameterfOES");
-        if (!real_glSamplerParameterf) real_glSamplerParameterf = (glSamplerParameterf_pfn)resolvegles("glSamplerParameterfOES");
-    }
+    static glSamplerParameterf_pfn real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterf");
+    if (!real_glSamplerParameterf) real_glSamplerParameterf = (glSamplerParameterf_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfOES");
     if (real_glSamplerParameterf) real_glSamplerParameterf(sampler, pname, param);
 }
 
 void fear_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* param) {
     typedef void (*glSamplerParameteriv_pfn)(GLuint, GLenum, const GLint*);
-    static glSamplerParameteriv_pfn real_glSamplerParameteriv = nullptr;
-    if (!real_glSamplerParameteriv) {
-        real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_NEXT, "glSamplerParameteriv");
-        if (!real_glSamplerParameteriv) real_glSamplerParameteriv = (glSamplerParameteriv_pfn)resolvegles("glSamplerParameteriv");
-        if (!real_glSamplerParameteriv) real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_NEXT, "glSamplerParameterivOES");
-        if (!real_glSamplerParameteriv) real_glSamplerParameteriv = (glSamplerParameteriv_pfn)resolvegles("glSamplerParameterivOES");
-    }
+    static glSamplerParameteriv_pfn real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameteriv");
+    if (!real_glSamplerParameteriv) real_glSamplerParameteriv = (glSamplerParameteriv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterivOES");
     if (real_glSamplerParameteriv) real_glSamplerParameteriv(sampler, pname, param);
 }
 
 void fear_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* param) {
     typedef void (*glSamplerParameterfv_pfn)(GLuint, GLenum, const GLfloat*);
-    static glSamplerParameterfv_pfn real_glSamplerParameterfv = nullptr;
-    if (!real_glSamplerParameterfv) {
-        real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_NEXT, "glSamplerParameterfv");
-        if (!real_glSamplerParameterfv) real_glSamplerParameterfv = (glSamplerParameterfv_pfn)resolvegles("glSamplerParameterfv");
-        if (!real_glSamplerParameterfv) real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_NEXT, "glSamplerParameterfvOES");
-        if (!real_glSamplerParameterfv) real_glSamplerParameterfv = (glSamplerParameterfv_pfn)resolvegles("glSamplerParameterfvOES");
-    }
+    static glSamplerParameterfv_pfn real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfv");
+    if (!real_glSamplerParameterfv) real_glSamplerParameterfv = (glSamplerParameterfv_pfn)dlsym(RTLD_DEFAULT, "glSamplerParameterfvOES");
     if (real_glSamplerParameterfv) real_glSamplerParameterfv(sampler, pname, param);
 }
 
