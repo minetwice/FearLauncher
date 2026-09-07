@@ -6,6 +6,7 @@
 #include <jni.h>
 #include <android/log.h>
 #include <string.h>
+#include <string>
 
 #define LOG_TAG "FearTurbo"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -14,15 +15,11 @@
 // ============================================================================
 // Fear Turbo Hook System
 // ============================================================================
-// This file provides the hook functions that get called via the
-// lwjgl_dlopen_hook.c ndlsym_hook and eglGetProcAddress_hook.
-// These functions are the actual entry points that LWJGL calls
-// when it resolves OpenGL functions.
+// Entry points used by lwjgl_dlopen_hook / eglGetProcAddress intercept path.
 // ============================================================================
 
 extern "C" {
 
-// --- Buffer Operations ---
 void* fear_turbo_glMapBufferRange_hook(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     return fear_turbo::translate_glMapBufferRange(target, offset, length, access);
 }
@@ -39,7 +36,6 @@ void fear_turbo_glFlushMappedBufferRange_hook(GLenum target, GLintptr offset, GL
     fear_turbo::translate_glFlushMappedBufferRange(target, offset, length);
 }
 
-// --- DSA ---
 void fear_turbo_glCreateBuffers_hook(GLsizei n, GLuint* buffers) {
     fear_turbo::translate_glCreateBuffers(n, buffers);
 }
@@ -72,7 +68,6 @@ GLboolean fear_turbo_glUnmapNamedBuffer_hook(GLuint buffer) {
     return fear_turbo::translate_glUnmapNamedBuffer(buffer);
 }
 
-// --- Compute ---
 void fear_turbo_glDispatchCompute_hook(GLuint x, GLuint y, GLuint z) {
     fear_turbo::translate_glDispatchCompute(x, y, z);
 }
@@ -81,7 +76,6 @@ void fear_turbo_glMemoryBarrier_hook(GLbitfield barriers) {
     fear_turbo::translate_glMemoryBarrier(barriers);
 }
 
-// --- Multi Draw Indirect ---
 void fear_turbo_glMultiDrawArraysIndirect_hook(GLenum mode, const void* indirect, GLsizei drawcount, GLsizei stride) {
     fear_turbo::translate_glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
 }
@@ -90,7 +84,6 @@ void fear_turbo_glMultiDrawElementsIndirect_hook(GLenum mode, GLenum type, const
     fear_turbo::translate_glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride);
 }
 
-// --- Samplers ---
 void fear_turbo_glGenSamplers_hook(GLsizei count, GLuint* samplers) {
     fear_turbo::translate_glGenSamplers(count, samplers);
 }
@@ -111,7 +104,6 @@ void fear_turbo_glDeleteSamplers_hook(GLsizei count, const GLuint* samplers) {
     fear_turbo::translate_glDeleteSamplers(count, samplers);
 }
 
-// --- Queries ---
 void fear_turbo_glGenQueries_hook(GLsizei n, GLuint* ids) {
     fear_turbo::translate_glGenQueries(n, ids);
 }
@@ -128,7 +120,6 @@ void fear_turbo_glQueryCounter_hook(GLuint id, GLenum target) {
     fear_turbo::translate_glQueryCounter(id, target);
 }
 
-// --- Strings ---
 const GLubyte* fear_turbo_glGetString_hook(GLenum name) {
     return fear_turbo::translate_glGetString(name);
 }
@@ -137,12 +128,10 @@ const GLubyte* fear_turbo_glGetStringi_hook(GLenum name, GLuint index) {
     return fear_turbo::translate_glGetStringi(name, index);
 }
 
-// --- Texture ---
 void fear_turbo_glBindTextureUnit_hook(GLuint unit, GLuint texture) {
     fear_turbo::translate_glBindTextureUnit(unit, texture);
 }
 
-// --- Shader Translation ---
 const char* fear_turbo_translate_shader_source(const char* source, int stage) {
     fear_turbo::ShaderStage s = (fear_turbo::ShaderStage)stage;
     static thread_local std::string translated;
