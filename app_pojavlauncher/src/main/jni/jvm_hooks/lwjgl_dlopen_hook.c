@@ -396,9 +396,11 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
 void installLwjglDlopenHook(JNIEnv *env) {
     LOGI("Installing LWJGL dlopen() and dlsym() hooks (BUILD v20260907-E)");
+    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260907-E)\n");
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if(dynamicLinkLoader == NULL) {
         LOGE("Failed to find the target class");
+        printf("LWJGL linkerhook ERROR: Failed to find DynamicLinkLoader class\n");
         (*env)->ExceptionClear(env);
         return;
     }
@@ -407,7 +409,10 @@ void installLwjglDlopenHook(JNIEnv *env) {
             {"ndlsym", "(JJ)J", &ndlsym_hook}
     };
     if((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+        printf("LWJGL linkerhook: RegisterNatives failed\n");
         LOGE("Failed to register the hooked methods");
+        printf("LWJGL linkerhook ERROR: Failed to register hooked methods\n");
         (*env)->ExceptionClear(env);
     }
+    printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully\n");
 }
