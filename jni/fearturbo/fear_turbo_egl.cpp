@@ -1,6 +1,8 @@
 #include "fear_turbo_buffer_shadow.h"
 #include "fear_turbo_gl_translator.h"
+
 #include <EGL/egl.h>
+#include <GLES3/gl3.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <android/log.h>
@@ -33,18 +35,18 @@ static void* backend_sym(const char* name) {
     return s;
 }
 
-// ---- Shadow MapBuffer entry points (ALWAYS used) ----
 extern "C" {
+
+// ---- Shadow MapBuffer (always used; never call broken Mali/gl4es map) ----
 
 FEAR_EXPORT void* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     return fear_turbo::translate_glMapBufferRange(target, offset, length, access);
 }
 
 FEAR_EXPORT void* glMapBuffer(GLenum target, GLenum access) {
-    GLbitfield bits = 0x0002; // WRITE
-    if (access == 0x88B8 /* READ_ONLY */) bits = 0x0001;
-    else if (access == 0x88BA /* READ_WRITE */) bits = 0x0003;
-    // length unknown → shadow layer uses 64K default then unmap uploads
+    GLbitfield bits = GL_MAP_WRITE_BIT;
+    if (access == 0x88B8 /* GL_READ_ONLY */) bits = GL_MAP_READ_BIT;
+    else if (access == 0x88BA /* GL_READ_WRITE */) bits = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
     return fear_turbo::translate_glMapBufferRange(target, 0, 0, bits);
 }
 
@@ -64,70 +66,37 @@ FEAR_EXPORT GLboolean glUnmapNamedBuffer(GLuint buffer) {
     return fear_turbo::translate_glUnmapNamedBuffer(buffer);
 }
 
-// ---- eglGetProcAddress: route MapBuffer to us, everything else to gl4es ----
-FEAR_EXPORT void* eglGetProcAddress(const char* name) {
+// Must match EGL header: __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char*)
+FEAR_EXPORT __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* name) {
     if (!name) return nullptr;
 
     if (strcmp(name, "glMapBufferRange") == 0 || strcmp(name, "glMapBufferRangeEXT") == 0)
-        return (void*)glMapBufferRange;
+        return (__eglMustCastToProperFunctionPointerType)glMapBufferRange;
     if (strcmp(name, "glMapBuffer") == 0 || strcmp(name, "glMapBufferOES") == 0)
-        return (void*)glMapBuffer;
+        return (__eglMustCastToProperFunctionPointerType)glMapBuffer;
     if (strcmp(name, "glUnmapBuffer") == 0 || strcmp(name, "glUnmapBufferOES") == 0)
-        return (void*)glUnmapBuffer;
+        return (__eglMustCastToProperFunctionPointerType)glUnmapBuffer;
     if (strcmp(name, "glFlushMappedBufferRange") == 0 || strcmp(name, "glFlushMappedBufferRangeEXT") == 0)
-        return (void*)glFlushMappedBufferRange;
+        return (__eglMustCastToProperFunctionPointerType)glFlushMappedBufferRange;
     if (strcmp(name, "glMapNamedBufferRange") == 0)
-        return (void*)glMapNamedBufferRange;
+        return (__eglMustCastToProperFunctionPointerType)glMapNamedBufferRange;
     if (strcmp(name, "glUnmapNamedBuffer") == 0)
-        return (void*)glUnmapNamedBuffer;
+        return (__eglMustCastToProperFunctionPointerType)glUnmapNamedBuffer;
 
-    // Prefer gl4es translation for desktop GL
     void* s = backend_sym(name);
-    if (s) return s;
+    if (s) return (__eglMustCastToProperFunctionPointerType)s;
 
-    // eglGetProcAddress from backend for extensions
-    typedef void* (*PFN_eglGPA)(const char*);
+    typedef __eglMustCastToProperFunctionPointerType (*PFN_eglGPA)(const char*);
     static PFN_eglGPA real_gpa = nullptr;
     if (!real_gpa) real_gpa = (PFN_eglGPA)backend_sym("eglGetProcAddress");
     if (real_gpa) {
-        void* r = real_gpa(name);
+        __eglMustCastToProperFunctionPointerType r = real_gpa(name);
         if (r) return r;
     }
     return nullptr;
 }
 
-// ---- Minimal EGL forwards so libFearTurbo.so can be the EGL library ----
-#define FWD1(ret, name, t1, a1) \
-FEAR_EXPORT ret name(t1 a1) { \
-    typedef ret (*pfn)(t1); \
-    static pfn real = nullptr; \
-    if (!real) real = (pfn)backend_sym(#name); \
-    return real ? real(a1) : (ret)0; \
-}
-
-#define FWD2(ret, name, t1, a1, t2, a2) \
-FEAR_EXPORT ret name(t1 a1, t2 a2) { \
-    typedef ret (*pfn)(t1, t2); \
-    static pfn real = nullptr; \
-    if (!real) real = (pfn)backend_sym(#name); \
-    return real ? real(a1, a2) : (ret)0; \
-}
-
-#define FWD3(ret, name, t1, a1, t2, a2, t3, a3) \
-FEAR_EXPORT ret name(t1 a1, t2 a2, t3 a3) { \
-    typedef ret (*pfn)(t1, t2, t3); \
-    static pfn real = nullptr; \
-    if (!real) real = (pfn)backend_sym(#name); \
-    return real ? real(a1, a2, a3) : (ret)0; \
-}
-
-#define FWD4(ret, name, t1, a1, t2, a2, t3, a3, t4, a4) \
-FEAR_EXPORT ret name(t1 a1, t2 a2, t3 a3, t4 a4) { \
-    typedef ret (*pfn)(t1, t2, t3, t4); \
-    static pfn real = nullptr; \
-    if (!real) real = (pfn)backend_sym(#name); \
-    return real ? real(a1, a2, a3, a4) : (ret)0; \
-}
+// ---- EGL forwards (so libFearTurbo.so can be the EGL library) ----
 
 FEAR_EXPORT EGLDisplay eglGetDisplay(EGLNativeDisplayType d) {
     typedef EGLDisplay (*pfn)(EGLNativeDisplayType);
