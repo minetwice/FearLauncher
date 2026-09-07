@@ -33,8 +33,18 @@ typedef struct {
 static ShadowBufferMap g_shadowBuffers[MAX_SHADOW_BUFFERS];
 static int g_shadowCount = 0;
 
-static void universal_stub_void(void) {
-    LOGI("LWJGL linkerhook: universal GL stub executed");
+static unsigned int get_target_binding_pname(unsigned int target) {
+    switch(target) {
+        case 0x8892: return 0x8894; // GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING
+        case 0x8893: return 0x8895; // GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING
+        case 0x8A22: return 0x8A28; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
+        case 0x90D2: return 0x90D1; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
+        case 0x88EC: return 0x88EC; // GL_PIXEL_UNPACK_BUFFER
+        case 0x88ED: return 0x88ED; // GL_PIXEL_PACK_BUFFER
+        case 0x8F36: return 0x8F36; // GL_COPY_READ_BUFFER
+        case 0x8F37: return 0x8F37; // GL_COPY_WRITE_BUFFER
+        default: return 0;
+    }
 }
 
 static void glGenSamplers_fallback(int count, unsigned int* samplers) {
@@ -141,7 +151,18 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
         ptr = malloc(alloc_len);
         if (!ptr) ptr = calloc(1, alloc_len);
 
+        typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+        static glGetIntegerv_pfn real_glGetIntegerv = NULL;
+        if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+        int buf_id = 0;
+        unsigned int binding_pname = get_target_binding_pname(target);
+        if (binding_pname && real_glGetIntegerv) {
+            real_glGetIntegerv(binding_pname, &buf_id);
+        }
+
         if (g_shadowCount < MAX_SHADOW_BUFFERS) {
+            g_shadowBuffers[g_shadowCount].buffer_id = (unsigned int)buf_id;
             g_shadowBuffers[g_shadowCount].target = target;
             g_shadowBuffers[g_shadowCount].offset = offset;
             g_shadowBuffers[g_shadowCount].length = alloc_len;
@@ -150,7 +171,7 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
             g_shadowCount++;
         }
 
-        LOGI("LWJGL linkerhook: Shadow buffer allocated for target=0x%X (len=%ld)", target, alloc_len);
+        LOGI("LWJGL linkerhook: Shadow buffer allocated for target=0x%X buf_id=%d (len=%ld)", target, buf_id, alloc_len);
     }
 
     // Clear any error status from driver
@@ -203,14 +224,31 @@ static int glUnmapBuffer_hook(unsigned int target) {
         real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
     }
 
+    typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+    static glGetIntegerv_pfn real_glGetIntegerv = NULL;
+    if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+    int buf_id = 0;
+    unsigned int binding_pname = get_target_binding_pname(target);
+    if (binding_pname && real_glGetIntegerv) {
+        real_glGetIntegerv(binding_pname, &buf_id);
+    }
+
     for (int i = 0; i < g_shadowCount; i++) {
-        if (g_shadowBuffers[i].target == target && g_shadowBuffers[i].is_shadow && g_shadowBuffers[i].shadow_ptr) {
+        if (g_shadowBuffers[i].target == target &&
+            (buf_id == 0 || g_shadowBuffers[i].buffer_id == (unsigned int)buf_id || g_shadowBuffers[i].buffer_id == 0) &&
+            g_shadowBuffers[i].is_shadow && g_shadowBuffers[i].shadow_ptr) {
+
             if (real_glBufferSubData) {
                 real_glBufferSubData(target, g_shadowBuffers[i].offset, g_shadowBuffers[i].length, g_shadowBuffers[i].shadow_ptr);
             }
             free(g_shadowBuffers[i].shadow_ptr);
-            g_shadowBuffers[i].shadow_ptr = NULL;
-            g_shadowBuffers[i].is_shadow = 0;
+
+            // Shift array elements left to remove entry and keep g_shadowCount accurate
+            for (int j = i; j < g_shadowCount - 1; j++) {
+                g_shadowBuffers[j] = g_shadowBuffers[j + 1];
+            }
+            g_shadowCount--;
 
             if (real_glGetError) real_glGetError();
             return 1;
@@ -397,7 +435,7 @@ static void* eglGetProcAddress_hook(const char* procname) {
     void* sym = dlsym(RTLD_DEFAULT, procname);
     if (sym) return sym;
 
-    return (void*) universal_stub_void;
+    return NULL;
 }
 
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
@@ -477,9 +515,6 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     // Call real dlsym
     void* sym = dlsym((void*) handle, symbol);
-    if (!sym && symbol && strncmp(symbol, "gl", 2) == 0) {
-        return (jlong) universal_stub_void;
-    }
     return (jlong) sym;
 }
 
