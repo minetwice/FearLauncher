@@ -51,6 +51,17 @@ private:
     void emit_type(const ASTNode* node);
     void emit_qualifier(const ASTNode* node);
 
+    void emit_global_declaration(const ASTNode* node);
+    void emit_variable_declaration(const ASTNode* node);
+    void emit_compound_statement(const ASTNode* node);
+    void emit_if_statement(const ASTNode* node);
+    void emit_for_statement(const ASTNode* node);
+    void emit_return_statement(const ASTNode* node);
+    void emit_function_call(const ASTNode* node);
+    void emit_member_access(const ASTNode* node);
+
+    bool needs_type_translation(const std::string& type);
+
     std::string translate_type(const std::string& type);
     std::string translate_qualifier(const std::string& qual);
     std::string translate_function_name(const std::string& name);
