@@ -14,17 +14,20 @@ add_library(fear_turbo SHARED
     fearturbo/fear_turbo_shader_codegen.cpp
     fearturbo/fear_turbo_shader_parser.cpp
     fearturbo/fear_turbo_hooks.cpp
+    fearturbo/fear_turbo_egl.cpp
 )
 
 set_target_properties(fear_turbo PROPERTIES
     OUTPUT_NAME "FearTurbo"
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON
+    CXX_VISIBILITY_PRESET default
+    VISIBILITY_INLINES_HIDDEN OFF
 )
 
 target_include_directories(fear_turbo PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/fearturbo
 )
+
+target_compile_options(fear_turbo PRIVATE -fvisibility=default)
 
 target_link_libraries(fear_turbo PRIVATE
     EGL
