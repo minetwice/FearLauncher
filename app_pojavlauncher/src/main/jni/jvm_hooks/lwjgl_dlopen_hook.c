@@ -312,6 +312,22 @@ static void* eglGetProcAddress_hook(const char* procname) {
         void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
         return (void*) glSamplerParameteri_fallback;
     }
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
+        printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBufferRange -> shadow buffer\n");
+        return (void*) glMapBufferRange_hook;
+    }
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) {
+        printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBuffer -> shadow buffer\n");
+        return (void*) glMapBuffer_hook;
+    }
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) {
+        printf("LWJGL linkerhook: eglGetProcAddress hooked glUnmapBuffer -> shadow buffer\n");
+        return (void*) glUnmapBuffer_hook;
+    }
+    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
+        printf("LWJGL linkerhook: eglGetProcAddress hooked glMemoryBarrier\n");
+        return (void*) glMemoryBarrier_stub;
+    }
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
     if (!real_eglGetProcAddress) {
