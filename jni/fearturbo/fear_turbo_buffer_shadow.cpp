@@ -1,6 +1,7 @@
 #include "fear_turbo_buffer_shadow.h"
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <string.h>
 
 namespace fear_turbo {
 
@@ -26,9 +27,9 @@ GLuint get_bound_buffer_id(GLenum target) {
     if (!real_fn) return 0;
 
     GLenum pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
-    if (target == 0x8893) pname = 0x8895;
-    else if (target == 0x8A11) pname = 0x8A28;
-    else if (target == 0x90D2) pname = 0x90D3;
+    if (target == 0x8893) pname = 0x8895; // ELEMENT_ARRAY_BUFFER_BINDING
+    else if (target == 0x8A11) pname = 0x8A28; // UNIFORM_BUFFER_BINDING
+    else if (target == 0x90D2) pname = 0x90D3; // SHADER_STORAGE_BUFFER_BINDING
 
     GLint val = 0;
     real_fn(pname, &val);
@@ -42,18 +43,23 @@ void init() {
 }
 
 void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    (void)access;
     static int callCount = 0;
     if (callCount < 5) {
-        LOGI("FearTurbo: shadow map(target=0x%X, offset=%ld, len=%ld, access=0x%X)", target, (long)offset, (long)length, access);
+        LOGI("FearTurbo: shadow map(target=0x%X, offset=%ld, len=%ld)",
+             target, (long)offset, (long)length);
         callCount++;
     }
 
     GLuint buffer_id = get_bound_buffer_id(target);
 
     GLsizeiptr alloc_len = (length > 0) ? length : 65536;
-    void* ptr = malloc(alloc_len);
-    if (!ptr) ptr = calloc(1, alloc_len);
-    if (!ptr) { alloc_len = 65536; ptr = malloc(alloc_len); }
+    void* ptr = malloc((size_t)alloc_len);
+    if (!ptr) ptr = calloc(1, (size_t)alloc_len);
+    if (!ptr) {
+        alloc_len = 65536;
+        ptr = malloc((size_t)alloc_len);
+    }
     if (!ptr) {
         LOGE("FearTurbo: shadow buffer malloc FAILED for len=%ld", (long)alloc_len);
         return nullptr;
@@ -70,13 +76,17 @@ void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) 
     pthread_mutex_unlock(&g_mutex);
 
     if (callCount <= 5) {
-        LOGI("FearTurbo: shadow buffer slot=%d target=0x%X bufID=%u len=%ld", slot, target, buffer_id, (long)alloc_len);
+        LOGI("FearTurbo: shadow buffer slot=%d target=0x%X bufID=%u len=%ld",
+             slot, target, buffer_id, (long)alloc_len);
     }
 
     typedef GLenum (*PFN_glGetError)(void);
     static PFN_glGetError real_err = nullptr;
     if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
+    if (real_err) {
+        GLenum e;
+        do { e = real_err(); } while (e != GL_NO_ERROR);
+    }
 
     return ptr;
 }
@@ -95,13 +105,15 @@ GLboolean unmap(GLenum target) {
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
         if (g_slots[i].in_use && g_slots[i].buffer_id == current_id && current_id != 0) {
-            found = i; break;
+            found = i;
+            break;
         }
     }
     if (found < 0) {
         for (int i = 0; i < g_count; i++) {
             if (g_slots[i].in_use && g_slots[i].target == target) {
-                found = i; break;
+                found = i;
+                break;
             }
         }
     }
@@ -119,7 +131,10 @@ GLboolean unmap(GLenum target) {
             if (real_sub) real_sub(target, shadow_offset, shadow_length, shadow_ptr);
             free(shadow_ptr);
         }
-        if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
+        if (real_err) {
+            GLenum e;
+            do { e = real_err(); } while (e != GL_NO_ERROR);
+        }
         return GL_TRUE;
     }
     pthread_mutex_unlock(&g_mutex);
@@ -129,7 +144,10 @@ GLboolean unmap(GLenum target) {
     if (!real_unmap) real_unmap = (PFN_glUnmapBuffer) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
     GLboolean res = GL_TRUE;
     if (real_unmap) res = real_unmap(target);
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
+    if (real_err) {
+        GLenum e;
+        do { e = real_err(); } while (e != GL_NO_ERROR);
+    }
     return res ? res : GL_TRUE;
 }
 
@@ -142,7 +160,11 @@ void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
     for (int i = 0; i < g_count; i++) {
         if (g_slots[i].in_use && g_slots[i].target == target) {
             if (real_sub && g_slots[i].ptr) {
-                real_sub(target, offset, length, (char*)g_slots[i].ptr + offset - g_slots[i].offset);
+                char* base = (char*)g_slots[i].ptr;
+                GLintptr local = offset - g_slots[i].offset;
+                if (local >= 0 && local + length <= g_slots[i].length) {
+                    real_sub(target, offset, length, base + local);
+                }
             }
             break;
         }
@@ -152,7 +174,10 @@ void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
     typedef GLenum (*PFN_glGetError)(void);
     static PFN_glGetError real_err = nullptr;
     if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
+    if (real_err) {
+        GLenum e;
+        do { e = real_err(); } while (e != GL_NO_ERROR);
+    }
 }
 
 } // namespace buffer_shadow
