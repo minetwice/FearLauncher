@@ -321,6 +321,11 @@ bool Parser::expect(TokenType type, const std::string& context) {
     return true;
 }
 
+// Main parse entry point — delegates to parse_translation_unit()
+std::unique_ptr<ASTNode> Parser::parse() {
+    return parse_translation_unit();
+}
+
 // Parse a full translation unit (entire shader)
 std::unique_ptr<ASTNode> Parser::parse_translation_unit() {
     auto root = std::make_unique<ASTNode>(ASTNodeType::TranslationUnit);
