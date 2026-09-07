@@ -2,6 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 # ═══════════════════════════════════════════════
 # FEAR RENDER ENGINE MODULE
+# Includes shadow glMapBufferRange (required for Sodium + 1.21.x on Mali)
 # ═══════════════════════════════════════════════
 include $(CLEAR_VARS)
 LOCAL_MODULE    := fear_render
@@ -9,9 +10,10 @@ LOCAL_SRC_FILES := src/fear_main.cpp \
                    src/fear_hooks.cpp \
                    src/fear_backend.cpp \
                    src/fear_shader.cpp \
-                   src/fear_memory.cpp
+                   src/fear_memory.cpp \
+                   src/fear_gl_emulation.cpp
 LOCAL_LDLIBS    := -llog -landroid -ldl
-LOCAL_CPPFLAGS  := -std=c++17 -Wall -Wextra -O3 -fPIC -Wno-unused-parameter
+LOCAL_CPPFLAGS  := -std=c++17 -Wall -Wextra -O3 -fPIC -Wno-unused-parameter -Wno-unused-variable
 include $(BUILD_SHARED_LIBRARY)
 
 
