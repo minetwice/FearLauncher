@@ -176,7 +176,7 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
         ptr = malloc(alloc_len);
     }
     if (!ptr) {
-        LOGE("LWJGL linkerhook: glMapBufferRange_hook — CRITICAL: malloc FAILED for len=%ld", alloc_len);
+        LOGE("LWJGL linkerhook: glMapBufferRange_hook CRITICAL: malloc FAILED for len=%ld", alloc_len);
         return NULL;
     }
 
@@ -596,3 +596,9 @@ void installLwjglDlopenHook(JNIEnv *env) {
             {"ndlopen", "(JI)J", &ndlopen_bugfix},
             {"ndlsym", "(JJ)J", &ndlsym_hook}
     };
+
+    if((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+        LOGE("Failed to register the hooked methods");
+        (*env)->ExceptionClear(env);
+    }
+}
