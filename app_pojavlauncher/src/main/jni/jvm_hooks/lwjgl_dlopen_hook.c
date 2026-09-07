@@ -15,15 +15,253 @@
 
 #include "../pojavexec.h"
 
-/**
- * Basically a verbatim implementation of ndlopen(), found at
- * https://github.com/PojavLauncherTeam/lwjgl3/blob/3.3.1/modules/lwjgl/core/src/generated/c/linux/org_lwjgl_system_linux_DynamicLinkLoader.c#L11
- * but with our own additions for stuff like vulkanmod.
- */
 #define GL_VERSION 0x1F02
 #define GL_RENDERER 0x1F01
 #define GL_VENDOR 0x1F00
 #define GL_EXTENSIONS 0x1F03
+
+typedef struct {
+    unsigned int buffer_id;
+    unsigned int target;
+    long offset;
+    long length;
+    void* shadow_ptr;
+    int is_shadow;
+} ShadowBufferMap;
+
+#define MAX_SHADOW_BUFFERS 256
+static ShadowBufferMap g_shadowBuffers[MAX_SHADOW_BUFFERS];
+static int g_shadowCount = 0;
+
+static unsigned int get_target_binding_pname(unsigned int target) {
+    switch(target) {
+        case 0x8892: return 0x8894; // GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING
+        case 0x8893: return 0x8895; // GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING
+        case 0x8A22: return 0x8A28; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
+        case 0x90D2: return 0x90D1; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
+        case 0x88EC: return 0x88EC; // GL_PIXEL_UNPACK_BUFFER
+        case 0x88ED: return 0x88ED; // GL_PIXEL_PACK_BUFFER
+        case 0x8F36: return 0x8F36; // GL_COPY_READ_BUFFER
+        case 0x8F37: return 0x8F37; // GL_COPY_WRITE_BUFFER
+        default: return 0;
+    }
+}
+
+static void glGenSamplers_fallback(int count, unsigned int* samplers) {
+    static unsigned int next_id = 1;
+    if (!samplers || count <= 0) return;
+    typedef void (*glGenSamplers_pfn)(int, unsigned int*);
+    static glGenSamplers_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplers");
+        if (!real_fn) real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplersOES");
+    }
+    if (real_fn) {
+        real_fn(count, samplers);
+        int valid = 1;
+        for (int i = 0; i < count; i++) {
+            if (samplers[i] == 0) { valid = 0; break; }
+        }
+        if (valid) return;
+    }
+    for (int i = 0; i < count; i++) {
+        samplers[i] = next_id++;
+    }
+    LOGI("LWJGL linkerhook: glGenSamplers fallback generated %d sampler(s)", count);
+}
+
+static void glBindSampler_fallback(unsigned int unit, unsigned int sampler) {
+    typedef void (*glBindSampler_pfn)(unsigned int, unsigned int);
+    static glBindSampler_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSampler");
+        if (!real_fn) real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSamplerOES");
+    }
+    if (real_fn) real_fn(unit, sampler);
+}
+
+static void glDeleteSamplers_fallback(int count, const unsigned int* samplers) {
+    if (!samplers || count <= 0) return;
+    typedef void (*glDeleteSamplers_pfn)(int, const unsigned int*);
+    static glDeleteSamplers_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplers");
+        if (!real_fn) real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplersOES");
+    }
+    if (real_fn) real_fn(count, samplers);
+}
+
+static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pname, int param) {
+    typedef void (*glSamplerParameteri_pfn)(unsigned int, unsigned int, int);
+    static glSamplerParameteri_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteri");
+        if (!real_fn) real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteriOES");
+    }
+    if (real_fn) real_fn(sampler, pname, param);
+}
+
+static void* glMapBufferRange_hook(unsigned int target, long offset, long length, unsigned int access) {
+    typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
+    typedef void* (*glMapBufferRange_pfn)(unsigned int, long, long, unsigned int);
+    typedef unsigned int (*glGetError_pfn)(void);
+
+    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
+    static glMapBufferRange_pfn real_glMapBufferRange = NULL;
+    static glGetError_pfn real_glGetError = NULL;
+
+    if (!real_glGetBufferParameteriv) {
+        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
+        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
+    }
+    if (!real_glMapBufferRange) {
+        real_glMapBufferRange = (glMapBufferRange_pfn) dlsym(RTLD_DEFAULT, "glMapBufferRange");
+        if (!real_glMapBufferRange) real_glMapBufferRange = (glMapBufferRange_pfn) dlsym(RTLD_DEFAULT, "glMapBufferRangeEXT");
+    }
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
+    }
+
+    int buf_size = 0;
+    if (real_glGetBufferParameteriv) {
+        real_glGetBufferParameteriv(target, 0x8764 /* GL_BUFFER_SIZE */, &buf_size);
+    }
+
+    if (length <= 0) {
+        length = (buf_size > 0 && buf_size > offset) ? (buf_size - offset) : 1048576;
+    }
+
+    // Strip unsupported MAP_PERSISTENT_BIT (0x40) and MAP_COHERENT_BIT (0x80)
+    unsigned int safeAccess = access & ~(0x0040 | 0x0080);
+    void* ptr = NULL;
+
+    if (real_glMapBufferRange && buf_size > 0 && offset < buf_size) {
+        long valid_len = length;
+        if (offset + valid_len > buf_size) {
+            valid_len = buf_size - offset;
+        }
+        if (valid_len > 0) {
+            ptr = real_glMapBufferRange(target, offset, valid_len, safeAccess);
+        }
+    }
+
+    // If real mapping failed or buf_size was 0/invalid, allocate shadow buffer
+    if (!ptr) {
+        long alloc_len = (length > 0) ? length : 1048576;
+        ptr = malloc(alloc_len);
+        if (!ptr) ptr = calloc(1, alloc_len);
+
+        typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+        static glGetIntegerv_pfn real_glGetIntegerv = NULL;
+        if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+        int buf_id = 0;
+        unsigned int binding_pname = get_target_binding_pname(target);
+        if (binding_pname && real_glGetIntegerv) {
+            real_glGetIntegerv(binding_pname, &buf_id);
+        }
+
+        if (g_shadowCount < MAX_SHADOW_BUFFERS) {
+            g_shadowBuffers[g_shadowCount].buffer_id = (unsigned int)buf_id;
+            g_shadowBuffers[g_shadowCount].target = target;
+            g_shadowBuffers[g_shadowCount].offset = offset;
+            g_shadowBuffers[g_shadowCount].length = alloc_len;
+            g_shadowBuffers[g_shadowCount].shadow_ptr = ptr;
+            g_shadowBuffers[g_shadowCount].is_shadow = 1;
+            g_shadowCount++;
+        }
+
+        LOGI("LWJGL linkerhook: Shadow buffer allocated for target=0x%X buf_id=%d (len=%ld)", target, buf_id, alloc_len);
+    }
+
+    // Clear any error status from driver
+    if (real_glGetError) {
+        real_glGetError();
+    }
+
+    return ptr;
+}
+
+static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
+    typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
+    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
+    if (!real_glGetBufferParameteriv) {
+        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
+        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
+    }
+
+    int buf_size = 0;
+    if (real_glGetBufferParameteriv) {
+        real_glGetBufferParameteriv(target, 0x8764 /* GL_BUFFER_SIZE */, &buf_size);
+    }
+    long len = (buf_size > 0) ? buf_size : 1048576;
+
+    unsigned int rangeAccess = 0x0002; // GL_MAP_WRITE_BIT
+    if (access == 0x88B8 /* GL_READ_ONLY */) rangeAccess = 0x0001;
+    else if (access == 0x88BA /* GL_READ_WRITE */) rangeAccess = 0x0001 | 0x0002;
+
+    return glMapBufferRange_hook(target, 0, len, rangeAccess);
+}
+
+static int glUnmapBuffer_hook(unsigned int target) {
+    typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
+    typedef int (*glUnmapBuffer_pfn)(unsigned int);
+    typedef unsigned int (*glGetError_pfn)(void);
+
+    static glBufferSubData_pfn real_glBufferSubData = NULL;
+    static glUnmapBuffer_pfn real_glUnmapBuffer = NULL;
+    static glGetError_pfn real_glGetError = NULL;
+
+    if (!real_glBufferSubData) {
+        real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubData");
+        if (!real_glBufferSubData) real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubDataARB");
+    }
+    if (!real_glUnmapBuffer) {
+        real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
+        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
+    }
+    if (!real_glGetError) {
+        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
+    }
+
+    typedef void (*glGetIntegerv_pfn)(unsigned int, int*);
+    static glGetIntegerv_pfn real_glGetIntegerv = NULL;
+    if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+    int buf_id = 0;
+    unsigned int binding_pname = get_target_binding_pname(target);
+    if (binding_pname && real_glGetIntegerv) {
+        real_glGetIntegerv(binding_pname, &buf_id);
+    }
+
+    for (int i = 0; i < g_shadowCount; i++) {
+        if (g_shadowBuffers[i].target == target &&
+            (buf_id == 0 || g_shadowBuffers[i].buffer_id == (unsigned int)buf_id || g_shadowBuffers[i].buffer_id == 0) &&
+            g_shadowBuffers[i].is_shadow && g_shadowBuffers[i].shadow_ptr) {
+
+            if (real_glBufferSubData) {
+                real_glBufferSubData(target, g_shadowBuffers[i].offset, g_shadowBuffers[i].length, g_shadowBuffers[i].shadow_ptr);
+            }
+            free(g_shadowBuffers[i].shadow_ptr);
+
+            // Shift array elements left to remove entry and keep g_shadowCount accurate
+            for (int j = i; j < g_shadowCount - 1; j++) {
+                g_shadowBuffers[j] = g_shadowBuffers[j + 1];
+            }
+            g_shadowCount--;
+
+            if (real_glGetError) real_glGetError();
+            return 1;
+        }
+    }
+
+    int res = 1;
+    if (real_glUnmapBuffer) {
+        res = real_glUnmapBuffer(target);
+    }
+    if (real_glGetError) real_glGetError();
+    return res ? res : 1;
+}
 
 static void glMemoryBarrier_stub(unsigned int barriers) {
     typedef void (*glFlush_pfn)();
@@ -119,6 +357,68 @@ static void* eglGetProcAddress_hook(const char* procname) {
         return (void*) glGetStringi_hook;
     }
 
+    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
+        return (void*) glMapBufferRange_hook;
+    }
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) {
+        return (void*) glMapBuffer_hook;
+    }
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) {
+        return (void*) glUnmapBuffer_hook;
+    }
+
+    if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glGenSamplers_fallback;
+    }
+
+    if (strcmp(procname, "glBindSampler") == 0 || strcmp(procname, "glBindSamplerOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glBindSampler_fallback;
+    }
+
+    if (strcmp(procname, "glDeleteSamplers") == 0 || strcmp(procname, "glDeleteSamplersOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glDeleteSamplers_fallback;
+    }
+
+    if (strcmp(procname, "glSamplerParameteri") == 0 || strcmp(procname, "glSamplerParameteriOES") == 0) {
+        typedef void* (*pfn)(const char*);
+        static pfn real_eglGetProcAddress = NULL;
+        if (!real_eglGetProcAddress) real_eglGetProcAddress = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGetProcAddress) {
+            void* sym = real_eglGetProcAddress(procname);
+            if (sym) return sym;
+        }
+        void* sym = dlsym(RTLD_DEFAULT, procname);
+        if (sym) return sym;
+        return (void*) glSamplerParameteri_fallback;
+    }
+
     typedef void* (*eglGetProcAddress_pfn)(const char*);
     static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
     if (!real_eglGetProcAddress) {
@@ -128,8 +428,13 @@ static void* eglGetProcAddress_hook(const char* procname) {
         }
     }
     if (real_eglGetProcAddress) {
-        return real_eglGetProcAddress(procname);
+        void* sym = real_eglGetProcAddress(procname);
+        if (sym) return sym;
     }
+
+    void* sym = dlsym(RTLD_DEFAULT, procname);
+    if (sym) return sym;
+
     return NULL;
 }
 
@@ -150,13 +455,6 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         return (jlong) rspec->egl_acquire(rspec->egl_path);
     }
-
-    // This hook also serves the task of mitigating a bug: the idea is that since, on Android 10 and
-    // earlier, the linker doesn't really do namespace nesting.
-    // It is not a problem as most of the libraries are in the launcher path, but when you try to run
-    // VulkanMod which loads shaderc outside of the default jni libs directory through this method,
-    // it can't load it because the path is not in the allowed paths for the anonymous namesapce.
-    // This method fixes the issue by being in libpojavexec, and thus being in the classloader namespace
 
     int mode = (int)jmode;
     return (jlong) dlopen(filename, mode);
@@ -184,10 +482,40 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: successfully hooked glMemoryBarrier symbol directly\n");
             return (jlong) glMemoryBarrier_stub;
         }
+        if (strcmp(symbol, "glMapBufferRange") == 0 || strcmp(symbol, "glMapBufferRangeEXT") == 0 || strcmp(symbol, "glMapBufferRangeARB") == 0) {
+            return (jlong) glMapBufferRange_hook;
+        }
+        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
+            return (jlong) glMapBuffer_hook;
+        }
+        if (strcmp(symbol, "glUnmapBuffer") == 0 || strcmp(symbol, "glUnmapBufferOES") == 0 || strcmp(symbol, "glUnmapBufferARB") == 0) {
+            return (jlong) glUnmapBuffer_hook;
+        }
+        if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glGenSamplers_fallback;
+        }
+        if (strcmp(symbol, "glBindSampler") == 0 || strcmp(symbol, "glBindSamplerOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glBindSampler_fallback;
+        }
+        if (strcmp(symbol, "glDeleteSamplers") == 0 || strcmp(symbol, "glDeleteSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glDeleteSamplers_fallback;
+        }
+        if (strcmp(symbol, "glSamplerParameteri") == 0 || strcmp(symbol, "glSamplerParameteriOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol);
+            if (sym) return (jlong) sym;
+            return (jlong) glSamplerParameteri_fallback;
+        }
     }
 
     // Call real dlsym
-    return (jlong) dlsym((void*) handle, symbol);
+    void* sym = dlsym((void*) handle, symbol);
+    return (jlong) sym;
 }
 
 /**

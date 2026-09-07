@@ -18,6 +18,21 @@ void fear_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GL
 void fear_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data);
 void fear_glBindTextureUnit(GLuint unit, GLuint texture);
 
+// Buffer Mapping Fallback API
+void* fear_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+void* fear_glMapBuffer(GLenum target, GLenum access);
+GLboolean fear_glUnmapBuffer(GLenum target);
+
+// Sampler Emulation API
+void fear_glGenSamplers(GLsizei count, GLuint* samplers);
+void fear_glBindSampler(GLuint unit, GLuint sampler);
+void fear_glDeleteSamplers(GLsizei count, const GLuint* samplers);
+GLboolean fear_glIsSampler(GLuint sampler);
+void fear_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param);
+void fear_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param);
+void fear_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* param);
+void fear_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* param);
+
 // Module 2: Extension Emulation API
 uint64_t fear_glGetTextureHandleARB(GLuint texture);
 void fear_glMakeTextureHandleResidentARB(uint64_t handle);

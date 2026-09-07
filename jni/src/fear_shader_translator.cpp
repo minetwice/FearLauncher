@@ -2,6 +2,7 @@
 #include "fear_shader_logger.h"
 #include <shaderc/shaderc.hpp>
 #include <algorithm>
+#include <dlfcn.h>
 
 // String Helpers implementation
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
@@ -68,6 +69,8 @@ bool isFragmentShader(GLenum type) { return type == GL_FRAGMENT_SHADER; }
 bool isGeometryShader(GLenum type) { return type == GL_GEOMETRY_SHADER; }
 bool isComputeShader(GLenum type) { return type == GL_COMPUTE_SHADER; }
 
+typedef const char* (*FearXextreamTranspileShader_pfn)(const char*, uint32_t);
+
 // Main Core Translation function
 std::string FearTranslateGLSL(
     const char* sourceCode,
@@ -75,19 +78,31 @@ std::string FearTranslateGLSL(
     bool* translationSuccess
 ) {
     if (!sourceCode) {
-        *translationSuccess = false;
+        if (translationSuccess) *translationSuccess = false;
         return "";
     }
 
-    *translationSuccess = true;
+    if (translationSuccess) *translationSuccess = true;
 
     if (isGeometryShader(shaderType)) {
-        *translationSuccess = false;
+        if (translationSuccess) *translationSuccess = false;
         LOG_WARNING("[FearEngine] WARNING: Geometry shader detected - not supported on mobile, skipping");
         return "";
     }
 
-    std::string glsl(sourceCode);
+    // Dynamic symbol resolution for FearXextreamTranspileShader to avoid direct link dependency across separate .so targets
+    static FearXextreamTranspileShader_pfn pfnTranspile = (FearXextreamTranspileShader_pfn)dlsym(RTLD_DEFAULT, "FearXextreamTranspileShader");
+    if (!pfnTranspile) {
+        pfnTranspile = (FearXextreamTranspileShader_pfn)dlsym(RTLD_DEFAULT, "FearXextreamTranspileShader");
+    }
+
+    std::string glsl;
+    if (pfnTranspile) {
+        const char* transpiled = pfnTranspile(sourceCode, shaderType);
+        glsl = transpiled ? transpiled : sourceCode;
+    } else {
+        glsl = sourceCode;
+    }
 
     bool isCompute = isComputeShader(shaderType) ||
                      glsl.find("layout(local_size_") != std::string::npos ||
@@ -170,7 +185,6 @@ std::string FearTranslateGLSL(
     if (glsl.find("precision ") == std::string::npos) {
         insertAfterLine(glsl, target_version, inject_precision);
     } else {
-        // Upgrade mediump float to highp float for color and lighting calculations on Mali/Adreno GPUs
         replaceAll(glsl, "precision mediump float;", "precision highp float;");
         replaceAll(glsl, "precision lowp float;", "precision highp float;");
     }
@@ -244,7 +258,7 @@ std::string FearTranslateGLSL(
         // Frag Depth
         replaceAll(glsl, "gl_FragDepthEXT", "gl_FragDepth");
 
-        // Multiple Render Targets (gl_FragData[0..7]) translation for Solas & Complementary shaders
+        // Multiple Render Targets (gl_FragData[0..7]) translation
         bool uses_fragdata = false;
         for (int i = 0; i < 8; i++) {
             std::string fragDataName = "gl_FragData[" + std::to_string(i) + "]";

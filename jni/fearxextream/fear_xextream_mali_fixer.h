@@ -2,17 +2,18 @@
 #define FEAR_XEXTREAM_MALI_FIXER_H
 
 #include <string>
-#include <GLES3/gl32.h>
 
 namespace FearXextream {
 
     class MaliShaderFixer {
     public:
-        // Inject Mali GPU specific workarounds for Bliss & Complementary shaderpacks
         static void applyMaliWorkarounds(std::string& shaderSource);
-
-        // Fix Mali tile-buffer color space & depth precision
+        static void fixBlissShaderColorGlitches(std::string& shaderSource);
         static void configureMaliPipelineEnv();
+    private:
+        static void injectSafeMathWrappers(std::string& shaderSource);
+        static void fixDerivativesAndDiscards(std::string& shaderSource);
+        static void fixAtmosphereColorGrading(std::string& shaderSource);
     };
 
 }
