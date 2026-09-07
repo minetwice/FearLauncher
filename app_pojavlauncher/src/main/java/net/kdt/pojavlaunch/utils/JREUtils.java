@@ -94,8 +94,8 @@ public class JREUtils {
                 envMap.put("LIBGL_BATCH", "1");
                 envMap.put("LIBGL_MIPMAP", "3");
                 envMap.put("LIBGL_NOERROR", "1");
-                envMap.put("LIBGL_GL", "46");
-                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 545.29");
+                envMap.put("LIBGL_GL", "43");
+                envMap.put("LIBGL_VERSION", "4.3.0 NVIDIA 545.29");
                 envMap.put("LIBGL_NOTEXTURERECT", "0");
                 envMap.put("LIBGL_FBOTEXTURE2D", "1");
                 envMap.put("LIBGL_GLSL", "1");
@@ -109,8 +109,8 @@ public class JREUtils {
                 envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "430");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.3");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
                 envMap.put("allow_higher_compat_version", "true");
                 envMap.put("allow_glsl_relaxed_es", "true");
