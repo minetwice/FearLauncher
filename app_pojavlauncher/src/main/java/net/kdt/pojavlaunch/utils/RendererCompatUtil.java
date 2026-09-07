@@ -1,55 +1,98 @@
 package net.kdt.pojavlaunch.utils;
 
+import static android.os.Build.VERSION.SDK_INT;
+
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 
-import net.kdt.pojavlaunch.JMinecraftVersionList;
+import net.kdt.pojavlaunch.Architecture;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import git.artdeell.mojo.R;
+
 public class RendererCompatUtil {
-    public static class CompatibleRenderers {
-        public final List<String> rendererIds;
-        public final List<String> rendererNames;
-        public CompatibleRenderers(List<String> rendererIds, List<String> rendererNames) {
-            this.rendererIds = rendererIds;
-            this.rendererNames = rendererNames;
+    private static RenderersList sCompatibleRenderers;
+
+    public static boolean checkVulkanSupport(PackageManager packageManager) {
+        if(SDK_INT >= Build.VERSION_CODES.N) {
+            return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
+                    packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
         }
-    }
-
-    public static CompatibleRenderers getCompatibleRenderers(Context context) {
-        List<String> rendererIds = new ArrayList<>();
-        List<String> rendererNames = new ArrayList<>();
-
-        rendererIds.add("opengles3_ltw");
-        rendererNames.add("OpenGL ES 3.2 (LTW)");
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            rendererIds.add("vulkan");
-            rendererNames.add("Vulkan (Turnip/Zink)");
-        }
-
-        rendererIds.add("opengles2");
-        rendererNames.add("OpenGL ES 2.0 (gl4es 1.1.4)");
-
-        rendererIds.add("fear_turbo");
-        rendererNames.add("Fear Turbo - Custom GL Translation Engine");
-
-        return new CompatibleRenderers(rendererIds, rendererNames);
-    }
-
-    public static boolean isRendererCompatible(String rendererId, JMinecraftVersionList.Version version) {
-        if (rendererId.equals("opengles3_ltw")) return true;
-        if (rendererId.equals("vulkan")) return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
-        if (rendererId.equals("opengles2")) return true;
-        if (rendererId.equals("fear_turbo")) return true;
         return false;
     }
 
+    /** Return the renderers that are compatible with this device */
+    public static RenderersList getCompatibleRenderers(Context context) {
+        if(sCompatibleRenderers != null) return sCompatibleRenderers;
+        Resources resources = context.getResources();
+        String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
+        String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
+        boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
+        // Current Mesa requires API29+
+        boolean deviceCompatibleMesa = SDK_INT >= 29;
+        boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
+        // LTW is an optional dependency
+        boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
+        List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
+        for(int i = 0; i < defaultRenderers.length; i++) {
+            String rendererId = defaultRenderers[i];
+            if(rendererId.equals("fear_turbo")) {
+                rendererIds.add(rendererId);
+                rendererNames.add(defaultRendererNames[i]);
+                continue;
+            }
+            if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
+            if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
+            if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+            rendererIds.add(rendererId);
+            rendererNames.add(defaultRendererNames[i]);
+        }
+
+        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
+        List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
+        for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
+            String pluginId = "plugin:" + plugin.getId();
+            String displayName = plugin.getDisplayName();
+            if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
+                displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
+            }
+            if (!rendererIds.contains(pluginId)) {
+                rendererIds.add(pluginId);
+                rendererNames.add(displayName);
+            }
+        }
+
+        sCompatibleRenderers = new RenderersList(rendererIds,
+                rendererNames.toArray(new String[0]));
+
+        return sCompatibleRenderers;
+    }
+
+    /** Checks if the renderer Id is compatible with the current device */
+    public static boolean checkRendererCompatible(Context context, String rendererName) {
+         return getCompatibleRenderers(context).rendererIds.contains(rendererName);
+    }
+
+    /** Releases the cache of compatible renderers. */
     public static void releaseRenderersCache() {
-        // No-op for now
+        sCompatibleRenderers = null;
+        System.gc();
+    }
+
+    public static class RenderersList {
+        public final List<String> rendererIds;
+        public final String[] rendererDisplayNames;
+
+        public RenderersList(List<String> rendererIds, String[] rendererDisplayNames) {
+            this.rendererIds = rendererIds;
+            this.rendererDisplayNames = rendererDisplayNames;
+        }
     }
 }
