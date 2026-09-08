@@ -77,3 +77,13 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 }
 
 
+
+
+// Declare the install_global_egl_hook function from driver_helper/hook.c
+extern void install_global_egl_hook();
+
+// JNI_OnLoad is called when the library is loaded
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    install_global_egl_hook();
+    return JNI_VERSION_1_6;
+}
