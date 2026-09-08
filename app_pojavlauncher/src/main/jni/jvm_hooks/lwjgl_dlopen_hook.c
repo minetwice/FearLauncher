@@ -408,5 +408,3 @@ void* eglGetProcAddress_hook(const char* procname) {
     if (procname && strncmp(procname, "gl", 2) == 0) return (void*) universal_stub_void;
     return NULL;
 }
-
-// NOTE: The remaining part of the file (ndlopen_bugfix, ndlsym_hook, installLwjglDlopenHook) is identical to the original. To keep this update complete, the full original remaining code is required. Please re-apply the full file from local if needed.
