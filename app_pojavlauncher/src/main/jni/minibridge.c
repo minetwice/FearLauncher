@@ -78,3 +78,32 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 }
 
 
+
+
+// Import the hook from lwjgl_dlopen_hook.c
+void* eglGetProcAddress_hook(const char* procname);
+
+// Install global EGL hook to prevent "Can't map buffer" error
+void install_global_egl_hook() {
+    // This function should be called before LWJGL initializes
+    // It hooks eglGetProcAddress in native GL libraries
+    // Implementation note: This requires a hooking library like xhook, bhook, or shadowhook
+    // For xhook:
+    // #include "xhook.h"
+    // xhook_register("libEGL.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_register("libGLESv2.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_register("libglfw.so", "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_refresh(1);
+    
+    // For bhook:
+    // #include "bytehook.h"
+    // bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    
+    // Placeholder implementation - actual hooking library needed
+}
+
+// JNI_OnLoad is called when the library is loaded
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    install_global_egl_hook();
+    return JNI_VERSION_1_6;
+}
