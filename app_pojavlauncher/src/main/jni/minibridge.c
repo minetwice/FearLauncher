@@ -52,7 +52,8 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
             if(!native_dir) return false;
             if(!linker_ns_load(native_dir)) {
                 printf("linker_ns_load failed\n");
-                return false;
+                return false
+;
             }
             renderspec.egl_acquire = egl_acquire_ns;
         } else {
@@ -77,23 +78,22 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 }
 
 
+
 // Import the hook from lwjgl_dlopen_hook.c
 void* eglGetProcAddress_hook(const char* procname);
 
-// Install global EGL hook to prevent "Can't map buffer" error
+// Install global EGL hook to prevent Can't map buffer error
 void install_global_egl_hook() {
     // This function should be called before LWJGL initializes
     // It hooks eglGetProcAddress in native GL libraries
     // Implementation note: This requires a hooking library like xhook, bhook, or shadowhook
     // For xhook:
-    // #include "xhook.h"
     // xhook_register("libEGL.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
     // xhook_register("libGLESv2.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
     // xhook_register("libglfw.so", "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
     // xhook_refresh(1);
     
     // For bhook:
-    // #include "bytehook.h"
     // bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
     
     // Placeholder implementation - actual hooking library needed
