@@ -39,9 +39,9 @@ bool linker_ns_load(const char* lib_search_path) {
     char full_path[strlen(SEARCH_PATH) + strlen(lib_search_path) + 2 + 1];
     sprintf(full_path, "%s:%s", SEARCH_PATH, lib_search_path);
     driver_namespace = ldfuncs.create_namespace("pojav-driver",
-                                                      full_path,
-                                                      full_path,
-                                                      3 /* TYPE_SHAFED | TYPE_ISOLATED */,
+                                                        full_path,
+                                                       full_path,
+                                                       3 /* TYPE_SHAFED | TYPE_ISOLATED */,
                                                       "/system/:/data/:/vendor/:/apex/", NULL);
     // THIS IS VERY IMPORTANT and how I trolled FoldCraft:
     // You need to link the new driver_namespace with NULL and and add ld-android.so
@@ -76,81 +76,94 @@ bool patch_elf_soname(int patchfd, int realfd, size_t size, const char* patchnam
 
 
     ELF_EHDR *ehdr = (ELF_EHDR*)target;
-    ELF_SHDR *shdr = (ELF_SHDR*)(target + ehdr->e_shoff);
+    ELF_SHDR *shtr = (ELF_SHDR*)(target + ehdr->e_shoff);
     for(ELF_HALF i = 0; i < ehdr->e_shnum; i++) {
-        ELF_SHDR *hdr = &shdr[i];
-        if(hdr->sh_type == SHT_DYNAMIC) {
-            char* strtab = target + shdr[hdr->sh_link].sh_offset;
-            // If there's a warning below, it's bogus, ignore it
-            ELF_DYN *dynEntries = (ELF_DYN*)(target + hdr->sh_offset);
-            for(ELF_XWORD k = 0; k < (hdr->sh_size / hdr->sh_entsize);k++) {
-                ELF_DYN* dynEntry = &dynEntries[k];
-                if(dynEntry->d_tag == DT_SONAME) {
-                    char* soname = strtab + dynEntry->d_un.d_val;
-                    size_t soname_len = strlen(soname);
-                    size_t patchname_len = strlen(patchname);
-                    if(patchname_len != soname_len) goto fail;
+        ELF_SHD*Z€H	њЪ–ЪWNВ€YЉ‹OњЪЭ\HOHТСSђSRPКHВ€Ъ\Љ€ЭќX€H\™Щ]
+ИЪ–Ъ‹OњЪЫ[љЧKњЪЫЩ™њЩ]В€ЛИY€\™IЬИHШ\›љ[™И™[ЭЛ]	ЬИ›ЩЭ\ЛYЫ›Ь™H]€S—СS€
+™[‘[ќљY\ИH
+S—СSЉЉJ\™Щ]
+И‹OњЪЫЩ™њЩ]
+NВ€›ЬЉS—ЦУФ‘ИHИИ
+‹OњЪЬЪ^™HИ‹OњЪЩ[ќЪ^™JNЪКККHВ€S—СSЉ€[‘[ќћHH	™[‘[ќљY\ЦЪЧNВ€YЉ[‘[ќћKO™ЭYИOHФУУђSQJHВ€Ъ\Љ€ЫЫ[YHHЭќX€
+И[‘[ќћKO™Э[‹™Э[В€Ъ^™WЭЫЫ[YWЫ[€HЭ›[ЉЫЫ[YJNВ€Ъ^™WЭ]Ъ[YWЫ[€HЭ›[Љ]Ъ[YJNВ€YЉ]Ъ[YWЫ[€OHЫЫ[YWЫ[ЉHЫЭИZ[В‚€ЭЬJЫЫ[YK]Ъ[YJNВ€][›X\
+\™Щ]Ъ^™JNВ€™]\›€ќYNВ€B€B€B€B‚€Z[‚€][›X\
+\™Щ]Ъ^™JNВ€™]\›€[ЩNВџB‚€ЩYљ[™HQСWРSQУЉYЉH
 
-                    strcpy(soname, patchname);
-                    munmap(target, size);
-                    return true;
-                }
-            }
-        }
-    }
 
-    fail:
-    munmap(target, size);
-    return false;
-}
+YЉJЬYЩ\Ъ^™KLJIЉЉYЩ\Ъ^™KLJJJB‚ќ›ЪY
+€[љЩ\—ЫњЧЩЬ[—Э[љ\]YJЫЫњЭЪ\Љ€\\‹ЫЫњЭЪ\Љ€[YKЫЫњЭЪ\Љ€]ЪЫ[YK[ќ›YЬКHВ€[ќYЩ\Ъ^™HHЩ]YЩ\Ъ^™J
+NВ€Ъ\€]ќY–ФUУPVNВ€Э]XИZ[ќM—Э]ЪYВ€[ќ]ЪЩ™™X[Щ™В€Ъ^™WЭњЪ^™KЭ[Ъ^™NВ‚€Ыњљ[ќЉ]ќY‹UУPV‰\ЛЙ\И‹СPTђТФU[YJNВ€™X[Щ™HЬ[Љ]ќY‹ЧФ‘У“JNВ€YЉ™X[Щ™OHLJH™]\›€•SВ‚€В€ЭќXЭЭ]Ќ™X[ЬЭ]В€Y€
+њЭ]Ќ
+™X[Щ™	њ™X[ЬЭ]
+JHЫЭИZ[Ь™X[В€њЪ^™HH™X[ЬЭ]њЭЬЪ^™NВ€Э[Ъ^™HHQСWРSQУЉњЪ^™JNВ€B‚€]ЪЩ™H
+[ќ
+HЮ\ШШ[
+ЧУ”—ЫY[Y™ШЬ™X]K]ЪЫ[YKQ‘РУСVPКNВ€YЉ]ЪЩ™OHLJHВ€ЛИСО€\ЩHTЪ\™YY[[ЬћH\И[XЪВ€ЛИ“ХN€\ЩHYЩKX[YЫ™YЪ^™H
+Э[Ъ^™JH›Ь€\ЪY[B€Ыњљ[ќЉ]ќY‹UУPV‰\ЛЙH”’]LM€€‹\\‹]ЪY
+ККNВ€]ЪЩ™HЬ[Љ]ќY‹ЧРФ‘PUЧФ‘Ф‹ЧТT•TФ€ЧТUХTФЉNВ€B€YЉ]ЪЩ™OHLJHЫЭИZ[Ь™X[В‚€YЉќќ[Ш]MЌ
+]ЪЩ™Э[Ъ^™JHOHLJHЫЭИZ[Ш›ЭВ‚€›ЫЫ]ЪЬ™\Э[H]ЪЩ[—ЬЫЫ[YJ]ЪЩ™™X[Щ™њЪ^™K]ЪЫ[YJNВ€ЫЬЩJ™X[Щ™
+NВ€YЉ\]ЪЬ™\Э[
+HВ€ЫЬЩJ]ЪЩ™
+NВ€™]\›€•SВ€B‚€[™›ЪYЩ^[™›И^[™›ОВ€^[™›Л™›YЬИHS‘“ТQСVХTСWУђSQTФPСHS‘“ТQСVХTСWУP”ђT–WС‘В€^[™›Л›Xњ\ћWЩ™H]ЪЩ™В€^[™›Л›Xњ\ћWЫ[Y\ЬXЩHHљ]™\—Ы[Y\ЬXЩNВ€™]\›€[™›ЪYЩЬ[—Щ^
+]ЪЫ[YK›YЬЛ	™^[™›КNВ‚€Z[Ш›Э‚€ЫЬЩJ]ЪЩ™
+NВ€Z[Ь™X[‚€ЫЬЩJ™X[Щ™
+NВ€™]\›€•SВџB‚‚‹К‚€
+€]]™HQУЫЪИ[њЭ[][Ы€
+љ^›Ь€ђШ[‰ЭX\ќY™™\‹Ь[™Ы\њ›Ь€ЉB€
+‚€
+€Т‘Ућ\\ЬЩ\ИH]K\ЪYH[љЩ\љЫЪИћHШ[[™ИYЫЩ]›ШРY™\ЬИ\™XЭB€
+€њ›ЫH]]™HЫЩK€ЩH\ЩHћ]ZЫЪИИ[ќ\Щ\YЫЩ]›ШРY™\ЬИ]H]]™B€
+€]™[ЫИ]ЫX\ќY™™\”[™ЩH[™™[]Yќ[Э[ЫњИ\™H™Y\™XЭYИЭ\‚€
+€ЪYЭЛXќY™™\€[\[Y[ќ][ЫњЛ‚€
+‚€
+€\Иќ[Э[Ы€\ИШY™HИШ[][\H[Y\И8 %]\Щ\ИHЭX\™›YЛ‚€
+‹В‚‹К€ћ]ZЫЪИ\\И
+X]Ъ[™Ић]ZЫЪЛљYљ[љ][ЫњЛШYY[[ZXШ[JH
+‹Вќ\YY€›ЪY
+€ћ]ZЫЪЧЬЭX—ЭЫШШ[Вќ\YY€›ЪY
 
-#define PAGE_ALIGN(addr)        (((addr)+pagesize-1)&(~(pagesize-1)))
+ћ]ZЫЪЧЪЫЪЩYЭЫШШ[
+Jћ]ZЫЪЧЬЭX—ЭЫШШ[\ЪЧЬЭX‹[ќЭ]\ЧШЫЩK€ЫЫњЭЪ\€
+Ш[\—Ь]Ы[YKЫЫњЭЪ\€
+њЮ[WЫ[YK€›ЪY
+›™]ЧЩќ[Л›ЪY
+›™]ЧЩќ[ЧШ\™КNВќ\YY€ћ]ZЫЪЧЬЭX—ЭЫШШ[
 
-void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* patch_name, int flags) {
-    int pagesize = getpagesize();
-    char pathbuf[PATH_MAX];
-    static uint16_t patchid;
-    int patch_fd, real_fd;
-    size_t fsize, totalsize;
+ћ]ZЫЪЧЪЫЪЧШ[ЭЫШШ[
+JJЫЫњЭЪ\€
+Ш[YWЬ]Ы[YK€ЫЫњЭЪ\€
+њЮ[WЫ[YK›ЪY
+›™]ЧЩќ[Л€ћ]ZЫЪЧЪЫЪЩYЭЫШШ[ЫЪЩY›ЪY
+љЫЪЩYШ\™КNВ‚€ЩYљ[™H’УSСWРUUУPUPИ€ЩYљ[™H’ФХUTЧРУСWУТИ‚‹К€[\ЬќYњ›ЫHЪ™ЫЩЬ[—ЪЫЪЛИ
+›Ы‹\Э]XЛЫИЩHШ[€XШЩ\ЬИ]\™JH
+‹В™^\›€›ЪY
+€YЫЩ]›ШРY™\ЬЧЪЫЪКЫЫњЭЪ\Љ€›ШЫ[YJNВ‚њЭ]XИ›ЫЫYЫЪЫЪЧЪ[њЭ[YH[ЩNВ‚ќ›ЪY[њЭ[ЩЫШ[ЩYЫЪЫЪК›ЪY
+HВ€YЉYЫЪЫЪЧЪ[њЭ[Y
+H™]\›ЋВ€YЫЪЫЪЧЪ[њЭ[YHќYNВ‚€›ЪY
+€ћ]ZЫЪЧЪ[™HHЬ[Љ›Xћ]ZЫЪЛњЫИ‹•У“ХКNВ€YЉћ]ZЫЪЧЪ[™HOH•S
+HВ€ССJљ[њЭ[ЩЫШ[ЩYЫЪЫЪО€Z[YИШYXћ]ZЫЪЛњЫО€	\И‹\њ›ЬЉ
+JNВ€™]\›ЋВ€B‚€ћ]ZЫЪЧЪЫЪЧШ[ЭЫШШ[ћ]ZЫЪЧЪЫЪЧШ[ЬВ€[ќ
 
-    snprintf(pathbuf, PATH_MAX, "%s/%s", SEARCH_PATH, name);
-    real_fd = open(pathbuf, O_RDONLY);
-    if(real_fd == -1) return NULL;
+ћ]ZЫЪЧЪ[љ]Ь
+J[ќ[ЩK›ЫЫXќYКNВ‚€ћ]ZЫЪЧЪЫЪЧШ[ЬH
+ћ]ZЫЪЧЪЫЪЧШ[ЭЫШШ[
+HЮ[Jћ]ZЫЪЧЪ[™Kћ]ZЫЪЧЪЫЪЧШ[ЉNВ€ћ]ZЫЪЧЪ[љ]ЬH
+[ќ
 
-    {
-        struct stat64 real_stat;
-        if (fstat64(real_fd, &real_stat)) goto fail_real;
-        fsize = real_stat.st_size;
-        totalsize = PAGE_ALIGN(fsize);
-    }
-
-    patch_fd = (int) syscall(__NR_memfd_create, patch_name, MFD_CLOEXEC);
-    if(patch_fd == -1) {
-        // TODO: use ASharedMemory as fallback
-        // NOTE: use page-aligned size (totalsize) for ashmem
-        snprintf(pathbuf, PATH_MAX, "%s/%"PRIu16"", tmpdir, patchid++);
-        patch_fd = open(pathbuf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    }
-    if(patch_fd == -1) goto fail_real;
-
-    if(ftruncate64(patch_fd, totalsize) == -1) goto fail_both;
-
-    bool patch_result = patch_elf_soname(patch_fd, real_fd, fsize, patch_name);
-    close(real_fd);
-    if(!patch_result) {
-        close(patch_fd);
-        return NULL;
-    }
-
-    android_dlextinfo extinfo;
-    extinfo.flags = ANDROID_DLEXT_USE_NAMESPACE | ANDROID_DLEXT_USE_LIBRARY_FD;
-    extinfo.library_fd = patch_fd;
-    extinfo.library_namespace = driver_namespace;
-    return android_dlopen_ext(patch_name, flags, &extinfo);
-
-    fail_both:
-    close(patch_fd);
-    fail_real:
-    close(real_fd);
-    return NULL;
-}
+ЉJ[ќ›ЫЫ
+JHЮ[Jћ]ZЫЪЧЪ[™Kћ]ZЫЪЧЪ[љ]ЉNВ‚€YЉћ]ZЫЪЧЪЫЪЧШ[ЬOH•Sћ]ZЫЪЧЪ[љ]ЬOH•S
+HВ€ССJљ[њЭ[ЩЫШ[ЩYЫЪЫЪО€Z[YИљ[™ћ]ZЫЪЧЬЮ[X›ЫО€	\И‹\њ›ЬЉ
+JNВ€ЫЬЩJћ]ZЫЪЧЪ[™JNВ€™]\›ЋВ€B‚€[ќљЫЪЧЬЭ]\ИHћ]ZЫЪЧЪ[љ]Ь
+’УSСWРUUУPUPЛ[ЩJNВ€YЉљЫЪЧЬЭ]\ИOH’ФХUTЧРУСWУТКHВ€ћ]ZЫЪЧЬЭX—ЭЫШШ[ЭX€Hћ]ZЫЪЧЪЫЪЧШ[Ь
+€•SК€Ш[YWЬ]Ы[YN€•SH[Xњ\љY\И
+‹В€™YЫЩ]›ШРY™\ЬИ‹К€Ю[WЫ[YN€Hќ[Э[Ы€ИЫЪИ
+‹В€
+›ЪY
+ЉHYЫЩ]›ШРY™\ЬЧЪЫЪЛК€™]ЧЩќ[О€Э\€™\XЩ[Y[ќ
+‹В€•SК€ЫЪЩY€›ИШ[XЪИ™YYY
+‹В€•SК€ЫЪЩYШ\™О€›ИШ[XЪИ\™И
+‹В€
+NВ€YЉЭX€OH•S
+HВ€СТJљ[њЭ[ЩЫШ[ЩYЫЪЫЪО€ЭXШЩ\ЬЩќ[HЫЪЩYYЫЩ]›ШРY™\ЬИљXHћ]ZЫЪИЉNВ€H[ЩHВ€ССJљ[њЭ[ЩЫШ[ЩYЫЪЫЪО€ћ]ZЫЪЧЪЫЪЧШ[™]\›™Y•S›Ь€YЫЩ]›ШРY™\ЬИЉNВ€B€H[ЩHВ€ССJљ[њЭ[ЩЫШ[ЩYЫЪЫЪО€ћ]ZЫЪЧЪ[љ]Z[Y
+	Y
+H‹љЫЪЧЬЭ]\КNВ€ЫЬЩJћ]ZЫЪЧЪ[™JNВ€BџB
