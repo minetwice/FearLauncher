@@ -34,7 +34,8 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "\n");
+                                Logger.appendToLog(line + "
+");
                             }
                         }
                     }
