@@ -152,7 +152,9 @@
 
         <!-- BACKGROUND SERVICES -->
         <service 
-            android:name="net.kdt.pojavlaunch.services.ProgressService"            android:foregroundServiceType="dataSync"/>
+            android:name="net.kdt.pojavlaunch.services.ProgressService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
             
         <service 
             android:name="net.kdt.pojavlaunch.services.GameService" 

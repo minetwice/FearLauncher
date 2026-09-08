@@ -284,6 +284,8 @@ public class GameRunner {
         }
         javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turbov1") ? "libTurboV1.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
+        javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
+        javaArgList.add("-Dminecraft.narrator=false");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
