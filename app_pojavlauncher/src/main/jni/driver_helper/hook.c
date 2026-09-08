@@ -36,8 +36,6 @@ __attribute__((visibility("default"), used)) void *android_load_sphal_library(co
     if(strstr(filename, "vulkan.")) {
         return ready_handle;
     }
-    //printf("__loader_android_get_exported_namespace = %p\n__loader_android_dlopen_ext = %p\n", __loader_android_get_exported_namespace,
-    //       __loader_android_dlopen_ext);
     struct android_namespace_t* androidNamespace;
     for(int i = 0; i < 3; i++) {
         androidNamespace = android_get_exported_namespace_p(sphal_namespaces[i]);
@@ -54,4 +52,26 @@ __attribute__((visibility("default"), used)) void *android_load_sphal_library(co
 // but for our usage it's fine enough
 __attribute__((visibility("default"), used)) uint64_t atrace_get_enabled_tags() {
     return 0;
+}
+
+// Import the hook from lwjgl_dlopen_hook.c
+void* eglGetProcAddress_hook(const char* procname);
+
+// Install global EGL hook to prevent "Can't map buffer" error
+void install_global_egl_hook() {
+    // This function should be called before LWJGL initializes
+    // It hooks eglGetProcAddress in native GL libraries
+    // Implementation note: This requires a hooking library like xhook, bhook, or shadowhook
+    // For xhook:
+    // #include "xhook.h"
+    // xhook_register("libEGL.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_register("libGLESv2.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_register("libglfw.so", "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // xhook_refresh(1);
+    
+    // For bhook:
+    // #include "bytehook.h"
+    // bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    
+    // Placeholder implementation - actual hooking library needed
 }
