@@ -39,9 +39,9 @@ bool linker_ns_load(const char* lib_search_path) {
     char full_path[strlen(SEARCH_PATH) + strlen(lib_search_path) + 2 + 1];
     sprintf(full_path, "%s:%s", SEARCH_PATH, lib_search_path);
     driver_namespace = ldfuncs.create_namespace("pojav-driver",
-                                                        full_path,
-                                                       full_path,
-                                                       3 /* TYPE_SHAFED | TYPE_ISOLATED */,
+                                                      full_path,
+                                                      full_path,
+                                                      3 /* TYPE_SHAFED | TYPE_ISOLATED */,
                                                       "/system/:/data/:/vendor/:/apex/", NULL);
     // THIS IS VERY IMPORTANT and how I trolled FoldCraft:
     // You need to link the new driver_namespace with NULL and and add ld-android.so
@@ -76,94 +76,152 @@ bool patch_elf_soname(int patchfd, int realfd, size_t size, const char* patchnam
 
 
     ELF_EHDR *ehdr = (ELF_EHDR*)target;
-    ELF_SHDR *shtr = (ELF_SHDR*)(target + ehdr->e_shoff);
+    ELF_SHDR *shdr = (ELF_SHDR*)(target + ehdr->e_shoff);
     for(ELF_HALF i = 0; i < ehdr->e_shnum; i++) {
-        ELF_SHD*ZˆH	œÚ–ÚWNÂˆYŠ‹OœÚİ\HOHÒÑSSRPÊHÂˆÚ\ŠˆİXˆH\™Ù]
-ÈÚ–Ú‹OœÚÛ[š×KœÚÛÙ™œÙ]ÂˆËÈYˆ\™IÜÈHØ\›š[™È™[İË]	ÜÈ›Ùİ\ËYÛ›Ü™H]ˆS—ÑSˆ
-™[‘[šY\ÈH
-S—ÑSŠŠJ\™Ù]
-È‹OœÚÛÙ™œÙ]
-NÂˆ›ÜŠS—ÖÓÔ‘ÈHÈÈ
-‹OœÚÜÚ^™HÈ‹OœÚÙ[Ú^™JNÚÊÊÊHÂˆS—ÑSŠˆ[‘[HH	™[‘[šY\ÖÚ×NÂˆYŠ[‘[KO™İYÈOHÔÓÓSQJHÂˆÚ\ŠˆÛÛ˜[YHHİXˆ
-È[‘[KO™İ[‹™İ˜[ÂˆÚ^™WİÛÛ˜[YWÛ[ˆHİ›[ŠÛÛ˜[YJNÂˆÚ^™Wİ]Ú˜[YWÛ[ˆHİ›[Š]Ú˜[YJNÂˆYŠ]Ú˜[YWÛ[ˆOHÛÛ˜[YWÛ[ŠHÛİÈ˜Z[Â‚ˆİ˜ÜJÛÛ˜[YK]Ú˜[YJNÂˆ][›X\
-\™Ù]Ú^™JNÂˆ™]\›ˆYNÂˆBˆBˆBˆB‚ˆ˜Z[‚ˆ][›X\
-\™Ù]Ú^™JNÂˆ™]\›ˆ˜[ÙNÂŸB‚ˆÙYš[™HQÑWĞSQÓŠYŠH
+        ELF_SHDR *hdr = &shdr[i];
+        if(hdr->sh_type == SHT_DYNAMIC) {
+            char* strtab = target + shdr[hdr->sh_link].sh_offset;
+            // If there's a warning below, it's bogus, ignore it
+            ELF_DYN *dynEntries = (ELF_DYN*)(target + hdr->sh_offset);
+            for(ELF_XWORD k = 0; k < (hdr->sh_size / hdr->sh_entsize);k++) {
+                ELF_DYN* dynEntry = &dynEntries[k];
+                if(dynEntry->d_tag == DT_SONAME) {
+                    char* soname = strtab + dynEntry->d_un.d_val;
+                    size_t soname_len = strlen(soname);
+                    size_t patchname_len = strlen(patchname);
+                    if(patchname_len != soname_len) goto fail;
+
+                    strcpy(soname, patchname);
+                    munmap(target, size);
+                    return true;
+                }
+            }
+        }
+    }
+
+    fail:
+    munmap(target, size);
+    return false;
+}
+
+#define PAGE_ALIGN(addr)        (((addr)+pagesize-1)&(~(pagesize-1)))
+
+void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* patch_name, int flags) {
+    int pagesize = getpagesize();
+    char pathbuf[PATH_MAX];
+    static uint16_t patchid;
+    int patch_fd, real_fd;
+    size_t fsize, totalsize;
+
+    snprintf(pathbuf, PATH_MAX, "%s/%s", SEARCH_PATH, name);
+    real_fd = open(pathbuf, O_RDONLY);
+    if(real_fd == -1) return NULL;
+
+    {
+        struct stat64 real_stat;
+        if (fstat64(real_fd, &real_stat)) goto fail_real;
+        fsize = real_stat.st_size;
+        totalsize = PAGE_ALIGN(fsize);
+    }
+
+    patch_fd = (int) syscall(__NR_memfd_create, patch_name, MFD_CLOEXEC);
+    if(patch_fd == -1) {
+        // TODO: use ASharedMemory as fallback
+        // NOTE: use page-aligned size (totalsize) for ashmem
+        snprintf(pathbuf, PATH_MAX, "%s/%"PRIu16"", tmpdir, patchid++);
+        patch_fd = open(pathbuf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    }
+    if(patch_fd == -1) goto fail_real;
+
+    if(ftruncate64(patch_fd, totalsize) == -1) goto fail_both;
+
+    bool patch_result = patch_elf_soname(patch_fd, real_fd, fsize, patch_name);
+    close(real_fd);
+    if(!patch_result) {
+        close(patch_fd);
+        return NULL;
+    }
+
+    android_dlextinfo extinfo;
+    extinfo.flags = ANDROID_DLEXT_USE_NAMESPACE | ANDROID_DLEXT_USE_LIBRARY_FD;
+    extinfo.library_fd = patch_fd;
+    extinfo.library_namespace = driver_namespace;
+    return android_dlopen_ext(patch_name, flags, &extinfo);
+
+    fail_both:
+    close(patch_fd);
+    fail_real:
+    close(real_fd);
+    return NULL;
+}
 
 
-YŠJÜYÙ\Ú^™KLJIŠŠYÙ\Ú^™KLJJJB‚›ÚY
-ˆ[šÙ\—Ûœ×ÙÜ[—İ[š\]YJÛÛœİÚ\Šˆ\\‹ÛÛœİÚ\Šˆ˜[YKÛÛœİÚ\Šˆ]ÚÛ˜[YK[›YÜÊHÂˆ[YÙ\Ú^™HHÙ]YÙ\Ú^™J
-NÂˆÚ\ˆ]Y–ÔUÓPVNÂˆİ]XÈZ[M—İ]ÚYÂˆ[]ÚÙ™™X[Ù™ÂˆÚ^™WİœÚ^™Kİ[Ú^™NÂ‚ˆÛœš[Š]Y‹UÓPV‰\ËÉ\È‹ÑPTÒÔU˜[YJNÂˆ™X[Ù™HÜ[Š]Y‹×Ô‘Ó“JNÂˆYŠ™X[Ù™OHLJH™]\›ˆ•SÂ‚ˆÂˆİXİİ]™X[Üİ]ÂˆYˆ
-œİ]
-™X[Ù™	œ™X[Üİ]
-JHÛİÈ˜Z[Ü™X[ÂˆœÚ^™HH™X[Üİ]œİÜÚ^™NÂˆİ[Ú^™HHQÑWĞSQÓŠœÚ^™JNÂˆB‚ˆ]ÚÙ™H
-[
-HŞ\ØØ[
-×Ó”—ÛY[Y™ØÜ™X]K]ÚÛ˜[YKQ‘ĞÓÑVPÊNÂˆYŠ]ÚÙ™OHLJHÂˆËÈÑÎˆ\ÙHTÚ\™YY[[ÜH\È˜[˜XÚÂˆËÈ“ÕNˆ\ÙHYÙKX[YÛ™YÚ^™H
-İ[Ú^™JH›Üˆ\ÚY[BˆÛœš[Š]Y‹UÓPV‰\ËÉH”’]LMˆˆ‹\\‹]ÚY
-ÊÊNÂˆ]ÚÙ™HÜ[Š]Y‹×ĞÔ‘PU×Ô‘Ô‹×ÒT•TÔˆ×ÒUÕTÔŠNÂˆBˆYŠ]ÚÙ™OHLJHÛİÈ˜Z[Ü™X[Â‚ˆYŠ[˜Ø]M
-]ÚÙ™İ[Ú^™JHOHLJHÛİÈ˜Z[Ø›İÂ‚ˆ›ÛÛ]ÚÜ™\İ[H]ÚÙ[—ÜÛÛ˜[YJ]ÚÙ™™X[Ù™œÚ^™K]ÚÛ˜[YJNÂˆÛÜÙJ™X[Ù™
-NÂˆYŠ\]ÚÜ™\İ[
-HÂˆÛÜÙJ]ÚÙ™
-NÂˆ™]\›ˆ•SÂˆB‚ˆ[™›ÚYÙ^[™›È^[™›ÎÂˆ^[™›Ë™›YÜÈHS‘“ÒQÑVÕTÑWÓSQTÔPÑHS‘“ÒQÑVÕTÑWÓP”T–WÑ‘Âˆ^[™›Ë›Xœ˜\WÙ™H]ÚÙ™Âˆ^[™›Ë›Xœ˜\WÛ˜[Y\ÜXÙHHš]™\—Û˜[Y\ÜXÙNÂˆ™]\›ˆ[™›ÚYÙÜ[—Ù^
-]ÚÛ˜[YK›YÜË	™^[™›ÊNÂ‚ˆ˜Z[Ø›İ‚ˆÛÜÙJ]ÚÙ™
-NÂˆ˜Z[Ü™X[‚ˆÛÜÙJ™X[Ù™
-NÂˆ™]\›ˆ•SÂŸB‚‚‹Ê‚ˆ
-ˆ˜]]™HQÓÛÚÈ[œİ[][Ûˆ
-š^›ÜˆØ[‰İX\Y™™\‹Ü[™Û\œ›ÜˆŠBˆ
-‚ˆ
-ˆÒ‘Ó\\ÜÙ\ÈH˜]˜K\ÚYH[šÙ\šÛÚÈHØ[[™ÈYÛÙ]›ØĞY™\ÜÈ\™XİBˆ
-ˆœ›ÛH˜]]™HÛÙKˆÙH\ÙH]ZÛÚÈÈ[\˜Ù\YÛÙ]›ØĞY™\ÜÈ]H˜]]™Bˆ
-ˆ]™[ÛÈ]ÛX\Y™™\”˜[™ÙH[™™[]Y[˜İ[ÛœÈ\™H™Y\™XİYÈİ\‚ˆ
-ˆÚYİËXY™™\ˆ[\[Y[][ÛœË‚ˆ
-‚ˆ
-ˆ\È[˜İ[Ûˆ\ÈØY™HÈØ[][\H[Y\È8 %]\Ù\ÈHİX\™›YË‚ˆ
-‹Â‚‹Êˆ]ZÛÚÈ\\È
-X]Ú[™È]ZÛÚËšYš[š][ÛœËØYY[˜[ZXØ[JH
-‹Â\YYˆ›ÚY
-ˆ]ZÛÚ×ÜİX—İÛØØ[Â\YYˆ›ÚY
+/*
+ * Native EGL hook installation (Fix for "Can't map buffer, opengl error 0")
+ *
+ * LWJGL bypasses the Java-side linkerhook by calling eglGetProcAddress directly
+ * from native code. We use bytehook to intercept eglGetProcAddress at the native
+ * level so that glMapBufferRange and related functions are redirected to our
+ * shadow-buffer implementations.
+ *
+ * This function is safe to call multiple times â€” it uses a guard flag.
+ */
 
-˜]ZÛÚ×ÚÛÚÙYİÛØØ[
-J]ZÛÚ×ÜİX—İÛØØ[\Ú×ÜİX‹[İ]\×ØÛÙKˆÛÛœİÚ\ˆ
-˜Ø[\—Ü]Û˜[YKÛÛœİÚ\ˆ
-œŞ[WÛ˜[YKˆ›ÚY
-›™]×Ù[˜Ë›ÚY
-›™]×Ù[˜×Ø\™ÊNÂ\YYˆ]ZÛÚ×ÜİX—İÛØØ[
+/* Bytehook types (matching bytehook.h definitions, loaded dynamically) */
+typedef void* bytehook_stub_t_local;
+typedef void (*bytehook_hooked_t_local)(bytehook_stub_t_local task_stub, int status_code,
+    const char *caller_path_name, const char *sym_name,
+    void *new_func, void *new_func_arg);
+typedef bytehook_stub_t_local (*bytehook_hook_all_t_local)(const char *callee_path_name,
+    const char *sym_name, void *new_func,
+    bytehook_hooked_t_local hooked, void *hooked_arg);
 
-˜]ZÛÚ×ÚÛÚ×Ø[İÛØØ[
-JJÛÛœİÚ\ˆ
-˜Ø[YWÜ]Û˜[YKˆÛÛœİÚ\ˆ
-œŞ[WÛ˜[YK›ÚY
-›™]×Ù[˜Ëˆ]ZÛÚ×ÚÛÚÙYİÛØØ[ÛÚÙY›ÚY
-šÛÚÙYØ\™ÊNÂ‚ˆÙYš[™H’ÓSÑWĞUUÓPUPÈˆÙYš[™H’ÔÕUT×ĞÓÑWÓÒÈ‚‹Êˆ[\ÜYœ›ÛHÚ™ÛÙÜ[—ÚÛÚË˜È
-›Û‹\İ]XËÛÈÙHØ[ˆXØÙ\ÜÈ]\™JH
-‹Â™^\›ˆ›ÚY
-ˆYÛÙ]›ØĞY™\Ü×ÚÛÚÊÛÛœİÚ\Šˆ›ØÛ˜[YJNÂ‚œİ]XÈ›ÛÛYÛÚÛÚ×Ú[œİ[YH˜[ÙNÂ‚›ÚY[œİ[ÙÛØ˜[ÙYÛÚÛÚÊ›ÚY
-HÂˆYŠYÛÚÛÚ×Ú[œİ[Y
-H™]\›ÂˆYÛÚÛÚ×Ú[œİ[YHYNÂ‚ˆ›ÚY
-ˆ]ZÛÚ×Ú[™HHÜ[Š›X˜]ZÛÚËœÛÈ‹•Ó“ÕÊNÂˆYŠ]ZÛÚ×Ú[™HOH•S
-HÂˆÑÑJš[œİ[ÙÛØ˜[ÙYÛÚÛÚÎˆ˜Z[YÈØYX˜]ZÛÚËœÛÎˆ	\È‹\œ›ÜŠ
-JNÂˆ™]\›ÂˆB‚ˆ]ZÛÚ×ÚÛÚ×Ø[İÛØØ[]ZÛÚ×ÚÛÚ×Ø[ÜÂˆ[
+#define BH_MODE_AUTOMATIC  0
+#define BH_STATUS_CODE_OK 0
 
-˜]ZÛÚ×Ú[š]Ü
-J[[ÙK›ÛÛXYÊNÂ‚ˆ]ZÛÚ×ÚÛÚ×Ø[ÜH
-]ZÛÚ×ÚÛÚ×Ø[İÛØØ[
-HŞ[J]ZÛÚ×Ú[™K˜]ZÛÚ×ÚÛÚ×Ø[ŠNÂˆ]ZÛÚ×Ú[š]ÜH
-[
+/* Imported from lwjgl_dlopen_hook.c (non-static, so we can access it here) */
+extern void* eglGetProcAddress_hook(const char* procname);
 
-ŠJ[›ÛÛ
-JHŞ[J]ZÛÚ×Ú[™K˜]ZÛÚ×Ú[š]ŠNÂ‚ˆYŠ]ZÛÚ×ÚÛÚ×Ø[ÜOH•S]ZÛÚ×Ú[š]ÜOH•S
-HÂˆÑÑJš[œİ[ÙÛØ˜[ÙYÛÚÛÚÎˆ˜Z[YÈš[™]ZÛÚ×ÜŞ[X›ÛÎˆ	\È‹\œ›ÜŠ
-JNÂˆÛÜÙJ]ZÛÚ×Ú[™JNÂˆ™]\›ÂˆB‚ˆ[šÛÚ×Üİ]\ÈH]ZÛÚ×Ú[š]Ü
-’ÓSÑWĞUUÓPUPË˜[ÙJNÂˆYŠšÛÚ×Üİ]\ÈOH’ÔÕUT×ĞÓÑWÓÒÊHÂˆ]ZÛÚ×ÜİX—İÛØØ[İXˆH]ZÛÚ×ÚÛÚ×Ø[Ü
-ˆ•SÊˆØ[YWÜ]Û˜[YNˆ•SH[Xœ˜\šY\È
-‹Âˆ™YÛÙ]›ØĞY™\ÜÈ‹ÊˆŞ[WÛ˜[YNˆH[˜İ[ÛˆÈÛÚÈ
-‹Âˆ
-›ÚY
-ŠHYÛÙ]›ØĞY™\Ü×ÚÛÚËÊˆ™]×Ù[˜Îˆİ\ˆ™\XÙ[Y[
-‹Âˆ•SÊˆÛÚÙYˆ›ÈØ[˜XÚÈ™YYY
-‹Âˆ•SÊˆÛÚÙYØ\™Îˆ›ÈØ[˜XÚÈ\™È
-‹Âˆ
-NÂˆYŠİXˆOH•S
-HÂˆÑÒJš[œİ[ÙÛØ˜[ÙYÛÚÛÚÎˆİXØÙ\ÜÙ[HÛÚÙYYÛÙ]›ØĞY™\ÜÈšXH]ZÛÚÈŠNÂˆH[ÙHÂˆÑÑJš[œİ[ÙÛØ˜[ÙYÛÚÛÚÎˆ]ZÛÚ×ÚÛÚ×Ø[™]\›™Y•S›ÜˆYÛÙ]›ØĞY™\ÜÈŠNÂˆBˆH[ÙHÂˆÑÑJš[œİ[ÙÛØ˜[ÙYÛÚÛÚÎˆ]ZÛÚ×Ú[š]˜Z[Y
-	Y
-H‹šÛÚ×Üİ]\ÊNÂˆÛÜÙJ]ZÛÚ×Ú[™JNÂˆBŸB
+static bool egl_hook_installed = false;
+
+void install_global_egl_hook(void) {
+    if(egl_hook_installed) return;
+    egl_hook_installed = true;
+
+    void* bytehook_handle = dlopen("libbytehook.so", RTLD_NOW);
+    if(bytehook_handle == NULL) {
+        LOGE("install_global_egl_hook: failed to load libbytehook.so: %s", dlerror());
+        return;
+    }
+
+    bytehook_hook_all_t_local bytehook_hook_all_p;
+    int (*bytehook_init_p)(int mode, bool debug);
+
+    bytehook_hook_all_p = (bytehook_hook_all_t_local) dlsym(bytehook_handle, "bytehook_hook_all");
+    bytehook_init_p = (int (*)(int, bool)) dlsym(bytehook_handle, "bytehook_init");
+
+    if(bytehook_hook_all_p == NULL || bytehook_init_p == NULL) {
+        LOGE("install_global_egl_hook: failed to find bytehook symbols: %s", dlerror());
+        dlclose(bytehook_handle);
+        return;
+    }
+
+    int bhook_status = bytehook_init_p(BH_MODE_AUTOMATIC, false);
+    if(bhook_status == BH_STATUS_CODE_OK) {
+        bytehook_stub_t_local stub = bytehook_hook_all_p(
+            NULL,                          /* callee_path_name: NULL = all libraries */
+            "eglGetProcAddress",           /* sym_name: the function to hook */
+            (void*) eglGetProcAddress_hook, /* new_func: our replacement */
+            NULL,                          /* hooked: no callback needed */
+            NULL                           /* hooked_arg: no callback arg */
+        );
+        if(stub != NULL) {
+            LOGI("install_global_egl_hook: successfully hooked eglGetProcAddress via bytehook");
+        } else {
+            LOGE("install_global_egl_hook: bytehook_hook_all returned NULL for eglGetProcAddress");
+        }
+    } else {
+        LOGE("install_global_egl_hook: bytehook_init failed (%d)", bhook_status);
+        dlclose(bytehook_handle);
+    }
+}
