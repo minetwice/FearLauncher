@@ -20,7 +20,7 @@ static void* ready_handle;
 void* eglGetProcAddress_hook(const char* procname);
 
 // Native EGL hook using bytehook
-static void install_global_egl_hook() {
+void install_global_egl_hook() {
     // Hook eglGetProcAddress in native GL libraries using bytehook
     bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
     bytehook_hook_single(NULL, NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
