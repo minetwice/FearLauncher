@@ -79,7 +79,6 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 
 
 
-
 // Import the hook from lwjgl_dlopen_hook.c
 void* eglGetProcAddress_hook(const char* procname);
 
