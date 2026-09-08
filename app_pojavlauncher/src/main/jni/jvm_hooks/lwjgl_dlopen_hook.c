@@ -341,7 +341,7 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
     return (const unsigned char*)"";
 }
 
-static void* eglGetProcAddress_hook(const char* procname) {
+void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*) glMemoryBarrier_stub;
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString_hook;

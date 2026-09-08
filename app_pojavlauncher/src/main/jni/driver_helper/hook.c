@@ -4,6 +4,8 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
+#include <bytehook.h>
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
@@ -13,6 +15,16 @@ static void* (*android_dlopen_ext_p)(const char* filename,
 static struct android_namespace_t* (*android_get_exported_namespace_p)(const char* name);
 //NOLINTEND
 static void* ready_handle;
+
+// External hook from lwjgl_dlopen_hook.c
+void* eglGetProcAddress_hook(const char* procname);
+
+// Native EGL hook using bytehook
+static void install_global_egl_hook() {
+    // Hook eglGetProcAddress in native GL libraries using bytehook
+    bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    bytehook_hook_single(NULL, NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+}
 
 static const char *sphal_namespaces[3] = {
         "sphal", "vendor", "default"
