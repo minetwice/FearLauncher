@@ -87,6 +87,46 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "turbov1":
+                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Environment...");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("LIBGL_USEVBO", "1");
+                envMap.put("LIBGL_BATCH", "1");
+                envMap.put("LIBGL_MIPMAP", "3");
+                envMap.put("LIBGL_NOERROR", "1");
+                envMap.put("LIBGL_GL", "46");
+                envMap.put("LIBGL_VERSION", "4.6.0 NVIDIA 555.58");
+                envMap.put("LIBGL_NOTEXTURERECT", "0");
+                envMap.put("LIBGL_FBOTEXTURE2D", "1");
+                envMap.put("LIBGL_GLSL", "1");
+                envMap.put("LIBGL_ALWAYSCURRENT", "1");
+                envMap.put("LIBGL_NOCONTEXTCLEANUP", "1");
+                envMap.put("LIBGL_FB", "1");
+                envMap.put("LIBGL_FPE", "1");
+                envMap.put("LIBGL_MAX_DRAW_BUFFERS", "8");
+                envMap.put("LIBGL_MRT_FORMATS", "RGBA16F,RGBA32F");
+                envMap.put("LIBGL_FLOAT_COLOR", "1");
+                envMap.put("LIBGL_FLOAT_DEPTH", "1");
+                envMap.put("LIBGL_DEPTH", "24");
+                envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("allow_glsl_extension_directive_midshader", "true");
+                envMap.put("allow_higher_compat_version", "true");
+                envMap.put("allow_glsl_relaxed_es", "true");
+                envMap.put("glsl_ignore_unsupported_extensions", "true");
+                envMap.put("glsl_ignore_noperspective", "true");
+                envMap.put("LIBGL_GLSL_STRIP", "noperspective");
+                envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
+                envMap.put("glsl_force_highp", "true");
+                envMap.put("mali_debug", "nocluster");
+                envMap.put("pan_shader_compile_threads", "8");
+                envMap.put("vblank_mode", "0");
+                envMap.put("force_s3tc_enable", "true");
+                envMap.put("glsl_zero_init", "true");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
+                break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
@@ -232,6 +272,21 @@ public class JREUtils {
         }
 
         switch (renderer){
+            case "turbov1":
+                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Backend...");
+                renderLibrary = "libgl4es_114.so";
+                useGles = true;
+                bypassNamespace = false;
+                glesVersion = 3;
+
+                try {
+                    System.loadLibrary("TurboV1");
+                    String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
+                    initTurboV1Engine(cachePath);
+                } catch (Throwable t) {
+                    Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                }
+                break;
             case "vulkan_zink":
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
@@ -269,6 +324,9 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
+
+    // TurboV1 Native Engine JNI Declaration
+    public static native void initTurboV1Engine(String cachePath);
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);

@@ -348,7 +348,7 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
             return (jlong) pojavexec_loadVulkanDriver();
         }
-        if(strcmp(filename, "libGL.so") == 0 || strcmp(filename, "libGL.so.1") == 0) {
+        if(strcmp(filename, "libTurboV1.so") == 0 || strcmp(filename, "libGL.so") == 0 || strcmp(filename, "libGL.so.1") == 0) {
             printf("LWJGL linkerhook: replacing OpenGL with renderspec driver (%s)\n", filename);
             const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
             if (rspec && rspec->egl_acquire && rspec->egl_path) {
