@@ -13,3 +13,6 @@ void* linker_ns_dlopen(const char* name, int flag);
 void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* patch_name, int flag);
 
 #endif //POJAVLAUNCHER_NSBYPASS_H
+
+/* Install native bytehook-based eglGetProcAddress hook */
+void install_global_egl_hook(void);
