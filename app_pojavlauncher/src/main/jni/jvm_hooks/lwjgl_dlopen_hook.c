@@ -65,7 +65,8 @@ static unsigned int get_bound_buffer_id(unsigned int target) {
     switch (target) {
         case 0x8892: pname = 0x8894; break; // GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING
         case 0x8893: pname = 0x8895; break; // GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING
-        case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
+        case 0x8A11: pname 
+= 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
         case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
         case 0x8F36: pname = 0x8F36; break; // GL_COPY_READ_BUFFER
         case 0x8F37: pname = 0x8F37; break; // GL_COPY_WRITE_BUFFER
@@ -105,7 +106,8 @@ static void glBindSampler_fallback(unsigned int unit, unsigned int sampler) {
     typedef void (*glBindSampler_pfn)(unsigned int, unsigned int);
     static glBindSampler_pfn real_fn = NULL;
     if (!real_fn) {
-        real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSampler");
+        real_fn = (glBindSampler_pfn) dlsym(RTLD_
+DEFAULT, "glBindSampler");
         if (!real_fn) real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSamplerOES");
     }
     if (real_fn) real_fn(unit, sampler);
@@ -146,7 +148,8 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
         if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
     }
     int buf_size = 0;
-    if (real_glGetBufferParameteriv) {
+    if (real_glGetBufferPar
+ameteriv) {
         real_glGetBufferParameteriv(target, 0x8764 /* GL_BUFFER_SIZE */, &buf_size);
     }
 
@@ -198,7 +201,8 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
 static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
     typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
     static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
-    if (!real_glGetBufferParameteriv) {
+    if (!real_glGetBufferP
+arameteriv) {
         real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
         if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
     }
@@ -239,7 +243,8 @@ static int glUnmapBuffer_hook(unsigned int target) {
     for (int i = 0; i < g_shadowCount; i++) {
         if (g_shadowBuffers[i].in_use && g_shadowBuffers[i].is_shadow &&
             g_shadowBuffers[i].target == target &&
-            (current_buffer_id == 0 || g_shadowBuffers[i].buffer_id == current_buffer_id)) {
+            (current_buffer_id ==
+ 0 || g_shadowBuffers[i].buffer_id == current_buffer_id)) {
             found_slot = i; break;
         }
     }
@@ -286,7 +291,8 @@ static int glUnmapBuffer_hook(unsigned int target) {
         if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
     }
     int res = 1;
-    if (real_glUnmapBuffer) res = real_glUnmapBuffer(target);
+    if (real_glUnmapBuffer) r
+es = real_glUnmapBuffer(target);
     if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
     return res ? res : 1;
 }
@@ -319,7 +325,8 @@ static const unsigned char* glGetString_hook(unsigned int name) {
 
 static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int index) {
     if (name == GL_EXTENSIONS) {
-        static const char* extensions[] = {
+ 
+       static const char* extensions[] = {
             "GL_ARB_direct_state_access","GL_ARB_buffer_storage","GL_ARB_shader_image_load_store",
             "GL_NV_conditional_render","GL_EXT_gpu_shader4","GL_EXT_texture_buffer",
             "GL_EXT_texture_cube_map_array","GL_OES_EGL_image_external_essl3",
@@ -341,7 +348,7 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
     return (const unsigned char*)"";
 }
 
-static void* eglGetProcAddress_hook(const char* procname) {
+void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*) glMemoryBarrier_stub;
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString_hook;
@@ -350,7 +357,8 @@ static void* eglGetProcAddress_hook(const char* procname) {
         LOGI("eglGetProcAddress_hook: glMapBufferRange -> shadow buffer");
         return (void*) glMapBufferRange_hook;
     }
-    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) return (void*) glMapBuffer_hook;
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 
+|| strcmp(procname, "glMapBufferARB") == 0) return (void*) glMapBuffer_hook;
     if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) return (void*) glUnmapBuffer_hook;
     if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
         typedef void* (*pfn)(const char*); static pfn real = NULL;
@@ -380,7 +388,8 @@ static void* eglGetProcAddress_hook(const char* procname) {
         void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
         return (void*) glSamplerParameteri_fallback;
     }
-    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
+    if (strcmp(procname, "glMapBufferRange"
+) == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
         printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBufferRange -> shadow buffer\n");
         return (void*) glMapBufferRange_hook;
     }
@@ -413,7 +422,8 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     const char* filename = (const char*) filename_ptr;
     if(filename != NULL) {
         if(strcmp(filename, "libvulkan.so") == 0) {
-            printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
+            printf("LWJGL linkerhook: repla
+cing load for libvulkan.so with custom driver\n");
             return (jlong) pojavexec_loadVulkanDriver();
         }
         if(strcmp(filename, "libTurboV1.so") == 0 || strcmp(filename, "libGL.so") == 0 || strcmp(filename, "libGL.so.1") == 0) {
@@ -452,7 +462,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: hooked glMapBufferRange -> shadow buffer\n");
             return (jlong) glMapBufferRange_hook;
         }
-        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
+        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferO
+ES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
             printf("LWJGL linkerhook: hooked glMapBuffer -> shadow buffer\n");
             return (jlong) glMapBuffer_hook;
         }
@@ -487,7 +498,8 @@ void installLwjglDlopenHook(JNIEnv *env) {
     printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260907-E)\n");
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if(dynamicLinkLoader == NULL) {
-        LOGE("Failed to find the target class");
+        LOGE("Failed to find the tar
+get class");
         printf("LWJGL linkerhook ERROR: Failed to find DynamicLinkLoader class\n");
         (*env)->ExceptionClear(env);
         return;
