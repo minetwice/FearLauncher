@@ -75,8 +75,11 @@ void translate_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* 
     GLenum usage = GL_STATIC_DRAW;
     if (flags & 0x0100) usage = GL_DYNAMIC_DRAW;
     if (real_glBindBuffer && real_glBufferData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
@@ -84,8 +87,11 @@ void translate_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* 
 void translate_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage) {
     resolve_gles();
     if (real_glBindBuffer && real_glBufferData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
@@ -93,20 +99,36 @@ void translate_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* dat
 void translate_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data) {
     resolve_gles();
     if (real_glBindBuffer && real_glBufferSubData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
 
 void* translate_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     resolve_gles();
-    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    if (real_glBindBuffer) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
+        real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        void* ptr = buffer_shadow::map(GL_ARRAY_BUFFER, offset, length, access);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
+        return ptr;
+    }
     return buffer_shadow::map(GL_ARRAY_BUFFER, offset, length, access);
 }
 
 GLboolean translate_glUnmapNamedBuffer(GLuint buffer) {
-    return buffer_shadow::unmap(GL_ARRAY_BUFFER);
+    resolve_gles();
+    GLint prev_binding = 0;
+    if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
+    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GLboolean res = buffer_shadow::unmap(GL_ARRAY_BUFFER);
+    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
+    return res;
 }
 
 void translate_glCreateBuffers(GLsizei n, GLuint* buffers) {
@@ -132,7 +154,24 @@ void translate_glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
 }
 
 void translate_glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
-    LOGW("FearTurbo: glTextureBufferRange stub (not yet implemented)");
+    typedef void (*PFN_glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr);
+    typedef void (*PFN_glBindTexture)(GLenum, GLuint);
+    typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
+    static PFN_glTexBufferRange real_tex_buf_range = nullptr;
+    static PFN_glBindTexture real_bind_tex = nullptr;
+    static PFN_glGetIntegerv real_get_int = nullptr;
+    if (!real_tex_buf_range) real_tex_buf_range = (PFN_glTexBufferRange) dlsym(RTLD_DEFAULT, "glTexBufferRangeOES");
+    if (!real_tex_buf_range) real_tex_buf_range = (PFN_glTexBufferRange) dlsym(RTLD_DEFAULT, "glTexBufferRange");
+    if (!real_bind_tex) real_bind_tex = (PFN_glBindTexture) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!real_get_int) real_get_int = (PFN_glGetIntegerv) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+    if (real_bind_tex && real_tex_buf_range) {
+        GLint prev_binding = 0;
+        if (real_get_int) real_get_int(0x8C2C /* GL_TEXTURE_BINDING_BUFFER */, &prev_binding);
+        real_bind_tex(0x8C2A /* GL_TEXTURE_BUFFER */, texture);
+        real_tex_buf_range(0x8C2A /* GL_TEXTURE_BUFFER */, internalFormat, buffer, offset, size);
+        real_bind_tex(0x8C2A /* GL_TEXTURE_BUFFER */, (GLuint)prev_binding);
+    }
     flush_errors();
 }
 
@@ -190,7 +229,13 @@ void translate_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void*
 }
 
 void translate_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers) {
-    LOGW("FearTurbo: glTextureView stub");
+    typedef void (*PFN_glTextureView)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint, GLuint);
+    static PFN_glTextureView real_tex_view = nullptr;
+    if (!real_tex_view) real_tex_view = (PFN_glTextureView) dlsym(RTLD_DEFAULT, "glTextureViewOES");
+    if (!real_tex_view) real_tex_view = (PFN_glTextureView) dlsym(RTLD_DEFAULT, "glTextureView");
+    if (real_tex_view) {
+        real_tex_view(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
+    }
     flush_errors();
 }
 

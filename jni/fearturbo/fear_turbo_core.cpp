@@ -1,4 +1,5 @@
 #include "fear_turbo_core.h"
+#include "fear_turbo_buffer_shadow.h"
 
 namespace fear_turbo {
 
@@ -6,6 +7,7 @@ static TurboContext g_ctx;
 static FeatureMap g_features;
 
 bool init(TurboContext& ctx, const std::string& cache_path) {
+    buffer_shadow::init();
     LOGI("FearTurbo: Initializing engine (cache: %s)", cache_path.c_str());
     
     ctx.cache_path = cache_path;

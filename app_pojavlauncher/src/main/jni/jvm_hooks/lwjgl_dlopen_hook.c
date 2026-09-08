@@ -344,11 +344,11 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      jlong filename_ptr, jint jmode) {
     const char* filename = (const char*) filename_ptr;
     if(filename != NULL) {
-        if(strstr(filename, "libvulkan.so") != NULL) {
+        if(strcmp(filename, "libvulkan.so") == 0) {
             printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
             return (jlong) pojavexec_loadVulkanDriver();
         }
-        if(strstr(filename, "libFearTurbo.so") != NULL || strstr(filename, "libGL.so") != NULL) {
+        if(strcmp(filename, "libFearTurbo.so") == 0 || strcmp(filename, "libGL.so") == 0 || strcmp(filename, "libGL.so.1") == 0) {
             printf("LWJGL linkerhook: replacing OpenGL with renderspec driver (%s)\n", filename);
             const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
             if (rspec && rspec->egl_acquire && rspec->egl_path) {

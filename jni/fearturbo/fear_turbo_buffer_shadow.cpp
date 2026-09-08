@@ -15,8 +15,13 @@ static int find_free_slot() {
         if (!g_slots[i].in_use) return i;
     }
     if (g_count < MAX_SHADOW_SLOTS) return g_count++;
-    if (g_slots[0].ptr) { free(g_slots[0].ptr); g_slots[0].ptr = nullptr; }
-    return 0;
+
+    // Find unused slot if array is full
+    for (int i = 0; i < MAX_SHADOW_SLOTS; i++) {
+        if (!g_slots[i].in_use) return i;
+    }
+    // Never free occupied slots in use to prevent use-after-free
+    return -1;
 }
 
 GLuint get_bound_buffer_id(GLenum target) {
@@ -26,9 +31,20 @@ GLuint get_bound_buffer_id(GLenum target) {
     if (!real_fn) return 0;
 
     GLenum pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
-    if (target == 0x8893) pname = 0x8895;
-    else if (target == 0x8A11) pname = 0x8A28;
-    else if (target == 0x90D2) pname = 0x90D3;
+    switch (target) {
+        case 0x8892: pname = 0x8894; break; // GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING
+        case 0x8893: pname = 0x8895; break; // GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING
+        case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
+        case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
+        case 0x8F36: pname = 0x8F36; break; // GL_COPY_READ_BUFFER -> GL_COPY_READ_BUFFER_BINDING
+        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WRITE_BUFFER -> GL_COPY_WRITE_BUFFER_BINDING
+        case 0x88EB: pname = 0x88ED; break; // GL_PIXEL_PACK_BUFFER -> GL_PIXEL_PACK_BUFFER_BINDING
+        case 0x88EC: pname = 0x88EF; break; // GL_PIXEL_UNPACK_BUFFER -> GL_PIXEL_UNPACK_BUFFER_BINDING
+        case 0x8C8E: pname = 0x8C8F; break; // GL_TRANSFORM_FEEDBACK_BUFFER -> GL_TRANSFORM_FEEDBACK_BUFFER_BINDING
+        case 0x90EE: pname = 0x90EE; break; // GL_DISPATCH_INDIRECT_BUFFER -> GL_DISPATCH_INDIRECT_BUFFER_BINDING
+        case 0x8F39: pname = 0x8F43; break; // GL_DRAW_INDIRECT_BUFFER -> GL_DRAW_INDIRECT_BUFFER_BINDING
+        default: pname = 0x8894; break;
+    }
 
     GLint val = 0;
     real_fn(pname, &val);
@@ -36,24 +52,23 @@ GLuint get_bound_buffer_id(GLenum target) {
 }
 
 void init() {
+    pthread_mutex_lock(&g_mutex);
     memset(g_slots, 0, sizeof(g_slots));
     g_count = 0;
+    pthread_mutex_unlock(&g_mutex);
     LOGI("FearTurbo: Shadow buffer system initialized (%d max slots)", MAX_SHADOW_SLOTS);
 }
 
 void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    static int callCount = 0;
-    if (callCount < 5) {
-        LOGI("FearTurbo: shadow map(target=0x%X, offset=%ld, len=%ld, access=0x%X)", target, (long)offset, (long)length, access);
-        callCount++;
-    }
-
     GLuint buffer_id = get_bound_buffer_id(target);
 
     GLsizeiptr alloc_len = (length > 0) ? length : 65536;
-    void* ptr = malloc(alloc_len);
+    // Align memory to 64 bytes for high ARM Mali CPU/GPU throughput
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, 64, alloc_len) != 0 || !ptr) {
+        ptr = malloc(alloc_len);
+    }
     if (!ptr) ptr = calloc(1, alloc_len);
-    if (!ptr) { alloc_len = 65536; ptr = malloc(alloc_len); }
     if (!ptr) {
         LOGE("FearTurbo: shadow buffer malloc FAILED for len=%ld", (long)alloc_len);
         return nullptr;
@@ -61,6 +76,11 @@ void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) 
 
     pthread_mutex_lock(&g_mutex);
     int slot = find_free_slot();
+    if (slot < 0) {
+        pthread_mutex_unlock(&g_mutex);
+        LOGW("FearTurbo: All shadow buffer slots in use, returning aligned unmanaged buffer");
+        return ptr;
+    }
     g_slots[slot].target = target;
     g_slots[slot].buffer_id = buffer_id;
     g_slots[slot].offset = offset;
@@ -68,10 +88,6 @@ void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) 
     g_slots[slot].ptr = ptr;
     g_slots[slot].in_use = true;
     pthread_mutex_unlock(&g_mutex);
-
-    if (callCount <= 5) {
-        LOGI("FearTurbo: shadow buffer slot=%d target=0x%X bufID=%u len=%ld", slot, target, buffer_id, (long)alloc_len);
-    }
 
     typedef GLenum (*PFN_glGetError)(void);
     static PFN_glGetError real_err = nullptr;
@@ -94,7 +110,8 @@ GLboolean unmap(GLenum target) {
 
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
-        if (g_slots[i].in_use && g_slots[i].buffer_id == current_id && current_id != 0) {
+        if (g_slots[i].in_use && g_slots[i].target == target &&
+            (current_id == 0 || g_slots[i].buffer_id == current_id)) {
             found = i; break;
         }
     }
@@ -107,17 +124,14 @@ GLboolean unmap(GLenum target) {
     }
 
     if (found >= 0) {
-        ShadowEntry& entry = g_slots[found];
-        void* shadow_ptr = entry.ptr;
-        GLintptr shadow_offset = entry.offset;
-        GLsizeiptr shadow_length = entry.length;
-        entry.in_use = false;
-        entry.ptr = nullptr;
+        ShadowEntry entry = g_slots[found];
+        g_slots[found].in_use = false;
+        g_slots[found].ptr = nullptr;
         pthread_mutex_unlock(&g_mutex);
 
-        if (shadow_ptr) {
-            if (real_sub) real_sub(target, shadow_offset, shadow_length, shadow_ptr);
-            free(shadow_ptr);
+        if (entry.ptr) {
+            if (real_sub) real_sub(target, entry.offset, entry.length, entry.ptr);
+            free(entry.ptr);
         }
         if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
         return GL_TRUE;
@@ -131,6 +145,32 @@ GLboolean unmap(GLenum target) {
     if (real_unmap) res = real_unmap(target);
     if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
     return res ? res : GL_TRUE;
+}
+
+GLboolean unmap_ptr(void* ptr) {
+    if (!ptr) return GL_TRUE;
+    typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
+    static PFN_glBufferSubData real_sub = nullptr;
+    if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
+
+    pthread_mutex_lock(&g_mutex);
+    for (int i = 0; i < g_count; i++) {
+        if (g_slots[i].in_use && g_slots[i].ptr == ptr) {
+            ShadowEntry entry = g_slots[i];
+            g_slots[i].in_use = false;
+            g_slots[i].ptr = nullptr;
+            pthread_mutex_unlock(&g_mutex);
+
+            if (real_sub && entry.ptr) {
+                real_sub(entry.target, entry.offset, entry.length, entry.ptr);
+            }
+            free(ptr);
+            return GL_TRUE;
+        }
+    }
+    pthread_mutex_unlock(&g_mutex);
+    free(ptr);
+    return GL_TRUE;
 }
 
 void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
