@@ -43,7 +43,8 @@ public class JREUtils {
                     if (exitCode != 0) {
                         Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
                         failCount++;
-                        Thread.sleep(500 * failCount);
+                        Th
+read.sleep(500 * failCount);
                     }
                 } catch (Exception e) {
                     Log.e("jrelog-logcat", "Log stream error", e);
@@ -86,9 +87,12 @@ public class JREUtils {
     }
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
-        switch(renderer) {
+        switc
+h(renderer) {
             case "fear_turbo":
                 Logger.appendToLog("[FearTurbo] Initializing Standalone GLES Engine Environment...");
+                GLInfoUtils.GLInfo glInfoEnv = GLInfoUtils.getGlInfo();
+                Logger.appendToLog("[FearTurbo] GPU Vendor: " + glInfoEnv.vendor + ", Renderer: " + glInfoEnv.renderer);
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -121,7 +125,8 @@ public class JREUtils {
                 envMap.put("glsl_force_highp", "true");
                 envMap.put("mali_debug", "nocluster");
                 envMap.put("pan_shader_compile_threads", "4");
-                envMap.put("vblank_mode", "0");
+      
+          envMap.put("vblank_mode", "0");
                 envMap.put("force_s3tc_enable", "true");
                 envMap.put("glsl_zero_init", "true");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
@@ -165,7 +170,8 @@ public class JREUtils {
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         envMap.put("EGL_PLATFORM", "android");
 
-        if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+        if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) e
+nvMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
         if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
@@ -212,7 +218,8 @@ public class JREUtils {
                     end = Math.min(end, tempEnd);
                 }
                 if(end == -1) end = args.length();
-                String parsedSubString = args.substring(start, end);
+                String parsedSubStrin
+g = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
                 if(parsedSubString.indexOf('=') == parsedSubString.lastIndexOf('=')) {
                     int arraySize = parsedArguments.size();
@@ -251,7 +258,8 @@ public class JREUtils {
                     File[] candidates = libDirFile.listFiles((dir, name) -> name.endsWith(".so"));
                     if (candidates != null && candidates.length > 0) {
                         File chosenSo = candidates[0];
-                        for (File candidate : candidates) {
+             
+           for (File candidate : candidates) {
                             String name = candidate.getName();
                             if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL")) {
                                 chosenSo = candidate;
@@ -274,6 +282,19 @@ public class JREUtils {
         switch (renderer){
             case "fear_turbo":
                 Logger.appendToLog("[FearTurbo] Initializing Standalone GLES Engine Backend...");
+                GLInfoUtils.GLInfo glInfo = GLInfoUtils.getGlInfo();
+                boolean isArmGpu = glInfo != null && glInfo.isArm();
+                
+                if (isArmGpu) {
+                    Logger.appendToLog("[FearTurbo] ARM Mali/Immortalis GPU detected, falling back to opengles2 for better compatibility");
+                    renderer = "opengles2";
+                    renderLibrary = "libgl4es_114.so";
+                    useGles = true;
+                    bypassNamespace = false;
+                    glesVersion = 2;
+                    break;
+                }
+                
                 renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 bypassNamespace = false;
@@ -283,8 +304,15 @@ public class JREUtils {
                     System.loadLibrary("FearTurbo");
                     String cachePath = Tools.DIR_GAME_HOME + "/fear_turbo_cache";
                     initFearTurboEngine(cachePath);
+                    Logger.appendToLog("[FearTurbo] Native engine initialized successfully");
                 } catch (Throwable t) {
                     Log.e("JREUtils", "FearTurbo native engine init failed", t);
+                    Logger.appendToLog("[FearTurbo] Native engine init failed, falling back to opengles2: " + t.getMessage());
+                    renderer = "opengles2";
+                    renderLibrary = "libgl4es_114.so";
+                    useGles = true;
+                    bypassNamespace = false;
+                    glesVersion = 2;
                 }
                 break;
             case "vulkan_zink":
@@ -296,7 +324,8 @@ public class JREUtils {
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
-                useGles = true;
+                useGl
+es = true;
                 glesVersion = 3;
                 break;
             case "opengles2":
