@@ -4,7 +4,6 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
-#include <jni.h>
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
