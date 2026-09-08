@@ -20,10 +20,48 @@ static void* ready_handle;
 void* eglGetProcAddress_hook(const char* procname);
 
 // Native EGL hook using bytehook
+static void* bytehook_handle = NULL;
+static bytehook_hook_single_t bytehook_hook_single_p = NULL;
+
+static bool init_bytehook() {
+    if (bytehook_handle != NULL) return true;
+    
+    bytehook_handle = dlopen("libbytehook.so", RTLD_NOW);
+    if (bytehook_handle == NULL) {
+        return false;
+    }
+    
+    bytehook_hook_single_p = (bytehook_hook_single_t)dlsym(bytehook_handle, "bytehook_hook_single");
+    if (bytehook_hook_single_p == NULL) {
+        dlclose(bytehook_handle);
+        bytehook_handle = NULL;
+        return false;
+    }
+    
+    int (*bytehook_init_p)(int mode, bool debug) = (int (*)(int, bool))dlsym(bytehook_handle, "bytehook_init");
+    if (bytehook_init_p == NULL) {
+        dlclose(bytehook_handle);
+        bytehook_handle = NULL;
+        return false;
+    }
+    
+    int bhook_status = bytehook_init_p(BYTEHOOK_MODE_AUTOMATIC, false);
+    if (bhook_status != BYTEHOOK_STATUS_CODE_OK) {
+        dlclose(bytehook_handle);
+        bytehook_handle = NULL;
+        return false;
+    }
+    
+    return true;
+}
+
 void install_global_egl_hook() {
+    if (!init_bytehook()) {
+        return;
+    }
     // Hook eglGetProcAddress in native GL libraries using bytehook
-    bytehook_hook_single(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
-    bytehook_hook_single(NULL, NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    bytehook_hook_single_p(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    bytehook_hook_single_p(NULL, NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
 }
 
 static const char *sphal_namespaces[3] = {
