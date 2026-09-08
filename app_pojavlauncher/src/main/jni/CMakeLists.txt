@@ -16,6 +16,7 @@ add_library(pojavexec SHARED
         driver_helper/nsbypass.c
         driver_helper/fake_dlfcn.c
         driver_helper/func_locator.c
+        driver_helper/hook.c
         utils.c
         stdio_is.c
         minibridge.c
@@ -29,11 +30,6 @@ if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
     target_compile_definitions(pojavexec PRIVATE USE_ARM64_LOCATOR)
     target_compile_definitions(pojavexec PRIVATE ENABLE_TURNIP_LOADER)
-
-    add_library(linkerhook SHARED
-            driver_helper/hook.c
-    )
-    target_link_options(linkerhook PRIVATE "-Wl,-z,global")
 endif()
 
 add_library(pojavexec_awt SHARED
