@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "pojavexec.h"
 #include "driver_helper/nsbypass.h"
+#include "driver_helper/hook.h"
 #include <jni.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -76,4 +77,8 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
     return &renderspec;
 }
 
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    install_global_egl_hook();
+    return JNI_VERSION_1_4;
+}
 
