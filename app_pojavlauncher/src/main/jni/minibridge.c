@@ -52,8 +52,7 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
             if(!native_dir) return false;
             if(!linker_ns_load(native_dir)) {
                 printf("linker_ns_load failed\n");
-                return false
-;
+                return false;
             }
             renderspec.egl_acquire = egl_acquire_ns;
         } else {
@@ -76,7 +75,6 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
 const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
     return &renderspec;
 }
-
 
 
 // Import the hook from lwjgl_dlopen_hook.c
