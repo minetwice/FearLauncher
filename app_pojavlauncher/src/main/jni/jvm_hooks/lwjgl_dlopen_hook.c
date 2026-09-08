@@ -343,14 +343,18 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
                      jlong filename_ptr, jint jmode) {
     const char* filename = (const char*) filename_ptr;
-    if(strstr(filename, "libvulkan.so") == filename) {
-        printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
-        return (jlong) pojavexec_loadVulkanDriver();
-    }
-    if(strstr(filename, "libFearTurbo.so") == filename) {
-        printf("LWJGL linkerhook: replacing OpenGL with renderspec driver\n");
-        const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
-        return (jlong) rspec->egl_acquire(rspec->egl_path);
+    if(filename != NULL) {
+        if(strstr(filename, "libvulkan.so") != NULL) {
+            printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
+            return (jlong) pojavexec_loadVulkanDriver();
+        }
+        if(strstr(filename, "libFearTurbo.so") != NULL || strstr(filename, "libGL.so") != NULL) {
+            printf("LWJGL linkerhook: replacing OpenGL with renderspec driver (%s)\n", filename);
+            const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
+            if (rspec && rspec->egl_acquire && rspec->egl_path) {
+                return (jlong) rspec->egl_acquire(rspec->egl_path);
+            }
+        }
     }
     return (jlong) dlopen(filename, (int)jmode);
 }
