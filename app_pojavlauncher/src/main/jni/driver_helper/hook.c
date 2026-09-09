@@ -4,9 +4,6 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
-#include <dlfcn.h>
-#include <bytehook.h>
-#include "../native_hooks/native_hooks.h"
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
@@ -19,51 +16,6 @@ static void* ready_handle;
 
 // External hook from lwjgl_dlopen_hook.c
 void* eglGetProcAddress_hook(const char* procname);
-
-// Native EGL hook using bytehook - use bytehook_hook_all for simplicity
-static void* bytehook_handle = NULL;
-static bytehook_hook_all_t bytehook_hook_all_p = NULL;
-
-static bool init_bytehook() {
-    if (bytehook_handle != NULL) return true;
-    
-    bytehook_handle = dlopen("libbytehook.so", RTLD_NOW);
-    if (bytehook_handle == NULL) {
-        return false;
-    }
-    
-    bytehook_hook_all_p = (bytehook_hook_all_t)dlsym(bytehook_handle, "bytehook_hook_all");
-    if (bytehook_hook_all_p == NULL) {
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return false;
-    }
-    
-    int (*bytehook_init_p)(int mode, bool debug) = (int (*)(int, bool))dlsym(bytehook_handle, "bytehook_init");
-    if (bytehook_init_p == NULL) {
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return false;
-    }
-    
-    int bhook_status = bytehook_init_p(BYTEHOOK_MODE_AUTOMATIC, false);
-    if (bhook_status != BYTEHOOK_STATUS_CODE_OK) {
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return false;
-    }
-    
-    return true;
-}
-
-void install_global_egl_hook() {
-    if (!init_bytehook()) {
-        return;
-    }
-    // Hook eglGetProcAddress in all libraries using bytehook_hook_all
-    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-    bytehook_hook_all_p(NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-}
 
 static const char *sphal_namespaces[3] = {
         "sphal", "vendor", "default"
