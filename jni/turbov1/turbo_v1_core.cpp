@@ -47,15 +47,15 @@ const Features& get_features() {
 }
 
 const char* get_version_string() {
-    return "4.6.0 TurboV1 NextGen Engine 1.0";
+    return "4.6.0 TurboV1 NextGen Engine 2.0";
 }
 
 const char* get_renderer_string() {
-    return "TurboV1 High-FPS GL ES 3.2 Translation Engine";
+    return "TurboV1 High-FPS GL ES 3.2 Engine (LTW Core)";
 }
 
 const char* get_vendor_string() {
-    return "NVIDIA Corporation";
+    return "TurboV1 Architecture";
 }
 
 } // namespace turbo_v1

@@ -302,10 +302,21 @@ static void glMemoryBarrier_stub(unsigned int barriers) {
     LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
 }
 
+static int eglSwapInterval_hook(void* display, __attribute__((unused)) int interval) {
+    typedef int (*eglSwapInterval_pfn)(void*, int);
+    static eglSwapInterval_pfn real_fn = NULL;
+    if (!real_fn) {
+        real_fn = (eglSwapInterval_pfn) dlsym(RTLD_DEFAULT, "eglSwapInterval");
+        if (!real_fn) real_fn = (eglSwapInterval_pfn) dlsym(RTLD_NEXT, "eglSwapInterval");
+    }
+    if (real_fn) return real_fn(display, 0); // Always force swap interval 0 (Unlocks FPS past 60 Hz display lock!)
+    return 1;
+}
+
 static const unsigned char* glGetString_hook(unsigned int name) {
-    if (name == GL_VERSION) return (const unsigned char*)"4.6.0 NVIDIA 545.29";
-    else if (name == GL_RENDERER) return (const unsigned char*)"NVIDIA GeForce RTX 4090";
-    else if (name == GL_VENDOR) return (const unsigned char*)"NVIDIA Corporation";
+    if (name == GL_VERSION) return (const unsigned char*)"4.6.0 TurboV1 NextGen Engine 2.0";
+    else if (name == GL_RENDERER) return (const unsigned char*)"TurboV1 High-FPS GL ES 3.2 Engine (LTW Core)";
+    else if (name == GL_VENDOR) return (const unsigned char*)"TurboV1 Architecture";
     else if (name == GL_EXTENSIONS) return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
     typedef const unsigned char* (*glGetString_pfn)(unsigned int);
     static glGetString_pfn real_glGetString = NULL;
@@ -343,6 +354,7 @@ static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int in
 
 void* eglGetProcAddress_hook(const char* procname) {
     if (procname == NULL) return NULL;
+    if (strcmp(procname, "eglSwapInterval") == 0) return (void*) eglSwapInterval_hook;
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*) glMemoryBarrier_stub;
     if (strcmp(procname, "glGetString") == 0) return (void*) glGetString_hook;
     if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi_hook;
@@ -435,6 +447,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "eglGetProcAddress") == 0) {
             printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
             return (jlong) eglGetProcAddress_hook;
+        }
+        if (strcmp(symbol, "eglSwapInterval") == 0) {
+            printf("LWJGL linkerhook: hooked eglSwapInterval\n");
+            return (jlong) eglSwapInterval_hook;
         }
         if (strcmp(symbol, "glGetString") == 0) {
             printf("LWJGL linkerhook: hooked glGetString\n");
