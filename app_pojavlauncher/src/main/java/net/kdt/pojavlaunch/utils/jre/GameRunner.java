@@ -20,6 +20,8 @@ import net.kdt.pojavlaunch.utils.DateUtils;
 import net.kdt.pojavlaunch.utils.FileUtils;
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.GameOptionsUtils;
+import net.kdt.pojavlaunch.utils.IndusPerformanceManager;
+import net.kdt.pojavlaunch.utils.IndusWorldOptimizer;
 import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.JSONUtils;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
@@ -235,6 +237,12 @@ public class GameRunner {
             Log.e("FearLauncher", "[FearLauncher] Skin loading failed, using default skin", e);
         }
 
+        // Indus2.0: Apply performance optimizations before launch (CPU/GPU boost)
+        IndusPerformanceManager.applyPerformanceOptimizations();
+
+        // Indus2.0: Optimize game directory for fast world creation/loading
+        IndusWorldOptimizer.optimizeForWorldLoad(gamedir);
+
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
         OldVersionsUtils.selectOpenGlVersion(versionInfo);
 
@@ -286,6 +294,15 @@ public class GameRunner {
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
+
+        // Indus2.0: Add optimized JVM args for 200+ FPS target
+        if (rendererName.equals("turbov1")) {
+            for (String arg : IndusPerformanceManager.getOptimizedJVMArgs(LauncherPreferences.PREF_RAM_ALLOCATION)) {
+                if (!javaArgList.contains(arg)) {
+                    javaArgList.add(arg);
+                }
+            }
+        }
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
