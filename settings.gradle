@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name='PojavLauncher'
+rootProject.name='Indus2.0'
 include ':app_pojavlauncher'
 
 include ':forge_installer'
