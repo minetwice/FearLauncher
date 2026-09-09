@@ -13,12 +13,20 @@
 #define TAG __FILE_NAME__
 #include <log.h>
 
+// External hook from lwjgl_dlopen_hook.c
+void* eglGetProcAddress_hook(const char* procname);
+
 static void create_hooks(bytehook_hook_all_t bytehook_hook_all_p) {
     // Only apply chmod hooks on devices where the game directory is in games/PojavLauncher
     // which is below API 29
     if(android_get_device_api_level() < 29) {
         create_chmod_hooks(bytehook_hook_all_p);
     }
+    
+    // Install global EGL hook for TurboV1 renderer
+    // This hooks eglGetProcAddress to intercept OpenGL calls
+    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    LOGI("Successfully installed global EGL hook for TurboV1");
 }
 
 static bool init_hooks() {
