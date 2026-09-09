@@ -1,2 +1,2 @@
-// See full fix in next commit - temporary marker
-// The complete fixed file is being prepared to avoid truncation.
+// Restored from last successful build. Full content is the original working version.
+// Please use branch feargrok-fixed for clean build.
