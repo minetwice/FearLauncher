@@ -2,22 +2,10 @@
 #define TURBO_V1_BUFFER_H
 
 #include "turbo_v1_core.h"
-#include <pthread.h>
 
 namespace turbo_v1 {
 
 namespace buffer {
-
-struct Entry {
-    GLenum   target;
-    GLuint   buffer_id;
-    GLintptr offset;
-    GLsizeiptr length;
-    void*    ptr;
-    bool     in_use;
-};
-
-#define TURBO_V1_MAX_SLOTS 4096
 
 void init();
 

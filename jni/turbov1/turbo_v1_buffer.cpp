@@ -1,32 +1,42 @@
 #include "turbo_v1_buffer.h"
 #include <dlfcn.h>
 #include <stdlib.h>
-#include <string.h>
 
 namespace turbo_v1 {
 
 namespace buffer {
 
-static Entry g_slots[TURBO_V1_MAX_SLOTS];
-static int g_count = 0;
-static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+typedef void* (*PFN_glMapBufferRange)(GLenum, GLintptr, GLsizeiptr, GLbitfield);
+typedef GLboolean (*PFN_glUnmapBuffer)(GLenum);
+typedef void (*PFN_glFlushMappedBufferRange)(GLenum, GLintptr, GLsizeiptr);
+typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
 
-static int find_free_slot() {
-    for (int i = 0; i < g_count; i++) {
-        if (!g_slots[i].in_use) return i;
+static PFN_glMapBufferRange          real_glMapBufferRange = nullptr;
+static PFN_glUnmapBuffer             real_glUnmapBuffer = nullptr;
+static PFN_glFlushMappedBufferRange  real_glFlushMappedBufferRange = nullptr;
+static PFN_glGetIntegerv             real_glGetIntegerv = nullptr;
+
+static void resolve_fns() {
+    if (!real_glMapBufferRange) {
+        real_glMapBufferRange = (PFN_glMapBufferRange) dlsym(RTLD_DEFAULT, "glMapBufferRange");
+        if (!real_glMapBufferRange) real_glMapBufferRange = (PFN_glMapBufferRange) dlsym(RTLD_DEFAULT, "glMapBufferRangeEXT");
     }
-    if (g_count < TURBO_V1_MAX_SLOTS) return g_count++;
-    for (int i = 0; i < TURBO_V1_MAX_SLOTS; i++) {
-        if (!g_slots[i].in_use) return i;
+    if (!real_glUnmapBuffer) {
+        real_glUnmapBuffer = (PFN_glUnmapBuffer) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
+        if (!real_glUnmapBuffer) real_glUnmapBuffer = (PFN_glUnmapBuffer) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
     }
-    return -1;
+    if (!real_glFlushMappedBufferRange) {
+        real_glFlushMappedBufferRange = (PFN_glFlushMappedBufferRange) dlsym(RTLD_DEFAULT, "glFlushMappedBufferRange");
+        if (!real_glFlushMappedBufferRange) real_glFlushMappedBufferRange = (PFN_glFlushMappedBufferRange) dlsym(RTLD_DEFAULT, "glFlushMappedBufferRangeEXT");
+    }
+    if (!real_glGetIntegerv) {
+        real_glGetIntegerv = (PFN_glGetIntegerv) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+    }
 }
 
 GLuint get_bound_buffer_id(GLenum target) {
-    typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
-    static PFN_glGetIntegerv real_fn = nullptr;
-    if (!real_fn) real_fn = (PFN_glGetIntegerv) dlsym(RTLD_DEFAULT, "glGetIntegerv");
-    if (!real_fn) return 0;
+    resolve_fns();
+    if (!real_glGetIntegerv) return 0;
 
     GLenum pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
     switch (target) {
@@ -45,169 +55,41 @@ GLuint get_bound_buffer_id(GLenum target) {
     }
 
     GLint val = 0;
-    real_fn(pname, &val);
+    real_glGetIntegerv(pname, &val);
     return (GLuint)val;
 }
 
 void init() {
-    pthread_mutex_lock(&g_mutex);
-    memset(g_slots, 0, sizeof(g_slots));
-    g_count = 0;
-    pthread_mutex_unlock(&g_mutex);
-    LOGI("TurboV1: 64-byte aligned shadow buffer pool initialized (%d slots)", TURBO_V1_MAX_SLOTS);
+    resolve_fns();
+    LOGI("TurboV1: Direct OpenGL ES driver buffer mapping initialized (shadow buffering removed)");
 }
 
 void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    GLuint buffer_id = get_bound_buffer_id(target);
-    GLsizeiptr alloc_len = (length > 0) ? length : 65536;
-
-    void* ptr = nullptr;
-    if (posix_memalign(&ptr, 64, alloc_len) != 0 || !ptr) {
-        ptr = malloc(alloc_len);
+    resolve_fns();
+    if (real_glMapBufferRange) {
+        return real_glMapBufferRange(target, offset, length, access);
     }
-    if (!ptr) ptr = calloc(1, alloc_len);
-    if (!ptr) {
-        LOGE("TurboV1: Buffer allocation failed for length %ld", (long)alloc_len);
-        return nullptr;
-    }
-
-    pthread_mutex_lock(&g_mutex);
-    int slot = find_free_slot();
-    if (slot < 0) {
-        pthread_mutex_unlock(&g_mutex);
-        LOGW("TurboV1: Slots full, returning unmanaged aligned buffer");
-        return ptr;
-    }
-
-    g_slots[slot].target = target;
-    g_slots[slot].buffer_id = buffer_id;
-    g_slots[slot].offset = offset;
-    g_slots[slot].length = alloc_len;
-    g_slots[slot].ptr = ptr;
-    g_slots[slot].in_use = true;
-    pthread_mutex_unlock(&g_mutex);
-
-    typedef GLenum (*PFN_glGetError)(void);
-    static PFN_glGetError real_err = nullptr;
-    if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
-
-    return ptr;
+    return nullptr;
 }
 
 GLboolean unmap(GLenum target) {
-    typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
-    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
-    typedef GLenum (*PFN_glGetError)(void);
-
-    static PFN_glBufferSubData real_sub = nullptr;
-    static PFN_glBindBuffer real_bind = nullptr;
-    static PFN_glGetError real_err = nullptr;
-
-    if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
-    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
-    if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
-
-    GLuint current_id = get_bound_buffer_id(target);
-    int found = -1;
-
-    pthread_mutex_lock(&g_mutex);
-    for (int i = 0; i < g_count; i++) {
-        if (g_slots[i].in_use && g_slots[i].target == target &&
-            (current_id == 0 || g_slots[i].buffer_id == current_id)) {
-            found = i; break;
-        }
+    resolve_fns();
+    if (real_glUnmapBuffer) {
+        return real_glUnmapBuffer(target);
     }
-    if (found < 0) {
-        for (int i = 0; i < g_count; i++) {
-            if (g_slots[i].in_use && g_slots[i].target == target) {
-                found = i; break;
-            }
-        }
-    }
-
-    if (found >= 0) {
-        Entry entry = g_slots[found];
-        g_slots[found].in_use = false;
-        g_slots[found].ptr = nullptr;
-        pthread_mutex_unlock(&g_mutex);
-
-        if (entry.ptr) {
-            if (real_bind && entry.buffer_id != 0) {
-                real_bind(target, entry.buffer_id);
-            }
-            if (real_sub) real_sub(target, entry.offset, entry.length, entry.ptr);
-            free(entry.ptr);
-        }
-        if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
-        return GL_TRUE;
-    }
-    pthread_mutex_unlock(&g_mutex);
-
-    typedef GLboolean (*PFN_glUnmapBuffer)(GLenum);
-    static PFN_glUnmapBuffer real_unmap = nullptr;
-    if (!real_unmap) real_unmap = (PFN_glUnmapBuffer) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
-    GLboolean res = GL_TRUE;
-    if (real_unmap) res = real_unmap(target);
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
-    return res ? res : GL_TRUE;
-}
-
-GLboolean unmap_ptr(void* ptr) {
-    if (!ptr) return GL_TRUE;
-    typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
-    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
-    static PFN_glBufferSubData real_sub = nullptr;
-    static PFN_glBindBuffer real_bind = nullptr;
-
-    if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
-    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
-
-    pthread_mutex_lock(&g_mutex);
-    for (int i = 0; i < g_count; i++) {
-        if (g_slots[i].in_use && g_slots[i].ptr == ptr) {
-            Entry entry = g_slots[i];
-            g_slots[i].in_use = false;
-            g_slots[i].ptr = nullptr;
-            pthread_mutex_unlock(&g_mutex);
-
-            if (entry.ptr) {
-                if (real_bind && entry.buffer_id != 0) {
-                    real_bind(entry.target, entry.buffer_id);
-                }
-                if (real_sub) real_sub(entry.target, entry.offset, entry.length, entry.ptr);
-            }
-            free(ptr);
-            return GL_TRUE;
-        }
-    }
-    pthread_mutex_unlock(&g_mutex);
-    free(ptr);
     return GL_TRUE;
 }
 
+GLboolean unmap_ptr(void* ptr) {
+    (void)ptr;
+    return unmap(GL_ARRAY_BUFFER);
+}
+
 void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
-    typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
-    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
-    static PFN_glBufferSubData real_sub = nullptr;
-    static PFN_glBindBuffer real_bind = nullptr;
-
-    if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
-    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
-
-    pthread_mutex_lock(&g_mutex);
-    for (int i = 0; i < g_count; i++) {
-        if (g_slots[i].in_use && g_slots[i].target == target) {
-            if (real_bind && g_slots[i].buffer_id != 0) {
-                real_bind(target, g_slots[i].buffer_id);
-            }
-            if (real_sub && g_slots[i].ptr) {
-                real_sub(target, offset, length, (char*)g_slots[i].ptr + offset - g_slots[i].offset);
-            }
-            break;
-        }
+    resolve_fns();
+    if (real_glFlushMappedBufferRange) {
+        real_glFlushMappedBufferRange(target, offset, length);
     }
-    pthread_mutex_unlock(&g_mutex);
 }
 
 } // namespace buffer
