@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include "driver_helper/hook.h"
 
 static JavaVM* dalvikJavaVMPtr;
 
@@ -34,6 +35,9 @@ jfieldID field_x;
 jfieldID field_y;
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    // Install global EGL hook first
+    install_global_egl_hook();
+    
     if (dalvikJavaVMPtr == NULL) {
         //Save dalvik global JavaVM pointer
         dalvikJavaVMPtr = vm;
