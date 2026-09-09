@@ -88,7 +88,8 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Environment...");
+                Logger.appendToLog("[TurboV1/Quality] Initializing NextGen GL ES 3.2 Engine + Visual Quality Enhancer Environment for Mali-G615...");
+                // Core GL4ES / LTW batching & VBO
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -109,6 +110,13 @@ public class JREUtils {
                 envMap.put("LIBGL_FLOAT_DEPTH", "1");
                 envMap.put("LIBGL_DEPTH", "24");
                 envMap.put("LIBGL_COLOR_RESCALE", "1");
+                envMap.put("LIBGL_SHADER_TRANSLATOR", "1");
+                envMap.put("LIBGL_AVOID16BITS", "1");
+                envMap.put("LIBGL_ES3", "1");
+                envMap.put("LIBGL_FB_TEX", "1");
+                envMap.put("LIBGL_SRGB", "1");
+
+                // Mesa / GLSL overrides
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("allow_glsl_extension_directive_midshader", "true");
@@ -119,13 +127,19 @@ public class JREUtils {
                 envMap.put("LIBGL_GLSL_STRIP", "noperspective");
                 envMap.put("LIBGL_GLSL_REPLACE", "noperspective=smooth");
                 envMap.put("glsl_force_highp", "true");
+                envMap.put("glsl_zero_init", "true");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
+                envMap.put("MESA_SHADER_CACHE_DISABLE", "false");
+                envMap.put("MESA_DISK_CACHE_SINGLE_FILE", "1");
+
+                // Mali-G615 / Panfrost specific
                 envMap.put("mali_debug", "nocluster");
                 envMap.put("pan_shader_compile_threads", "8");
                 envMap.put("vblank_mode", "0");
                 envMap.put("force_s3tc_enable", "true");
-                envMap.put("glsl_zero_init", "true");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
+                // Optional debug (comment out if unstable on device)
+                // envMap.put("PAN_MESA_DEBUG", "sync,nofail");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -273,7 +287,7 @@ public class JREUtils {
 
         switch (renderer){
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Backend...");
+                Logger.appendToLog("[TurboV1/Quality] Initializing NextGen GL ES 3.2 Engine Backend...");
                 renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 bypassNamespace = false;
