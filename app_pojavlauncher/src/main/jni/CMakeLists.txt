@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("FearLauncher")
 
+# Add TurboV1 subdirectory for Indus2.0 Epic FPS Booster Engine
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../jni/turbov1 ${CMAKE_CURRENT_BINARY_DIR}/turbov1_build)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../jni ${CMAKE_CURRENT_BINARY_DIR}/fearrender_build)
 
 add_library(pojavexec SHARED
@@ -16,6 +19,7 @@ add_library(pojavexec SHARED
         driver_helper/nsbypass.c
         driver_helper/fake_dlfcn.c
         driver_helper/func_locator.c
+        driver_helper/hook.c
         utils.c
         stdio_is.c
         minibridge.c
@@ -24,7 +28,7 @@ add_library(pojavexec SHARED
 )
 
 target_include_directories(pojavexec PRIVATE .)
-target_link_libraries(pojavexec PRIVATE log)
+target_link_libraries(pojavexec PRIVATE log turbo_v1_core)
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
     target_compile_definitions(pojavexec PRIVATE USE_ARM64_LOCATOR)
