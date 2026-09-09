@@ -133,66 +133,38 @@ static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pnam
 }
 
 static void* glMapBufferRange_hook(unsigned int target, long offset, long length, unsigned int access) {
-    static int callCount = 0;
-    if (callCount < 5) {
-        LOGI("LWJGL linkerhook: glMapBufferRange_hook CALLED target=0x%X offset=%ld len=%ld access=0x%X", target, offset, length, access);
-        callCount++;
-    }
+    if (length <= 0 || length > 67108864) length = 65536; // Safe 64KB fallback
 
-    typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
-    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
-    if (!real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
-    }
-    int buf_size = 0;
-    if (real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv(target, 0x8764 /* GL_BUFFER_SIZE */, &buf_size);
-    }
-
-    long alloc_len = length;
-    if (alloc_len <= 0 && buf_size > 0) alloc_len = buf_size - offset;
-    if (alloc_len <= 0) alloc_len = 1048576; // 1 MB fallback
-    if (buf_size > 0 && (offset + alloc_len) < buf_size) {
-        alloc_len = buf_size;
-    }
-
-    unsigned int buffer_id = get_bound_buffer_id(target);
     void* ptr = NULL;
-
-    if (posix_memalign(&ptr, 64, alloc_len) != 0 || ptr == NULL) {
-        ptr = malloc(alloc_len);
-    }
-    if (!ptr) ptr = calloc(1, alloc_len);
+    if (posix_memalign(&ptr, 64, length) != 0) ptr = malloc(length);
+    if (!ptr) ptr = calloc(1, length);
 
     if (!ptr) {
-        LOGE("LWJGL linkerhook: Emergency fallback buffer used for alloc_len=%ld", alloc_len);
-        ptr = s_fallback_buffer;
+        static size_t fallback_offset = 0;
+        if (fallback_offset + length > sizeof(s_fallback_buffer)) fallback_offset = 0;
+        ptr = &s_fallback_buffer[fallback_offset];
+        fallback_offset += length;
     }
 
     pthread_mutex_lock(&g_shadowMutex);
     int slot = find_free_shadow_slot();
     if (slot >= 0) {
         g_shadowBuffers[slot].target = target;
-        g_shadowBuffers[slot].buffer_id = buffer_id;
+        g_shadowBuffers[slot].buffer_id = get_bound_buffer_id(target);
         g_shadowBuffers[slot].offset = offset;
-        g_shadowBuffers[slot].length = alloc_len;
+        g_shadowBuffers[slot].length = length;
         g_shadowBuffers[slot].shadow_ptr = ptr;
         g_shadowBuffers[slot].is_shadow = 1;
         g_shadowBuffers[slot].in_use = 1;
-    } else {
-        LOGW("LWJGL linkerhook: Shadow slots full, returning unmanaged buffer");
     }
     pthread_mutex_unlock(&g_shadowMutex);
 
     typedef unsigned int (*glGetError_pfn)(void);
     static glGetError_pfn real_glGetError = NULL;
-    if (!real_glGetError) {
-        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
-        if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_NEXT, "glGetError");
-    }
-    if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-    return ptr;
+    if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
+    if (real_glGetError) while (real_glGetError() != 0) {}
+
+    return ptr; // NEVER return NULL
 }
 
 static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
@@ -212,25 +184,17 @@ static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
 }
 
 static int glUnmapBuffer_hook(unsigned int target) {
-    typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
     typedef void (*glBindBuffer_pfn)(unsigned int, unsigned int);
+    typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
     typedef unsigned int (*glGetError_pfn)(void);
 
-    static glBufferSubData_pfn real_glBufferSubData = NULL;
     static glBindBuffer_pfn real_glBindBuffer = NULL;
+    static glBufferSubData_pfn real_glBufferSubData = NULL;
     static glGetError_pfn real_glGetError = NULL;
 
-    if (!real_glBufferSubData) {
-        real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubData");
-        if (!real_glBufferSubData) real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubDataARB");
-    }
-    if (!real_glBindBuffer) {
-        real_glBindBuffer = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
-    }
-    if (!real_glGetError) {
-        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
-        if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_NEXT, "glGetError");
-    }
+    if (!real_glBindBuffer) real_glBindBuffer = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
+    if (!real_glBufferSubData) real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubData");
+    if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
 
     unsigned int current_buffer_id = get_bound_buffer_id(target);
     int found_slot = -1;
@@ -243,8 +207,6 @@ static int glUnmapBuffer_hook(unsigned int target) {
             found_slot = i; break;
         }
     }
-
-    // Fallback search if buffer ID mismatch
     if (found_slot < 0) {
         for (int i = 0; i < g_shadowCount; i++) {
             if (g_shadowBuffers[i].in_use && g_shadowBuffers[i].is_shadow && g_shadowBuffers[i].target == target) {
@@ -260,35 +222,21 @@ static int glUnmapBuffer_hook(unsigned int target) {
         g_shadowBuffers[found_slot].shadow_ptr = NULL;
         pthread_mutex_unlock(&g_shadowMutex);
 
-        if (entry.shadow_ptr) {
-            // CRITICAL FIX: Bind the buffer BEFORE calling glBufferSubData
-            if (real_glBindBuffer && entry.buffer_id != 0) {
-                real_glBindBuffer(target, entry.buffer_id);
-            }
-            if (real_glBufferSubData) {
-                real_glBufferSubData(target, entry.offset, entry.length, entry.shadow_ptr);
-            }
-            // Free memory if not using the static fallback buffer
+        if (entry.shadow_ptr && entry.length > 0) {
+            // CRITICAL: Bind buffer before uploading data
+            if (real_glBindBuffer && entry.buffer_id != 0) real_glBindBuffer(target, entry.buffer_id);
+            if (real_glBufferSubData) real_glBufferSubData(target, entry.offset, entry.length, entry.shadow_ptr);
+
             if ((char*)entry.shadow_ptr < s_fallback_buffer || (char*)entry.shadow_ptr >= (s_fallback_buffer + sizeof(s_fallback_buffer))) {
                 free(entry.shadow_ptr);
             }
         }
-        if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-        return 1; // Success
+    } else {
+        pthread_mutex_unlock(&g_shadowMutex);
     }
-    pthread_mutex_unlock(&g_shadowMutex);
 
-    // Fallback to real glUnmapBuffer if not in shadow map
-    typedef int (*glUnmapBuffer_pfn)(unsigned int);
-    static glUnmapBuffer_pfn real_glUnmapBuffer = NULL;
-    if (!real_glUnmapBuffer) {
-        real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
-        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
-    }
-    int res = 1;
-    if (real_glUnmapBuffer) res = real_glUnmapBuffer(target);
-    if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-    return res ? res : 1;
+    if (real_glGetError) while (real_glGetError() != 0) {}
+    return 1; // Always return GL_TRUE to prevent Minecraft crash
 }
 
 static void glMemoryBarrier_stub(unsigned int barriers) {
