@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project(turbo_v1 LANGUAGES CXX C)
 
+# Force all .cpp files to be compiled as C++
+set(CMAKE_CXX_SUFFIXES ".cpp;.cxx;.cc;.C;.c++")
+
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
