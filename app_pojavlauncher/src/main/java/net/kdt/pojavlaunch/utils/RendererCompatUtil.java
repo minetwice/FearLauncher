@@ -1,98 +1,78 @@
 package net.kdt.pojavlaunch.utils;
 
-import static android.os.Build.VERSION.SDK_INT;
-
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.os.Build;
+import android.content.res.XmlResourceParser;
 
-import net.kdt.pojavlaunch.Architecture;
-import net.kdt.pojavlaunch.Tools;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import git.artdeell.mojo.R;
-
 public class RendererCompatUtil {
-    private static RenderersList sCompatibleRenderers;
-
-    public static boolean checkVulkanSupport(PackageManager packageManager) {
-        if(SDK_INT >= Build.VERSION_CODES.N) {
-            return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
-                    packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
-        }
-        return false;
-    }
-
-    /** Return the renderers that are compatible with this device */
-    public static RenderersList getCompatibleRenderers(Context context) {
-        if(sCompatibleRenderers != null) return sCompatibleRenderers;
-        Resources resources = context.getResources();
-        String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
-        String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
-        boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
-        // Current Mesa requires API29+
-        boolean deviceCompatibleMesa = SDK_INT >= 29;
-        boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
-        // LTW is an optional dependency
-        boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
-        List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
-        List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
-        for(int i = 0; i < defaultRenderers.length; i++) {
-            String rendererId = defaultRenderers[i];
-            if(rendererId.equals("turbov1")) {
-                rendererIds.add(rendererId);
-                rendererNames.add(defaultRendererNames[i]);
-                continue;
-            }
-            if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
-            if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
-            if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
-            rendererIds.add(rendererId);
-            rendererNames.add(defaultRendererNames[i]);
-        }
-
-        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
-        List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
-        for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
-            String pluginId = "plugin:" + plugin.getId();
-            String displayName = plugin.getDisplayName();
-            if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
-                displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
-            }
-            if (!rendererIds.contains(pluginId)) {
-                rendererIds.add(pluginId);
-                rendererNames.add(displayName);
-            }
-        }
-
-        sCompatibleRenderers = new RenderersList(rendererIds,
-                rendererNames.toArray(new String[0]));
-
-        return sCompatibleRenderers;
-    }
-
-    /** Checks if the renderer Id is compatible with the current device */
-    public static boolean checkRendererCompatible(Context context, String rendererName) {
-         return getCompatibleRenderers(context).rendererIds.contains(rendererName);
-    }
-
-    /** Releases the cache of compatible renderers. */
-    public static void releaseRenderersCache() {
-        sCompatibleRenderers = null;
-        System.gc();
-    }
-
-    public static class RenderersList {
+    public static class CompatRenderers {
         public final List<String> rendererIds;
-        public final String[] rendererDisplayNames;
-
-        public RenderersList(List<String> rendererIds, String[] rendererDisplayNames) {
+        public final List<String> rendererNames;
+        public CompatRenderers(List<String> rendererIds, List<String> rendererNames) {
             this.rendererIds = rendererIds;
-            this.rendererDisplayNames = rendererDisplayNames;
+            this.rendererNames = rendererNames;
         }
+    }
+
+    private static CompatRenderers cachedRenderers;
+    private static String cachedRenderersAbi;
+
+    public static CompatRenderers getCompatibleRenderers(Context context) {
+        String currentAbi = net.kdt.pojavlaunch.Architecture.is32BitsDevice() ? "arm" : "arm64";
+        if(cachedRenderers != null && cachedRenderersAbi.equals(currentAbi)) return cachedRenderers;
+        cachedRenderersAbi = currentAbi;
+        List<String> rendererIds = new ArrayList<>();
+        List<String> rendererNames = new ArrayList<>();
+        try {
+            XmlResourceParser parser = context.getResources().getXml(
+                    net.kdt.pojavlaunch.R.xml.renderer_compat);
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            XmlPullParser xpp = factory.newPullParser();
+            xpp.setInput(parser);
+            int eventType = xpp.getEventType();
+            String currentRendererId = null;
+            while(eventType != XmlPullParser.END_DOCUMENT) {
+                if(eventType == XmlPullParser.START_TAG) {
+                    if(xpp.getName().equals("renderer")) {
+                        for(int i = 0; i < xpp.getAttributeCount(); i++) {
+                            if(xpp.getAttributeName(i).equals("id")) {
+                                currentRendererId = xpp.getAttributeValue(i);
+                            }
+                        }
+                    }
+                } else if(eventType == XmlPullParser.TEXT) {
+                    if(currentRendererId != null) {
+                        String abi = xpp.getText();
+                        if(abi.equals(currentAbi) || abi.equals("all")) {
+                            if(currentRendererId.startsWith("turbo")) {
+                                rendererIds.add(currentRendererId);
+                                rendererNames.add(currentRendererId);
+                            } else {
+                                rendererIds.add(currentRendererId);
+                                rendererNames.add(currentRendererId);
+                            }
+                        }
+                        currentRendererId = null;
+                    }
+                }
+                eventType = xpp.next();
+            }
+        } catch (XmlPullParserException | IOException e) {
+            // ignore
+        }
+        cachedRenderers = new CompatRenderers(rendererIds, rendererNames);
+        return cachedRenderers;
+    }
+
+    public static void releaseRenderersCache() {
+        cachedRenderers = null;
+        cachedRenderersAbi = null;
     }
 }

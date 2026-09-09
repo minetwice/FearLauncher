@@ -5,13 +5,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# TurboV1 Engine Native Library
+# Indus2.0 TurboV1 Engine Native Library
 add_library(turbov1 SHARED
     turbov1/turbo_v1_core.cpp
     turbov1/turbo_v1_buffer.cpp
     turbov1/turbo_v1_gl_translator.cpp
     turbov1/turbo_v1_shader_transpiler.cpp
     turbov1/turbo_v1_hooks.cpp
+    turbov1/turbo_v1_perf.cpp
+    turbov1/turbo_v1_entity.cpp
 )
 
 set_target_properties(turbov1 PROPERTIES
