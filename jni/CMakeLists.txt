@@ -11,6 +11,7 @@ add_library(turbov1 SHARED
     turbov1/turbo_v1_buffer.cpp
     turbov1/turbo_v1_gl_translator.cpp
     turbov1/turbo_v1_shader_transpiler.cpp
+    turbov1/turbo_v1_vulkan.cpp
     turbov1/turbo_v1_hooks.cpp
 )
 

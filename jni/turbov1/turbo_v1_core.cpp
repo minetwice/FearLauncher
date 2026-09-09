@@ -1,4 +1,5 @@
 #include "turbo_v1_core.h"
+#include "turbo_v1_vulkan.h"
 #include <jni.h>
 
 namespace turbo_v1 {
@@ -33,7 +34,8 @@ bool init(Context& ctx, const std::string& cache_path) {
     g_features.has_bindless_texture = true;
 
     g_ctx = ctx;
-    LOGI("TurboV1: Engine initialized successfully with 200+ FPS High-Performance Pipeline");
+    vulkan::get_pipeline_manager().init(VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE);
+    LOGI("TurboV1: Engine initialized successfully with 200+ FPS High-Performance Pipeline & Vulkan Mali Subsystem");
     return true;
 }
 
