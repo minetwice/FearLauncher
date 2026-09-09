@@ -24,7 +24,8 @@ add_library(pojavexec SHARED
 )
 
 target_include_directories(pojavexec PRIVATE .)
-target_link_libraries(pojavexec PRIVATE log)
+target_link_libraries(pojavexec PRIVATE log dl GLESv2 EGL)
+target_link_options(pojavexec PRIVATE "-Wl,-z,global")
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
     target_compile_definitions(pojavexec PRIVATE USE_ARM64_LOCATOR)
