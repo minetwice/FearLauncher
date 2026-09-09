@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cstdint>
 #include <mutex>
+#include <unordered_map>
 
 namespace turbo_v1 {
 
@@ -45,15 +46,12 @@ class EntityManager {
 public:
     static EntityManager& instance();
 
-    // Lifecycle
     void init();
     void shutdown();
 
-    // Frame management
     void begin_frame(const Frustum& frustum);
     void end_frame();
 
-    // Entity registration — called from the game's entity render path
     uint32_t register_entity(uint32_t entity_id, const float* model_matrix,
                               const float* bbox_min, const float* bbox_max,
                               uint32_t texture_id, uint32_t vertex_offset,
@@ -61,13 +59,10 @@ public:
     void unregister_entity(uint32_t entity_id);
     void update_entity_transform(uint32_t entity_id, const float* model_matrix);
 
-    // Batch submission — collects all visible entities and submits batched draws
     void submit_batched_draws();
 
-    // Culling
     bool is_in_frustum(const float* bbox_min, const float* bbox_max) const;
 
-    // Stats
     int get_drawn_count() const  { return m_drawn.load(); }
     int get_batched_count() const { return m_batched.load(); }
     int get_culled_count() const { return m_culled.load(); }
@@ -85,12 +80,10 @@ private:
     std::atomic<int> m_culled{0};
     std::atomic<bool> m_initialized{false};
 
-    // Shared instance buffer
     std::vector<float> m_instance_buffer;
     size_t m_instance_buffer_capacity = 0;
 };
 
-// Helper: extract frustum from projection*view matrix
 Frustum extract_frustum(const float* proj_view_matrix);
 
 } // namespace turbo_v1

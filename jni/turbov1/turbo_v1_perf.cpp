@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <cerrno>
+#include <ctime>
 #include <algorithm>
 
 namespace turbo_v1 {
@@ -31,8 +34,6 @@ void perf_init() {
     g_perf.cpu_count.store(cpu_count);
 
     // Detect big cores: on typical SoCs, the last N/2 cores are the "big" cores
-    // On big.LITTLE: cores 0..(n_big-1) are LITTLE, rest are big
-    // We use a heuristic: the upper half of cores are performance cores
     int big_mask = 0;
     int mid = cpu_count / 2;
     for (int i = mid; i < cpu_count; i++) {
@@ -90,13 +91,11 @@ void perf_frame_end() {
     int target = g_perf.target_fps.load();
 
     if (smoothed < min_fps && current_scale > 50) {
-        // FPS too low — reduce resolution to gain frames
         int new_scale = std::max(50, current_scale - 5);
         g_perf.adaptive_resolution_scale.store(new_scale);
         LOGD("Indus2.0: FPS=%.1f below min=%d, lowering resolution scale to %d%%",
              smoothed, min_fps, new_scale);
     } else if (smoothed > target * 0.95 && current_scale < 100) {
-        // FPS is high enough — restore resolution
         int new_scale = std::min(100, current_scale + 2);
         g_perf.adaptive_resolution_scale.store(new_scale);
     }
@@ -119,17 +118,12 @@ bool perf_should_render_frame() {
     double fps = g_perf.fps.load();
     int target = g_perf.target_fps.load();
 
-    // If we're well above target, render every frame
     if (fps >= target * 0.95) return true;
 
-    // If we're below target, don't skip (we need every frame)
-    // Skip logic is for when GPU is overcommitted: skip alternate frames
-    // to reduce draw call pressure while maintaining responsiveness
     static thread_local int frame_counter = 0;
     frame_counter++;
 
     if (fps < g_perf.min_fps.load()) {
-        // Critical: render every other frame to reduce GPU load
         return (frame_counter & 1) == 0;
     }
 
@@ -150,7 +144,6 @@ void perf_pin_render_thread() {
 
     int result = sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
     if (result == 0) {
-        // Also set high priority for the render thread
         struct sched_param sp;
         sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
         if (sp.sched_priority > 0) {
@@ -159,7 +152,6 @@ void perf_pin_render_thread() {
         LOGI("Indus2.0: Render thread pinned to core %d with SCHED_FIFO", cpu);
     } else {
         LOGW("Indus2.0: Failed to pin render thread to core %d (errno=%d)", cpu, errno);
-        // Fallback: try to set nice value
         nice(-10);
     }
 }
@@ -168,7 +160,6 @@ void perf_pin_worker_threads(int count) {
     int big_mask = g_perf.big_core_mask.load();
     if (big_mask == 0) return;
 
-    // Distribute worker threads across big cores
     static std::atomic<int> next_core{0};
     int cpu_count = g_perf.cpu_count.load();
     int big_cores[16];
@@ -203,9 +194,7 @@ static void write_sysfs(const char* path, const char* value) {
 void perf_gpu_boost(bool enable) {
     g_perf.gpu_boost_active.store(enable);
 
-    // Adreno (KGSL) GPU frequency boost
     if (enable) {
-        // Set GPU to max frequency
         write_sysfs("/sys/class/kgsl/kgsl-3d0/devfreq/governor", "performance");
         write_sysfs("/sys/class/kgsl/kgsl-3d0/max_pwrlevel", "0");
         write_sysfs("/sys/class/kgsl/kgsl-3d0/min_pwrlevel", "0");
@@ -213,14 +202,9 @@ void perf_gpu_boost(bool enable) {
         write_sysfs("/sys/class/kgsl/kgsl-3d0/force_bus_on", "1");
         write_sysfs("/sys/class/kgsl/kgsl-3d0/force_clk_on", "1");
         write_sysfs("/sys/class/kgsl/kgsl-3d0/idle_timer", "10000");
-
-        // Mali GPU
         write_sysfs("/sys/devices/platform/13800000.mali/devfreq/governor", "performance");
-
-        // devfreq global
         write_sysfs("/sys/class/devfreq/governor", "performance");
 
-        // CPU boost: all big cores online
         int cpu_count = g_perf.cpu_count.load();
         int mid = cpu_count / 2;
         for (int i = mid; i < cpu_count; i++) {
@@ -228,8 +212,6 @@ void perf_gpu_boost(bool enable) {
             snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/online", i);
             write_sysfs(path, "1");
         }
-
-        // CPU governor to performance for big cores
         for (int i = mid; i < cpu_count; i++) {
             char path[256];
             snprintf(path, sizeof(path),
