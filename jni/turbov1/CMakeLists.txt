@@ -68,4 +68,6 @@ target_compile_features(turbo_v1_core PRIVATE cxx_std_17)
 # Export include directory for users of this library
 target_include_directories(turbo_v1_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/quality_enhancer
+    ${CMAKE_CURRENT_SOURCE_DIR}/smoothness
 )
