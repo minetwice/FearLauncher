@@ -380,8 +380,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   jlong handle, jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (symbol != NULL) {
-        if (strcmp(symbol, "eglGetProcAddress") == 0) {
-            printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
+        if (strcmp(symbol, "eglGetProcAddress") == 0 || strcmp(symbol, "glfwGetProcAddress") == 0) {
+            printf("LWJGL linkerhook: hooked %s -> eglGetProcAddress_hook\n", symbol);
             return (jlong) eglGetProcAddress_hook;
         }
         if (strcmp(symbol, "glGetString") == 0) {
@@ -451,4 +451,17 @@ void installLwjglDlopenHook(JNIEnv *env) {
         (*env)->ExceptionClear(env);
     }
     printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully\n");
+}
+
+// Exported global symbols for native dlsym(RTLD_DEFAULT) lookups
+void* glMapBufferRange(unsigned int target, long offset, long length, unsigned int access) {
+    return glMapBufferRange_hook(target, offset, length, access);
+}
+
+void* glMapBuffer(unsigned int target, unsigned int access) {
+    return glMapBuffer_hook(target, access);
+}
+
+int glUnmapBuffer(unsigned int target) {
+    return glUnmapBuffer_hook(target);
 }
