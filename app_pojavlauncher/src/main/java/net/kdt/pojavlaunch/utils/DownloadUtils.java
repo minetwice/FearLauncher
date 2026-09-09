@@ -27,10 +27,8 @@ public class DownloadUtils {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", USER_AGENT);
             conn.setRequestProperty("Connection", "keep-alive");
-            conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
             conn.setConnectTimeout(8000);
             conn.setReadTimeout(30000);
-            try { conn.setReceiveBufferSize(256 * 1024); } catch (Exception ignored) {}
             conn.setDoInput(true);
             conn.connect();
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -73,10 +71,8 @@ public class DownloadUtils {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlInput).openConnection();
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestProperty("Connection", "keep-alive");
-        conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
         conn.setConnectTimeout(8000);
         conn.setReadTimeout(30000);
-        try { conn.setReceiveBufferSize(256 * 1024); } catch (Exception ignored) {}
         InputStream readStr = conn.getInputStream();
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
             int current;

@@ -170,10 +170,6 @@ public class Downloader {
         connection.setReadTimeout(30000);
         connection.setRequestProperty("User-Agent", DownloadUtils.USER_AGENT);
         connection.setRequestProperty("Connection", "keep-alive");
-        connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-        try {
-            connection.setReceiveBufferSize(256 * 1024);
-        } catch (Exception ignored) {}
         connection.setDoInput(true);
         connection.setDoOutput(false);
         return connection;

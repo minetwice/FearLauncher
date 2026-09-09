@@ -171,12 +171,14 @@ GLboolean unmap(GLenum target) {
         Entry entry = g_slots[found];
         g_slots[found].in_use = false;
         g_slots[found].ptr = nullptr;
+        pthread_mutex_unlock(&g_mutex);
 
         if (entry.ptr) {
             if (real_sub) real_sub(target, entry.offset, entry.length, entry.ptr);
+            pthread_mutex_lock(&g_mutex);
             release_pooled_buffer(entry.ptr);
+            pthread_mutex_unlock(&g_mutex);
         }
-        pthread_mutex_unlock(&g_mutex);
         return GL_TRUE;
     }
     pthread_mutex_unlock(&g_mutex);
@@ -195,21 +197,25 @@ GLboolean unmap_ptr(void* ptr) {
     static PFN_glBufferSubData real_sub = nullptr;
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
 
+    Entry entry = {};
+    bool found = false;
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
         if (g_slots[i].in_use && g_slots[i].ptr == ptr) {
-            Entry entry = g_slots[i];
+            entry = g_slots[i];
             g_slots[i].in_use = false;
             g_slots[i].ptr = nullptr;
-
-            if (real_sub && entry.ptr) {
-                real_sub(entry.target, entry.offset, entry.length, entry.ptr);
-            }
-            release_pooled_buffer(ptr);
-            pthread_mutex_unlock(&g_mutex);
-            return GL_TRUE;
+            found = true;
+            break;
         }
     }
+    pthread_mutex_unlock(&g_mutex);
+
+    if (found && real_sub && entry.ptr) {
+        real_sub(entry.target, entry.offset, entry.length, entry.ptr);
+    }
+
+    pthread_mutex_lock(&g_mutex);
     release_pooled_buffer(ptr);
     pthread_mutex_unlock(&g_mutex);
     return GL_TRUE;
@@ -220,16 +226,21 @@ void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
     static PFN_glBufferSubData real_sub = nullptr;
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
 
+    void* flush_ptr = nullptr;
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
         if (g_slots[i].in_use && g_slots[i].target == target) {
-            if (real_sub && g_slots[i].ptr) {
-                real_sub(target, offset, length, (char*)g_slots[i].ptr + offset - g_slots[i].offset);
+            if (g_slots[i].ptr) {
+                flush_ptr = (char*)g_slots[i].ptr + offset - g_slots[i].offset;
             }
             break;
         }
     }
     pthread_mutex_unlock(&g_mutex);
+
+    if (real_sub && flush_ptr) {
+        real_sub(target, offset, length, flush_ptr);
+    }
 }
 
 } // namespace buffer
