@@ -36,7 +36,9 @@ __attribute__((visibility("default"), used)) void *android_load_sphal_library(co
     if(strstr(filename, "vulkan.")) {
         return ready_handle;
     }
-    //printf("__loader_android_get_exported_namespace = %p\n__loader_android_dlopen_ext = %p\n", __loader_android_get_exported_namespace,
+    //printf("__loader_android_get_exported_namespace = %p
+__loader_android_dlopen_ext = %p
+", __loader_android_get_exported_namespace,
     //       __loader_android_dlopen_ext);
     struct android_namespace_t* androidNamespace;
     for(int i = 0; i < 3; i++) {
@@ -44,9 +46,7 @@ __attribute__((visibility("default"), used)) void *android_load_sphal_library(co
         if(androidNamespace != NULL) break;
     }
     android_dlextinfo info;
-    info.flags = ANDROID_
-
-DLEXT_USE_NAMESPACE;
+    info.flags = ANDROID_DLEXT_USE_NAMESPACE;
     info.library_namespace = androidNamespace;
     return android_dlopen_ext_p(filename, flags, &info, &android_dlopen_ext);
 }
@@ -56,47 +56,4 @@ DLEXT_USE_NAMESPACE;
 // but for our usage it's fine enough
 __attribute__((visibility("default"), used)) uint64_t atrace_get_enabled_tags() {
     return 0;
-}
-
-// ByteHook for native EGL hooking
-#include <bytehook.h>
-#include "../native_hooks/native_hooks.h"
-
-// Import the hook from lwjgl_dlopen_hook.c
-extern void* eglGetProcAddress_hook(const char* procname);
-
-// Install global EGL hook to prevent Can't map buffer error
-void install_global_egl_hook() {
-    static void* bytehook_handle = NULL;
-    static bytehook_hook_all_t bytehook_hook_all_p = NULL;
-    
-    if (bytehook_handle != NULL) {
-        return;
-    }
-
-    bytehook_handle = dlopen("libbytehook.so", RTLD_NOW);
-    if (bytehook_handle == NULL) {
-        return;
-    }
-
-    int (*bytehook_init_p)(int mode, bool debug);
-
-    bytehook_hook_all_p = (bytehook_hook_all_t) dlsym(bytehook_handle, "bytehook_hook_all");
-    bytehook_init_p = (int (*)(int, bool)) dlsym(bytehook_handle, "bytehook_init");
-
-    if (bytehook_hook_all_p == NULL || bytehook_init_p == NULL) {
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return;
-    }
-
-    int bhook_status = bytehook_init_p(BYTEHOOK_MODE_AUTOMATIC, false);
-    if (bhook_status != BYTEHOOK_STATUS_CODE_OK) {
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return;
-    }
-
-    // Hook eglGetProcAddress in all relevant libraries
-    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
 }
