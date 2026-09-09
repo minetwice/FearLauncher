@@ -57,10 +57,20 @@ void translate_glBufferStorage(GLenum target, GLsizeiptr size, const void* data,
 }
 
 void* translate_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
+    resolve_gles();
+    if (real_glMapBufferRange) {
+        void* ptr = real_glMapBufferRange(target, offset, length, access);
+        if (ptr) return ptr;
+    }
     return buffer::map(target, offset, length, access);
 }
 
 GLboolean translate_glUnmapBuffer(GLenum target) {
+    resolve_gles();
+    if (real_glUnmapBuffer) {
+        GLboolean res = real_glUnmapBuffer(target);
+        if (res) return res;
+    }
     return buffer::unmap(target);
 }
 

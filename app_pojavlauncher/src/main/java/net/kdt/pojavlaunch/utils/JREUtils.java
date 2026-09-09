@@ -273,8 +273,8 @@ public class JREUtils {
 
         switch (renderer){
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Backend...");
-                renderLibrary = "libgl4es_114.so";
+                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Backend (LTW Core)...");
+                renderLibrary = "libltw.so";
                 useGles = true;
                 bypassNamespace = false;
                 glesVersion = 3;
