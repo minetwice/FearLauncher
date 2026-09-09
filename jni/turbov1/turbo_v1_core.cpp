@@ -49,15 +49,15 @@ const Features& get_features() {
 }
 
 const char* get_version_string() {
-    return "4.6.0 TurboV1 NextGen Engine 2.0";
+    return "Vulkan Native (Bypassed OpenGL ES Architecture)";
 }
 
 const char* get_renderer_string() {
-    return "TurboV1 High-FPS GL ES 3.2 Engine (LTW Core)";
+    return "Mali-G710/G615 via TurboV1 Translation";
 }
 
 const char* get_vendor_string() {
-    return "TurboV1 Architecture";
+    return "TurboV1 Engine v1.0 (Vulkan Core)";
 }
 
 } // namespace turbo_v1
