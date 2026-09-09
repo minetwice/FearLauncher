@@ -11,6 +11,8 @@
 typedef struct {
     int shaderClipDistance;
     int fillModeNonSolid;
+    int dynamicRendering;
+    int descriptorIndexing;
 } VkPhysicalDeviceFeatures;
 
 // Track 2: Mesa Zink device and pipeline dynamic capabilities override routine
@@ -20,6 +22,8 @@ void mh_drive_spoof_physical_device_features(VkPhysicalDeviceFeatures* features)
     // Hardcode absolute device feature capabilities override to deceive the shader capabilities checker
     features->shaderClipDistance = VK_TRUE;
     features->fillModeNonSolid = VK_TRUE;
+    features->dynamicRendering = VK_TRUE;
+    features->descriptorIndexing = VK_TRUE;
 
-    LOGI("MH DRIVE: Masked device capabilities structure. Spoofed shaderClipDistance and fillModeNonSolid explicitly.");
+    LOGI("MH DRIVE: Masked device capabilities structure. Spoofed shaderClipDistance, fillModeNonSolid, dynamicRendering and descriptorIndexing explicitly.");
 }
