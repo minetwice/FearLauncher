@@ -20,11 +20,12 @@ add_library(pojavexec SHARED
         stdio_is.c
         minibridge.c
         vulkan_loader.c
+        gl_buffer_hooks.c
 
 )
 
 target_include_directories(pojavexec PRIVATE .)
-target_link_libraries(pojavexec PRIVATE log)
+target_link_libraries(pojavexec PRIVATE log dl)
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
     target_compile_definitions(pojavexec PRIVATE USE_ARM64_LOCATOR)
