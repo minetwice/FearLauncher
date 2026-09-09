@@ -43,9 +43,8 @@ static void resolve_gles() {
     real_glGetStringi    = (PFN_glGetStringi)    dlsym(RTLD_DEFAULT, "glGetStringi");
 }
 
-static void flush_errors() {
-    resolve_gles();
-    if (real_glGetError) { GLenum e; do { e = real_glGetError(); } while (e != GL_NO_ERROR); }
+static inline void flush_errors() {
+    // Disabled in TurboV1 High-FPS Mode to prevent CPU-GPU pipeline synchronization stalls!
 }
 
 void translate_glBufferStorage(GLenum target, GLsizeiptr size, const void* data, GLbitfield flags) {

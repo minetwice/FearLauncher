@@ -38,7 +38,7 @@ std::string transpile_shader(const std::string& source, ShaderStage stage) {
         res = "#version 320 es\n" + source;
     }
 
-    // 3. Desktop GL Emulation Macros + Precision + Mali Safe Math + Vibrant Color Boost
+    // 3. Desktop GL Emulation Macros + High-FPS Booster + Entity Shader Acceleration
     std::string desktop_emulation =
         "\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n"
         "precision highp sampler2DArray;\nprecision highp sampler3D;\nprecision highp samplerCube;\n"
@@ -47,6 +47,9 @@ std::string transpile_shader(const std::string& source, ShaderStage stage) {
         "#define MC_GLSL_VERSION_460 1\n"
         "#define IRIS_FEATURE_SSBO 1\n"
         "#define ACES_TONEMAPPING 1\n"
+        "#define TURBO_V1_FPS_BOOSTER 1\n"
+        "#define TURBO_V1_ENTITY_BOOST 1\n"
+        "#define TURBO_V1_FAST_MATH 1\n"
         "#ifndef TURBO_V1_SAFE_MATH\n"
         "#define TURBO_V1_SAFE_MATH\n"
         "#define pow(x, y) pow(max(abs(x), 0.00001), y)\n"
@@ -78,6 +81,7 @@ std::string transpile_shader(const std::string& source, ShaderStage stage) {
         res.replace(pos, 13, "smooth");
         pos += 6;
     }
+
 
     // 5. Legacy texture function names -> texture()
     const std::pair<const char*, const char*> tex_replaces[] = {

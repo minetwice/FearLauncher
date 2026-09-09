@@ -49,34 +49,88 @@ GLuint get_bound_buffer_id(GLenum target) {
     return (GLuint)val;
 }
 
+#define TURBO_V1_POOL_SIZE 256
+
+struct PoolBlock {
+    void* ptr;
+    GLsizeiptr capacity;
+    bool in_use;
+};
+
+static PoolBlock g_pool[TURBO_V1_POOL_SIZE];
+static int g_pool_count = 0;
+
+static void* acquire_pooled_buffer(GLsizeiptr alloc_len) {
+    for (int i = 0; i < g_pool_count; i++) {
+        if (!g_pool[i].in_use && g_pool[i].capacity >= alloc_len) {
+            g_pool[i].in_use = true;
+            return g_pool[i].ptr;
+        }
+    }
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, 64, alloc_len) != 0 || !ptr) {
+        ptr = malloc(alloc_len);
+    }
+    if (!ptr) ptr = calloc(1, alloc_len);
+
+    if (g_pool_count < TURBO_V1_POOL_SIZE && ptr) {
+        g_pool[g_pool_count].ptr = ptr;
+        g_pool[g_pool_count].capacity = alloc_len;
+        g_pool[g_pool_count].in_use = true;
+        g_pool_count++;
+    }
+    return ptr;
+}
+
+static void release_pooled_buffer(void* ptr) {
+    if (!ptr) return;
+    for (int i = 0; i < g_pool_count; i++) {
+        if (g_pool[i].ptr == ptr) {
+            g_pool[i].in_use = false;
+            return;
+        }
+    }
+    free(ptr);
+}
+
 void init() {
     pthread_mutex_lock(&g_mutex);
     memset(g_slots, 0, sizeof(g_slots));
+    for (int i = 0; i < g_pool_count; i++) {
+        if (g_pool[i].ptr) {
+            free(g_pool[i].ptr);
+            g_pool[i].ptr = nullptr;
+        }
+    }
+    memset(g_pool, 0, sizeof(g_pool));
     g_count = 0;
+    g_pool_count = 0;
     pthread_mutex_unlock(&g_mutex);
-    LOGI("TurboV1: 64-byte aligned shadow buffer pool initialized (%d slots)", TURBO_V1_MAX_SLOTS);
+    LOGI("TurboV1: High-Performance Aligned Buffer Pool Initialized (%d Slots)", TURBO_V1_MAX_SLOTS);
 }
 
 void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     GLuint buffer_id = get_bound_buffer_id(target);
     GLsizeiptr alloc_len = (length > 0) ? length : 65536;
 
-    void* ptr = nullptr;
-    if (posix_memalign(&ptr, 64, alloc_len) != 0 || !ptr) {
-        ptr = malloc(alloc_len);
-    }
-    if (!ptr) ptr = calloc(1, alloc_len);
+    pthread_mutex_lock(&g_mutex);
+    void* ptr = acquire_pooled_buffer(alloc_len);
     if (!ptr) {
+        pthread_mutex_unlock(&g_mutex);
         LOGE("TurboV1: Buffer allocation failed for length %ld", (long)alloc_len);
         return nullptr;
     }
 
-    pthread_mutex_lock(&g_mutex);
     int slot = find_free_slot();
     if (slot < 0) {
+        release_pooled_buffer(ptr);
         pthread_mutex_unlock(&g_mutex);
-        LOGW("TurboV1: Slots full, returning unmanaged aligned buffer");
-        return ptr;
+        LOGW("TurboV1: Slots full, allocating unmanaged shadow buffer");
+        void* fallback_ptr = nullptr;
+        if (posix_memalign(&fallback_ptr, 64, alloc_len) != 0 || !fallback_ptr) {
+            fallback_ptr = malloc(alloc_len);
+        }
+        return fallback_ptr;
     }
 
     g_slots[slot].target = target;
@@ -87,21 +141,13 @@ void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) 
     g_slots[slot].in_use = true;
     pthread_mutex_unlock(&g_mutex);
 
-    typedef GLenum (*PFN_glGetError)(void);
-    static PFN_glGetError real_err = nullptr;
-    if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
-
     return ptr;
 }
 
 GLboolean unmap(GLenum target) {
     typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
-    typedef GLenum (*PFN_glGetError)(void);
     static PFN_glBufferSubData real_sub = nullptr;
-    static PFN_glGetError real_err = nullptr;
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
-    if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
 
     GLuint current_id = get_bound_buffer_id(target);
     int found = -1;
@@ -125,13 +171,12 @@ GLboolean unmap(GLenum target) {
         Entry entry = g_slots[found];
         g_slots[found].in_use = false;
         g_slots[found].ptr = nullptr;
-        pthread_mutex_unlock(&g_mutex);
 
         if (entry.ptr) {
             if (real_sub) real_sub(target, entry.offset, entry.length, entry.ptr);
-            free(entry.ptr);
+            release_pooled_buffer(entry.ptr);
         }
-        if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
+        pthread_mutex_unlock(&g_mutex);
         return GL_TRUE;
     }
     pthread_mutex_unlock(&g_mutex);
@@ -141,7 +186,6 @@ GLboolean unmap(GLenum target) {
     if (!real_unmap) real_unmap = (PFN_glUnmapBuffer) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
     GLboolean res = GL_TRUE;
     if (real_unmap) res = real_unmap(target);
-    if (real_err) { GLenum e; do { e = real_err(); } while (e != GL_NO_ERROR); }
     return res ? res : GL_TRUE;
 }
 
@@ -157,17 +201,17 @@ GLboolean unmap_ptr(void* ptr) {
             Entry entry = g_slots[i];
             g_slots[i].in_use = false;
             g_slots[i].ptr = nullptr;
-            pthread_mutex_unlock(&g_mutex);
 
             if (real_sub && entry.ptr) {
                 real_sub(entry.target, entry.offset, entry.length, entry.ptr);
             }
-            free(ptr);
+            release_pooled_buffer(ptr);
+            pthread_mutex_unlock(&g_mutex);
             return GL_TRUE;
         }
     }
+    release_pooled_buffer(ptr);
     pthread_mutex_unlock(&g_mutex);
-    free(ptr);
     return GL_TRUE;
 }
 

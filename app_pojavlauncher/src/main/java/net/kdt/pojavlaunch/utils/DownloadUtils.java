@@ -26,7 +26,11 @@ public class DownloadUtils {
             // System.out.println("Connecting: " + url.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", USER_AGENT);
-            conn.setConnectTimeout(10000);
+            conn.setRequestProperty("Connection", "keep-alive");
+            conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(30000);
+            try { conn.setReceiveBufferSize(256 * 1024); } catch (Exception ignored) {}
             conn.setDoInput(true);
             conn.connect();
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -67,13 +71,19 @@ public class DownloadUtils {
         FileUtils.ensureParentDirectory(outputFile);
 
         HttpURLConnection conn = (HttpURLConnection) new URL(urlInput).openConnection();
+        conn.setRequestProperty("User-Agent", USER_AGENT);
+        conn.setRequestProperty("Connection", "keep-alive");
+        conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(30000);
+        try { conn.setReceiveBufferSize(256 * 1024); } catch (Exception ignored) {}
         InputStream readStr = conn.getInputStream();
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
             int current;
             int overall = 0;
             int length = conn.getContentLength();
 
-            if (buffer == null) buffer = new byte[65535];
+            if (buffer == null) buffer = new byte[262144];
 
             while ((current = readStr.read(buffer)) != -1) {
                 overall += current;

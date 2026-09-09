@@ -26,7 +26,7 @@ public class HashUtils {
     public static final byte[] REQW_HASH = {0x51, 0x5d, 0x5f, 0x1c, 0x56, 0x5c, 0x53, 0x5f, 0x5d, 0x50, 0x5b, 0x5e, 0x57, 0x1c, 0x5f, 0x5d, 0x56, 0x5e, 0x4b, 0x5f, 0x5d, 0x56, 0x5f, 0x53, 0x5c, 0x53, 0x55, 0x57, 0x40};
     @RequiresApi(26)
     private static byte[] fileHashNio(MessageDigest messageDigest, Path p) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(65535);
+        ByteBuffer buffer = ByteBuffer.allocateDirect(262144); // 256KB High-throughput buffer
         try(SeekableByteChannel channel = Files.newByteChannel(p, StandardOpenOption.READ)) {
             while(true) {
                 buffer.rewind();
@@ -39,7 +39,7 @@ public class HashUtils {
     }
 
     private static byte[] fileHashLegacy(MessageDigest messageDigest, File f) throws IOException {
-        byte[] sha1Buffer = new byte[65535];
+        byte[] sha1Buffer = new byte[262144]; // 256KB High-throughput buffer
         try (FileInputStream stream = new FileInputStream(f)){
             int readLen;
             while((readLen = stream.read(sha1Buffer)) != -1) {
