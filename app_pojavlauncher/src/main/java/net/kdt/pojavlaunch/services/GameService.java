@@ -53,10 +53,14 @@ public class GameService extends Service {
                 .setNotificationSilent();
 
         Notification notification = notificationBuilder.build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
-        } else {
-            startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
+            } else {
+                startForeground(NotificationUtils.NOTIFICATION_ID_GAME_SERVICE, notification);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("GameService", "Failed to startForeground due to Android background constraints", e);
         }
         return START_NOT_STICKY; // non-sticky so android wont try restarting the game after the user uses the "Quit" button
     }

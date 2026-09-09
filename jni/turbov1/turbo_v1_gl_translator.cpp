@@ -1,8 +1,8 @@
-#include "fear_turbo_gl_translator.h"
-#include "fear_turbo_buffer_shadow.h"
+#include "turbo_v1_gl_translator.h"
+#include "turbo_v1_buffer.h"
 #include <dlfcn.h>
 
-namespace fear_turbo {
+namespace turbo_v1 {
 
 typedef void (*PFN_glBufferData)(GLenum, GLsizeiptr, const void*, GLenum);
 typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
@@ -55,19 +55,18 @@ void translate_glBufferStorage(GLenum target, GLsizeiptr size, const void* data,
     if (flags & 0x0040) usage = GL_DYNAMIC_READ;
     if (data && real_glBufferData) real_glBufferData(target, size, data, usage);
     flush_errors();
-    LOGI("FearTurbo: glBufferStorage -> glBufferData(target=0x%X, size=%ld, usage=0x%X)", target, (long)size, usage);
 }
 
 void* translate_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
-    return buffer_shadow::map(target, offset, length, access);
+    return buffer::map(target, offset, length, access);
 }
 
 GLboolean translate_glUnmapBuffer(GLenum target) {
-    return buffer_shadow::unmap(target);
+    return buffer::unmap(target);
 }
 
 void translate_glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) {
-    buffer_shadow::flush_range(target, offset, length);
+    buffer::flush_range(target, offset, length);
 }
 
 void translate_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* data, GLbitfield flags) {
@@ -75,8 +74,11 @@ void translate_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* 
     GLenum usage = GL_STATIC_DRAW;
     if (flags & 0x0100) usage = GL_DYNAMIC_DRAW;
     if (real_glBindBuffer && real_glBufferData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
@@ -84,8 +86,11 @@ void translate_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void* 
 void translate_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* data, GLenum usage) {
     resolve_gles();
     if (real_glBindBuffer && real_glBufferData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
@@ -93,26 +98,41 @@ void translate_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void* dat
 void translate_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void* data) {
     resolve_gles();
     if (real_glBindBuffer && real_glBufferSubData) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
         real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
         real_glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
     }
     flush_errors();
 }
 
 void* translate_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     resolve_gles();
-    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    return buffer_shadow::map(GL_ARRAY_BUFFER, offset, length, access);
+    if (real_glBindBuffer) {
+        GLint prev_binding = 0;
+        if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
+        real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        void* ptr = buffer::map(GL_ARRAY_BUFFER, offset, length, access);
+        real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
+        return ptr;
+    }
+    return buffer::map(GL_ARRAY_BUFFER, offset, length, access);
 }
 
 GLboolean translate_glUnmapNamedBuffer(GLuint buffer) {
-    return buffer_shadow::unmap(GL_ARRAY_BUFFER);
+    resolve_gles();
+    GLint prev_binding = 0;
+    if (real_glGetIntegerv) real_glGetIntegerv(0x8894 /* GL_ARRAY_BUFFER_BINDING */, &prev_binding);
+    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GLboolean res = buffer::unmap(GL_ARRAY_BUFFER);
+    if (real_glBindBuffer) real_glBindBuffer(GL_ARRAY_BUFFER, (GLuint)prev_binding);
+    return res;
 }
 
 void translate_glCreateBuffers(GLsizei n, GLuint* buffers) {
     resolve_gles();
     if (real_glGenBuffers) real_glGenBuffers(n, buffers);
-    LOGI("FearTurbo: glCreateBuffers -> glGenBuffers(n=%d)", n);
 }
 
 void translate_glCreateVertexArrays(GLsizei n, GLuint* arrays) {
@@ -120,7 +140,6 @@ void translate_glCreateVertexArrays(GLsizei n, GLuint* arrays) {
     static PFN_glGenVertexArrays real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glGenVertexArrays) dlsym(RTLD_DEFAULT, "glGenVertexArrays");
     if (real_fn) real_fn(n, arrays);
-    LOGI("FearTurbo: glCreateVertexArrays -> glGenVertexArrays(n=%d)", n);
 }
 
 void translate_glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
@@ -128,28 +147,58 @@ void translate_glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
     static PFN_glGenTextures real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glGenTextures) dlsym(RTLD_DEFAULT, "glGenTextures");
     if (real_fn) real_fn(n, textures);
-    LOGI("FearTurbo: glCreateTextures -> glGenTextures(n=%d)", n);
 }
 
 void translate_glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer, GLintptr offset, GLsizeiptr size) {
-    LOGW("FearTurbo: glTextureBufferRange stub (not yet implemented)");
+    typedef void (*PFN_glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr);
+    typedef void (*PFN_glBindTexture)(GLenum, GLuint);
+    typedef void (*PFN_glGetIntegerv)(GLenum, GLint*);
+    static PFN_glTexBufferRange real_tex_buf_range = nullptr;
+    static PFN_glBindTexture real_bind_tex = nullptr;
+    static PFN_glGetIntegerv real_get_int = nullptr;
+    if (!real_tex_buf_range) real_tex_buf_range = (PFN_glTexBufferRange) dlsym(RTLD_DEFAULT, "glTexBufferRangeOES");
+    if (!real_tex_buf_range) real_tex_buf_range = (PFN_glTexBufferRange) dlsym(RTLD_DEFAULT, "glTexBufferRange");
+    if (!real_bind_tex) real_bind_tex = (PFN_glBindTexture) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (!real_get_int) real_get_int = (PFN_glGetIntegerv) dlsym(RTLD_DEFAULT, "glGetIntegerv");
+
+    if (real_bind_tex && real_tex_buf_range) {
+        GLint prev_binding = 0;
+        if (real_get_int) real_get_int(0x8C2C /* GL_TEXTURE_BINDING_BUFFER */, &prev_binding);
+        real_bind_tex(0x8C2A /* GL_TEXTURE_BUFFER */, texture);
+        real_tex_buf_range(0x8C2A /* GL_TEXTURE_BUFFER */, internalFormat, buffer, offset, size);
+        real_bind_tex(0x8C2A /* GL_TEXTURE_BUFFER */, (GLuint)prev_binding);
+    }
     flush_errors();
 }
 
-void translate_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding) {
-    typedef void (*PFN_glShaderStorageBlockBinding)(GLuint, GLuint, GLuint);
-    static PFN_glShaderStorageBlockBinding real_fn = nullptr;
-    if (!real_fn) real_fn = (PFN_glShaderStorageBlockBinding) dlsym(RTLD_DEFAULT, "glShaderStorageBlockBinding");
-    if (real_fn) real_fn(program, storageBlockIndex, storageBlockBinding);
+void translate_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers) {
+    typedef void (*PFN_glTextureView)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint, GLuint);
+    static PFN_glTextureView real_tex_view = nullptr;
+    if (!real_tex_view) real_tex_view = (PFN_glTextureView) dlsym(RTLD_DEFAULT, "glTextureViewOES");
+    if (!real_tex_view) real_tex_view = (PFN_glTextureView) dlsym(RTLD_DEFAULT, "glTextureView");
+    if (real_tex_view) {
+        real_tex_view(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
+    }
     flush_errors();
 }
 
-void translate_glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) {
+void translate_glBindTextureUnit(GLuint unit, GLuint texture) {
+    typedef void (*PFN_glActiveTexture)(GLenum);
+    typedef void (*PFN_glBindTexture)(GLenum, GLenum);
+    static PFN_glActiveTexture real_active = nullptr;
+    static PFN_glBindTexture real_bind = nullptr;
+    if (!real_active) real_active = (PFN_glActiveTexture) dlsym(RTLD_DEFAULT, "glActiveTexture");
+    if (!real_bind) real_bind = (PFN_glBindTexture) dlsym(RTLD_DEFAULT, "glBindTexture");
+    if (real_active) real_active(GL_TEXTURE0 + unit);
+    if (real_bind) real_bind(GL_TEXTURE_2D, texture);
+    flush_errors();
+}
+
+void translate_glDispatchCompute(GLuint x, GLuint y, GLuint z) {
     typedef void (*PFN_glDispatchCompute)(GLuint, GLuint, GLuint);
     static PFN_glDispatchCompute real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glDispatchCompute) dlsym(RTLD_DEFAULT, "glDispatchCompute");
-    if (real_fn) real_fn(num_groups_x, num_groups_y, num_groups_z);
-    else LOGW("FearTurbo: glDispatchCompute not available");
+    if (real_fn) real_fn(x, y, z);
     flush_errors();
 }
 
@@ -158,7 +207,6 @@ void translate_glDispatchComputeIndirect(GLintptr indirect) {
     static PFN_glDispatchComputeIndirect real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glDispatchComputeIndirect) dlsym(RTLD_DEFAULT, "glDispatchComputeIndirect");
     if (real_fn) real_fn(indirect);
-    else LOGW("FearTurbo: glDispatchComputeIndirect not available");
     flush_errors();
 }
 
@@ -176,7 +224,6 @@ void translate_glMultiDrawArraysIndirect(GLenum mode, const void* indirect, GLsi
     static PFN_glMultiDrawArraysIndirect real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glMultiDrawArraysIndirect) dlsym(RTLD_DEFAULT, "glMultiDrawArraysIndirect");
     if (real_fn) real_fn(mode, indirect, drawcount, stride);
-    else LOGW("FearTurbo: glMultiDrawArraysIndirect not available");
     flush_errors();
 }
 
@@ -185,24 +232,6 @@ void translate_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void*
     static PFN_glMultiDrawElementsIndirect real_fn = nullptr;
     if (!real_fn) real_fn = (PFN_glMultiDrawElementsIndirect) dlsym(RTLD_DEFAULT, "glMultiDrawElementsIndirect");
     if (real_fn) real_fn(mode, type, indirect, drawcount, stride);
-    else LOGW("FearTurbo: glMultiDrawElementsIndirect not available");
-    flush_errors();
-}
-
-void translate_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers) {
-    LOGW("FearTurbo: glTextureView stub");
-    flush_errors();
-}
-
-void translate_glBindTextureUnit(GLuint unit, GLuint texture) {
-    typedef void (*PFN_glActiveTexture)(GLenum);
-    typedef void (*PFN_glBindTexture)(GLenum, GLenum);
-    static PFN_glActiveTexture real_active = nullptr;
-    static PFN_glBindTexture real_bind = nullptr;
-    if (!real_active) real_active = (PFN_glActiveTexture) dlsym(RTLD_DEFAULT, "glActiveTexture");
-    if (!real_bind) real_bind = (PFN_glBindTexture) dlsym(RTLD_DEFAULT, "glBindTexture");
-    if (real_active) real_active(GL_TEXTURE0 + unit);
-    if (real_bind) real_bind(GL_TEXTURE_2D, texture);
     flush_errors();
 }
 
@@ -214,8 +243,8 @@ void translate_glGenSamplers(GLsizei count, GLuint* samplers) {
         real_fn(count, samplers);
         bool valid = true;
         for (int i = 0; i < count; i++) { if (samplers[i] == 0) { valid = false; break; } }
-        if (!valid) { static GLuint next_id = 1; for (int i = 0; i < count; i++) samplers[i] = next_id++; LOGW("FearTurbo: glGenSamplers returned invalid IDs"); }
-    } else { static GLuint next_id = 1; for (int i = 0; i < count; i++) samplers[i] = next_id++; LOGW("FearTurbo: glGenSamplers not available"); }
+        if (!valid) { static GLuint next_id = 1; for (int i = 0; i < count; i++) samplers[i] = next_id++; }
+    } else { static GLuint next_id = 1; for (int i = 0; i < count; i++) samplers[i] = next_id++; }
 }
 
 void translate_glBindSampler(GLuint unit, GLuint sampler) {
@@ -342,9 +371,9 @@ static const int FAKE_EXT_COUNT = sizeof(FAKE_EXTENSIONS) / sizeof(FAKE_EXTENSIO
 
 const GLubyte* translate_glGetString(GLenum name) {
     switch (name) {
-        case 0x1F02: return (const GLubyte*)get_gl_version_string();
-        case 0x1F01: return (const GLubyte*)get_gl_renderer_string();
-        case 0x1F00: return (const GLubyte*)get_gl_vendor_string();
+        case 0x1F02: return (const GLubyte*)get_version_string();
+        case 0x1F01: return (const GLubyte*)get_renderer_string();
+        case 0x1F00: return (const GLubyte*)get_vendor_string();
         case 0x1F03: return (const GLubyte*)
             "GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store "
             "GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer "
@@ -372,4 +401,4 @@ const GLubyte* translate_glGetStringi(GLenum name, GLuint index) {
     return (const GLubyte*)"";
 }
 
-} // namespace fear_turbo
+} // namespace turbo_v1

@@ -52,8 +52,14 @@ public class Downloader {
         mThreadException.set(null);
         mDownloadedFileCounter.set(0);
         mDownloadedSizeCounter.set(0);
-        mDownloadService = Executors.newFixedThreadPool(3);
-        int verifyThreads = Math.max(2, Runtime.getRuntime().availableProcessors() - 2);
+        int downloadThreads = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
+        mDownloadService = Executors.newFixedThreadPool(downloadThreads, r -> {
+            Thread thread = new Thread(r);
+            thread.setPriority(Thread.MAX_PRIORITY);
+            thread.setName("download thread");
+            return thread;
+        });
+        int verifyThreads = Math.max(4, Runtime.getRuntime().availableProcessors());
         mVerifyService = Executors.newFixedThreadPool(verifyThreads, r -> {
             Thread thread = new Thread(r);
             thread.setPriority(10);
@@ -92,7 +98,8 @@ public class Downloader {
             reducedList.add(element);
         }
         if(reducedList.isEmpty()) return;
-        try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
+        int threads = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
+        try (ExecutorService executorService = Executors.newFixedThreadPool(threads)) {
             for(TaskMetadata element : reducedList) executorService.submit(new CompleteMetadataTask(element, this));
             executorService.shutdown();
             while (!executorService.awaitTermination(33, TimeUnit.MILLISECONDS)) {
@@ -159,8 +166,10 @@ public class Downloader {
 
     private static HttpURLConnection openConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setReadTimeout(10000);
+        connection.setConnectTimeout(8000);
+        connection.setReadTimeout(15000);
         connection.setRequestProperty("User-Agent", DownloadUtils.USER_AGENT);
+        connection.setRequestProperty("Connection", "keep-alive");
         connection.setDoInput(true);
         connection.setDoOutput(false);
         return connection;
@@ -194,8 +203,8 @@ public class Downloader {
 
     protected boolean tryContinueDownload(File file, long wantedLength, URL url, BytesCopiedListener listener) throws IOException {
         HttpURLConnection connection = openConnection(url);
-        String range = String.format(Locale.ENGLISH,"bytes %d-%d/%d", file.length(), wantedLength-1, wantedLength);
-        connection.setRequestProperty("Content-Range", range);
+        String range = String.format(Locale.ENGLISH, "bytes=%d-%d", file.length(), wantedLength - 1);
+        connection.setRequestProperty("Range", range);
         try {
             connection.connect();
             int responseCode = connection.getResponseCode();
@@ -213,24 +222,28 @@ public class Downloader {
 
     protected long getFileContentLength(URL url) throws IOException {
         HttpURLConnection connection = openConnection(url);
-
-        connection.setConnectTimeout(2000);
-        connection.setReadTimeout(2000);
-
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
         connection.setRequestMethod("HEAD");
-        connection.connect();
-        int response = connection.getResponseCode();
-        if(response >= 400) {
-            return -1;
-        }else {
-            return connection.getContentLength();
+        try {
+            connection.connect();
+            int response = connection.getResponseCode();
+            if(response == 200 || response == 206) {
+                long len = connection.getContentLengthLong();
+                if(len > 0) return len;
+            }
+        } catch (IOException ignored) {
+            // Fallback gracefully if HEAD is blocked or times out
+        } finally {
+            connection.disconnect();
         }
+        return -1;
     }
 
     public static byte[] getBuffer() {
         byte[] buffer = sThreadLocalBuffer.get();
         if(buffer == null) {
-            buffer = new byte[8192];
+            buffer = new byte[65536]; // 64KB buffer
             sThreadLocalBuffer.set(buffer);
         }
         return buffer;

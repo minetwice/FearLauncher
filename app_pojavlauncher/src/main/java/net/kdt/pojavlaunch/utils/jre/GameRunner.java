@@ -149,7 +149,7 @@ public class GameRunner {
         }
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("fear_turbo");
+        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turbov1");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
@@ -282,8 +282,10 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=libFearTurbo.so");
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turbov1") ? "libTurboV1.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
+        javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
+        javaArgList.add("-Dminecraft.narrator=false");
 
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
         Log.i("GameRunner", "Running with "+ launchArgs.toString());

@@ -1,32 +1,30 @@
 cmake_minimum_required(VERSION 3.10)
-project(fear_turbo C CXX)
+project(turbov1 C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Fear Turbo Engine Native Library
-add_library(fear_turbo SHARED
-    fearturbo/fear_turbo_core.cpp
-    fearturbo/fear_turbo_buffer_shadow.cpp
-    fearturbo/fear_turbo_gl_translator.cpp
-    fearturbo/fear_turbo_shader_ast.cpp
-    fearturbo/fear_turbo_shader_codegen.cpp
-    fearturbo/fear_turbo_shader_parser.cpp
-    fearturbo/fear_turbo_hooks.cpp
+# TurboV1 Engine Native Library
+add_library(turbov1 SHARED
+    turbov1/turbo_v1_core.cpp
+    turbov1/turbo_v1_buffer.cpp
+    turbov1/turbo_v1_gl_translator.cpp
+    turbov1/turbo_v1_shader_transpiler.cpp
+    turbov1/turbo_v1_hooks.cpp
 )
 
-set_target_properties(fear_turbo PROPERTIES
-    OUTPUT_NAME "FearTurbo"
+set_target_properties(turbov1 PROPERTIES
+    OUTPUT_NAME "TurboV1"
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
 )
 
-target_include_directories(fear_turbo PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/fearturbo
+target_include_directories(turbov1 PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/turbov1
 )
 
-target_link_libraries(fear_turbo PRIVATE
+target_link_libraries(turbov1 PRIVATE
     EGL
     GLESv3
     log
