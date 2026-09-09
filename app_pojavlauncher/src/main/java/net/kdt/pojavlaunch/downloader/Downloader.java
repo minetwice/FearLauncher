@@ -52,18 +52,20 @@ public class Downloader {
         mThreadException.set(null);
         mDownloadedFileCounter.set(0);
         mDownloadedSizeCounter.set(0);
-        int downloadThreads = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
+        // Indus2.0: Increased thread pool for faster parallel downloads
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+        int downloadThreads = Math.max(16, cpuCores * 4);
         mDownloadService = Executors.newFixedThreadPool(downloadThreads, r -> {
             Thread thread = new Thread(r);
             thread.setPriority(Thread.MAX_PRIORITY);
-            thread.setName("download thread");
+            thread.setName("indus-dl-thread");
             return thread;
         });
-        int verifyThreads = Math.max(4, Runtime.getRuntime().availableProcessors());
+        int verifyThreads = Math.max(8, cpuCores * 2);
         mVerifyService = Executors.newFixedThreadPool(verifyThreads, r -> {
             Thread thread = new Thread(r);
             thread.setPriority(10);
-            thread.setName("verify thread");
+            thread.setName("indus-verify-thread");
             return thread;
         });
         long totalSize = 0;
@@ -166,10 +168,14 @@ public class Downloader {
 
     private static HttpURLConnection openConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(8000);
-        connection.setReadTimeout(15000);
+        // Indus2.0: Shorter connect timeout for faster failure + retry
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(30000);
         connection.setRequestProperty("User-Agent", DownloadUtils.USER_AGENT);
         connection.setRequestProperty("Connection", "keep-alive");
+        // Indus2.0: Enable keep-alive and request chunked encoding for large files
+        connection.setRequestProperty("Accept-Encoding", "identity");
+        connection.setRequestProperty("Cache-Control", "no-cache");
         connection.setDoInput(true);
         connection.setDoOutput(false);
         return connection;
@@ -243,7 +249,8 @@ public class Downloader {
     public static byte[] getBuffer() {
         byte[] buffer = sThreadLocalBuffer.get();
         if(buffer == null) {
-            buffer = new byte[65536]; // 64KB buffer
+            // Indus2.0: 256KB buffer — 4x larger for faster I/O throughput
+            buffer = new byte[262144]; // 256KB buffer
             sThreadLocalBuffer.set(buffer);
         }
         return buffer;
