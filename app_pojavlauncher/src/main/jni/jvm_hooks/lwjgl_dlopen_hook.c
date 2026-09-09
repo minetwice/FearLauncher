@@ -133,7 +133,7 @@ static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pnam
     if (real_fn) real_fn(sampler, pname, param);
 }
 
-static void* glMapBufferRange_hook(unsigned int target, long offset, long length, unsigned int access) {
+void* glMapBufferRange(unsigned int target, long offset, long length, unsigned int access) {
     if (length <= 0 || length > 67108864) length = 65536; // Safe 64KB fallback
 
     void* ptr = NULL;
@@ -169,7 +169,7 @@ static void* glMapBufferRange_hook(unsigned int target, long offset, long length
 }
 
 
-static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
+void* glMapBuffer(unsigned int target, unsigned int access) {
     typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
     static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
     if (!real_glGetBufferParameteriv) {
@@ -182,10 +182,10 @@ static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
     unsigned int rangeAccess = 0x0002;
     if (access == 0x88B8) rangeAccess = 0x0001;
     else if (access == 0x88BA) rangeAccess = 0x0001 | 0x0002;
-    return glMapBufferRange_hook(target, 0, len, rangeAccess);
+    return glMapBufferRange(target, 0, len, rangeAccess);
 }
 
-static int glUnmapBuffer_hook(unsigned int target) {
+int glUnmapBuffer(unsigned int target) {
     typedef void (*glBindBuffer_pfn)(unsigned int, unsigned int);
     typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
     typedef unsigned int (*glGetError_pfn)(void);
@@ -299,10 +299,10 @@ void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi_hook;
     if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
         LOGI("eglGetProcAddress_hook: glMapBufferRange -> shadow buffer");
-        return (void*) glMapBufferRange_hook;
+        return (void*) glMapBufferRange;
     }
-    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) return (void*) glMapBuffer_hook;
-    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) return (void*) glUnmapBuffer_hook;
+    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) return (void*) glMapBuffer;
+    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) return (void*) glUnmapBuffer;
     if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
         typedef void* (*pfn)(const char*); static pfn real = NULL;
         if (!real) real = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
@@ -333,15 +333,15 @@ void* eglGetProcAddress_hook(const char* procname) {
     }
     if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
         printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBufferRange -> shadow buffer\n");
-        return (void*) glMapBufferRange_hook;
+        return (void*) glMapBufferRange;
     }
     if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) {
         printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBuffer -> shadow buffer\n");
-        return (void*) glMapBuffer_hook;
+        return (void*) glMapBuffer;
     }
     if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) {
         printf("LWJGL linkerhook: eglGetProcAddress hooked glUnmapBuffer -> shadow buffer\n");
-        return (void*) glUnmapBuffer_hook;
+        return (void*) glUnmapBuffer;
     }
     if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
         printf("LWJGL linkerhook: eglGetProcAddress hooked glMemoryBarrier\n");
@@ -383,8 +383,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   jlong handle, jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (symbol != NULL) {
-        if (strcmp(symbol, "eglGetProcAddress") == 0) {
-            printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
+        if (strcmp(symbol, "eglGetProcAddress") == 0 || strcmp(symbol, "glfwGetProcAddress") == 0) {
+            printf("LWJGL linkerhook: hooked %s\n", symbol);
             return (jlong) eglGetProcAddress_hook;
         }
         if (strcmp(symbol, "glGetString") == 0) {
@@ -401,15 +401,15 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
         if (strcmp(symbol, "glMapBufferRange") == 0 || strcmp(symbol, "glMapBufferRangeEXT") == 0 || strcmp(symbol, "glMapBufferRangeARB") == 0) {
             printf("LWJGL linkerhook: hooked glMapBufferRange -> shadow buffer\n");
-            return (jlong) glMapBufferRange_hook;
+            return (jlong) glMapBufferRange;
         }
         if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
             printf("LWJGL linkerhook: hooked glMapBuffer -> shadow buffer\n");
-            return (jlong) glMapBuffer_hook;
+            return (jlong) glMapBuffer;
         }
         if (strcmp(symbol, "glUnmapBuffer") == 0 || strcmp(symbol, "glUnmapBufferOES") == 0 || strcmp(symbol, "glUnmapBufferARB") == 0) {
             printf("LWJGL linkerhook: hooked glUnmapBuffer -> shadow buffer\n");
-            return (jlong) glUnmapBuffer_hook;
+            return (jlong) glUnmapBuffer;
         }
         if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
             void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
@@ -434,8 +434,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL dlopen() and dlsym() hooks (BUILD v20260909-F)");
-    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260909-F)\n");
+    LOGI("Installing LWJGL dlopen() and dlsym() hooks (BUILD v20260909-G)");
+    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260909-G)\n");
     
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if(dynamicLinkLoader == NULL) {
