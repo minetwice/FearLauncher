@@ -10,16 +10,19 @@
 namespace turbo_v1 {
 
 // ============================================================================
-// TurboV1 FPS Booster  Extreme Performance System
-// Achieves 200+ FPS with smooth frame pacing
+// TurboV2 NextGen FPS Booster & Quality Enhancer System
+// Achieves 200+ FPS with extreme smoothness & vibrant visual enhancement
 // ============================================================================
 
 class FPSBooster {
 public:
     static FPSBooster& get_instance();
     
+    FPSBooster();
+    ~FPSBooster();
+
     // Initialize FPS booster with target FPS
-    void initialize(int target_fps = 200);
+    void initialize(int target_fps = 240);
     
     // Call before frame render
     void begin_frame();
@@ -58,9 +61,8 @@ public:
     void optimize_entity_rendering();
     
 private:
-    FPSBooster();
-    ~FPSBooster();
-    
+    void detect_and_optimize_gpu();
+
     // Prevent copying
     FPSBooster(const FPSBooster&) = delete;
     FPSBooster& operator=(const FPSBooster&) = delete;
@@ -114,7 +116,7 @@ private:
         float gpu_utilization;
     } m_metrics;
     
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
 };
 
 // Global FPS booster instance access

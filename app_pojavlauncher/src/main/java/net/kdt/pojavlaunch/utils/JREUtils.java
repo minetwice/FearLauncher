@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("Turbo")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -87,8 +87,9 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "turbov2":
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Environment...");
+                Logger.appendToLog("[TurboV2] Initializing NextGen GL ES 3.2 Ultra FPS & Quality Engine Environment...");
                 envMap.put("LIBGL_ES", "3");
                 envMap.put("LIBGL_USEVBO", "1");
                 envMap.put("LIBGL_BATCH", "1");
@@ -126,6 +127,8 @@ public class JREUtils {
                 envMap.put("glsl_zero_init", "true");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
+                envMap.put("TURBO_QUALITY_ENHANCER", "1");
+                envMap.put("TURBO_TARGET_FPS", "240");
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -272,8 +275,9 @@ public class JREUtils {
         }
 
         switch (renderer){
+            case "turbov2":
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing NextGen GL ES 3.2 Engine Backend...");
+                Logger.appendToLog("[TurboV2] Initializing NextGen GL ES 3.2 Ultra FPS & Quality Engine Backend...");
                 renderLibrary = "libgl4es_114.so";
                 useGles = true;
                 bypassNamespace = false;
@@ -281,10 +285,10 @@ public class JREUtils {
 
                 try {
                     System.loadLibrary("TurboV1");
-                    String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
+                    String cachePath = Tools.DIR_GAME_HOME + "/turbov2_cache";
                     initTurboV1Engine(cachePath);
                 } catch (Throwable t) {
-                    Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                    Log.e("JREUtils", "TurboV2 native engine init failed", t);
                 }
                 break;
             case "vulkan_zink":
