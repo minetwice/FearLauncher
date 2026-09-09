@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 #include <bytehook.h>
+#include "../native_hooks/native_hooks.h"
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
@@ -19,9 +20,9 @@ static void* ready_handle;
 // External hook from lwjgl_dlopen_hook.c
 void* eglGetProcAddress_hook(const char* procname);
 
-// Native EGL hook using bytehook
+// Native EGL hook using bytehook - use bytehook_hook_all for simplicity
 static void* bytehook_handle = NULL;
-static bytehook_hook_single_t bytehook_hook_single_p = NULL;
+static bytehook_hook_all_t bytehook_hook_all_p = NULL;
 
 static bool init_bytehook() {
     if (bytehook_handle != NULL) return true;
@@ -31,8 +32,8 @@ static bool init_bytehook() {
         return false;
     }
     
-    bytehook_hook_single_p = (bytehook_hook_single_t)dlsym(bytehook_handle, "bytehook_hook_single");
-    if (bytehook_hook_single_p == NULL) {
+    bytehook_hook_all_p = (bytehook_hook_all_t)dlsym(bytehook_handle, "bytehook_hook_all");
+    if (bytehook_hook_all_p == NULL) {
         dlclose(bytehook_handle);
         bytehook_handle = NULL;
         return false;
@@ -59,9 +60,9 @@ void install_global_egl_hook() {
     if (!init_bytehook()) {
         return;
     }
-    // Hook eglGetProcAddress in native GL libraries using bytehook
-    bytehook_hook_single_p(NULL, NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
-    bytehook_hook_single_p(NULL, NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
+    // Hook eglGetProcAddress in all libraries using bytehook_hook_all
+    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    bytehook_hook_all_p(NULL, "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
 }
 
 static const char *sphal_namespaces[3] = {
