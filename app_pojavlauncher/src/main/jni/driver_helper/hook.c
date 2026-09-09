@@ -4,7 +4,7 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
-#include <xhook.h>
+#include <bytehook.h>
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
@@ -19,11 +19,8 @@ static void* ready_handle;
 void* eglGetProcAddress_hook(const char* procname);
 
 void install_global_egl_hook() {
-    // Forcefully hook eglGetProcAddress in native GL libraries
-    xhook_register("libEGL.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
-    xhook_register("libGLESv2.so", "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
-    xhook_register("libglfw.so", "glfwGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
-    xhook_refresh(1);
+    // Forcefully hook eglGetProcAddress in native GL libraries using bytehook
+    bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL);
 }
 
 static const char *sphal_namespaces[3] = {
