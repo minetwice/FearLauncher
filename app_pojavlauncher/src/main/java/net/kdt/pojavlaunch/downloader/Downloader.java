@@ -52,17 +52,17 @@ public class Downloader {
         mThreadException.set(null);
         mDownloadedFileCounter.set(0);
         mDownloadedSizeCounter.set(0);
-        int downloadThreads = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
+        int downloadThreads = Math.min(16, Math.max(8, Runtime.getRuntime().availableProcessors() * 2));
         mDownloadService = Executors.newFixedThreadPool(downloadThreads, r -> {
             Thread thread = new Thread(r);
-            thread.setPriority(Thread.MAX_PRIORITY);
+            thread.setPriority(Thread.NORM_PRIORITY + 2);
             thread.setName("download thread");
             return thread;
         });
         int verifyThreads = Math.max(4, Runtime.getRuntime().availableProcessors());
         mVerifyService = Executors.newFixedThreadPool(verifyThreads, r -> {
             Thread thread = new Thread(r);
-            thread.setPriority(10);
+            thread.setPriority(Thread.NORM_PRIORITY + 1);
             thread.setName("verify thread");
             return thread;
         });
@@ -167,7 +167,7 @@ public class Downloader {
     private static HttpURLConnection openConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(8000);
-        connection.setReadTimeout(15000);
+        connection.setReadTimeout(30000);
         connection.setRequestProperty("User-Agent", DownloadUtils.USER_AGENT);
         connection.setRequestProperty("Connection", "keep-alive");
         connection.setDoInput(true);
@@ -243,7 +243,7 @@ public class Downloader {
     public static byte[] getBuffer() {
         byte[] buffer = sThreadLocalBuffer.get();
         if(buffer == null) {
-            buffer = new byte[65536]; // 64KB buffer
+            buffer = new byte[262144]; // 256KB High-throughput thread-local buffer
             sThreadLocalBuffer.set(buffer);
         }
         return buffer;

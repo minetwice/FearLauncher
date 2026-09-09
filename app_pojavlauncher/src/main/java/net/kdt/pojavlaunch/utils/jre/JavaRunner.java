@@ -98,12 +98,20 @@ public class JavaRunner {
         userArguments.add(0, "-Xms"+LauncherPreferences.PREF_RAM_ALLOCATION+"M");
         userArguments.add(0, "-Xmx"+LauncherPreferences.PREF_RAM_ALLOCATION+"M");
 
-        // Advanced Android gaming GC flags for smooth background memory handling
+        int cpus = Math.max(1, java.lang.Runtime.getRuntime().availableProcessors());
+        int chunkThreads = Math.max(2, cpus - 1);
+
+        // Advanced High-FPS Cotton-Smooth G1GC Tuning & Low-Latency Memory Management
         userArguments.add("-XX:+UseG1GC");
-        userArguments.add("-XX:MaxGCPauseMillis=15");
+        userArguments.add("-XX:MaxGCPauseMillis=10");
+        userArguments.add("-XX:InitiatingHeapOccupancyPercent=45");
+        userArguments.add("-XX:G1ReservePercent=15");
         userArguments.add("-XX:+DisableExplicitGC");
         userArguments.add("-XX:+ParallelRefProcEnabled");
         userArguments.add("-XX:+UseStringDeduplication");
+        userArguments.add("-XX:+OptimizeStringConcat");
+        userArguments.add("-XX:-UseBiasedLocking");
+        userArguments.add("-XX:+UnlockExperimentalVMOptions");
 
         ArrayList<String> overridableArguments = new ArrayList<>(Arrays.asList(
                 "-Djava.home=" + runtimeHome,
@@ -117,21 +125,22 @@ public class JavaRunner {
                 "-Dpojav.path.private.account=" + Tools.DIR_ACCOUNT_NEW,
                 "-Duser.timezone=" + TimeZone.getDefault().getID(),
 
+                "-Djava.util.concurrent.ForkJoinPool.common.parallelism=" + cpus,
+                "-Dnet.minecraft.client.render.chunk.ChunkBuilder.threads=" + chunkThreads,
+                "-Dpojav.cpu.highperf=true",
+                "-Dsun.rmi.dgc.client.gcInterval=3600000",
+                "-Dsun.rmi.dgc.server.gcInterval=3600000",
+
                 "-Dorg.lwjgl.vulkan.libname=libvulkan.so",
                 "-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared",
                 "-Dorg.lwjgl.system.allocator=system",
-                //LWJGL 3 DEBUG FLAGS
-                //"-Dorg.lwjgl.util.Debug=true",
-                //"-Dorg.lwjgl.util.DebugFunctions=true",
-                //"-Dorg.lwjgl.util.DebugLoader=true",
-                // GLFW Stub width height
                 "-Dglfwstub.initEgl=false",
                 "-Dext.net.resolvPath=" +resolvFile,
-                "-Dlog4j2.formatMsgNoLookups=true", //Log4j RCE mitigation
-                "-Dfml.earlyprogresswindow=false", //Forge 1.14+ workaround
+                "-Dlog4j2.formatMsgNoLookups=true",
+                "-Dfml.earlyprogresswindow=false",
                 "-Dloader.disable_forked_guis=true",
                 "-Dsodium.checks.issue2561=false",
-                "-Djdk.lang.Process.launchMechanism=FORK" // Default is POSIX_SPAWN which requires starting jspawnhelper, which doesn't work on Android
+                "-Djdk.lang.Process.launchMechanism=FORK"
         ));
         List<String> additionalArguments = new ArrayList<>();
         for(String arg : overridableArguments) {

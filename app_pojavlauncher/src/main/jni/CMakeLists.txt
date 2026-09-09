@@ -23,6 +23,8 @@ add_library(pojavexec SHARED
 
 )
 
+find_package(bytehook CONFIG REQUIRED)
+
 target_include_directories(pojavexec PRIVATE .)
 target_link_libraries(pojavexec PRIVATE log)
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
@@ -33,12 +35,17 @@ if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     add_library(linkerhook SHARED
             driver_helper/hook.c
     )
-    target_link_options(linkerhook PRIVATE "-Wl,-z,global")
+    target_include_directories(linkerhook PRIVATE . native_hooks)
+    target_link_libraries(linkerhook PRIVATE log bytehook::bytehook)
+    target_link_options(linkerhook PRIVATE "-Wl,-z,global" "-Wl,-z,undefs")
 endif()
 
 add_library(pojavexec_awt SHARED
         awt_bridge.c
 )
+target_include_directories(pojavexec_awt PRIVATE . native_hooks)
+target_link_libraries(pojavexec_awt PRIVATE log bytehook::bytehook)
+target_link_options(pojavexec_awt PRIVATE "-Wl,-z,undefs")
 
 add_library(awt_headless SHARED 
 	awt_xawt/dummy.c
