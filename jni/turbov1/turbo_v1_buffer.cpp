@@ -30,17 +30,17 @@ GLuint get_bound_buffer_id(GLenum target) {
 
     GLenum pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
     switch (target) {
-        case 0x8892: pname = 0x8894; break; // GL_ARRAY_BUFFER
-        case 0x8893: pname = 0x8895; break; // GL_ELEMENT_ARRAY_BUFFER
-        case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER
-        case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER
-        case 0x8F36: pname = 0x8F36; break; // GL_COPY_READ_BUFFER
-        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WRITE_BUFFER
-        case 0x88EB: pname = 0x88ED; break; // GL_PIXEL_PACK_BUFFER
-        case 0x88EC: pname = 0x88EF; break; // GL_PIXEL_UNPACK_BUFFER
-        case 0x8C8E: pname = 0x8C8F; break; // GL_TRANSFORM_FEEDBACK_BUFFER
-        case 0x90EE: pname = 0x90EE; break; // GL_DISPATCH_INDIRECT_BUFFER
-        case 0x8F39: pname = 0x8F43; break; // GL_DRAW_INDIRECT_BUFFER
+        case 0x8892: pname = 0x8894; break;
+        case 0x8893: pname = 0x8895; break;
+        case 0x8A11: pname = 0x8A28; break;
+        case 0x90D2: pname = 0x90D3; break;
+        case 0x8F36: pname = 0x8F36; break;
+        case 0x8F37: pname = 0x8F37; break;
+        case 0x88EB: pname = 0x88ED; break;
+        case 0x88EC: pname = 0x88EF; break;
+        case 0x8C8E: pname = 0x8C8F; break;
+        case 0x90EE: pname = 0x90EE; break;
+        case 0x8F39: pname = 0x8F43; break;
         default: pname = 0x8894; break;
     }
 
@@ -97,10 +97,15 @@ void* map(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) 
 
 GLboolean unmap(GLenum target) {
     typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
+    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
     typedef GLenum (*PFN_glGetError)(void);
+
     static PFN_glBufferSubData real_sub = nullptr;
+    static PFN_glBindBuffer real_bind = nullptr;
     static PFN_glGetError real_err = nullptr;
+
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
+    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
     if (!real_err) real_err = (PFN_glGetError) dlsym(RTLD_DEFAULT, "glGetError");
 
     GLuint current_id = get_bound_buffer_id(target);
@@ -128,6 +133,9 @@ GLboolean unmap(GLenum target) {
         pthread_mutex_unlock(&g_mutex);
 
         if (entry.ptr) {
+            if (real_bind && entry.buffer_id != 0) {
+                real_bind(target, entry.buffer_id);
+            }
             if (real_sub) real_sub(target, entry.offset, entry.length, entry.ptr);
             free(entry.ptr);
         }
@@ -148,8 +156,12 @@ GLboolean unmap(GLenum target) {
 GLboolean unmap_ptr(void* ptr) {
     if (!ptr) return GL_TRUE;
     typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
+    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
     static PFN_glBufferSubData real_sub = nullptr;
+    static PFN_glBindBuffer real_bind = nullptr;
+
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
+    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
 
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
@@ -159,8 +171,11 @@ GLboolean unmap_ptr(void* ptr) {
             g_slots[i].ptr = nullptr;
             pthread_mutex_unlock(&g_mutex);
 
-            if (real_sub && entry.ptr) {
-                real_sub(entry.target, entry.offset, entry.length, entry.ptr);
+            if (entry.ptr) {
+                if (real_bind && entry.buffer_id != 0) {
+                    real_bind(entry.target, entry.buffer_id);
+                }
+                if (real_sub) real_sub(entry.target, entry.offset, entry.length, entry.ptr);
             }
             free(ptr);
             return GL_TRUE;
@@ -173,12 +188,19 @@ GLboolean unmap_ptr(void* ptr) {
 
 void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
     typedef void (*PFN_glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*);
+    typedef void (*PFN_glBindBuffer)(GLenum, GLuint);
     static PFN_glBufferSubData real_sub = nullptr;
+    static PFN_glBindBuffer real_bind = nullptr;
+
     if (!real_sub) real_sub = (PFN_glBufferSubData) dlsym(RTLD_DEFAULT, "glBufferSubData");
+    if (!real_bind) real_bind = (PFN_glBindBuffer) dlsym(RTLD_DEFAULT, "glBindBuffer");
 
     pthread_mutex_lock(&g_mutex);
     for (int i = 0; i < g_count; i++) {
         if (g_slots[i].in_use && g_slots[i].target == target) {
+            if (real_bind && g_slots[i].buffer_id != 0) {
+                real_bind(target, g_slots[i].buffer_id);
+            }
             if (real_sub && g_slots[i].ptr) {
                 real_sub(target, offset, length, (char*)g_slots[i].ptr + offset - g_slots[i].offset);
             }
@@ -191,3 +213,4 @@ void flush_range(GLenum target, GLintptr offset, GLsizeiptr length) {
 } // namespace buffer
 
 } // namespace turbo_v1
+
