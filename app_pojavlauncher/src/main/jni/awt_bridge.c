@@ -2,7 +2,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
 #include "driver_helper/hook.h"
+#include "native_hooks.h"
 
 static JavaVM* dalvikJavaVMPtr;
 
@@ -35,8 +37,14 @@ jfieldID field_x;
 jfieldID field_y;
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    // Install global EGL hook first
-    install_global_egl_hook();
+    // Install global EGL hook first - get bytehook_hook_all from exithook
+    void* exithook_handle = dlopen("libexithook.so", RTLD_LAZY);
+    if(exithook_handle) {
+        bytehook_hook_all_t bytehook_hook_all_p = (bytehook_hook_all_t)dlsym(exithook_handle, "bytehook_hook_all");
+        if(bytehook_hook_all_p) {
+            install_global_egl_hook(bytehook_hook_all_p);
+        }
+    }
     
     if (dalvikJavaVMPtr == NULL) {
         //Save dalvik global JavaVM pointer
