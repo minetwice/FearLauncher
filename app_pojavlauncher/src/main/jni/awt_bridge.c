@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <dlfcn.h>
-#include "driver_helper/hook.h"
 #include "native_hooks.h"
 
 static JavaVM* dalvikJavaVMPtr;
@@ -36,13 +35,24 @@ jmethodID method_SystemClipboardDataReceived = NULL;
 jfieldID field_x;
 jfieldID field_y;
 
+typedef void (*install_global_egl_hook_fn)(bytehook_hook_all_t);
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     // Install global EGL hook first - get bytehook_hook_all from exithook
     void* exithook_handle = dlopen("libexithook.so", RTLD_LAZY);
     if(exithook_handle) {
         bytehook_hook_all_t bytehook_hook_all_p = (bytehook_hook_all_t)dlsym(exithook_handle, "bytehook_hook_all");
         if(bytehook_hook_all_p) {
-            install_global_egl_hook(bytehook_hook_all_p);
+            install_global_egl_hook_fn hook_fn = (install_global_egl_hook_fn) dlsym(RTLD_DEFAULT, "install_global_egl_hook");
+            if(!hook_fn) {
+                void* linkerhook_handle = dlopen("liblinkerhook.so", RTLD_LAZY);
+                if(linkerhook_handle) {
+                    hook_fn = (install_global_egl_hook_fn) dlsym(linkerhook_handle, "install_global_egl_hook");
+                }
+            }
+            if(hook_fn) {
+                hook_fn(bytehook_hook_all_p);
+            }
         }
     }
     
