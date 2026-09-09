@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "pojavexec.h"
 #include "driver_helper/nsbypass.h"
+#include "driver_helper/hook.h"
 #include <jni.h>
 #include <stdio.h>
 #include <dlfcn.h>

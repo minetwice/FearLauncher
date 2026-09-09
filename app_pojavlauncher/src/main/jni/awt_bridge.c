@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include "driver_helper/hook.h"
 #include "native_hooks.h"
 
 static JavaVM* dalvikJavaVMPtr;
