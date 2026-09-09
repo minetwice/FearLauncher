@@ -26,6 +26,12 @@ add_library(turbo_v1_core STATIC
     # NEW: FPS Booster System
     turbo_v1_fps_booster.cpp
     turbo_v1_fps_booster.h
+    # NEW: Quality Enhancer System
+    quality_enhancer/turbo_v1_quality_enhancer.cpp
+    quality_enhancer/turbo_v1_quality_enhancer.h
+    # NEW: Smoothness Manager System
+    smoothness/turbo_v1_smoothness_manager.cpp
+    smoothness/turbo_v1_smoothness_manager.h
 )
 
 # Link dependencies
