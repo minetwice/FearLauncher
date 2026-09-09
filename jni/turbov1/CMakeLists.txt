@@ -5,9 +5,6 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project(turbo_v1 LANGUAGES CXX C)
 
-# Force all .cpp files to be compiled as C++
-set(CMAKE_CXX_SUFFIXES ".cpp;.cxx;.cc;.C;.c++")
-
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -29,12 +26,6 @@ add_library(turbo_v1_core STATIC
     # NEW: FPS Booster System
     turbo_v1_fps_booster.cpp
     turbo_v1_fps_booster.h
-    # NEW: Quality Enhancer System
-    quality_enhancer/turbo_v1_quality_enhancer.cpp
-    quality_enhancer/turbo_v1_quality_enhancer.h
-    # NEW: Smoothness Manager System
-    smoothness/turbo_v1_smoothness_manager.cpp
-    smoothness/turbo_v1_smoothness_manager.h
 )
 
 # Link dependencies
@@ -71,6 +62,4 @@ target_compile_features(turbo_v1_core PRIVATE cxx_std_17)
 # Export include directory for users of this library
 target_include_directories(turbo_v1_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/quality_enhancer
-    ${CMAKE_CURRENT_SOURCE_DIR}/smoothness
 )
