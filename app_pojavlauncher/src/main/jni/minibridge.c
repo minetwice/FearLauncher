@@ -10,21 +10,12 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bytehook.h>
-#include "native_hooks/native_hooks.h"
-
-#define TAG __FILE_NAME__
-#include <log.h>
 
 static JavaVM* dalivk;
 static jclass class_CallbackBridge;
 static jmethodID method_openLink;
 
 static pojavexec_renderspec_t renderspec = {0};
-
-// ByteHook state
-static void* bytehook_handle = NULL;
-static bytehook_hook_all_t bytehook_hook_all_p = NULL;
 
 void openLink(const char* link) {
     JNIEnv *attachedEnv = get_attached_env(dalivk);
@@ -89,45 +80,14 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 }
 
 
+
 // Import the hook from lwjgl_dlopen_hook.c
 extern void* eglGetProcAddress_hook(const char* procname);
 
-// Initialize ByteHook and install EGL hook
+// Install global EGL hook to prevent Can't map buffer error
 void install_global_egl_hook() {
-    if (bytehook_handle != NULL) {
-        // Already initialized
-        return;
-    }
-
-    bytehook_handle = dlopen("libbytehook.so", RTLD_NOW);
-    if (bytehook_handle == NULL) {
-        LOGE("Failed to load libbytehook.so: %s", dlerror());
-        return;
-    }
-
-    int (*bytehook_init_p)(int mode, bool debug);
-
-    bytehook_hook_all_p = (bytehook_hook_all_t) dlsym(bytehook_handle, "bytehook_hook_all");
-    bytehook_init_p = (int (*)(int, bool)) dlsym(bytehook_handle, "bytehook_init");
-
-    if (bytehook_hook_all_p == NULL || bytehook_init_p == NULL) {
-        LOGE("Failed to get bytehook symbols: %s", dlerror());
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return;
-    }
-
-    int bhook_status = bytehook_init_p(BYTEHOOK_MODE_AUTOMATIC, false);
-    if (bhook_status != BYTEHOOK_STATUS_CODE_OK) {
-        LOGE("bytehook_init failed (%i)", bhook_status);
-        dlclose(bytehook_handle);
-        bytehook_handle = NULL;
-        return;
-    }
-
-    // Hook eglGetProcAddress in all relevant libraries
-    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-    LOGI("Successfully hooked eglGetProcAddress with bytehook");
+    // Implementation will be added when bytehook is available
+    // For now, this is a placeholder
 }
 
 // JNI_OnLoad is called when the library is loaded
