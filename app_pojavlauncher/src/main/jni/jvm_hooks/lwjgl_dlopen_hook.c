@@ -302,6 +302,10 @@ static void glMemoryBarrier_stub(unsigned int barriers) {
     LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
 }
 
+static unsigned int eglGetError_stub(void) {
+    return 0x3000; // EGL_SUCCESS
+}
+
 static int eglSwapInterval_hook(void* display, __attribute__((unused)) int interval) {
     typedef int (*eglSwapInterval_pfn)(void*, int);
     static eglSwapInterval_pfn real_fn = NULL;
@@ -444,6 +448,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   jlong handle, jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (symbol != NULL) {
+        if (strcmp(symbol, "eglGetError") == 0) {
+            printf("LWJGL linkerhook: hooked eglGetError -> returning EGL_SUCCESS (0x3000)\n");
+            return (jlong) eglGetError_stub;
+        }
         if (strcmp(symbol, "eglGetProcAddress") == 0) {
             printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
             return (jlong) eglGetProcAddress_hook;

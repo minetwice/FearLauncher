@@ -140,7 +140,14 @@ public class JavaRunner {
                 "-Dfml.earlyprogresswindow=false",
                 "-Dloader.disable_forked_guis=true",
                 "-Dsodium.checks.issue2561=false",
-                "-Djdk.lang.Process.launchMechanism=FORK"
+                "-Djdk.lang.Process.launchMechanism=FORK",
+                "-Dorg.lwjgl.glfw.checkLibraries=false",
+                "-Dorg.lwjgl.util.NoChecks=true",
+                "-Dorg.lwjgl.opengl.caps=false",
+                "-Dlwtgl.util.NoChecks=true",
+                "-Dorg.lwjgl.glfw.libname=libglfw.so",
+                "-Dorg.lwjgl.opengl.libname=libzink.so",
+                "-Dtinyfiledialogs.disable=true"
         ));
         List<String> additionalArguments = new ArrayList<>();
         for(String arg : overridableArguments) {
