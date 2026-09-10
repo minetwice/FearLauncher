@@ -477,17 +477,25 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
         if (strcmp(symbol, "glfwCreateWindow") == 0) {
             printf("LWJGL linkerhook: hooked glfwCreateWindow for Vulkan/Zink TurboV1 mode\n");
+            typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
             typedef void (*glfwWindowHint_pfn)(int, int);
-            glfwWindowHint_pfn real_glfwWindowHint = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
-            if (!real_glfwWindowHint) real_glfwWindowHint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
-            if (real_glfwWindowHint) {
-                // Force clear API requirements right before window creation
-                real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-                real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
+            static glfwCreateWindow_pfn real_create_win_fn = NULL;
+            static glfwWindowHint_pfn real_win_hint_fn = NULL;
+
+            if (!real_create_win_fn) {
+                real_create_win_fn = (glfwCreateWindow_pfn) dlsym((void*) handle, "glfwCreateWindow");
+                if (!real_create_win_fn) real_create_win_fn = (glfwCreateWindow_pfn) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
             }
-            void* sym = dlsym((void*) handle, "glfwCreateWindow");
-            if (!sym) sym = dlsym(RTLD_DEFAULT, "glfwCreateWindow");
-            if (sym) return (jlong) sym;
+            if (!real_win_hint_fn) {
+                real_win_hint_fn = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
+                if (!real_win_hint_fn) real_win_hint_fn = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+            }
+
+            if (real_win_hint_fn) {
+                real_win_hint_fn(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
+                real_win_hint_fn(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
+            }
+            if (real_create_win_fn) return (jlong) real_create_win_fn;
         }
         if (strcmp(symbol, "eglSwapInterval") == 0) {
             printf("LWJGL linkerhook: hooked eglSwapInterval\n");
