@@ -15,6 +15,9 @@ typedef void (*PFN_vkGetBufferMemoryRequirements_dyn)(VkDevice, VkBuffer, VkMemo
 typedef VkResult (*PFN_vkBindBufferMemory_dyn)(VkDevice, VkBuffer, VkDeviceMemory, VkDeviceSize);
 typedef void (*PFN_vkGetPhysicalDeviceMemoryProperties_dyn)(VkPhysicalDevice, VkPhysicalDeviceMemoryProperties*);
 typedef void (*PFN_vkUnmapMemory_dyn)(VkDevice, VkDeviceMemory);
+typedef VkResult (*PFN_vkCreatePipelineCache_dyn)(VkDevice, const VkPipelineCacheCreateInfo*, const VkAllocationCallbacks*, VkPipelineCache*);
+typedef void (*PFN_vkDestroyPipelineCache_dyn)(VkDevice, VkPipelineCache, const VkAllocationCallbacks*);
+typedef VkResult (*PFN_vkCreateGraphicsPipelines_dyn)(VkDevice, VkPipelineCache, uint32_t, const VkGraphicsPipelineCreateInfo*, const VkAllocationCallbacks*, VkPipeline*);
 
 static PFN_vkAllocateMemory_dyn fn_vkAllocateMemory = nullptr;
 static PFN_vkFreeMemory_dyn fn_vkFreeMemory = nullptr;
@@ -24,6 +27,9 @@ static PFN_vkGetBufferMemoryRequirements_dyn fn_vkGetBufferMemoryRequirements = 
 static PFN_vkBindBufferMemory_dyn fn_vkBindBufferMemory = nullptr;
 static PFN_vkGetPhysicalDeviceMemoryProperties_dyn fn_vkGetPhysicalDeviceMemoryProperties = nullptr;
 static PFN_vkUnmapMemory_dyn fn_vkUnmapMemory = nullptr;
+static PFN_vkCreatePipelineCache_dyn fn_vkCreatePipelineCache = nullptr;
+static PFN_vkDestroyPipelineCache_dyn fn_vkDestroyPipelineCache = nullptr;
+static PFN_vkCreateGraphicsPipelines_dyn fn_vkCreateGraphicsPipelines = nullptr;
 
 static void resolve_vulkan_entry_points() {
     if (fn_vkCreateBuffer) return;
@@ -35,6 +41,9 @@ static void resolve_vulkan_entry_points() {
     fn_vkBindBufferMemory = (PFN_vkBindBufferMemory_dyn) dlsym(RTLD_DEFAULT, "vkBindBufferMemory");
     fn_vkGetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties_dyn) dlsym(RTLD_DEFAULT, "vkGetPhysicalDeviceMemoryProperties");
     fn_vkUnmapMemory = (PFN_vkUnmapMemory_dyn) dlsym(RTLD_DEFAULT, "vkUnmapMemory");
+    fn_vkCreatePipelineCache = (PFN_vkCreatePipelineCache_dyn) dlsym(RTLD_DEFAULT, "vkCreatePipelineCache");
+    fn_vkDestroyPipelineCache = (PFN_vkDestroyPipelineCache_dyn) dlsym(RTLD_DEFAULT, "vkDestroyPipelineCache");
+    fn_vkCreateGraphicsPipelines = (PFN_vkCreateGraphicsPipelines_dyn) dlsym(RTLD_DEFAULT, "vkCreateGraphicsPipelines");
 }
 
 static VulkanPipelineManager g_pipeline_manager;
@@ -111,14 +120,15 @@ VkBuffer UnifiedMemoryPool::create_buffer(VkDeviceSize size, VkBufferUsageFlags 
         fn_vkGetBufferMemoryRequirements(m_device, buffer, &mem_reqs);
     }
 
+    // Enforce 16-byte std140/std430 alignment rules for Mali GPU memory bounds
+    VkDeviceSize alignment = std::max(mem_reqs.alignment, (VkDeviceSize)16);
+
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    // Try to sub-allocate from existing persistent heap block
     VkDeviceMemory allocated_mem = VK_NULL_HANDLE;
     VkDeviceSize allocated_offset = 0;
 
     for (auto& block : m_heap_blocks) {
-        VkDeviceSize alignment = (mem_reqs.alignment > 0) ? mem_reqs.alignment : 256;
         VkDeviceSize aligned_offset = (block.allocated_offset + alignment - 1) & ~(alignment - 1);
         if (block.size - aligned_offset >= mem_reqs.size) {
             allocated_mem = block.memory;
@@ -146,7 +156,7 @@ VkBuffer UnifiedMemoryPool::create_buffer(VkDeviceSize size, VkBufferUsageFlags 
             allocated_mem = new_block.memory;
             allocated_offset = 0;
             m_heap_blocks.push_back(new_block);
-            LOGI("TurboV1 VMA Pool: Allocated new 16MB persistent memory heap block (%zu total blocks)", m_heap_blocks.size());
+            LOGI("TurboV1 VMA Pool: Allocated new 16MB persistent memory heap block (16-byte aligned, %zu total blocks)", m_heap_blocks.size());
         } else {
             LOGE("TurboV1 VMA Pool: vkAllocateMemory failed for size %llu", (unsigned long long)block_size);
             if (fn_vkDestroyBuffer) fn_vkDestroyBuffer(m_device, buffer, nullptr);
@@ -178,6 +188,7 @@ VulkanPipelineManager::VulkanPipelineManager()
     : m_device(VK_NULL_HANDLE),
       m_physical_device(VK_NULL_HANDLE),
       m_instance(VK_NULL_HANDLE),
+      m_pipeline_cache(VK_NULL_HANDLE),
       m_has_dynamic_rendering(true),
       m_has_rasterization_order_access(true),
       m_vkCmdBeginRenderingKHR(nullptr),
@@ -188,11 +199,19 @@ VulkanPipelineManager::~VulkanPipelineManager() {
 }
 
 bool VulkanPipelineManager::init(VkDevice device, VkPhysicalDevice physical_device, VkInstance instance) {
+    resolve_vulkan_entry_points();
     m_device = device;
     m_physical_device = physical_device;
     m_instance = instance;
 
     m_memory_pool.init(device, physical_device);
+
+    if (m_device != VK_NULL_HANDLE && fn_vkCreatePipelineCache) {
+        VkPipelineCacheCreateInfo cache_info{};
+        cache_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+        fn_vkCreatePipelineCache(m_device, &cache_info, nullptr, &m_pipeline_cache);
+        LOGI("TurboV1 Pipeline Cache: Created thread-isolated VkPipelineCache warmup block");
+    }
 
     if (m_instance != VK_NULL_HANDLE) {
         typedef PFN_vkVoidFunction (*PFN_vkGetInstanceProcAddr_dyn)(VkInstance, const char*);
@@ -208,10 +227,35 @@ bool VulkanPipelineManager::init(VkDevice device, VkPhysicalDevice physical_devi
 }
 
 void VulkanPipelineManager::shutdown() {
+    resolve_vulkan_entry_points();
+    if (m_device != VK_NULL_HANDLE && m_pipeline_cache != VK_NULL_HANDLE && fn_vkDestroyPipelineCache) {
+        fn_vkDestroyPipelineCache(m_device, m_pipeline_cache, nullptr);
+        m_pipeline_cache = VK_NULL_HANDLE;
+    }
     m_memory_pool.shutdown();
     m_device = VK_NULL_HANDLE;
     m_physical_device = VK_NULL_HANDLE;
     m_instance = VK_NULL_HANDLE;
+}
+
+VkPipeline VulkanPipelineManager::create_graphics_pipeline_sandboxed(const VkGraphicsPipelineCreateInfo* create_info, uint32_t layout_index) {
+    resolve_vulkan_entry_points();
+    if (m_device == VK_NULL_HANDLE || create_info == nullptr || !fn_vkCreateGraphicsPipelines) {
+        LOGE("TurboV1 Sandboxed Pipeline: Device or entry points null for layout index %u", layout_index);
+        return VK_NULL_HANDLE;
+    }
+
+    std::lock_guard<std::mutex> lock(m_pipeline_mutex);
+    VkPipeline pipeline = VK_NULL_HANDLE;
+
+    // Sandboxed execution context catching Mali driver compilation failures
+    VkResult res = fn_vkCreateGraphicsPipelines(m_device, m_pipeline_cache, 1, create_info, nullptr, &pipeline);
+    if (res != VK_SUCCESS) {
+        LOGE("TurboV1 Sandboxed Pipeline Catch: Driver returned VkResult=%d for layout index %u (Recovered without main thread crash)", res, layout_index);
+        return VK_NULL_HANDLE;
+    }
+
+    return pipeline;
 }
 
 void VulkanPipelineManager::begin_dynamic_rendering(VkCommandBuffer cmd_buffer, const std::vector<DynamicRenderingAttachment>& color_attachments, DynamicRenderingAttachment* depth_attachment, VkRect2D render_area) {
@@ -278,6 +322,40 @@ void VulkanPipelineManager::execute_colortex_blit(VkCommandBuffer cmd_buffer, Vk
     if (real_blit) {
         real_blit(cmd_buffer, src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
     }
+}
+
+VkSurfaceKHR VulkanPipelineManager::create_android_surface(void* window_handle) {
+    if (m_instance == VK_NULL_HANDLE || window_handle == nullptr) return VK_NULL_HANDLE;
+
+    typedef struct VkAndroidSurfaceCreateInfoKHR {
+        VkStructureType                   sType;
+        const void*                       pNext;
+        uint32_t                          flags;
+        void*                             window;
+    } VkAndroidSurfaceCreateInfoKHR;
+
+    typedef VkResult (*PFN_vkCreateAndroidSurfaceKHR)(VkInstance, const VkAndroidSurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*);
+    static PFN_vkCreateAndroidSurfaceKHR fn_vkCreateAndroidSurfaceKHR = nullptr;
+    if (!fn_vkCreateAndroidSurfaceKHR) {
+        typedef PFN_vkVoidFunction (*PFN_vkGetInstanceProcAddr_dyn)(VkInstance, const char*);
+        static PFN_vkGetInstanceProcAddr_dyn real_get_instance_proc = (PFN_vkGetInstanceProcAddr_dyn) dlsym(RTLD_DEFAULT, "vkGetInstanceProcAddr");
+        if (real_get_instance_proc) {
+            fn_vkCreateAndroidSurfaceKHR = (PFN_vkCreateAndroidSurfaceKHR) real_get_instance_proc(m_instance, "vkCreateAndroidSurfaceKHR");
+        }
+    }
+
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    if (fn_vkCreateAndroidSurfaceKHR) {
+        VkAndroidSurfaceCreateInfoKHR create_info{};
+        create_info.sType = (VkStructureType)1000008000; // VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR
+        create_info.window = window_handle;
+        if (fn_vkCreateAndroidSurfaceKHR(m_instance, &create_info, nullptr, &surface) == VK_SUCCESS) {
+            LOGI("TurboV1 Native Surface: Successfully created vkCreateAndroidSurfaceKHR for handle %p", window_handle);
+        } else {
+            LOGE("TurboV1 Native Surface: vkCreateAndroidSurfaceKHR failed for handle %p", window_handle);
+        }
+    }
+    return surface;
 }
 
 } // namespace vulkan

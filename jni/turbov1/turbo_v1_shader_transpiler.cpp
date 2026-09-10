@@ -69,6 +69,7 @@ std::string transpile_shader(const std::string& source, ShaderStage stage) {
         "#define log(x) log(max(x, 0.00001))\n"
         "#define log2(x) log2(max(x, 0.00001))\n"
         "#define inversesqrt(x) inversesqrt(max(x, 0.00001))\n"
+        "#define BOUNDS_CHECK(idx, max_val) clamp(idx, 0, (max_val) - 1)\n"
         "#endif\n";
 
     size_t first_newline = res.find('\n');
