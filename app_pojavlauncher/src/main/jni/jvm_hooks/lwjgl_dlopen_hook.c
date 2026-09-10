@@ -481,10 +481,13 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             glfwWindowHint_pfn real_glfwWindowHint = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
             if (!real_glfwWindowHint) real_glfwWindowHint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
             if (real_glfwWindowHint) {
-                // Strip away OpenGL/EGL context requirements globally
+                // Force clear API requirements right before window creation
                 real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
                 real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
             }
+            void* sym = dlsym((void*) handle, "glfwCreateWindow");
+            if (!sym) sym = dlsym(RTLD_DEFAULT, "glfwCreateWindow");
+            if (sym) return (jlong) sym;
         }
         if (strcmp(symbol, "eglSwapInterval") == 0) {
             printf("LWJGL linkerhook: hooked eglSwapInterval\n");
