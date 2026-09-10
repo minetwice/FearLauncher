@@ -448,6 +448,33 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
             return (jlong) eglGetProcAddress_hook;
         }
+        if (strcmp(symbol, "glfwInit") == 0) {
+            printf("LWJGL linkerhook: hooked glfwInit for TurboV1 mode\n");
+            typedef int (*glfwInit_pfn)(void);
+            glfwInit_pfn real_glfwInit = (glfwInit_pfn) dlsym((void*) handle, "glfwInit");
+            if (!real_glfwInit) real_glfwInit = (glfwInit_pfn) dlsym(RTLD_DEFAULT, "glfwInit");
+            if (real_glfwInit) real_glfwInit();
+
+            typedef void (*glfwWindowHint_pfn)(int, int);
+            glfwWindowHint_pfn real_glfwWindowHint = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
+            if (!real_glfwWindowHint) real_glfwWindowHint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+            if (real_glfwWindowHint) {
+                real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
+                real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
+            }
+            return (jlong) dlsym((void*) handle, "glfwInit");
+        }
+        if (strcmp(symbol, "glfwGetError") == 0) {
+            printf("LWJGL linkerhook: hooked glfwGetError to suppress pre-init error bits\n");
+            typedef int (*glfwGetError_pfn)(const char**);
+            glfwGetError_pfn real_glfwGetError = (glfwGetError_pfn) dlsym((void*) handle, "glfwGetError");
+            if (!real_glfwGetError) real_glfwGetError = (glfwGetError_pfn) dlsym(RTLD_DEFAULT, "glfwGetError");
+            if (real_glfwGetError) {
+                const char* description = NULL;
+                int err = real_glfwGetError(&description);
+                if (err == 0x10001 /* GLFW_NOT_INITIALIZED */) return 0;
+            }
+        }
         if (strcmp(symbol, "glfwCreateWindow") == 0) {
             printf("LWJGL linkerhook: hooked glfwCreateWindow for Vulkan/Zink TurboV1 mode\n");
             typedef void (*glfwWindowHint_pfn)(int, int);
