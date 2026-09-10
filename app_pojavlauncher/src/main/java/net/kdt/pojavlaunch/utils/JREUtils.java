@@ -255,7 +255,7 @@ public class JREUtils {
                 if (preloadVk) preloadVulkan();
 
                 try {
-                    System.loadLibrary("TurboV1");
+                    System.loadLibrary("turbov1");
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
                 } catch (Throwable t) {

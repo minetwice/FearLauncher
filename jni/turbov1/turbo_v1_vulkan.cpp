@@ -325,7 +325,19 @@ void VulkanPipelineManager::execute_colortex_blit(VkCommandBuffer cmd_buffer, Vk
 }
 
 VkSurfaceKHR VulkanPipelineManager::create_android_surface(void* window_handle) {
-    if (m_instance == VK_NULL_HANDLE || window_handle == nullptr) return VK_NULL_HANDLE;
+    if (window_handle == nullptr) {
+        LOGE("TurboV1 Native Surface: Native window handle is NULL! Cannot create Vulkan surface.");
+        fprintf(stdout, "[TurboV1 Vulkan Error] ANativeWindow handle passed to create_android_surface is NULL!\n");
+        fflush(stdout);
+        return VK_NULL_HANDLE;
+    }
+
+    if (m_instance == VK_NULL_HANDLE) {
+        LOGE("TurboV1 Native Surface: VkInstance is VK_NULL_HANDLE!");
+        fprintf(stdout, "[TurboV1 Vulkan Error] VkInstance is VK_NULL_HANDLE in create_android_surface!\n");
+        fflush(stdout);
+        return VK_NULL_HANDLE;
+    }
 
     typedef struct VkAndroidSurfaceCreateInfoKHR {
         VkStructureType                   sType;
@@ -348,12 +360,24 @@ VkSurfaceKHR VulkanPipelineManager::create_android_surface(void* window_handle) 
     if (fn_vkCreateAndroidSurfaceKHR) {
         VkAndroidSurfaceCreateInfoKHR create_info{};
         create_info.sType = (VkStructureType)1000008000; // VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR
+        create_info.pNext = nullptr;
+        create_info.flags = 0;
         create_info.window = window_handle;
-        if (fn_vkCreateAndroidSurfaceKHR(m_instance, &create_info, nullptr, &surface) == VK_SUCCESS) {
+
+        VkResult res = fn_vkCreateAndroidSurfaceKHR(m_instance, &create_info, nullptr, &surface);
+        if (res == VK_SUCCESS) {
             LOGI("TurboV1 Native Surface: Successfully created vkCreateAndroidSurfaceKHR for handle %p", window_handle);
+            fprintf(stdout, "[TurboV1 Vulkan] Surface created successfully for handle %p\n", window_handle);
+            fflush(stdout);
         } else {
-            LOGE("TurboV1 Native Surface: vkCreateAndroidSurfaceKHR failed for handle %p", window_handle);
+            LOGE("TurboV1 Native Surface: vkCreateAndroidSurfaceKHR failed with VkResult=%d for handle %p", res, window_handle);
+            fprintf(stdout, "[TurboV1 Vulkan Error] vkCreateAndroidSurfaceKHR returned VkResult=%d for handle %p\n", res, window_handle);
+            fflush(stdout);
         }
+    } else {
+        LOGE("TurboV1 Native Surface: PFN_vkCreateAndroidSurfaceKHR function pointer could not be resolved.");
+        fprintf(stdout, "[TurboV1 Vulkan Error] Could not resolve vkCreateAndroidSurfaceKHR function pointer!\n");
+        fflush(stdout);
     }
     return surface;
 }
