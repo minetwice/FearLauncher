@@ -449,8 +449,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             return (jlong) eglGetProcAddress_hook;
         }
         if (strcmp(symbol, "glfwInit") == 0) {
-            printf("LWJGL linkerhook: hooked glfwInit for TurboV1 mode\n");
+            printf("LWJGL linkerhook: hooked glfwInit for TurboV1 Android Vulkan mode\n");
+            typedef void (*glfwInitHint_pfn)(int, int);
             typedef int (*glfwInit_pfn)(void);
+
+            glfwInitHint_pfn real_glfwInitHint = (glfwInitHint_pfn) dlsym((void*) handle, "glfwInitHint");
+            if (!real_glfwInitHint) real_glfwInitHint = (glfwInitHint_pfn) dlsym(RTLD_DEFAULT, "glfwInitHint");
+            if (real_glfwInitHint) {
+                // Force Android native platform init hint (0x00050003 = GLFW_PLATFORM, 0x00060006 = GLFW_PLATFORM_ANDROID)
+                real_glfwInitHint(0x00050003, 0x00060006);
+            }
+
             glfwInit_pfn real_glfwInit = (glfwInit_pfn) dlsym((void*) handle, "glfwInit");
             if (!real_glfwInit) real_glfwInit = (glfwInit_pfn) dlsym(RTLD_DEFAULT, "glfwInit");
             if (real_glfwInit) real_glfwInit();
