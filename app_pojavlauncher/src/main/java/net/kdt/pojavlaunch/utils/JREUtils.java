@@ -88,9 +88,9 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment (Mesa Zink Core)...");
+                Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment...");
                 envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "none");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
