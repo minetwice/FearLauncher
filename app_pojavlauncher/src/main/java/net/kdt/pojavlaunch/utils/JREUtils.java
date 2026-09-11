@@ -135,6 +135,20 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
+        
+        // CRITICAL: Preload Vulkan BEFORE setting Zink environment variables
+        // This ensures libvulkan.so is loaded before any mod tries to use Vulkan
+        if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
+            Logger.appendToLog("[TurboV1] Preloading Vulkan driver for Zink compatibility...");
+            try {
+                preloadVulkan();
+                Logger.appendToLog("[TurboV1] Vulkan driver preloaded successfully!");
+            } catch (Throwable t) {
+                Log.e("JREUtils", "Failed to preload Vulkan for TurboV1", t);
+                Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
+            }
+        }
+        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -212,7 +226,7 @@ public class JREUtils {
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
-        boolean preloadVk = true;
+        boolean preloadVk = false; // Already preloaded in setEnviroimentForGame
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
@@ -251,13 +265,6 @@ public class JREUtils {
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
                 
-                // Preload Vulkan driver BEFORE setting up renderer
-                // This ensures libvulkan.so is loaded before LWJGL tries to detect adapters
-                if (preloadVk) {
-                    Logger.appendToLog("[TurboV1] Preloading Vulkan driver for Zink...");
-                    preloadVulkan();
-                }
-                
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
@@ -279,7 +286,6 @@ public class JREUtils {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if(preloadVk) preloadVulkan();
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
