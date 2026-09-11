@@ -21,6 +21,21 @@ import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
 
 public class JREUtils {
+    
+    // Static block to preload Vulkan as early as possible
+    static {
+        try {
+            // Check if we're running with TurboV1 or vulkan_zink renderer
+            // We can't access the renderer here directly, but we'll try to preload anyway
+            // This ensures Vulkan is loaded before any mod initialization
+            Logger.appendToLog("[JREUtils] Static: Attempting early Vulkan preload for Zink compatibility...");
+            preloadVulkan();
+            Logger.appendToLog("[JREUtils] Static: Vulkan preloaded successfully!");
+        } catch (Throwable t) {
+            Logger.appendToLog("[JREUtils] Static: Early Vulkan preload failed (will retry later): " + t.getMessage());
+        }
+    }
+    
     public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
@@ -34,7 +49,8 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "\n");
+                                Logger.appendToLog(line + "
+");
                             }
                         }
                     }
@@ -134,6 +150,19 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
+        
+        // Preload Vulkan again here for TurboV1/Zink (belt and suspenders approach)
+        if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
+            Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
+            try {
+                preloadVulkan();
+                Logger.appendToLog("[TurboV1] setEnviroimentForGame: Vulkan preloaded successfully!");
+            } catch (Throwable t) {
+                Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
+                Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
+            }
+        }
+        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -171,7 +200,7 @@ public class JREUtils {
 
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
-        args = args.trim().replace(" ", "");
+        args = args.trim().replace("  ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
@@ -194,8 +223,7 @@ public class JREUtils {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
-                        if(lastString.charAt(lastString.length() - 1) == ',' ||
-                                parsedSubString.contains(",")){
+                        if(lastString.charAt(lastString.length() - 1) == ',' || parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
@@ -212,7 +240,7 @@ public class JREUtils {
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
-        boolean preloadVk = true;
+        boolean preloadVk = false; // Already preloaded in static block and setEnviroimentForGame
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
@@ -250,18 +278,21 @@ public class JREUtils {
         switch (renderer){
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
+                
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if (preloadVk) preloadVulkan();
 
                 try {
                     System.loadLibrary("turbov1");
+
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
+                    Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
                     Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                    Logger.appendToLog("[TurboV1] ERROR: Native engine initialization failed!");
                 }
                 break;
             case "vulkan_zink":
@@ -269,7 +300,6 @@ public class JREUtils {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if(preloadVk) preloadVulkan();
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
@@ -314,8 +344,4 @@ public class JREUtils {
 
     //public static native void initializeHooks();
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
-    static {
-        System.loadLibrary("pojavexec");
-        System.loadLibrary("pojavexec_awt");
-    }
 }
