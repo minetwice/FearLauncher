@@ -50,7 +50,7 @@ public class JREUtils {
         }
     }
     
-    NaNpublic static void redirectAndPrintJRELog() {
+    public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
             int failCount = 0;
@@ -62,8 +62,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.co
-ntains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -106,8 +105,7 @@ ntains("Mesa")) {
             return;
         }
         envMap.put("LIBGL_EGL", angle.resolveAbsolutePath(angleLibs[0]));
-        envMap.put("LIBGL_GLES", angle.resolveAbsolutePat
-h(angleLibs[1]));
+        envMap.put("LIBGL_GLES", angle.resolveAbsolutePath(angleLibs[1]));
     }
 
     public static void setupFfmpegEnv(Context ctx, Map<String, String> envMap) {
@@ -151,8 +149,7 @@ h(angleLibs[1]));
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        e
-nvMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");
@@ -195,8 +192,7 @@ nvMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
-            envM
-ap.put("TU_DEBUG", "sysmem");
+            envMap.put("TU_DEBUG", "sysmem");
         }
 
         overrideEnvVars(envMap);
