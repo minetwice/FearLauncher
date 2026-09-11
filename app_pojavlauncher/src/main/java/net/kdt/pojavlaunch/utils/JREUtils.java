@@ -90,7 +90,7 @@ public class JREUtils {
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment...");
                 envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "none");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
@@ -137,7 +137,9 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        envMap.put("EGL_PLATFORM", "android");
+        if (!"turbov1".equals(renderer) && !"vulkan_zink".equals(renderer)) {
+            envMap.put("EGL_PLATFORM", "android");
+        }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
