@@ -22,12 +22,8 @@ import net.kdt.pojavlaunch.prefs.*;
 
 public class JREUtils {
     
-    // Static block to preload Vulkan as early as possible
     static {
         try {
-            // Check if we're running with TurboV1 or vulkan_zink renderer
-            // We can't access the renderer here directly, but we'll try to preload anyway
-            // This ensures Vulkan is loaded before any mod initialization
             Logger.appendToLog("[JREUtils] Static: Attempting early Vulkan preload for Zink compatibility...");
             preloadVulkan();
             Logger.appendToLog("[JREUtils] Static: Vulkan preloaded successfully!");
@@ -49,8 +45,7 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "
-");
+                                Logger.appendToLog(line + "\n");
                             }
                         }
                     }
@@ -151,7 +146,6 @@ public class JREUtils {
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
         
-        // Preload Vulkan again here for TurboV1/Zink (belt and suspenders approach)
         if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
             Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
             try {
@@ -240,7 +234,7 @@ public class JREUtils {
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
-        boolean preloadVk = false; // Already preloaded in static block and setEnviroimentForGame
+        boolean preloadVk = false;
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
@@ -332,16 +326,17 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
-    // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
 
-    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
-    //public static native void initializeHooks();
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
+    static {
+        System.loadLibrary("pojavexec");
+        System.loadLibrary("pojavexec_awt");
+    }
 }
