@@ -34,8 +34,7 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "
-");
+                                Logger.appendToLog(line + "\n");
                             }
                         }
                     }
@@ -135,20 +134,6 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
-        
-        // CRITICAL: Preload Vulkan BEFORE setting Zink environment variables
-        // This ensures libvulkan.so is loaded before any mod tries to use Vulkan
-        if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            Logger.appendToLog("[TurboV1] Preloading Vulkan driver for Zink compatibility...");
-            try {
-                preloadVulkan();
-                Logger.appendToLog("[TurboV1] Vulkan driver preloaded successfully!");
-            } catch (Throwable t) {
-                Log.e("JREUtils", "Failed to preload Vulkan for TurboV1", t);
-                Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
-            }
-        }
-        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -186,7 +171,7 @@ public class JREUtils {
 
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
-        args = args.trim().replace("  ", "");
+        args = args.trim().replace(" ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
@@ -209,7 +194,8 @@ public class JREUtils {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
-                        if(lastString.charAt(lastString.length() - 1) == ',' || parsedSubString.contains(",")){
+                        if(lastString.charAt(lastString.length() - 1) == ',' ||
+                                parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
@@ -226,7 +212,7 @@ public class JREUtils {
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
-        boolean preloadVk = false; // Already preloaded in setEnviroimentForGame
+        boolean preloadVk = true;
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
@@ -264,21 +250,18 @@ public class JREUtils {
         switch (renderer){
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
-                
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
+                if (preloadVk) preloadVulkan();
 
                 try {
                     System.loadLibrary("turbov1");
-
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
-                    Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
                     Log.e("JREUtils", "TurboV1 native engine init failed", t);
-                    Logger.appendToLog("[TurboV1] ERROR: Native engine initialization failed!");
                 }
                 break;
             case "vulkan_zink":
@@ -286,6 +269,7 @@ public class JREUtils {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
+                if(preloadVk) preloadVulkan();
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
