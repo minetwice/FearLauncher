@@ -306,6 +306,32 @@ static unsigned int eglGetError_stub(void) {
     return 0x3000; // EGL_SUCCESS
 }
 
+void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
+    printf("TurboV1 Interceptor: Executing hooked_glfwCreateWindow with absolute Vulkan surface bypass parameters\n");
+    typedef void (*glfwWindowHint_pfn)(int, int);
+    typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
+
+    static glfwWindowHint_pfn real_win_hint = NULL;
+    static glfwCreateWindow_pfn real_create_win = NULL;
+
+    if (!real_win_hint) {
+        real_win_hint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+    }
+    if (!real_create_win) {
+        real_create_win = (glfwCreateWindow_pfn) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
+    }
+
+    if (real_win_hint) {
+        real_win_hint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
+        real_win_hint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
+    }
+
+    if (real_create_win) {
+        return real_create_win(width, height, title, monitor, share);
+    }
+    return NULL;
+}
+
 static int eglSwapInterval_hook(void* display, __attribute__((unused)) int interval) {
     typedef int (*eglSwapInterval_pfn)(void*, int);
     static eglSwapInterval_pfn real_fn = NULL;
@@ -493,26 +519,9 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             }
         }
         if (strcmp(symbol, "glfwCreateWindow") == 0) {
-            printf("LWJGL linkerhook: hooked glfwCreateWindow for Vulkan/Zink TurboV1 mode\n");
-            typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
-            typedef void (*glfwWindowHint_pfn)(int, int);
-            static glfwCreateWindow_pfn real_create_win_fn = NULL;
-            static glfwWindowHint_pfn real_win_hint_fn = NULL;
-
-            if (!real_create_win_fn) {
-                real_create_win_fn = (glfwCreateWindow_pfn) dlsym((void*) handle, "glfwCreateWindow");
-                if (!real_create_win_fn) real_create_win_fn = (glfwCreateWindow_pfn) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
-            }
-            if (!real_win_hint_fn) {
-                real_win_hint_fn = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
-                if (!real_win_hint_fn) real_win_hint_fn = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
-            }
-
-            if (real_win_hint_fn) {
-                real_win_hint_fn(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-                real_win_hint_fn(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
-            }
-            if (real_create_win_fn) return (jlong) real_create_win_fn;
+            printf("LWJGL linkerhook: returning hooked_glfwCreateWindow wrapper for Vulkan/Zink TurboV1 mode\n");
+            extern void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share);
+            return (jlong) hooked_glfwCreateWindow;
         }
         if (strcmp(symbol, "eglSwapInterval") == 0) {
             printf("LWJGL linkerhook: hooked eglSwapInterval\n");
