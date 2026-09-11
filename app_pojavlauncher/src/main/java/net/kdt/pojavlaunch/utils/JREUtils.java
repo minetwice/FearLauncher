@@ -251,34 +251,27 @@ public class JREUtils {
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
                 
-                // Check if Vulkan is available before attempting to use TurboV1 Vulkan mode
-                boolean vulkanWorking = isVulkanAvailable();
-                if(!vulkanWorking) {
-                    Logger.appendToLog("[TurboV1] Vulkan not available, falling back to OpenGL ES mode...");
-                    // Fall through to OpenGL ES
-                    renderLibrary = "libgl4es_114.so";
-                    useGles = true;
-                    glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
-                    break;
+                // Preload Vulkan driver BEFORE setting up renderer
+                // This ensures libvulkan.so is loaded before LWJGL tries to detect adapters
+                if (preloadVk) {
+                    Logger.appendToLog("[TurboV1] Preloading Vulkan driver for Zink...");
+                    preloadVulkan();
                 }
                 
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if (preloadVk) preloadVulkan();
 
                 try {
                     System.loadLibrary("turbov1");
 
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
+                    Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
-                    Log.e("JREUtils", "TurboV1 native engine init failed, falling back to OpenGL ES", t);
-                    // Fallback to OpenGL ES when TurboV1 initialization fails
-                    renderLibrary = "libgl4es_114.so";
-                    useGles = true;
-                    glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+                    Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                    Logger.appendToLog("[TurboV1] ERROR: Native engine initialization failed!");
                 }
                 break;
             case "vulkan_zink":
@@ -321,9 +314,6 @@ public class JREUtils {
 
     // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
-
-    // Check if Vulkan driver is available
-    public static native boolean isVulkanAvailable();
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
