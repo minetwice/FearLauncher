@@ -21,17 +21,6 @@ import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
 
 public class JREUtils {
-    
-    static {
-        try {
-            Logger.appendToLog("[JREUtils] Static: Attempting early Vulkan preload for Zink compatibility...");
-            preloadVulkan();
-            Logger.appendToLog("[JREUtils] Static: Vulkan preloaded successfully!");
-        } catch (Throwable t) {
-            Logger.appendToLog("[JREUtils] Static: Early Vulkan preload failed (will retry later): " + t.getMessage());
-        }
-    }
-    
     public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
@@ -44,8 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.co
-ntains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -146,18 +134,6 @@ ntains("Mesa")) {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
-        
-        if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
-            try {
-                preloadVulkan();
-                Logger.appendToLog("[TurboV1] setEnviroimentForGame: Vulkan preloaded successfully!");
-            } catch (Throwable t) {
-                Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
-                Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
-            }
-        }
-        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -195,7 +171,7 @@ ntains("Mesa")) {
 
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
-        args = args.trim().replace("  ", "");
+        args = args.trim().replace(" ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
@@ -218,8 +194,8 @@ ntains("Mesa")) {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
-                   
-     if(lastString.charAt(lastString.length() - 1) == ',' || parsedSubString.contains(",")){
+                        if(lastString.charAt(lastString.length() - 1) == ',' ||
+                                parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
@@ -236,7 +212,7 @@ ntains("Mesa")) {
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
-        boolean preloadVk = false;
+        boolean preloadVk = true;
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
@@ -256,8 +232,7 @@ ntains("Mesa")) {
                             if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL")) {
                                 chosenSo = candidate;
                                 break;
-                
-            }
+                            }
                         }
                         renderLibrary = chosenSo.getAbsolutePath();
                         useGles = true;
@@ -275,21 +250,18 @@ ntains("Mesa")) {
         switch (renderer){
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
-                
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
+                if (preloadVk) preloadVulkan();
 
                 try {
                     System.loadLibrary("turbov1");
-
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
-                    Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
                     Log.e("JREUtils", "TurboV1 native engine init failed", t);
-                    Logger.appendToLog("[TurboV1] ERROR: Native engine initialization failed!");
                 }
                 break;
             case "vulkan_zink":
@@ -297,6 +269,7 @@ ntains("Mesa")) {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
+                if(preloadVk) preloadVulkan();
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
@@ -308,8 +281,7 @@ ntains("Mesa")) {
             case "opengles3":
             default:
                 renderLibrary = "libgl4es_114.so";
-       
-         useGles = true;
+                useGles = true;
                 glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
                 break;
         }
@@ -330,14 +302,17 @@ ntains("Mesa")) {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
+    // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
 
+    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
+    //public static native void initializeHooks();
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
