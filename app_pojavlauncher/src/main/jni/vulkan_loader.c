@@ -1,5 +1,6 @@
 //
 // Created by maks on 10.04.2026.
+// Modified to add fallback support for TurboV1 renderer
 //
 
 #include <android/api-level.h>
@@ -15,6 +16,7 @@
 #include <android/dlext.h>
 
 static bool turnip_enabled = false;
+static bool vulkan_available = true;
 
 #ifdef ENABLE_TURNIP_LOADER
 bool load_turnip_vulkan() {
@@ -28,7 +30,9 @@ bool load_turnip_vulkan() {
     if(linkerhook == NULL) return NULL;
     void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
     if(turnip_driver_handle == NULL) {
-        printf("DriverHook: Failed to load Turnip!\n%s\n", dlerror());
+        printf("DriverHook: Failed to load Turnip!
+%s
+", dlerror());
         goto fail_l;
     }
 
@@ -42,7 +46,8 @@ bool load_turnip_vulkan() {
     linkerhook_pass_handles(turnip_driver_handle, android_dlopen_ext, android_get_exported_namespace);
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
-    printf("DriverHook: Loaded mjlvlk, ptr=%p\n", libvulkan);
+    printf("DriverHook: Loaded mjlvlk, ptr=%p
+", libvulkan);
     if(libvulkan) {
         driver_loaded = true;
         return true;
@@ -63,8 +68,23 @@ void* pojavexec_loadVulkanDriver() {
     }
 #endif
     void* vulkan_ptr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
-    printf("VulkanLoader: loaded system vulkan, ptr=%p\n", vulkan_ptr);
+    printf("VulkanLoader: loaded system vulkan, ptr=%p
+", vulkan_ptr);
+    
+    // Check if Vulkan was loaded successfully
+    if(vulkan_ptr == NULL) {
+        printf("VulkanLoader: WARNING - Failed to load Vulkan driver!
+");
+        vulkan_available = false;
+    }
+    
     return vulkan_ptr;
+}
+
+// Check if Vulkan is available
+JNIEXPORT jboolean JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_isVulkanAvailable(JNIEnv *env, jclass clazz) {
+    return vulkan_available;
 }
 
 // Does nothing if Turnip is unsupported - Mesa will load system driver automatically
@@ -73,7 +93,9 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
 #ifdef ENABLE_TURNIP_LOADER
     if(!turnip_enabled) return;
     if(!load_turnip_vulkan()) {
-        printf("Failed to preload Turnip!\n");
+        printf("Failed to preload Turnip!
+");
+        vulkan_available = false;
     }
 #endif
 }
