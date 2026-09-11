@@ -34,7 +34,8 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "\n");
+                                Logger.appendToLog(line + "
+");
                             }
                         }
                     }
@@ -171,7 +172,7 @@ public class JREUtils {
 
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
-        args = args.trim().replace(" ", "");
+        args = args.trim().replace("  ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
@@ -194,8 +195,7 @@ public class JREUtils {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
-                        if(lastString.charAt(lastString.length() - 1) == ',' ||
-                                parsedSubString.contains(",")){
+                        if(lastString.charAt(lastString.length() - 1) == ',' || parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
@@ -250,6 +250,18 @@ public class JREUtils {
         switch (renderer){
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
+                
+                // Check if Vulkan is available before attempting to use TurboV1 Vulkan mode
+                boolean vulkanWorking = isVulkanAvailable();
+                if(!vulkanWorking) {
+                    Logger.appendToLog("[TurboV1] Vulkan not available, falling back to OpenGL ES mode...");
+                    // Fall through to OpenGL ES
+                    renderLibrary = "libgl4es_114.so";
+                    useGles = true;
+                    glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+                    break;
+                }
+                
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
@@ -258,10 +270,15 @@ public class JREUtils {
 
                 try {
                     System.loadLibrary("turbov1");
+
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
                 } catch (Throwable t) {
-                    Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                    Log.e("JREUtils", "TurboV1 native engine init failed, falling back to OpenGL ES", t);
+                    // Fallback to OpenGL ES when TurboV1 initialization fails
+                    renderLibrary = "libgl4es_114.so";
+                    useGles = true;
+                    glesVersion = Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
                 }
                 break;
             case "vulkan_zink":
@@ -304,6 +321,9 @@ public class JREUtils {
 
     // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
+
+    // Check if Vulkan driver is available
+    public static native boolean isVulkanAvailable();
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
