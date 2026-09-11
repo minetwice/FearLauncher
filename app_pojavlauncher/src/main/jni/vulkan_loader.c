@@ -1,6 +1,6 @@
 //
 // Created by maks on 10.04.2026.
-// Modified to add fallback support for TurboV1 renderer
+// Modified to ensure Vulkan loader is available for Zink on Android
 //
 
 #include <android/api-level.h>
@@ -16,7 +16,6 @@
 #include <android/dlext.h>
 
 static bool turnip_enabled = false;
-static bool vulkan_available = true;
 
 #ifdef ENABLE_TURNIP_LOADER
 bool load_turnip_vulkan() {
@@ -67,24 +66,55 @@ void* pojavexec_loadVulkanDriver() {
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
     }
 #endif
-    void* vulkan_ptr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
-    printf("VulkanLoader: loaded system vulkan, ptr=%p
-", vulkan_ptr);
     
-    // Check if Vulkan was loaded successfully
-    if(vulkan_ptr == NULL) {
-        printf("VulkanLoader: WARNING - Failed to load Vulkan driver!
-");
-        vulkan_available = false;
+    // For Zink/Mesa: Try to load libvulkan.so from multiple locations
+    void* vulkan_ptr = NULL;
+    
+    // First, try system vulkan
+    vulkan_ptr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+    if(vulkan_ptr) {
+        printf("VulkanLoader: loaded system vulkan, ptr=%p
+", vulkan_ptr);
+        return vulkan_ptr;
     }
     
+    // If system vulkan not found, try from POJAV_NATIVEDIR (for Zink/Mesa)
+    const char* native_dir = getenv("POJAV_NATIVEDIR");
+    if(native_dir != NULL) {
+        char vulkan_path[1024];
+        snprintf(vulkan_path, sizeof(vulkan_path), "%s/libvulkan.so", native_dir);
+        vulkan_ptr = dlopen(vulkan_path, RTLD_LAZY | RTLD_LOCAL);
+        if(vulkan_ptr) {
+            printf("VulkanLoader: loaded vulkan from NATIVEDIR, ptr=%p
+", vulkan_ptr);
+            return vulkan_ptr;
+        }
+    }
+    
+    // Try from standard library paths
+    const char* lib_paths[] = {
+        "/vendor/lib64/libvulkan.so",
+        "/system/lib64/libvulkan.so",
+        "/vendor/lib/libvulkan.so",
+        "/system/lib/libvulkan.so",
+        NULL
+    };
+    
+    for(int i = 0; lib_paths[i] != NULL; i++) {
+        vulkan_ptr = dlopen(lib_paths[i], RTLD_LAZY | RTLD_LOCAL);
+        if(vulkan_ptr) {
+            printf("VulkanLoader: loaded vulkan from %s, ptr=%p
+", lib_paths[i], vulkan_ptr);
+            return vulkan_ptr;
+        }
+    }
+    
+    printf("VulkanLoader: WARNING - Failed to load Vulkan driver from any location!
+");
+    printf("VulkanLoader: Zink requires libvulkan.so to be present!
+");
+    
     return vulkan_ptr;
-}
-
-// Check if Vulkan is available
-JNIEXPORT jboolean JNICALL
-Java_net_kdt_pojavlaunch_utils_JREUtils_isVulkanAvailable(JNIEnv *env, jclass clazz) {
-    return vulkan_available;
 }
 
 // Does nothing if Turnip is unsupported - Mesa will load system driver automatically
@@ -95,9 +125,17 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
     if(!load_turnip_vulkan()) {
         printf("Failed to preload Turnip!
 ");
-        vulkan_available = false;
     }
 #endif
+    
+    // Always try to load system vulkan for Zink compatibility
+    void* vulkan_ptr = pojavexec_loadVulkanDriver();
+    if(vulkan_ptr == NULL) {
+        printf("VulkanLoader: CRITICAL - Vulkan driver could not be loaded!
+");
+        printf("VulkanLoader: Zink/Mesa requires libvulkan.so to function!
+");
+    }
 }
 
 JNIEXPORT void JNICALL
