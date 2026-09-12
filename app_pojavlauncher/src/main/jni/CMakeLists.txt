@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("FearLauncher")
 
+# TurboV1 (Vulkan/Zink backend) – build as subdirectory
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../jni ${CMAKE_CURRENT_BINARY_DIR}/fearrender_build)
 
 add_library(pojavexec SHARED
@@ -20,13 +21,18 @@ add_library(pojavexec SHARED
         stdio_is.c
         minibridge.c
         vulkan_loader.c
-
 )
 
 find_package(bytehook CONFIG REQUIRED)
 
 target_include_directories(pojavexec PRIVATE .)
 target_link_libraries(pojavexec PRIVATE log)
+
+# Make sure TurboV1 is built when pojavexec is built (helps packaging + ordering)
+if(TARGET turbov1)
+    add_dependencies(pojavexec turbov1)
+endif()
+
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
     target_compile_definitions(pojavexec PRIVATE USE_ARM64_LOCATOR)
