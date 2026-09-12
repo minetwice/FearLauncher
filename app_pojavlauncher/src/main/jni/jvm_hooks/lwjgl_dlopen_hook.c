@@ -61,127 +61,591 @@ static unsigned int get_bound_buffer_id(unsigned int target) {
     }
     if (!real_glGetError) return 0;
 
-    unsigned int pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
+    unsigned int pname = 0x8894; // GL_ARRAY_BUFFER_BINDINg
     switch (target) {
         case 0x8892: pname = 0x8894; break; // GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING
         case 0x8893: pname = 0x8895; break; // GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING
-        case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
-        case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
+        case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDINg
+        case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDINg
         case 0x8F36: pname = 0x8F36; break; // GL_COPY_READ_BUFFER
-        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WÔ’UWĞ•Q‘‘T‚ˆØ\ÙHPˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÔPÒ×Ğ•Q‘‘TˆOˆÓÔVSÔPÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHPÎˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÕS”PÒ×Ğ•Q‘‘TˆOˆÓÔVSÕS”PÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘TˆOˆÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLQNˆ˜[YHHLQNÈœ™XZÎÈËÈÓÑTÔUÒÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑTÔUPÒÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHŒÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÑU×ÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑU×ÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S‘ÂˆY˜][ˆ˜[YHHMÈœ™XZÎÂˆB‚ˆ[˜[HÂˆ™X[ÙÛÙ][YÙ\—Ü›ˆ™X[ÙÛÙ][YÙ\ˆH•SÂˆYˆ
-\™X[ÙÛÙ][YÙ\ŠHÂˆ™X[ÙÛÙ][YÙ\ˆH
-ÛÙ][YÙ\—Ü›ŠHŞ[J•ÑQUS™ÛÙ][YÙ\ˆŠNÂˆYˆ
-\™X[ÙÛÙ][YÙ\ŠH™X[ÙÛÙ][YÙ\ˆH
-ÛÙ][YÙ\—Ü›ŠHŞ[J•Ó‘V™ÛÙ][YÙ\ˆŠNÂˆBˆYˆ
-\™X[ÙÛÙ]\œ›ÜŠH™]\›ˆÂ‚ˆ[œÚYÛ™Y[˜[YHHMÈËÈÓĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆİÚ]Ú
+        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WÔ’UWĞ•Q‘‘T‚ˆØ\ÙHPˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÔPÒ×Ğ•Q‘‘TˆOˆÓÔVSÔPÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHPÎˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÕS”PÒ×Ğ•Q‘‘TˆOˆÓÔVSÕS”PÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘TˆOˆÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘T—Ğ’S‘S™ÂˆØ\ÙHLQNˆ˜[YHHLQNÈœ™XZÎÈËÈÓÑTÔUÒÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑTÔUÒÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S™ÂˆØ\ÙHŒÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÑU×ÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑU×ÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S‘ÂˆY˜][ˆ˜[YHHMÈœ™XZÎÂˆB‚ˆ[˜[HÂˆ™X[ÙÛÙ][YÙ\Š˜[YK	˜[
+NÂˆ™]\›ˆ
+[œÚYÛ™Y[
+H˜[ÂŸB‚œİ]XÈ›ÚYÛÙ[”Ø[\\œ×Ù˜[˜XÚÊ[Ûİ[[œÚYÛ™Y[
+ˆØ[\\œÊHÂˆİ]XÈ[œÚYÛ™Y[™^ÚYHNÂˆYˆ
+\Ø[\\œÈÛİ[H
+H™]\›Âˆ\YYˆ›ÚY
+
+™ÛÙ[”Ø[\\œ×Ü›ŠJ[[œÚYÛ™Y[
+ŠNÂˆİ]XÈÛÙ[”Ø[\\œ×Ü›ˆ™X[Ù›ˆH•SÂˆYˆ
+\™X[Ù›ŠHÂˆ™X[Ù›ˆH
+ÛÙ[”Ø[\\œ×Ü›ŠHŞ[J•ÑQUS™ÛÙ[”Ø[\\œÈŠNÂˆYˆ
+\™X[Ù›ŠH™X[Ù›ˆH
+ÛÙ[”Ø[\\œ×Ü›ŠHŞ[J•ÑQUS™ÛÙ[”Ø[\\œÓÑTÈŠNÂˆBˆYˆ
+™X[Ù›ŠHÂˆ™X[Ù›ŠÛİ[Ø[\\œÊNÂˆ[˜[YHNÂˆ›Üˆ
+[HHÈHÛİ[ÈJÊÊHÈYˆ
+Ø[\\œÖÚWHOH
+HÈ˜[YHÈœ™XZÎÈHBˆYˆ
+˜[Y
+H™]\›ÂˆBˆ›Üˆ
+[HHÈHÛİ[ÈJÊÊHØ[\\œÖÚWHH™^ÚY
+ÊÎÂˆÑÒJ“Ò‘Ó[šÙ\šÛÚÎˆÛÙ[”Ø[\\œÈ˜[˜XÚÈÙ[™\˜]Y	YØ[\\ŠÊH‹Ûİ[
+NÂŸB‚œİ]XÈ›ÚYÛš[™Ø[\\—Ù˜[˜XÚÊ[œÚYÛ™Y[[š][œÚYÛ™Y[Ø[\\ŠHÂˆ\YYˆ›ÚY
+
+™Ûš[™Ø[\\—Ü›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[
+NÂˆİ]XÈÛš[™Ø[\\—Ü›ˆ™X[Ù›ˆH•SÂˆYˆ
+\™X[Ù›ŠHÂˆ™X[Ù›ˆH
+Ûš[™Ø[\\—Ü›ŠHŞ[J•ÑQUS™Ûš[™Ø[\\ˆŠNÂˆYˆ
+\™X[Ù›ŠH™X[Ù›ˆH
+Ûš[™Ø[\\—Ü›ŠHŞ[J•ÑQUS™Ûš[™Ø[\\“ÑTÈŠNÂˆBˆYˆ
+™X[Ù›ŠH™X[Ù›Š[š]Ø[\\ŠNÂŸB‚œİ]XÈ›ÚYÛ[]TØ[\\œ×Ù˜[˜XÚÊ[Ûİ[ÛÛœİ[œÚYÛ™Y[
+ˆØ[\\œÊHÂˆYˆ
+\Ø[\\œÈÛİ[H
+H™]\›Âˆ\YYˆ›ÚY
+
+™Û[]TØ[\\œ×Ü›ŠJ[ÛÛœİ[œÚYÛ™Y[
+ŠNÂˆİ]XÈÛ[]TØ[\\œ×Ü›ˆ™X[Ù›ˆH•SÂˆYˆ
+\™X[Ù›ŠHÂˆ™X[Ù›ˆH
+Û[]TØ[\\œ×Ü›ŠHŞ[J•ÑQUS™Û[]TØ[\\œÈŠNÂˆYˆ
+\™X[Ù›ŠH™X[Ù›ˆH
+Û[]TØ[\\œ×Ü›ŠHŞ[J•ÑQUS™Û[]TØ[\\œÓÑTÈŠNÂˆBˆYˆ
+™X[Ù›ŠH™X[Ù›ŠÛİ[Ø[\\œÊNÂŸB‚œİ]XÈ›ÚYÛØ[\\”\˜[Y]\šWÙ˜[˜XÚÊ[œÚYÛ™Y[Ø[\\‹[œÚYÛ™Y[˜[YK[\˜[JHÂˆ\YYˆ›ÚY
+
+™ÛØ[\\”\˜[Y]\šWÜ›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[[
+NÂˆİ]XÈÛØ[\\”\˜[Y]\šWÜ›ˆ™X[Ù›ˆH•SÂˆYˆ
+\™X[Ù›ŠHÂˆ™X[Ù›ˆH
+ÛØ[\\”\˜[Y]\šWÜ›ŠHŞ[J•ÑQUS™ÛØ[\\”\˜[Y]\šHŠNÂˆYˆ
+\™X[Ù›ŠH™X[Ù›ˆH
+ÛØ[\\”\˜[Y]\šWÜ›ŠHŞ[J•ÑQUS™ÛØ[\\”\˜[Y]\šSÑTÈŠNÂˆBˆYˆ
+™X[Ù›ŠH™X[Ù›ŠØ[\\‹˜[YK\˜[JNÂŸB‚œİ]XÈ›ÚY
+ˆÛX\Y™™\”˜[™ÙWÚÛÚÊ[œÚYÛ™Y[\™Ù]Û™ÈÙ™œÙ]Û™È[™İ[œÚYÛ™Y[XØÙ\ÜÊHÂˆİ]XÈ[Ø[Ûİ[HÂˆYˆ
+Ø[Ûİ[JHÂˆÑÒJ“Ò‘Ó[šÙ\šÛÚÎˆÛX\Y™™\”˜[™ÙWÚÛÚÈĞSQ\™Ù]L	VÙ™œÙ]I[[IYXØÙ\ÜÏL	V‹\™Ù]Ù™œÙ][™İXØÙ\ÜÊNÂˆØ[Ûİ[
+ÊÎÂˆB‚ˆ\YYˆ›ÚY
+
+™ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[[
+ŠNÂˆİ]XÈÛÙ]Y™™\”\˜[Y]\š]—Ü›ˆ™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH•SÂˆYˆ
+\™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠHÂˆ™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH
+ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠHŞ[J•ÑQUS™ÛÙ]Y™™\”\˜[Y]\š]ˆŠNÂˆYˆ
+\™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠH™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH
+ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠHŞ[J•ÑQUS™ÛÙ]Y™™\”\˜[Y]\š]TˆŠNÂˆBˆ[Y—ÜÚ^™HHÂˆYˆ
+™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠHÂˆ™X[ÙÛÙ]Y™™\”\˜[Y]\š]Š\™Ù]ÍÊˆÓĞ•Q‘‘T—ÔÒV‘H
+‹Ë	˜Y—ÜÚ^™JNÂˆB‚ˆÛ™È[Ø×Û[ˆH[™İÂˆYˆ
+[Ø×Û[ˆH	‰ˆY—ÜÚ^™Hˆ
+H[Ø×Û[ˆHY—ÜÚ^™HHÙ™œÙ]ÂˆYˆ
+[Ø×Û[ˆH
+H[Ø×Û[ˆHLMÍÈËÈHPˆ˜[˜XÚÂˆYˆ
+Y—ÜÚ^™Hˆ	‰ˆ
+Ù™œÙ]
+È[Ø×Û[ŠHY—ÜÚ^™JHÂˆ[Ø×Û[ˆHY—ÜÚ^™NÂˆB‚ˆ[œÚYÛ™Y[Y™™\—ÚYHÙ]Ø›İ[™ØY™™\—ÚY
 \™Ù]
-HÂˆØ\ÙHLˆ˜[YHHMÈœ™XZÎÈËÈÓĞT”VWĞ•Q‘‘TˆOˆÓĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLÎˆ˜[YHHMNÈœ™XZÎÈËÈÓÑSSQS•ĞT”VWĞ•Q‘‘TˆOˆÓÑSSQS•ĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLLNˆ˜[YHHLÈœ™XZÎÈËÈÓÕS’Q“Ô“WĞ•Q‘‘TˆOˆÓÕS’Q“Ô“WĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLˆ˜[YHHLÎÈœ™XZÎÈËÈÓÔÒQT—ÔÕÔQÑWĞ•Q‘‘TˆOˆÓÔÒQT—ÔÕÔQÑWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHŒÍˆ˜[YHHŒÍÈœ™XZÎÈËÈÓĞÓÔWÔ‘PQĞ•Q‘‘T‚ˆØ\ÙHŒÍÎˆ˜[YHHŒÍÎÈœ™XZÎÈËÈÓĞÓÔWÕõ$•DUô%TddU ¢66Rƒƒ„T#¢æÖRÒƒƒ„TC²'&V³²òòtÅõ•„TÅõ4µô%TddU"ÓâtÅõ•„TÅõ4µô%TddU%ô$”äD”äp¢66Rƒƒ„T3¢æÖRÒƒƒ„Tc²'&V³²òòtÅõ•„TÅõTå4µô%TddU"ÓâtÅõ•„TÅõTå4µô%TddU%ô$”äD”äp¢66Rƒ„3„S¢æÖRÒƒ„3„c²'&V³²òòtÅõE$å4dõ$ÕôdTTD$4µô%TddU"ÓâtÅõE$å4dõ$ÕôdTTD$4µô%TddU%ô$”äD”äp¢66Rƒ“TS¢æÖRÒƒ“TS²'&V³²òòtÅôD•5D4…ô”äD•$T5Eô%TddU"ÓâtÅôD•5CÔ4…ô”äD•$T5Eô%TddU%ô$”äD”äp¢66Rƒ„c3“¢æÖRÒƒ„cC3²'&V³²òòtÅôE$uô”äD•$T5Eô%TddU"ÓâtÅôE$uô”äD•$T5Eô%TddU%ô$”äD”äp¢FVfVÇC¢æÖRÒƒƒƒ“C²'&V³°¢Ğ ¢–çBfÂÒ°¢&VÅövÄvWD–çFVvW'e÷fâ&VÅövÄvWD–çFVvW'bÒåTÄÃ°¢–b‚&VÅövÄvWD–çFVvW'b’°¢&VÅövÄvWD–çFVvW'bÒ†vÄvWD–çFVvW'e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD–çFVvW'b"“°¢–b‚&VÅövÄvWD–çFVvW'b’&VÅövÄvWD–çFVvW'bÒ†vÄvWD–çFVvW'e÷fâ’FÇ7–Ò…%DÄEôäU…BÂ&vÄvWD–çFVvW'b"“°¢Ğ¢–b‚&VÅövÄvWDW'&÷"’&WGW&â° ¢fö–B¢G"ÒåTÄÃ° ¢–b‡÷6—…öÖVÖÆ–vâ‚gG"ÂcBÂÆÆö5öÆVâ’ÒÇÂG"ÓÒåTÄÂ’°¢G"ÒÖÆÆö2†ÆÆö5öÆVâ“°¢Ğ¢–b‚G"’G"Ò6ÆÆö2ƒÂÆÆö5öÆVâ“° ¢–b‚G"’°¢ÄôtR‚$Åt¤tÂÆ–æ¶W&†öö³¢VÖW&vVæ7’fÆÆ&6²'VffW"W6VBf÷"ÆÆö5öÆVãÒVÆB"ÂÆÆö5öÆVâ“°¢G"Ò5öfÆÆ&6µö'VffW#°¢Ğ ¢F‡&VEö×WFW…öÆö6²‚fu÷6†F÷t×WFW‚“°¢–çB6Æ÷BÒf–æEög&VU÷6†F÷u÷6Æ÷B‚“°¢–b‡6Æ÷BãÒ’°¢u÷6†F÷t'VffW'5·6Æ÷EÒçF&vWBÒF&vWC°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ'VffW%ö–BÒ'VffW%ö–C°¢u÷6†F÷t'VffW'5·6Æ÷EÒæöfg6WBÒöfg6WC°¢u÷6†F÷t'VffW'5·6Æ÷EÒæÆVæwF‚ÒÆÆö5öÆVã°¢u÷6†F÷t'VffW'5·6Æ÷EÒç6†F÷u÷G"ÒG#°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ—5÷6†F÷rÒ°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ–å÷W6RÒ°¢ÒVÇ6R°¢Äôur‚$Åt¤tÂÆ–æ¶W&†öö³¢6†F÷r6Æ÷G2gVÆÂÂ&WGW&æ–ærVæÖævVB'VffW""“°¢Ğ¢F‡&VEö×WFW…÷VæÆö6²‚fu÷6†F÷t×WFW‚“° ¢G—VFVbVç6–væVB–çB‚¦vÄvWDW'&÷%÷fâ’‡fö–B“°¢7FF–2vÄvWDW'&÷%÷fâ&VÅövÄvWDW'&÷"ÒåTÄÃ°¢–b‚&VÅövÄvWDW'&÷"’°¢&VÅövÄvWDW'&÷"Ò†vÄvWDW'&÷%÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWDW'&÷""“°¢–b‚&VÅövÄvWDW'&÷"’&VÅövÄvWDW'&÷"Ò†vÄvWDW'&÷%÷fâ’FÇ7–Ò…%DÄEôäU…BÂ&vÄvWDW'&÷""“°¢Ğ¢–b‡&VÅövÄvWDW'&÷"’²Vç6–væVB–çBW'#²Fò²W'"Ò&VÅövÄvWDW'&÷"‚“²Òv†–ÆR†W'"Ò“²Ğ¢&WGW&âG#°§Ğ §7FF–2fö–B¢vÄÖ'VffW%ö†öö²‡Vç6–væVB–çBF&vWBÂVç6–væVB–çB66W72’°¢G—VFVbfö–B‚¦vÄvWD'VffW%&ÖWFW&—e÷fâ’‡Vç6–væVB–çBÂVç6–væVB–çBÂ–çB¢“°¢7FF–2vÄvWD'VffW%&ÖWFW&—e÷fâ&VÅövÄvWD'VffW%&ÖWFW&—bÒåTÄÃ°¢–b‚&VÅövÄvWD'VffW%&ÖWFW&—b’°¢&VÅövÄvWD'VffW%&ÖWFW&—bÒ†vÄvWD'VffW%&ÖWFW&—e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD'VffW%&ÖWFW&—b"“°¢–b‚&VÅövÄvWD'VffW%&ÖWFW&—b’&VÅövÄvWD'VffW%&ÖWFW&—bÒ†vÄvWD'VffW%&ÖWFW&—e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD'VffW%&ÖWFW&—d$""“°¢Ğ¢–çB'Ve÷6—¦RÒ°¢–b‡&VÅövÄvWD'VffW%&ÖWFW&—b’&VÅövÄvWD'VffW%&ÖWFW&—b‡F&vWBÂƒƒscBÂf'Ve÷6—¦R“°¢ÆöærÆVâÒ†'Ve÷6—¦Râ’ò'Ve÷6—¦R¢cSS3c°¢Vç6–væVB–çB&ævT66W72Òƒ#°¢–b†66W72ÓÒƒƒ„#‚’&ævT66W72Òƒ°¢VÇ6R–b†66W72ÓÒƒƒ„$’&ævT66W72ÒƒÂƒ#°¢&WGW&âvÄÖ'VffW%&ævUö†öö²‡F&vWBÂÂÆVâÂ&ævT66W72“°§Ğ §7FF–2–çBvÅVæÖ'VffW%ö†öö²‡Vç6–væVB–çBF&vWB’°¢G—VFVbfö–B‚¦vÄ'VffW%7V$FF÷fâ’‡Vç6–væVB–çBÂÆöærÂÆöærÂ6öç7Bfö–B¢“°¢G—VFVbfö–B‚¦vÄ&–æD'VffW%÷fâ’‡Vç6–væVB–çBÂVç6–væVB–çB“°¢G—VFVbVç6–væVB–çB‚¦vÄvWDW'&÷%÷fâ’‡fö–B“° ¢7FF–2vÄ'VffW%7V$FF÷fâ&VÅövÄ'VffW%7V$FFÒåTÄÃ°¢7FF–2vÄ&–æD'VffW%÷fâ&VÅövÄ&–æD'VffW"ÒåTÄÃ°¢7FF–2vÄvWDW'&÷%÷fâ&VÅövÄvWDW'&÷"ÒåTÄÃ° ¢–b‚&VÅövÄ'VffW%7V$FF’°¢&VÅövÄ'VffW%7V$FFÒ†vÄ'VffW%7V$FF÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄ'VffW%7V$FF"“°¢–b‚&VÅövÄ'VffW%7V$FF’&VÅövÄ'VffW%7V$FFÒ†vÄ'VffW%7V$FF÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄ'VfferSubDatARB");
-    }
-    if (!real_glBindBuffer) {
-        real_glBindBuffer = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
-    }
-    if (!real_glGetError) {
-        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
-        if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_NEXT, "glGetError");
-    }
+NÂˆ›ÚY
+ˆˆH•SÂ‚ˆYˆ
+ÜÚ^ÛY[X[YÛŠ	œ‹[Ø×Û[ŠHOHˆOH•S
+HÂˆˆHX[ØÊ[Ø×Û[ŠNÂˆBˆYˆ
+\ŠHˆHØ[ØÊK[Ø×Û[ŠNÂ‚ˆYˆ
+\ŠHÂˆÑÑJ“Ò‘Ó[šÙ\šÛÚÎˆ[Y\™Ù[˜ŞH˜[˜XÚÈY™™\ˆ\ÙY›Üˆ[Ø×Û[I[‹[Ø×Û[ŠNÂˆˆH×Ù˜[˜XÚ×ØY™™\ÂˆB‚ˆ™XYÛ]]^ÛØÚÊ	™×ÜÚYİÓ]]^
+NÂˆ[ÛİHš[™Ùœ™YWÜÚYİ×ÜÛİ
 
-    unsigned int current_buffer_id = get_bound_buffer_id(target);
-    int found_slot = -1;
+NÂˆYˆ
+ÛİH
+HÂˆ×ÜÚYİĞY™™\œÖÜÛİK\™Ù]H\™Ù]Âˆ×ÜÚYİĞY™™\œÖÜÛİK˜Y™™\—ÚYHY™™\—ÚYÂˆ×ÜÚYİĞY™™\œÖÜÛİK›Ù™œÙ]HÙ™œÙ]Âˆ×ÜÚYİĞY™™\œÖÜÛİK›[™İH[Ø×Û[Âˆ×ÜÚYİĞY™™\œÖÜÛİKœÚYİ×ÜˆHÂˆ×ÜÚYİĞY™™\œÖÜÛİKš\×ÜÚYİÈHNÂˆ×ÜÚYİĞY™™\œÖÜÛİKš[—İ\ÙHHNÂˆH[ÙHÂˆÑÕÊ“Ò‘Ó[šÙ\šÛÚÎˆÚYİÈÛİÈ[™]\›š[™È[›X[˜YÙYY™™\ˆŠNÂˆBˆ™XYÛ]]^İ[›ØÚÊ	™×ÜÚYİÓ]]^
+NÂ‚ˆ\YYˆ[œÚYÛ™Y[
 
-    pthread_mutex_lock(&g_shadowMutex);
-    for (int i = 0; i < g_shadowCount; i++) {
-        if (g_shadowBuffers[i].in_use && g_shadowBuffers[i].is_shadow &&
-            g_shadowBuffers[i].target == target &&
-            (current_buffer_id == 0 || g_shadowBuffers[i].buffer_id == current_buffer_id)) {
-            found_slot = i; break;
+™ÛÙ]\œ›Ü—Ü›ŠJ›ÚY
+NÂˆİ]XÈÛÙ]\œ›Ü—Ü›ˆ™X[ÙÛÙ]\œ›ÜˆH•SÂˆYˆ
+\™X[ÙÛÙ]\œ›ÜŠHÂˆ™X[ÙÛÙ]\œ›ÜˆH
+ÛÙ]\œ›Ü—Ü›ŠHŞ[J•ÑQUS™ÛÙ]\œ›ÜˆŠNÂˆYˆ
+\™X[ÙÛÙ]\œ›ÜŠH™X[ÙÛÙ]\œ›ÜˆH
+ÛÙ]\œ›Ü—Ü›ŠHŞ[J•Ó‘V™ÛÙ]\œ›ÜˆŠNÂˆBˆYˆ
+™X[ÙÛÙ]\œ›ÜŠHÈ[œÚYÛ™Y[\œÈÈÈ\œˆH™X[ÙÛÙ]\œ›ÜŠ
+NÈHÚ[H
+\œˆOH
+NÈBˆ™]\›ˆÂŸB‚œİ]XÈ›ÚY
+ˆÛX\Y™™\—ÚÛÚÊ[œÚYÛ™Y[\™Ù][œÚYÛ™Y[XØÙ\ÜÊHÂˆ\YYˆ›ÚY
+
+™ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[[
+ŠNÂˆİ]XÈÛÙ]Y™™\”\˜[Y]\š]—Ü›ˆ™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH•SÂˆYˆ
+\™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠHÂˆ™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH
+ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠHŞ[J•ÑQUS™ÛÙ]Y™™\”\˜[Y]\š]ˆŠNÂˆYˆ
+\™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠH™X[ÙÛÙ]Y™™\”\˜[Y]\š]ˆH
+ÛÙ]Y™™\”\˜[Y]\š]—Ü›ŠHŞ[J•ÑQUS™ÛÙ]Y™™\”\˜[Y]\š]TˆŠNÂˆBˆ[Y—ÜÚ^™HHÂˆYˆ
+™X[ÙÛÙ]Y™™\”\˜[Y]\š]ŠH™X[ÙÛÙ]Y™™\”\˜[Y]\š]Š\™Ù]Í	˜Y—ÜÚ^™JNÂˆÛ™È[ˆH
+Y—ÜÚ^™Hˆ
+HÈY—ÜÚ^™HˆMLÍÂˆ[œÚYÛ™Y[˜[™ÙPXØÙ\ÜÈHÂˆYˆ
+XØÙ\ÜÈOH
+H˜[™ÙPXØÙ\ÜÈHNÂˆ[ÙHYˆ
+XØÙ\ÜÈOHJH˜[™ÙPXØÙ\ÜÈHHÂˆ™]\›ˆÛX\Y™™\”˜[™ÙWÚÛÚÊ\™Ù][‹˜[™ÙPXØÙ\ÜÊNÂŸB‚œİ]XÈ[Û[›X\Y™™\—ÚÛÚÊ[œÚYÛ™Y[\™Ù]
+HÂˆ\YYˆ›ÚY
+
+™ÛY™™\”İX‘]WÜ›ŠJ[œÚYÛ™Y[Û™ËÛ™ËÛÛœİ›ÚY
+ŠNÂˆ\YYˆ›ÚY
+
+™Ûš[™Y™™\—Ü›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[
+NÂˆ\YYˆ[œÚYÛ™Y[
+
+™ÛÙ]\œ›Ü—Ü›ŠJ›ÚY
+NÂ‚ˆİ]XÈÛY™™\”İX‘]WÜ›ˆ™X[ÙÛY™™\”İX‘]HH•SÂˆİ]XÈÛš[™Y™™\—Ü›ˆ™X[ÙÛš[™Y™™\ˆH•SÂˆİ]XÈÛÙ]\œ›Ü—Ü›ˆ™X[ÙÛÙ]\œ›ÜˆH•SÂ‚ˆYˆ
+\™X[ÙÛY™™\”İX‘]JHÂˆ™X[ÙÛY™™\”İX‘]HH
+ÛY™™\”İX‘]WÜ›ŠHŞ[J•ÑQUS™ÛY™™\”İX‘]HŠNÂˆYˆ
+\™X[ÙÛY™™\”İX‘]JH™X[ÙÛY™™\”İX‘]HH
+ÛY™™\”İX‘]WÜ›ŠHŞ[J•ÑQUS™ÛY™™\”İX‘]PTˆŠNÂˆBˆYˆ
+\™X[ÙÛš[™Y™™\ŠHÂˆ™X[ÙÛš[™Y™™\ˆH
+Ûš[™Y™™\—Ü›ŠHŞ[J•ÑQUS™Ûš[™Y™™\ˆŠNÂˆBˆYˆ
+\™X[ÙÛÙ]\œ›ÜŠHÂˆ™X[ÙÛÙ]\œ›ÜˆH
+ÛÙ]\œ›Ü—Ü›ŠHŞ[J•ÑQUS™ÛÙ]\œ›ÜˆŠNÂˆYˆ
+\™X[ÙÛÙ]\œ›ÜŠH™X[ÙÛÙ]\œ›ÜˆH
+ÛÙ]\œ›Ü—Ü›ŠHŞ[J•Ó‘V™ÛÙ]\œ›ÜˆŠNÂˆB‚ˆ[œÚYÛ™Y[İ\œ™[ØY™™\—ÚYHÙ]Ø›İ[™ØY™™\—ÚY
+\™Ù]
+NÂˆ[›İ[™ÜÛİHLNÂ‚ˆ™XYÛ]]^ÛØÚÊ	™×ÜÚYİÓ]]^
+NÂˆ›Üˆ
+[HHÈH×ÜÚYİĞÛİ[ÈJÊÊHÂˆYˆ
+×ÜÚYİĞY™™\œÖÚWKš[—İ\ÙH	‰ˆ×ÜÚYİĞY™™\œÖÚWKš\×ÜÚYİÈ	‰‚ˆ×ÜÚYİĞY™™\œÖÚWK\™Ù]OH\™Ù]	‰‚ˆ
+İ\œ™[ØY™™\—ÚYOH×ÜÚYİĞY™™\œÖÚWK˜Y™™\—ÚYOHİ\œ™[ØY™™\—ÚY
+JHÂˆ›İ[™ÜÛİHNÈœ™XZÎÂˆBˆB‚ˆËÈ˜[˜XÚÈÙX\˜ÚYˆY™™\ˆQZ\ÛX]ÚˆYˆ
+›İ[™ÜÛİ
+HÂˆ›Üˆ
+[HHÈH×ÜÚYİĞÛİ[ÈJÊÊHÂˆYˆ
+×ÜÚYİĞY™™\œÖÚWKš[—İ\ÙH	‰ˆ×ÜÚYİĞY™™\œÖÚWKš\×ÜÚYİÈ	‰ˆ×ÜÚYİĞY™™\œÖÚWK\™Ù]OH\™Ù]
+HÂˆ›İ[™ÜÛİHNÈœ™XZÎÂˆBˆBˆB‚ˆYˆ
+›İ[™ÜÛİH
+HÂˆÚYİĞY™™\“X\[HH×ÜÚYİĞY™™\œÖÙ›İ[™ÜÛİNÂˆ×ÜÚYİĞY™™\œÖÙ›İ[™ÜÛİKš[—İ\ÙHHÂˆ×ÜÚYİĞY™™\œÖÙ›İ[™ÜÛİKš\×ÜÚYİÈHÂˆ×ÜÚYİĞY™™\œÖÙ›İ[™ÜÛİKœÚYİ×ÜˆH•SÂˆ™XYÛ]]^İ[›ØÚÊ	™×ÜÚYİÓ]]^
+NÂ‚ˆYˆ
+[KœÚYİ×ÜŠHÂˆËÈÔ’UPĞS’Vˆš[™HY™™\ˆ‘Q“Ô‘HØ[[™ÈÛY™™\”İX‘]BˆYˆ
+™X[ÙÛš[™Y™™\ˆ	‰ˆ[K˜Y™™\—ÚYOH
+HÂˆ™X[ÙÛš[™Y™™\Š\™Ù][K˜Y™™\—ÚY
+NÂˆBˆYˆ
+™X[ÙÛY™™\”İX‘]JHÂˆ™X[ÙÛY™™\”İX‘]J\™Ù][K›Ù™œÙ][K›[™İ[KœÚYİ×ÜŠNÂˆBˆËÈœ™YHY[[ÜHYˆ›İ\Ú[™ÈHİ]XÈ˜[˜XÚÈY™™\‚ˆYˆ
+
+Ú\ŠŠY[KœÚYİ×Üˆ×Ù˜[˜XÚ×ØY™™\ˆ
+Ú\ŠŠY[KœÚYİ×ÜˆH
+×Ù˜[˜XÚ×ØY™™\ˆ
+ÈÚ^™[ÙŠ×Ù˜[˜XÚ×ØY™™\ŠJJHÂˆœ™YJ[KœÚYİ×ÜŠNÂˆBˆBˆYˆ
+™X[ÙÛÙ]\œ›ÜŠHÈ[œÚYÛ™Y[\œÈÈÈ\œˆH™X[ÙÛÙ]\œ›ÜŠ
+NÈHÚ[H
+\œˆOH
+NÈBˆ™]\›ˆNÈËÈİXØÙ\ÜÂˆBˆ™XYÛ]]^İ[›ØÚÊ	™×ÜÚYİÓ]]^
+NÂ‚ˆËÈ˜[˜XÚÈÈ™X[Û[›X\Y™™\ˆYˆ›İ[ˆÚYİÈX\ˆ\YYˆ[
+
+™Û[›X\Y™™\—Ü›ŠJ[œÚYÛ™Y[
+NÂˆİ]XÈÛ[›X\Y™™\—Ü›ˆ™X[ÙÛ[›X\Y™™\ˆH•SÂˆYˆ
+\™X[ÙÛ[›X\Y™™\ŠHÂˆ™X[ÙÛ[›X\Y™™\ˆH
+Û[›X\Y™™\—Ü›ŠHŞ[J•ÑQUS™Û[›X\Y™™\ˆŠNÂˆYˆ
+\™X[ÙÛ[›X\Y™™\ŠH™X[ÙÛ[›X\Y™™\ˆH
+Û[›X\Y™™\—Ü›ŠHŞ[J•ÑQUS™Û[›X\Y™™\“ÑTÈŠNÂˆBˆ[™\ÈHNÂˆYˆ
+™X[ÙÛ[›X\Y™™\ŠH™\ÈH™X[ÙÛ[›X\Y™™\Š\™Ù]
+NÂˆYˆ
+™X[ÙÛÙ]\œ›ÜŠHÈ[œÚYÛ™Y[\œÈÈÈ\œˆH™X[ÙÛÙ]\œ›ÜŠ
+NÈHÚ[H
+\œˆOH
+NÈBˆ™]\›ˆ™\ÈÈ™\ÈˆNÂŸB‚œİ]XÈ›ÚYÛY[[ÜP˜\œšY\—ÜİXŠ[œÚYÛ™Y[˜\œšY\œÊHÂˆ\YYˆ›ÚY
+
+™Û›\ÚÜ›ŠJ
+NÂˆİ]XÈÛ›\ÚÜ›ˆ™X[ÙÛ›\ÚH•SÂˆYˆ
+\™X[ÙÛ›\Ú
+HÂˆ™X[ÙÛ›\ÚH
+Û›\ÚÜ›ŠHŞ[J•ÑQUS™Û›\ÚŠNÂˆYˆ
+\™X[ÙÛ›\Ú
+H™X[ÙÛ›\ÚH
+Û›\ÚÜ›ŠHŞ[J•Ó‘V™Û›\ÚŠNÂˆBˆYˆ
+™X[ÙÛ›\Ú
+H™X[ÙÛ›\Ú
+
+NÂˆÑÒJ™ÛY[[ÜP˜\œšY\ˆİXˆØ[Y[™›\ÚYİXØÙ\ÜÙ[H
+˜\œšY\œÎˆ	]JH‹˜\œšY\œÊNÂŸB‚œİ]XÈ[œÚYÛ™Y[YÛÙ]\œ›Ü—ÜİXŠ›ÚY
+HÂˆ™]\›ˆÌÈËÈQÓÔÕPĞÑTÔÂŸB‚›ÚY
+ˆÛÚÙYÙÛĞÜ™X]UÚ[™İÊ[ÚY[ZYÚÛÛœİÚ\Šˆ]K›ÚY
+ˆ[Ûš]Ü‹›ÚY
+ˆÚ\™JHÂˆš[Š•\˜›ÕŒH[\˜Ù\Üˆ^Xİ][™ÈÛÚÙYÙÛĞÜ™X]UÚ[™İÈÚ]QÓÜ[‘ÓTÈÛÛ^›Üˆš[š×ˆŠNÂˆ™›\Ú
+İİ]
+NÂˆ\YYˆ›ÚY
+
+™ÛÕÚ[™İÒ[Ü›ŠJ[[
+NÂˆ\YYˆ›ÚY
+ˆ
+
+™ÛĞÜ™X]UÚ[™İ×Ü›ŠJ[[ÛÛœİÚ\Š‹›ÚY
+‹›ÚY
+ŠNÂ‚ˆİ]XÈÛÕÚ[™İÒ[Ü›ˆ™X[İÚ[—Ú[H•SÂˆİ]XÈÛĞÜ™X]UÚ[™İ×Ü›ˆ™X[ØÜ™X]WİÚ[ˆH•SÂ‚ˆYˆ
+\™X[İÚ[—Ú[
+HÂˆ™X[İÚ[—Ú[H
+ÛÕÚ[™İÒ[Ü›ŠHŞ[J•ÑQUS™ÛÕÚ[™İÒ[ŠNÂˆBˆYˆ
+\™X[ØÜ™X]WİÚ[ŠHÂˆ™X[ØÜ™X]WİÚ[ˆH
+ÛĞÜ™X]UÚ[™İ×Ü›ŠHŞ[J•ÑQUS™ÛĞÜ™X]UÚ[™İÈŠNÂˆB‚ˆYˆ
+™X[İÚ[—Ú[
+HÂˆ™X[İÚ[—Ú[
+ŒŒHÊˆÓ•×ĞÓQS•ĞTH
+‹ËÌHÊˆÓ•×ÓÔS‘ÓÑT×ĞTH
+‹ÊNÂˆ™X[İÚ[—Ú[
+ŒŒˆÊˆÓ•×ĞÓÓ•VĞÔ‘PUSÓ—ĞTH
+‹ËÍŒˆÊˆÓ•×ÑQÓĞÓÓ•VĞTH
+‹ÊNÂˆB‚ˆYˆ
+™X[ØÜ™X]WİÚ[ŠHÂˆ™]\›ˆ™X[ØÜ™X]WİÚ[ŠÚYZYÚ]K[Ûš]Ü‹Ú\™JNÂˆBˆ™]\›ˆ•SÂŸB‚œİ]XÈ[YÛİØ\[\˜[ÚÛÚÊ›ÚY
+ˆ\Ü^K×Ø]šX]W×Ê
+[\ÙY
+JH[[\˜[
+HÂˆ\YYˆ[
+
+™YÛİØ\[\˜[Ü›ŠJ›ÚY
+‹[
+NÂˆİ]XÈYÛİØ\[\˜[Ü›ˆ™X[Ù›ˆH•SÂˆYˆ
+\™X[Ù›ŠHÂˆ™X[Ù›ˆH
+YÛİØ\[\˜[Ü›ŠHŞ[J•ÑQUS™YÛİØ\[\˜[ŠNÂˆYˆ
+\™X[Ù›ŠH™X[Ù›ˆH
+[İØ\[\˜[Ü›ŠHŞ[J•Ó‘V™YÛİØ\[\˜[ŠNÂˆBˆYˆ
+™X[Ù›ŠH™]\›ˆ™X[Ù›Š\Ü^K
+NÈËÈ[Ø^\È›Ü˜ÙHİØ\[\˜[
+[›ØÚÜÈ”È\İŒ–ˆ\Ü^HØÚÈJBˆ™]\›ˆNÂŸB‚œİ]XÈÛÛœİ[œÚYÛ™YÚ\ŠˆÛÙ]İš[™×ÚÛÚÊ[œÚYÛ™Y[˜[YJHÂˆYˆ
+˜[YHOHÓÕ‘T”ÒSÓŠH™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠH‹Œ\˜›ÕŒH[™Ú[™HŒKŒ
+[Ø[ˆÛÜ™JHÂˆ[ÙHYˆ
+˜[YHOHÓÔ‘S‘T‘TŠH™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠH“X[KQÍÌLÑÍŒMHšXH\˜›ÕŒH˜[œÛ][ÛˆÂˆ[ÙHYˆ
+˜[YHOHÓÕ‘S‘ÔŠH™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠH•\˜›ÕŒH[™Ú[™HŒKŒ
+[Ø[ˆÛÜ™JHÂˆ[ÙHYˆ
+˜[YHOHÓÑVS”ÒSÓ”ÊH™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠH‹Œ\˜›ÕŒH[™Ú[™HŒKŒ
+[Ø[ˆÛÜ™JHH[HÛÛ\]X›HÂˆ\YYˆÛÛœİ[œÚYÛ™YÚ\Šˆ
+
+™ÛÙ]İš[™×Ü›ŠJ[œÚYÛ™Y[
+NÂˆİ]XÈÛÙ]İš[™×Ü›ˆ™X[ÙÛÙ]İš[™ÈH•SÂˆYˆ
+\™X[ÙÛÙ]İš[™ÊHÂˆ™X[ÙÛÙ]İš[™ÈH
+ÛÙ]İš[™×Ü›ŠHŞ[J•ÑQUS™ÛÙ]İš[™ÈŠNÂˆYˆ
+\™X[ÙÛÙ]İš[™ÊH™X[ÙÛÙ]İš[™ÈH
+ÛÙ]İš[™×Ü›ŠHŞ[J•Ó‘V™ÛÙ]İš[™ÈŠNÂˆBˆYˆ
+™X[ÙÛÙ]İš[™ÊH™]\›ˆ™X[ÙÛÙ]İš[™Ê˜[YJNÂˆ™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠHˆÂŸB‚œİ]XÈÛÛœİ[œÚYÛ™YÚ\ŠˆÛÙ]İš[™ÚWÚÛÚÊ[œÚYÛ™Y[˜[YK[œÚYÛ™Y[[™^
+HÂˆYˆ
+˜[YHOHÓÑVS”ÒSÓ”ÊHÂˆİ]XÈÛÛœİÚ\Šˆ^[œÚ[ÛœÖ×HHÂˆ‘ÓĞT—Ù\™XİÜİ]WØXØÙ\ÜÈ‹‘ÓĞT—ØY™™\—ÜİÜ˜YÙH‹‘ÓĞT—ÜÚY\—Ú[XYÙWÛØYÜİÜ™H‹ˆ‘ÓÓ•—ØÛÛ™][Û˜[Ü™[™\ˆ‹‘ÓÑVÙÜWÜÚY\‹‘ÓÑVİ^\™WØY™™\ˆ‹ˆ‘ÓÑVİ^\™WØİX™WÛX\Ø\œ˜^H‹‘ÓÓÑT×ÑQÓÚ[XYÙWÙ^\›˜[Ù\ÜÛÈ‹ˆ‘ÓÓ•—ÜÚY\—Û›Ü\œÜXİ]™WÚ[\œÛ][Ûˆ‹‘ÓĞT—ÜÚY\—ÛØš™XİÈ‹ˆ‘ÓĞT—İ™\^ÜÚY\ˆ‹‘ÓĞT—Ùœ˜YÛY[ÜÚY\ˆ‹‘ÓÑVØ›[™Ù\]X][Û—ÜÙ\\˜]H‹ˆ‘ÓÑVÙÙ[ÛY]WÜÚY\‹‘ÓÑVÙÜWÜ›ÙÜ˜[WÜ\˜[Y]\œÈ‹ˆ‘ÓĞT—Ú[œİ[˜ÙYØ\œ˜^\È‹‘ÓĞT—Ù˜]×Ú[œİ[˜ÙY‚ˆNÂˆ[œÚYÛ™Y[Ú^™HHÚ^™[ÙŠ^[œÚ[ÛœÊHÈÚ^™[ÙŠ^[œÚ[ÛœÖÌJNÂˆYˆ
+[™^Ú^™JH™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠY^[œÚ[ÛœÖÚ[™^NÂˆBˆ\YYˆÛÛœİ[œÚYÛ™YÚ\Šˆ
+
+™ÛÙ]İš[™ÚWÜ›ŠJ[œÚYÛ™Y[[œÚYÛ™Y[
+NÂˆİ]XÈÛÙ]İš[™ÚWÜ›ˆ™X[ÙÛÙ]İš[™ÚHH•SÂˆYˆ
+\™X[ÙÛÙ]İš[™ÚJHÂˆ™X[ÙÛÙ]İš[™ÚHH
+ÛÙ]İš[™ÚWÜ›ŠHŞ[J•ÑQUS™ÛÙ]İš[™ÚHŠNÂˆYˆ
+\™X[ÙÛÙ]İš[™ÚJH™X[ÙÛÙ]İš[™ÚHH
+ÛÙ]İš[™ÚWÜ›ŠHŞ[J•Ó‘V™ÛÙ]İš[™ÚHŠNÂˆBˆYˆ
+™X[ÙÛÙ]İš[™ÚJH™]\›ˆ™X[ÙÛÙ]İš[™ÚJ˜[YK[™^
+NÂˆ™]\›ˆ
+ÛÛœİ[œÚYÛ™YÚ\ŠŠHˆÂŸB‚›ÚY
+ˆYÛÙ]›ØĞY™\Ü×ÚÛÚÊÛÛœİÚ\Šˆ›ØÛ˜[YJHÂˆYˆ
+›ØÛ˜[YHOH•S
+H™]\›ˆ•SÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™YÛİØ\[\˜[ŠHOH
+H™]\›ˆ
+›ÚY
+ŠHYÛİØ\[\˜[ÚÛÚÎÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛY[[ÜP˜\œšY\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™ÛY[[ÜP˜\œšY\‘VŠHOH
+H™]\›ˆ
+›ÚY
+ŠHÛY[[ÜP˜\œšY\—ÜİXÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛÙ]İš[™ÈŠHOH
+H™]\›ˆ
+›ÚY
+ŠHÛÙ]İš[™×ÚÛÚÎÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛÙ]İš[™ÚHŠHOH
+H™]\›ˆ
+›ÚY
+ŠHÛÙ]İš[™ÚWÚÛÚÎÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙHŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙQVŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙPTˆŠHOH
+HÂˆÑÒJ™YÛÙ]›ØĞY™\Ü×ÚÛÚÎˆÛX\Y™™\”˜[™ÙHOˆÚYİÈY™™\ˆŠNÂˆ™]\›ˆ
+›ÚY
+ŠHÛX\Y™™\”˜[™ÙWÚÛÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\“ÑTÈŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\TˆŠHOH
+H™]\›ˆ
+›ÚY
+ŠHÛX\Y™™\—ÚÛÚÎÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\“ÑTÈŠHOHİ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\TˆŠHOH
+H™]\›ˆ
+›ÚY
+ŠHÛ[›X\Y™™\—ÚÛÚÎÂˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛÙ[”Ø[\\œÈŠHOHİ˜Û\
+›ØÛ˜[YK™ÛÙ[”Ø[\\œÓÑTÈŠHOH
+HÂˆ\YYˆ›ÚY
+ˆ
+
+œ›ŠJÛÛœİÚ\ŠŠNÈİ]XÈ›ˆ™X[H•SÂˆYˆ
+\™X[
+H™X[H
+›ŠHŞ[J•ÑQUS™YÛÙ]›ØĞY™\ÜÈŠNÂˆYˆ
+™X[
+HÈ›ÚY
+ˆÈH™X[
+›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÈBˆ›ÚY
+ˆÈHŞ[J•ÑQUS›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÂˆ™]\›ˆ
+›ÚY
+ŠHÛÙ[”Ø[\\œ×Ù˜[˜XÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™Ûš[™Ø[\\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™Ûš[™Ø[\\“ÑTÈŠHOH
+HÂˆ\YYˆ›ÚY
+ˆ
+
+œ›ŠJÛÛœİÚ\ŠŠNÈİ]XÈ›ˆ™X[H•SÂˆYˆ
+\™X[
+H™X[H
+›ŠHŞ[J•ÑQUS™YÛÙ]›ØĞY™\ÜÈŠNÂˆYˆ
+™X[
+HÈ›ÚY
+ˆÈH™X[
+›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÈBˆ›ÚY
+ˆÈHŞ[J•ÑQUS›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÂˆ™]\›ˆ
+›ÚY
+ŠHÛš[™Ø[\\—Ù˜[˜XÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™Û[]TØ[\\œÈŠHOHİ˜Û\
+›ØÛ˜[YK™Û[]TØ[\\œÓÑTÈŠHOH
+HÂˆ\YYˆ›ÚY
+ˆ
+
+œ›ŠJÛÛœİÚ\ŠŠNÈİ]XÈ›ˆ™X[H•SÂˆYˆ
+\™X[
+H™X[H
+›ŠHŞ[J•ÑQUS™YÛÙ]›ØĞY™\ÜÈŠNÂˆYˆ
+™X[
+HÈ›ÚY
+ˆÈH™X[
+›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÈBˆ›ÚY
+ˆÈHŞ[J•ÑQUS›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÂˆ™]\›ˆ
+›ÚY
+ŠHÛ[]TØ[\\œ×Ù˜[˜XÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛØ[\\”\˜[Y]\šHŠHOHİ˜Û\
+›ØÛ˜[YK™ÛØ[\\”\˜[Y]\šSÑTÈŠHOH
+HÂˆ\YYˆ›ÚY
+ˆ
+
+œ›ŠJÛÛœİÚ\ŠŠNÈİ]XÈ›ˆ™X[H•SÂˆYˆ
+\™X[
+H™X[H
+›ŠHŞ[J•ÑQUS™YÛÙ]›ØĞY™\ÜÈŠNÂˆYˆ
+™X[
+HÈ›ÚY
+ˆÈH™X[
+›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÈBˆ›ÚY
+ˆÈHŞ[J•ÑQUS›ØÛ˜[YJNÈYˆ
+ÊH™]\›ˆÎÂˆ™]\›ˆ
+›ÚY
+ŠHÛØ[\\”\˜[Y]\šWÙ˜[˜XÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙHŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙQVŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\”˜[™ÙPTˆŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆYÛÙ]›ØĞY™\ÜÈÛÚÙYÛX\Y™™\”˜[™ÙHOˆÚYİÈY™™\—ˆŠNÂˆ™]\›ˆ
+›ÚY
+ŠHÛX\Y™™\”˜[™ÙWÚÛÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\“ÑTÈŠHOHİ˜Û\
+›ØÛ˜[YK™ÛX\Y™™\TˆŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆYÛÙ]›ØĞY™\ÜÈÛÚÙYÛX\Y™™\ˆOˆÚYİÈY™™\—ˆŠNÂˆ™]\›ˆ
+›ÚY
+ŠHÛX\Y™™\—ÚÛÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\“ÑTÈŠHOHİ˜Û\
+›ØÛ˜[YK™Û[›X\Y™™\TˆŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆYÛÙ]›ØĞY™\ÜÈÛÚÙYÛ[›X\Y™™\ˆOˆÚYİÈY™™\—ˆŠNÂˆ™]\›ˆ
+›ÚY
+ŠHÛ[›X\Y™™\—ÚÛÚÎÂˆBˆYˆ
+İ˜Û\
+›ØÛ˜[YK™ÛY[[ÜP˜\œšY\ˆŠHOHİ˜Û\
+›ØÛ˜[YK™ÛY[[ÜP˜\œšY\‘VŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆYÛÙ]›ØĞY™\ÜÈÛÚÙYÛY[[ÜP˜\œšY\—ˆŠNÂˆ™]\›ˆ
+›ÚY
+ŠHÛY[[ÜP˜\œšY\—ÜİXÂˆBˆ\YYˆ›ÚY
+ˆ
+
+™YÛÙ]›ØĞY™\Ü×Ü›ŠJÛÛœİÚ\ŠŠNÂˆİ]XÈYÛÙ]›ØĞY™\Ü×Ü›ˆ™X[ÙYÛÙ]›ØĞY™\ÜÈH•SÂˆYˆ
+\™X[ÙYÛÙ]›ØĞY™\ÜÊHÂˆ™X[ÙYÛÙ]›ØĞY™\ÜÈH
+YÛÙ]›ØĞY™\Ü×Ü›ŠHŞ[J•ÑQUS™YÛÙ]›ØĞY™\ÜÈŠNÂˆYˆ
+\™X[ÙYÛÙ]›ØĞY™\ÜÊH™X[ÙYÛÙ]›ØĞY™\ÜÈH
+[Ù]›ØĞY™\Ü×Ü›ŠHŞ[J•Ó‘V™YÛÙ]›ØĞY™\ÜÈŠNÂˆBˆYˆ
+™X[ÙYÛÙ]›ØĞY™\ÜÊHÈ›ÚY
+ˆŞ[HH™X[ÙYÛÙ]›ØĞY™\ÜÊ›ØÛ˜[YJNÈYˆ
+Ş[JH™]\›ˆŞ[NÈBˆ›ÚY
+ˆŞ[HHŞ[J•ÑQUS›ØÛ˜[YJNÈYˆ
+Ş[JH™]\›ˆŞ[NÂˆ™]\›ˆ
+›ÚY
+ŠH[š]™\œØ[ÜİX—İ›ÚYÂŸB‚œİ]XÈ›Û™È™Ü[—ØYÙš^
+×Ø]šX]W×Ê
+[\ÙY
+JH“’Q[ˆ
+™[‹ˆ×Ø]šX]W×Ê
+[\ÙY
+JH˜Û\ÜÈÛ\ÜËˆ›Û™Èš[[˜[YWÜ‹š[›[ÙJHÂˆÛÛœİÚ\Šˆš[[˜[YHH
+ÛÛœİÚ\ŠŠHš[[˜[YWÜÂˆYŠš[[˜[YHOH•S
+HÂˆYŠİ˜Û\
+š[[˜[YK›X[Ø[‹œÛÈŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆ™\XÚ[™ÈØY›ÜˆX[Ø[‹œÛÈÚ]İ\İÛHš]™\—ˆŠNÂˆ™]\›ˆ
+›Û™ÊHÚ˜]™^X×ÛØY[Ø[‘š]™\Š
+NÂˆBˆYŠİ˜Û\
+š[[˜[YK›X•\˜›ÕŒKœÛÈŠHOHİ˜Û\
+š[[˜[YK›X‘ÓœÛÈŠHOHİ˜Û\
+š[[˜[YK›X‘ÓœÛËŒHŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆ™\XÚ[™ÈÜ[‘ÓÚ]™[™\œÜXÈš]™\ˆ
+	\ÊWˆ‹š[[˜[YJNÂˆÛÛœİÚ˜]™^X×Ü™[™\œÜX×İ
+œœÜXÈHÚ˜]™^X×ÙÙ]™[™\”ÜXÊ
+NÂˆYˆ
+œÜXÈ	‰ˆœÜXËO™YÛØXÜ]Z\™H	‰ˆœÜXËO™YÛÜ]
+HÂˆ™]\›ˆ
+›Û™ÊHœÜXËO™YÛØXÜ]Z\™JœÜXËO™YÛÜ]
+NÂˆBˆBˆBˆ™]\›ˆ
+›Û™ÊHÜ[Šš[[˜[YK
+[
+Z›[ÙJNÂŸB‚œİ]XÈ›Û™È™Ş[WÚÛÚÊ×Ø]šX]W×Ê
+[\ÙY
+JH“’Q[ˆ
+™[‹ˆ×Ø]šX]W×Ê
+[\ÙY
+JH˜Û\ÜÈÛ\ÜËˆ›Û™È[™K›Û™ÈŞ[X›ÛÜŠHÂˆÛÛœİÚ\ŠˆŞ[X›ÛH
+ÛÛœİÚ\ŠŠHŞ[X›ÛÜÂˆYˆ
+Ş[X›ÛOH•S
+HÂˆYˆ
+İ˜Û\
+Ş[X›Û™YÛÙ]\œ›ÜˆŠHOH
+HÂˆš[Š“Ò‘Ó[šÙ\šÛÚÎˆÛÚÙYYÛÙ]\œ›ÜˆOˆ™]\›š[™ÈQÓÔÕPĞÑTÔÈ
+È3³) \n");
+            return (jlong) eglGetError_stub;
+        }
+        if (strcmp(symbol, "eglGetProcAddress") == 0) {
+            printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
+            return (jlong) eglGetProcAddress_hook;
+        }
+        if (strcmp(symbol, "glfwInit") == 0) {
+            printf("LWJGL linkerhook: hooked glfwInit for TurboV1 Android Vulkan mode\n");
+            typedef void (*glfwInitHint_pfn)(int, int);
+            typedef int (*glfwInit_pfn)(void);
+
+            glfwInitHint_pfn real_glfwInitHint = (glfwInitHint_pfn) dlsym((void*) handle, "glfwInitHint");
+            if (!real_glfwInitHint) real_glfwInitHint = (glfwInitHint_pfn) dlsym(RTLD_DEFAULT, "glfwInitHint");
+            if (real_glfwInitHint) {
+                // Force Android native platform init hint (0x00050003 = GLFW_PLATFORM, 0x00060006 = GLVW_PLATFORM_ANDROID)
+                real_glfwInitHint(0x00050003, 0x00060006);
+            }
+
+            glfwInit_pfn real_glfwInit = (glfwInit_pfn) dlsym((void*) handle, "glfwInit");
+            if (!real_glfwInit) real_glfwInit = (glfwInit_pfn) dlsym(RTLD_DEFAULT, "glfwInit");
+            if (real_glfwInit) real_glfwInit();
+
+            typedef void (*glfwWindowHint_pfn)(int, int);
+            glfwWindowHint_pfn real_glfwWindowHint = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
+            if (!real_glfwWindowHint) real_glfwWindowHint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+            if (real_glfwWindowHint) {
+                real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0x00030001 /* GLFW_OPENGL_ES_API */);
+                real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036002 /* GLFW_EGL_CONTEXT_API */);
+            }
+            return (jlong) dlsym((void*) handle, "glfwInit");
+        }
+        if (strcmp(symbol, "glfwGetError") == 0) {
+            printf("LWJGL linkerhook: hooked glfwGetError to suppress pre-init error bits\n");
+            typedef int (*glfwGetError_pfn)(const char**);
+            glfwGetError_pfn real_glfwGetError = (glfwGetError_pfn) dlsym((void*) handle, "glfwGetError");
+            if (!real_glfwGetError) real_glfwGetError = (glfwGetError_pfn) dlsym(RTLD_DEFAULT, "glfwGetError");
+            if (real_glfwGetError) {
+                const char* description = NULL;
+                int err = real_glfwGetError(&description);
+                // Do not return 0 (NULL) - that gives LWJGL a null function pointer which crashes.
+                // Instead falling through to return the real function pointer below.
+            }
+        }
+        if (strcmp(symbol, "glfwCreateWindow") == 0) {
+            printf("LWJGL linkerhook: returning hooked_glfwCreateWindow wrapper for Vulkan/Zink TurboV1 mode\n");
+            extern void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share);
+            return (jlong) hooked_glfwCreateWindow;
+        }
+        if (strcmp(symbol, "eglSwapInterval") == 0) {
+            printf("LWJGL linkerhook: hooked eglSwapInterval\n");
+            return (jlong) eglSwapInterval_hook;
+        }
+        if (strcmp(symbol, "glGetString") == 0) {
+            printf("LWJGL linkerhook: hooked glGetString\n");
+            return (jlong) glGetString_hook;
+        }
+        if (strcmp(symbol, "glGetStringi") == 0) {
+            printf("LWJGL linkerhook: hooked glGetStringi\n");
+            return (jlong) glGetStringi_hook;
+        }
+        if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
+            printf("LWJGL linkerhook: hooked glMemoryBarrier\n");
+            return (jlong) glMemoryBarrier_stub;
+        }
+        if (strcmp(symbol, "glMapBufferRange") == 0 || strcmp(symbol, "glMapBufferRangeEXT") == 0 || strcmp(symbol, "glMapBufferRangeARB") == 0) {
+            printf("LWJGL linkerhook: hooked glMapBufferRange -> shadow buffer\n");
+            return (jlong) glMapBufferRange_hook;
+        }
+        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
+            printf("LWJGL linkerhook: hooked glMapBuffer -> shadow buffer\n");
+            return (jlong) glMapBuffer_hook;
+        }
+        if (strcmp(symbol, "glUnmapBuffer") == 0 || strcmp(symbol, "glUnmapBufferOES") == 0 || strcmp(symbol, "glUnmapBufferARB") == 0) {
+            printf("LWJGL linkerhook: hooked glUnmapBuffer -> shadow buffer\n");
+            return (jlong) glUnmapBuffer_hook;
+        }
+        if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
+            return (jlong) glGenSamplers_fallback;
+        }
+        if (strcmp(symbol, "glBindSampler") == 0 || strcmp(symbol, "glBindSamplerOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
+            return (jlong) glBindSampler_fallback;
+        }
+        if (strcmp(symbol, "glDeleteSamplers") == 0 || strcmp(symbol, "glDeleteSamplersOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
+            return (jlong) glDeleteSamplers_fallback;
+        }
+        if (strcmp(symbol, "glSamplerParameteri") == 0 || strcmp(symbol, "glSamplerParameteriOES") == 0) {
+            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
+            return (jlong) glSamplerParameteri_fallback;
         }
     }
-
-    // Fallback search if buffer ID mismatch
-    if (found_slot < 0) {
-        for (int i = 0; i < g_shadowCount; i++) {
-            if (g_shadowBuffers[i].in_use && g_shadowBuffers[i].is_shadow && g_shadowBuffers[i].target == target) {
-                found_slot = i; break;
-            }
-        }
-    }
-
-    if (found_slot >= 0) {
-        ShadowBufferMap entry = g_shadowBuffers[found_slot];
-        g_shadowBuffers[found_slot].in_use = 0;
-        g_shadowBuffers[found_slot].is_shadow = 0;
-        g_shadowBuffers[found_slot].shadow_ptr = NULL;
-        pthread_mutex_unlock(&g_shadowMutex);
-
-        if (entry.shadow_ptr) {
-            // CRITICAL FIX: Bind the buffer BEFORE calling glBufferSubData
-            if (real_glBindBuffer && entry.buffer_id != 0) {
-                real_glBindBuffer(target, entry.buffer_id);
-            }
-            if (real_glBufferSubData) {
-                real_glBufferSubData(target, entry.offset, entry.length, entry.shadow_ptr);
-            }
-            // Free memory if not using the static fallback buffer
-            if ((char*)entry.shadow_ptr < s_fallback_buffer || (char*)entry.shadow_ptr >= (s_fallback_buffer + sizeof(s_fallback_buffer))) {
-                free(entry.shadow_ptr);
-            }
-        }
-        if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-        return 1; // Success
-    }
-    pthread_mutex_unlock(&g_shadowMutex);
-
-    // Fallback to real glUnmapBuffer if not in shadow map
-    typedef int (*glUnmapBuffer_pfn)(unsigned int);
-    static glUnmapBuffer_pfn real_glUnmapBuffer = NULL;
-    if (!real_glUnmapBuffer) {
-        real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBuffer");
-        if (!real_glUnmapBuffer) real_glUnmapBuffer = (glUnmapBuffer_pfn) dlsym(RTLD_DEFAULT, "glUnmapBufferOES");
-    }
-    int res = 1;
-    if (real_glUnmapBuffer) res = real_glUnmapBuffer(target);
-    if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-    return res ? res : 1;
+    void* sym = dlsym((void*) handle, symbol);
+    if (!sym && symbol && strncmp(symbol, "gl", 2) == 0) return (jlong) universal_stub_void;
+    return (jlong) sym;
 }
 
-static void glMemoryBarrier_stub(unsigned int barriers) {
-    typedef void (*glFlush_pfn)();
-    static glFlush_pfn real_glFlush = NULL;
-    if (!real_glFlush) {
-        real_glFlush = (glFlush_pfn) dlsym(RTLD_DEFAULT, "glFlush");
-        if (!real_glFlush) real_glFlush = (glFlush_pfn) dlsym(RTLD_NEXT, "glFlush");
+void installLwjglDlopenHook(JNIEnv *env) {
+    LOGI("Installing LWJGL dlopen() and dlsym() hooks (BUILD v20260907-E)");
+    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260907-E)\n");
+    jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
+    if(dynamicLinkLoader == NULL) {
+        LOGE("Failed to find the target class");
+        printf("LWJGL linkerhook ERROR: Failed to find DynamicLinkLoader class\n");
+        (*env)->ExceptionClear(env);
+        return;
     }
-    if (real_glFlush) real_glFlush();
-    LOGI("glMemoryBarrier stub called and flushed successfully (Barriers: %u)", barriers);
-}
-
-static unsigned int eglGetError_stub(void) {
-    return 0x3000; // EGL_SUCCESS
-}
-
-void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
-    printf("TurboV1 Interceptor: Executing hooked_glfwCreateWindow with EGL OpenGL ES context for Zink\n");
-    fflush(stdout);
-    typedef void (*glfwWindowHint_pfn)(int, int);
-    typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
-
-    static glfwWindowHint_pfn real_win_hint = NULL;
-    static glfwCreateWindow_pfn real_create_win = NULL;
-
-    if (!real_win_hint) {
-        real_win_hint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+    JNINativeMethod hooks[] = {
+            {"ndlopen", "(JI)J", &ndlopen_bugfix},
+            {"ndlsym", "(JJ)J", &ndlsym_hook}
+    };
+    if((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+        printf("LWJGL linkerhook: RegisterNatives failed\n");
+        LOGE("Failed to register the hooked methods");
+        printf("LWJGL linkerhook ERROR: Failed to register hooked methods\n");
+        (*env)->ExceptionClear(env);
     }
-    if (!real_create_win) {
-        real_create_win = (glfwCreateWindow_pfn) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
-    }
-
-    if (real_win_hint) {
-        real_win_hint(0x00022001 /* GLFW_CLIENT_API */, 0x00030001 /* GLFW_OPENGL_ES_API */);
-        real_win_hint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036002 /* GLFW_EGL_CONTEXT_API */);
-    }
-
-    if (real_create_win) {
-        return real_create_win(width, height, title, monitor, share);
-    }
-    return NULL;
+    printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully\n");
 }
