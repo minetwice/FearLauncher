@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "net.kdt.pojavlaunch.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MixinGLX"
+  ],
+  "client": [
+    "MixinGLX"
+  ],
+  "server": []
+}
