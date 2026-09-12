@@ -1,6 +1,6 @@
 //
 // Created by maks on 06.01.2025.
-// TurboV1 / Zink FINAL-V3 - clear build marker for verification
+// TurboV1 / Zink FINAL-V4 - OpenGL ES + EGL for Zink, fix EGL init failure
 //
 
 #include "jvm_hooks.h"
@@ -56,63 +56,94 @@ static void resolve_glfw_funcs(void* handle) {
     }
 }
 
+static void apply_turbov1_window_hints(void) {
+    if (!real_glfwWindowHint) return;
+
+    // Zink on Android works best when GLFW creates an OpenGL ES context via EGL.
+    // Mesa/Zink then provides the GLES implementation on top of Vulkan.
+    real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0x00030001 /* GLFW_OPENGL_ES_API */);
+    real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036002 /* GLFW_EGL_CONTEXT_API */);
+    real_glfwWindowHint(0x00022002 /* GLFW_CONTEXT_VERSION_MAJOR */, 3);
+    real_glfwWindowHint(0x00022003 /* GLFW_CONTEXT_VERSION_MINOR */, 0);
+    // Don't require a forward-compatible / core profile that may break on GLES
+    real_glfwWindowHint(0x00022008 /* GLFW_OPENGL_FORWARD_COMPAT */, 0);
+    real_glfwWindowHint(0x00022006 /* GLFW_OPENGL_PROFILE */, 0 /* GLFW_OPENGL_ANY_PROFILE */);
+}
+
 // Our hooked glfwInit - sets correct hints for TurboV1/Zink then calls real
 static int hooked_glfwInit_impl(void) {
-    printf("LWJGL linkerhook: FINAL-V3 TurboV1 hooked_glfwInit_impl executing\n");
+    printf("LWJGL linkerhook: FINAL-V4 TurboV1 hooked_glfwInit_impl executing\n");
     resolve_glfw_funcs(RTLD_DEFAULT);
 
-    // Clear any previous error state before we start
+    // Drain any previous error state
     if (real_glfwGetError) {
         const char* desc = NULL;
         while (real_glfwGetError(&desc) != 0) {
-            // drain errors
+            // drain
         }
     }
 
     if (real_glfwInitHint) {
-        // Force Android platform
         real_glfwInitHint(0x00050003 /* GLFW_PLATFORM */, 0x00060006 /* GLFW_PLATFORM_ANDROID */);
     }
 
-    if (real_glfwWindowHint) {
-        // For Zink / TurboV1 we prefer NO_API so the surface can be Vulkan-based.
-        real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-    }
+    apply_turbov1_window_hints();
 
     int result = 0;
     if (real_glfwInit) {
         result = real_glfwInit();
+        g_glfw_initialized = 1; // mark attempted either way
         if (result) {
-            g_glfw_initialized = 1;
-            printf("LWJGL linkerhook: FINAL-V3 real glfwInit() succeeded\n");
+            printf("LWJGL linkerhook: FINAL-V4 real glfwInit() succeeded\n");
         } else {
-            printf("LWJGL linkerhook: FINAL-V3 real glfwInit() FAILED\n");
-            // Even on failure mark as attempted so GetError doesn't keep lying
-            g_glfw_initialized = 1;
+            printf("LWJGL linkerhook: FINAL-V4 real glfwInit() FAILED\n");
         }
     }
     return result;
 }
 
-// Hooked glfwGetError - suppress "not initialized" errors before init
+// Hooked glfwGetError - suppress pre-init and known noisy errors
 static int hooked_glfwGetError_impl(const char** description) {
     if (!g_glfw_initialized) {
         if (description) *description = NULL;
-        return 0; // No error - this prevents the crash
+        return 0;
     }
     if (real_glfwGetError) {
-        return real_glfwGetError(description);
+        int code = real_glfwGetError(description);
+        // Suppress "not initialized" even after we marked init (race / double-check paths)
+        if (code == 0x10001 /* GLFW_NOT_INITIALIZED */) {
+            if (description) *description = NULL;
+            return 0;
+        }
+        return code;
     }
     if (description) *description = NULL;
     return 0;
 }
 
-// Simple passthrough for glfwCreateWindow
+// glfwCreateWindow - re-apply hints then create
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: FINAL-V3 TurboV1 hooked_glfwCreateWindow_impl (%dx%d)\n", width, height);
+    printf("LWJGL linkerhook: FINAL-V4 TurboV1 hooked_glfwCreateWindow_impl (%dx%d)\n", width, height);
     resolve_glfw_funcs(RTLD_DEFAULT);
+
+    // Re-apply hints right before window creation (Minecraft may override earlier)
+    apply_turbov1_window_hints();
+
     if (real_glfwCreateWindow) {
-        return real_glfwCreateWindow(width, height, title, monitor, share);
+        void* win = real_glfwCreateWindow(width, height, title, monitor, share);
+        if (!win) {
+            printf("LWJGL linkerhook: FINAL-V4 glfwCreateWindow returned NULL\n");
+            // Drain error for logging
+            if (real_glfwGetError) {
+                const char* desc = NULL;
+                int code = real_glfwGetError(&desc);
+                printf("LWJGL linkerhook: FINAL-V4 glfwCreateWindow error %d: %s\n",
+                       code, desc ? desc : "(null)");
+            }
+        } else {
+            printf("LWJGL linkerhook: FINAL-V4 glfwCreateWindow succeeded\n");
+        }
+        return win;
     }
     return NULL;
 }
@@ -128,14 +159,16 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
 
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V3 replacing load for libvulkan.so with custom driver\n");
+        printf("LWJGL linkerhook: FINAL-V4 replacing load for libvulkan.so with custom driver\n");
         return (jlong) pojavexec_loadVulkanDriver();
     }
 
+    // Also catch generic libGL.so loads and redirect to TurboV1 / renderspec when possible
     if (strstr(filename, "libTurboV1.so") != NULL ||
         strstr(filename, "libGLMojo.so") != NULL ||
-        strstr(filename, "libGLFear.so") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V3 replacing OpenGL with renderspec / TurboV1 driver\n");
+        strstr(filename, "libGLFear.so") != NULL ||
+        strstr(filename, "libGL.so") != NULL) {
+        printf("LWJGL linkerhook: FINAL-V4 replacing OpenGL load (%s) with renderspec / TurboV1\n", filename);
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         if (rspec && rspec->egl_acquire) {
             return (jlong) rspec->egl_acquire(rspec->egl_path);
@@ -162,17 +195,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     }
 
     if (strcmp(symbol, "glfwInit") == 0) {
-        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwInit_impl\n");
+        printf("LWJGL linkerhook: FINAL-V4 returning hooked_glfwInit_impl\n");
         return (jlong) hooked_glfwInit_impl;
     }
 
     if (strcmp(symbol, "glfwGetError") == 0) {
-        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwGetError_impl (suppress pre-init)\n");
+        printf("LWJGL linkerhook: FINAL-V4 returning hooked_glfwGetError_impl\n");
         return (jlong) hooked_glfwGetError_impl;
     }
 
     if (strcmp(symbol, "glfwCreateWindow") == 0) {
-        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwCreateWindow_impl\n");
+        printf("LWJGL linkerhook: FINAL-V4 returning hooked_glfwCreateWindow_impl\n");
         return (jlong) hooked_glfwCreateWindow_impl;
     }
 
@@ -187,8 +220,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL dlopen/dlsym hooks (BUILD v20260912-FINAL-V3)");
-    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260912-FINAL-V3)\n");
+    LOGI("Installing LWJGL dlopen/dlsym hooks (BUILD v20260912-FINAL-V4)");
+    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260912-FINAL-V4)\n");
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
         LOGE("Failed to find DynamicLinkLoader class");
@@ -203,6 +236,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooked methods");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully (FINAL-V3)\n");
+        printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully (FINAL-V4)\n");
     }
 }
