@@ -21,6 +21,132 @@ import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.*;
 
 public class JREUtils {
+    private static final String TAG = "JREUtils";
+    private static final String VULKAN_LIB_URL = "https://github.com/minetwice/FearLauncher/releases/download/vulkan-libs/";
+    private static final String[] VULKAN_LIBS = {"libvulkan.so", "libvulkan_mesa.so"};
+    private static boolean sVulkanLibrariesChecked = false;
+
+    static {
+        try {
+            Logger.appendToLog("[JREUtils] Static: Attempting early Vulkan preload for Zink compatibility...");
+            ensureVulkanLibraries();
+            preloadVulkan();
+            Logger.appendToLog("[JREUtils] Static: Vulkan preloaded successfully!");
+        } catch (Throwable t) {
+            Logger.appendToLog("[JREUtils] Static: Early Vulkan preload failed (will retry later): " + t.getMessage());
+        }
+    }
+
+    /**
+     * Ensures Vulkan libraries are available, downloading them if necessary
+     */
+    private static void ensureVulkanLibraries() {
+        if (sVulkanLibrariesChecked) return;
+        sVulkanLibrariesChecked = true;
+        
+        Context context = null;
+        try {
+            context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+        } catch (Exception e) {
+            Log.w(TAG, "Could not get application context for Vulkan library check", e);
+        }
+        
+        if (context == null) {
+            Log.w(TAG, "No context available, skipping Vulkan library check");
+            return;
+        }
+        
+        File nativeLibDir = new File(Tools.NATIVE_LIB_DIR);
+        if (!nativeLibDir.exists() || !nativeLibDir.isDirectory()) {
+            Log.w(TAG, "Native lib directory does not exist: " + Tools.NATIVE_LIB_DIR);
+            return;
+        }
+        
+        boolean allLibsExist = true;
+        for (String libName : VULKAN_LIBS) {
+            File libFile = new File(nativeLibDir, libName);
+            if (!libFile.exists()) {
+                allLibsExist = false;
+                break;
+            }
+        }
+        
+        if (allLibsExist) {
+            Log.i(TAG, "All Vulkan libraries already present");
+            return;
+        }
+        
+        // Download missing libraries
+        new Thread(() -> {
+            try {
+                Logger.appendToLog("[JREUtils] Downloading Vulkan libraries for first-time setup...");
+                for (String libName : VULKAN_LIBS) {
+                    File libFile = new File(nativeLibDir, libName);
+                    if (!libFile.exists()) {
+                        String downloadUrl = VULKAN_LIB_URL + libName;
+                        if (downloadLibrary(context, downloadUrl, libFile)) {
+                            Logger.appendToLog("[JREUtils] Successfully downloaded: " + libName);
+                        } else {
+                            Log.w(TAG, "Failed to download: " + libName);
+                        }
+                    }
+                }
+                
+                // Set executable permissions
+                for (String libName : VULKAN_LIBS) {
+                    File libFile = new File(nativeLibDir, libName);
+                    if (libFile.exists()) {
+                        libFile.setExecutable(true);
+                        libFile.setReadable(true);
+                    }
+                }
+                
+                Logger.appendToLog("[JREUtils] Vulkan library setup complete!");
+            } catch (Exception e) {
+                Log.e(TAG, "Error downloading Vulkan libraries", e);
+                Logger.appendToLog("[JREUtils] ERROR: Failed to download Vulkan libraries: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /**
+     * Download a library file from URL to destination
+     */
+    private static boolean downloadLibrary(Context context, String url, File destination) {
+        try {
+            java.net.URL downloadUrl = new java.net.URL(url);
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) downloadUrl.openConnection();
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(60000);
+            
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 200) {
+                Log.w(TAG, "HTTP " + responseCode + " for " + url);
+                return false;
+            }
+            
+            // Ensure parent directory exists
+            File parentDir = destination.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            
+            try (InputStream inputStream = connection.getInputStream();
+                 FileOutputStream outputStream = new FileOutputStream(destination)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to download library from " + url, e);
+            return false;
+        }
+    }
+
     public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
@@ -108,6 +234,7 @@ public class JREUtils {
                 break;
         }
     }
+
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
@@ -134,6 +261,19 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
+        
+        if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
+            Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
+            try {
+                ensureVulkanLibraries();
+                preloadVulkan();
+                Logger.appendToLog("[TurboV1] setEnviroimentForGame: Vulkan preloaded successfully!");
+            } catch (Throwable t) {
+                Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
+                Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
+            }
+        }
+        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -171,7 +311,7 @@ public class JREUtils {
 
     public static ArrayList<String> parseJavaArguments(String args){
         ArrayList<String> parsedArguments = new ArrayList<>(0);
-        args = args.trim().replace(" ", "");
+        args = args.trim().replace("  ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
         for(String prefix : separators){
             while (true){
@@ -254,14 +394,24 @@ public class JREUtils {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if (preloadVk) preloadVulkan();
+                if (preloadVk) {
+                    try {
+                        ensureVulkanLibraries();
+                        preloadVulkan();
+                    } catch (Throwable t) {
+                        Log.e("JREUtils", "TurboV1 Vulkan preload failed", t);
+                    }
+                }
 
                 try {
                     System.loadLibrary("turbov1");
+
                     String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
+                    Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
                     Log.e("JREUtils", "TurboV1 native engine init failed", t);
+                    Logger.appendToLog("[TurboV1] ERROR: Native engine initialization failed!");
                 }
                 break;
             case "vulkan_zink":
@@ -269,7 +419,14 @@ public class JREUtils {
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
-                if(preloadVk) preloadVulkan();
+                if(preloadVk) {
+                    try {
+                        ensureVulkanLibraries();
+                        preloadVulkan();
+                    } catch (Throwable t) {
+                        Log.e("JREUtils", "Vulkan Zink Vulkan preload failed", t);
+                    }
+                }
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
@@ -312,7 +469,6 @@ public class JREUtils {
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
-    //public static native void initializeHooks();
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
