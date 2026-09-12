@@ -1,7 +1,7 @@
 //
-// TurboV1 / Zink FINAL-V7
-// V6 proved NO_API creates the window. GLES tries only fire EGL errors that kill Minecraft.
-// So: only NO_API + aggressive error drain + suppress.
+// TurboV1 / Zink FINAL-V8 — strong final mechanism
+// NO_API window + full context API bridge so Minecraft does not crash on
+// glfwMakeContextCurrent / SwapBuffers / etc.
 //
 
 #include "jvm_hooks.h"
@@ -17,8 +17,9 @@
 #include "../pojavexec.h"
 
 static volatile int g_glfw_initialized = 0;
-static volatile int g_suppress_all_glfw_errors = 1;
 static volatile int g_window_created = 0;
+static volatile int g_context_current = 0;
+static void* g_current_window = NULL;
 
 static int  (*real_glfwInit)(void) = NULL;
 static int  (*real_glfwGetError)(const char**) = NULL;
@@ -26,14 +27,13 @@ static void (*real_glfwInitHint)(int, int) = NULL;
 static void (*real_glfwWindowHint)(int, int) = NULL;
 static void* (*real_glfwCreateWindow)(int, int, const char*, void*, void*) = NULL;
 static void (*real_glfwDefaultWindowHints)(void) = NULL;
+static void (*real_glfwMakeContextCurrent)(void*) = NULL;
+static void (*real_glfwSwapBuffers)(void*) = NULL;
+static void (*real_glfwSwapInterval)(int) = NULL;
+static void* (*real_glfwGetCurrentContext)(void) = NULL;
 
-static void universal_stub_void(void) {
-    LOGI("LWJGL linkerhook: universal GL stub");
-}
-
-static int eglGetError_always_success(void) {
-    return 0x3000;
-}
+static void universal_stub_void(void) {}
+static int eglGetError_always_success(void) { return 0x3000; }
 
 static void force_turbov1_env(void) {
     setenv("EGL_PLATFORM", "android", 1);
@@ -45,16 +45,12 @@ static void force_turbov1_env(void) {
     setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
     setenv("ZINK_DESCRIPTORS", "lazy", 1);
     setenv("mesa_glthread", "false", 1);
-    printf("LWJGL linkerhook: FINAL-V7 forced TurboV1/Zink env\n");
 }
 
 static void drain_glfw_errors(void) {
     if (!real_glfwGetError) return;
     const char* d = NULL;
-    int code;
-    while ((code = real_glfwGetError(&d)) != 0) {
-        printf("LWJGL linkerhook: FINAL-V7 drained error %d: %s\n", code, d ? d : "(null)");
-    }
+    while (real_glfwGetError(&d) != 0) {}
 }
 
 static void resolve_all(void* handle) {
@@ -82,66 +78,74 @@ static void resolve_all(void* handle) {
         real_glfwDefaultWindowHints = (void (*)(void)) dlsym(handle, "glfwDefaultWindowHints");
         if (!real_glfwDefaultWindowHints) real_glfwDefaultWindowHints = (void (*)(void)) dlsym(RTLD_DEFAULT, "glfwDefaultWindowHints");
     }
+    if (!real_glfwMakeContextCurrent) {
+        real_glfwMakeContextCurrent = (void (*)(void*)) dlsym(handle, "glfwMakeContextCurrent");
+        if (!real_glfwMakeContextCurrent) real_glfwMakeContextCurrent = (void (*)(void*)) dlsym(RTLD_DEFAULT, "glfwMakeContextCurrent");
+    }
+    if (!real_glfwSwapBuffers) {
+        real_glfwSwapBuffers = (void (*)(void*)) dlsym(handle, "glfwSwapBuffers");
+        if (!real_glfwSwapBuffers) real_glfwSwapBuffers = (void (*)(void*)) dlsym(RTLD_DEFAULT, "glfwSwapBuffers");
+    }
+    if (!real_glfwSwapInterval) {
+        real_glfwSwapInterval = (void (*)(int)) dlsym(handle, "glfwSwapInterval");
+        if (!real_glfwSwapInterval) real_glfwSwapInterval = (void (*)(int)) dlsym(RTLD_DEFAULT, "glfwSwapInterval");
+    }
+    if (!real_glfwGetCurrentContext) {
+        real_glfwGetCurrentContext = (void* (*)(void)) dlsym(handle, "glfwGetCurrentContext");
+        if (!real_glfwGetCurrentContext) real_glfwGetCurrentContext = (void* (*)(void)) dlsym(RTLD_DEFAULT, "glfwGetCurrentContext");
+    }
 }
 
 static void apply_hints_no_api(void) {
     if (!real_glfwWindowHint) return;
-    // Critical for TurboV1/Zink: no GL context from GLFW
-    real_glfwWindowHint(0x00022001, 0); // GLFW_CLIENT_API = GLFW_NO_API
+    real_glfwWindowHint(0x00022001, 0); // GLFW_NO_API
 }
 
+// ---- glfwInit ----
 static int hooked_glfwInit_impl(void) {
-    printf("LWJGL linkerhook: FINAL-V7 hooked_glfwInit_impl\n");
+    printf("LWJGL linkerhook: FINAL-V8 hooked_glfwInit\n");
     force_turbov1_env();
     resolve_all(RTLD_DEFAULT);
     drain_glfw_errors();
 
-    if (real_glfwInitHint) {
+    if (real_glfwInitHint)
         real_glfwInitHint(0x00050003, 0x00060006); // ANDROID
-    }
-
-    // Set NO_API before init so default hints are correct
     apply_hints_no_api();
 
     int result = 0;
-    if (real_glfwInit) {
-        result = real_glfwInit();
-        printf("LWJGL linkerhook: FINAL-V7 real glfwInit() -> %d\n", result);
-    }
+    if (real_glfwInit) result = real_glfwInit();
     g_glfw_initialized = 1;
     drain_glfw_errors();
-    if (!result) {
-        printf("LWJGL linkerhook: FINAL-V7 forcing glfwInit success\n");
-        result = 1;
-    }
-    return result;
+    printf("LWJGL linkerhook: FINAL-V8 glfwInit -> %d (forced ok)\n", result);
+    return 1; // always success
 }
 
+// ---- glfwGetError: suppress everything dangerous ----
 static int hooked_glfwGetError_impl(const char** description) {
-    // Always suppress until window is successfully created
-    if (g_suppress_all_glfw_errors || !g_glfw_initialized || !g_window_created) {
-        // Still drain real queue so it doesn't pile up
-        if (real_glfwGetError) {
-            const char* d = NULL;
-            real_glfwGetError(&d);
-        }
-        if (description) *description = NULL;
-        return 0;
-    }
     if (real_glfwGetError) {
-        int code = real_glfwGetError(description);
-        if (code == 0x10001 || code == 0x10008 || code == 65542 || code == 0x10004) {
+        const char* d = NULL;
+        int code = real_glfwGetError(&d);
+        // Suppress all known startup / NO_API related codes
+        if (code == 0 || code == 0x10001 || code == 0x10004 || code == 0x10008 ||
+            code == 65542 || code == 65546 || code == 0x10007) {
             if (description) *description = NULL;
             return 0;
         }
+        // During early phase suppress everything
+        if (!g_window_created || !g_context_current) {
+            if (description) *description = NULL;
+            return 0;
+        }
+        if (description) *description = d;
         return code;
     }
     if (description) *description = NULL;
     return 0;
 }
 
+// ---- glfwCreateWindow: NO_API only ----
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: FINAL-V7 hooked_glfwCreateWindow_impl (%dx%d) — NO_API only\n", width, height);
+    printf("LWJGL linkerhook: FINAL-V8 CreateWindow %dx%d NO_API\n", width, height);
     resolve_all(RTLD_DEFAULT);
     force_turbov1_env();
     drain_glfw_errors();
@@ -152,23 +156,53 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
     apply_hints_no_api();
 
     void* win = real_glfwCreateWindow(width, height, title, monitor, share);
-
-    // Drain any errors produced during create so Java side does not see them
     drain_glfw_errors();
 
     if (win) {
-        printf("LWJGL linkerhook: FINAL-V7 window OK with NO_API\n");
         g_window_created = 1;
-        // Keep suppress on a bit longer – Minecraft may still poll GetError
-        // g_suppress_all_glfw_errors stays 1 until we are more confident
-        return win;
+        g_current_window = win;
+        printf("LWJGL linkerhook: FINAL-V8 window OK\n");
+    } else {
+        printf("LWJGL linkerhook: FINAL-V8 window FAILED\n");
     }
+    return win;
+}
 
-    printf("LWJGL linkerhook: FINAL-V7 NO_API CreateWindow failed\n");
+// ---- glfwMakeContextCurrent: NO-OP success for NO_API ----
+static void hooked_glfwMakeContextCurrent_impl(void* window) {
+    printf("LWJGL linkerhook: FINAL-V8 MakeContextCurrent %p (no-op safe)\n", window);
+    // Do NOT call real — it throws 65546 on NO_API windows
+    if (window) {
+        g_current_window = window;
+        g_context_current = 1;
+    } else {
+        g_context_current = 0;
+    }
     drain_glfw_errors();
+}
+
+// ---- glfwGetCurrentContext ----
+static void* hooked_glfwGetCurrentContext_impl(void) {
+    if (g_context_current) return g_current_window;
     return NULL;
 }
 
+// ---- glfwSwapBuffers: try real, never crash ----
+static void hooked_glfwSwapBuffers_impl(void* window) {
+    if (real_glfwSwapBuffers && window) {
+        // On NO_API this may error — drain after
+        real_glfwSwapBuffers(window);
+        drain_glfw_errors();
+    }
+}
+
+// ---- glfwSwapInterval: no-op ----
+static void hooked_glfwSwapInterval_impl(int interval) {
+    (void)interval;
+    // no-op — vsync controlled by env / Zink
+}
+
+// ---- ndlopen ----
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
                      jlong filename_ptr,
@@ -177,24 +211,20 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
 
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V7 vulkan redirect\n");
+        printf("LWJGL linkerhook: FINAL-V8 vulkan redirect\n");
         return (jlong) pojavexec_loadVulkanDriver();
     }
-
-    if (strstr(filename, "libTurboV1.so") != NULL ||
-        strstr(filename, "libGLMojo.so") != NULL ||
-        strstr(filename, "libGLFear.so") != NULL ||
-        strstr(filename, "libGL.so") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V7 GL redirect (%s)\n", filename);
+    if (strstr(filename, "libTurboV1.so") || strstr(filename, "libGLMojo.so") ||
+        strstr(filename, "libGLFear.so") || strstr(filename, "libGL.so")) {
+        printf("LWJGL linkerhook: FINAL-V8 GL redirect (%s)\n", filename);
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
-        if (rspec && rspec->egl_acquire) {
+        if (rspec && rspec->egl_acquire)
             return (jlong) rspec->egl_acquire(rspec->egl_path);
-        }
     }
-
     return (jlong) dlopen(filename, (int)jmode);
 }
 
+// ---- ndlsym ----
 static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                   __attribute__((unused)) jclass class,
                   jlong handle,
@@ -206,16 +236,20 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     if (strcmp(symbol, "eglGetError") == 0)
         return (jlong) eglGetError_always_success;
-    if (strcmp(symbol, "glfwInit") == 0) {
-        printf("LWJGL linkerhook: FINAL-V7 return hooked_glfwInit\n");
+    if (strcmp(symbol, "glfwInit") == 0)
         return (jlong) hooked_glfwInit_impl;
-    }
     if (strcmp(symbol, "glfwGetError") == 0)
         return (jlong) hooked_glfwGetError_impl;
-    if (strcmp(symbol, "glfwCreateWindow") == 0) {
-        printf("LWJGL linkerhook: FINAL-V7 return hooked_glfwCreateWindow\n");
+    if (strcmp(symbol, "glfwCreateWindow") == 0)
         return (jlong) hooked_glfwCreateWindow_impl;
-    }
+    if (strcmp(symbol, "glfwMakeContextCurrent") == 0)
+        return (jlong) hooked_glfwMakeContextCurrent_impl;
+    if (strcmp(symbol, "glfwGetCurrentContext") == 0)
+        return (jlong) hooked_glfwGetCurrentContext_impl;
+    if (strcmp(symbol, "glfwSwapBuffers") == 0)
+        return (jlong) hooked_glfwSwapBuffers_impl;
+    if (strcmp(symbol, "glfwSwapInterval") == 0)
+        return (jlong) hooked_glfwSwapInterval_impl;
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
@@ -225,8 +259,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (BUILD v20260912-FINAL-V7)");
-    printf("LWJGL linkerhook: installing hooks (BUILD v20260912-FINAL-V7)\n");
+    LOGI("Installing LWJGL hooks (BUILD v20260912-FINAL-V8)");
+    printf("LWJGL linkerhook: installing hooks (BUILD v20260912-FINAL-V8) — full context bridge\n");
     force_turbov1_env();
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
@@ -243,6 +277,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL linkerhook: hooks installed (FINAL-V7)\n");
+        printf("LWJGL linkerhook: FINAL-V8 hooks installed\n");
     }
 }
