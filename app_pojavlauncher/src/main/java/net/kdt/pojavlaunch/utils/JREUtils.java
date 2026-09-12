@@ -89,7 +89,8 @@ public class JREUtils {
         switch(renderer) {
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment...");
-                boolean isMali = GLInfoUtils.getGlInfo().isMali();
+                GLInfoUtils.GLInfo glInfo = GLInfoUtils.getGlInfo();
+                boolean isMali = glInfo != null && glInfo.isMali();
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");

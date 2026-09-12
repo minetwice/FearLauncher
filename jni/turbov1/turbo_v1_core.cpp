@@ -72,14 +72,17 @@ JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_initTurboV1Engine
     if (path) env->ReleaseStringUTFChars(cachePath, path);
 }
 
+#include <dlfcn.h>
+#include <EGL/egl.h>
+
 __attribute__((visibility("default")))
-void* eglGetProcAddress(const char* procname) {
+__eglMustCastToProperFunctionPointerType eglGetProcAddress(const char* procname) {
     if (!procname) return nullptr;
-    return (void*) dlsym(RTLD_DEFAULT, procname);
+    return (__eglMustCastToProperFunctionPointerType) dlsym(RTLD_DEFAULT, procname);
 }
 
 __attribute__((visibility("default")))
-void* glXGetProcAddress(const char* procname) {
+__eglMustCastToProperFunctionPointerType glXGetProcAddress(const char* procname) {
     return eglGetProcAddress(procname);
 }
 
