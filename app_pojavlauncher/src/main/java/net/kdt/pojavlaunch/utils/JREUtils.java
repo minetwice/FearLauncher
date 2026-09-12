@@ -40,7 +40,7 @@ public class JREUtils {
     /**
      * Ensures Vulkan libraries are available, downloading them if necessary
      */
-    private static void ensureVulkanLibraries() {
+    public static void ensureVulkanLibraries() {
         if (sVulkanLibrariesChecked) return;
         sVulkanLibrariesChecked = true;
         
@@ -48,7 +48,8 @@ public class JREUtils {
         try {
             context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
         } catch (Exception e) {
-            Log.w(TAG, "Could not get application context for Vulkan library check", e);
+            Log.w(TAG, "Could not get application context fo
+r Vulkan library check", e);
         }
         
         if (context == null) {
@@ -100,6 +101,7 @@ public class JREUtils {
                         libFile.setReadable(true);
                     }
                 }
+
                 
                 Logger.appendToLog("[JREUtils] Vulkan library setup complete!");
             } catch (Exception e) {
@@ -150,7 +152,8 @@ public class JREUtils {
     public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
-            int failCount = 0;
+            int fa
+ilCount = 0;
             while (failCount < 15) {
                 try {
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
@@ -192,7 +195,8 @@ public class JREUtils {
         reader.close();
     }
 
-    public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
+    public 
+static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
         if (angle == null) return;
@@ -229,7 +233,8 @@ public class JREUtils {
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+       
+         envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 break;
         }
@@ -271,7 +276,8 @@ public class JREUtils {
             } catch (Throwable t) {
                 Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
                 Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
-            }
+      
+      }
         }
         
         setupRendererEnv(envMap, renderer);
@@ -320,7 +326,8 @@ public class JREUtils {
                 int end = -1;
                 for(String separator: separators){
                     int tempEnd = args.indexOf(separator, start + prefix.length());
-                    if(tempEnd == -1) continue;
+    
+                if(tempEnd == -1) continue;
                     if(end == -1){
                         end = tempEnd;
                         continue;
@@ -362,7 +369,8 @@ public class JREUtils {
             LibraryPlugin plugin = (context != null) ? LibraryPlugin.discoverPlugin(context, appId) : null;
             if (plugin != null) {
                 String libDir = plugin.getLibraryPath();
-                File libDirFile = new File(libDir);
+                File libDirFile
+ = new File(libDir);
                 if (libDirFile.exists() && libDirFile.isDirectory()) {
                     File[] candidates = libDirFile.listFiles((dir, name) -> name.endsWith(".so"));
                     if (candidates != null && candidates.length > 0) {
@@ -406,7 +414,8 @@ public class JREUtils {
                 try {
                     System.loadLibrary("turbov1");
 
-                    String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
+    
+                String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
                     Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
@@ -455,7 +464,8 @@ public class JREUtils {
     }
     public static native int chdir(String path);
     public static native void setLdLibraryPath(String ldLibraryPath);
-    public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
+    public stati
+c native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
