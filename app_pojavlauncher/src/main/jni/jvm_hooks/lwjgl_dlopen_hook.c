@@ -59,7 +59,7 @@ static unsigned int get_bound_buffer_id(unsigned int target) {
         real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_DEFAULT, "glGetIntegerv");
         if (!real_glGetIntegerv) real_glGetIntegerv = (glGetIntegerv_pfn) dlsym(RTLD_NEXT, "glGetIntegerv");
     }
-    if (!real_glGetIntegerv) return 0;
+    if (!real_glGetError) return 0;
 
     unsigned int pname = 0x8894; // GL_ARRAY_BUFFER_BINDING
     switch (target) {
@@ -68,161 +68,14 @@ static unsigned int get_bound_buffer_id(unsigned int target) {
         case 0x8A11: pname = 0x8A28; break; // GL_UNIFORM_BUFFER -> GL_UNIFORM_BUFFER_BINDING
         case 0x90D2: pname = 0x90D3; break; // GL_SHADER_STORAGE_BUFFER -> GL_SHADER_STORAGE_BUFFER_BINDING
         case 0x8F36: pname = 0x8F36; break; // GL_COPY_READ_BUFFER
-        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WRITE_BUFFER
-        case 0x88EB: pname = 0x88ED; break; // GL_PIXEL_PACK_BUFFER -> GL_PIXEL_PACK_BUFFER_BINDING
-        case 0x88EC: pname = 0x88EF; break; // GL_PIXEL_UNPACK_BUFFER -> GL_PIXEL_UNPACK_BUFFER_BINDING
-        case 0x8C8E: pname = 0x8C8F; break; // GL_TRANSFORM_FEEDBACK_BUFFER -> GL_TRANSFORM_FEEDBACK_BUFFER_BINDING
-        case 0x90EE: pname = 0x90EE; break; // GL_DISPATCH_INDIRECT_BUFFER
-        case 0x8F39: pname = 0x8F43; break; // GL_DRAW_INDIRECT_BUFFER -> GL_DRAW_INDIRECT_BUFFER_BINDING
-        default: pname = 0x8894; break;
-    }
-
-    int val = 0;
-    real_glGetIntegerv(pname, &val);
-    return (unsigned int) val;
-}
-
-static void glGenSamplers_fallback(int count, unsigned int* samplers) {
-    static unsigned int next_id = 1;
-    if (!samplers || count <= 0) return;
-    typedef void (*glGenSamplers_pfn)(int, unsigned int*);
-    static glGenSamplers_pfn real_fn = NULL;
-    if (!real_fn) {
-        real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplers");
-        if (!real_fn) real_fn = (glGenSamplers_pfn) dlsym(RTLD_DEFAULT, "glGenSamplersOES");
-    }
-    if (real_fn) {
-        real_fn(count, samplers);
-        int valid = 1;
-        for (int i = 0; i < count; i++) { if (samplers[i] == 0) { valid = 0; break; } }
-        if (valid) return;
-    }
-    for (int i = 0; i < count; i++) samplers[i] = next_id++;
-    LOGI("LWJGL linkerhook: glGenSamplers fallback generated %d sampler(s)", count);
-}
-
-static void glBindSampler_fallback(unsigned int unit, unsigned int sampler) {
-    typedef void (*glBindSampler_pfn)(unsigned int, unsigned int);
-    static glBindSampler_pfn real_fn = NULL;
-    if (!real_fn) {
-        real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSampler");
-        if (!real_fn) real_fn = (glBindSampler_pfn) dlsym(RTLD_DEFAULT, "glBindSamplerOES");
-    }
-    if (real_fn) real_fn(unit, sampler);
-}
-
-static void glDeleteSamplers_fallback(int count, const unsigned int* samplers) {
-    if (!samplers || count <= 0) return;
-    typedef void (*glDeleteSamplers_pfn)(int, const unsigned int*);
-    static glDeleteSamplers_pfn real_fn = NULL;
-    if (!real_fn) {
-        real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplers");
-        if (!real_fn) real_fn = (glDeleteSamplers_pfn) dlsym(RTLD_DEFAULT, "glDeleteSamplersOES");
-    }
-    if (real_fn) real_fn(count, samplers);
-}
-
-static void glSamplerParameteri_fallback(unsigned int sampler, unsigned int pname, int param) {
-    typedef void (*glSamplerParameteri_pfn)(unsigned int, unsigned int, int);
-    static glSamplerParameteri_pfn real_fn = NULL;
-    if (!real_fn) {
-        real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteri");
-        if (!real_fn) real_fn = (glSamplerParameteri_pfn) dlsym(RTLD_DEFAULT, "glSamplerParameteriOES");
-    }
-    if (real_fn) real_fn(sampler, pname, param);
-}
-
-static void* glMapBufferRange_hook(unsigned int target, long offset, long length, unsigned int access) {
-    static int callCount = 0;
-    if (callCount < 5) {
-        LOGI("LWJGL linkerhook: glMapBufferRange_hook CALLED target=0x%X offset=%ld len=%ld access=0x%X", target, offset, length, access);
-        callCount++;
-    }
-
-    typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
-    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
-    if (!real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
-    }
-    int buf_size = 0;
-    if (real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv(target, 0x8764 /* GL_BUFFER_SIZE */, &buf_size);
-    }
-
-    long alloc_len = length;
-    if (alloc_len <= 0 && buf_size > 0) alloc_len = buf_size - offset;
-    if (alloc_len <= 0) alloc_len = 1048576; // 1 MB fallback
-    if (buf_size > 0 && (offset + alloc_len) < buf_size) {
-        alloc_len = buf_size;
-    }
-
-    unsigned int buffer_id = get_bound_buffer_id(target);
-    void* ptr = NULL;
-
-    if (posix_memalign(&ptr, 64, alloc_len) != 0 || ptr == NULL) {
-        ptr = malloc(alloc_len);
-    }
-    if (!ptr) ptr = calloc(1, alloc_len);
-
-    if (!ptr) {
-        LOGE("LWJGL linkerhook: Emergency fallback buffer used for alloc_len=%ld", alloc_len);
-        ptr = s_fallback_buffer;
-    }
-
-    pthread_mutex_lock(&g_shadowMutex);
-    int slot = find_free_shadow_slot();
-    if (slot >= 0) {
-        g_shadowBuffers[slot].target = target;
-        g_shadowBuffers[slot].buffer_id = buffer_id;
-        g_shadowBuffers[slot].offset = offset;
-        g_shadowBuffers[slot].length = alloc_len;
-        g_shadowBuffers[slot].shadow_ptr = ptr;
-        g_shadowBuffers[slot].is_shadow = 1;
-        g_shadowBuffers[slot].in_use = 1;
-    } else {
-        LOGW("LWJGL linkerhook: Shadow slots full, returning unmanaged buffer");
-    }
-    pthread_mutex_unlock(&g_shadowMutex);
-
-    typedef unsigned int (*glGetError_pfn)(void);
-    static glGetError_pfn real_glGetError = NULL;
-    if (!real_glGetError) {
-        real_glGetError = (glGetError_pfn) dlsym(RTLD_DEFAULT, "glGetError");
-        if (!real_glGetError) real_glGetError = (glGetError_pfn) dlsym(RTLD_NEXT, "glGetError");
-    }
-    if (real_glGetError) { unsigned int err; do { err = real_glGetError(); } while (err != 0); }
-    return ptr;
-}
-
-static void* glMapBuffer_hook(unsigned int target, unsigned int access) {
-    typedef void (*glGetBufferParameteriv_pfn)(unsigned int, unsigned int, int*);
-    static glGetBufferParameteriv_pfn real_glGetBufferParameteriv = NULL;
-    if (!real_glGetBufferParameteriv) {
-        real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameteriv");
-        if (!real_glGetBufferParameteriv) real_glGetBufferParameteriv = (glGetBufferParameteriv_pfn) dlsym(RTLD_DEFAULT, "glGetBufferParameterivARB");
-    }
-    int buf_size = 0;
-    if (real_glGetBufferParameteriv) real_glGetBufferParameteriv(target, 0x8764, &buf_size);
-    long len = (buf_size > 0) ? buf_size : 65536;
-    unsigned int rangeAccess = 0x0002;
-    if (access == 0x88B8) rangeAccess = 0x0001;
-    else if (access == 0x88BA) rangeAccess = 0x0001 | 0x0002;
-    return glMapBufferRange_hook(target, 0, len, rangeAccess);
-}
-
-static int glUnmapBuffer_hook(unsigned int target) {
-    typedef void (*glBufferSubData_pfn)(unsigned int, long, long, const void*);
-    typedef void (*glBindBuffer_pfn)(unsigned int, unsigned int);
-    typedef unsigned int (*glGetError_pfn)(void);
-
-    static glBufferSubData_pfn real_glBufferSubData = NULL;
-    static glBindBuffer_pfn real_glBindBuffer = NULL;
-    static glGetError_pfn real_glGetError = NULL;
-
-    if (!real_glBufferSubData) {
-        real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubData");
-        if (!real_glBufferSubData) real_glBufferSubData = (glBufferSubData_pfn) dlsym(RTLD_DEFAULT, "glBufferSubDataARB");
+        case 0x8F37: pname = 0x8F37; break; // GL_COPY_WÔ’UWĞ•Q‘‘T‚ˆØ\ÙHPˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÔPÒ×Ğ•Q‘‘TˆOˆÓÔVSÔPÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHPÎˆ˜[YHHQÈœ™XZÎÈËÈÓÔVSÕS”PÒ×Ğ•Q‘‘TˆOˆÓÔVSÕS”PÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘TˆOˆÓÕS”Ñ“Ô“WÑ‘QQPÒ×Ğ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLQNˆ˜[YHHLQNÈœ™XZÎÈËÈÓÑTÔUÒÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑTÔUPÒÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHŒÎNˆ˜[YHHÎÈœ™XZÎÈËÈÓÑU×ÒS‘T‘PÕĞ•Q‘‘TˆOˆÓÑU×ÒS‘T‘PÕĞ•Q‘‘T—Ğ’S‘S‘ÂˆY˜][ˆ˜[YHHMÈœ™XZÎÂˆB‚ˆ[˜[HÂˆ™X[ÙÛÙ][YÙ\—Ü›ˆ™X[ÙÛÙ][YÙ\ˆH•SÂˆYˆ
+\™X[ÙÛÙ][YÙ\ŠHÂˆ™X[ÙÛÙ][YÙ\ˆH
+ÛÙ][YÙ\—Ü›ŠHŞ[J•ÑQUS™ÛÙ][YÙ\ˆŠNÂˆYˆ
+\™X[ÙÛÙ][YÙ\ŠH™X[ÙÛÙ][YÙ\ˆH
+ÛÙ][YÙ\—Ü›ŠHŞ[J•Ó‘V™ÛÙ][YÙ\ˆŠNÂˆBˆYˆ
+\™X[ÙÛÙ]\œ›ÜŠH™]\›ˆÂ‚ˆ[œÚYÛ™Y[˜[YHHMÈËÈÓĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆİÚ]Ú
+\™Ù]
+HÂˆØ\ÙHLˆ˜[YHHMÈœ™XZÎÈËÈÓĞT”VWĞ•Q‘‘TˆOˆÓĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLÎˆ˜[YHHMNÈœ™XZÎÈËÈÓÑSSQS•ĞT”VWĞ•Q‘‘TˆOˆÓÑSSQS•ĞT”VWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLLNˆ˜[YHHLÈœ™XZÎÈËÈÓÕS’Q“Ô“WĞ•Q‘‘TˆOˆÓÕS’Q“Ô“WĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHLˆ˜[YHHLÎÈœ™XZÎÈËÈÓÔÒQT—ÔÕÔQÑWĞ•Q‘‘TˆOˆÓÔÒQT—ÔÕÔQÑWĞ•Q‘‘T—Ğ’S‘S‘ÂˆØ\ÙHŒÍˆ˜[YHHŒÍÈœ™XZÎÈËÈÓĞÓÔWÔ‘PQĞ•Q‘‘T‚ˆØ\ÙHŒÍÎˆ˜[YHHŒÍÎÈœ™XZÎÈËÈÓĞÓÔWÕõ$•DUô%TddU ¢66Rƒƒ„T#¢æÖRÒƒƒ„TC²'&V³²òòtÅõ•„TÅõ4µô%TddU"ÓâtÅõ•„TÅõ4µô%TddU%ô$”äD”äp¢66Rƒƒ„T3¢æÖRÒƒƒ„Tc²'&V³²òòtÅõ•„TÅõTå4µô%TddU"ÓâtÅõ•„TÅõTå4µô%TddU%ô$”äD”äp¢66Rƒ„3„S¢æÖRÒƒ„3„c²'&V³²òòtÅõE$å4dõ$ÕôdTTD$4µô%TddU"ÓâtÅõE$å4dõ$ÕôdTTD$4µô%TddU%ô$”äD”äp¢66Rƒ“TS¢æÖRÒƒ“TS²'&V³²òòtÅôD•5D4…ô”äD•$T5Eô%TddU"ÓâtÅôD•5CÔ4…ô”äD•$T5Eô%TddU%ô$”äD”äp¢66Rƒ„c3“¢æÖRÒƒ„cC3²'&V³²òòtÅôE$uô”äD•$T5Eô%TddU"ÓâtÅôE$uô”äD•$T5Eô%TddU%ô$”äD”äp¢FVfVÇC¢æÖRÒƒƒƒ“C²'&V³°¢Ğ ¢–çBfÂÒ°¢&VÅövÄvWD–çFVvW'e÷fâ&VÅövÄvWD–çFVvW'bÒåTÄÃ°¢–b‚&VÅövÄvWD–çFVvW'b’°¢&VÅövÄvWD–çFVvW'bÒ†vÄvWD–çFVvW'e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD–çFVvW'b"“°¢–b‚&VÅövÄvWD–çFVvW'b’&VÅövÄvWD–çFVvW'bÒ†vÄvWD–çFVvW'e÷fâ’FÇ7–Ò…%DÄEôäU…BÂ&vÄvWD–çFVvW'b"“°¢Ğ¢–b‚&VÅövÄvWDW'&÷"’&WGW&â° ¢fö–B¢G"ÒåTÄÃ° ¢–b‡÷6—…öÖVÖÆ–vâ‚gG"ÂcBÂÆÆö5öÆVâ’ÒÇÂG"ÓÒåTÄÂ’°¢G"ÒÖÆÆö2†ÆÆö5öÆVâ“°¢Ğ¢–b‚G"’G"Ò6ÆÆö2ƒÂÆÆö5öÆVâ“° ¢–b‚G"’°¢ÄôtR‚$Åt¤tÂÆ–æ¶W&†öö³¢VÖW&vVæ7’fÆÆ&6²'VffW"W6VBf÷"ÆÆö5öÆVãÒVÆB"ÂÆÆö5öÆVâ“°¢G"Ò5öfÆÆ&6µö'VffW#°¢Ğ ¢F‡&VEö×WFW…öÆö6²‚fu÷6†F÷t×WFW‚“°¢–çB6Æ÷BÒf–æEög&VU÷6†F÷u÷6Æ÷B‚“°¢–b‡6Æ÷BãÒ’°¢u÷6†F÷t'VffW'5·6Æ÷EÒçF&vWBÒF&vWC°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ'VffW%ö–BÒ'VffW%ö–C°¢u÷6†F÷t'VffW'5·6Æ÷EÒæöfg6WBÒöfg6WC°¢u÷6†F÷t'VffW'5·6Æ÷EÒæÆVæwF‚ÒÆÆö5öÆVã°¢u÷6†F÷t'VffW'5·6Æ÷EÒç6†F÷u÷G"ÒG#°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ—5÷6†F÷rÒ°¢u÷6†F÷t'VffW'5·6Æ÷EÒæ–å÷W6RÒ°¢ÒVÇ6R°¢Äôur‚$Åt¤tÂÆ–æ¶W&†öö³¢6†F÷r6Æ÷G2gVÆÂÂ&WGW&æ–ærVæÖævVB'VffW""“°¢Ğ¢F‡&VEö×WFW…÷VæÆö6²‚fu÷6†F÷t×WFW‚“° ¢G—VFVbVç6–væVB–çB‚¦vÄvWDW'&÷%÷fâ’‡fö–B“°¢7FF–2vÄvWDW'&÷%÷fâ&VÅövÄvWDW'&÷"ÒåTÄÃ°¢–b‚&VÅövÄvWDW'&÷"’°¢&VÅövÄvWDW'&÷"Ò†vÄvWDW'&÷%÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWDW'&÷""“°¢–b‚&VÅövÄvWDW'&÷"’&VÅövÄvWDW'&÷"Ò†vÄvWDW'&÷%÷fâ’FÇ7–Ò…%DÄEôäU…BÂ&vÄvWDW'&÷""“°¢Ğ¢–b‡&VÅövÄvWDW'&÷"’²Vç6–væVB–çBW'#²Fò²W'"Ò&VÅövÄvWDW'&÷"‚“²Òv†–ÆR†W'"Ò“²Ğ¢&WGW&âG#°§Ğ §7FF–2fö–B¢vÄÖ'VffW%ö†öö²‡Vç6–væVB–çBF&vWBÂVç6–væVB–çB66W72’°¢G—VFVbfö–B‚¦vÄvWD'VffW%&ÖWFW&—e÷fâ’‡Vç6–væVB–çBÂVç6–væVB–çBÂ–çB¢“°¢7FF–2vÄvWD'VffW%&ÖWFW&—e÷fâ&VÅövÄvWD'VffW%&ÖWFW&—bÒåTÄÃ°¢–b‚&VÅövÄvWD'VffW%&ÖWFW&—b’°¢&VÅövÄvWD'VffW%&ÖWFW&—bÒ†vÄvWD'VffW%&ÖWFW&—e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD'VffW%&ÖWFW&—b"“°¢–b‚&VÅövÄvWD'VffW%&ÖWFW&—b’&VÅövÄvWD'VffW%&ÖWFW&—bÒ†vÄvWD'VffW%&ÖWFW&—e÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄvWD'VffW%&ÖWFW&—d$""“°¢Ğ¢–çB'Ve÷6—¦RÒ°¢–b‡&VÅövÄvWD'VffW%&ÖWFW&—b’&VÅövÄvWD'VffW%&ÖWFW&—b‡F&vWBÂƒƒscBÂf'Ve÷6—¦R“°¢ÆöærÆVâÒ†'Ve÷6—¦Râ’ò'Ve÷6—¦R¢cSS3c°¢Vç6–væVB–çB&ævT66W72Òƒ#°¢–b†66W72ÓÒƒƒ„#‚’&ævT66W72Òƒ°¢VÇ6R–b†66W72ÓÒƒƒ„$’&ævT66W72ÒƒÂƒ#°¢&WGW&âvÄÖ'VffW%&ævUö†öö²‡F&vWBÂÂÆVâÂ&ævT66W72“°§Ğ §7FF–2–çBvÅVæÖ'VffW%ö†öö²‡Vç6–væVB–çBF&vWB’°¢G—VFVbfö–B‚¦vÄ'VffW%7V$FF÷fâ’‡Vç6–væVB–çBÂÆöærÂÆöærÂ6öç7Bfö–B¢“°¢G—VFVbfö–B‚¦vÄ&–æD'VffW%÷fâ’‡Vç6–væVB–çBÂVç6–væVB–çB“°¢G—VFVbVç6–væVB–çB‚¦vÄvWDW'&÷%÷fâ’‡fö–B“° ¢7FF–2vÄ'VffW%7V$FF÷fâ&VÅövÄ'VffW%7V$FFÒåTÄÃ°¢7FF–2vÄ&–æD'VffW%÷fâ&VÅövÄ&–æD'VffW"ÒåTÄÃ°¢7FF–2vÄvWDW'&÷%÷fâ&VÅövÄvWDW'&÷"ÒåTÄÃ° ¢–b‚&VÅövÄ'VffW%7V$FF’°¢&VÅövÄ'VffW%7V$FFÒ†vÄ'VffW%7V$FF÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄ'VffW%7V$FF"“°¢–b‚&VÅövÄ'VffW%7V$FF’&VÅövÄ'VffW%7V$FFÒ†vÄ'VffW%7V$FF÷fâ’FÇ7–Ò…%DÄEôDTdTÅBÂ&vÄ'VfferSubDatARB");
     }
     if (!real_glBindBuffer) {
         real_glBindBuffer = (glBindBuffer_pfn) dlsym(RTLD_DEFAULT, "glBindBuffer");
@@ -307,7 +160,8 @@ static unsigned int eglGetError_stub(void) {
 }
 
 void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share) {
-    printf("TurboV1 Interceptor: Executing hooked_glfwCreateWindow with absolute Vulkan surface bypass parameters\n");
+    printf("TurboV1 Interceptor: Executing hooked_glfwCreateWindow with EGL OpenGL ES context for Zink\n");
+    fflush(stdout);
     typedef void (*glfwWindowHint_pfn)(int, int);
     typedef void* (*glfwCreateWindow_pfn)(int, int, const char*, void*, void*);
 
@@ -322,276 +176,12 @@ void* hooked_glfwCreateWindow(int width, int height, const char* title, void* mo
     }
 
     if (real_win_hint) {
-        real_win_hint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-        real_win_hint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
+        real_win_hint(0x00022001 /* GLFW_CLIENT_API */, 0x00030001 /* GLFW_OPENGL_ES_API */);
+        real_win_hint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036002 /* GLFW_EGL_CONTEXT_API */);
     }
 
     if (real_create_win) {
         return real_create_win(width, height, title, monitor, share);
     }
     return NULL;
-}
-
-static int eglSwapInterval_hook(void* display, __attribute__((unused)) int interval) {
-    typedef int (*eglSwapInterval_pfn)(void*, int);
-    static eglSwapInterval_pfn real_fn = NULL;
-    if (!real_fn) {
-        real_fn = (eglSwapInterval_pfn) dlsym(RTLD_DEFAULT, "eglSwapInterval");
-        if (!real_fn) real_fn = (eglSwapInterval_pfn) dlsym(RTLD_NEXT, "eglSwapInterval");
-    }
-    if (real_fn) return real_fn(display, 0); // Always force swap interval 0 (Unlocks FPS past 60 Hz display lock!)
-    return 1;
-}
-
-static const unsigned char* glGetString_hook(unsigned int name) {
-    if (name == GL_VERSION) return (const unsigned char*)"4.6.0 TurboV1 Engine v1.0 (Vulkan Core)";
-    else if (name == GL_RENDERER) return (const unsigned char*)"Mali-G710/G615 via TurboV1 Translation";
-    else if (name == GL_VENDOR) return (const unsigned char*)"TurboV1 Engine v1.0 (Vulkan Core)";
-    else if (name == GL_EXTENSIONS) return (const unsigned char*)"GL_ARB_direct_state_access GL_ARB_buffer_storage GL_ARB_shader_image_load_store GL_NV_conditional_render GL_EXT_gpu_shader4 GL_EXT_texture_buffer GL_EXT_texture_cube_map_array GL_OES_EGL_image_external_essl3 GL_NV_shader_noperspective_interpolation GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_EXT_blend_equation_separate GL_EXT_geometry_shader4 GL_EXT_gpu_program_parameters GL_ARB_instanced_arrays GL_ARB_draw_instanced";
-    typedef const unsigned char* (*glGetString_pfn)(unsigned int);
-    static glGetString_pfn real_glGetString = NULL;
-    if (!real_glGetString) {
-        real_glGetString = (glGetString_pfn) dlsym(RTLD_DEFAULT, "glGetString");
-        if (!real_glGetString) real_glGetString = (glGetString_pfn) dlsym(RTLD_NEXT, "glGetString");
-    }
-    if (real_glGetString) return real_glGetString(name);
-    return (const unsigned char*)"";
-}
-
-static const unsigned char* glGetStringi_hook(unsigned int name, unsigned int index) {
-    if (name == GL_EXTENSIONS) {
-        static const char* extensions[] = {
-            "GL_ARB_direct_state_access","GL_ARB_buffer_storage","GL_ARB_shader_image_load_store",
-            "GL_NV_conditional_render","GL_EXT_gpu_shader4","GL_EXT_texture_buffer",
-            "GL_EXT_texture_cube_map_array","GL_OES_EGL_image_external_essl3",
-            "GL_NV_shader_noperspective_interpolation","GL_ARB_shader_objects",
-            "GL_ARB_vertex_shader","GL_ARB_fragment_shader","GL_EXT_blend_equation_separate",
-            "GL_EXT_geometry_shader4","GL_EXT_gpu_program_parameters",
-            "GL_ARB_instanced_arrays","GL_ARB_draw_instanced"
-        };
-        unsigned int size = sizeof(extensions) / sizeof(extensions[0]);
-        if (index < size) return (const unsigned char*)extensions[index];
-    }
-    typedef const unsigned char* (*glGetStringi_pfn)(unsigned int, unsigned int);
-    static glGetStringi_pfn real_glGetStringi = NULL;
-    if (!real_glGetStringi) {
-        real_glGetStringi = (glGetStringi_pfn) dlsym(RTLD_DEFAULT, "glGetStringi");
-        if (!real_glGetStringi) real_glGetStringi = (glGetStringi_pfn) dlsym(RTLD_NEXT, "glGetStringi");
-    }
-    if (real_glGetStringi) return real_glGetStringi(name, index);
-    return (const unsigned char*)"";
-}
-
-void* eglGetProcAddress_hook(const char* procname) {
-    if (procname == NULL) return NULL;
-    if (strcmp(procname, "eglSwapInterval") == 0) return (void*) eglSwapInterval_hook;
-    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) return (void*) glMemoryBarrier_stub;
-    if (strcmp(procname, "glGetString") == 0) return (void*) glGetString_hook;
-    if (strcmp(procname, "glGetStringi") == 0) return (void*) glGetStringi_hook;
-    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
-        LOGI("eglGetProcAddress_hook: glMapBufferRange -> shadow buffer");
-        return (void*) glMapBufferRange_hook;
-    }
-    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) return (void*) glMapBuffer_hook;
-    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) return (void*) glUnmapBuffer_hook;
-    if (strcmp(procname, "glGenSamplers") == 0 || strcmp(procname, "glGenSamplersOES") == 0) {
-        typedef void* (*pfn)(const char*); static pfn real = NULL;
-        if (!real) real = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (real) { void* s = real(procname); if (s) return s; }
-        void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
-        return (void*) glGenSamplers_fallback;
-    }
-    if (strcmp(procname, "glBindSampler") == 0 || strcmp(procname, "glBindSamplerOES") == 0) {
-        typedef void* (*pfn)(const char*); static pfn real = NULL;
-        if (!real) real = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (real) { void* s = real(procname); if (s) return s; }
-        void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
-        return (void*) glBindSampler_fallback;
-    }
-    if (strcmp(procname, "glDeleteSamplers") == 0 || strcmp(procname, "glDeleteSamplersOES") == 0) {
-        typedef void* (*pfn)(const char*); static pfn real = NULL;
-        if (!real) real = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (real) { void* s = real(procname); if (s) return s; }
-        void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
-        return (void*) glDeleteSamplers_fallback;
-    }
-    if (strcmp(procname, "glSamplerParameteri") == 0 || strcmp(procname, "glSamplerParameteriOES") == 0) {
-        typedef void* (*pfn)(const char*); static pfn real = NULL;
-        if (!real) real = (pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (real) { void* s = real(procname); if (s) return s; }
-        void* s = dlsym(RTLD_DEFAULT, procname); if (s) return s;
-        return (void*) glSamplerParameteri_fallback;
-    }
-    if (strcmp(procname, "glMapBufferRange") == 0 || strcmp(procname, "glMapBufferRangeEXT") == 0 || strcmp(procname, "glMapBufferRangeARB") == 0) {
-        printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBufferRange -> shadow buffer\n");
-        return (void*) glMapBufferRange_hook;
-    }
-    if (strcmp(procname, "glMapBuffer") == 0 || strcmp(procname, "glMapBufferOES") == 0 || strcmp(procname, "glMapBufferARB") == 0) {
-        printf("LWJGL linkerhook: eglGetProcAddress hooked glMapBuffer -> shadow buffer\n");
-        return (void*) glMapBuffer_hook;
-    }
-    if (strcmp(procname, "glUnmapBuffer") == 0 || strcmp(procname, "glUnmapBufferOES") == 0 || strcmp(procname, "glUnmapBufferARB") == 0) {
-        printf("LWJGL linkerhook: eglGetProcAddress hooked glUnmapBuffer -> shadow buffer\n");
-        return (void*) glUnmapBuffer_hook;
-    }
-    if (strcmp(procname, "glMemoryBarrier") == 0 || strcmp(procname, "glMemoryBarrierEXT") == 0) {
-        printf("LWJGL linkerhook: eglGetProcAddress hooked glMemoryBarrier\n");
-        return (void*) glMemoryBarrier_stub;
-    }
-    typedef void* (*eglGetProcAddress_pfn)(const char*);
-    static eglGetProcAddress_pfn real_eglGetProcAddress = NULL;
-    if (!real_eglGetProcAddress) {
-        real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_DEFAULT, "eglGetProcAddress");
-        if (!real_eglGetProcAddress) real_eglGetProcAddress = (eglGetProcAddress_pfn) dlsym(RTLD_NEXT, "eglGetProcAddress");
-    }
-    if (real_eglGetProcAddress) { void* sym = real_eglGetProcAddress(procname); if (sym) return sym; }
-    void* sym = dlsym(RTLD_DEFAULT, procname); if (sym) return sym;
-    return (void*) universal_stub_void;
-}
-
-static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
-                     __attribute__((unused)) jclass class,
-                     jlong filename_ptr, jint jmode) {
-    const char* filename = (const char*) filename_ptr;
-    if(filename != NULL) {
-        if(strcmp(filename, "libvulkan.so") == 0) {
-            printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
-            return (jlong) pojavexec_loadVulkanDriver();
-        }
-        if(strcmp(filename, "libTurboV1.so") == 0 || strcmp(filename, "libGL.so") == 0 || strcmp(filename, "libGL.so.1") == 0) {
-            printf("LWJGL linkerhook: replacing OpenGL with renderspec driver (%s)\n", filename);
-            const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
-            if (rspec && rspec->egl_acquire && rspec->egl_path) {
-                return (jlong) rspec->egl_acquire(rspec->egl_path);
-            }
-        }
-    }
-    return (jlong) dlopen(filename, (int)jmode);
-}
-
-static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
-                  __attribute__((unused)) jclass class,
-                  jlong handle, jlong symbol_ptr) {
-    const char* symbol = (const char*) symbol_ptr;
-    if (symbol != NULL) {
-        if (strcmp(symbol, "eglGetError") == 0) {
-            printf("LWJGL linkerhook: hooked eglGetError -> returning EGL_SUCCESS (0x3000)\n");
-            return (jlong) eglGetError_stub;
-        }
-        if (strcmp(symbol, "eglGetProcAddress") == 0) {
-            printf("LWJGL linkerhook: hooked eglGetProcAddress\n");
-            return (jlong) eglGetProcAddress_hook;
-        }
-        if (strcmp(symbol, "glfwInit") == 0) {
-            printf("LWJGL linkerhook: hooked glfwInit for TurboV1 Android Vulkan mode\n");
-            typedef void (*glfwInitHint_pfn)(int, int);
-            typedef int (*glfwInit_pfn)(void);
-
-            glfwInitHint_pfn real_glfwInitHint = (glfwInitHint_pfn) dlsym((void*) handle, "glfwInitHint");
-            if (!real_glfwInitHint) real_glfwInitHint = (glfwInitHint_pfn) dlsym(RTLD_DEFAULT, "glfwInitHint");
-            if (real_glfwInitHint) {
-                // Force Android native platform init hint (0x00050003 = GLFW_PLATFORM, 0x00060006 = GLFW_PLATFORM_ANDROID)
-                real_glfwInitHint(0x00050003, 0x00060006);
-            }
-
-            glfwInit_pfn real_glfwInit = (glfwInit_pfn) dlsym((void*) handle, "glfwInit");
-            if (!real_glfwInit) real_glfwInit = (glfwInit_pfn) dlsym(RTLD_DEFAULT, "glfwInit");
-            if (real_glfwInit) real_glfwInit();
-
-            typedef void (*glfwWindowHint_pfn)(int, int);
-            glfwWindowHint_pfn real_glfwWindowHint = (glfwWindowHint_pfn) dlsym((void*) handle, "glfwWindowHint");
-            if (!real_glfwWindowHint) real_glfwWindowHint = (glfwWindowHint_pfn) dlsym(RTLD_DEFAULT, "glfwWindowHint");
-            if (real_glfwWindowHint) {
-                real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-                real_glfwWindowHint(0x0002200B /* GLFW_CONTEXT_CREATION_API */, 0x00036001 /* GLFW_NATIVE_CONTEXT_API */);
-            }
-            return (jlong) dlsym((void*) handle, "glfwInit");
-        }
-        if (strcmp(symbol, "glfwGetError") == 0) {
-            printf("LWJGL linkerhook: hooked glfwGetError to suppress pre-init error bits\n");
-            typedef int (*glfwGetError_pfn)(const char**);
-            glfwGetError_pfn real_glfwGetError = (glfwGetError_pfn) dlsym((void*) handle, "glfwGetError");
-            if (!real_glfwGetError) real_glfwGetError = (glfwGetError_pfn) dlsym(RTLD_DEFAULT, "glfwGetError");
-            if (real_glfwGetError) {
-                const char* description = NULL;
-                int err = real_glfwGetError(&description);
-                if (err == 0x10001 /* GLFW_NOT_INITIALIZED */) return 0;
-            }
-        }
-        if (strcmp(symbol, "glfwCreateWindow") == 0) {
-            printf("LWJGL linkerhook: returning hooked_glfwCreateWindow wrapper for Vulkan/Zink TurboV1 mode\n");
-            extern void* hooked_glfwCreateWindow(int width, int height, const char* title, void* monitor, void* share);
-            return (jlong) hooked_glfwCreateWindow;
-        }
-        if (strcmp(symbol, "eglSwapInterval") == 0) {
-            printf("LWJGL linkerhook: hooked eglSwapInterval\n");
-            return (jlong) eglSwapInterval_hook;
-        }
-        if (strcmp(symbol, "glGetString") == 0) {
-            printf("LWJGL linkerhook: hooked glGetString\n");
-            return (jlong) glGetString_hook;
-        }
-        if (strcmp(symbol, "glGetStringi") == 0) {
-            printf("LWJGL linkerhook: hooked glGetStringi\n");
-            return (jlong) glGetStringi_hook;
-        }
-        if (strcmp(symbol, "glMemoryBarrier") == 0 || strcmp(symbol, "glMemoryBarrierEXT") == 0) {
-            printf("LWJGL linkerhook: hooked glMemoryBarrier\n");
-            return (jlong) glMemoryBarrier_stub;
-        }
-        if (strcmp(symbol, "glMapBufferRange") == 0 || strcmp(symbol, "glMapBufferRangeEXT") == 0 || strcmp(symbol, "glMapBufferRangeARB") == 0) {
-            printf("LWJGL linkerhook: hooked glMapBufferRange -> shadow buffer\n");
-            return (jlong) glMapBufferRange_hook;
-        }
-        if (strcmp(symbol, "glMapBuffer") == 0 || strcmp(symbol, "glMapBufferOES") == 0 || strcmp(symbol, "glMapBufferARB") == 0) {
-            printf("LWJGL linkerhook: hooked glMapBuffer -> shadow buffer\n");
-            return (jlong) glMapBuffer_hook;
-        }
-        if (strcmp(symbol, "glUnmapBuffer") == 0 || strcmp(symbol, "glUnmapBufferOES") == 0 || strcmp(symbol, "glUnmapBufferARB") == 0) {
-            printf("LWJGL linkerhook: hooked glUnmapBuffer -> shadow buffer\n");
-            return (jlong) glUnmapBuffer_hook;
-        }
-        if (strcmp(symbol, "glGenSamplers") == 0 || strcmp(symbol, "glGenSamplersOES") == 0) {
-            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
-            return (jlong) glGenSamplers_fallback;
-        }
-        if (strcmp(symbol, "glBindSampler") == 0 || strcmp(symbol, "glBindSamplerOES") == 0) {
-            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
-            return (jlong) glBindSampler_fallback;
-        }
-        if (strcmp(symbol, "glDeleteSamplers") == 0 || strcmp(symbol, "glDeleteSamplersOES") == 0) {
-            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
-            return (jlong) glDeleteSamplers_fallback;
-        }
-        if (strcmp(symbol, "glSamplerParameteri") == 0 || strcmp(symbol, "glSamplerParameteriOES") == 0) {
-            void* sym = dlsym((void*) handle, symbol); if (sym) return (jlong) sym;
-            return (jlong) glSamplerParameteri_fallback;
-        }
-    }
-    void* sym = dlsym((void*) handle, symbol);
-    if (!sym && symbol && strncmp(symbol, "gl", 2) == 0) return (jlong) universal_stub_void;
-    return (jlong) sym;
-}
-
-void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL dlopen() and dlsym() hooks (BUILD v20260907-E)");
-    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260907-E)\n");
-    jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
-    if(dynamicLinkLoader == NULL) {
-        LOGE("Failed to find the target class");
-        printf("LWJGL linkerhook ERROR: Failed to find DynamicLinkLoader class\n");
-        (*env)->ExceptionClear(env);
-        return;
-    }
-    JNINativeMethod hooks[] = {
-            {"ndlopen", "(JI)J", &ndlopen_bugfix},
-            {"ndlsym", "(JJ)J", &ndlsym_hook}
-    };
-    if((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
-        printf("LWJGL linkerhook: RegisterNatives failed\n");
-        LOGE("Failed to register the hooked methods");
-        printf("LWJGL linkerhook ERROR: Failed to register hooked methods\n");
-        (*env)->ExceptionClear(env);
-    }
-    printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully\n");
 }
