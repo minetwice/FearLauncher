@@ -37,32 +37,28 @@ public class JREUtils {
         }
     }
 
-    /**
-     * Ensures Vulkan libraries are available, downloading them if necessary
-     */
-    public static void ensureVulkanLibraries() {
+    private static void ensureVulkanLibraries() {
         if (sVulkanLibrariesChecked) return;
         sVulkanLibrariesChecked = true;
-        
+
         Context context = null;
         try {
             context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
         } catch (Exception e) {
-            Log.w(TAG, "Could not get application context fo
-r Vulkan library check", e);
+            Log.w(TAG, "Could not get application context for Vulkan library check", e);
         }
-        
+
         if (context == null) {
             Log.w(TAG, "No context available, skipping Vulkan library check");
             return;
         }
-        
+
         File nativeLibDir = new File(Tools.NATIVE_LIB_DIR);
         if (!nativeLibDir.exists() || !nativeLibDir.isDirectory()) {
             Log.w(TAG, "Native lib directory does not exist: " + Tools.NATIVE_LIB_DIR);
             return;
         }
-        
+
         boolean allLibsExist = true;
         for (String libName : VULKAN_LIBS) {
             File libFile = new File(nativeLibDir, libName);
@@ -71,13 +67,12 @@ r Vulkan library check", e);
                 break;
             }
         }
-        
+
         if (allLibsExist) {
             Log.i(TAG, "All Vulkan libraries already present");
             return;
         }
-        
-        // Download missing libraries
+
         new Thread(() -> {
             try {
                 Logger.appendToLog("[JREUtils] Downloading Vulkan libraries for first-time setup...");
@@ -92,8 +87,7 @@ r Vulkan library check", e);
                         }
                     }
                 }
-                
-                // Set executable permissions
+
                 for (String libName : VULKAN_LIBS) {
                     File libFile = new File(nativeLibDir, libName);
                     if (libFile.exists()) {
@@ -102,7 +96,6 @@ r Vulkan library check", e);
                     }
                 }
 
-                
                 Logger.appendToLog("[JREUtils] Vulkan library setup complete!");
             } catch (Exception e) {
                 Log.e(TAG, "Error downloading Vulkan libraries", e);
@@ -111,28 +104,24 @@ r Vulkan library check", e);
         }).start();
     }
 
-    /**
-     * Download a library file from URL to destination
-     */
     private static boolean downloadLibrary(Context context, String url, File destination) {
         try {
             java.net.URL downloadUrl = new java.net.URL(url);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) downloadUrl.openConnection();
             connection.setConnectTimeout(30000);
             connection.setReadTimeout(60000);
-            
+
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
                 Log.w(TAG, "HTTP " + responseCode + " for " + url);
                 return false;
             }
-            
-            // Ensure parent directory exists
+
             File parentDir = destination.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
                 parentDir.mkdirs();
             }
-            
+
             try (InputStream inputStream = connection.getInputStream();
                  FileOutputStream outputStream = new FileOutputStream(destination)) {
                 byte[] buffer = new byte[8192];
@@ -141,7 +130,7 @@ r Vulkan library check", e);
                     outputStream.write(buffer, 0, bytesRead);
                 }
             }
-            
+
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Failed to download library from " + url, e);
@@ -152,8 +141,7 @@ r Vulkan library check", e);
     public static void redirectAndPrintJRELog() {
         Log.i("jrelog", "FEAR CORE LOG INITIALIZED");
         new Thread(() -> {
-            int fa
-ilCount = 0;
+            int failCount = 0;
             while (failCount < 15) {
                 try {
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
@@ -163,7 +151,7 @@ ilCount = 0;
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line + "\n");
+                                Logger.appendToLog(line);
                             }
                         }
                     }
@@ -195,8 +183,7 @@ ilCount = 0;
         reader.close();
     }
 
-    public 
-static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
+    public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
         if (angle == null) return;
@@ -233,8 +220,7 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
                 break;
             case "vulkan_zink":
                 envMap.put("GALLIUM_DRIVER", "zink");
-       
-         envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 break;
         }
@@ -258,15 +244,15 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
-		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
-		if (!modRuntimeDir.exists()) {
-    		modRuntimeDir.mkdirs();
-		}
-		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
+        File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
+        if (!modRuntimeDir.exists()) {
+            modRuntimeDir.mkdirs();
+        }
+        envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
-        
+
         if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
             Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
             try {
@@ -276,10 +262,9 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
             } catch (Throwable t) {
                 Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
                 Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
-      
-      }
+            }
         }
-        
+
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -326,8 +311,7 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
                 int end = -1;
                 for(String separator: separators){
                     int tempEnd = args.indexOf(separator, start + prefix.length());
-    
-                if(tempEnd == -1) continue;
+                    if(tempEnd == -1) continue;
                     if(end == -1){
                         end = tempEnd;
                         continue;
@@ -337,7 +321,7 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
                 if(end == -1) end = args.length();
                 String parsedSubString = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
-                if(parsedSubString.indexOf('=') == parsedSubString.lastIndexOf('=')) {
+                if(parsedSubString.indexOf("=") == parsedSubString.lastIndexOf("=")) {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
@@ -369,8 +353,7 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
             LibraryPlugin plugin = (context != null) ? LibraryPlugin.discoverPlugin(context, appId) : null;
             if (plugin != null) {
                 String libDir = plugin.getLibraryPath();
-                File libDirFile
- = new File(libDir);
+                File libDirFile = new File(libDir);
                 if (libDirFile.exists() && libDirFile.isDirectory()) {
                     File[] candidates = libDirFile.listFiles((dir, name) -> name.endsWith(".so"));
                     if (candidates != null && candidates.length > 0) {
@@ -413,9 +396,7 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
 
                 try {
                     System.loadLibrary("turbov1");
-
-    
-                String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
+                    String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
                     initTurboV1Engine(cachePath);
                     Logger.appendToLog("[TurboV1] Native Vulkan Engine initialized successfully!");
                 } catch (Throwable t) {
@@ -464,15 +445,12 @@ static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
     }
     public static native int chdir(String path);
     public static native void setLdLibraryPath(String ldLibraryPath);
-    public stati
-c native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
+    public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
-    // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
 
-    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
