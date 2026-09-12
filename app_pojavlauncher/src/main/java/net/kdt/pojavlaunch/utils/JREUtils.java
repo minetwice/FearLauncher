@@ -40,25 +40,25 @@ public class JREUtils {
     private static void ensureVulkanLibraries() {
         if (sVulkanLibrariesChecked) return;
         sVulkanLibrariesChecked = true;
-
+        
         Context context = null;
         try {
             context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
         } catch (Exception e) {
             Log.w(TAG, "Could not get application context for Vulkan library check", e);
         }
-
+        
         if (context == null) {
             Log.w(TAG, "No context available, skipping Vulkan library check");
             return;
         }
-
+        
         File nativeLibDir = new File(Tools.NATIVE_LIB_DIR);
         if (!nativeLibDir.exists() || !nativeLibDir.isDirectory()) {
             Log.w(TAG, "Native lib directory does not exist: " + Tools.NATIVE_LIB_DIR);
             return;
         }
-
+        
         boolean allLibsExist = true;
         for (String libName : VULKAN_LIBS) {
             File libFile = new File(nativeLibDir, libName);
@@ -67,12 +67,12 @@ public class JREUtils {
                 break;
             }
         }
-
+        
         if (allLibsExist) {
             Log.i(TAG, "All Vulkan libraries already present");
             return;
         }
-
+        
         new Thread(() -> {
             try {
                 Logger.appendToLog("[JREUtils] Downloading Vulkan libraries for first-time setup...");
@@ -87,7 +87,7 @@ public class JREUtils {
                         }
                     }
                 }
-
+                
                 for (String libName : VULKAN_LIBS) {
                     File libFile = new File(nativeLibDir, libName);
                     if (libFile.exists()) {
@@ -110,18 +110,18 @@ public class JREUtils {
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) downloadUrl.openConnection();
             connection.setConnectTimeout(30000);
             connection.setReadTimeout(60000);
-
+            
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
                 Log.w(TAG, "HTTP " + responseCode + " for " + url);
                 return false;
             }
-
+            
             File parentDir = destination.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
                 parentDir.mkdirs();
             }
-
+            
             try (InputStream inputStream = connection.getInputStream();
                  FileOutputStream outputStream = new FileOutputStream(destination)) {
                 byte[] buffer = new byte[8192];
@@ -130,7 +130,7 @@ public class JREUtils {
                     outputStream.write(buffer, 0, bytesRead);
                 }
             }
-
+            
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Failed to download library from " + url, e);
@@ -151,7 +151,8 @@ public class JREUtils {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
-                                Logger.appendToLog(line);
+                                Logger.appendToLog(line + "
+");
                             }
                         }
                     }
@@ -226,7 +227,7 @@ public class JREUtils {
         }
     }
 
-    public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
+    public static void setEnvironmentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
         envMap.put("LIBGL_NOERROR", "1");
@@ -252,19 +253,19 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
-
+        
         if ("turbov1".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            Logger.appendToLog("[TurboV1] setEnviroimentForGame: Preloading Vulkan driver...");
+            Logger.appendToLog("[TurboV1] setEnvironmentForGame: Preloading Vulkan driver...");
             try {
                 ensureVulkanLibraries();
                 preloadVulkan();
-                Logger.appendToLog("[TurboV1] setEnviroimentForGame: Vulkan preloaded successfully!");
+                Logger.appendToLog("[TurboV1] setEnvironmentForGame: Vulkan preloaded successfully!");
             } catch (Throwable t) {
-                Log.e("JREUtils", "Failed to preload Vulkan in setEnviroimentForGame", t);
+                Log.e("JREUtils", "Failed to preload Vulkan in setEnvironmentForGame", t);
                 Logger.appendToLog("[TurboV1] WARNING: Vulkan preload failed: " + t.getMessage());
             }
         }
-
+        
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
@@ -321,7 +322,7 @@ public class JREUtils {
                 if(end == -1) end = args.length();
                 String parsedSubString = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
-                if(parsedSubString.indexOf("=") == parsedSubString.lastIndexOf("=")) {
+                if(parsedSubString.indexOf('=') == parsedSubString.lastIndexOf('=')) {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
