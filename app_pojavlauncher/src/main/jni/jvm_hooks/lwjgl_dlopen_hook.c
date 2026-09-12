@@ -1,6 +1,6 @@
 //
 // Created by maks on 06.01.2025.
-// Cleaned & fixed version for TurboV1 / Zink (v2) - properly suppress pre-init GLFW errors
+// TurboV1 / Zink FINAL-V3 - clear build marker for verification
 //
 
 #include "jvm_hooks.h"
@@ -58,8 +58,16 @@ static void resolve_glfw_funcs(void* handle) {
 
 // Our hooked glfwInit - sets correct hints for TurboV1/Zink then calls real
 static int hooked_glfwInit_impl(void) {
-    printf("LWJGL linkerhook: TurboV1 hooked_glfwInit_impl executing\n");
+    printf("LWJGL linkerhook: FINAL-V3 TurboV1 hooked_glfwInit_impl executing\n");
     resolve_glfw_funcs(RTLD_DEFAULT);
+
+    // Clear any previous error state before we start
+    if (real_glfwGetError) {
+        const char* desc = NULL;
+        while (real_glfwGetError(&desc) != 0) {
+            // drain errors
+        }
+    }
 
     if (real_glfwInitHint) {
         // Force Android platform
@@ -68,9 +76,7 @@ static int hooked_glfwInit_impl(void) {
 
     if (real_glfwWindowHint) {
         // For Zink / TurboV1 we prefer NO_API so the surface can be Vulkan-based.
-        // This matches most working Zink setups on Android.
         real_glfwWindowHint(0x00022001 /* GLFW_CLIENT_API */, 0 /* GLFW_NO_API */);
-        // Do NOT force OpenGL ES here - Zink provides the GL layer.
     }
 
     int result = 0;
@@ -78,9 +84,11 @@ static int hooked_glfwInit_impl(void) {
         result = real_glfwInit();
         if (result) {
             g_glfw_initialized = 1;
-            printf("LWJGL linkerhook: real glfwInit() succeeded\n");
+            printf("LWJGL linkerhook: FINAL-V3 real glfwInit() succeeded\n");
         } else {
-            printf("LWJGL linkerhook: real glfwInit() FAILED\n");
+            printf("LWJGL linkerhook: FINAL-V3 real glfwInit() FAILED\n");
+            // Even on failure mark as attempted so GetError doesn't keep lying
+            g_glfw_initialized = 1;
         }
     }
     return result;
@@ -90,7 +98,7 @@ static int hooked_glfwInit_impl(void) {
 static int hooked_glfwGetError_impl(const char** description) {
     if (!g_glfw_initialized) {
         if (description) *description = NULL;
-        return 0; // No error
+        return 0; // No error - this prevents the crash
     }
     if (real_glfwGetError) {
         return real_glfwGetError(description);
@@ -99,9 +107,9 @@ static int hooked_glfwGetError_impl(const char** description) {
     return 0;
 }
 
-// Simple passthrough for glfwCreateWindow (can be extended later for Vulkan surface)
+// Simple passthrough for glfwCreateWindow
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: TurboV1 hooked_glfwCreateWindow_impl (%dx%d)\n", width, height);
+    printf("LWJGL linkerhook: FINAL-V3 TurboV1 hooked_glfwCreateWindow_impl (%dx%d)\n", width, height);
     resolve_glfw_funcs(RTLD_DEFAULT);
     if (real_glfwCreateWindow) {
         return real_glfwCreateWindow(width, height, title, monitor, share);
@@ -120,14 +128,14 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
 
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: replacing load for libvulkan.so with custom driver\n");
+        printf("LWJGL linkerhook: FINAL-V3 replacing load for libvulkan.so with custom driver\n");
         return (jlong) pojavexec_loadVulkanDriver();
     }
 
     if (strstr(filename, "libTurboV1.so") != NULL ||
         strstr(filename, "libGLMojo.so") != NULL ||
         strstr(filename, "libGLFear.so") != NULL) {
-        printf("LWJGL linkerhook: replacing OpenGL with renderspec / TurboV1 driver\n");
+        printf("LWJGL linkerhook: FINAL-V3 replacing OpenGL with renderspec / TurboV1 driver\n");
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         if (rspec && rspec->egl_acquire) {
             return (jlong) rspec->egl_acquire(rspec->egl_path);
@@ -154,17 +162,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     }
 
     if (strcmp(symbol, "glfwInit") == 0) {
-        printf("LWJGL linkerhook: returning TurboV1 hooked_glfwInit_impl\n");
+        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwInit_impl\n");
         return (jlong) hooked_glfwInit_impl;
     }
 
     if (strcmp(symbol, "glfwGetError") == 0) {
-        printf("LWJGL linkerhook: returning TurboV1 hooked_glfwGetError_impl (suppress pre-init)\n");
+        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwGetError_impl (suppress pre-init)\n");
         return (jlong) hooked_glfwGetError_impl;
     }
 
     if (strcmp(symbol, "glfwCreateWindow") == 0) {
-        printf("LWJGL linkerhook: returning TurboV1 hooked_glfwCreateWindow_impl\n");
+        printf("LWJGL linkerhook: FINAL-V3 returning hooked_glfwCreateWindow_impl\n");
         return (jlong) hooked_glfwCreateWindow_impl;
     }
 
@@ -179,8 +187,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL dlopen/dlsym hooks (BUILD v20260912-CLEAN-V2)");
-    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260912-CLEAN-V2)\n");
+    LOGI("Installing LWJGL dlopen/dlsym hooks (BUILD v20260912-FINAL-V3)");
+    printf("LWJGL linkerhook: installing dlopen/dlsym hooks (BUILD v20260912-FINAL-V3)\n");
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
         LOGE("Failed to find DynamicLinkLoader class");
@@ -195,6 +203,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooked methods");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully (V2)\n");
+        printf("LWJGL linkerhook: dlopen/dlsym hooks installed successfully (FINAL-V3)\n");
     }
 }
