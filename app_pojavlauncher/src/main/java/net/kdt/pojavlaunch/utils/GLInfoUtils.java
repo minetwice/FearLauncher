@@ -193,5 +193,10 @@ public class GLInfoUtils {
         public boolean isArm() {
             return (renderer.contains("Mali") || renderer.contains("Immortalis")) && vendor.equals("ARM");
         }
+
+        public boolean isMali() {
+            return (renderer != null && (renderer.contains("Mali") || renderer.contains("Immortalis")))
+                    || (vendor != null && vendor.contains("ARM"));
+        }
     }
 }
