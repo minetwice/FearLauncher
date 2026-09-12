@@ -43,7 +43,11 @@ public class RendererCompatUtil {
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
+            // TurboV1 owns an Android Vulkan presentation path. Do not offer it on
+            // devices that cannot expose a Vulkan driver; selecting it used to let
+            // GLFW reach EGL with no viable backend and crash during startup.
             if(rendererId.equals("turbov1")) {
+                if (!deviceHasVulkan || SDK_INT < Build.VERSION_CODES.S) continue;
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
                 continue;

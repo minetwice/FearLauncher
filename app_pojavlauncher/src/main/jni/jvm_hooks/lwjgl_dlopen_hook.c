@@ -1,7 +1,7 @@
 //
 // TurboV1 / Zink FINAL-V9
-// Critical: do NOT force EGL_PLATFORM=android — Java side intentionally skips it for Zink.
-// Prefer real GL/ES context so LWJGL createCapabilities works.
+// TurboV1 uses an Android native surface. Always keep EGL on the Android
+// platform: leaving it unset makes some Mali drivers fail eglInitialize.
 //
 
 #include "jvm_hooks.h"
@@ -37,9 +37,7 @@ static void universal_stub_void(void) {}
 static int eglGetError_always_success(void) { return 0x3000; }
 
 static void force_turbov1_env(void) {
-    // IMPORTANT: Do NOT set EGL_PLATFORM=android here.
-    // JREUtils intentionally omits it for turbov1/vulkan_zink so Mesa can pick its path.
-    unsetenv("EGL_PLATFORM");
+    setenv("EGL_PLATFORM", "android", 1);
 
     setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     setenv("GALLIUM_DRIVER", "zink", 1);
@@ -51,7 +49,7 @@ static void force_turbov1_env(void) {
     setenv("ZINK_DEBUG", "", 1);
     // Desktop GL path preferred for Zink (matches useGles=false in JREUtils)
     // Do not force LIBGL_ES=2 here.
-    printf("LWJGL linkerhook: FINAL-V9 env set (no EGL_PLATFORM force)\n");
+    printf("LWJGL linkerhook: FINAL-V9 env set (EGL_PLATFORM=android)\n");
 }
 
 static void drain_glfw_errors(void) {

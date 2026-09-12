@@ -109,6 +109,13 @@ public class GameRunner {
 
     public static void launchMinecraft(final AppCompatActivity activity, MinecraftAccount minecraftAccount,
                                        Instance instance, String versionId, File[] classpath, String rendererName) throws Throwable {
+        if ("turbov1".equals(rendererName) && !JREUtils.isTurboV1Supported()) {
+            Log.w("GameRunner", "TurboV1 Vulkan preflight failed; falling back to GL4ES");
+            rendererName = "opengles2";
+            instance.renderer = rendererName;
+            instance.write();
+        }
+
         int freeDeviceMemory = Tools.getFreeDeviceMemory(activity);
         int localeString;
         int freeAddressSpace = Architecture.is32BitsDevice() ? Tools.getMaxContinuousAddressSpaceSize() : -1;
