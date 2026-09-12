@@ -137,7 +137,11 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        if (!"turbov1".equals(renderer) && !"vulkan_zink".equals(renderer)) {
+        // TurboV1 presents through Android's native window system.  Leaving the
+        // platform unspecified makes Mesa/EGL select a host platform on a number
+        // of Mali firmware builds, where eglInitialize then fails before GLFW can
+        // create a window.
+        if (!"vulkan_zink".equals(renderer)) {
             envMap.put("EGL_PLATFORM", "android");
         }
 
@@ -304,6 +308,21 @@ public class JREUtils {
 
     // TurboV1 Native Engine JNI Declaration
     public static native void initTurboV1Engine(String cachePath);
+    /**
+     * Verifies that the Android Vulkan loader can create an instance and exposes
+     * a graphics-capable physical device. This is deliberately run before Java
+     * starts LWJGL, so a broken vendor driver becomes a safe renderer fallback.
+     */
+    public static boolean isTurboV1Supported() {
+        try {
+            System.loadLibrary("turbov1");
+            return isTurboV1SupportedNative();
+        } catch (Throwable error) {
+            Log.w("JREUtils", "TurboV1 preflight library load failed", error);
+            return false;
+        }
+    }
+    private static native boolean isTurboV1SupportedNative();
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);

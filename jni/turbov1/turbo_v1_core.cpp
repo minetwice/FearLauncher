@@ -1,6 +1,7 @@
 #include "turbo_v1_core.h"
 #include "turbo_v1_vulkan.h"
 #include <jni.h>
+#include <dlfcn.h>
 
 namespace turbo_v1 {
 
@@ -64,6 +65,64 @@ const char* get_vendor_string() {
 
 // JNI Entry Point
 extern "C" {
+
+JNIEXPORT jboolean JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_isTurboV1SupportedNative(JNIEnv*, jclass) {
+    void* loader = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+    if (loader == nullptr) {
+        LOGW("TurboV1 preflight: libvulkan.so is unavailable");
+        return JNI_FALSE;
+    }
+
+    auto create_instance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(loader, "vkCreateInstance"));
+    auto destroy_instance = reinterpret_cast<PFN_vkDestroyInstance>(dlsym(loader, "vkDestroyInstance"));
+    auto enumerate_devices = reinterpret_cast<PFN_vkEnumeratePhysicalDevices>(dlsym(loader, "vkEnumeratePhysicalDevices"));
+    auto get_queue_properties = reinterpret_cast<PFN_vkGetPhysicalDeviceQueueFamilyProperties>(dlsym(loader, "vkGetPhysicalDeviceQueueFamilyProperties"));
+    if (create_instance == nullptr || destroy_instance == nullptr || enumerate_devices == nullptr || get_queue_properties == nullptr) {
+        LOGW("TurboV1 preflight: Vulkan loader is missing required entry points");
+        dlclose(loader);
+        return JNI_FALSE;
+    }
+
+    VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+    app_info.pApplicationName = "TurboV1 preflight";
+    app_info.apiVersion = VK_API_VERSION_1_0;
+    VkInstanceCreateInfo create_info{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+    create_info.pApplicationInfo = &app_info;
+
+    VkInstance instance = VK_NULL_HANDLE;
+    if (create_instance(&create_info, nullptr, &instance) != VK_SUCCESS || instance == VK_NULL_HANDLE) {
+        LOGW("TurboV1 preflight: vkCreateInstance failed");
+        dlclose(loader);
+        return JNI_FALSE;
+    }
+
+    uint32_t device_count = 0;
+    bool supported = enumerate_devices(instance, &device_count, nullptr) == VK_SUCCESS && device_count > 0;
+    if (supported) {
+        std::vector<VkPhysicalDevice> devices(device_count);
+        supported = enumerate_devices(instance, &device_count, devices.data()) == VK_SUCCESS;
+        bool graphics_queue_found = false;
+        for (VkPhysicalDevice device : devices) {
+            uint32_t queue_count = 0;
+            get_queue_properties(device, &queue_count, nullptr);
+            std::vector<VkQueueFamilyProperties> queues(queue_count);
+            get_queue_properties(device, &queue_count, queues.data());
+            for (const VkQueueFamilyProperties& queue : queues) {
+                if ((queue.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+                    graphics_queue_found = true;
+                    break;
+                }
+            }
+            if (graphics_queue_found) break;
+        }
+        supported = graphics_queue_found;
+    }
+
+    destroy_instance(instance, nullptr);
+    dlclose(loader);
+    LOGI("TurboV1 preflight: %s", supported ? "supported" : "no graphics-capable Vulkan device");
+    return supported ? JNI_TRUE : JNI_FALSE;
+}
 
 JNIEXPORT void JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_initTurboV1Engine(JNIEnv* env, jclass cls, jstring cachePath) {
     const char* path = env->GetStringUTFChars(cachePath, nullptr);
