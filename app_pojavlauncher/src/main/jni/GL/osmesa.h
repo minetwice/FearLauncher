@@ -1,17 +1,41 @@
 /*
  * Minimal OSMesa interface header for FearLauncher.
  * Based on Mesa's include/GL/osmesa.h (MIT licensed).
- * Only the types and constants used by the ctxbridges are defined here.
+ *
+ * The Android NDK does not ship GL/gl.h, so we define the minimal
+ * set of GL types and constants that the OSMesa bridge needs.
  */
 #ifndef FEARLAUNCHER_OSMESA_H
 #define FEARLAUNCHER_OSMESA_H
 
-#include <GL/gl.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* --- Minimal GL type definitions (normally in GL/gl.h) --- */
+typedef unsigned int GLenum;
+typedef unsigned char GLboolean;
+typedef unsigned int GLbitfield;
+typedef signed char GLbyte;
+typedef short GLshort;
+typedef int GLint;
+typedef int GLsizei;
+typedef unsigned char GLubyte;
+typedef unsigned short GLushort;
+typedef unsigned int GLuint;
+typedef float GLfloat;
+typedef float GLclampf;
+typedef double GLdouble;
+typedef double GLclampd;
+typedef void GLvoid;
+
+/* GL types used by OSMesa function signatures */
+#define GL_UNSIGNED_BYTE 0x1401
+#define GL_RGBA 0x1908
+
+/* --- OSMesa types and constants --- */
 typedef struct osmesa_context *OSMesaContext;
 
 #define OSMESA_RGBA 0x1908
