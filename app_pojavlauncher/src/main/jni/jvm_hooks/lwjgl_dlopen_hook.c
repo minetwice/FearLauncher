@@ -1,7 +1,8 @@
 //
-// TurboV1 / Zink FINAL-V9
-// Critical: do NOT force EGL_PLATFORM=android — Java side intentionally skips it for Zink.
-// Prefer real GL/ES context so LWJGL createCapabilities works.
+// TurboV1 / Zink FINAL-V10
+// EGL_PLATFORM=android is REQUIRED: the Mali Android EGL driver cannot use the
+// Mesa-only "surfaceless" platform, and leaving it unset makes eglInitialize
+// fail (GLFW 65542). Vulkan WSI must be FIFO on Android (VK_KHR_android_surface).
 //
 
 #include "jvm_hooks.h"
@@ -37,9 +38,14 @@ static void universal_stub_void(void) {}
 static int eglGetError_always_success(void) { return 0x3000; }
 
 static void force_turbov1_env(void) {
-    // IMPORTANT: Do NOT set EGL_PLATFORM=android here.
-    // JREUtils intentionally omits it for turbov1/vulkan_zink so Mesa can pick its path.
-    unsetenv("EGL_PLATFORM");
+    // Android-native EGL platform: required for the Mali-G615 Android EGL driver.
+    // "surfaceless" is a Mesa-only platform and fails eglInitialize here.
+    setenv("EGL_PLATFORM", "android", 1);
+
+    // Android WSI: only FIFO is guaranteed on VK_KHR_android_surface (Mali does
+    // not expose MAILBOX). MAILBOX is desktop-only and breaks the swapchain.
+    setenv("MESA_VK_WSI_PRESENT_MODE", "fifo", 1);
+    setenv("MESA_PRESENT_MODE", "fifo", 1);
 
     setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     setenv("GALLIUM_DRIVER", "zink", 1);
@@ -51,7 +57,7 @@ static void force_turbov1_env(void) {
     setenv("ZINK_DEBUG", "", 1);
     // Desktop GL path preferred for Zink (matches useGles=false in JREUtils)
     // Do not force LIBGL_ES=2 here.
-    printf("LWJGL linkerhook: FINAL-V9 env set (no EGL_PLATFORM force)\n");
+    printf("LWJGL linkerhook: FINAL-V10 env set (EGL_PLATFORM=android, WSI=fifo)\n");
 }
 
 static void drain_glfw_errors(void) {
@@ -133,7 +139,7 @@ static void apply_hints_no_api(void) {
 }
 
 static int hooked_glfwInit_impl(void) {
-    printf("LWJGL linkerhook: FINAL-V9 hooked_glfwInit\n");
+    printf("LWJGL linkerhook: FINAL-V10 hooked_glfwInit\n");
     force_turbov1_env();
     resolve_all(RTLD_DEFAULT);
     drain_glfw_errors();
@@ -145,7 +151,7 @@ static int hooked_glfwInit_impl(void) {
     if (real_glfwInit) result = real_glfwInit();
     g_glfw_initialized = 1;
     drain_glfw_errors();
-    printf("LWJGL linkerhook: FINAL-V9 glfwInit -> %d\n", result);
+    printf("LWJGL linkerhook: FINAL-V10 glfwInit -> %d\n", result);
     return 1;
 }
 
@@ -170,7 +176,7 @@ static int hooked_glfwGetError_impl(const char** description) {
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: FINAL-V9 CreateWindow %dx%d\n", width, height);
+    printf("LWJGL linkerhook: FINAL-V10 CreateWindow %dx%d\n", width, height);
     resolve_all(RTLD_DEFAULT);
     force_turbov1_env();
     drain_glfw_errors();
@@ -188,10 +194,10 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 1;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK desktop GL+EGL\n");
+        printf("LWJGL linkerhook: FINAL-V10 window OK desktop GL+EGL\n");
         return win;
     }
-    printf("LWJGL linkerhook: FINAL-V9 desktop GL failed\n");
+    printf("LWJGL linkerhook: FINAL-V10 desktop GL failed\n");
 
     // Strategy 2: GLES3 + EGL
     if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
@@ -202,10 +208,10 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 1;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK GLES3+EGL\n");
+        printf("LWJGL linkerhook: FINAL-V10 window OK GLES3+EGL\n");
         return win;
     }
-    printf("LWJGL linkerhook: FINAL-V9 GLES3 failed\n");
+    printf("LWJGL linkerhook: FINAL-V10 GLES3 failed\n");
 
     // Strategy 3: NO_API last resort (will need more work for createCapabilities)
     if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
@@ -216,16 +222,16 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 0;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK NO_API (no GL context)\n");
+        printf("LWJGL linkerhook: FINAL-V10 window OK NO_API (no GL context)\n");
         return win;
     }
 
-    printf("LWJGL linkerhook: FINAL-V9 all CreateWindow strategies failed\n");
+    printf("LWJGL linkerhook: FINAL-V10 all CreateWindow strategies failed\n");
     return NULL;
 }
 
 static void hooked_glfwMakeContextCurrent_impl(void* window) {
-    printf("LWJGL linkerhook: FINAL-V9 MakeContextCurrent %p (has_gl=%d)\n", window, g_has_gl_context);
+    printf("LWJGL linkerhook: FINAL-V10 MakeContextCurrent %p (has_gl=%d)\n", window, g_has_gl_context);
     if (g_has_gl_context && real_glfwMakeContextCurrent) {
         real_glfwMakeContextCurrent(window);
         drain_glfw_errors();
@@ -264,12 +270,12 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
 
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V9 vulkan redirect\n");
+        printf("LWJGL linkerhook: FINAL-V10 vulkan redirect\n");
         return (jlong) pojavexec_loadVulkanDriver();
     }
     if (strstr(filename, "libTurboV1.so") || strstr(filename, "libGLMojo.so") ||
         strstr(filename, "libGLFear.so") || strstr(filename, "libGL.so")) {
-        printf("LWJGL linkerhook: FINAL-V9 GL redirect (%s)\n", filename);
+        printf("LWJGL linkerhook: FINAL-V10 GL redirect (%s)\n", filename);
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         if (rspec && rspec->egl_acquire)
             return (jlong) rspec->egl_acquire(rspec->egl_path);
@@ -311,8 +317,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (BUILD v20260912-FINAL-V9)");
-    printf("LWJGL linkerhook: installing hooks (BUILD v20260912-FINAL-V9)\n");
+    LOGI("Installing LWJGL hooks (BUILD v20260912-FINAL-V10)");
+    printf("LWJGL linkerhook: installing hooks (BUILD v20260912-FINAL-V10)\n");
     force_turbov1_env();
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
@@ -329,6 +335,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL linkerhook: FINAL-V9 hooks installed\n");
+        printf("LWJGL linkerhook: FINAL-V10 hooks installed\n");
     }
 }

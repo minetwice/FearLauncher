@@ -96,8 +96,11 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("FORCE_VSYNC", "0");
                 envMap.put("LIBGL_VSYNC", "0");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
-                envMap.put("MESA_PRESENT_MODE", "mailbox");
+                // Android WSI (VK_KHR_android_surface): only FIFO is guaranteed (Mali-G615
+                // does not expose MAILBOX). MAILBOX is a desktop X11/Wayland concept and makes
+                // vkCreateSwapchainKHR fail, which surfaces as GLFW 65542 EGL init failure.
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("MESA_PRESENT_MODE", "fifo");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
                 break;
@@ -105,6 +108,9 @@ public class JREUtils {
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                // Same Android WSI constraint as turbov1: FIFO only.
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("MESA_PRESENT_MODE", "fifo");
                 break;
         }
     }
@@ -128,7 +134,7 @@ public class JREUtils {
         envMap.put("allow_glsl_extension_directive_midshader", "true");
 		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
 		if (!modRuntimeDir.exists()) {
-    		modRuntimeDir.mkdirs();
+    			modRuntimeDir.mkdirs();
 		}
 		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
 
@@ -137,9 +143,10 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        if (!"turbov1".equals(renderer) && !"vulkan_zink".equals(renderer)) {
-            envMap.put("EGL_PLATFORM", "android");
-        }
+        // Force the Android EGL platform for ALL renderers, including Zink/TurboV1.
+        // Mali's Android EGL driver has no "surfaceless" support (that is a
+        // Mesa-only platform); without this, eglInitialize fails -> GLFW 65542.
+        envMap.put("EGL_PLATFORM", "android");
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
