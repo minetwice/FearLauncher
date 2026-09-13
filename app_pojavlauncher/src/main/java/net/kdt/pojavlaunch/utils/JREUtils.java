@@ -89,14 +89,16 @@ public class JREUtils {
         switch(renderer) {
             case "turnip_zink":
             case "vulkan_zink":
-                Logger.appendToLog("[TurnipZink] Initializing OSMesa-based Zink renderer (GL→Vulkan via Mesa)...");
-                // Zalith-style OSMesa approach: no EGL, rendering to ANativeWindow buffer
+                Logger.appendToLog("[TurnipZink] Initializing Zink renderer (GL→Vulkan via Mesa)...");
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
+                envMap.put("MESA_PRESENT_MODE", "fifo");
+                envMap.put("EGL_PLATFORM", "android");
                 break;
         }
     }
@@ -129,9 +131,9 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        // OSMesa library name — the ctxbridges loader uses this to find Mesa
+        // Mesa library name — uses the existing mh_drive Mesa build
         if ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
+            envMap.put("LIB_MESA_NAME", "libmh_drive_vulkan_mesa.so");
             envMap.put("POJAV_RENDERER", renderer);
         } else {
             envMap.put("POJAV_RENDERER", renderer);
@@ -246,9 +248,9 @@ public class JREUtils {
         switch (renderer){
             case "turnip_zink":
             case "vulkan_zink":
-                Logger.appendToLog("[TurnipZink] Loading Mesa OSMesa library (Zink GL→Vulkan, no EGL)...");
-                // OSMesa-based Mesa build (like Zalith's libOSMesa_8.so)
-                renderLibrary = "libOSMesa_8.so";
+                Logger.appendToLog("[TurnipZink] Loading Mesa library (Zink GL→Vulkan)...");
+                // Use the existing Mesa build that's already shipped in jniLibs
+                renderLibrary = "libmh_drive_vulkan_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
