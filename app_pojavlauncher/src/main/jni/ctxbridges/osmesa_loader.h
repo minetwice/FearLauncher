@@ -5,7 +5,8 @@
 #ifndef POJAVLAUNCHER_OSMESA_LOADER_H
 #define POJAVLAUNCHER_OSMESA_LOADER_H
 
-#include <GL/osmesa.h>
+#include <stdbool.h>
+#include "GL/osmesa.h"
 
 extern GLboolean (*OSMesaMakeCurrent_p) (OSMesaContext ctx, void *buffer, GLenum type,
                                          GLsizei width, GLsizei height);
@@ -22,5 +23,7 @@ extern void (*glReadPixels_p) (GLint x, GLint y, GLsizei width, GLsizei height, 
 extern void (*glReadBuffer_p) (GLenum mode);
 
 void dlsym_OSMesa();
+bool osmesa_is_loaded();
+void* get_mesa_dl_handle();
 
 #endif //POJAVLAUNCHER_OSMESA_LOADER_H
