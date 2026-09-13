@@ -1,7 +1,6 @@
 name: Build Mesa Zink (arm64 OSMesa)
 
-# Auto-builds Android aarch64 libOSMesa + Zink.
-# Triggers: push to turbov1 branch, weekly schedule, or manual.
+# Auto-builds Android aarch64 libOSMesa + Zink (Vera-Firefly style).
 # Artifact: mesa-zink-arm64-osmesa.zip
 
 on:
@@ -18,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       mesa_tag:
-        description: 'Mesa git tag/branch (e.g. mesa-25.1.4)'
+        description: 'Mesa git tag/branch'
         required: false
         default: 'mesa-25.1.4'
         type: string
@@ -42,7 +41,7 @@ jobs:
           sudo apt-get install -y \
             python3-pip python3-setuptools \
             libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev \
-            libxfixes-dev libdrm-dev libx11-dev \
+            libxfixes-dev libdrm-dev libx11-dev libexpat1-dev \
             bison flex gettext pkg-config \
             unzip curl git ccache gettext-base
           pip3 install --user mako meson ninja
@@ -56,7 +55,6 @@ jobs:
           TAG="${{ github.event.inputs.mesa_tag }}"
           if [ -z "$TAG" ]; then TAG="mesa-25.1.4"; fi
           echo "MESA_TAG=$TAG" >> $GITHUB_ENV
-          echo "Building Mesa tag: $TAG"
 
       - name: Download NDK
         run: |
@@ -66,19 +64,21 @@ jobs:
 
       - name: Clone Mesa + drm + build-fix
         run: |
-          # Pin libdrm to a release that still has driver options
           git clone --depth 1 --branch libdrm-2.4.122 https://gitlab.freedesktop.org/mesa/drm.git \
             || git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
           git clone --depth 1 --branch "${MESA_TAG}" https://gitlab.freedesktop.org/mesa/mesa.git \
             || git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git
-          git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git || true
+          # Prefer versioned build-fix branch if present
+          git clone --depth 1 --branch "${MESA_TAG#mesa-}" https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
+            || git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
+            || true
           if [ -d mesa-build-fix ]; then
+            echo "Applying mesa-build-fix..."
             cp -rf mesa-build-fix/* mesa/ || true
           fi
 
       - name: Write meson cross-files
         run: |
-          # Match Vera-Firefly: cpu_family=arm for aarch64 android cross
           cat > cross-drm.ini << 'EOF'
           [binaries]
           ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
@@ -118,40 +118,28 @@ jobs:
       - name: Build libdrm (static)
         run: |
           cd drm
-          # libdrm uses -Dfreedreno-kgsl (boolean), NOT Mesa's freedreno-kmds
           meson setup build-android \
             --prefix=/tmp/drm-static \
             --cross-file "../build-crossfile-drm" \
             -Ddefault_library=static \
-            -Dintel=disabled \
-            -Dradeon=disabled \
-            -Damdgpu=disabled \
-            -Dnouveau=disabled \
-            -Dvmwgfx=disabled \
-            -Dfreedreno=enabled \
-            -Dvc4=disabled \
-            -Detnaviv=disabled \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dfreedreno=enabled -Dvc4=disabled -Detnaviv=disabled \
             -Dfreedreno-kgsl=true \
-            -Dcairo-tests=disabled \
-            -Dvalgrind=disabled \
-            -Dtests=false || \
+            -Dcairo-tests=disabled -Dvalgrind=disabled -Dtests=false || \
           meson setup build-android \
             --prefix=/tmp/drm-static \
             --cross-file "../build-crossfile-drm" \
             -Ddefault_library=static \
-            -Dintel=disabled \
-            -Dradeon=disabled \
-            -Damdgpu=disabled \
-            -Dnouveau=disabled \
-            -Dvmwgfx=disabled \
-            -Dcairo-tests=disabled \
-            -Dvalgrind=disabled \
-            -Dtests=false
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dcairo-tests=disabled -Dvalgrind=disabled -Dtests=false
           ninja -C build-android install
 
-      - name: Build Mesa (OSMesa + Zink only)
+      - name: Build Mesa (OSMesa + Zink) — Vera flags
         run: |
           cd mesa
+          # Exact pattern from Vera-Firefly/android-mesa-build (fixes driParseConfigFiles link)
           meson setup build-android \
             --prefix=/tmp/mesa \
             --cross-file "../build-crossfile" \
@@ -168,7 +156,9 @@ jobs:
             -Dopengl=true \
             -Dosmesa=true \
             -Dvulkan-drivers= \
-            -Dgallium-drivers=zink \
+            -Dtools=drm-shim \
+            -Dgallium-drivers=zink,freedreno \
+            -Dfreedreno-kmds=kgsl,msm \
             -Dbuildtype=release
           ninja -C build-android -j"$(nproc)" install
 
@@ -182,12 +172,14 @@ jobs:
           else
             echo "libOSMesa not found"
             find /tmp/mesa -name '*OSMesa*' || true
-            find /tmp/mesa -name '*.so*' | head -40 || true
+            find /tmp/mesa -name '*.so*' | head -50 || true
             exit 1
           fi
-          ls -la /tmp/mesa/lib/ || true
+          # Also ship drm-shim if built (sometimes needed at runtime)
+          find /tmp/mesa -name '*drm_shim*' -exec cp {} out/arm64-v8a/ \; 2>/dev/null || true
+          ls -la out/arm64-v8a/
           cat > out/README.txt << 'EOR'
-          FearLauncher Mesa Zink pack (OSMesa + Zink, aarch64)
+          FearLauncher Mesa Zink (OSMesa) aarch64
           LIB_MESA_NAME=libOSMesa_8.so
           Renderer: turnip_zink
           EOR
