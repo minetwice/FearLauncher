@@ -149,7 +149,7 @@ public class GameRunner {
         }
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turbov1");
+        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turnip_zink");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
