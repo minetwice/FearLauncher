@@ -1,266 +1,265 @@
 //
-// TurboV1 / Zink FINAL-V10
-// EGL_PLATFORM=android is REQUIRED: the Mali Android EGL driver cannot use the
-// Mesa-only "surfaceless" platform, and leaving it unset makes eglInitialize
-// fail (GLFW 65542). Vulkan WSI must be FIFO on Android (VK_KHR_android_surface).
+// FearLauncher — LWJGL dlopen/dlsym hook v2.0 (TURNIP-ZINK)
+// Adapted from ZalithLauncher's OSMesa bridge approach.
 //
-
+// For zink renderers (turnip_zink / vulkan_zink):
+//   - No EGL. Rendering goes through OSMesa → ANativeWindow buffer.
+//   - GLFW calls are routed to the OSMesa bridge.
+//   - GL symbols resolve from the Mesa library (Zink = GL→Vulkan).
+// For other renderers:
+//   - Pass-through to the real GLFW; only Vulkan loading is redirected.
+//
 #include "jvm_hooks.h"
 
 #include <android/api-level.h>
+#include <android/native_window.h>
+#include <android/native_window_jni.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #define TAG __FILE_NAME__
 #include <log.h>
 #include "../pojavexec.h"
+#include "ctxbridges/bridge_environ.h"
+#include "ctxbridges/osm_bridge.h"
+#include "ctxbridges/osmesa_loader.h"
+
+// Global bridge environment
+bridge_environ_t bridge_environ = {0};
+
+// ===================== Renderer detection =====================
+
+static bool is_zink_renderer() {
+    const char* renderer = getenv("POJAV_RENDERER");
+    if (renderer == NULL) return false;
+    return strcmp(renderer, "turnip_zink") == 0 ||
+           strcmp(renderer, "vulkan_zink") == 0;
+}
+
+// ===================== JNI: Surface bridge =====================
+
+JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {
+    if (surface == NULL) {
+        LOGW("setupBridgeWindow: surface is NULL");
+        return;
+    }
+    bridge_environ.pojavWindow = ANativeWindow_fromSurface(env, surface);
+    bridge_environ.savedWidth = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+    bridge_environ.savedHeight = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+    LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
+         bridge_environ.savedWidth, bridge_environ.savedHeight);
+    // If the OSMesa bridge already has a main window, update it
+    osm_setup_window();
+}
+
+JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass clazz) {
+    if (bridge_environ.pojavWindow != NULL) {
+        ANativeWindow_release(bridge_environ.pojavWindow);
+        bridge_environ.pojavWindow = NULL;
+        LOGI("Bridge window released");
+    }
+}
+
+// ===================== Zink env setup =====================
+
+static void force_zink_env(void) {
+    // Mesa Zink driver selection
+    setenv("GALLIUM_DRIVER", "zink", 1);
+    setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+    // Desktop GL 4.6 via Zink
+    setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
+    setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
+    // Android WSI: only FIFO is guaranteed
+    setenv("MESA_VK_WSI_PRESENT_MODE", "fifo", 1);
+    setenv("MESA_PRESENT_MODE", "fifo", 1);
+    setenv("LIBGL_NOERROR", "1", 1);
+    setenv("ZINK_DESCRIPTORS", "lazy", 1);
+    setenv("mesa_glthread", "false", 1);
+    printf("LWJGL hook: zink env set (OSMesa bridge, no EGL)\n");
+}
+
+// ===================== OSMesa-GLFW bridge =====================
 
 static volatile int g_glfw_initialized = 0;
 static volatile int g_window_created = 0;
-static volatile int g_has_gl_context = 0; // 1 if window has real GL/ES context
-static volatile int g_context_current = 0;
 static void* g_current_window = NULL;
+static void* g_mesa_handle = NULL;
+
+static void* get_mesa_handle(void) {
+    if (g_mesa_handle != NULL) return g_mesa_handle;
+    // Load the Mesa library via LIB_MESA_NAME (same as OSMesa loader)
+    const char* mesa_name = getenv("LIB_MESA_NAME");
+    const char* native_dir = getenv("POJAV_NATIVEDIR");
+    if (mesa_name == NULL || native_dir == NULL) {
+        printf("LWJGL hook: LIB_MESA_NAME or POJAV_NATIVEDIR not set!\n");
+        return NULL;
+    }
+    char path[512];
+    if (strncmp(mesa_name, "/data", 5) == 0) {
+        snprintf(path, sizeof(path), "%s", mesa_name);
+    } else {
+        snprintf(path, sizeof(path), "%s/%s", native_dir, mesa_name);
+    }
+    g_mesa_handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
+    printf("LWJGL hook: loaded Mesa (%s) handle=%p\n", path, g_mesa_handle);
+    return g_mesa_handle;
+}
+
+static int hooked_glfwInit_impl(void) {
+    printf("LWJGL hook: glfwInit (OSMesa)\n");
+    if (!g_glfw_initialized) {
+        force_zink_env();
+        bridge_environ.config_renderer = RENDERER_VK_ZINK;
+        if (!osm_init()) {
+            printf("LWJGL hook: osm_init FAILED\n");
+            return 0;
+        }
+        g_glfw_initialized = 1;
+    }
+    return 1; // GLFW_TRUE
+}
+
+static int hooked_glfwGetError_impl(const char** description) {
+    if (description) *description = NULL;
+    return 0; // GLFW_NO_ERROR — OSMesa bridge never produces GLFW errors
+}
+
+static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
+    printf("LWJGL hook: glfwCreateWindow %dx%d (OSMesa)\n", width, height);
+    (void)title; (void)monitor;
+
+    // Create an OSMesa render window (GL context via Zink)
+    osm_render_window_t* share_bundle = (share != NULL) ? (osm_render_window_t*) share : NULL;
+    osm_render_window_t* bundle = osm_init_context(share_bundle);
+    if (bundle == NULL) {
+        printf("LWJGL hook: osm_init_context FAILED\n");
+        return NULL;
+    }
+    bundle->state = STATE_RENDERER_ALIVE;
+
+    // If this is the first window, bind it to the Android native window
+    if (bridge_environ.mainWindowBundle == NULL) {
+        bridge_environ.mainWindowBundle = (basic_render_window_t*) bundle;
+        bundle->newNativeSurface = bridge_environ.pojavWindow;
+    }
+
+    // Make it current immediately
+    osm_make_current(bundle);
+
+    g_window_created = 1;
+    g_current_window = (void*) bundle;
+    printf("LWJGL hook: window OK (OSMesa, context=%p)\n", (void*)bundle->context);
+    return g_current_window;
+}
+
+static void hooked_glfwMakeContextCurrent_impl(void* window) {
+    printf("LWJGL hook: glfwMakeContextCurrent %p\n", window);
+    if (window == NULL) {
+        osm_make_current(NULL);
+        g_current_window = NULL;
+        return;
+    }
+    osm_make_current((osm_render_window_t*) window);
+    g_current_window = window;
+}
+
+static void* hooked_glfwGetCurrentContext_impl(void) {
+    return g_current_window;
+}
+
+static void hooked_glfwSwapBuffers_impl(void* window) {
+    (void)window;
+    osm_swap_buffers();
+}
+
+static void hooked_glfwSwapInterval_impl(int interval) {
+    osm_swap_interval(interval);
+}
+
+static void hooked_glfwDestroyWindow_impl(void* window) {
+    printf("LWJGL hook: glfwDestroyWindow %p\n", window);
+    if (window != NULL) {
+        osm_render_window_t* bundle = (osm_render_window_t*) window;
+        if (bundle->context != NULL) {
+            OSMesaDestroyContext_p(bundle->context);
+            bundle->context = NULL;
+        }
+        if (bundle->nativeSurface != NULL) {
+            ANativeWindow_release(bundle->nativeSurface);
+            bundle->nativeSurface = NULL;
+        }
+        if (g_current_window == window) g_current_window = NULL;
+        free(bundle);
+    }
+}
+
+static void* hooked_glfwGetProcAddress_impl(const char* procname) {
+    // Resolve GL extension functions from the Mesa library
+    void* mesa = get_mesa_handle();
+    if (mesa == NULL) return NULL;
+    void* sym = dlsym(mesa, procname);
+    if (sym == NULL) {
+        // Try OSMesaGetProcAddress
+        void* (*osm_get_proc)(const char*) = dlsym(mesa, "OSMesaGetProcAddress");
+        if (osm_get_proc != NULL) sym = osm_get_proc(procname);
+    }
+    return sym;
+}
+
+static void hooked_glfwWindowHint_impl(int hint, int value) {
+    (void)hint; (void)value; // no-op: OSMesa doesn't use GLFW hints
+}
+
+static void hooked_glfwDefaultWindowHints_impl(void) {
+    // no-op
+}
+
+static void hooked_glfwGetFramebufferSize_impl(void* window, int* width, int* height) {
+    if (width) *width = bridge_environ.savedWidth;
+    if (height) *height = bridge_environ.savedHeight;
+    (void)window;
+}
+
+static void hooked_glfwGetWindowSize_impl(void* window, int* width, int* height) {
+    hooked_glfwGetFramebufferSize_impl(window, width, height);
+}
+
+static int hooked_glfwWindowShouldClose_impl(void* window) {
+    (void)window;
+    return 0; // window never closes from the native side
+}
+
+static void hooked_glfwSetWindowTitle_impl(void* window, const char* title) {
+    (void)window; (void)title; // no-op
+}
+
+static void hooked_glfwShowWindow_impl(void* window) {
+    (void)window; // no-op
+}
+
+// ===================== Pass-through GLFW (non-zink renderers) =====================
 
 static int  (*real_glfwInit)(void) = NULL;
-static int  (*real_glfwGetError)(const char**) = NULL;
-static void (*real_glfwInitHint)(int, int) = NULL;
 static void (*real_glfwWindowHint)(int, int) = NULL;
-static void* (*real_glfwCreateWindow)(int, int, const char*, void*, void*) = NULL;
-static void (*real_glfwDefaultWindowHints)(void) = NULL;
-static void (*real_glfwMakeContextCurrent)(void*) = NULL;
-static void (*real_glfwSwapBuffers)(void*) = NULL;
-static void (*real_glfwSwapInterval)(int) = NULL;
-static void* (*real_glfwGetCurrentContext)(void) = NULL;
 
-static void universal_stub_void(void) {}
-static int eglGetError_always_success(void) { return 0x3000; }
-
-static void force_turbov1_env(void) {
-    // Android-native EGL platform: required for the Mali-G615 Android EGL driver.
-    // "surfaceless" is a Mesa-only platform and fails eglInitialize here.
-    setenv("EGL_PLATFORM", "android", 1);
-
-    // Android WSI: only FIFO is guaranteed on VK_KHR_android_surface (Mali does
-    // not expose MAILBOX). MAILBOX is desktop-only and breaks the swapchain.
-    setenv("MESA_VK_WSI_PRESENT_MODE", "fifo", 1);
-    setenv("MESA_PRESENT_MODE", "fifo", 1);
-
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
-    setenv("GALLIUM_DRIVER", "zink", 1);
-    setenv("LIBGL_NOERROR", "1", 1);
-    setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
-    setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-    setenv("ZINK_DESCRIPTORS", "lazy", 1);
-    setenv("mesa_glthread", "false", 1);
-    setenv("ZINK_DEBUG", "", 1);
-    // Desktop GL path preferred for Zink (matches useGles=false in JREUtils)
-    // Do not force LIBGL_ES=2 here.
-    printf("LWJGL linkerhook: FINAL-V10 env set (EGL_PLATFORM=android, WSI=fifo)\n");
-}
-
-static void drain_glfw_errors(void) {
-    if (!real_glfwGetError) return;
-    const char* d = NULL;
-    while (real_glfwGetError(&d) != 0) {}
-}
-
-static void resolve_all(void* handle) {
+static void resolve_real_glfw(void* handle) {
     if (!real_glfwInit) {
         real_glfwInit = (int (*)(void)) dlsym(handle, "glfwInit");
         if (!real_glfwInit) real_glfwInit = (int (*)(void)) dlsym(RTLD_DEFAULT, "glfwInit");
-    }
-    if (!real_glfwGetError) {
-        real_glfwGetError = (int (*)(const char**)) dlsym(handle, "glfwGetError");
-        if (!real_glfwGetError) real_glfwGetError = (int (*)(const char**)) dlsym(RTLD_DEFAULT, "glfwGetError");
-    }
-    if (!real_glfwInitHint) {
-        real_glfwInitHint = (void (*)(int, int)) dlsym(handle, "glfwInitHint");
-        if (!real_glfwInitHint) real_glfwInitHint = (void (*)(int, int)) dlsym(RTLD_DEFAULT, "glfwInitHint");
     }
     if (!real_glfwWindowHint) {
         real_glfwWindowHint = (void (*)(int, int)) dlsym(handle, "glfwWindowHint");
         if (!real_glfwWindowHint) real_glfwWindowHint = (void (*)(int, int)) dlsym(RTLD_DEFAULT, "glfwWindowHint");
     }
-    if (!real_glfwCreateWindow) {
-        real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(handle, "glfwCreateWindow");
-        if (!real_glfwCreateWindow) real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
-    }
-    if (!real_glfwDefaultWindowHints) {
-        real_glfwDefaultWindowHints = (void (*)(void)) dlsym(handle, "glfwDefaultWindowHints");
-        if (!real_glfwDefaultWindowHints) real_glfwDefaultWindowHints = (void (*)(void)) dlsym(RTLD_DEFAULT, "glfwDefaultWindowHints");
-    }
-    if (!real_glfwMakeContextCurrent) {
-        real_glfwMakeContextCurrent = (void (*)(void*)) dlsym(handle, "glfwMakeContextCurrent");
-        if (!real_glfwMakeContextCurrent) real_glfwMakeContextCurrent = (void (*)(void*)) dlsym(RTLD_DEFAULT, "glfwMakeContextCurrent");
-    }
-    if (!real_glfwSwapBuffers) {
-        real_glfwSwapBuffers = (void (*)(void*)) dlsym(handle, "glfwSwapBuffers");
-        if (!real_glfwSwapBuffers) real_glfwSwapBuffers = (void (*)(void*)) dlsym(RTLD_DEFAULT, "glfwSwapBuffers");
-    }
-    if (!real_glfwSwapInterval) {
-        real_glfwSwapInterval = (void (*)(int)) dlsym(handle, "glfwSwapInterval");
-        if (!real_glfwSwapInterval) real_glfwSwapInterval = (void (*)(int)) dlsym(RTLD_DEFAULT, "glfwSwapInterval");
-    }
-    if (!real_glfwGetCurrentContext) {
-        real_glfwGetCurrentContext = (void* (*)(void)) dlsym(handle, "glfwGetCurrentContext");
-        if (!real_glfwGetCurrentContext) real_glfwGetCurrentContext = (void* (*)(void)) dlsym(RTLD_DEFAULT, "glfwGetCurrentContext");
-    }
 }
 
-// Desktop OpenGL via EGL (Zink preferred path)
-static void apply_hints_desktop_gl(void) {
-    if (!real_glfwWindowHint) return;
-    real_glfwWindowHint(0x00022001, 0x00030001); // wait - OPENGL_API is 0x00030001? 
-    // GLFW_OPENGL_API = 0x00030001, GLFW_OPENGL_ES_API = 0x00030002
-    // Actually: GLFW_NO_API=0, GLFW_OPENGL_API=0x00030001, GLFW_OPENGL_ES_API=0x00030002
-    real_glfwWindowHint(0x00022001, 0x00030001); // CLIENT_API = OPENGL_API
-    real_glfwWindowHint(0x0002200B, 0x00036002); // CONTEXT_CREATION_API = EGL
-    real_glfwWindowHint(0x00022002, 4);          // MAJOR 4
-    real_glfwWindowHint(0x00022003, 6);          // MINOR 6
-    real_glfwWindowHint(0x00022008, 0);
-    real_glfwWindowHint(0x00022006, 0);          // ANY profile
-}
-
-static void apply_hints_gles3(void) {
-    if (!real_glfwWindowHint) return;
-    real_glfwWindowHint(0x00022001, 0x00030002); // OPENGL_ES_API
-    real_glfwWindowHint(0x0002200B, 0x00036002); // EGL
-    real_glfwWindowHint(0x00022002, 3);
-    real_glfwWindowHint(0x00022003, 0);
-    real_glfwWindowHint(0x00022008, 0);
-    real_glfwWindowHint(0x00022006, 0);
-}
-
-static void apply_hints_no_api(void) {
-    if (!real_glfwWindowHint) return;
-    real_glfwWindowHint(0x00022001, 0);
-}
-
-static int hooked_glfwInit_impl(void) {
-    printf("LWJGL linkerhook: FINAL-V10 hooked_glfwInit\n");
-    force_turbov1_env();
-    resolve_all(RTLD_DEFAULT);
-    drain_glfw_errors();
-
-    if (real_glfwInitHint)
-        real_glfwInitHint(0x00050003, 0x00060006); // ANDROID platform
-
-    int result = 0;
-    if (real_glfwInit) result = real_glfwInit();
-    g_glfw_initialized = 1;
-    drain_glfw_errors();
-    printf("LWJGL linkerhook: FINAL-V10 glfwInit -> %d\n", result);
-    return 1;
-}
-
-static int hooked_glfwGetError_impl(const char** description) {
-    if (real_glfwGetError) {
-        const char* d = NULL;
-        int code = real_glfwGetError(&d);
-        if (code == 0 || code == 0x10001 || code == 0x10004 || code == 0x10008 ||
-            code == 65542 || code == 65546 || code == 0x10007) {
-            if (description) *description = NULL;
-            return 0;
-        }
-        if (!g_window_created) {
-            if (description) *description = NULL;
-            return 0;
-        }
-        if (description) *description = d;
-        return code;
-    }
-    if (description) *description = NULL;
-    return 0;
-}
-
-static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: FINAL-V10 CreateWindow %dx%d\n", width, height);
-    resolve_all(RTLD_DEFAULT);
-    force_turbov1_env();
-    drain_glfw_errors();
-
-    if (!real_glfwCreateWindow) return NULL;
-
-    void* win = NULL;
-
-    // Strategy 1: Desktop OpenGL 4.6 + EGL (Zink desktop path)
-    if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
-    apply_hints_desktop_gl();
-    win = real_glfwCreateWindow(width, height, title, monitor, share);
-    drain_glfw_errors();
-    if (win) {
-        g_window_created = 1;
-        g_has_gl_context = 1;
-        g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V10 window OK desktop GL+EGL\n");
-        return win;
-    }
-    printf("LWJGL linkerhook: FINAL-V10 desktop GL failed\n");
-
-    // Strategy 2: GLES3 + EGL
-    if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
-    apply_hints_gles3();
-    win = real_glfwCreateWindow(width, height, title, monitor, share);
-    drain_glfw_errors();
-    if (win) {
-        g_window_created = 1;
-        g_has_gl_context = 1;
-        g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V10 window OK GLES3+EGL\n");
-        return win;
-    }
-    printf("LWJGL linkerhook: FINAL-V10 GLES3 failed\n");
-
-    // Strategy 3: NO_API last resort (will need more work for createCapabilities)
-    if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
-    apply_hints_no_api();
-    win = real_glfwCreateWindow(width, height, title, monitor, share);
-    drain_glfw_errors();
-    if (win) {
-        g_window_created = 1;
-        g_has_gl_context = 0;
-        g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V10 window OK NO_API (no GL context)\n");
-        return win;
-    }
-
-    printf("LWJGL linkerhook: FINAL-V10 all CreateWindow strategies failed\n");
-    return NULL;
-}
-
-static void hooked_glfwMakeContextCurrent_impl(void* window) {
-    printf("LWJGL linkerhook: FINAL-V10 MakeContextCurrent %p (has_gl=%d)\n", window, g_has_gl_context);
-    if (g_has_gl_context && real_glfwMakeContextCurrent) {
-        real_glfwMakeContextCurrent(window);
-        drain_glfw_errors();
-        g_current_window = window;
-        g_context_current = window != NULL;
-        return;
-    }
-    // NO_API path — do not call real (65546)
-    g_current_window = window;
-    g_context_current = window != NULL;
-    drain_glfw_errors();
-}
-
-static void* hooked_glfwGetCurrentContext_impl(void) {
-    if (g_context_current) return g_current_window;
-    return NULL;
-}
-
-static void hooked_glfwSwapBuffers_impl(void* window) {
-    if (real_glfwSwapBuffers && window && g_has_gl_context) {
-        real_glfwSwapBuffers(window);
-        drain_glfw_errors();
-    }
-}
-
-static void hooked_glfwSwapInterval_impl(int interval) {
-    if (real_glfwSwapInterval && g_has_gl_context)
-        real_glfwSwapInterval(interval);
-}
+// ===================== ndlopen / ndlsym hooks =====================
 
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
@@ -269,17 +268,36 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     const char* filename = (const char*) filename_ptr;
     if (!filename) return 0;
 
+    // Always redirect Vulkan loads to our loader (handles Turnip on Adreno,
+    // system driver on Mali)
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V10 vulkan redirect\n");
+        printf("LWJGL hook: vulkan redirect\n");
         return (jlong) pojavexec_loadVulkanDriver();
     }
-    if (strstr(filename, "libTurboV1.so") || strstr(filename, "libGLMojo.so") ||
-        strstr(filename, "libGLFear.so") || strstr(filename, "libGL.so")) {
-        printf("LWJGL linkerhook: FINAL-V10 GL redirect (%s)\n", filename);
-        const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
-        if (rspec && rspec->egl_acquire)
-            return (jlong) rspec->egl_acquire(rspec->egl_path);
+
+    if (is_zink_renderer()) {
+        // For zink: redirect GL library to the Mesa (OSMesa) library
+        if (strstr(filename, "libGL.so") != NULL || strstr(filename, "libOSMesa") != NULL) {
+            printf("LWJGL hook: GL redirect to Mesa (%s)\n", filename);
+            void* mesa = get_mesa_handle();
+            if (mesa != NULL) return (jlong) mesa;
+        }
+        // Also redirect legacy renderer lib names to Mesa
+        if (strstr(filename, "libTurboV1.so") || strstr(filename, "libGLMojo.so") ||
+            strstr(filename, "libGLFear.so")) {
+            printf("LWJGL hook: legacy GL redirect to Mesa (%s)\n", filename);
+            void* mesa = get_mesa_handle();
+            if (mesa != NULL) return (jlong) mesa;
+        }
+    } else {
+        // Non-zink renderers: use the renderspec EGL redirect (existing behavior)
+        if (strstr(filename, "libGL.so") != NULL) {
+            const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
+            if (rspec && rspec->egl_acquire)
+                return (jlong) rspec->egl_acquire(rspec->egl_path);
+        }
     }
+
     return (jlong) dlopen(filename, (int)jmode);
 }
 
@@ -290,36 +308,67 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
 
-    resolve_all((void*)handle);
+    if (is_zink_renderer()) {
+        // Route GLFW calls to the OSMesa bridge
+        if (strcmp(symbol, "glfwInit") == 0)
+            return (jlong) hooked_glfwInit_impl;
+        if (strcmp(symbol, "glfwGetError") == 0)
+            return (jlong) hooked_glfwGetError_impl;
+        if (strcmp(symbol, "glfwCreateWindow") == 0)
+            return (jlong) hooked_glfwCreateWindow_impl;
+        if (strcmp(symbol, "glfwMakeContextCurrent") == 0)
+            return (jlong) hooked_glfwMakeContextCurrent_impl;
+        if (strcmp(symbol, "glfwGetCurrentContext") == 0)
+            return (jlong) hooked_glfwGetCurrentContext_impl;
+        if (strcmp(symbol, "glfwSwapBuffers") == 0)
+            return (jlong) hooked_glfwSwapBuffers_impl;
+        if (strcmp(symbol, "glfwSwapInterval") == 0)
+            return (jlong) hooked_glfwSwapInterval_impl;
+        if (strcmp(symbol, "glfwDestroyWindow") == 0)
+            return (jlong) hooked_glfwDestroyWindow_impl;
+        if (strcmp(symbol, "glfwGetProcAddress") == 0 ||
+            strcmp(symbol, "glfwGetProcessAddress") == 0)
+            return (jlong) hooked_glfwGetProcAddress_impl;
+        if (strcmp(symbol, "glfwWindowHint") == 0)
+            return (jlong) hooked_glfwWindowHint_impl;
+        if (strcmp(symbol, "glfwDefaultWindowHints") == 0)
+            return (jlong) hooked_glfwDefaultWindowHints_impl;
+        if (strcmp(symbol, "glfwGetFramebufferSize") == 0)
+            return (jlong) hooked_glfwGetFramebufferSize_impl;
+        if (strcmp(symbol, "glfwGetWindowSize") == 0)
+            return (jlong) hooked_glfwGetWindowSize_impl;
+        if (strcmp(symbol, "glfwWindowShouldClose") == 0)
+            return (jlong) hooked_glfwWindowShouldClose_impl;
+        if (strcmp(symbol, "glfwSetWindowTitle") == 0)
+            return (jlong) hooked_glfwSetWindowTitle_impl;
+        if (strcmp(symbol, "glfwShowWindow") == 0)
+            return (jlong) hooked_glfwShowWindow_impl;
 
-    if (strcmp(symbol, "eglGetError") == 0)
-        return (jlong) eglGetError_always_success;
-    if (strcmp(symbol, "glfwInit") == 0)
-        return (jlong) hooked_glfwInit_impl;
-    if (strcmp(symbol, "glfwGetError") == 0)
-        return (jlong) hooked_glfwGetError_impl;
-    if (strcmp(symbol, "glfwCreateWindow") == 0)
-        return (jlong) hooked_glfwCreateWindow_impl;
-    if (strcmp(symbol, "glfwMakeContextCurrent") == 0)
-        return (jlong) hooked_glfwMakeContextCurrent_impl;
-    if (strcmp(symbol, "glfwGetCurrentContext") == 0)
-        return (jlong) hooked_glfwGetCurrentContext_impl;
-    if (strcmp(symbol, "glfwSwapBuffers") == 0)
-        return (jlong) hooked_glfwSwapBuffers_impl;
-    if (strcmp(symbol, "glfwSwapInterval") == 0)
-        return (jlong) hooked_glfwSwapInterval_impl;
+        // GL functions: resolve from the Mesa library handle
+        if (strncmp(symbol, "gl", 2) == 0) {
+            void* mesa = get_mesa_handle();
+            if (mesa != NULL) {
+                void* sym = dlsym(mesa, symbol);
+                if (sym != NULL) return (jlong) sym;
+            }
+        }
+    } else {
+        // Non-zink renderers: minimal hooking
+        resolve_real_glfw((void*)handle);
+        if (strcmp(symbol, "eglGetError") == 0) {
+            // stub for legacy renderers
+            return (jlong) 0;
+        }
+    }
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
-    if (!sym && strncmp(symbol, "gl", 2) == 0)
-        return (jlong) universal_stub_void;
     return (jlong) sym;
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (BUILD v20260912-FINAL-V10)");
-    printf("LWJGL linkerhook: installing hooks (BUILD v20260912-FINAL-V10)\n");
-    force_turbov1_env();
+    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.0, OSMesa bridge)");
+    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.0, OSMesa bridge)\n");
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -335,6 +384,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL linkerhook: FINAL-V10 hooks installed\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.0)\n");
     }
 }
