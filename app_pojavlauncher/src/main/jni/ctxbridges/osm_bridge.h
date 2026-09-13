@@ -15,6 +15,10 @@ typedef struct {
     int32_t last_stride;
     bool disable_rendering;
     OSMesaContext context;
+    /* Persistent CPU color buffer — OSMesa always renders here, then we blit to ANativeWindow */
+    void* color_buffer;
+    int color_width;
+    int color_height;
 } osm_render_window_t;
 
 bool osm_init();
