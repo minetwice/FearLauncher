@@ -98,7 +98,8 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
                 envMap.put("MESA_PRESENT_MODE", "fifo");
-                envMap.put("EGL_PLATFORM", "android");
+                // Do not force EGL_PLATFORM here — OSMesa path does not need it;
+                // native hook sets it only for EGL fallback.
                 break;
         }
     }
@@ -131,9 +132,10 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        // Mesa library name — uses the existing mh_drive Mesa build
+        // Prefer full Mesa EGL (ships with app / previous turbov1). The 4KB
+        // libmh_drive_vulkan_mesa.so stub has neither OSMesa nor Zink.
         if ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            envMap.put("LIB_MESA_NAME", "libmh_drive_vulkan_mesa.so");
+            envMap.put("LIB_MESA_NAME", "libEGL_mesa.so");
             envMap.put("POJAV_RENDERER", renderer);
         } else {
             envMap.put("POJAV_RENDERER", renderer);
@@ -248,9 +250,9 @@ public class JREUtils {
         switch (renderer){
             case "turnip_zink":
             case "vulkan_zink":
-                Logger.appendToLog("[TurnipZink] Loading Mesa library (Zink GL→Vulkan)...");
-                // Use the existing Mesa build that's already shipped in jniLibs
-                renderLibrary = "libmh_drive_vulkan_mesa.so";
+                Logger.appendToLog("[TurnipZink] Loading Mesa library (libEGL_mesa.so)...");
+                // Full Mesa (not the 4KB mh_drive stub)
+                renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
