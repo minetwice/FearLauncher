@@ -1,6 +1,7 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.4 (TURNIP-ZINK)
-// glfwGetWindowMonitor + broader window stubs; unknown glfw* -> safe no-op
+// FearLauncher — LWJGL dlopen/dlsym hook v2.5 (TURNIP-ZINK)
+// glfwSet*Callback MUST return NULL (previous callback). Returning void/garbage
+// makes LWJGL Callback.get() NPE on ClosureRegistry.
 //
 #include "jvm_hooks.h"
 
@@ -81,11 +82,16 @@ static void ensure_vidmode(void) {
     }
 }
 
-/* Generic safe stubs for any glfw* we did not list (prevent 65537) */
 static void glfw_stub_void(void) {}
 static int glfw_stub_int0(void) { return 0; }
-static int glfw_stub_int1(void) { return 1; }
 static void* glfw_stub_ptr0(void) { return NULL; }
+
+/* ALL glfwSet*Callback: (window, cb) -> previous cb. Must return NULL. */
+static void* hooked_glfwSetCallback_impl(void* window, void* callback) {
+    (void)window;
+    (void)callback;
+    return NULL;
+}
 
 static int hooked_glfwInit_impl(void) {
     if (!g_glfw_initialized) {
@@ -94,10 +100,10 @@ static int hooked_glfwInit_impl(void) {
         if (!osmesa_is_loaded()) dlsym_OSMesa();
         if (osmesa_is_loaded() && osm_init()) {
             g_use_osmesa = true;
-            printf("LWJGL hook v2.4: OSMesa bridge\n");
+            printf("LWJGL hook v2.5: OSMesa bridge\n");
         } else {
             g_use_osmesa = false;
-            printf("LWJGL hook v2.4: GLFW full stub (no OSMesa)\n");
+            printf("LWJGL hook v2.5: GLFW full stub (no OSMesa)\n");
         }
         g_glfw_initialized = 1;
     }
@@ -149,7 +155,6 @@ static const char* hooked_glfwGetMonitorName_impl(void* m) {
     (void)m; return "FearLauncher-Display";
 }
 
-/* Windowed mode → NULL monitor (critical — was 65537) */
 static void* hooked_glfwGetWindowMonitor_impl(void* window) {
     (void)window;
     return NULL;
@@ -157,8 +162,7 @@ static void* hooked_glfwGetWindowMonitor_impl(void* window) {
 
 static void hooked_glfwSetWindowMonitor_impl(void* window, void* monitor,
         int xpos, int ypos, int width, int height, int refreshRate) {
-    (void)window; (void)monitor; (void)xpos; (void)ypos;
-    (void)refreshRate;
+    (void)window; (void)monitor; (void)xpos; (void)ypos; (void)refreshRate;
     if (width > 0) bridge_environ.savedWidth = width;
     if (height > 0) bridge_environ.savedHeight = height;
     ensure_vidmode();
@@ -167,7 +171,7 @@ static void hooked_glfwSetWindowMonitor_impl(void* window, void* monitor,
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL hook v2.4: glfwCreateWindow %dx%d\n", width, height);
+    printf("LWJGL hook v2.5: glfwCreateWindow %dx%d\n", width, height);
     (void)title; (void)monitor;
     if (bridge_environ.savedWidth <= 0) bridge_environ.savedWidth = width;
     if (bridge_environ.savedHeight <= 0) bridge_environ.savedHeight = height;
@@ -184,14 +188,14 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
             }
             osm_make_current(bundle);
             g_current_window = (void*) bundle;
-            printf("LWJGL hook v2.4: window OK (OSMesa)\n");
+            printf("LWJGL hook v2.5: window OK (OSMesa)\n");
             return g_current_window;
         }
         g_use_osmesa = false;
     }
 
     g_current_window = (void*) 0xDEADBEEF;
-    printf("LWJGL hook v2.4: window OK (stub)\n");
+    printf("LWJGL hook v2.5: window OK (stub)\n");
     return g_current_window;
 }
 
@@ -275,8 +279,8 @@ static void hooked_glfwRestoreWindow_impl(void* w) { (void)w; }
 static void hooked_glfwMaximizeWindow_impl(void* w) { (void)w; }
 static int hooked_glfwGetWindowAttrib_impl(void* w, int attrib) {
     (void)w;
-    if (attrib == 0x00020001) return 1; /* FOCUSED */
-    if (attrib == 0x00020004) return 1; /* VISIBLE */
+    if (attrib == 0x00020001) return 1;
+    if (attrib == 0x00020004) return 1;
     return 0;
 }
 static void hooked_glfwSetWindowAttrib_impl(void* w, int a, int v) { (void)w; (void)a; (void)v; }
@@ -366,15 +370,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
         if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
 
-        /* Any other glfw* — do NOT call real GLFW (uninit → 65537) */
+        /* glfwSet*Callback / any *Callback setter — MUST return NULL pointer */
+        if (strstr(symbol, "Callback") != NULL) {
+            return (jlong) hooked_glfwSetCallback_impl;
+        }
+
         if (strncmp(symbol, "glfw", 4) == 0) {
-            printf("LWJGL hook v2.4: unlisted %s -> safe stub\n", symbol);
-            if (strstr(symbol, "Get") && (strstr(symbol, "Monitor") || strstr(symbol, "Window") || strstr(symbol, "Cursor") || strstr(symbol, "Joystick") || strstr(symbol, "Gamepad") || strstr(symbol, "Key") || strstr(symbol, "Mouse") || strstr(symbol, "Clipboard") || strstr(symbol, "Time") || strstr(symbol, "Proc") || strstr(symbol, "User") || strstr(symbol, "Instance") || strstr(symbol, "Required") || strstr(symbol, "Physical")))
+            printf("LWJGL hook v2.5: unlisted %s -> safe stub\n", symbol);
+            if (strncmp(symbol, "glfwGet", 7) == 0)
                 return (jlong) glfw_stub_ptr0;
             if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
                 return (jlong) glfw_stub_void;
-            if (strstr(symbol, "Supported") || strstr(symbol, "Should"))
-                return (jlong) glfw_stub_int0;
             return (jlong) glfw_stub_int0;
         }
 
@@ -393,8 +399,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.4)");
-    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.4)\n");
+    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.5)");
+    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.5)\n");
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -410,6 +416,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.4)\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.5)\n");
     }
 }
