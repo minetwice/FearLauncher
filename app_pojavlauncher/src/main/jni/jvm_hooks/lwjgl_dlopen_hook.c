@@ -1,6 +1,6 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.3 (TURNIP-ZINK)
-// Adds glfwGetVideoModes so Monitor init does not NPE on null Buffer.
+// FearLauncher — LWJGL dlopen/dlsym hook v2.4 (TURNIP-ZINK)
+// glfwGetWindowMonitor + broader window stubs; unknown glfw* -> safe no-op
 //
 #include "jvm_hooks.h"
 
@@ -33,18 +33,13 @@ static bool is_zink_renderer() {
 
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {
-    if (surface == NULL) {
-        LOGW("setupBridgeWindow: surface is NULL");
-        return;
-    }
+    if (surface == NULL) return;
     bridge_environ.pojavWindow = ANativeWindow_fromSurface(env, surface);
     bridge_environ.savedWidth = ANativeWindow_getWidth(bridge_environ.pojavWindow);
     bridge_environ.savedHeight = ANativeWindow_getHeight(bridge_environ.pojavWindow);
     LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
          bridge_environ.savedWidth, bridge_environ.savedHeight);
-    if (osmesa_is_loaded()) {
-        osm_setup_window();
-    }
+    if (osmesa_is_loaded()) osm_setup_window();
 }
 
 JNIEXPORT void JNICALL
@@ -52,7 +47,6 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass 
     if (bridge_environ.pojavWindow != NULL) {
         ANativeWindow_release(bridge_environ.pojavWindow);
         bridge_environ.pojavWindow = NULL;
-        LOGI("Bridge window released");
     }
 }
 
@@ -69,19 +63,11 @@ static void force_zink_env(void) {
 }
 
 static volatile int g_glfw_initialized = 0;
-static volatile int g_window_created = 0;
 static void* g_current_window = NULL;
 static bool g_use_osmesa = false;
-
 static int g_fake_monitor = 1;
-/* Must match GLFWvidmode layout exactly for LWJGL GLFWVidMode.Buffer */
 static struct {
-    int width;
-    int height;
-    int redBits;
-    int greenBits;
-    int blueBits;
-    int refreshRate;
+    int width, height, redBits, greenBits, blueBits, refreshRate;
 } g_fake_vidmode;
 
 static void ensure_vidmode(void) {
@@ -95,6 +81,12 @@ static void ensure_vidmode(void) {
     }
 }
 
+/* Generic safe stubs for any glfw* we did not list (prevent 65537) */
+static void glfw_stub_void(void) {}
+static int glfw_stub_int0(void) { return 0; }
+static int glfw_stub_int1(void) { return 1; }
+static void* glfw_stub_ptr0(void) { return NULL; }
+
 static int hooked_glfwInit_impl(void) {
     if (!g_glfw_initialized) {
         force_zink_env();
@@ -102,10 +94,10 @@ static int hooked_glfwInit_impl(void) {
         if (!osmesa_is_loaded()) dlsym_OSMesa();
         if (osmesa_is_loaded() && osm_init()) {
             g_use_osmesa = true;
-            printf("LWJGL hook v2.3: using OSMesa bridge\n");
+            printf("LWJGL hook v2.4: OSMesa bridge\n");
         } else {
             g_use_osmesa = false;
-            printf("LWJGL hook v2.3: OSMesa unavailable — GLFW full stub\n");
+            printf("LWJGL hook v2.4: GLFW full stub (no OSMesa)\n");
         }
         g_glfw_initialized = 1;
     }
@@ -127,13 +119,10 @@ static void* hooked_glfwGetVideoMode_impl(void* monitor) {
     return (void*)&g_fake_vidmode;
 }
 
-/* Minecraft Monitor uses this — must not return NULL */
 static const void* hooked_glfwGetVideoModes_impl(void* monitor, int* count) {
     (void)monitor;
     ensure_vidmode();
     if (count) *count = 1;
-    printf("LWJGL hook v2.3: glfwGetVideoModes -> 1 mode %dx%d@%d\n",
-           g_fake_vidmode.width, g_fake_vidmode.height, g_fake_vidmode.refreshRate);
     return (const void*)&g_fake_vidmode;
 }
 
@@ -144,28 +133,41 @@ static void* const* hooked_glfwGetMonitors_impl(int* count) {
     return monitors;
 }
 
-static void hooked_glfwGetMonitorPos_impl(void* monitor, int* xpos, int* ypos) {
-    (void)monitor;
-    if (xpos) *xpos = 0;
-    if (ypos) *ypos = 0;
+static void hooked_glfwGetMonitorPos_impl(void* m, int* x, int* y) {
+    (void)m; if (x) *x = 0; if (y) *y = 0;
 }
 
-static void hooked_glfwGetMonitorWorkarea_impl(void* monitor, int* xpos, int* ypos, int* width, int* height) {
-    (void)monitor;
+static void hooked_glfwGetMonitorWorkarea_impl(void* m, int* x, int* y, int* w, int* h) {
+    (void)m;
     ensure_vidmode();
-    if (xpos) *xpos = 0;
-    if (ypos) *ypos = 0;
-    if (width) *width = g_fake_vidmode.width;
-    if (height) *height = g_fake_vidmode.height;
+    if (x) *x = 0; if (y) *y = 0;
+    if (w) *w = g_fake_vidmode.width;
+    if (h) *h = g_fake_vidmode.height;
 }
 
-static const char* hooked_glfwGetMonitorName_impl(void* monitor) {
-    (void)monitor;
-    return "FearLauncher-Display";
+static const char* hooked_glfwGetMonitorName_impl(void* m) {
+    (void)m; return "FearLauncher-Display";
+}
+
+/* Windowed mode → NULL monitor (critical — was 65537) */
+static void* hooked_glfwGetWindowMonitor_impl(void* window) {
+    (void)window;
+    return NULL;
+}
+
+static void hooked_glfwSetWindowMonitor_impl(void* window, void* monitor,
+        int xpos, int ypos, int width, int height, int refreshRate) {
+    (void)window; (void)monitor; (void)xpos; (void)ypos;
+    (void)refreshRate;
+    if (width > 0) bridge_environ.savedWidth = width;
+    if (height > 0) bridge_environ.savedHeight = height;
+    ensure_vidmode();
+    g_fake_vidmode.width = bridge_environ.savedWidth;
+    g_fake_vidmode.height = bridge_environ.savedHeight;
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL hook v2.3: glfwCreateWindow %dx%d\n", width, height);
+    printf("LWJGL hook v2.4: glfwCreateWindow %dx%d\n", width, height);
     (void)title; (void)monitor;
     if (bridge_environ.savedWidth <= 0) bridge_environ.savedWidth = width;
     if (bridge_environ.savedHeight <= 0) bridge_environ.savedHeight = height;
@@ -181,17 +183,15 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
                 bundle->newNativeSurface = bridge_environ.pojavWindow;
             }
             osm_make_current(bundle);
-            g_window_created = 1;
             g_current_window = (void*) bundle;
-            printf("LWJGL hook v2.3: window OK (OSMesa)\n");
+            printf("LWJGL hook v2.4: window OK (OSMesa)\n");
             return g_current_window;
         }
         g_use_osmesa = false;
     }
 
-    g_window_created = 1;
     g_current_window = (void*) 0xDEADBEEF;
-    printf("LWJGL hook v2.3: window OK (stub)\n");
+    printf("LWJGL hook v2.4: window OK (stub)\n");
     return g_current_window;
 }
 
@@ -244,31 +244,50 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
     return dlsym(RTLD_DEFAULT, procname);
 }
 
-static void hooked_glfwWindowHint_impl(int hint, int value) { (void)hint; (void)value; }
+static void hooked_glfwWindowHint_impl(int h, int v) { (void)h; (void)v; }
 static void hooked_glfwDefaultWindowHints_impl(void) {}
-static void hooked_glfwGetFramebufferSize_impl(void* window, int* width, int* height) {
+static void hooked_glfwGetFramebufferSize_impl(void* w, int* width, int* height) {
     ensure_vidmode();
     if (width) *width = bridge_environ.savedWidth > 0 ? bridge_environ.savedWidth : g_fake_vidmode.width;
     if (height) *height = bridge_environ.savedHeight > 0 ? bridge_environ.savedHeight : g_fake_vidmode.height;
-    (void)window;
+    (void)w;
 }
-static void hooked_glfwGetWindowSize_impl(void* window, int* width, int* height) {
-    hooked_glfwGetFramebufferSize_impl(window, width, height);
+static void hooked_glfwGetWindowSize_impl(void* w, int* width, int* height) {
+    hooked_glfwGetFramebufferSize_impl(w, width, height);
 }
-static int hooked_glfwWindowShouldClose_impl(void* window) { (void)window; return 0; }
-static void hooked_glfwSetWindowTitle_impl(void* window, const char* title) { (void)window; (void)title; }
-static void hooked_glfwShowWindow_impl(void* window) { (void)window; }
-static void hooked_glfwHideWindow_impl(void* window) { (void)window; }
-static void hooked_glfwFocusWindow_impl(void* window) { (void)window; }
-static int hooked_glfwGetWindowAttrib_impl(void* window, int attrib) {
-    (void)window;
-    if (attrib == 0x00020001) return 1;
-    if (attrib == 0x00020004) return 1;
+static void hooked_glfwGetWindowPos_impl(void* w, int* x, int* y) {
+    (void)w; if (x) *x = 0; if (y) *y = 0;
+}
+static void hooked_glfwSetWindowPos_impl(void* w, int x, int y) { (void)w; (void)x; (void)y; }
+static void hooked_glfwSetWindowSize_impl(void* w, int width, int height) {
+    (void)w;
+    if (width > 0) bridge_environ.savedWidth = width;
+    if (height > 0) bridge_environ.savedHeight = height;
+}
+static int hooked_glfwWindowShouldClose_impl(void* w) { (void)w; return 0; }
+static void hooked_glfwSetWindowShouldClose_impl(void* w, int v) { (void)w; (void)v; }
+static void hooked_glfwSetWindowTitle_impl(void* w, const char* t) { (void)w; (void)t; }
+static void hooked_glfwShowWindow_impl(void* w) { (void)w; }
+static void hooked_glfwHideWindow_impl(void* w) { (void)w; }
+static void hooked_glfwFocusWindow_impl(void* w) { (void)w; }
+static void hooked_glfwIconifyWindow_impl(void* w) { (void)w; }
+static void hooked_glfwRestoreWindow_impl(void* w) { (void)w; }
+static void hooked_glfwMaximizeWindow_impl(void* w) { (void)w; }
+static int hooked_glfwGetWindowAttrib_impl(void* w, int attrib) {
+    (void)w;
+    if (attrib == 0x00020001) return 1; /* FOCUSED */
+    if (attrib == 0x00020004) return 1; /* VISIBLE */
     return 0;
 }
+static void hooked_glfwSetWindowAttrib_impl(void* w, int a, int v) { (void)w; (void)a; (void)v; }
+static void hooked_glfwSetInputMode_impl(void* w, int m, int v) { (void)w; (void)m; (void)v; }
+static int hooked_glfwGetInputMode_impl(void* w, int m) { (void)w; (void)m; return 0; }
 static void hooked_glfwPollEvents_impl(void) {}
 static void hooked_glfwWaitEvents_impl(void) {}
+static void hooked_glfwWaitEventsTimeout_impl(double t) { (void)t; }
+static void hooked_glfwPostEmptyEvent_impl(void) {}
 static void hooked_glfwTerminate_impl(void) {}
+static int hooked_glfwVulkanSupported_impl(void) { return 1; }
 
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
@@ -276,10 +295,8 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      jint jmode) {
     const char* filename = (const char*) filename_ptr;
     if (!filename) return 0;
-
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL)
         return (jlong) pojavexec_loadVulkanDriver();
-
     if (is_zink_renderer()) {
         if (strstr(filename, "libGL.so") != NULL || strstr(filename, "libOSMesa") != NULL) {
             void* mesa = get_mesa_dl_handle();
@@ -312,6 +329,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwGetMonitorPos") == 0) return (jlong) hooked_glfwGetMonitorPos_impl;
         if (strcmp(symbol, "glfwGetMonitorWorkarea") == 0) return (jlong) hooked_glfwGetMonitorWorkarea_impl;
         if (strcmp(symbol, "glfwGetMonitorName") == 0) return (jlong) hooked_glfwGetMonitorName_impl;
+        if (strcmp(symbol, "glfwGetWindowMonitor") == 0) return (jlong) hooked_glfwGetWindowMonitor_impl;
+        if (strcmp(symbol, "glfwSetWindowMonitor") == 0) return (jlong) hooked_glfwSetWindowMonitor_impl;
         if (strcmp(symbol, "glfwCreateWindow") == 0) return (jlong) hooked_glfwCreateWindow_impl;
         if (strcmp(symbol, "glfwMakeContextCurrent") == 0) return (jlong) hooked_glfwMakeContextCurrent_impl;
         if (strcmp(symbol, "glfwGetCurrentContext") == 0) return (jlong) hooked_glfwGetCurrentContext_impl;
@@ -324,15 +343,40 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwDefaultWindowHints") == 0) return (jlong) hooked_glfwDefaultWindowHints_impl;
         if (strcmp(symbol, "glfwGetFramebufferSize") == 0) return (jlong) hooked_glfwGetFramebufferSize_impl;
         if (strcmp(symbol, "glfwGetWindowSize") == 0) return (jlong) hooked_glfwGetWindowSize_impl;
+        if (strcmp(symbol, "glfwGetWindowPos") == 0) return (jlong) hooked_glfwGetWindowPos_impl;
+        if (strcmp(symbol, "glfwSetWindowPos") == 0) return (jlong) hooked_glfwSetWindowPos_impl;
+        if (strcmp(symbol, "glfwSetWindowSize") == 0) return (jlong) hooked_glfwSetWindowSize_impl;
         if (strcmp(symbol, "glfwWindowShouldClose") == 0) return (jlong) hooked_glfwWindowShouldClose_impl;
+        if (strcmp(symbol, "glfwSetWindowShouldClose") == 0) return (jlong) hooked_glfwSetWindowShouldClose_impl;
         if (strcmp(symbol, "glfwSetWindowTitle") == 0) return (jlong) hooked_glfwSetWindowTitle_impl;
         if (strcmp(symbol, "glfwShowWindow") == 0) return (jlong) hooked_glfwShowWindow_impl;
         if (strcmp(symbol, "glfwHideWindow") == 0) return (jlong) hooked_glfwHideWindow_impl;
         if (strcmp(symbol, "glfwFocusWindow") == 0) return (jlong) hooked_glfwFocusWindow_impl;
+        if (strcmp(symbol, "glfwIconifyWindow") == 0) return (jlong) hooked_glfwIconifyWindow_impl;
+        if (strcmp(symbol, "glfwRestoreWindow") == 0) return (jlong) hooked_glfwRestoreWindow_impl;
+        if (strcmp(symbol, "glfwMaximizeWindow") == 0) return (jlong) hooked_glfwMaximizeWindow_impl;
         if (strcmp(symbol, "glfwGetWindowAttrib") == 0) return (jlong) hooked_glfwGetWindowAttrib_impl;
+        if (strcmp(symbol, "glfwSetWindowAttrib") == 0) return (jlong) hooked_glfwSetWindowAttrib_impl;
+        if (strcmp(symbol, "glfwSetInputMode") == 0) return (jlong) hooked_glfwSetInputMode_impl;
+        if (strcmp(symbol, "glfwGetInputMode") == 0) return (jlong) hooked_glfwGetInputMode_impl;
         if (strcmp(symbol, "glfwPollEvents") == 0) return (jlong) hooked_glfwPollEvents_impl;
         if (strcmp(symbol, "glfwWaitEvents") == 0) return (jlong) hooked_glfwWaitEvents_impl;
+        if (strcmp(symbol, "glfwWaitEventsTimeout") == 0) return (jlong) hooked_glfwWaitEventsTimeout_impl;
+        if (strcmp(symbol, "glfwPostEmptyEvent") == 0) return (jlong) hooked_glfwPostEmptyEvent_impl;
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
+        if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
+
+        /* Any other glfw* — do NOT call real GLFW (uninit → 65537) */
+        if (strncmp(symbol, "glfw", 4) == 0) {
+            printf("LWJGL hook v2.4: unlisted %s -> safe stub\n", symbol);
+            if (strstr(symbol, "Get") && (strstr(symbol, "Monitor") || strstr(symbol, "Window") || strstr(symbol, "Cursor") || strstr(symbol, "Joystick") || strstr(symbol, "Gamepad") || strstr(symbol, "Key") || strstr(symbol, "Mouse") || strstr(symbol, "Clipboard") || strstr(symbol, "Time") || strstr(symbol, "Proc") || strstr(symbol, "User") || strstr(symbol, "Instance") || strstr(symbol, "Required") || strstr(symbol, "Physical")))
+                return (jlong) glfw_stub_ptr0;
+            if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
+                return (jlong) glfw_stub_void;
+            if (strstr(symbol, "Supported") || strstr(symbol, "Should"))
+                return (jlong) glfw_stub_int0;
+            return (jlong) glfw_stub_int0;
+        }
 
         if (strncmp(symbol, "gl", 2) == 0) {
             void* mesa = get_mesa_dl_handle();
@@ -349,8 +393,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.3)");
-    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.3)\n");
+    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.4)");
+    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.4)\n");
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -366,6 +410,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.3)\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.4)\n");
     }
 }
