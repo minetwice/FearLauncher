@@ -1,0 +1,188 @@
+name: Build Mesa Zink (arm64 OSMesa)
+
+# Manual trigger — builds Android aarch64 libOSMesa with Zink gallium driver.
+# Artifact: mesa-zink-arm64-osmesa.zip  →  use as LIB_MESA_NAME=libOSMesa_8.so
+# Based on Vera-Firefly/android-mesa-build pattern.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mesa_tag:
+        description: 'Mesa git tag/branch (e.g. mesa-25.1.4, mesa-25.0.7)'
+        required: false
+        default: 'mesa-25.1.4'
+        type: string
+
+jobs:
+  build-aarch64:
+    name: Mesa OSMesa+Zink aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip python3-setuptools \
+            libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev \
+            libxfixes-dev libdrm-dev libx11-dev \
+            bison flex gettext pkg-config \
+            unzip curl git ccache
+          pip3 install --user mako meson ninja
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Env
+        run: |
+          echo "NDK_VER=android-ndk-r27c" >> $GITHUB_ENV
+          echo "SDK_VER=29" >> $GITHUB_ENV
+          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+          echo "MESA_TAG=${{ inputs.mesa_tag }}" >> $GITHUB_ENV
+
+      - name: Download NDK
+        run: |
+          curl -L "https://dl.google.com/android/repository/${NDK_VER}-linux.zip" -o ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+
+      - name: Clone Mesa + drm + build-fix
+        run: |
+          git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
+          git clone --depth 1 --branch "${MESA_TAG}" https://gitlab.freedesktop.org/mesa/mesa.git \
+            || git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git
+          git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git || true
+          if [ -d mesa-build-fix ]; then
+            cp -rf mesa-build-fix/* mesa/ || true
+          fi
+
+      - name: Write meson cross-files
+        run: |
+          cat > cross-drm.ini << 'EOF'
+          [binaries]
+          ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
+          ar = ndk + '/llvm-ar'
+          c = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC']
+          cpp = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-static-libstdc++']
+          c_ld = 'lld'
+          cpp_ld = 'lld'
+          strip = ndk + '/aarch64-linux-android-strip'
+          pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.', '/usr/bin/pkg-config']
+          [host_machine]
+          system = 'android'
+          cpu_family = 'aarch64'
+          cpu = 'armv8'
+          endian = 'little'
+          EOF
+          envsubst < cross-drm.ini > build-crossfile-drm
+
+          cat > cross-mesa.ini << 'EOF'
+          [binaries]
+          ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
+          ar = ndk + '/llvm-ar'
+          c = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC']
+          cpp = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-static-libstdc++', '-Wno-c++11-narrowing']
+          c_ld = 'lld'
+          cpp_ld = 'lld'
+          strip = ndk + '/aarch64-linux-android-strip'
+          pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.:/tmp/drm-static/lib/pkgconfig', '/usr/bin/pkg-config']
+          [host_machine]
+          system = 'android'
+          cpu_family = 'aarch64'
+          cpu = 'armv8'
+          endian = 'little'
+          EOF
+          envsubst < cross-mesa.ini > build-crossfile
+
+      - name: Build libdrm (static, freedreno kgsl)
+        run: |
+          cd drm
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dfreedreno=enabled -Dvc4=disabled -Detnaviv=disabled \
+            -Dfreedreno-kmds=kgsl
+          ninja -C build-android install
+
+      - name: Build Mesa (OSMesa + Zink)
+        run: |
+          cd mesa
+          meson setup build-android \
+            --prefix=/tmp/mesa \
+            --cross-file "../build-crossfile" \
+            -Dplatforms=android \
+            -Dplatform-sdk-version=33 \
+            -Dandroid-stub=true \
+            -Dandroid-libbacktrace=disabled \
+            -Dandroid-strict=false \
+            -Dxlib-lease=disabled \
+            -Degl=disabled \
+            -Dgbm=disabled \
+            -Dglx=disabled \
+            -Dllvm=disabled \
+            -Dopengl=true \
+            -Dosmesa=true \
+            -Dvulkan-drivers= \
+            -Dgallium-drivers=zink,freedreno \
+            -Dfreedreno-kmds=kgsl \
+            -Dbuildtype=release
+          ninja -C build-android -j"$(nproc)" install
+
+      - name: Package
+        run: |
+          mkdir -p out/arm64-v8a
+          if [ -f /tmp/mesa/lib/libOSMesa.so ]; then
+            cp /tmp/mesa/lib/libOSMesa.so out/arm64-v8a/libOSMesa_8.so
+          elif [ -f /tmp/mesa/lib/libOSMesa.so.8 ]; then
+            cp /tmp/mesa/lib/libOSMesa.so.8 out/arm64-v8a/libOSMesa_8.so
+          else
+            echo "libOSMesa not found"; find /tmp/mesa -name '*OSMesa*' || true; exit 1
+          fi
+          # ship any extra gallium/zink bits if present
+          find /tmp/mesa/lib -name '*.so*' -maxdepth 2 2>/dev/null | head -50 || true
+          ls -la /tmp/mesa/lib/ || true
+
+          cat > out/README.txt << 'EOR'
+          FearLauncher Mesa Zink pack (OSMesa + Zink, aarch64)
+
+          Install:
+            1. Extract arm64-v8a/libOSMesa_8.so into the app native lib dir
+               OR into files/mesa/ and set:
+                 LIB_MESA_NAME=<full path to libOSMesa_8.so>
+                 POJAV_NATIVEDIR=<dir containing the .so>
+            2. Renderer: turnip_zink
+            3. Env already set by launcher: GALLIUM_DRIVER=zink, MESA_LOADER_DRIVER_OVERRIDE=zink
+
+          Built for Android NDK r27c / API 29, platforms=android, osmesa=true, gallium=zink,freedreno.
+          EOR
+
+          cd out && zip -r ../mesa-zink-arm64-osmesa.zip .
+          ls -lh ../mesa-zink-arm64-osmesa.zip
+          file arm64-v8a/libOSMesa_8.so || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-zink-arm64-osmesa
+          path: mesa-zink-arm64-osmesa.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish to GitHub Release (optional tag)
+        if: github.ref_type == 'tag' || inputs.mesa_tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mesa-zink-${{ inputs.mesa_tag }}
+          name: Mesa Zink OSMesa ${{ inputs.mesa_tag }} (arm64)
+          body: |
+            Prebuilt **libOSMesa_8.so** (OSMesa + Zink) for FearLauncher `turnip_zink`.
+
+            Set `LIB_MESA_NAME` to the extracted `libOSMesa_8.so` path (or place in app native dir).
+          files: mesa-zink-arm64-osmesa.zip
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
