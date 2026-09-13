@@ -350,6 +350,12 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
     @Override
     public void onSurfaceAvailable(Surface surface) {
         GLFW.nativeSurfaceCreated(surface);
+        // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
+        try {
+            net.kdt.pojavlaunch.utils.JREUtils.setupBridgeWindow(surface);
+        } catch (Throwable t) {
+            android.util.Log.w("MinecraftGLSurface", "Bridge window setup failed", t);
+        }
         if(mRefreshOnly) return;
         realStart();
         mRefreshOnly = true;
