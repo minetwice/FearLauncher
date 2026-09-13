@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -61,7 +61,7 @@ public class JREUtils {
         String line;
         while ((line = reader.readLine()) != null) {
             int index = line.indexOf("=");
-            envMap.put(line.substring(0, index), line.substring(index + 1));
+            if (index > 0) envMap.put(line.substring(0, index), line.substring(index + 1));
         }
         reader.close();
     }
@@ -89,7 +89,7 @@ public class JREUtils {
         switch(renderer) {
             case "turnip_zink":
             case "vulkan_zink":
-                Logger.appendToLog("[TurnipZink] Initializing Zink renderer (GL→Vulkan via Mesa)...");
+                Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
@@ -98,8 +98,6 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
                 envMap.put("MESA_PRESENT_MODE", "fifo");
-                // Do not force EGL_PLATFORM here — OSMesa path does not need it;
-                // native hook sets it only for EGL fallback.
                 break;
         }
     }
@@ -132,10 +130,9 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        // Prefer full Mesa EGL (ships with app / previous turbov1). The 4KB
-        // libmh_drive_vulkan_mesa.so stub has neither OSMesa nor Zink.
+        // Real CI-built Mesa OSMesa+Zink (not the 4KB mh_drive stub)
         if ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)) {
-            envMap.put("LIB_MESA_NAME", "libEGL_mesa.so");
+            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
             envMap.put("POJAV_RENDERER", renderer);
         } else {
             envMap.put("POJAV_RENDERER", renderer);
@@ -229,7 +226,7 @@ public class JREUtils {
                         File chosenSo = candidates[0];
                         for (File candidate : candidates) {
                             String name = candidate.getName();
-                            if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL")) {
+                            if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL") || name.contains("OSMesa")) {
                                 chosenSo = candidate;
                                 break;
                             }
@@ -250,9 +247,8 @@ public class JREUtils {
         switch (renderer){
             case "turnip_zink":
             case "vulkan_zink":
-                Logger.appendToLog("[TurnipZink] Loading Mesa library (libEGL_mesa.so)...");
-                // Full Mesa (not the 4KB mh_drive stub)
-                renderLibrary = "libEGL_mesa.so";
+                Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
+                renderLibrary = "libOSMesa_8.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
@@ -289,18 +285,15 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
-    // Bridge window JNI (surface passed to the OSMesa bridge in pojavexec)
     public static native void setupBridgeWindow(android.view.Surface surface);
     public static native void releaseBridgeWindow();
 
-    // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
-    //public static native void initializeHooks();
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
