@@ -11,6 +11,7 @@ import android.util.*;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.*;
 import net.kdt.pojavlaunch.*;
@@ -66,6 +67,42 @@ public class JREUtils {
         reader.close();
     }
 
+    /**
+     * Sodium (and Create) call System.getenv("POJAV_RENDERER").
+     * Os.unsetenv only updates libc — Java ProcessEnvironment is a separate cache.
+     * Clear both so PostLaunchChecks does not abort.
+     */
+    private static void scrubPojavDetectorEnv() {
+        for (String key : new String[]{"POJAV_RENDERER", "POJAV_LAUNCHER"}) {
+            try {
+                Os.unsetenv(key);
+            } catch (Throwable t) {
+                Log.w("JREUtils", "Os.unsetenv(" + key + ") failed: " + t);
+            }
+            try {
+                Class<?> pe = Class.forName("java.lang.ProcessEnvironment");
+                for (String fieldName : new String[]{
+                        "theEnvironment",
+                        "theUnmodifiableEnvironment",
+                        "theCaseInsensitiveEnvironment"
+                }) {
+                    try {
+                        Field field = pe.getDeclaredField(fieldName);
+                        field.setAccessible(true);
+                        Object mapObj = field.get(null);
+                        if (mapObj instanceof Map) {
+                            ((Map<?, ?>) mapObj).remove(key);
+                        }
+                    } catch (NoSuchFieldException ignored) {
+                    }
+                }
+            } catch (Throwable t) {
+                Log.w("JREUtils", "Java env scrub for " + key + " failed: " + t);
+            }
+        }
+        Logger.appendToLog("[TurnipZink] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)");
+    }
+
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
         if (!LauncherPreferences.PREF_USE_ANGLE) return;
         LibraryPlugin angle = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_ANGLE_PLUGIN);
@@ -96,8 +133,7 @@ public class JREUtils {
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                // Do NOT set MESA_VK_WSI_* — OSMesa has no window-system integration;
-                // those vars have caused native strtoul crashes inside Mesa on Android.
+                envMap.put("FEAR_RENDERER", renderer);
                 break;
         }
     }
@@ -114,7 +150,6 @@ public class JREUtils {
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
         boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);
-        // Desktop OSMesa+Zink must not force LIBGL_ES
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -140,7 +175,8 @@ public class JREUtils {
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
             envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
-            envMap.put("POJAV_RENDERER", renderer);
+            // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
+            // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
             envMap.put("POJAV_RENDERER", renderer);
         }
@@ -166,6 +202,11 @@ public class JREUtils {
             }catch (NullPointerException exception){
                 Log.e("JREUtils", exception.toString());
             }
+        }
+
+        // Sodium System.getenv("POJAV_RENDERER") — scrub Java + libc
+        if (isZink) {
+            scrubPojavDetectorEnv();
         }
     }
 
