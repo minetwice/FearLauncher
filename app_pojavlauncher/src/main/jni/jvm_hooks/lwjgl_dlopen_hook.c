@@ -1,7 +1,6 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.5 (TURNIP-ZINK)
-// glfwSet*Callback MUST return NULL (previous callback). Returning void/garbage
-// makes LWJGL Callback.get() NPE on ClosureRegistry.
+// FearLauncher — LWJGL dlopen/dlsym hook v2.6 (TURNIP-ZINK)
+// glfwSet*Callback MUST return NULL (previous callback).
 //
 #include "jvm_hooks.h"
 
@@ -52,15 +51,42 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass 
 }
 
 static void force_zink_env(void) {
+    /* Core Zink */
     setenv("GALLIUM_DRIVER", "zink", 1);
     setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
     setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-    setenv("MESA_VK_WSI_PRESENT_MODE", "fifo", 1);
-    setenv("MESA_PRESENT_MODE", "fifo", 1);
     setenv("LIBGL_NOERROR", "1", 1);
-    setenv("ZINK_DESCRIPTORS", "lazy", 1);
     setenv("mesa_glthread", "false", 1);
+
+    /* Avoid GLES path — OSMesa is desktop GL */
+    unsetenv("LIBGL_ES");
+    setenv("LIBGL_ES", "", 1);
+
+    /* Safe dirs so Mesa xmlconfig / strtoul never sees NULL paths */
+    const char* cache = getenv("MESA_GLSL_CACHE_DIR");
+    if (cache && cache[0]) {
+        setenv("MESA_SHADER_CACHE_DIR", cache, 1);
+        setenv("XDG_CACHE_HOME", cache, 0);
+        setenv("XDG_CONFIG_HOME", cache, 0);
+    }
+    if (!getenv("HOME") || !getenv("HOME")[0]) {
+        setenv("HOME", cache && cache[0] ? cache : "/data/local/tmp", 1);
+    }
+
+    /* OSMesa has no WSI — drop present-mode vars that some Mesa paths parse */
+    unsetenv("MESA_VK_WSI_PRESENT_MODE");
+    unsetenv("MESA_PRESENT_MODE");
+
+    /* Mali-friendly Zink knobs */
+    setenv("ZINK_DESCRIPTORS", "lazy", 1);
+    setenv("ZINK_DEBUG", "", 1);
+    /* Don't force Turnip ICD name — use system Vulkan */
+    unsetenv("VK_ICD_FILENAMES");
+    unsetenv("VK_DRIVER_FILES");
+
+    /* Reduce dri conf parsing surprises */
+    setenv("MESA_NO_MINMAX_CACHE", "1", 0);
 }
 
 static volatile int g_glfw_initialized = 0;
@@ -86,7 +112,6 @@ static void glfw_stub_void(void) {}
 static int glfw_stub_int0(void) { return 0; }
 static void* glfw_stub_ptr0(void) { return NULL; }
 
-/* ALL glfwSet*Callback: (window, cb) -> previous cb. Must return NULL. */
 static void* hooked_glfwSetCallback_impl(void* window, void* callback) {
     (void)window;
     (void)callback;
@@ -97,13 +122,15 @@ static int hooked_glfwInit_impl(void) {
     if (!g_glfw_initialized) {
         force_zink_env();
         bridge_environ.config_renderer = RENDERER_VK_ZINK;
+        /* Ensure system Vulkan is loadable before Zink screen init */
+        (void)pojavexec_loadVulkanDriver();
         if (!osmesa_is_loaded()) dlsym_OSMesa();
         if (osmesa_is_loaded() && osm_init()) {
             g_use_osmesa = true;
-            printf("LWJGL hook v2.5: OSMesa bridge\n");
+            printf("LWJGL hook v2.6: OSMesa bridge\n");
         } else {
             g_use_osmesa = false;
-            printf("LWJGL hook v2.5: GLFW full stub (no OSMesa)\n");
+            printf("LWJGL hook v2.6: GLFW full stub (no OSMesa)\n");
         }
         g_glfw_initialized = 1;
     }
@@ -171,13 +198,14 @@ static void hooked_glfwSetWindowMonitor_impl(void* window, void* monitor,
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL hook v2.5: glfwCreateWindow %dx%d\n", width, height);
+    printf("LWJGL hook v2.6: glfwCreateWindow %dx%d\n", width, height);
     (void)title; (void)monitor;
     if (bridge_environ.savedWidth <= 0) bridge_environ.savedWidth = width;
     if (bridge_environ.savedHeight <= 0) bridge_environ.savedHeight = height;
     ensure_vidmode();
 
     if (g_use_osmesa) {
+        printf("LWJGL hook v2.6: calling OSMesaCreateContext...\n");
         osm_render_window_t* share_bundle = (share != NULL) ? (osm_render_window_t*) share : NULL;
         osm_render_window_t* bundle = osm_init_context(share_bundle);
         if (bundle != NULL) {
@@ -188,14 +216,15 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
             }
             osm_make_current(bundle);
             g_current_window = (void*) bundle;
-            printf("LWJGL hook v2.5: window OK (OSMesa)\n");
+            printf("LWJGL hook v2.6: window OK (OSMesa)\n");
             return g_current_window;
         }
+        printf("LWJGL hook v2.6: OSMesaCreateContext failed, falling back to stub\n");
         g_use_osmesa = false;
     }
 
     g_current_window = (void*) 0xDEADBEEF;
-    printf("LWJGL hook v2.5: window OK (stub)\n");
+    printf("LWJGL hook v2.6: window OK (stub)\n");
     return g_current_window;
 }
 
@@ -235,6 +264,7 @@ static void hooked_glfwDestroyWindow_impl(void* window) {
 }
 
 static void* hooked_glfwGetProcAddress_impl(const char* procname) {
+    if (!procname) return NULL;
     void* mesa = get_mesa_dl_handle();
     if (mesa != NULL) {
         void* sym = dlsym(mesa, procname);
@@ -370,13 +400,12 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
         if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
 
-        /* glfwSet*Callback / any *Callback setter — MUST return NULL pointer */
         if (strstr(symbol, "Callback") != NULL) {
             return (jlong) hooked_glfwSetCallback_impl;
         }
 
         if (strncmp(symbol, "glfw", 4) == 0) {
-            printf("LWJGL hook v2.5: unlisted %s -> safe stub\n", symbol);
+            printf("LWJGL hook v2.6: unlisted %s -> safe stub\n", symbol);
             if (strncmp(symbol, "glfwGet", 7) == 0)
                 return (jlong) glfw_stub_ptr0;
             if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
@@ -399,8 +428,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.5)");
-    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.5)\n");
+    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.6)");
+    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.6)\n");
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -416,6 +445,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.5)\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.6)\n");
     }
 }
