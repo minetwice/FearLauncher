@@ -14,7 +14,6 @@ on:
       - '.github/workflows/build-mesa-zink.yml'
       - 'scripts/mesa/**'
   schedule:
-    # Every Sunday 06:00 UTC
     - cron: '0 6 * * 0'
   workflow_dispatch:
     inputs:
@@ -67,7 +66,9 @@ jobs:
 
       - name: Clone Mesa + drm + build-fix
         run: |
-          git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
+          # Pin libdrm to a release that still has driver options
+          git clone --depth 1 --branch libdrm-2.4.122 https://gitlab.freedesktop.org/mesa/drm.git \
+            || git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
           git clone --depth 1 --branch "${MESA_TAG}" https://gitlab.freedesktop.org/mesa/mesa.git \
             || git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git
           git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git || true
@@ -77,6 +78,7 @@ jobs:
 
       - name: Write meson cross-files
         run: |
+          # Match Vera-Firefly: cpu_family=arm for aarch64 android cross
           cat > cross-drm.ini << 'EOF'
           [binaries]
           ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
@@ -89,7 +91,7 @@ jobs:
           pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.', '/usr/bin/pkg-config']
           [host_machine]
           system = 'android'
-          cpu_family = 'aarch64'
+          cpu_family = 'arm'
           cpu = 'armv8'
           endian = 'little'
           EOF
@@ -107,26 +109,47 @@ jobs:
           pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.:/tmp/drm-static/lib/pkgconfig', '/usr/bin/pkg-config']
           [host_machine]
           system = 'android'
-          cpu_family = 'aarch64'
+          cpu_family = 'arm'
           cpu = 'armv8'
           endian = 'little'
           EOF
           envsubst < cross-mesa.ini > build-crossfile
 
-      - name: Build libdrm (static, freedreno kgsl)
+      - name: Build libdrm (static)
         run: |
           cd drm
+          # libdrm uses -Dfreedreno-kgsl (boolean), NOT Mesa's freedreno-kmds
           meson setup build-android \
             --prefix=/tmp/drm-static \
             --cross-file "../build-crossfile-drm" \
             -Ddefault_library=static \
-            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
-            -Dnouveau=disabled -Dvmwgfx=disabled \
-            -Dfreedreno=enabled -Dvc4=disabled -Detnaviv=disabled \
-            -Dfreedreno-kmds=kgsl
+            -Dintel=disabled \
+            -Dradeon=disabled \
+            -Damdgpu=disabled \
+            -Dnouveau=disabled \
+            -Dvmwgfx=disabled \
+            -Dfreedreno=enabled \
+            -Dvc4=disabled \
+            -Detnaviv=disabled \
+            -Dfreedreno-kgsl=true \
+            -Dcairo-tests=disabled \
+            -Dvalgrind=disabled \
+            -Dtests=false || \
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled \
+            -Dradeon=disabled \
+            -Damdgpu=disabled \
+            -Dnouveau=disabled \
+            -Dvmwgfx=disabled \
+            -Dcairo-tests=disabled \
+            -Dvalgrind=disabled \
+            -Dtests=false
           ninja -C build-android install
 
-      - name: Build Mesa (OSMesa + Zink)
+      - name: Build Mesa (OSMesa + Zink only)
         run: |
           cd mesa
           meson setup build-android \
@@ -145,8 +168,7 @@ jobs:
             -Dopengl=true \
             -Dosmesa=true \
             -Dvulkan-drivers= \
-            -Dgallium-drivers=zink,freedreno \
-            -Dfreedreno-kmds=kgsl \
+            -Dgallium-drivers=zink \
             -Dbuildtype=release
           ninja -C build-android -j"$(nproc)" install
 
@@ -164,15 +186,11 @@ jobs:
             exit 1
           fi
           ls -la /tmp/mesa/lib/ || true
-
           cat > out/README.txt << 'EOR'
           FearLauncher Mesa Zink pack (OSMesa + Zink, aarch64)
-
           LIB_MESA_NAME=libOSMesa_8.so
-          Place arm64-v8a/libOSMesa_8.so in app native dir or files/mesa/
           Renderer: turnip_zink
           EOR
-
           cd out && zip -r ../mesa-zink-arm64-osmesa.zip .
           ls -lh ../mesa-zink-arm64-osmesa.zip
           file arm64-v8a/libOSMesa_8.so || true
