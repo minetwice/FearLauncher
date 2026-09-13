@@ -1,6 +1,6 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.10 (TURNIP-ZINK)
-// Zink detection via GALLIUM_DRIVER/FEAR_RENDERER (POJAV_RENDERER scrubbed for Sodium)
+// FearLauncher — LWJGL dlopen/dlsym hook v2.11 (TURNIP-ZINK)
+// OSMesa/Zink context hooks + pass-through for input/callbacks to libglfw (dnb)
 //
 #include "jvm_hooks.h"
 
@@ -45,7 +45,7 @@ static bool is_zink_renderer() {
 static void hide_pojav_from_sodium(void) {
     unsetenv("POJAV_RENDERER");
     unsetenv("POJAV_LAUNCHER");
-    printf("LWJGL hook v2.10: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\n");
+    printf("LWJGL hook v2.11: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\n");
 }
 
 JNIEXPORT void JNICALL
@@ -74,13 +74,13 @@ static bool ensure_vulkan_ptr(void) {
         g_vulkan_handle = pojavexec_loadVulkanDriver();
     }
     if (g_vulkan_handle == NULL) {
-        printf("LWJGL hook v2.10: Vulkan load FAILED\n");
+        printf("LWJGL hook v2.11: Vulkan load FAILED\n");
         return false;
     }
     char hex[32];
     snprintf(hex, sizeof(hex), "%lx", (unsigned long)(uintptr_t)g_vulkan_handle);
     setenv("VULKAN_PTR", hex, 1);
-    printf("LWJGL hook v2.10: VULKAN_PTR=%s (handle=%p)\n", hex, g_vulkan_handle);
+    printf("LWJGL hook v2.11: VULKAN_PTR=%s (handle=%p)\n", hex, g_vulkan_handle);
     return true;
 }
 
@@ -141,10 +141,10 @@ static int hooked_glfwInit_impl(void) {
         if (!osmesa_is_loaded()) dlsym_OSMesa();
         if (osmesa_is_loaded() && osm_init()) {
             g_use_osmesa = true;
-            printf("LWJGL hook v2.10: OSMesa bridge\n");
+            printf("LWJGL hook v2.11: OSMesa bridge\n");
         } else {
             g_use_osmesa = false;
-            printf("LWJGL hook v2.10: GLFW full stub (no OSMesa)\n");
+            printf("LWJGL hook v2.11: GLFW full stub (no OSMesa)\n");
         }
         (void)is_zink_renderer();
         hide_pojav_from_sodium();
@@ -206,15 +206,27 @@ static void hooked_glfwSetWindowMonitor_impl(void* window, void* monitor,
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL hook v2.10: glfwCreateWindow %dx%d\n", width, height);
+    printf("LWJGL hook v2.11: glfwCreateWindow %dx%d\n", width, height);
     (void)title; (void)monitor;
     if (bridge_environ.savedWidth <= 0) bridge_environ.savedWidth = width;
     if (bridge_environ.savedHeight <= 0) bridge_environ.savedHeight = height;
+    /* Prefer real surface size for click coordinates */
+    if (bridge_environ.pojavWindow != NULL) {
+        int sw = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+        int sh = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+        if (sw > 0 && sh > 0) {
+            bridge_environ.savedWidth = sw;
+            bridge_environ.savedHeight = sh;
+            printf("LWJGL hook v2.11: using surface size %dx%d\n", sw, sh);
+        }
+    }
     ensure_vidmode();
+    g_fake_vidmode.width = bridge_environ.savedWidth;
+    g_fake_vidmode.height = bridge_environ.savedHeight;
     ensure_vulkan_ptr();
 
     if (g_use_osmesa) {
-        printf("LWJGL hook v2.10: calling OSMesaCreateContext...\n");
+        printf("LWJGL hook v2.11: calling OSMesaCreateContext...\n");
         osm_render_window_t* share_bundle = (share != NULL) ? (osm_render_window_t*) share : NULL;
         osm_render_window_t* bundle = osm_init_context(share_bundle);
         if (bundle != NULL) {
@@ -229,19 +241,19 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
                 const char* vendor = (const char*)glGetString_p(0x1F00);
                 const char* renderer = (const char*)glGetString_p(0x1F01);
                 const char* version = (const char*)glGetString_p(0x1F02);
-                printf("LWJGL hook v2.10: GL_VENDOR=%s\n", vendor ? vendor : "(null)");
-                printf("LWJGL hook v2.10: GL_RENDERER=%s\n", renderer ? renderer : "(null)");
-                printf("LWJGL hook v2.10: GL_VERSION=%s\n", version ? version : "(null)");
+                printf("LWJGL hook v2.11: GL_VENDOR=%s\n", vendor ? vendor : "(null)");
+                printf("LWJGL hook v2.11: GL_RENDERER=%s\n", renderer ? renderer : "(null)");
+                printf("LWJGL hook v2.11: GL_VERSION=%s\n", version ? version : "(null)");
             }
-            printf("LWJGL hook v2.10: window OK (OSMesa)\n");
+            printf("LWJGL hook v2.11: window OK (OSMesa)\n");
             return g_current_window;
         }
-        printf("LWJGL hook v2.10: OSMesaCreateContext failed, falling back to stub\n");
+        printf("LWJGL hook v2.11: OSMesaCreateContext failed, falling back to stub\n");
         g_use_osmesa = false;
     }
 
     g_current_window = (void*) 0xDEADBEEF;
-    printf("LWJGL hook v2.10: window OK (stub)\n");
+    printf("LWJGL hook v2.11: window OK (stub)\n");
     return g_current_window;
 }
 
@@ -301,7 +313,7 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
     if (strcmp(procname, "glReadBuffer") == 0 && glReadBuffer_p) return (void*)glReadBuffer_p;
     sym = dlsym(RTLD_DEFAULT, procname);
     if (sym == NULL && strncmp(procname, "gl", 2) == 0) {
-        printf("LWJGL hook v2.10: GetProcAddress MISS %s\n", procname);
+        printf("LWJGL hook v2.11: GetProcAddress MISS %s\n", procname);
     }
     return sym;
 }
@@ -309,6 +321,12 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
 static void hooked_glfwWindowHint_impl(int h, int v) { (void)h; (void)v; }
 static void hooked_glfwDefaultWindowHints_impl(void) {}
 static void hooked_glfwGetFramebufferSize_impl(void* w, int* width, int* height) {
+    if (bridge_environ.pojavWindow != NULL) {
+        int sw = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+        int sh = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+        if (sw > 0) bridge_environ.savedWidth = sw;
+        if (sh > 0) bridge_environ.savedHeight = sh;
+    }
     ensure_vidmode();
     if (width) *width = bridge_environ.savedWidth > 0 ? bridge_environ.savedWidth : g_fake_vidmode.width;
     if (height) *height = bridge_environ.savedHeight > 0 ? bridge_environ.savedHeight : g_fake_vidmode.height;
@@ -323,6 +341,16 @@ static void hooked_glfwGetWindowPos_impl(void* w, int* x, int* y) {
 static void hooked_glfwSetWindowPos_impl(void* w, int x, int y) { (void)w; (void)x; (void)y; }
 static void hooked_glfwSetWindowSize_impl(void* w, int width, int height) {
     (void)w;
+    /* Do not shrink saved size below surface — resolution scale is internal to MC */
+    if (bridge_environ.pojavWindow != NULL) {
+        int sw = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+        int sh = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+        if (sw > 0 && sh > 0) {
+            bridge_environ.savedWidth = sw;
+            bridge_environ.savedHeight = sh;
+            return;
+        }
+    }
     if (width > 0) bridge_environ.savedWidth = width;
     if (height > 0) bridge_environ.savedHeight = height;
 }
@@ -342,8 +370,6 @@ static int hooked_glfwGetWindowAttrib_impl(void* w, int attrib) {
     return 0;
 }
 static void hooked_glfwSetWindowAttrib_impl(void* w, int a, int v) { (void)w; (void)a; (void)v; }
-static void hooked_glfwSetInputMode_impl(void* w, int m, int v) { (void)w; (void)m; (void)v; }
-static int hooked_glfwGetInputMode_impl(void* w, int m) { (void)w; (void)m; return 0; }
 static void hooked_glfwPollEvents_impl(void) {}
 static void hooked_glfwWaitEvents_impl(void) {}
 static void hooked_glfwWaitEventsTimeout_impl(double t) { (void)t; }
@@ -419,8 +445,6 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwMaximizeWindow") == 0) return (jlong) hooked_glfwMaximizeWindow_impl;
         if (strcmp(symbol, "glfwGetWindowAttrib") == 0) return (jlong) hooked_glfwGetWindowAttrib_impl;
         if (strcmp(symbol, "glfwSetWindowAttrib") == 0) return (jlong) hooked_glfwSetWindowAttrib_impl;
-        if (strcmp(symbol, "glfwSetInputMode") == 0) return (jlong) hooked_glfwSetInputMode_impl;
-        if (strcmp(symbol, "glfwGetInputMode") == 0) return (jlong) hooked_glfwGetInputMode_impl;
         if (strcmp(symbol, "glfwPollEvents") == 0) return (jlong) hooked_glfwPollEvents_impl;
         if (strcmp(symbol, "glfwWaitEvents") == 0) return (jlong) hooked_glfwWaitEvents_impl;
         if (strcmp(symbol, "glfwWaitEventsTimeout") == 0) return (jlong) hooked_glfwWaitEventsTimeout_impl;
@@ -428,11 +452,45 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
         if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
 
-        if (strstr(symbol, "Callback") != NULL)
-            return (jlong) hooked_glfwSetCallback_impl;
+        /* Input/callbacks MUST go to real libglfw (dnb) — stubs kill clicks */
+        if (strstr(symbol, "Callback") != NULL ||
+            strcmp(symbol, "glfwGetCursorPos") == 0 ||
+            strcmp(symbol, "glfwSetCursorPos") == 0 ||
+            strcmp(symbol, "glfwGetKey") == 0 ||
+            strcmp(symbol, "glfwGetMouseButton") == 0 ||
+            strcmp(symbol, "glfwSetInputMode") == 0 ||
+            strcmp(symbol, "glfwGetInputMode") == 0 ||
+            strcmp(symbol, "glfwRawMouseMotionSupported") == 0 ||
+            strcmp(symbol, "glfwCreateCursor") == 0 ||
+            strcmp(symbol, "glfwCreateStandardCursor") == 0 ||
+            strcmp(symbol, "glfwDestroyCursor") == 0 ||
+            strcmp(symbol, "glfwSetCursor") == 0 ||
+            strcmp(symbol, "glfwGetKeyName") == 0 ||
+            strcmp(symbol, "glfwGetKeyScancode") == 0 ||
+            strcmp(symbol, "glfwSetClipboardString") == 0 ||
+            strcmp(symbol, "glfwGetClipboardString") == 0 ||
+            strcmp(symbol, "glfwJoystickPresent") == 0 ||
+            strncmp(symbol, "glfwGetJoystick", 15) == 0 ||
+            strncmp(symbol, "glfwJoystick", 12) == 0 ||
+            strncmp(symbol, "glfwGetGamepad", 14) == 0 ||
+            strcmp(symbol, "glfwUpdateGamepadMappings") == 0) {
+            void* real = dlsym(RTLD_DEFAULT, symbol);
+            if (real != NULL) return (jlong) real;
+            if (strstr(symbol, "Callback") != NULL)
+                return (jlong) hooked_glfwSetCallback_impl;
+            if (strncmp(symbol, "glfwGet", 7) == 0) return (jlong) glfw_stub_ptr0;
+            if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
+                return (jlong) glfw_stub_void;
+            return (jlong) glfw_stub_int0;
+        }
 
         if (strncmp(symbol, "glfw", 4) == 0) {
-            printf("LWJGL hook v2.10: unlisted %s -> safe stub\n", symbol);
+            void* real = dlsym(RTLD_DEFAULT, symbol);
+            if (real != NULL) {
+                printf("LWJGL hook v2.11: unlisted %s -> real libglfw\n", symbol);
+                return (jlong) real;
+            }
+            printf("LWJGL hook v2.11: unlisted %s -> safe stub\n", symbol);
             if (strncmp(symbol, "glfwGet", 7) == 0) return (jlong) glfw_stub_ptr0;
             if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
                 return (jlong) glfw_stub_void;
@@ -459,8 +517,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.10)");
-    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.10)\n");
+    LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.11)");
+    printf("LWJGL hook: installing hooks (TURNIP-ZINK v2.11)\n");
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -476,6 +534,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.10)\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.11)\n");
     }
 }
