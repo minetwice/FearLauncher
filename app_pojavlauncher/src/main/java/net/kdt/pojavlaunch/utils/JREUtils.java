@@ -96,8 +96,8 @@ public class JREUtils {
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                envMap.put("MESA_PRESENT_MODE", "fifo");
+                // Do NOT set MESA_VK_WSI_* — OSMesa has no window-system integration;
+                // those vars have caused native strtoul crashes inside Mesa on Android.
                 break;
         }
     }
@@ -113,9 +113,17 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);
+        // Desktop OSMesa+Zink must not force LIBGL_ES
+        if (!isZink) {
+            envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        }
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
+        envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
+        envMap.put("XDG_CACHE_HOME", Tools.DIR_CACHE.getAbsolutePath());
+        envMap.put("XDG_CONFIG_HOME", Tools.DIR_CACHE.getAbsolutePath());
+        envMap.put("HOME", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
@@ -130,8 +138,7 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        // Real CI-built Mesa OSMesa+Zink (not the 4KB mh_drive stub)
-        if ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)) {
+        if (isZink) {
             envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
             envMap.put("POJAV_RENDERER", renderer);
         } else {
