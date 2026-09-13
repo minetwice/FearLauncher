@@ -1,6 +1,8 @@
 //
 // Ported from ZalithLauncher (ctxbridges/osmesa_loader.c)
 // Loads Mesa library via LIB_MESA_NAME env var and resolves OSMesa symbols.
+// CHANGED: does NOT abort if library/symbols not found — returns false so
+// the caller can fall back to EGL.
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +23,10 @@ void (*glClearColor_p) (GLclampf red, GLclampf green, GLclampf blue, GLclampf al
 void (*glClear_p) (GLbitfield mask);
 void (*glReadPixels_p) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* data);
 void (*glReadBuffer_p) (GLenum mode);
+
+static void* g_mesa_dl_handle = NULL;
+static bool g_osmesa_loaded = false;
+static bool g_tried = false;
 
 bool is_renderer_vulkan() {
     return (bridge_environ.config_renderer == RENDERER_VK_ZINK);
@@ -48,35 +54,54 @@ static void* OSMGetProcAddress(void* handle, const char* symbol_name) {
     return sym;
 }
 
+void* get_mesa_dl_handle() {
+    return g_mesa_dl_handle;
+}
+
+bool osmesa_is_loaded() {
+    return g_osmesa_loaded;
+}
+
 void dlsym_OSMesa() {
+    if (g_tried) return; // only try once
+    g_tried = true;
+
     if (!is_renderer_vulkan()) return;
 
     char* mesa_name = getenv("LIB_MESA_NAME");
     char* pojav_native_dir = getenv("POJAV_NATIVEDIR");
+    if (!mesa_name || !pojav_native_dir) {
+        fprintf(stderr, "OSMesa: LIB_MESA_NAME or POJAV_NATIVEDIR not set, skipping\n");
+        return;
+    }
 
     char* main_path = construct_main_path(mesa_name, pojav_native_dir);
     if (!main_path) {
-        fprintf(stderr, "Error: Failed to construct main path.\n");
-        abort();
+        fprintf(stderr, "OSMesa: Failed to construct path\n");
+        return;
     }
 
-    void* dl_handle = dlopen(main_path, RTLD_LOCAL | RTLD_LAZY);
+    g_mesa_dl_handle = dlopen(main_path, RTLD_LOCAL | RTLD_LAZY);
     free(main_path);
-    if (!dl_handle) {
-        fprintf(stderr, "Error: Failed to open library: %s\n", dlerror());
-        abort();
+    if (!g_mesa_dl_handle) {
+        fprintf(stderr, "OSMesa: Failed to open library %s: %s (will use EGL fallback)\n", mesa_name, dlerror());
+        return;
     }
 
-    OSMesaMakeCurrent_p = OSMGetProcAddress(dl_handle, "OSMesaMakeCurrent");
-    OSMesaGetCurrentContext_p = OSMGetProcAddress(dl_handle, "OSMesaGetCurrentContext");
-    OSMesaCreateContext_p = OSMGetProcAddress(dl_handle, "OSMesaCreateContext");
-    OSMesaDestroyContext_p = OSMGetProcAddress(dl_handle, "OSMesaDestroyContext");
-    OSMesaFlushFrontbuffer_p = OSMGetProcAddress(dl_handle, "OSMesaFlushFrontbuffer");
-    OSMesaPixelStore_p = OSMGetProcAddress(dl_handle, "OSMesaPixelStore");
-    glGetString_p = OSMGetProcAddress(dl_handle, "glGetString");
-    glClearColor_p = OSMGetProcAddress(dl_handle, "glClearColor");
-    glClear_p = OSMGetProcAddress(dl_handle, "glClear");
-    glFinish_p = OSMGetProcAddress(dl_handle, "glFinish");
-    glReadPixels_p = OSMGetProcAddress(dl_handle, "glReadPixels");
-    glReadBuffer_p = OSMGetProcAddress(dl_handle, "glReadBuffer");
+    OSMesaMakeCurrent_p = OSMGetProcAddress(g_mesa_dl_handle, "OSMesaMakeCurrent");
+    OSMesaCreateContext_p = OSMGetProcAddress(g_mesa_dl_handle, "OSMesaCreateContext");
+    OSMesaGetCurrentContext_p = OSMGetProcAddress(g_mesa_dl_handle, "OSMesaGetCurrentContext");
+    OSMesaDestroyContext_p = OSMGetProcAddress(g_mesa_dl_handle, "OSMesaDestroyContext");
+    OSMesaPixelStore_p = OSMGetProcAddress(g_mesa_dl_handle, "OSMesaPixelStore");
+    glFinish_p = OSMGetProcAddress(g_mesa_dl_handle, "glFinish");
+    glGetString_p = OSMGetProcAddress(g_mesa_dl_handle, "glGetString");
+
+    // Only consider OSMesa loaded if we have the critical functions
+    if (OSMesaMakeCurrent_p && OSMesaCreateContext_p && OSMesaPixelStore_p && glFinish_p) {
+        g_osmesa_loaded = true;
+        printf("OSMesa: symbols loaded successfully from %s\n", mesa_name);
+    } else {
+        printf("OSMesa: %s does not have OSMesa symbols — will use EGL fallback\n", mesa_name);
+        // Keep g_mesa_dl_handle for GL symbol resolution even without OSMesa
+    }
 }
