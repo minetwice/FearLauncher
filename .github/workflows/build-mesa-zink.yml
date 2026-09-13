@@ -1,17 +1,32 @@
 name: Build Mesa Zink (arm64 OSMesa)
 
-# Manual trigger — builds Android aarch64 libOSMesa with Zink gallium driver.
-# Artifact: mesa-zink-arm64-osmesa.zip  →  use as LIB_MESA_NAME=libOSMesa_8.so
-# Based on Vera-Firefly/android-mesa-build pattern.
+# Auto-builds Android aarch64 libOSMesa + Zink.
+# Triggers: push to turbov1 branch, weekly schedule, or manual.
+# Artifact: mesa-zink-arm64-osmesa.zip
 
 on:
+  push:
+    branches:
+      - turbov1-zink-fixed-v10
+      - main
+      - master
+    paths:
+      - '.github/workflows/build-mesa-zink.yml'
+      - 'scripts/mesa/**'
+  schedule:
+    # Every Sunday 06:00 UTC
+    - cron: '0 6 * * 0'
   workflow_dispatch:
     inputs:
       mesa_tag:
-        description: 'Mesa git tag/branch (e.g. mesa-25.1.4, mesa-25.0.7)'
+        description: 'Mesa git tag/branch (e.g. mesa-25.1.4)'
         required: false
         default: 'mesa-25.1.4'
         type: string
+
+concurrency:
+  group: mesa-zink-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-aarch64:
@@ -30,7 +45,7 @@ jobs:
             libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev \
             libxfixes-dev libdrm-dev libx11-dev \
             bison flex gettext pkg-config \
-            unzip curl git ccache
+            unzip curl git ccache gettext-base
           pip3 install --user mako meson ninja
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -39,7 +54,10 @@ jobs:
           echo "NDK_VER=android-ndk-r27c" >> $GITHUB_ENV
           echo "SDK_VER=29" >> $GITHUB_ENV
           echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
-          echo "MESA_TAG=${{ inputs.mesa_tag }}" >> $GITHUB_ENV
+          TAG="${{ github.event.inputs.mesa_tag }}"
+          if [ -z "$TAG" ]; then TAG="mesa-25.1.4"; fi
+          echo "MESA_TAG=$TAG" >> $GITHUB_ENV
+          echo "Building Mesa tag: $TAG"
 
       - name: Download NDK
         run: |
@@ -140,24 +158,19 @@ jobs:
           elif [ -f /tmp/mesa/lib/libOSMesa.so.8 ]; then
             cp /tmp/mesa/lib/libOSMesa.so.8 out/arm64-v8a/libOSMesa_8.so
           else
-            echo "libOSMesa not found"; find /tmp/mesa -name '*OSMesa*' || true; exit 1
+            echo "libOSMesa not found"
+            find /tmp/mesa -name '*OSMesa*' || true
+            find /tmp/mesa -name '*.so*' | head -40 || true
+            exit 1
           fi
-          # ship any extra gallium/zink bits if present
-          find /tmp/mesa/lib -name '*.so*' -maxdepth 2 2>/dev/null | head -50 || true
           ls -la /tmp/mesa/lib/ || true
 
           cat > out/README.txt << 'EOR'
           FearLauncher Mesa Zink pack (OSMesa + Zink, aarch64)
 
-          Install:
-            1. Extract arm64-v8a/libOSMesa_8.so into the app native lib dir
-               OR into files/mesa/ and set:
-                 LIB_MESA_NAME=<full path to libOSMesa_8.so>
-                 POJAV_NATIVEDIR=<dir containing the .so>
-            2. Renderer: turnip_zink
-            3. Env already set by launcher: GALLIUM_DRIVER=zink, MESA_LOADER_DRIVER_OVERRIDE=zink
-
-          Built for Android NDK r27c / API 29, platforms=android, osmesa=true, gallium=zink,freedreno.
+          LIB_MESA_NAME=libOSMesa_8.so
+          Place arm64-v8a/libOSMesa_8.so in app native dir or files/mesa/
+          Renderer: turnip_zink
           EOR
 
           cd out && zip -r ../mesa-zink-arm64-osmesa.zip .
@@ -171,18 +184,3 @@ jobs:
           path: mesa-zink-arm64-osmesa.zip
           if-no-files-found: error
           retention-days: 30
-
-      - name: Publish to GitHub Release (optional tag)
-        if: github.ref_type == 'tag' || inputs.mesa_tag != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: mesa-zink-${{ inputs.mesa_tag }}
-          name: Mesa Zink OSMesa ${{ inputs.mesa_tag }} (arm64)
-          body: |
-            Prebuilt **libOSMesa_8.so** (OSMesa + Zink) for FearLauncher `turnip_zink`.
-
-            Set `LIB_MESA_NAME` to the extracted `libOSMesa_8.so` path (or place in app native dir).
-          files: mesa-zink-arm64-osmesa.zip
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
