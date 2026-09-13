@@ -89,8 +89,6 @@ public class JREUtils {
         switch(renderer) {
             case "turbov1":
                 Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment...");
-                GLInfoUtils.GLInfo glInfo = GLInfoUtils.getGlInfo();
-                boolean isMali = glInfo != null && glInfo.isMali();
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
@@ -98,16 +96,8 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("FORCE_VSYNC", "0");
                 envMap.put("LIBGL_VSYNC", "0");
-                if (isMali) {
-                    Logger.appendToLog("[TurboV1] Mali GPU detected: applying Vulkan Zink stability mitigations (FIFO present mode, compact descriptors)");
-                    envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                    envMap.put("MESA_PRESENT_MODE", "fifo");
-                    envMap.put("ZINK_DESCRIPTORS", "compact");
-                } else {
-                    envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
-                    envMap.put("MESA_PRESENT_MODE", "mailbox");
-                    envMap.put("ZINK_DESCRIPTORS", "lazy");
-                }
+                envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
+                envMap.put("MESA_PRESENT_MODE", "mailbox");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
                 break;
@@ -259,7 +249,7 @@ public class JREUtils {
 
         switch (renderer){
             case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing Custom TurboV1 Engine with Mesa Zink Backend...");
+                Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
                 renderLibrary = "libEGL_mesa.so";
                 useGles = false;
                 bypassNamespace = true;
