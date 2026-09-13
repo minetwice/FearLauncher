@@ -87,30 +87,16 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
-            case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Environment...");
+            case "turnip_zink":
+            case "vulkan_zink":
+                Logger.appendToLog("[TurnipZink] Initializing OSMesa-based Zink renderer (GL→Vulkan via Mesa)...");
+                // Zalith-style OSMesa approach: no EGL, rendering to ANativeWindow buffer
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
-                envMap.put("FORCE_VSYNC", "0");
-                envMap.put("LIBGL_VSYNC", "0");
-                // Android WSI (VK_KHR_android_surface): only FIFO is guaranteed (Mali-G615
-                // does not expose MAILBOX). MAILBOX is a desktop X11/Wayland concept and makes
-                // vkCreateSwapchainKHR fail, which surfaces as GLFW 65542 EGL init failure.
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                envMap.put("MESA_PRESENT_MODE", "fifo");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("MESA_GLSL_CACHE_MAX_SIZE", "4096MB");
-                break;
-            case "vulkan_zink":
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                // Same Android WSI constraint as turbov1: FIFO only.
-                envMap.put("MESA_VK_WSI_PRESENT_MODE", "fifo");
-                envMap.put("MESA_PRESENT_MODE", "fifo");
                 break;
         }
     }
@@ -143,10 +129,13 @@ public class JREUtils {
         setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        // Force the Android EGL platform for ALL renderers, including Zink/TurboV1.
-        // Mali's Android EGL driver has no "surfaceless" support (that is a
-        // Mesa-only platform); without this, eglInitialize fails -> GLFW 65542.
-        envMap.put("EGL_PLATFORM", "android");
+        // OSMesa library name — the ctxbridges loader uses this to find Mesa
+        if ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)) {
+            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
+            envMap.put("POJAV_RENDERER", renderer);
+        } else {
+            envMap.put("POJAV_RENDERER", renderer);
+        }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
 
@@ -255,24 +244,11 @@ public class JREUtils {
         }
 
         switch (renderer){
-            case "turbov1":
-                Logger.appendToLog("[TurboV1] Initializing Native Vulkan Engine Backend (Mesa Zink Core)...");
-                renderLibrary = "libEGL_mesa.so";
-                useGles = false;
-                bypassNamespace = true;
-                glesVersion = 3;
-                if (preloadVk) preloadVulkan();
-
-                try {
-                    System.loadLibrary("turbov1");
-                    String cachePath = Tools.DIR_GAME_HOME + "/turbov1_cache";
-                    initTurboV1Engine(cachePath);
-                } catch (Throwable t) {
-                    Log.e("JREUtils", "TurboV1 native engine init failed", t);
-                }
-                break;
+            case "turnip_zink":
             case "vulkan_zink":
-                renderLibrary = "libEGL_mesa.so";
+                Logger.appendToLog("[TurnipZink] Loading Mesa OSMesa library (Zink GL→Vulkan, no EGL)...");
+                // OSMesa-based Mesa build (like Zalith's libOSMesa_8.so)
+                renderLibrary = "libOSMesa_8.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
@@ -309,8 +285,9 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
-    // TurboV1 Native Engine JNI Declaration
-    public static native void initTurboV1Engine(String cachePath);
+    // Bridge window JNI (surface passed to the OSMesa bridge in pojavexec)
+    public static native void setupBridgeWindow(android.view.Surface surface);
+    public static native void releaseBridgeWindow();
 
     // Fear Shader Engine JNI Bridge Declarations
     public static native void initFearShaderEngine(String cachePath, int version);
