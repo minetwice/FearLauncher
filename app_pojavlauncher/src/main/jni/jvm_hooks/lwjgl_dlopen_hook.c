@@ -80,6 +80,62 @@ static void* glXGetCurrentContext_fake(void) {
     return fake_gl_context;
 }
 
+// ---- OSMesa context management for NO_API Zink mode ----
+// LWJGL 3.3.3 GL.createCapabilities() actually CALLS glGetError/glGetString/
+// glGetIntegerv to detect the context. Without a current OSMesaContext these
+// return NULL/garbage and LWJGL throws "There is no OpenGL context current".
+// So we must OSMesaCreateContext + OSMesaMakeCurrent before LWJGL probes GL.
+static OSMesaContext g_osmesa_ctx = NULL;
+static void* g_osmesa_buffer = NULL;
+static int g_osmesa_w = 0;
+static int g_osmesa_h = 0;
+static int g_window_width = 1280;
+static int g_window_height = 720;
+
+static void ensure_osmesa_context_current(int width, int height) {
+    if (width <= 0) width = g_window_width;
+    if (height <= 0) height = g_window_height;
+    if (!osmesa_is_loaded()) {
+        dlsym_OSMesa();
+        if (!osmesa_is_loaded()) {
+            printf("LWJGL linkerhook: OSMesa not loaded, cannot create context\n");
+            return;
+        }
+    }
+    if (g_osmesa_ctx == NULL) {
+        if (!OSMesaCreateContext_p) {
+            printf("LWJGL linkerhook: OSMesaCreateContext_p is NULL\n");
+            return;
+        }
+        g_osmesa_ctx = OSMesaCreateContext_p(GL_RGBA, NULL);
+        printf("LWJGL linkerhook: OSMesaCreateContext -> %p\n", (void*)g_osmesa_ctx);
+        if (!g_osmesa_ctx) {
+            printf("LWJGL linkerhook: OSMesaCreateContext FAILED (Zink/Vulkan init may have failed)\n");
+            return;
+        }
+    }
+    if (g_osmesa_buffer == NULL || g_osmesa_w != width || g_osmesa_h != height) {
+        free(g_osmesa_buffer);
+        g_osmesa_w = width;
+        g_osmesa_h = height;
+        size_t bytes = (size_t)width * (size_t)height * 4u;
+        g_osmesa_buffer = malloc(bytes);
+        printf("LWJGL linkerhook: OSMesa color buffer %dx%d (%zu bytes) at %p\n",
+               width, height, bytes, g_osmesa_buffer);
+        if (!g_osmesa_buffer) return;
+    }
+    if (OSMesaMakeCurrent_p) {
+        OSMesaMakeCurrent_p(g_osmesa_ctx, g_osmesa_buffer, GL_UNSIGNED_BYTE, width, height);
+        if (OSMesaPixelStore_p) {
+            OSMesaPixelStore_p(0x10 /* OSMESA_Y_UP */, 0);
+        }
+        printf("LWJGL linkerhook: OSMesaMakeCurrent OK (ctx=%p, buf=%p, %dx%d)\n",
+               (void*)g_osmesa_ctx, g_osmesa_buffer, width, height);
+    } else {
+        printf("LWJGL linkerhook: OSMesaMakeCurrent_p is NULL\n");
+    }
+}
+
 // Resolve a GL function pointer using the OSMesa handle loaded by osmesa_loader.c.
 // The OSMesa library was loaded with RTLD_LOCAL in a specific namespace, so
 // dlsym(RTLD_DEFAULT, ...) from lwjgl_dlopen_hook cannot find GL symbols.
@@ -282,6 +338,8 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
             g_window_created = 1;
             g_has_gl_context = 0;
             g_current_window = win;
+            g_window_width = width;
+            g_window_height = height;
             printf("LWJGL linkerhook: window OK NO_API (Zink path, no GLFW EGL errors)\n");
             return win;
         }
@@ -346,6 +404,13 @@ static void hooked_glfwMakeContextCurrent_impl(void* window) {
     // NO_API path — do not call real (65546)
     g_current_window = window;
     g_context_current = window != NULL;
+    if (g_context_current && !g_has_gl_context && is_zink_renderer()) {
+        // Zink/NO_API: LWJGL CALLS glGetString/glGetIntegerv inside
+        // GL.createCapabilities(). Without a current OSMesaContext those
+        // return NULL and LWJGL throws "no OpenGL context current".
+        // Create + bind an OSMesa context (Zink over Vulkan) now.
+        ensure_osmesa_context_current(g_window_width, g_window_height);
+    }
     drain_glfw_errors();
 }
 
@@ -409,8 +474,11 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     if (strcmp(symbol, "eglGetError") == 0)
         return (jlong) eglGetError_always_success;
-    if (strcmp(symbol, "glXGetCurrentContext") == 0)
+    if (strcmp(symbol, "glXGetCurrentContext") == 0) {
+        if (!g_has_gl_context && is_zink_renderer() && g_osmesa_ctx == NULL)
+            ensure_osmesa_context_current(g_window_width, g_window_height);
         return (jlong) glXGetCurrentContext_fake;
+    }
     if (strcmp(symbol, "glXGetProcAddress") == 0 || strcmp(symbol, "glXGetProcAddressARB") == 0)
         return (jlong) glXGetProcAddress_fake;
     if (strcmp(symbol, "glfwInit") == 0)
