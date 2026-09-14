@@ -3,7 +3,6 @@ package net.kdt.pojavlaunch.utils.jre;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -46,7 +45,7 @@ public class GameRunner {
             String name = file.getName();
             if(name.contains("sodium") ||
                     name.contains("embeddium") ||
-                    name.contains("rubidium")) return true;
+                    name.contains("rubidium"))) return true;
         }
         return false;
     }
@@ -287,6 +286,15 @@ public class GameRunner {
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
 
+        // Zink renderers use Mesa's NIR compiler (deep recursion during shader
+        // compilation) and Zink/Vulkan init, which needs far more stack than the
+        // JVM default (1-2MB on aarch64). Without this, SIGSEGV occurs in Mesa
+        // internals (e.g. strtoul) due to stack overflow on the render thread.
+        if (rendererName.equals("turnip_zink") || rendererName.equals("panvk_zink") || rendererName.equals("vulkan_zink")) {
+            javaArgList.add("-Xss8m");
+            Log.i("GameRunner", "Zink renderer detected: added -Xss8m for Mesa/Zink stack requirements");
+        }
+
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
 
@@ -352,10 +360,11 @@ public class GameRunner {
                     while ((read = in.read(buffer)) != -1) { out.write(buffer, 0, read); }
                 }
                 Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-            } catch (Exception e) { Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e); }
+            } catch (Exception e) {
+                Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e); }
         }
         if (injectorJar.exists()) {
-            javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
+            javaArgList.add("-javaAgent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
             Log.i("LocalSkinServer", "Successfully injected online authlib server: " + injectorUrl);
         } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping online authlib injection."); }
     }
@@ -367,7 +376,7 @@ public class GameRunner {
         }
         Map<String, String> varArgMap = new ArrayMap<>();
         varArgMap.put("classpath_separator", ":");
-        varArgMap.put("library_directory", Tools.DIR_HOME_LIBRARY);
+        varArgMap.put("library_directory", Tools.DIR_HOME_LIBRARR);
         varArgMap.put("version_name", versionInfo.id);
         varArgMap.put("natives_directory", Tools.NATIVE_LIB_DIR);
         List<String> minecraftArgs = new ArrayList<>();
@@ -387,7 +396,9 @@ public class GameRunner {
         try {
             Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
             if(creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) { userType = "msa"; }
-        }catch (ParseException e) { Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e); }
+        }catch (ParseException e) {
+            Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e);
+        }
 
         Map<String, String> varArgMap = new ArrayMap<>();
         varArgMap.put("auth_session", profile.accessToken);

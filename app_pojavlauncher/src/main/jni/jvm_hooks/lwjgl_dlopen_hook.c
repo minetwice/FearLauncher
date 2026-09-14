@@ -92,6 +92,39 @@ static int g_osmesa_h = 0;
 static int g_window_width = 1280;
 static int g_window_height = 720;
 
+// Mesa Zink init (Vulkan instance/device setup, driconf parsing) is extremely
+// stack-hungry. Java render threads have small stacks (1-2MB default) → stack
+// overflow → SIGSEGV in leaf functions like strtoul. We create the OSMesa
+// context on a dedicated pthread with a 32MB stack to avoid this.
+static OSMesaContext g_create_result = NULL;
+
+static void* osmesa_create_thread_fn(void* arg) {
+    (void)arg;
+    if (OSMesaCreateContext_p)
+        g_create_result = OSMesaCreateContext_p(GL_RGBA, NULL);
+    return NULL;
+}
+
+static OSMesaContext create_osmesa_on_bigstack() {
+    g_create_result = NULL;
+    pthread_t th;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    size_t stacksz = 32 * 1024 * 1024; // 32MB
+    pthread_attr_setstacksize(&attr, stacksz);
+    int rc = pthread_create(&th, &attr, osmesa_create_thread_fn, NULL);
+    pthread_attr_destroy(&attr);
+    if (rc == 0) {
+        pthread_join(th, NULL);
+    } else {
+        // Fallback: call directly (risky on small stack but better than nothing)
+        printf("LWJGL linkerhook: pthread_create failed (%d), calling OSMesaCreateContext directly\n", rc);
+        if (OSMesaCreateContext_p)
+            g_create_result = OSMesaCreateContext_p(GL_RGBA, NULL);
+    }
+    return g_create_result;
+}
+
 static void ensure_osmesa_context_current(int width, int height) {
     if (width <= 0) width = g_window_width;
     if (height <= 0) height = g_window_height;
@@ -99,18 +132,24 @@ static void ensure_osmesa_context_current(int width, int height) {
         dlsym_OSMesa();
         if (!osmesa_is_loaded()) {
             printf("LWJGL linkerhook: OSMesa not loaded, cannot create context\n");
+            fflush(stdout);
             return;
         }
     }
     if (g_osmesa_ctx == NULL) {
         if (!OSMesaCreateContext_p) {
             printf("LWJGL linkerhook: OSMesaCreateContext_p is NULL\n");
+            fflush(stdout);
             return;
         }
-        g_osmesa_ctx = OSMesaCreateContext_p(GL_RGBA, NULL);
+        printf("LWJGL linkerhook: creating OSMesa context on 32MB-stack helper thread...\n");
+        fflush(stdout);
+        g_osmesa_ctx = create_osmesa_on_bigstack();
         printf("LWJGL linkerhook: OSMesaCreateContext -> %p\n", (void*)g_osmesa_ctx);
+        fflush(stdout);
         if (!g_osmesa_ctx) {
             printf("LWJGL linkerhook: OSMesaCreateContext FAILED (Zink/Vulkan init may have failed)\n");
+            fflush(stdout);
             return;
         }
     }
@@ -122,6 +161,7 @@ static void ensure_osmesa_context_current(int width, int height) {
         g_osmesa_buffer = malloc(bytes);
         printf("LWJGL linkerhook: OSMesa color buffer %dx%d (%zu bytes) at %p\n",
                width, height, bytes, g_osmesa_buffer);
+        fflush(stdout);
         if (!g_osmesa_buffer) return;
     }
     if (OSMesaMakeCurrent_p) {
@@ -131,8 +171,10 @@ static void ensure_osmesa_context_current(int width, int height) {
         }
         printf("LWJGL linkerhook: OSMesaMakeCurrent OK (ctx=%p, buf=%p, %dx%d)\n",
                (void*)g_osmesa_ctx, g_osmesa_buffer, width, height);
+        fflush(stdout);
     } else {
         printf("LWJGL linkerhook: OSMesaMakeCurrent_p is NULL\n");
+        fflush(stdout);
     }
 }
 
@@ -393,7 +435,7 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
 }
 
 static void hooked_glfwMakeContextCurrent_impl(void* window) {
-    printf("LWJGL linkerhook: FINAL-V9 MakeContextCurrent %p (has_gl=%d)\n", window, g_has_gl_context);
+    printf("LWJGL linkerhook: FINAL-V9 MakeContextCurrent %p (has_gl=%e)\n", window, g_has_gl_context);
     if (g_has_gl_context && real_glfwMakeContextCurrent) {
         real_glfwMakeContextCurrent(window);
         drain_glfw_errors();
