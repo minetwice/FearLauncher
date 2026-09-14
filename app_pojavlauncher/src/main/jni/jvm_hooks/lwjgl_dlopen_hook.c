@@ -552,7 +552,7 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (BUILD v20260914-V11, FINAL-V9 restored + panvk_zink");
+    LOGI("Installing LWJGL hooks (BUILD v20260914-V11, FINAL-V9 restored + panvk_zink)");
     printf("LWJGL linkerhook: installing hooks (BUILD v20260914-V11)\n");
     force_turbov1_env();
 
@@ -562,9 +562,9 @@ void installLwjglDlopenHook(JNIEnv *env) {
         (*env)->ExceptionClear(env);
         return;
     }
-    JNINAtiveMethod hooks[] = {
+    JNINativeMethod hooks[] = {
             {"ndlopen", "(JI)J", &ndlopen_bugfix},
-            {"ndlsym",  (JJ)J", &ndlsym_hook}
+            {"ndlsym",  "(JJ)J", &ndlsym_hook}
     };
     if ((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
         LOGE("Failed to register hooks");
