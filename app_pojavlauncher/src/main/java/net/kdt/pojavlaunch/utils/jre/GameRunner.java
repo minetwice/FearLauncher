@@ -205,7 +205,12 @@ public class GameRunner {
                 }
 
                 File mcmeta = new File(packDir, "pack.mcmeta");
-                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
+                String mcmetaContent = "{
+  "pack": {
+    "pack_format": 15,
+    "description": "FEAR Skin Pack - Automatically Synced Skin"
+  }
+}";
                 try (java.io.FileOutputStream fos = new java.io.FileOutputStream(mcmeta)) {
                     fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 }
@@ -215,12 +220,13 @@ public class GameRunner {
                     StringBuilder sb = new StringBuilder();
                     try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
                         String line;
-                        while ((line = br.readLine()) != null) { sb.append(line).append("\n"); }
+                        while ((line = br.readLine()) != null) { sb.append(line).append("
+"); }
                     }
                     String optionsContent = sb.toString();
                     if (!optionsContent.contains("FEAR_Skin_Pack")) {
                         if (optionsContent.contains("resourcePacks:[")) {
-                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
+                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:["file/FEAR_Skin_Pack",");
                             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(optionsFile)) {
                                 fos.write(optionsContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                             }
