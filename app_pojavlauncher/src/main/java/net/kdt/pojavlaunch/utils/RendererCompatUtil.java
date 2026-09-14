@@ -1,69 +1,95 @@
 package net.kdt.pojavlaunch.utils;
 
+import static android.os.Build.VERSION.SDK_INT;
+
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.Build;
 
-import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import git.artdeell.mojo.R;
 
 public class RendererCompatUtil {
     private static RenderersList sCompatibleRenderers;
 
+    public static boolean checkVulkanSupport(PackageManager packageManager) {
+        if (SDK_INT >= Build.VERSION_CODES.N) {
+            return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
+                    packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
+        }
+        return false;
+    }
+
+    /** Return the renderers that are compatible with this device */
     public static RenderersList getCompatibleRenderers(Context context) {
-        if(sCompatibleRenderers != null) return sCompatibleRenderers;
+        if (sCompatibleRenderers != null) return sCompatibleRenderers;
 
         Resources resources = context.getResources();
         String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
         String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
 
-        boolean deviceHasVulkan = Tools.checkVulkanSupport(context.getPackageManager());
-        boolean deviceCompatibleMesa = Tools.checkDeviceCompatibleMesa();
-        boolean deviceHasOpenGLES3 = Tools.checkOpenGLES3Support();
-        boolean appHasLtw = Tools.checkLocalLibraryPresent("libltw.so");
+        boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
+        // Current Mesa requires API 29+
+        boolean deviceCompatibleMesa = SDK_INT >= 29;
+        boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
+        // LTW is an optional dependency
+        boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
 
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
-        for(int i = 0; i < defaultRenderers.length; i++) {
+
+        for (int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
-            if(rendererId.equals("turnip_zink") || rendererId.equals("panvk_zink")) {
+
+            // Always show turnip_zink and panvk_zink (user can try them)
+            if (rendererId.equals("turnip_zink") || rendererId.equals("panvk_zink")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
             }
-            if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
-            if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
-            if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+
+            if (rendererId.contains("vulkan") && !deviceHasVulkan) continue;
+            if (rendererId.contains("zink") && !deviceCompatibleMesa) continue;
+            // freedreno is available only on Adreno GPUs
+            if (rendererId.contains("freedreno") && (!(GLInfoUtils.getGlInfo().isAdreno()) || !deviceCompatibleMesa)) continue;
+            if (rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
 
-        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
-        List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
-        for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
-            String pluginId = "plugin:" + plugin.getId();
-            String displayName = plugin.getDisplayName();
-            if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
-                displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
+        // Check for installed plugin renderers
+        try {
+            List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins =
+                    net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
+            for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
+                String pluginId = "plugin:" + plugin.getId();
+                String displayName = plugin.getDisplayName();
+                if (displayName == null || displayName.isEmpty() || displayName.equalsIgnoreCase(plugin.getId())) {
+                    displayName = "Mobile Glue Plugin (" + plugin.getId() + ")";
+                }
+                if (!rendererIds.contains(pluginId)) {
+                    rendererIds.add(pluginId);
+                    rendererNames.add(displayName);
+                }
             }
-            if (!rendererIds.contains(pluginId)) {
-                rendererIds.add(pluginId);
-                rendererNames.add(displayName);
-            }
+        } catch (Throwable ignored) {
+            // Plugin system optional
         }
 
-        sCompatibleRenderers = new RenderersList(rendererIds,
-                rendererNames.toArray(new String[0]));
-
+        sCompatibleRenderers = new RenderersList(rendererIds, rendererNames.toArray(new String[0]));
         return sCompatibleRenderers;
     }
 
     /** Checks if the renderer Id is compatible with the current device */
     public static boolean checkRendererCompatible(Context context, String rendererName) {
-         return getCompatibleRenderers(context).rendererIds.contains(rendererName);
+        return getCompatibleRenderers(context).rendererIds.contains(rendererName);
     }
 
     /** Releases the cache of compatible renderers. */
