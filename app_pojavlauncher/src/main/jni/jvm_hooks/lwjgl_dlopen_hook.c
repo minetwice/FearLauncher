@@ -67,6 +67,27 @@ static void* (*real_glfwGetCurrentContext)(void) = NULL;
 static void universal_stub_void(void) {}
 static int eglGetError_always_success(void) { return 0x3000; }
 
+// Fake GLX context — LWJGL's GL.createCapabilities() calls glXGetCurrentContext()
+// and crashes if it returns NULL. In NO_API mode (Zink path) there is no real
+// GLX/EGL context, so we return a non-NULL fake pointer after MakeContextCurrent.
+static void* fake_gl_context = (void*)1;
+
+static void* glXGetCurrentContext_fake(void) {
+    return fake_gl_context;
+}
+
+// glXGetProcAddress / glXGetProcAddressARB — LWJGL uses these to resolve GL
+// function pointers. OSMesa doesn't export GLX, so we resolve via dlsym
+// against already-loaded libraries (OSMesa handle is in the caller's handle).
+static void* glXGetProcAddress_fake(const char* procName) {
+    if (!procName) return NULL;
+    void* sym = dlsym(RTLD_DEFAULT, procName);
+    if (!sym) {
+        printf("LWJGL linkerhook: glXGetProcAddress: not found: %s\n", procName);
+    }
+    return sym;
+}
+
 static void force_turbov1_env(void) {
     // IMPORTANT: Do NOT set EGL_PLATFORM=android here.
     // JREUtils intentionally omits it for turbov1/vulkan_zink so Mesa can pick its path.
@@ -351,6 +372,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     if (strcmp(symbol, "eglGetError") == 0)
         return (jlong) eglGetError_always_success;
+    if (strcmp(symbol, "glXGetCurrentContext") == 0)
+        return (jlong) glXGetCurrentContext_fake;
+    if (strcmp(symbol, "glXGetProcAddress") == 0 || strcmp(symbol, "glXGetProcAddressARB") == 0)
+        return (jlong) glXGetProcAddress_fake;
     if (strcmp(symbol, "glfwInit") == 0)
         return (jlong) hooked_glfwInit_impl;
     if (strcmp(symbol, "glfwGetError") == 0)
