@@ -4,6 +4,7 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
 #include <bytehook.h>
 #include "native_hooks.h"
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
@@ -16,8 +17,15 @@ static struct android_namespace_t* (*android_get_exported_namespace_p)(const cha
 //NOLINTEND
 static void* ready_handle;
 
-// External hook from lwjgl_dlopen_hook.c
-void* eglGetProcAddress_hook(const char* procname);
+// EGL/GL function resolver — resolves symbols from already-loaded libraries.
+// Previously declared as extern (expecting it from lwjgl_dlopen_hook.c) but
+// that symbol was never defined, causing liblinkerhook.so to fail to load
+// with RTLD_NOW in the isolated driver namespace (undefined symbol crash).
+void* eglGetProcAddress_hook(const char* procname) {
+    if (!procname) return NULL;
+    void* sym = dlsym(RTLD_DEFAULT, procname);
+    return sym;
+}
 
 void install_global_egl_hook(bytehook_hook_all_t bytehook_hook_all_p) {
     // Forcefully hook eglGetProcAddress in native GL libraries using bytehook

@@ -26,7 +26,7 @@ bool load_turnip_vulkan() {
     const char* native_dir = getenv("POJAV_NATIVEDIR");
     const char* cache_dir = getenv("TMPDIR");
     if(!linker_ns_load(native_dir)) return false;
-    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
+    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_LAZY);
     if(linkerhook == NULL) return false;
     void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
     if(turnip_driver_handle == NULL) {
@@ -66,7 +66,7 @@ bool load_panvk_vulkan() {
         printf("DriverHook: linker_ns_load failed for PanVK\n");
         return false;
     }
-    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
+    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_LAZY);
     if(linkerhook == NULL) {
         printf("DriverHook: liblinkerhook.so missing for PanVK\n");
         return false;
