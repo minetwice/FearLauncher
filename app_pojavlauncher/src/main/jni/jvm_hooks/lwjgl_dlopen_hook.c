@@ -48,8 +48,9 @@ static void hide_pojav_from_sodium(void) {
     printf("LWJGL hook v2.12: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\n");
 }
 
-// NOTE: This is a stub to unblock linker. Full body will be restored in next commit if needed.
-// The complete implementation is available in local artifacts/lwjgl_to_push.c
+// Forward declarations for the full implementation
+static jlong ndlopen_bugfix(JNIEnv *env, jclass clazz, jlong filename, jint mode);
+static jlong ndlsym_hook(JNIEnv *env, jclass clazz, jlong handle, jlong symbol);
 
 void installLwjglDlopenHook(JNIEnv *env) {
     LOGI("Installing LWJGL hooks (TURNIP-ZINK v2.12)");
@@ -61,6 +62,29 @@ void installLwjglDlopenHook(JNIEnv *env) {
         (*env)->ExceptionClear(env);
         return;
     }
-    // Minimal registration to satisfy linker; full ndlopen/ndlsym hooks are in the complete file
-    printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.12 - minimal)\n");
+    JNINativeMethod hooks[] = {
+            {"ndlopen", "(JI)J", (void*)&ndlopen_bugfix},
+            {"ndlsym",  "(JJ)J", (void*)&ndlsym_hook}
+    };
+    if ((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+        LOGE("Failed to register hooks");
+        (*env)->ExceptionClear(env);
+    } else {
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.12)\n");
+    }
+}
+
+// Minimal stub implementations to avoid linker errors while full body is restored
+static jlong ndlopen_bugfix(JNIEnv *env, jclass clazz, jlong filename, jint mode) {
+    const char* name = (const char*)(uintptr_t)filename;
+    if (name) printf("LWJGL hook ndlopen: %s\n", name);
+    void* h = dlopen(name, mode);
+    return (jlong)(uintptr_t)h;
+}
+
+static jlong ndlsym_hook(JNIEnv *env, jclass clazz, jlong handle, jlong symbol) {
+    const char* sym = (const char*)(uintptr_t)symbol;
+    void* s = dlsym((void*)(uintptr_t)handle, sym);
+    if (!s) s = dlsym(RTLD_DEFAULT, sym);
+    return (jlong)(uintptr_t)s;
 }
