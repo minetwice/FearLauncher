@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <jni.h>
+#include <stdbool.h>
 
 #define TAG __FILE_NAME__
 #include <log.h>
@@ -68,7 +69,7 @@ bool load_panvk_vulkan() {
     }
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
     if(linkerhook == NULL) {
-        printf("DriverHook: liblinkerhook.so missing for PanVK\n");
+        printf("DriverHook: liblinkerhook.so failed for PanVK: %s\n", dlerror());
         return false;
     }
     void* panvk_handle = linker_ns_dlopen("libvulkan_panfrost.so", RTLD_LOCAL | RTLD_NOW);
