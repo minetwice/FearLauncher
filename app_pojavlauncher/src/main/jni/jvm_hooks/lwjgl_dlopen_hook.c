@@ -94,16 +94,7 @@ static void* glfw_real(const char* name) {
     return dlsym(lib, name);
 }
 
-static void* get_mesa_dl_handle(void) {
-    void* h = dlopen("libOSMesa_8.so", RTLD_NOLOAD | RTLD_NOW);
-    if (!h) h = dlopen("libOSMesa.so", RTLD_NOLOAD | RTLD_NOW);
-    if (!h) {
-        const char* name = getenv("LIB_MESA_NAME");
-        if (name && name[0]) h = dlopen(name, RTLD_NOW | RTLD_GLOBAL);
-    }
-    if (!h) h = dlopen("libOSMesa_8.so", RTLD_NOW | RTLD_GLOBAL);
-    return h;
-}
+/* get_mesa_dl_handle is already declared + defined in osmesa_loader — do not redefine as static */
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
     printf("LWJGL hook v2.12: glfwCreateWindow %dx%d (zink=%d)\n", width, height, is_zink_renderer());
