@@ -86,7 +86,7 @@ public class PojavApplication extends Application {
 				String originalJNIDirectory = getApplicationInfo().nativeLibraryDir;
 				getApplicationInfo().nativeLibraryDir = originalJNIDirectory.substring(0, originalJNIDirectory.lastIndexOf("/")).concat("/x86");
 			}
-            MinecraftDownloader.prepareSubstitutionMap(getAssets());
+			MinecraftDownloader.prepareSubstitutionMap(getAssets());
 			AsyncAssetManager.unpackRuntime(getAssets());
 		} catch (Throwable throwable) {
 			Intent ferrorIntent = new Intent(this, FatalErrorActivity.class);
@@ -103,13 +103,13 @@ public class PojavApplication extends Application {
 	}
 
 	@Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(LocaleUtils.setLocale(base));
-    }
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(LocaleUtils.setLocale(base));
+	}
 
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        LocaleUtils.setLocale(this);
-    }
+	@Override
+	public void onConfigurationChanged(@NonNull Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		LocaleUtils.setLocale(this);
+	}
 }
