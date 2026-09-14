@@ -48,8 +48,8 @@ public class RendererCompatUtil {
         for (int i = 0; i < defaultRenderers.length; i++) {
             String rendererId = defaultRenderers[i];
 
-            // Always show turnip_zink and panvk_zink (user can try them)
-            if (rendererId.equals("turnip_zink") || rendererId.equals("panvk_zink")) {
+            // Always show turnip_zink (Mesa Zink path)
+            if (rendererId.equals("turnip_zink")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
