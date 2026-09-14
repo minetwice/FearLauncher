@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -98,8 +99,50 @@ static int g_window_height = 720;
 // context on a dedicated pthread with a 32MB stack to avoid this.
 static OSMesaContext g_create_result = NULL;
 
+// Pre-load system Vulkan so Mesa's Zink can find it.
+// Mesa calls dlopen("libvulkan.so.1") (Linux convention) but Android only has
+// "libvulkan.so" (no .1 suffix). We load libvulkan.so with RTLD_GLOBAL so
+// its symbols are visible everywhere, and create a symlink libvulkan.so.1
+// in the native lib dir so Mesa's dlopen finds it by name.
+static void preload_system_vulkan(void) {
+    // 1. Load system Vulkan with RTLD_GLOBAL so Zink can see its symbols
+    void* vk = dlopen("libvulkan.so", RTLD_NOW | RTLD_GLOBAL);
+    if (!vk) {
+        // Try full path
+        vk = dlopen("/system/lib64/libvulkan.so", RTLD_NOW | RTLD_GLOBAL);
+    }
+    printf("LWJGL linkerhook: preload libvulkan.so -> %p\n", vk);
+    fflush(stdout);
+
+    // 2. Create symlink libvulkan.so.1 -> libvulkan.so in native dir
+    const char* nativedir = getenv("POJAV_NATIVEDIR");
+    if (nativedir) {
+        char linkpath[512];
+        snprintf(linkpath, sizeof(linkpath), "%s/libvulkan.so.1", nativedir);
+        // Remove existing symlink/file if present
+        unlink(linkpath);
+        // Create symlink to the soname Mesa expects
+        int rc = symlink("libvulkan.so", linkpath);
+        printf("LWJGL linkerhook: symlink %s -> libvulkan.so rc=%d\n", linkpath, rc);
+        fflush(stdout);
+        // Also try loading via the symlink path with RTLD_GLOBAL
+        if (rc == 0) {
+            void* vk2 = dlopen(linkpath, RTLD_NOW | RTLD_GLOBAL);
+            printf("LWJGL linkerhook: dlopen via symlink -> %p\n", vk2);
+            fflush(stdout);
+        }
+    }
+
+    // 3. Set env vars that help Mesa/Zink find the right Vulkan device
+    // MESA_VK_DEVICE_SELECT forces Zink to use a specific device
+    // Leave it unset to let Zink auto-select the first available device
+    setenv("MESA_VK_DEVICE_SELECT", "1002:0000", 0); // hint: any device
+}
+
 static void* osmesa_create_thread_fn(void* arg) {
     (void)arg;
+    // Pre-load Vulkan before creating OSMesa context (Zink needs it)
+    preload_system_vulkan();
     if (OSMesaCreateContext_p)
         g_create_result = OSMesaCreateContext_p(GL_RGBA, NULL);
     return NULL;
