@@ -236,7 +236,7 @@ static void drain_glfw_errors(void) {
     while (real_glfwGetError(&d) != 0) {}
 }
 
-static void resolve_all(void *handle) {
+static void resolve_all(void* handle) {
     if (!real_glfwInit) {
         real_glfwInit = (int (*)(void)) dlsym(handle, "glfwInit");
         if (!real_glfwInit) real_glfwInit = (int (*)(void)) dlsym(RTLD_DEFAULT, "glfwInit");
@@ -251,14 +251,14 @@ static void resolve_all(void *handle) {
     }
     if (!real_glfwWindowHint) {
         real_glfwWindowHint = (void (*)(int, int)) dlsym(handle, "glfwWindowHint");
-        if (!real_glfwWindowHint) real_glfwWindowHint = (void (**(int, int)) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+        if (!real_glfwWindowHint) real_glfwWindowHint = (void (*)(int, int)) dlsym(RTLD_DEFAULT, "glfwWindowHint");
     }
     if (!real_glfwCreateWindow) {
         real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(handle, "glfwCreateWindow");
         if (!real_glfwCreateWindow) real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
     }
     if (!real_glfwDefaultWindowHints) {
-        real_glfwDefaultWindowHints = (void (**(void)) dlsym(handle, "glfwDefaultWindowHints");
+        real_glfwDefaultWindowHints = (void (*)(void)) dlsym(handle, "glfwDefaultWindowHints");
         if (!real_glfwDefaultWindowHints) real_glfwDefaultWindowHints = (void (*)(void)) dlsym(RTLD_DEFAULT, "glfwDefaultWindowHints");
     }
     if (!real_glfwMakeContextCurrent) {
@@ -552,7 +552,7 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (BUILD v20260914-V11, FINAL-V9 restored + panvk_zink)");
+    LOGI("Installing LWJGL hooks (BUILD v20260914-V11, FINAL-V9 restored + panvk_zink");
     printf("LWJGL linkerhook: installing hooks (BUILD v20260914-V11)\n");
     force_turbov1_env();
 
@@ -562,11 +562,11 @@ void installLwjglDlopenHook(JNIEnv *env) {
         (*env)->ExceptionClear(env);
         return;
     }
-    JNINativeMethod hooks[] = {
+    JNINAtiveMethod hooks[] = {
             {"ndlopen", "(JI)J", &ndlopen_bugfix},
-            {"ndlsym",  "(JJ)J", &ndlsym_hook}
+            {"ndlsym",  (JJ)J", &ndlsym_hook}
     };
-    if ((*env)->RegisterNatives(env, dinamicLinkLoader, hooks, 2) != 0) {
+    if ((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
