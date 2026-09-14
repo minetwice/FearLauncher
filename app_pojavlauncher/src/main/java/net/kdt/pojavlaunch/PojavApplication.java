@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import net.kdt.pojavlaunch.lifecycle.ContextExecutor;
+import net.kdt.pojavlaunch.gpu.TurnipZinkManager;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.tasks.AsyncAssetManager;
 import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
@@ -44,7 +45,8 @@ public class PojavApplication extends Application {
 				// Write to file, since some devices may not able to show error
 				FileUtils.ensureParentDirectory(crashFile);
 				PrintStream crashStream = new PrintStream(crashFile);
-				crashStream.append("PojavLauncher crash report\n");
+				crashStream.a
+ppend("PojavLauncher crash report\n");
 				crashStream.append(" - Time: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("\n");
 				crashStream.append(" - Device: ").append(Build.PRODUCT).append(" ").append(Build.MODEL).append("\n");
 				crashStream.append(" - Android version: ").append(Build.VERSION.RELEASE).append("\n");
@@ -65,6 +67,7 @@ public class PojavApplication extends Application {
 	@Override
 	public void onCreate() {
 		ContextExecutor.setApplication(this);
+		TurnipZinkManager.initialize();
 		// Disable fatal errors on gplay. This is necessary so that google can collect crash report data and send it to me
 		// (where i can find the cause and fix it)
         //noinspection ConstantValue
@@ -86,7 +89,8 @@ public class PojavApplication extends Application {
 			if(Architecture.isx86Device() && Architecture.is32BitsDevice()){
 				String originalJNIDirectory = getApplicationInfo().nativeLibraryDir;
 				getApplicationInfo().nativeLibraryDir = originalJNIDirectory.substring(0,
-												originalJNIDirectory.lastIndexOf("/"))
+											
+	originalJNIDirectory.lastIndexOf("/"))
 												.concat("/x86");
 			}
             MinecraftDownloader.prepareSubstitutionMap(getAssets());
