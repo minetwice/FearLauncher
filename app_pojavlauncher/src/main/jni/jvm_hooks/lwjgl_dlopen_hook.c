@@ -315,18 +315,28 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     const char* filename = (const char*) filename_ptr;
     if (!filename) return 0;
 
-    if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
-        printf("LWJGL linkerhook: FINAL-V9 vulkan redirect\n");
-        return (jlong) pojavexec_loadVulkanDriver();
-    }
-    if (strstr(filename, "libTurboV1.so") || strstr(filename, "libGLMojo.so") ||
-        strstr(filename, "libGLFear.so") || strstr(filename, "libGL.so")) {
+    // GL library redirect — MUST be checked BEFORE the "vulkan." check because
+    // libmh_drive_vulkan_mesa.so contains "vulkan." but is a GL library (the
+    // OpenGL wrapper), NOT a Vulkan ICD. It must resolve to the OSMesa/Zink GL
+    // handle so that LWJGL can find glGetString, glClear, etc.
+    if (strstr(filename, "libmh_drive_vulkan_mesa.so") != NULL ||
+        strstr(filename, "libTurboV1.so") != NULL ||
+        strstr(filename, "libGLMojo.so") != NULL ||
+        strstr(filename, "libGLFear.so") != NULL ||
+        strstr(filename, "libGL.so") != NULL) {
         bool zink = is_zink_renderer();
-        printf("LWJGL linkerhook: FINAL-V9 GL redirect (%s, zink=%d)\n", filename, (int) zink);
+        printf("LWJGL linkerhook: GL redirect (%s, zink=%d)\n", filename, (int) zink);
         const pojavexec_renderspec_t *rspec = pojavexec_getRenderSpec();
         if (rspec && rspec->egl_acquire)
             return (jlong) rspec->egl_acquire(rspec->egl_path);
     }
+
+    // Vulkan library redirect (system/Turnip)
+    if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL) {
+        printf("LWJGL linkerhook: vulkan redirect (%s)\n", filename);
+        return (jlong) pojavexec_loadVulkanDriver();
+    }
+
     return (jlong) dlopen(filename, (int)jmode);
 }
 
@@ -358,8 +368,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
-    if (!sym && strncmp(symbol, "gl", 2) == 0)
-        return (jlong) universal_stub_void;
+    if (!sym && strncmp(symbol, "gl", 2) == 0) {
+        printf("LWJGL linkerhook: GL symbol not found: %s\n", symbol);
+        return 0;  // NULL — safer than a void stub that returns garbage
+    }
     return (jlong) sym;
 }
 
