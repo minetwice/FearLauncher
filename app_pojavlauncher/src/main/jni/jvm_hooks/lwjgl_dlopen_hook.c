@@ -183,7 +183,7 @@ static int hooked_glfwGetError_impl(const char** description) {
         const char* d = NULL;
         int code = real_glfwGetError(&d);
         if (code == 0 || code == 0x10001 || code == 0x10004 || code == 0x10008 ||
-            code == 65542 || code == 65546 || code == 0x10007) {
+            code == 65542 || code == 65543 || code == 65544 || code == 65546 || code == 0x10007) {
             if (description) *description = NULL;
             return 0;
         }
@@ -199,7 +199,7 @@ static int hooked_glfwGetError_impl(const char** description) {
 }
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
-    printf("LWJGL linkerhook: FINAL-V9 CreateWindow %dx%d\n", width, height);
+    printf("LWJGL linkerhook: V11 CreateWindow %dx%d\n", width, height);
     resolve_all(RTLD_DEFAULT);
     force_turbov1_env();
     drain_glfw_errors();
@@ -207,8 +207,32 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
     if (!real_glfwCreateWindow) return NULL;
 
     void* win = NULL;
+    bool zink = is_zink_renderer();
 
-    // Strategy 1: Desktop OpenGL 4.6 + EGL (Zink desktop path)
+    if (zink) {
+        // Zink path: EGL is NOT available through OSMesa on Android.
+        // EGL-based strategies generate GLFW error 65544 which fires the
+        // Minecraft error callback and crashes the game. Skip EGL entirely —
+        // create a NO_API window. The GL context is provided separately by
+        // the OSMesa/Zink bridge (osm_make_current), not by GLFW/EGL.
+        printf("LWJGL linkerhook: Zink mode — NO_API window directly\n");
+        if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
+        apply_hints_no_api();
+        win = real_glfwCreateWindow(width, height, title, monitor, share);
+        drain_glfw_errors();
+        if (win) {
+            g_window_created = 1;
+            g_has_gl_context = 0;
+            g_current_window = win;
+            printf("LWJGL linkerhook: window OK NO_API (Zink path, no GLFW EGL errors)\n");
+            return win;
+        }
+        printf("LWJGL linkerhook: NO_API window failed in Zink mode\n");
+        return NULL;
+    }
+
+    // Non-Zink path: try EGL-based strategies first
+    // Strategy 1: Desktop OpenGL 4.6 + EGL
     if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
     apply_hints_desktop_gl();
     win = real_glfwCreateWindow(width, height, title, monitor, share);
@@ -217,10 +241,10 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 1;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK desktop GL+EGL\n");
+        printf("LWJGL linkerhook: window OK desktop GL+EGL\n");
         return win;
     }
-    printf("LWJGL linkerhook: FINAL-V9 desktop GL failed\n");
+    printf("LWJGL linkerhook: desktop GL failed\n");
 
     // Strategy 2: GLES3 + EGL
     if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
@@ -231,12 +255,11 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 1;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK GLES3+EGL\n");
+        printf("LWJGL linkerhook: window OK GLES3+EGL\n");
         return win;
     }
-    printf("LWJGL linkerhook: FINAL-V9 GLES3 failed\n");
 
-    // Strategy 3: NO_API last resort (will need more work for createCapabilities)
+    // Strategy 3: NO_API fallback
     if (real_glfwDefaultWindowHints) real_glfwDefaultWindowHints();
     apply_hints_no_api();
     win = real_glfwCreateWindow(width, height, title, monitor, share);
@@ -245,11 +268,11 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
         g_window_created = 1;
         g_has_gl_context = 0;
         g_current_window = win;
-        printf("LWJGL linkerhook: FINAL-V9 window OK NO_API (no GL context)\n");
+        printf("LWJGL linkerhook: window OK NO_API (no GL context)\n");
         return win;
     }
 
-    printf("LWJGL linkerhook: FINAL-V9 all CreateWindow strategies failed\n");
+    printf("LWJGL linkerhook: all CreateWindow strategies failed\n");
     return NULL;
 }
 

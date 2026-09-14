@@ -112,8 +112,10 @@ bool load_panvk_vulkan() {
 void* pojavexec_loadVulkanDriver() {
 #ifdef ENABLE_TURNIP_LOADER
     if(android_get_device_api_level() >= 28) {
-        if(panvk_enabled && load_panvk_vulkan())
-            return linker_ns_dlopen("libmjlvpanvk.so", RTLD_LOCAL);
+        // PanVK (libvulkan_panfrost.so) is a desktop Linux build — it has
+        // libdrm.so.2, libxcb.so.1, libwayland-client.so.0 etc. as DT_NEEDED
+        // entries which don't exist on Android. Skip it and use system Vulkan
+        // (Mali's proprietary driver supports Vulkan 1.1+, enough for Zink).
         if(turnip_enabled && load_turnip_vulkan())
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
     }
@@ -126,11 +128,8 @@ void* pojavexec_loadVulkanDriver() {
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz) {
 #ifdef ENABLE_TURNIP_LOADER
-    if(panvk_enabled) {
-        if(!load_panvk_vulkan())
-            printf("Failed to preload PanVK!\n");
-        return;
-    }
+    // PanVK driver (libvulkan_panfrost.so) is a desktop Linux build that
+    // cannot load on Android. Skip preloading — system Vulkan will be used.
     if(!turnip_enabled) return;
     if(!load_turnip_vulkan()) {
         printf("Failed to preload Turnip!\n");
