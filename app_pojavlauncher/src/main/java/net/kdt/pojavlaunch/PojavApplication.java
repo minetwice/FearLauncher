@@ -45,13 +45,18 @@ public class PojavApplication extends Application {
 				// Write to file, since some devices may not able to show error
 				FileUtils.ensureParentDirectory(crashFile);
 				PrintStream crashStream = new PrintStream(crashFile);
-				crashStream.a
-ppend("PojavLauncher crash report\n");
-				crashStream.append(" - Time: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("\n");
-				crashStream.append(" - Device: ").append(Build.PRODUCT).append(" ").append(Build.MODEL).append("\n");
-				crashStream.append(" - Android version: ").append(Build.VERSION.RELEASE).append("\n");
-				crashStream.append(" - Crash stack trace:\n");
-				crashStream.append(" - Launcher version: " + BuildConfig.VERSION_NAME + "\n");
+				crashStream.append("PojavLauncher crash report
+");
+				crashStream.append(" - Time: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("
+");
+				crashStream.append(" - Device: ").append(Build.PRODUCT).append(" ").append(Build.MODEL).append("
+");
+				crashStream.append(" - Android version: ").append(Build.VERSION.RELEASE).append("
+");
+				crashStream.append(" - Crash stack trace:
+");
+				crashStream.append(" - Launcher version: " + BuildConfig.VERSION_NAME + "
+");
 				crashStream.append(Log.getStackTraceString(th));
 				crashStream.close();
 			} catch (Throwable throwable) {
@@ -89,8 +94,7 @@ ppend("PojavLauncher crash report\n");
 			if(Architecture.isx86Device() && Architecture.is32BitsDevice()){
 				String originalJNIDirectory = getApplicationInfo().nativeLibraryDir;
 				getApplicationInfo().nativeLibraryDir = originalJNIDirectory.substring(0,
-											
-	originalJNIDirectory.lastIndexOf("/"))
+												originalJNIDirectory.lastIndexOf("/"))
 												.concat("/x86");
 			}
             MinecraftDownloader.prepareSubstitutionMap(getAssets());
