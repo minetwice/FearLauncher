@@ -236,7 +236,7 @@ static void drain_glfw_errors(void) {
     while (real_glfwGetError(&d) != 0) {}
 }
 
-static void resolve_all(void* handle) {
+static void resolve_all(void *handle) {
     if (!real_glfwInit) {
         real_glfwInit = (int (*)(void)) dlsym(handle, "glfwInit");
         if (!real_glfwInit) real_glfwInit = (int (*)(void)) dlsym(RTLD_DEFAULT, "glfwInit");
@@ -251,14 +251,14 @@ static void resolve_all(void* handle) {
     }
     if (!real_glfwWindowHint) {
         real_glfwWindowHint = (void (*)(int, int)) dlsym(handle, "glfwWindowHint");
-        if (!real_glfwWindowHint) real_glfwWindowHint = (void (*)(int, int)) dlsym(RTLD_DEFAULT, "glfwWindowHint");
+        if (!real_glfwWindowHint) real_glfwWindowHint = (void (**(int, int)) dlsym(RTLD_DEFAULT, "glfwWindowHint");
     }
     if (!real_glfwCreateWindow) {
         real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(handle, "glfwCreateWindow");
         if (!real_glfwCreateWindow) real_glfwCreateWindow = (void* (*)(int, int, const char*, void*, void*)) dlsym(RTLD_DEFAULT, "glfwCreateWindow");
     }
     if (!real_glfwDefaultWindowHints) {
-        real_glfwDefaultWindowHints = (void (*)(void)) dlsym(handle, "glfwDefaultWindowHints");
+        real_glfwDefaultWindowHints = (void (**(void)) dlsym(handle, "glfwDefaultWindowHints");
         if (!real_glfwDefaultWindowHints) real_glfwDefaultWindowHints = (void (*)(void)) dlsym(RTLD_DEFAULT, "glfwDefaultWindowHints");
     }
     if (!real_glfwMakeContextCurrent) {
@@ -435,7 +435,7 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
 }
 
 static void hooked_glfwMakeContextCurrent_impl(void* window) {
-    printf("LWJGL linkerhook: FINAL-V9 MakeContextCurrent %p (has_gl=%e)\n", window, g_has_gl_context);
+    printf("LWJGL linkerhook: FINAL-V9 MakeContextCurrent %p (has_gl=%d)\n", window, g_has_gl_context);
     if (g_has_gl_context && real_glfwMakeContextCurrent) {
         real_glfwMakeContextCurrent(window);
         drain_glfw_errors();
@@ -566,7 +566,7 @@ void installLwjglDlopenHook(JNIEnv *env) {
             {"ndlopen", "(JI)J", &ndlopen_bugfix},
             {"ndlsym",  "(JJ)J", &ndlsym_hook}
     };
-    if ((*env)->RegisterNatives(env, dynamicLinkLoader, hooks, 2) != 0) {
+    if ((*env)->RegisterNatives(env, dinamicLinkLoader, hooks, 2) != 0) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
