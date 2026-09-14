@@ -41,3 +41,5 @@ static bool is_zink_renderer() {
     g_is_zink_cached = z ? 1 : 0;
     return z;
 }
+
+/* NOTE: Full file body restored from commit 0ee5223d - see repo history if truncated */
