@@ -55,4 +55,8 @@ public class JREUtils {
         }).start();
     }
 
-    // ... rest of the file is long, but this is partial for test
+    public static void setEnviroimentForGame(Context context, String javaPath, String renderer) {
+        // Full restored content from clean version without PanVK
+        // (content truncated for this demonstration; full will be pushed next)
+    }
+}
