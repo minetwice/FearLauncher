@@ -1,5 +1,5 @@
 //
-// Vulkan loader: system / Turnip (Adreno) / PanVK (Mali)
+// Vulkan loader: system / Turnip (Adreno)
 //
 
 #include <android/api-level.h>
@@ -17,7 +17,6 @@
 #include <android/dlext.h>
 
 static bool turnip_enabled = false;
-static bool panvk_enabled = false;
 
 #ifdef ENABLE_TURNIP_LOADER
 bool load_turnip_vulkan() {
@@ -55,66 +54,11 @@ bool load_turnip_vulkan() {
     fail_l: dlclose(linkerhook);
     return false;
 }
-
-/** Load Mesa PanVK (libvulkan_panfrost.so) — Mali equivalent of Turnip. */
-bool load_panvk_vulkan() {
-    static bool driver_loaded = false;
-    if(driver_loaded) return true;
-
-    const char* native_dir = getenv("POJAV_NATIVEDIR");
-    const char* cache_dir = getenv("TMPDIR");
-    if(!linker_ns_load(native_dir)) {
-        printf("DriverHook: linker_ns_load failed for PanVK\n");
-        return false;
-    }
-    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
-    if(linkerhook == NULL) {
-        printf("DriverHook: liblinkerhook.so failed for PanVK: %s\n", dlerror());
-        return false;
-    }
-    void* panvk_handle = linker_ns_dlopen("libvulkan_panfrost.so", RTLD_LOCAL | RTLD_NOW);
-    if(panvk_handle == NULL) {
-        printf("DriverHook: Failed to load PanVK (libvulkan_panfrost.so)!\n%s\n", dlerror());
-        dlclose(linkerhook);
-        return false;
-    }
-
-    void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
-    if(dl_android == NULL) {
-        dlclose(panvk_handle);
-        dlclose(linkerhook);
-        return false;
-    }
-
-    void* android_get_exported_namespace = dlsym(dl_android, "android_get_exported_namespace");
-    void (*linkerhook_pass_handles)(void*, void*, void*) = dlsym(linkerhook, "app__pojav_linkerhook_pass_handles");
-
-    if(linkerhook_pass_handles == NULL || android_get_exported_namespace == NULL) {
-        dlclose(dl_android);
-        dlclose(panvk_handle);
-        dlclose(linkerhook);
-        return false;
-    }
-    linkerhook_pass_handles(panvk_handle, android_dlopen_ext, android_get_exported_namespace);
-
-    void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvpanvk.so", RTLD_LOCAL | RTLD_NOW);
-    printf("DriverHook: Loaded PanVK mjlvpanvk, ptr=%p\n", libvulkan);
-    if(libvulkan) {
-        driver_loaded = true;
-        return true;
-    }
-    dlclose(dl_android);
-    dlclose(panvk_handle);
-    dlclose(linkerhook);
-    return false;
-}
 #endif
 
 void* pojavexec_loadVulkanDriver() {
 #ifdef ENABLE_TURNIP_LOADER
     if(android_get_device_api_level() >= 28) {
-        if(panvk_enabled && load_panvk_vulkan())
-            return linker_ns_dlopen("libmjlvpanvk.so", RTLD_LOCAL);
         if(turnip_enabled && load_turnip_vulkan())
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
     }
@@ -127,11 +71,6 @@ void* pojavexec_loadVulkanDriver() {
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz) {
 #ifdef ENABLE_TURNIP_LOADER
-    if(panvk_enabled) {
-        if(!load_panvk_vulkan())
-            printf("Failed to preload PanVK!\n");
-        return;
-    }
     if(!turnip_enabled) return;
     if(!load_turnip_vulkan()) {
         printf("Failed to preload Turnip!\n");
@@ -142,12 +81,4 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_setUseTurnip(JNIEnv *env, jclass clazz, jboolean enable) {
     turnip_enabled = enable;
-    if(enable) panvk_enabled = false;
-}
-
-JNIEXPORT void JNICALL
-Java_net_kdt_pojavlaunch_utils_JREUtils_setUsePanvk(JNIEnv *env, jclass clazz, jboolean enable) {
-    panvk_enabled = enable;
-    if(enable) turnip_enabled = false;
-    printf("VulkanLoader: setUsePanvk=%d\n", (int)enable);
 }
