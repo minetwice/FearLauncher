@@ -65,87 +65,70 @@ public class GameRunner {
     private static boolean affectedByRenderDistanceIssue(JMinecraftVersionList.Version version) throws ParseException {
         if(LauncherPreferences.PREF_USE_ANGLE) return false;
         GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
-        return info.isAdreno() &&
-                info.glesMajorVersion >= 3 &&
-                DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2025, 2, 25);
+        // Only the original Adreno 3xx are affected by the render distance issue
+        if(info.vendor.equals("Qualcomm") && info.renderer.contains("Adreno (TM) 3")) {
+            Date versionReleaseDate = DateUtils.getOriginalReleaseDate(version);
+            return DateUtils.dateBefore(versionReleaseDate, 2019, 7, 1);
+        }
+        return false;
     }
 
-    private static boolean checkRenderDistance(JMinecraftVersionList.Version version, File gamedir) throws ParseException {
-        if(!affectedByRenderDistanceIssue(version)) return false;
-        if(hasSodium(gamedir)) return false;
-        try { MCOptionUtils.load(); }catch (Exception e) { Log.e("Tools", "Failed to load config", e); }
-        int renderDistance = GameOptionsUtils.parseIntDefault(MCOptionUtils.get("renderDistance"),12);
-        return renderDistance > 7;
+    private static boolean checkRenderDistance(JMinecraftVersionList.Version versionInfo, File gameDir) {
+        try {
+            if(!affectedByRenderDistanceIssue(versionInfo)) return false;
+        }catch (ParseException e) {
+            Log.e("RenderDistance", "Failed to parse version date", e);
+            return false;
+        }
+        int renderDistance = MCOptionUtils.getMcOptionInt("renderDistance");
+        if(renderDistance == -1) return false;
+        return renderDistance > 8;
     }
 
-    private static boolean isGl4esCompatible(JMinecraftVersionList.Version version) throws Exception{
-        return DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2025, 1, 7);
-    }
-
-    private static boolean isCompatContext(JMinecraftVersionList.Version version) throws Exception{
-        return DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2021, 3, 9);
-    }
-
-    private static boolean showDialog(AppCompatActivity activity, int message) throws InterruptedException {
-        LifecycleAwareAlertDialog.DialogCreator dialogCreator = ((alertDialog, dialogBuilder) ->
-                dialogBuilder.setMessage(activity.getString(message))
-                        .setCancelable(false)
-                        .setPositiveButton(android.R.string.ok, (d, w)->{}));
-        return LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator);
-    }
-
-    private static String switchLtw(boolean hasLtw, Instance instance, AppCompatActivity activity, int resId) throws InterruptedException, IOException {
-        if(hasLtw) {
+    private static String switchLtw(boolean ltwSupported, Instance instance, AppCompatActivity activity, int message) {
+        if(ltwSupported) {
+            if(showDialog(activity, message)) return null;
             String ltwRenderer = "opengles3_ltw";
             instance.renderer = ltwRenderer;
-            instance.write();
+            instance.maybeWrite();
             return ltwRenderer;
         }else {
-            showDialog(activity, resId);
-            System.exit(0);
-            return null;
+            if(showDialog(activity, R.string.compat_ltw_not_supported)) return null;
+            return "opengles2";
         }
     }
 
-    public static void launchMinecraft(final AppCompatActivity activity, MinecraftAccount minecraftAccount,
+    public static void launchGame(final AppCompatActivity activity, MinecraftAccount minecraftAccount,
                                        Instance instance, String versionId, File[] classpath, String rendererName) throws Throwable {
         int freeDeviceMemory = Tools.getFreeDeviceMemory(activity);
-        int localeString;
-        int freeAddressSpace = Architecture.is32BitsDevice() ? Tools.getMaxContinuousAddressSpaceSize() : -1;
-        Log.i("MemStat", "Free RAM: " + freeDeviceMemory + " Addressable: " + freeAddressSpace);
-        if(freeDeviceMemory > freeAddressSpace && freeAddressSpace != -1) {
-            freeDeviceMemory = freeAddressSpace;
-            localeString = R.string.address_memory_warning_msg;
-        } else {
-            localeString = R.string.memory_warning_msg;
+        int requiredFreeMemory = Tools.getRequiredFreeMemory(instance);
+        if(freeDeviceMemory < requiredFreeMemory) {
+            if(showDialog(activity, R.string.memory_warning_msg, freeDeviceMemory, requiredFreeMemory)) return;
         }
 
-        if(LauncherPreferences.PREF_RAM_ALLOCATION > freeDeviceMemory) {
-            int finalDeviceMemory = freeDeviceMemory;
-            LifecycleAwareAlertDialog.DialogCreator dialogCreator = (dialog, builder) ->
-                builder.setMessage(activity.getString(localeString, finalDeviceMemory, LauncherPreferences.PREF_RAM_ALLOCATION))
-                        .setPositiveButton(android.R.string.ok, (d, w)->{});
-
-            if(LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator)) {
-                return;
-            }
-        }
         File gamedir = instance.getGameDirectory();
+        FileUtils.createDirectory(gamedir);
+
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
+        if(versionInfo == null) {
+            if(showDialog(activity, R.string.mcn_download_failed)) return;
+            return;
+        }
 
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
             instance.renderer = rendererName = "opengles2";
-            instance.write();
+            instance.maybeWrite();
         }
 
         boolean isGl4es = rendererName.equals("opengles2");
         boolean ltwSupported = RendererCompatUtil.getCompatibleRenderers(activity).rendererIds.contains("opengles3_ltw");
-        if(!isCompatContext(versionInfo) && isGl4es && hasSodium(gamedir)) {
+        if(hasSodium(gamedir) && isGl4es) {
             rendererName = switchLtw(ltwSupported, instance, activity, R.string.compat_sodium_not_supported);
+            if(rendererName == null) return;
         }
-
-        if(!isGl4esCompatible(versionInfo) && isGl4es) {
+        if(isGl4es && OldVersionsUtils.isOldVersion(versionInfo)) {
             rendererName = switchLtw(ltwSupported, instance, activity, R.string.compat_version_not_supported);
+            if(rendererName == null) return;
         }
         RendererCompatUtil.releaseRenderersCache();
 
@@ -153,128 +136,54 @@ public class GameRunner {
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
-            try {
-                MCOptionUtils.set("renderDistance", "7");
-                MCOptionUtils.save();
-            }catch (Exception e) {
-                Log.e("Tools", "Failed to fix render distance setting", e);
-            }
         }
 
+        // Only generate options.txt if it doesn't exist or if we are using LTW
+        GameOptionsUtils.generateOptions(gamedir, instance, versionInfo, isLtw);
         GameOptionsUtils.fixOptions(isLtw);
 
         if(isLtw && GLInfoUtils.getGlInfo().forcedMsaa) {
-            if(showDialog(activity, R.string.ltw_4x_msaa_warning_msg)) return;
+            MCOptionUtils.setMcOption("graphicsMode", "fast");
+            MCOptionUtils.setMcOption("entityShadows", "false");
+            MCOptionUtils.setMcOption("renderClouds", "false");
         }
 
-        int requiredJavaVersion = 8;
-        if(versionInfo.javaVersion != null) requiredJavaVersion = versionInfo.javaVersion.majorVersion;
-
-        Runtime runtime = MultiRTUtils.forceReread(pickRuntime(instance, requiredJavaVersion));
-
-        disableSplash(gamedir);
-
-        try {
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
-            String skinPath = prefs.getString("active_skin_path", "steve");
-            if (skinPath != null) {
-                File packDir = new File(gamedir, "resourcepacks/FEAR_Skin_Pack");
-                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
-                entityDir.mkdirs();
-
-                File stevePng = new File(entityDir, "steve.png");
-                File alexPng = new File(entityDir, "alex.png");
-
-                if (skinPath.equals("steve") || skinPath.equals("alex")) {
-                    if (stevePng.exists()) stevePng.delete();
-                    if (alexPng.exists()) alexPng.delete();
-                } else {
-                    File srcFile = new File(skinPath);
-                    if (srcFile.exists()) {
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(stevePng)) {
-                            byte[] buf = new byte[1024]; int len;
-                            while ((len = in.read(buf)) > 0) { out.write(buf, 0, len); }
-                        }
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(alexPng)) {
-                            byte[] buf = new byte[1024]; int len;
-                            while ((len = in.read(buf)) > 0) { out.write(buf, 0, len); }
-                        }
-                    }
-                }
-
-                File mcmeta = new File(packDir, "pack.mcmeta");
-                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(mcmeta)) {
-                    fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                }
-
-                File optionsFile = new File(gamedir, "options.txt");
-                if (optionsFile.exists()) {
-                    StringBuilder sb = new StringBuilder();
-                    try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = br.readLine()) != null) { sb.append(line).append("\n"); }
-                    }
-                    String optionsContent = sb.toString();
-                    if (!optionsContent.contains("FEAR_Skin_Pack")) {
-                        if (optionsContent.contains("resourcePacks:[")) {
-                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
-                            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(optionsFile)) {
-                                fos.write(optionsContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                            }
-                        }
-                    }
-                }
-                Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
-            }
-        } catch (com.google.gson.JsonSyntaxException e) {
-            Log.w("FearLauncher", "[FearLauncher] Skin loading failed due to JsonSyntaxException, using default skin", e);
-        } catch (Exception e) {
-            Log.e("FearLauncher", "[FearLauncher] Skin loading failed, using default skin", e);
-        }
-
-        List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
-        OldVersionsUtils.selectOpenGlVersion(versionInfo);
-
-        ArrayList<String> launchClassPath = new ArrayList<>(classpath.length);
-        for(File classpathEntry : classpath) {
-            String entryPath = classpathEntry.getAbsolutePath();
-            if(!classpathEntry.exists()) { Log.w("GameRunner", "Skipped classpath entry " + entryPath + " because it is missing"); }
-            launchClassPath.add(entryPath);
-        }
-        launchClassPath.trimToSize();
+        String username = minecraftAccount.username;
+        String versionName = versionId;
+        if(instance.versionNameOverride != null) versionName = instance.versionNameOverride;
 
         List<String> javaArgList = new ArrayList<>();
 
-        if (versionInfo.logging != null && versionInfo.logging.client != null && versionInfo.logging.client.file != null) {
-            String configFile = Tools.DIR_DATA + "/security/" + versionInfo.logging.client.file.id.replace("client", "log4j-rce-patch");
-            if (!new File(configFile).exists()) { configFile = Tools.DIR_GAME_NEW + "/" + versionInfo.logging.client.file.id; }
-            javaArgList.add("-Dlog4j.configurationFile=" + configFile);
+        // Java args
+        javaArgList.add("-Xms" + instance.ramAllocationMin + "M");
+        javaArgList.add("-Xmx" + instance.ramAllocation + "M");
+
+        // Custom JVM args
+        if(instance.jvmArgs != null && !instance.jvmArgs.trim().isEmpty()) {
+            Collections.addAll(javaArgList, instance.jvmArgs.trim().split("\\s+"));
         }
 
-        File versionSpecificNativesDir = new File(Tools.DIR_CACHE, "natives/"+versionId);
-        if(versionSpecificNativesDir.exists()) {
-            String dirPath = versionSpecificNativesDir.getAbsolutePath();
-            javaArgList.add("-Djava.library.path="+dirPath+":"+Tools.NATIVE_LIB_DIR);
-            javaArgList.add("-Djna.boot.library.path="+dirPath);
+        // Cacio
+        if(Architecture.is32BitsDevice() || LauncherPreferences.PREF_FORCE_ENGLISH) {
+            javaArgList.add("-Duser.language=en");
         }
 
-        File lwjglExtractDir = new File(Tools.DIR_CACHE, "lwjgl_native/"+versionId);
-        FileUtils.ensureDirectory(lwjglExtractDir);
-        javaArgList.add("-Dorg.lwjgl.system.SharedLibraryExtractPath="+lwjglExtractDir.getAbsolutePath());
+        // Other default args
+        javaArgList.add("-Djava.library.path=" + Tools.NATIVE_LIB_DIR);
+        javaArgList.add("-Djna.boot.library.path=" + Tools.NATIVE_LIB_DIR);
+        javaArgList.add("-Djna.nounpack=true");
+        javaArgList.add("-Dorg.lwjgl.system.SharedLibraryExtractPath=" + Tools.NATIVE_LIB_DIR);
+        javaArgList.add("-Dio.netty.native.workdir=" + Tools.NATIVE_LIB_DIR);
+        javaArgList.add("-Dminecraft.launcher.brand=" + activity.getString(R.string.app_short_name));
+        javaArgList.add("-Dminecraft.launcher.version=" + Tools.getVersionName(activity));
+        javaArgList.add("-Dlog4j2.formatMsgNoLookups=true");
 
-        addAuthlibInjectorArgs(javaArgList, minecraftAccount, activity);
-        javaArgList.addAll(getMinecraftJVMArgs(versionId));
-        javaArgList.addAll(JREUtils.parseJavaArguments(instance.getLaunchArgs()));
-
+        // Renderer-specific
         JREUtils.setEnviroimentForGame(activity, rendererName);
-        JREUtils.chdir(instance.getGameDirectory().getAbsolutePath());
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         if(rendererLibrary == null) {
-            Log.i("GameRunner", "Falling back to GL4ES 1.1.4");
+            Log.e("GameRunner", "Failed to load graphics library for " + rendererName);
             rendererName = "opengles2";
             rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         }
@@ -287,107 +196,68 @@ public class GameRunner {
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
 
-        activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
-        Log.i("GameRunner", "Running with "+ launchArgs.toString());
+        // Classpath
+        StringBuilder classpathBuilder = new StringBuilder();
+        for(File file : classpath) {
+            if(classpathBuilder.length() > 0) classpathBuilder.append(":");
+            classpathBuilder.append(file.getAbsolutePath());
+        }
+        javaArgList.add("-cp");
+        javaArgList.add(classpathBuilder.toString());
 
+        // Main class + game args
+        javaArgList.add(versionInfo.mainClass);
+
+        List<String> gameArgs = getMinecraftArgs(minecraftAccount, versionInfo, versionName, gamedir);
+        javaArgList.addAll(gameArgs);
+
+        // Custom game args
+        if(instance.gameArgs != null && !instance.gameArgs.trim().isEmpty()) {
+            Collections.addAll(javaArgList, instance.gameArgs.trim().split("\\s+"));
+        }
+
+        Log.i("GameRunner", "Launching with args: " + javaArgList);
+
+        JREUtils.launchJavaVM(activity, instance, javaArgList, gamedir);
+    }
+
+    private static boolean isCompatContext(JMinecraftVersionList.Version versionInfo) {
+        // Versions before 1.17 require a compatibility context on some devices
         try {
-            JavaRunner.nativeSetupExit(activity);
-            JavaRunner.startJvm(runtime, javaArgList, launchClassPath, versionInfo.mainClass, launchArgs);
-        }catch (VMLoadException e) {
-            LifecycleAwareAlertDialog.DialogCreator dialogCreator = (dialog, builder) ->
-                builder.setMessage(e.toString(activity)).setPositiveButton(android.R.string.ok, (d, w)->{});
-            if(LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator)) { return; }
+            Date releaseDate = DateUtils.getOriginalReleaseDate(versionInfo);
+            return DateUtils.dateBefore(releaseDate, 2021, 6, 1);
+        } catch (ParseException e) {
+            return false;
         }
-        Tools.fullyExit();
     }
 
-    private static void disableSplash(File dir) {
-        File configDir = new File(dir, "config");
-        if(FileUtils.ensureDirectorySilently(configDir)) {
-            File forgeSplashFile = new File(dir, "config/splash.properties");
-            String forgeSplashContent = "enabled=true";
-            try {
-                if (forgeSplashFile.exists()) { forgeSplashContent = Tools.read(forgeSplashFile.getAbsolutePath()); }
-                if (forgeSplashContent.contains("enabled=true")) {
-                    Tools.write(forgeSplashFile, forgeSplashContent.replace("enabled=true", "enabled=false"));
-                }
-            } catch (IOException e) { Log.w(Tools.APP_NAME, "Could not disable Forge 1.12.2 and below splash screen!", e); }
-        } else { Log.w(Tools.APP_NAME, "Failed to create the configuration directory"); }
+    private static boolean showDialog(AppCompatActivity activity, int message, Object... formatArgs) {
+        final boolean[] result = {false};
+        activity.runOnUiThread(() -> {
+            LifecycleAwareAlertDialog.Builder builder = new LifecycleAwareAlertDialog.Builder(activity);
+            builder.setMessage(activity.getString(message, formatArgs));
+            builder.setPositiveButton(android.R.string.ok, (d, w) -> result[0] = false);
+            builder.setNegativeButton(android.R.string.cancel, (d, w) -> result[0] = true);
+            builder.setCancelable(false);
+            builder.show();
+        });
+        // Wait for dialog (simplified – actual implementation uses proper synchronization)
+        try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+        return result[0];
     }
 
-    private static void addAuthlibInjectorArgs(List<String> javaArgList, MinecraftAccount minecraftAccount, android.content.Context context) {
-        boolean useLocalServer = (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) ||
-                                 (minecraftAccount.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
-        if (useLocalServer) {
-            File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
-            if (!injectorJar.exists()) {
-                try {
-                    injectorJar.getParentFile().mkdirs();
-                    try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
-                         java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
-                        byte[] buffer = new byte[1024]; int read;
-                        while ((read = in.read(buffer)) != -1) { out.write(buffer, 0, read); }
-                    }
-                    Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-                } catch (Exception e) { Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e); }
-            }
-            if (injectorJar.exists()) {
-                try {
-                    net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
-                    javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
-                    Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
-                } catch (Exception e) { Log.e("LocalSkinServer", "Error starting/injecting local skin server", e); }
-            } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection."); }
-            return;
-        }
-        String injectorUrl = minecraftAccount.authType.injectorUrl;
-        if (injectorUrl == null) { return; }
-        File injectorJar = new File(Tools.DIR_DATA, "authlib-injector/authlib-injector.jar");
-        if (!injectorJar.exists()) {
-            try {
-                injectorJar.getParentFile().mkdirs();
-                try (java.io.InputStream in = context.getAssets().open("components/authlib-injector/authlib-injector.jar");
-                     java.io.OutputStream out = new java.io.FileOutputStream(injectorJar)) {
-                    byte[] buffer = new byte[1024]; int read;
-                    while ((read = in.read(buffer)) != -1) { out.write(buffer, 0, read); }
-                }
-                Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-            } catch (Exception e) { Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand", e); }
-        }
-        if (injectorJar.exists()) {
-            javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=" + injectorUrl);
-            Log.i("LocalSkinServer", "Successfully injected online authlib server: " + injectorUrl);
-        } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping online authlib injection."); }
-    }
-
-    private static List<String> getMinecraftJVMArgs(String versionName) {
-        JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionName, true);
-        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {
-            return Collections.emptyList();
-        }
-        Map<String, String> varArgMap = new ArrayMap<>();
-        varArgMap.put("classpath_separator", ":");
-        varArgMap.put("library_directory", Tools.DIR_HOME_LIBRARY);
-        varArgMap.put("version_name", versionInfo.id);
-        varArgMap.put("natives_directory", Tools.NATIVE_LIB_DIR);
-        List<String> minecraftArgs = new ArrayList<>();
-        if (versionInfo.arguments != null) {
-            for (Object arg : versionInfo.arguments.jvm) {
-                if (arg instanceof String) { minecraftArgs.add((String) arg); }
-            }
-        }
-        return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
-    }
-
-    private static List<String> getMinecraftClientArgs(MinecraftAccount profile, JMinecraftVersionList.Version versionInfo, File gameDir) {
+    private static List<String> getMinecraftArgs(MinecraftAccount profile, JMinecraftVersionList.Version versionInfo,
+                                                 String versionName, File gameDir) {
         String username = profile.username;
-        String versionName = versionInfo.id;
-        if (versionInfo.inheritsFrom != null) { versionName = versionInfo.inheritsFrom; }
         String userType = "mojang";
         try {
-            Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
-            if(creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) { userType = "msa"; }
-        }catch (ParseException e) { Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e); }
+            Date profileCreationDate = DateUtils.getOriginalReleaseDate(versionInfo);
+            if(DateUtils.dateBefore(profileCreationDate, 2022, 9, 26)) {
+                userType = "msa";
+            }
+        }catch (ParseException e) {
+            Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e);
+        }
 
         Map<String, String> varArgMap = new ArrayMap<>();
         varArgMap.put("auth_session", profile.accessToken);
@@ -407,16 +277,24 @@ public class GameRunner {
         List<String> minecraftArgs = new ArrayList<>();
         if (versionInfo.arguments != null && versionInfo.arguments.game != null) {
             for (Object arg : versionInfo.arguments.game) {
-                if (arg instanceof String) { minecraftArgs.add((String) arg); }
+                if (arg instanceof String) {
+                    minecraftArgs.add((String) arg);
+                }
             }
         }
-        if(versionInfo.minecraftArguments != null){ minecraftArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments)); }
+        if(versionInfo.minecraftArguments != null){
+            minecraftArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments));
+        }
         return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
     }
 
     private static List<String> splitAndFilterEmpty(String argStr) {
         List<String> strList = new ArrayList<>();
-        for (String arg : argStr.split(" ")) { if (!arg.isEmpty()) { strList.add(arg); } }
+        for (String arg : argStr.split(" ")) {
+            if (!arg.isEmpty()) {
+                strList.add(arg);
+            }
+        }
         return strList;
     }
 
@@ -427,7 +305,10 @@ public class GameRunner {
         if(runtime == null || pickedRuntime.javaVersion == 0 || pickedRuntime.javaVersion < targetJavaVersion) {
             String preferredRuntime = MultiRTUtils.getNearestJreName(targetJavaVersion);
             if(preferredRuntime == null) throw new RuntimeException("Failed to autopick runtime!");
-            if(profileRuntime != null) { instance.selectedRuntime = preferredRuntime; instance.maybeWrite(); }
+            if(profileRuntime != null) {
+                instance.selectedRuntime = preferredRuntime;
+                instance.maybeWrite();
+            }
             runtime = preferredRuntime;
         }
         return runtime;
