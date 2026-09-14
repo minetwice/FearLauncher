@@ -27,6 +27,10 @@
 #include "ctxbridges/osm_bridge.h"
 #include "ctxbridges/osmesa_loader.h"
 
+// OSMesaGetProcAddress — official way to resolve GL function pointers from OSMesa/Zink.
+// Defined in osmesa_loader.c but not declared in the header.
+extern void* (*OSMesaGetProcAddress_p)(const char* funcName);
+
 bridge_environ_t bridge_environ = {0};
 
 static int g_is_zink_cached = -1;
@@ -76,12 +80,34 @@ static void* glXGetCurrentContext_fake(void) {
     return fake_gl_context;
 }
 
+// Resolve a GL function pointer using the OSMesa handle loaded by osmesa_loader.c.
+// The OSMesa library was loaded with RTLD_LOCAL in a specific namespace, so
+// dlsym(RTLD_DEFAULT, ...) from lwjgl_dlopen_hook cannot find GL symbols.
+// We must use the actual handle (get_mesa_dl_handle()) and OSMesaGetProcAddress.
+static void* resolve_gl_symbol(const char* name) {
+    if (!name) return NULL;
+    // 1. OSMesaGetProcAddress — official OSMesa GL resolver (knows about Zink too)
+    if (OSMesaGetProcAddress_p) {
+        void* sym = OSMesaGetProcAddress_p(name);
+        if (sym) return sym;
+    }
+    // 2. Direct dlsym on the OSMesa library handle (RTLD_LOCAL, but handle works)
+    void* mesa_handle = get_mesa_dl_handle();
+    if (mesa_handle) {
+        void* sym = dlsym(mesa_handle, name);
+        if (sym) return sym;
+    }
+    // 3. Last resort: global scope
+    void* sym = dlsym(RTLD_DEFAULT, name);
+    return sym;
+}
+
 // glXGetProcAddress / glXGetProcAddressARB — LWJGL uses these to resolve GL
 // function pointers. OSMesa doesn't export GLX, so we resolve via dlsym
 // against already-loaded libraries (OSMesa handle is in the caller's handle).
 static void* glXGetProcAddress_fake(const char* procName) {
     if (!procName) return NULL;
-    void* sym = dlsym(RTLD_DEFAULT, procName);
+    void* sym = resolve_gl_symbol(procName);
     if (!sym) {
         printf("LWJGL linkerhook: glXGetProcAddress: not found: %s\n", procName);
     }
@@ -186,6 +212,17 @@ static int hooked_glfwInit_impl(void) {
     printf("LWJGL linkerhook: FINAL-V9 hooked_glfwInit\n");
     force_turbov1_env();
     resolve_all(RTLD_DEFAULT);
+
+    // Ensure OSMesa symbols are loaded — in NO_API (Zink) mode the bridge's
+    // osm_init() is never called because we skip the EGL/bridge path, so we
+    // must call dlsym_OSMesa() here to populate g_mesa_dl_handle and
+    // OSMesaGetProcAddress_p before LWJGL tries to resolve GL symbols.
+    if (!osmesa_is_loaded()) {
+        dlsym_OSMesa();
+        printf("LWJGL linkerhook: dlsym_OSMesa() called (loaded=%d, handle=%p, GetProcAddr=%p)\n",
+               (int)osmesa_is_loaded(), get_mesa_dl_handle(), (void*)OSMesaGetProcAddress_p);
+    }
+
     drain_glfw_errors();
 
     if (real_glfwInitHint)
@@ -393,9 +430,13 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
+    // GL symbols: try OSMesa handle + OSMesaGetProcAddress (handles RTLD_LOCAL + namespace)
     if (!sym && strncmp(symbol, "gl", 2) == 0) {
-        printf("LWJGL linkerhook: GL symbol not found: %s\n", symbol);
-        return 0;  // NULL — safer than a void stub that returns garbage
+        sym = resolve_gl_symbol(symbol);
+        if (!sym) {
+            printf("LWJGL linkerhook: GL symbol not found: %s\n", symbol);
+            return 0;
+        }
     }
     return (jlong) sym;
 }
