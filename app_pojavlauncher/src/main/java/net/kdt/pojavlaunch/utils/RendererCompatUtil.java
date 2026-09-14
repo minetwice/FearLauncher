@@ -37,7 +37,8 @@ public class RendererCompatUtil {
         boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
         // Current Mesa requires API 29+
         boolean deviceCompatibleMesa = SDK_INT >= 29;
-        boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
+        // OpenGL ES 3.0 has been available since API 18; almost all devices we support have it
+        boolean deviceHasOpenGLES3 = SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
         // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
 
