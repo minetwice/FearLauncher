@@ -1,17 +1,60 @@
 package net.kdt.pojavlaunch.utils;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 
-import net.kdt.pojavlaunch.R;
-import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import git.artdeell.mojo.R;
 
+import net.kdt.pojavlaunch.Architecture;
+import net.kdt.pojavlaunch.Tools;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RendererCompatUtil {
     private static RenderersList sCompatibleRenderers;
+
+    /**
+     * Checks if the device has Vulkan support (required by Zink-based renderers).
+     */
+    public static boolean checkVulkanSupport(PackageManager packageManager) {
+        try {
+            if (packageManager != null
+                    && packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION)) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            System.loadLibrary("vulkan");
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the device can run the bundled Mesa-based drivers.
+     */
+    public static boolean checkDeviceCompatibleMesa() {
+        return Architecture.is64BitsDevice();
+    }
+
+    /**
+     * Checks if the device supports OpenGL ES 3.
+     */
+    public static boolean checkOpenGLES3Support() {
+        return GLInfoUtils.getGlInfo().glesMajorVersion >= 3;
+    }
+
+    /**
+     * Checks if a native library is present in the launcher's native library directory.
+     */
+    public static boolean checkLocalLibraryPresent(String libName) {
+        return new File(Tools.NATIVE_LIB_DIR, libName).exists();
+    }
 
     public static RenderersList getCompatibleRenderers(Context context) {
         if(sCompatibleRenderers != null) return sCompatibleRenderers;
@@ -20,10 +63,10 @@ public class RendererCompatUtil {
         String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
         String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
 
-        boolean deviceHasVulkan = Tools.checkVulkanSupport(context.getPackageManager());
-        boolean deviceCompatibleMesa = Tools.checkDeviceCompatibleMesa();
-        boolean deviceHasOpenGLES3 = Tools.checkOpenGLES3Support();
-        boolean appHasLtw = Tools.checkLocalLibraryPresent("libltw.so");
+        boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
+        boolean deviceCompatibleMesa = checkDeviceCompatibleMesa();
+        boolean deviceHasOpenGLES3 = checkOpenGLES3Support();
+        boolean appHasLtw = checkLocalLibraryPresent("libltw.so");
 
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
