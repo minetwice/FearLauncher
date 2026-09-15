@@ -155,8 +155,12 @@ static void glfw_stub_void(void) {}
 static int glfw_stub_int0(void) { return 0; }
 static void* glfw_stub_ptr0(void) { return NULL; }
 
+/* Forward all callbacks to real libglfw so mouse/key/cursor events work */
 static void* hooked_glfwSetCallback_impl(void* window, void* callback) {
-    (void)window; (void)callback; return NULL;
+    /* This is only used as last-resort stub when real symbol is missing.
+       Prefer real libglfw for input callbacks. */
+    (void)window; (void)callback;
+    return NULL;
 }
 
 static int hooked_glfwInit_impl(void) {
@@ -268,6 +272,17 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
     if (real_create) {
         g_libglfw_window = real_create(width, height, title ? title : "FearLauncher", monitor, share);
         printf("LWJGL hook v2.12: real glfwCreateWindow -> %p\n", g_libglfw_window);
+        /* Force focus + visible cursor so title-screen clicks work */
+        if (g_libglfw_window) {
+            void (*real_focus)(void*) = (void (*)(void*)) glfw_real("glfwFocusWindow");
+            void (*real_show)(void*) = (void (*)(void*)) glfw_real("glfwShowWindow");
+            void (*real_input)(void*, int, int) = (void (*)(void*, int, int)) glfw_real("glfwSetInputMode");
+            if (real_show) real_show(g_libglfw_window);
+            if (real_focus) real_focus(g_libglfw_window);
+            /* GLFW_CURSOR = 0x00033001, GLFW_CURSOR_NORMAL = 0x00034001 */
+            if (real_input) real_input(g_libglfw_window, 0x00033001, 0x00034001);
+            printf("LWJGL hook v2.12: focused window + normal cursor\n");
+        }
     } else {
         printf("LWJGL hook v2.12: real glfwCreateWindow missing\n");
     }
@@ -472,13 +487,15 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                 return (jlong) rspec->egl_acquire(rspec->egl_path);
         }
     }
-    return (jlong) dlopen(filename, (int)jmode);
+    int mode = (int) jmode;
+    void* handle = dlopen(filename, mode);
+    return (jlong) handle;
 }
 
 static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
-                  __attribute__((unused)) jclass class,
-                  jlong handle,
-                  jlong symbol_ptr) {
+                 __attribute__((unused)) jclass class,
+                 jlong handle,
+                 jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
 
@@ -527,6 +544,9 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
         if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
 
+        /* Input path: always prefer real Android GLFW (dnbglfw) so touch/mouse
+           injection from CallbackBridge/GLFW.sendMouseEvent reaches the game.
+           Never swallow mouse-button / cursor / key callbacks with a no-op. */
         if (strstr(symbol, "Callback") != NULL ||
             strcmp(symbol, "glfwGetCursorPos") == 0 ||
             strcmp(symbol, "glfwSetCursorPos") == 0 ||
@@ -547,12 +567,19 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             strncmp(symbol, "glfwGetJoystick", 15) == 0 ||
             strncmp(symbol, "glfwJoystick", 12) == 0 ||
             strncmp(symbol, "glfwGetGamepad", 14) == 0 ||
-            strcmp(symbol, "glfwUpdateGamepadMappings") == 0) {
+            strcmp(symbol, "glfwUpdateGamepadMappings") == 0 ||
+            strcmp(symbol, "glfwFocusWindow") == 0 ||
+            strcmp(symbol, "glfwShowWindow") == 0) {
             void* real = glfw_real(symbol);
             if (real == NULL) real = dlsym(RTLD_DEFAULT, symbol);
-            if (real != NULL) return (jlong) real;
-            if (strstr(symbol, "Callback") != NULL)
+            if (real != NULL) {
+                return (jlong) real;
+            }
+            /* Only use no-op stub if symbol truly missing — log it */
+            if (strstr(symbol, "Callback") != NULL) {
+                printf("LWJGL hook v2.12: WARNING missing Callback symbol %s\n", symbol);
                 return (jlong) hooked_glfwSetCallback_impl;
+            }
             if (strncmp(symbol, "glfwGet", 7) == 0) return (jlong) glfw_stub_ptr0;
             if (strncmp(symbol, "glfwSet", 7) == 0 || strncmp(symbol, "glfwDestroy", 11) == 0)
                 return (jlong) glfw_stub_void;
