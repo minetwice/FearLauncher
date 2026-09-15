@@ -1,0 +1,1 @@
+crashStream.append("PojavLauncher crash report\n");
