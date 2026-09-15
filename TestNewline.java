@@ -1,0 +1,1 @@
+public class Test { void test() { crashStream.append("PojavLauncher crash report\n"); } }
