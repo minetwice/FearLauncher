@@ -44,18 +44,12 @@ public class PojavApplication extends Application {
 			try {
 				FileUtils.ensureParentDirectory(crashFile);
 				PrintStream crashStream = new PrintStream(crashFile);
-				crashStream.append("PojavLauncher crash report
-");
-				crashStream.append(" - Time: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("
-");
-				crashStream.append(" - Device: ").append(Build.PRODUCT).append(" ").append(Build.MODEL).append("
-");
-				crashStream.append(" - Android version: ").append(Build.VERSION.RELEASE).append("
-");
-				crashStream.append(" - Crash stack trace:
-");
-				crashStream.append(" - Launcher version: " + BuildConfig.VERSION_NAME + "
-");
+				crashStream.append("PojavLauncher crash report\n");
+				crashStream.append(" - Time: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("\n");
+				crashStream.append(" - Device: ").append(Build.PRODUCT).append(" ").append(Build.MODEL).append("\n");
+				crashStream.append(" - Android version: ").append(Build.VERSION.RELEASE).append("\n");
+				crashStream.append(" - Crash stack trace:\n");
+				crashStream.append(" - Launcher version: " + BuildConfig.VERSION_NAME + "\n");
 				crashStream.append(Log.getStackTraceString(th));
 				crashStream.close();
 			} catch (Throwable throwable) {
