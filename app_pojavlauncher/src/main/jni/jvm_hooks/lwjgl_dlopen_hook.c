@@ -155,10 +155,7 @@ static void glfw_stub_void(void) {}
 static int glfw_stub_int0(void) { return 0; }
 static void* glfw_stub_ptr0(void) { return NULL; }
 
-/* Forward all callbacks to real libglfw so mouse/key/cursor events work */
 static void* hooked_glfwSetCallback_impl(void* window, void* callback) {
-    /* This is only used as last-resort stub when real symbol is missing.
-       Prefer real libglfw for input callbacks. */
     (void)window; (void)callback;
     return NULL;
 }
@@ -169,7 +166,6 @@ static int hooked_glfwInit_impl(void) {
         bridge_environ.config_renderer = RENDERER_VK_ZINK;
         ensure_vulkan_ptr();
         load_libglfw();
-        /* Also init real libglfw so input queue/surfaceOwner path works */
         int (*real_init)(void) = (int (*)(void)) glfw_real("glfwInit");
         if (real_init) {
             int r = real_init();
@@ -272,7 +268,6 @@ static void* hooked_glfwCreateWindow_impl(int width, int height, const char* tit
     if (real_create) {
         g_libglfw_window = real_create(width, height, title ? title : "FearLauncher", monitor, share);
         printf("LWJGL hook v2.12: real glfwCreateWindow -> %p\n", g_libglfw_window);
-        /* Force focus + visible cursor so title-screen clicks work */
         if (g_libglfw_window) {
             void (*real_focus)(void*) = (void (*)(void*)) glfw_real("glfwFocusWindow");
             void (*real_show)(void*) = (void (*)(void*)) glfw_real("glfwShowWindow");
@@ -435,16 +430,43 @@ static void hooked_glfwSetWindowSize_impl(void* w, int width, int height) {
 static int hooked_glfwWindowShouldClose_impl(void* w) { (void)w; return 0; }
 static void hooked_glfwSetWindowShouldClose_impl(void* w, int v) { (void)w; (void)v; }
 static void hooked_glfwSetWindowTitle_impl(void* w, const char* t) { (void)w; (void)t; }
-static void hooked_glfwShowWindow_impl(void* w) { (void)w; }
-static void hooked_glfwHideWindow_impl(void* w) { (void)w; }
-static void hooked_glfwFocusWindow_impl(void* w) { (void)w; }
+
+/* CRITICAL: forward show/focus to real Android GLFW so input is delivered */
+static void hooked_glfwShowWindow_impl(void* w) {
+    void (*real)(void*) = (void (*)(void*)) glfw_real("glfwShowWindow");
+    void* target = (w && w != (void*)0xDEADBEEF) ? w : g_libglfw_window;
+    if (real && target) real(target);
+}
+static void hooked_glfwHideWindow_impl(void* w) {
+    void (*real)(void*) = (void (*)(void*)) glfw_real("glfwHideWindow");
+    void* target = (w && w != (void*)0xDEADBEEF) ? w : g_libglfw_window;
+    if (real && target) real(target);
+}
+static void hooked_glfwFocusWindow_impl(void* w) {
+    void (*real)(void*) = (void (*)(void*)) glfw_real("glfwFocusWindow");
+    void* target = (w && w != (void*)0xDEADBEEF) ? w : g_libglfw_window;
+    if (real && target) {
+        real(target);
+        printf("LWJGL hook v2.12: glfwFocusWindow(%p)\n", target);
+    }
+}
 static void hooked_glfwIconifyWindow_impl(void* w) { (void)w; }
-static void hooked_glfwRestoreWindow_impl(void* w) { (void)w; }
+static void hooked_glfwRestoreWindow_impl(void* w) {
+    void (*real)(void*) = (void (*)(void*)) glfw_real("glfwRestoreWindow");
+    void* target = (w && w != (void*)0xDEADBEEF) ? w : g_libglfw_window;
+    if (real && target) real(target);
+}
 static void hooked_glfwMaximizeWindow_impl(void* w) { (void)w; }
 static int hooked_glfwGetWindowAttrib_impl(void* w, int attrib) {
     (void)w;
-    if (attrib == 0x00020001) return 1;
-    if (attrib == 0x00020004) return 1;
+    /* Always report focused + visible so MC UI accepts clicks */
+    if (attrib == 0x00020001) return 1; /* GLFW_FOCUSED */
+    if (attrib == 0x00020004) return 1; /* GLFW_VISIBLE */
+    if (attrib == 0x00020002) return 0; /* GLFW_ICONIFIED */
+    if (attrib == 0x00020003) return 0; /* GLFW_RESIZABLE */
+    if (attrib == 0x00020005) return 0; /* GLFW_DECORATED */
+    if (attrib == 0x00020006) return 1; /* GLFW_FLOATING */
+    if (attrib == 0x0002000A) return 1; /* GLFW_HOVERED */
     return 0;
 }
 static void hooked_glfwSetWindowAttrib_impl(void* w, int a, int v) { (void)w; (void)a; (void)v; }
@@ -544,9 +566,7 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwTerminate") == 0) return (jlong) hooked_glfwTerminate_impl;
         if (strcmp(symbol, "glfwVulkanSupported") == 0) return (jlong) hooked_glfwVulkanSupported_impl;
 
-        /* Input path: always prefer real Android GLFW (dnbglfw) so touch/mouse
-           injection from CallbackBridge/GLFW.sendMouseEvent reaches the game.
-           Never swallow mouse-button / cursor / key callbacks with a no-op. */
+        /* Input: prefer real Android GLFW so touch injection reaches the game */
         if (strstr(symbol, "Callback") != NULL ||
             strcmp(symbol, "glfwGetCursorPos") == 0 ||
             strcmp(symbol, "glfwSetCursorPos") == 0 ||
@@ -567,15 +587,10 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             strncmp(symbol, "glfwGetJoystick", 15) == 0 ||
             strncmp(symbol, "glfwJoystick", 12) == 0 ||
             strncmp(symbol, "glfwGetGamepad", 14) == 0 ||
-            strcmp(symbol, "glfwUpdateGamepadMappings") == 0 ||
-            strcmp(symbol, "glfwFocusWindow") == 0 ||
-            strcmp(symbol, "glfwShowWindow") == 0) {
+            strcmp(symbol, "glfwUpdateGamepadMappings") == 0) {
             void* real = glfw_real(symbol);
             if (real == NULL) real = dlsym(RTLD_DEFAULT, symbol);
-            if (real != NULL) {
-                return (jlong) real;
-            }
-            /* Only use no-op stub if symbol truly missing — log it */
+            if (real != NULL) return (jlong) real;
             if (strstr(symbol, "Callback") != NULL) {
                 printf("LWJGL hook v2.12: WARNING missing Callback symbol %s\n", symbol);
                 return (jlong) hooked_glfwSetCallback_impl;
