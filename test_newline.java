@@ -1,0 +1,1 @@
+public class Test { String s = "test\n"; }
