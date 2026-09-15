@@ -1,6 +1,6 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.12 (TURNIP-ZINK) - intermediate full hybrid
-// Hybrid: real libglfw for window/input/pollEvents; OSMesa for GL context
+// FearLauncher — LWJGL dlopen/dlsym hook v2.12 (TURNIP-ZINK) hybrid
+// Hybrid: real libglfw for input; OSMesa for GL context (GLFW_NO_API)
 //
 #include "jvm_hooks.h"
 
@@ -25,6 +25,10 @@
 bridge_environ_t bridge_environ = {0};
 
 static int g_is_zink_cached = -1;
+static void* g_libglfw = NULL;
+static void* g_libglfw_window = NULL;
+static void* g_current_window = NULL;
+static bool g_use_osmesa = false;
 
 static bool is_zink_renderer() {
     if (g_is_zink_cached >= 0) return g_is_zink_cached == 1;
@@ -67,9 +71,6 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass 
     }
 }
 
-static void* g_libglfw = NULL;
-static void* g_libglfw_window = NULL;
-
 static void* load_libglfw(void) {
     if (g_libglfw) return g_libglfw;
     g_libglfw = dlopen("libglfw.so", RTLD_NOW | RTLD_GLOBAL);
@@ -94,29 +95,88 @@ static void* glfw_real(const char* name) {
     return dlsym(lib, name);
 }
 
-/* get_mesa_dl_handle is already declared + defined in osmesa_loader — do not redefine as static */
+/* Critical: tell GLFW not to create an EGL/OpenGL context */
+#define GLFW_CLIENT_API          0x00022001
+#define GLFW_NO_API              0
 
 static void* hooked_glfwCreateWindow_impl(int width, int height, const char* title, void* monitor, void* share) {
     printf("LWJGL hook v2.12: glfwCreateWindow %dx%d (zink=%d)\n", width, height, is_zink_renderer());
+    (void)title; (void)monitor; (void)share;
+
+    if (bridge_environ.savedWidth <= 0) bridge_environ.savedWidth = width > 0 ? width : 1920;
+    if (bridge_environ.savedHeight <= 0) bridge_environ.savedHeight = height > 0 ? height : 1080;
+
+    if (bridge_environ.pojavWindow != NULL) {
+        int sw = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+        int sh = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+        if (sw > 0 && sh > 0) {
+            bridge_environ.savedWidth = sw;
+            bridge_environ.savedHeight = sh;
+            width = sw; height = sh;
+            printf("LWJGL hook v2.12: using surface size %dx%d\n", sw, sh);
+        }
+    }
+
     typedef void* (*create_fn)(int, int, const char*, void*, void*);
+    typedef void (*hint_fn)(int, int);
     create_fn real_create = (create_fn) glfw_real("glfwCreateWindow");
+    hint_fn real_hint = (hint_fn) glfw_real("glfwWindowHint");
+
+    /* THIS is the key fix for "EGL: Failed to load eglGetProcAddress" */
+    if (real_hint) {
+        real_hint(GLFW_CLIENT_API, GLFW_NO_API);
+        printf("LWJGL hook v2.12: set GLFW_CLIENT_API = GLFW_NO_API\n");
+    }
+
     if (real_create) {
-        g_libglfw_window = real_create(width, height, title, monitor, share);
+        g_libglfw_window = real_create(width, height, title ? title : "FearLauncher", monitor, share);
         printf("LWJGL hook v2.12: real glfwCreateWindow -> %p\n", g_libglfw_window);
+    } else {
+        printf("LWJGL hook v2.12: real glfwCreateWindow missing\n");
+    }
+
+    /* Prefer OSMesa path for Zink */
+    if (is_zink_renderer()) {
+        if (!osmesa_is_loaded()) dlsym_OSMesa();
+        if (osmesa_is_loaded()) {
+            if (!g_use_osmesa) {
+                if (osm_init()) {
+                    g_use_osmesa = true;
+                    printf("LWJGL hook v2.12: OSMesa bridge initialized\n");
+                }
+            }
+            if (g_use_osmesa) {
+                osm_render_window_t* bundle = osm_init_context(NULL);
+                if (bundle != NULL) {
+                    if (bridge_environ.mainWindowBundle == NULL) {
+                        bridge_environ.mainWindowBundle = (basic_render_window_t*) bundle;
+                        bundle->newNativeSurface = bridge_environ.pojavWindow;
+                    }
+                    osm_make_current(bundle);
+                    g_current_window = g_libglfw_window ? g_libglfw_window : (void*) bundle;
+                    printf("LWJGL hook v2.12: window OK (OSMesa + libglfw hybrid)\n");
+                    return g_current_window;
+                }
+                printf("LWJGL hook v2.12: osm_init_context failed\n");
+            }
+        }
+    }
+
+    if (g_libglfw_window) {
+        g_current_window = g_libglfw_window;
         return g_libglfw_window;
     }
-    printf("LWJGL hook v2.12: real glfwCreateWindow missing\n");
-    return NULL;
+
+    /* Last resort stub so the game doesn't instantly die */
+    g_current_window = (void*) 0x1;
+    printf("LWJGL hook v2.12: window OK (stub fallback)\n");
+    return g_current_window;
 }
 
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env, __attribute__((unused)) jclass clazz, jlong filename, jint mode) {
     const char* name = (const char*)(uintptr_t)filename;
     if (name) {
         printf("LWJGL hook ndlopen: %s mode=%d\n", name, mode);
-        if (strstr(name, "libglfw") || strstr(name, "OSMesa") || strstr(name, "libGL")) {
-            void* h = dlopen(name, mode);
-            if (h) return (jlong)(uintptr_t)h;
-        }
     }
     void* h = dlopen(name, mode);
     return (jlong)(uintptr_t)h;
@@ -127,7 +187,9 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env, __attribute__((unu
     if (!symbol) return 0;
 
     if (is_zink_renderer()) {
-        if (strcmp(symbol, "eglGetProcAddress") == 0 || strcmp(symbol, "glXGetProcAddress") == 0 ||
+        /* Route eglGetProcAddress / glXGetProcAddress to OSMesa */
+        if (strcmp(symbol, "eglGetProcAddress") == 0 ||
+            strcmp(symbol, "glXGetProcAddress") == 0 ||
             strcmp(symbol, "glXGetProcAddressARB") == 0) {
             void* mesa = get_mesa_dl_handle();
             if (mesa) {
@@ -188,6 +250,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.12 - hybrid)\n");
+        printf("LWJGL hook: hooks installed (TURNIP-ZINK v2.12 - hybrid NO_API)\n");
     }
 }
