@@ -46,9 +46,7 @@ public class GameRunner {
         if(mods == null) return false;
         for(File file : mods) {
             String name = file.getName();
-            if(name.contains("sodium") ||
-                    name.contains("embeddium") ||
-                    name.contains("rubidium")) return true;
+            if(name.contains("sodium") || name.contains("embeddium") || name.contains("rubidium")) return true;
         }
         return false;
     }
@@ -58,8 +56,7 @@ public class GameRunner {
         File[] mods = modsDir.listFiles(file -> file.isFile() && file.getName().endsWith(".jar"));
         if(mods == null) return false;
         for(File file : mods) {
-            String name = file.getName();
-            if(name.contains("angelica")) return true;
+            if(file.getName().contains("angelica")) return true;
         }
         return false;
     }
@@ -67,8 +64,7 @@ public class GameRunner {
     private static boolean affectedByRenderDistanceIssue(JMinecraftVersionList.Version version) throws ParseException {
         if(LauncherPreferences.PREF_USE_ANGLE) return false;
         GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
-        return info.isAdreno() &&
-                info.glesMajorVersion >= 3 &&
+        return info.isAdreno() && info.glesMajorVersion >= 3 &&
                 DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2025, 2, 25);
     }
 
@@ -127,7 +123,6 @@ public class GameRunner {
             LifecycleAwareAlertDialog.DialogCreator dialogCreator = (dialog, builder) ->
                 builder.setMessage(activity.getString(localeString, finalDeviceMemory, LauncherPreferences.PREF_RAM_ALLOCATION))
                         .setPositiveButton(android.R.string.ok, (d, w)->{});
-
             if(LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator)) {
                 return;
             }
@@ -175,67 +170,6 @@ public class GameRunner {
         Runtime runtime = MultiRTUtils.forceReread(pickRuntime(instance, requiredJavaVersion));
 
         disableSplash(gamedir);
-
-        try {
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
-            String skinPath = prefs.getString("active_skin_path", "steve");
-            if (skinPath != null) {
-                File packDir = new File(gamedir, "resourcepacks/FEAR_Skin_Pack");
-                File entityDir = new File(packDir, "assets/minecraft/textures/entity");
-                entityDir.mkdirs();
-
-                File stevePng = new File(entityDir, "steve.png");
-                File alexPng = new File(entityDir, "alex.png");
-
-                if (skinPath.equals("steve") || skinPath.equals("alex")) {
-                    if (stevePng.exists()) stevePng.delete();
-                    if (alexPng.exists()) alexPng.delete();
-                } else {
-                    File srcFile = new File(skinPath);
-                    if (srcFile.exists()) {
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(stevePng)) {
-                            byte[] buf = new byte[1024]; int len;
-                            while ((len = in.read(buf)) > 0) { out.write(buf, 0, len); }
-                        }
-                        try (java.io.InputStream in = new java.io.FileInputStream(srcFile);
-                             java.io.OutputStream out = new java.io.FileOutputStream(alexPng)) {
-                            byte[] buf = new byte[1024]; int len;
-                            while ((len = in.read(buf)) > 0) { out.write(buf, 0, len); }
-                        }
-                    }
-                }
-
-                File mcmeta = new File(packDir, "pack.mcmeta");
-                String mcmetaContent = "{\n  \"pack\": {\n    \"pack_format\": 15,\n    \"description\": \"FEAR Skin Pack - Automatically Synced Skin\"\n  }\n}";
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(mcmeta)) {
-                    fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                }
-
-                File optionsFile = new File(gamedir, "options.txt");
-                if (optionsFile.exists()) {
-                    StringBuilder sb = new StringBuilder();
-                    try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = br.readLine()) != null) { sb.append(line).append("\n"); }
-                    }
-                    String optionsContent = sb.toString();
-                    if (!optionsContent.contains("FEAR_Skin_Pack")) {
-                        if (optionsContent.contains("resourcePacks:[")) {
-                            optionsContent = optionsContent.replace("resourcePacks:[", "resourcePacks:[\"file/FEAR_Skin_Pack\",");
-                            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(optionsFile)) {
-                                fos.write(optionsContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                            }
-                        }
-                    }
-                }
-                Log.i("GameRunner", "Synchronized and auto-enabled skin resourcepack for " + skinPath);
-            }
-        } catch (com.google.gson.JsonSyntaxException e) {
-            Log.w("FearLauncher", "[FearLauncher] Skin loading failed due to JsonSyntaxException, using default skin", e);
-        } catch (Exception e) {
-            Log.e("FearLauncher", "[FearLauncher] Skin loading failed, using default skin", e);
-        }
 
         List<String> launchArgs = getMinecraftClientArgs(minecraftAccount, versionInfo, gamedir);
         OldVersionsUtils.selectOpenGlVersion(versionInfo);
@@ -360,21 +294,75 @@ public class GameRunner {
         }
     }
 
-    public static List<String> getMinecraftJVMArgs(String versionName) {
-        return Collections.emptyList();
+    private static List<String> getMinecraftJVMArgs(String versionName) {
+        JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionName, true);
+        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {
+            return Collections.emptyList();
+        }
+        Map<String, String> varArgMap = new ArrayMap<>();
+        varArgMap.put("classpath_separator", ":");
+        varArgMap.put("library_directory", Tools.DIR_HOME_LIBRARY);
+        varArgMap.put("version_name", versionInfo.id);
+        varArgMap.put("natives_directory", Tools.NATIVE_LIB_DIR);
+        List<String> minecraftArgs = new ArrayList<>();
+        if (versionInfo.arguments != null) {
+            for (Object arg : versionInfo.arguments.jvm) {
+                if (arg instanceof String) { minecraftArgs.add((String) arg); }
+            }
+        }
+        return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
     }
 
-    public static List<String> getMinecraftClientArgs(MinecraftAccount account, JMinecraftVersionList.Version versionInfo, File gameDir) {
-        return new ArrayList<>();
+    private static List<String> getMinecraftClientArgs(MinecraftAccount profile, JMinecraftVersionList.Version versionInfo, File gameDir) {
+        String username = profile.username;
+        String versionName = versionInfo.id;
+        if (versionInfo.inheritsFrom != null) { versionName = versionInfo.inheritsFrom; }
+        String userType = "mojang";
+        try {
+            Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
+            if(creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) { userType = "msa"; }
+        }catch (ParseException e) { Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e); }
+
+        Map<String, String> varArgMap = new ArrayMap<>();
+        varArgMap.put("auth_session", profile.accessToken);
+        varArgMap.put("auth_access_token", profile.accessToken);
+        varArgMap.put("auth_player_name", username);
+        varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
+        varArgMap.put("auth_xuid", profile.xuid);
+        varArgMap.put("assets_root", Tools.ASSETS_PATH);
+        varArgMap.put("assets_index_name", versionInfo.assets);
+        varArgMap.put("game_assets", Tools.ASSETS_PATH);
+        varArgMap.put("game_directory", gameDir.getAbsolutePath());
+        varArgMap.put("user_properties", "{}");
+        varArgMap.put("user_type", userType);
+        varArgMap.put("version_name", versionName);
+        varArgMap.put("version_type", versionInfo.type);
+
+        List<String> minecraftArgs = new ArrayList<>();
+        if (versionInfo.arguments != null && versionInfo.arguments.game != null) {
+            for (Object arg : versionInfo.arguments.game) {
+                if (arg instanceof String) { minecraftArgs.add((String) arg); }
+            }
+        }
+        if(versionInfo.minecraftArguments != null){ minecraftArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments)); }
+        return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
+    }
+
+    private static List<String> splitAndFilterEmpty(String argStr) {
+        List<String> strList = new ArrayList<>();
+        for (String arg : argStr.split(" ")) { if (!arg.isEmpty()) { strList.add(arg); } }
+        return strList;
     }
 
     public static @NonNull String pickRuntime(Instance instance, int targetJavaVersion) {
-        String runtime = MultiRTUtils.getNearestJreName(targetJavaVersion);
-        if (instance.selectedRuntime != null && !instance.selectedRuntime.isEmpty()) {
-            Runtime preferredRuntime = MultiRTUtils.forceReread(instance.selectedRuntime);
-            if (preferredRuntime != null && preferredRuntime.javaVersion >= targetJavaVersion) {
-                runtime = preferredRuntime.name;
-            }
+        String runtime = Tools.getSelectedRuntime(instance);
+        String profileRuntime = instance.selectedRuntime;
+        Runtime pickedRuntime = MultiRTUtils.read(runtime);
+        if(runtime == null || pickedRuntime.javaVersion == 0 || pickedRuntime.javaVersion < targetJavaVersion) {
+            String preferredRuntime = MultiRTUtils.getNearestJreName(targetJavaVersion);
+            if(preferredRuntime == null) throw new RuntimeException("Failed to autopick runtime!");
+            if(profileRuntime != null) { instance.selectedRuntime = preferredRuntime; instance.maybeWrite(); }
+            runtime = preferredRuntime;
         }
         return runtime;
     }
