@@ -3,6 +3,7 @@ package net.kdt.pojavlaunch.gpu;
 import android.os.Build;
 import android.util.Log;
 
+import java.io.File;
 import java.lang.reflect.Field;
 
 /**
