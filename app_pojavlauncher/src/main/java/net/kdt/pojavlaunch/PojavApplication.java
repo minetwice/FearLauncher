@@ -13,8 +13,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import net.kdt.pojavlaunch.lifecycle.ContextExecutor;
+import net.kdt.pojavlaunch.gpu.KryptonWrapperManager;
 import net.kdt.pojavlaunch.gpu.TurnipZinkManager;
+import net.kdt.pojavlaunch.lifecycle.ContextExecutor;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.tasks.AsyncAssetManager;
 import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
@@ -66,6 +67,7 @@ public class PojavApplication extends Application {
 	public void onCreate() {
 		ContextExecutor.setApplication(this);
 		TurnipZinkManager.initialize();
+		KryptonWrapperManager.initialize();
 		if(!BuildConfig.BUILD_TYPE.equals("gplay")) installFatalErrorHandler();
 		
 		try {
