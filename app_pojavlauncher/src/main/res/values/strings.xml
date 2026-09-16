@@ -311,4 +311,6 @@
     <string name="preference_microphone_access_description">Request microphone access permission for the game</string>
     <string name="preference_microphone_access_title">Request microphone access permission</string>
     <string name="preference_category_video">Video settings</string>
+    <string name="preference_vsync_in_zink_description">Allows the launcher to use internal system APIs to enable V-Sync for Zink. Turn this off if your launcher suddenly crashes with Zink after a system update.</string>
+    <string name="preference_vsync_in_zink_title">Allow V-Sync with Zink</string>
 </resources>
