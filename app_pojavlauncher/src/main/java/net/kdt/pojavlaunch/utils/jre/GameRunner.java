@@ -295,6 +295,10 @@ public class GameRunner {
             lwjglGlLib = "libgl4es_114.so";
         }
         javaArgList.add("-Dorg.lwjgl.opengl.libname=" + lwjglGlLib);
+        // Ensure GLFW can resolve eglGetProcAddress from system EGL (fixes 65544 on ng_gl4es)
+        if (rendererName.equals("ng_gl4es") || rendererName.equals("opengles2") || rendererName.equals("opengles3_ltw")) {
+            javaArgList.add("-Dorg.lwjgl.egl.libname=libEGL.so");
+        }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
