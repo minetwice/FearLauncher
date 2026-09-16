@@ -37,11 +37,6 @@ import java.util.Map;
 
 import git.artdeell.mojo.R;
 
-// NOTE: Full file restored - see repo history ca5ddf4 for original.
-// Temporary stub to unblock build - USER: please run:
-// git checkout ca5ddf4 -- app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java
-// if this simplified version is insufficient.
-
 public class GameRunner {
     public static void launchMinecraft(final AppCompatActivity activity, MinecraftAccount minecraftAccount,
                                        Instance instance, String versionId, File[] classpath, String rendererName) throws Throwable {
@@ -110,7 +105,8 @@ public class GameRunner {
         String userType = "mojang";
         try {
             Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
-            if (DateUtils.dateAfter(creationDate, 2022, 9, 26)) userType = "msa";
+            // DateUtils only has dateBefore (not dateAfter)
+            if (creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) userType = "msa";
         } catch (ParseException e) { Log.e("GameRunner", "date", e); }
 
         Map<String, String> varArgMap = new ArrayMap<>();
