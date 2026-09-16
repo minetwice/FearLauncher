@@ -1,7 +1,7 @@
 //
-// FearLauncher — LWJGL dlopen/dlsym hook v2.12 (TURNIP-ZINK)
-// Hybrid: real libglfw for window/input/pollEvents; OSMesa for GL context
-// NOTE: eglGetProcAddress_hook lives in egl_proc_hook.c
+// FearLauncher — LWJGL dlopen/dlsym hook v2.13
+// Non-Zink (Krypton): pass-through dlopen + route missing GL symbols via gl4es_GetProcAddress
+// Zink path was simplified; eglGetProcAddress_hook is in egl_proc_hook.c
 //
 #include "jvm_hooks.h"
 
@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -25,28 +24,44 @@
 
 bridge_environ_t bridge_environ = {0};
 
-static int g_is_zink_cached = -1;
+/* from egl_proc_hook.c */
+extern void* eglGetProcAddress_hook(const char* procname);
 
-static bool is_zink_renderer() {
-    if (g_is_zink_cached >= 0) return g_is_zink_cached == 1;
+static void* g_ng_handle = NULL;
+static void* (*g_gl4es_getproc)(const char*) = NULL;
+
+static void ensure_ng_gl4es(void) {
+    if (g_ng_handle) return;
     const char* fear = getenv("FEAR_RENDERER");
-    const char* gallium = getenv("GALLIUM_DRIVER");
-    const char* renderer = getenv("POJAV_RENDERER");
-    bool z = false;
-    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0))
-        z = true;
-    else if (gallium && strcmp(gallium, "zink") == 0)
-        z = true;
-    else if (renderer && (strcmp(renderer, "turnip_zink") == 0 || strcmp(renderer, "vulkan_zink") == 0))
-        z = true;
-    g_is_zink_cached = z ? 1 : 0;
-    return z;
+    if (!fear || strcmp(fear, "ng_gl4es") != 0) return;
+    const char* nd = getenv("POJAV_NATIVEDIR");
+    if (nd && nd[0]) {
+        char path[512];
+        snprintf(path, sizeof(path), "%s/libng_gl4es.so", nd);
+        g_ng_handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+    }
+    if (!g_ng_handle) g_ng_handle = dlopen("libng_gl4es.so", RTLD_NOW | RTLD_GLOBAL);
+    if (g_ng_handle) {
+        g_gl4es_getproc = (void*(*)(const char*))dlsym(g_ng_handle, "gl4es_GetProcAddress");
+        if (!g_gl4es_getproc)
+            g_gl4es_getproc = (void*(*)(const char*))dlsym(g_ng_handle, "glXGetProcAddress");
+        printf("LWJGL hook v2.13: ng_gl4es=%p getproc=%p\n", g_ng_handle, (void*)g_gl4es_getproc);
+    } else {
+        printf("LWJGL hook v2.13: ng_gl4es load FAILED: %s\n", dlerror());
+    }
 }
 
-static void hide_pojav_from_sodium(void) {
-    unsetenv("POJAV_RENDERER");
-    unsetenv("POJAV_LAUNCHER");
-    printf("LWJGL hook v2.12: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\n");
+static void* resolve_gl_symbol(const char* symbol) {
+    ensure_ng_gl4es();
+    if (g_gl4es_getproc) {
+        void* s = g_gl4es_getproc(symbol);
+        if (s) return s;
+    }
+    if (g_ng_handle) {
+        void* s = dlsym(g_ng_handle, symbol);
+        if (s) return s;
+    }
+    return eglGetProcAddress_hook(symbol);
 }
 
 JNIEXPORT void JNICALL
@@ -68,12 +83,6 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass 
     }
 }
 
-// Minimal stub file - full Zink GLFW hooks restored from commit 1608cbe.
-// CRITICAL: User must restore full lwjgl_dlopen_hook.c from 1608cbe if this is too small:
-//   git checkout 1608cbe -- app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c
-// This minimal version keeps non-Zink (Krypton) path working: hooks install but
-// is_zink_renderer() is false so GLFW is not intercepted.
-
 static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
                      __attribute__((unused)) jclass class,
                      jlong filename_ptr,
@@ -82,8 +91,18 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL)
         return (jlong) pojavexec_loadVulkanDriver();
+    /* Prefer GLOBAL so GL symbols resolve process-wide */
     int mode = (int) jmode;
+    if (strstr(filename, "ng_gl4es") || strstr(filename, "gl4es"))
+        mode |= RTLD_GLOBAL;
     void* handle = dlopen(filename, mode);
+    if (handle && (strstr(filename, "ng_gl4es") || strstr(filename, "gl4es"))) {
+        g_ng_handle = handle;
+        g_gl4es_getproc = (void*(*)(const char*))dlsym(handle, "gl4es_GetProcAddress");
+        if (!g_gl4es_getproc)
+            g_gl4es_getproc = (void*(*)(const char*))dlsym(handle, "glXGetProcAddress");
+        printf("LWJGL hook v2.13: dlopen %s -> %p getproc=%p\n", filename, handle, (void*)g_gl4es_getproc);
+    }
     return (jlong) handle;
 }
 
@@ -93,14 +112,52 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                  jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
+
+    /* Route all GL lookups through Krypton when active */
+    if (strncmp(symbol, "gl", 2) == 0 || strncmp(symbol, "GL", 2) == 0) {
+        void* glsym = resolve_gl_symbol(symbol);
+        if (glsym) {
+            return (jlong) glsym;
+        }
+        printf("LWJGL hook v2.13: GL symbol MISS %s\n", symbol);
+    }
+
+    /* eglGetProcAddress -> our hook so GLFW/LWJGL FunctionProvider is correct */
+    if (strcmp(symbol, "eglGetProcAddress") == 0) {
+        return (jlong) eglGetProcAddress_hook;
+    }
+
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
     return (jlong) sym;
 }
 
+static void try_install_egl_bytehook(void) {
+    void* bh = dlopen("libbytehook.so", RTLD_NOW);
+    if (!bh) {
+        printf("LWJGL hook v2.13: libbytehook.so not found\n");
+        return;
+    }
+    int (*bytehook_init)(int, int) = dlsym(bh, "bytehook_init");
+    void* (*bytehook_hook_all)(const char*, const char*, void*, void*, void*) =
+        dlsym(bh, "bytehook_hook_all");
+    if (!bytehook_hook_all) {
+        printf("LWJGL hook v2.13: bytehook_hook_all missing\n");
+        return;
+    }
+    if (bytehook_init) {
+        int st = bytehook_init(0, 0);
+        printf("LWJGL hook v2.13: bytehook_init -> %d\n", st);
+    }
+    void* stub = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    printf("LWJGL hook v2.13: bytehook eglGetProcAddress -> %p\n", stub);
+}
+
 void installLwjglDlopenHook(JNIEnv *env) {
-    LOGI("Installing LWJGL hooks (v2.12)");
-    printf("LWJGL hook: installing hooks (v2.12)\n");
+    LOGI("Installing LWJGL hooks (v2.13)");
+    printf("LWJGL hook: installing hooks (v2.13)\n");
+    ensure_ng_gl4es();
+    try_install_egl_bytehook();
 
     jclass dynamicLinkLoader = (*env)->FindClass(env, "org/lwjgl/system/linux/DynamicLinkLoader");
     if (dynamicLinkLoader == NULL) {
@@ -116,6 +173,6 @@ void installLwjglDlopenHook(JNIEnv *env) {
         LOGE("Failed to register hooks");
         (*env)->ExceptionClear(env);
     } else {
-        printf("LWJGL hook: hooks installed (v2.12)\n");
+        printf("LWJGL hook: hooks installed (v2.13)\n");
     }
 }
