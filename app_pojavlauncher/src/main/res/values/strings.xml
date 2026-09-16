@@ -291,4 +291,24 @@
     <string name="log_view_button_scroll_off">Scroll: off</string>
     <string name="no_account_hint">Add Account</string>
     <string name="no_instance_selected">No version selected</string>
+    <string name="preference_sysmem_summary">Allocate a portion of system memory for the game</string>
+    <string name="preference_sysmem_title">System memory allocation</string>
+    <string name="preference_category_java_tweaks">Java tweaks</string>
+    <string name="preference_category_main_categories">Categories</string>
+    <string name="preference_ask_for_notification_description">Ask for notification permission when needed</string>
+    <string name="preference_ask_for_notification_title">Ask for notification permission</string>
+    <string name="preference_category_miscellaneous">Miscellaneous</string>
+    <string name="preference_verify_game_files_description">Verify game files integrity after download</string>
+    <string name="preference_verify_game_files_title">Verify game files</string>
+    <string name="preference_go_vroom_description">Enable experimental performance optimizations</string>
+    <string name="preference_go_vroom_title">Go vroom</string>
+    <string name="preference_download_source_description">Choose where to download game files from</string>
+    <string name="preference_download_source_title">Download source</string>
+    <string name="preference_verify_manifest_description">Verify version manifest integrity</string>
+    <string name="preference_verify_manifest_title">Verify manifest</string>
+    <string name="preference_vulkan_driver_system_description">Use the system Vulkan driver instead of the bundled one</string>
+    <string name="preference_vulkan_driver_system_title">Use system Vulkan driver</string>
+    <string name="preference_microphone_access_description">Request microphone access permission for the game</string>
+    <string name="preference_microphone_access_title">Request microphone access permission</string>
+    <string name="preference_category_video">Video settings</string>
 </resources>
