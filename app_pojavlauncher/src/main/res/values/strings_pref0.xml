@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="preference_ask_for_notification_description">Click to re-request the notification permission, required for game/modpack background downloads to work properly.</string>
+    <string name="preference_control_description">Gestures, buttons and scaling</string>
+    <string name="preference_control_title">Control customization</string>
+    <string name="preference_deadzone_scale_description">Increase it if the joystick drifts.</string>
+    <string name="preference_deadzone_scale_title">Joystick deadzone scale</string>
+    <string name="preference_download_source_description">Select a download mirror instead of using the official download server</string>
+    <string name="preference_download_source_title">Game download source</string>
+    <string name="preference_edit_controls_summary">Tweak the control scheme to fit your needs.</string>
+    <string name="preference_edit_controls_title">Edit custom controls</string>
+    <string name="preference_enable_gyro_description">Enabling this will allow you to turn in-game by turning your phone.</string>
+    <string name="preference_experimental_description">Use things there with consideration, no support</string>
+    <string name="preference_experimental_title">Experimental Stuff</string>
+    <string name="preference_force_big_core_desc">Forces the Minecraft render thread to run on the core with the highest maximum frequency.</string>
+    <string name="preference_force_big_core_title">Force the renderer to run on the big core</string>
+    <string name="preference_force_english_description">Allows you to see original strings, as intended by developers. Requires a restart.</string>
+    <string name="preference_force_english_title">Force language to English</string>
+    <string name="preference_force_vsync_description">Limit thermal throttling by limiting peak performance.</string>
+    <string name="preference_force_vsync_title">Force enable VSync</string>
+    <string name="preference_go_vroom_description">Don\'t verify file checksums upon sequential restarts. Makes the game start-up very fast.</string>
+    <string name="preference_go_vroom_title">Fast game startup</string>
+    <string name="preference_gyro_invert_x_axis_description">Invert the horizontal axis.</string>
+    <string name="preference_gyro_invert_y_axis_description">Invert the vertical axis.</string>
+    <string name="preference_gyro_sample_rate_description">If you have performance issues with gyroscope controls, increase this.</string>
+    <string name="preference_gyro_sample_rate_title">Gyroscope sampling rate</string>
+    <string name="preference_gyro_sensitivity_description">Adjust the sensitivity of gyroscope controls.</string>
+    <string name="preference_gyro_smoothing_description">Reduce jitter in exchange of latency.</string>
+    <string name="preference_java_description">Java Runtimes, JVM Arguments, RAM amount and sandbox</string>
+    <string name="preference_java_title">Java Tweaks</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="preference_microphone_access_description">Allows the game and mods to access the microphone.</string>
+    <string name="preference_microphone_access_title">Allow microphone access</string>
+    <string name="preference_misc_description">Other settings that do not fit elsewhere</string>
+    <string name="preference_misc_title">Miscellaneous settings</string>
+    <string name="preference_mouse_start_description">Show the virtual mouse when the game starts.</string>
+    <string name="preference_mouse_start_title">Start with virtual mouse on</string>
+    <string name="preference_remap_controller_description">Remap controller buttons for Minecraft controls.</string>
+    <string name="preference_remap_controller_title">Remap controller buttons</string>
+    <string name="preference_shader_dump_description">Dump shaders for debugging.</string>
+    <string name="preference_shader_dump_title">Dump shaders</string>
+    <string name="preference_sustained_performance_description">Limit peak performance to reduce thermal throttling.</string>
+    <string name="preference_sustained_performance_title">Sustained performance mode</string>
+    <string name="preference_sysmem_summary">Show system memory usage information.</string>
+    <string name="preference_sysmem_title">System memory</string>
+    <string name="preference_use_angle_description">Use ANGLE as the OpenGL ES driver when available.</string>
+    <string name="preference_use_angle_title">Use ANGLE</string>
+    <string name="preference_verify_game_files_description">Verify game file integrity after download.</string>
+    <string name="preference_verify_game_files_title">Verify game files</string>
+    <string name="preference_verify_manifest_description">Verify the game version manifest against official sources.</string>
+    <string name="preference_video_description">Resolution, renderer and related options</string>
+    <string name="preference_video_title">Video settings</string>
+    <string name="preference_vsync_in_zink_description">Force VSync when using Zink renderer.</string>
+    <string name="preference_vsync_in_zink_title">VSync in Zink</string>
+    <string name="preference_vulkan_driver_system_description">Prefer the system Vulkan driver.</string>
+    <string name="preference_vulkan_driver_system_title">Use system Vulkan driver</string>
+    <string name="preference_wipe_controller_description">Reset controller bindings to defaults.</string>
+    <string name="preference_wipe_controller_title">Wipe controller bindings</string>
+    <string name="application_package" translatable="false">git.artdeell.mojo.debug</string>
+</resources>
