@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="hint_search_modpack">Search for modpacks</string>
+    <string name="import_control_done">Importation done</string>
+    <string name="import_control_import_button">import controls</string>
+    <string name="import_control_invalid_file">Invalid or corrupted file</string>
+    <string name="import_control_invalid_name">Invalid name or file already exists</string>
+    <string name="import_control_label">Import controls</string>
+    <string name="import_control_verifying_file">File is being verified, please wait and try again…</string>
+    <string name="import_local_modpack">Import local modpack</string>
+    <string name="instance_delete">Delete instance</string>
+    <string name="instance_delete_confirmation">Are you sure you want to delete the instance? This will permanently delete all worlds, mods, resources and any other data in the instance directory. This action cannot be undone!</string>
+    <string name="instance_dir_missing">Instance is missing</string>
+    <string name="instance_shared_data">Shared data (click to switch)</string>
+    <string name="instance_shared_data_off">Store game data in the instance directory</string>
+    <string name="instance_shared_data_on">Store game data in a shared directory</string>
+    <string name="lazy_service_default_title">Fear Foreground Service</string>
+    <string name="local_login_bad_username_text">The username must be between 3–16 characters long, and must only contain latin letters, numbers 0–9 and underscores.</string>
+    <string name="local_login_bad_username_title">Unsuitable username</string>
+    <string name="log_view_button_output_off">Output\nOFF</string>
+    <string name="log_view_button_output_on">Output\nON</string>
+    <string name="log_view_button_scroll_off">Autoscroll\nOFF</string>
+    <string name="log_view_button_scroll_on">Autoscroll\nON</string>
+    <string name="log_view_label_log_output">Log output:</string>
+    <string name="login_online_login_label">Login</string>
+    <string name="login_online_username_hint">Username</string>
+    <string name="main_add_account">Add account</string>
+    <string name="main_install_jar_file">Execute a .jar</string>
+    <string name="main_login_done">Login done</string>
+    <string name="main_play">Play</string>
+    <string name="main_share_logs">Share log file</string>
+    <string name="mcl_launch_downloading_progress" formatted="false">Downloading %s (%.2f MB / %.2f MB)</string>
+    <string name="mcl_memory_allocation">Memory allocation</string>
+    <string name="mcl_memory_allocation_subtitle">Controls how much memory is given to Minecraft.</string>
+    <string name="mcl_setting_check_libraries">Check libraries after downloading</string>
+    <string name="mcl_setting_check_libraries_subtitle">This option forces the launcher to check the library hash if it\'s available. Prevents broken downloads.</string>
+    <string name="mcl_setting_subtitle_buttonallcaps">Disable this if you want to use lowercase letters in your controls.</string>
+    <string name="mcl_setting_subtitle_buttonscale">Upscale them if the buttons are too small.</string>
+    <string name="mcl_setting_subtitle_ignore_notch">Ignores the notch and extends the screen under it.\nGives you a more immersive experience.</string>
+    <string name="mcl_setting_subtitle_longpresstrigger">Change long press trigger delay for destroying blocks and dropping items.</string>
+    <string name="mcl_setting_subtitle_mousescale">Change the size of the virtual mouse.</string>
+    <string name="mcl_setting_subtitle_mousespeed">Changes the speed of the virtual mouse.</string>
+    <string name="mcl_setting_subtitle_resolution_scaler">Allows you to decrease the game resolution. 100% is full resolution.</string>
+    <string name="mcl_setting_subtitle_use_surface_view">May help performance in GPU bound scenarios.</string>
+    <string name="mcl_setting_title_buttonallcaps">Only use capital letters in button labels</string>
+    <string name="mcl_setting_title_buttonscale">Control buttons scaling</string>
+    <string name="mcl_setting_title_ignore_notch">Ignore notch</string>
+    <string name="mcl_setting_title_longpresstrigger">Trigger long press delay</string>
+    <string name="mcl_setting_title_mousescale">Mouse scaling</string>
+    <string name="mcl_setting_title_mousespeed">Mouse Speed</string>
+    <string name="mcl_setting_title_resolution_scaler">Resolution Scaler</string>
+    <string name="mcl_setting_title_use_surface_view">Use alternate surface rendering</string>
+    <string name="mcl_tab_wiki">Wiki</string>
+    <string name="microsoft_login_retry_later">Too many requests, please try again later.</string>
+    <string name="millisecond_format">%d ms</string>
+</resources>
