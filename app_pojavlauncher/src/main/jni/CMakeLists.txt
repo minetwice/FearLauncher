@@ -7,6 +7,7 @@ add_library(pojavexec SHARED
         jvm_hooks/emui_iterator_fix_hook.c
         jvm_hooks/java_exec_hooks.c
         jvm_hooks/lwjgl_dlopen_hook.c
+        jvm_hooks/egl_proc_hook.c
         jre_launcher/jre_launcher.c
         jre_launcher/native_library_hook.c
         jre_launcher/elf_hinter.c
