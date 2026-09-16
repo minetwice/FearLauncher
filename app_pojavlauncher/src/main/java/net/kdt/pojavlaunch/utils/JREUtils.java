@@ -34,7 +34,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW") || line.contains("Sodium")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -68,6 +68,7 @@ public class JREUtils {
     }
 
     private static void scrubPojavDetectorEnv() {
+        // Sodium PostLaunchChecks looks for these and hard-crashes on mobile launchers.
         for (String key : new String[]{"POJAV_RENDERER", "POJAV_LAUNCHER"}) {
             try {
                 Os.unsetenv(key);
@@ -95,7 +96,7 @@ public class JREUtils {
                 Log.w("JREUtils", "Java env scrub for " + key + " failed: " + t);
             }
         }
-        Logger.appendToLog("[TurnipZink] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)");
+        Logger.appendToLog("[SodiumBypass] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER");
     }
 
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
@@ -131,12 +132,9 @@ public class JREUtils {
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
             case "ng_gl4es":
-                // Krypton Wrapper (NG-GL4ES)
-                // System EGL provides eglGetProcAddress; ng_gl4es provides GL translation.
                 envMap.put("LIBGL_ES", "2");
                 envMap.put("LIBGL_USE_MC_COLOR", "1");
                 envMap.put("FEAR_RENDERER", renderer);
-                // Help gl4es-style code find system EGL if it probes LIBGL_EGL
                 envMap.put("LIBGL_EGL", "libEGL.so");
                 break;
         }
@@ -180,6 +178,7 @@ public class JREUtils {
         if (isZink) {
             envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
         } else {
+            // Set briefly for our native helpers; scrubbed below so Sodium does not see it
             envMap.put("POJAV_RENDERER", renderer);
         }
 
@@ -206,9 +205,8 @@ public class JREUtils {
             }
         }
 
-        if (isZink) {
-            scrubPojavDetectorEnv();
-        }
+        // ALWAYS scrub — Zink and Krypton (and any GLES path) must hide POJAV_* from Sodium
+        scrubPojavDetectorEnv();
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
@@ -309,9 +307,6 @@ public class JREUtils {
                 glesVersion = 3;
                 break;
             case "ng_gl4es":
-                // CRITICAL: libng_gl4es.so does NOT export eglGetProcAddress (unlike Holy GL4ES).
-                // GLFW error 65544 happens if we register ng_gl4es as the EGL library.
-                // Fix: preload ng_gl4es for GL translation, configure system libEGL for EGL.
                 Logger.appendToLog("[Krypton] Loading Krypton Wrapper (libng_gl4es.so)...");
                 try {
                     System.load(Tools.NATIVE_LIB_DIR + "/libng_gl4es.so");
@@ -325,19 +320,16 @@ public class JREUtils {
                         Logger.appendToLog("[Krypton] WARNING: preload failed: " + t2.getMessage());
                     }
                 }
-                // Point renderspec at system EGL so eglGetProcAddress resolves
                 renderLibrary = "libEGL.so";
                 useGles = true;
                 glesVersion = Math.max(2, Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION)));
                 if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
-                    // Fallback absolute path (64-bit Android)
                     Logger.appendToLog("[Krypton] libEGL.so failed, trying /system/lib64/libEGL.so");
                     if (!configureRenderspec("/system/lib64/libEGL.so", false, useGles, glesVersion)) {
                         Log.e("RENDER_LIBRARY", "Failed to load system EGL for Krypton");
                         return null;
                     }
                 }
-                // Return the GL provider name (used by caller for identity; LWJGL libname set in GameRunner)
                 return "libng_gl4es.so";
             case "opengles2":
             case "opengles2_5":
