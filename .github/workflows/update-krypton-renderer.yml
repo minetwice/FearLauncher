@@ -1,0 +1,90 @@
+name: Setup / Update Krypton Wrapper (libng_gl4es.so)
+
+# Automatically downloads latest Krypton Wrapper APK and installs
+# libng_gl4es.so into the correct jniLibs path on this branch.
+# Run manually (workflow_dispatch) or it runs weekly / when workflow file changes.
+# This ensures the .so is always present so the built-in Krypton renderer never crashes.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'  # weekly Monday 03:00 UTC
+  push:
+    branches:
+      - 'fix-pojav-*'
+      - 'krypton-*'
+      - main
+      - master
+    paths:
+      - '.github/workflows/update-krypton-renderer.yml'
+      - 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
+      - 'app_pojavlauncher/src/main/res/values/headings_array.xml'
+      - 'app_pojavlauncher/src/main/res/values/strings.xml'
+
+concurrency:
+  group: update-krypton-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup-lib:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Download latest Krypton Wrapper APK
+        id: download
+        run: |
+          set -euo pipefail
+          API="https://api.github.com/repos/BZLZHH/NGG-FCLRendererPlugin/releases/latest"
+          TAG=$(curl -sL "$API" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+          URL=$(curl -sL "$API" | python3 -c "
+import sys,json
+assets=json.load(sys.stdin).get('assets',[])
+for a in assets:
+  if a['name'].endswith('.apk'):
+    print(a['browser_download_url']); break
+")
+          if [ -z "$URL" ]; then
+            echo "No APK found in latest release"
+            exit 1
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Downloading $URL (tag $TAG) ..."
+          curl -L --fail -o /tmp/krypton.apk "$URL"
+          echo "APK size: $(du -h /tmp/krypton.apk | cut -f1)"
+
+      - name: Extract and install libng_gl4es.so to correct path
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/extract
+          unzip -o /tmp/krypton.apk "lib/arm64-v8a/libng_gl4es.so" -d /tmp/extract
+          TARGET="app_pojavlauncher/src/main/jniLibs/arm64-v8a"
+          mkdir -p "$TARGET"
+          cp -f /tmp/extract/lib/arm64-v8a/libng_gl4es.so "$TARGET/libng_gl4es.so"
+          chmod 644 "$TARGET/libng_gl4es.so"
+          ls -lh "$TARGET/libng_gl4es.so"
+          # Sanity check: must be aarch64 ELF shared object
+          file "$TARGET/libng_gl4es.so" | tee /tmp/fileinfo.txt
+          grep -qE "shared object|ELF|aarch64|ARM aarch64" /tmp/fileinfo.txt || (echo "ERROR: not a valid .so" && exit 1)
+          echo "libng_gl4es.so installed successfully at $TARGET/"
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libng_gl4es.so
+          if git diff --staged --quiet; then
+            echo "No change to libng_gl4es.so — already up to date"
+          else
+            git commit -m "chore(renderer): setup/update Krypton Wrapper libng_gl4es.so (${{ steps.download.outputs.tag }})"
+            git push origin HEAD:${{ github.ref_name }}
+            echo "Pushed updated libng_gl4es.so to ${{ github.ref_name }}"
+          fi
