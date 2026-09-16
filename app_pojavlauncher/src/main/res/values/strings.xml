@@ -255,4 +255,22 @@
     <string name="customctrl_editor_exit_title">Leaving?</string>
     <string name="customctrl_editor_exit_msg">Are you sure you want to exit?</string>
     <string name="quick_setting_title">Quick settings</string>
+
+    <string name="customctrl_visibility_title">Visibility</string>
+    <string name="customctrl_visibility_ingame">In-game</string>
+    <string name="customctrl_visibility_in_menus">In menus</string>
+    <string name="cropper_lock_horizontal">Lock horizontal</string>
+    <string name="cropper_lock_vertical">Lock vertical</string>
+    <string name="cropper_reset">Reset</string>
+    <string name="version_select_hint">Select a version</string>
+    <string name="generic_apply">Apply</string>
+    <string name="controller_remapper_exit_part1">Press</string>
+    <string name="controller_button_select">Select</string>
+    <string name="controller_remapper_exit_part2">to exit</string>
+    <string name="controller_remapper_operating_mode">Operating mode</string>
+    <string name="controller_remapper_expand_entry">Expand</string>
+    <string name="storage_required">Storage access is required</string>
+    <string name="log_view_label_log_output">Log output</string>
+    <string name="log_view_button_scroll_on">Scroll: on</string>
+    <string name="log_view_button_scroll_off">Scroll: off</string>
 </resources>
