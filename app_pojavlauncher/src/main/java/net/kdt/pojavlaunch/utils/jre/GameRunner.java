@@ -53,7 +53,8 @@ public class GameRunner {
 
     private static boolean hasAngelica(File gameDir) {
         File modsDir = new File(gameDir, "mods");
-        File[] mods = modsDir.listFiles(file -> file.isFile() && file.getName().endsWith(".jar"));
+        File[] mods = modsDir.listFile
+s(file -> file.isFile() && file.getName().endsWith(".jar"));
         if(mods == null) return false;
         for(File file : mods) {
             String name = file.getName();
@@ -91,7 +92,8 @@ public class GameRunner {
                 dialogBuilder.setMessage(activity.getString(message))
                         .setCancelable(false)
                         .setPositiveButton(android.R.string.ok, (d, w)->{}));
-        return LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator);
+        return LifecycleAw
+areAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator);
     }
 
     private static String switchLtw(boolean hasLtw, Instance instance, AppCompatActivity activity, int resId) throws InterruptedException, IOException {
@@ -131,7 +133,8 @@ public class GameRunner {
             }
         }
         File gamedir = instance.getGameDirectory();
-        JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
+        JM
+inecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
             instance.renderer = rendererName = "opengles2";
@@ -175,7 +178,8 @@ public class GameRunner {
         disableSplash(gamedir);
 
         try {
-            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(activity);
+            android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(ac
+tivity);
             String skinPath = prefs.getString("active_skin_path", "steve");
             if (skinPath != null) {
                 File packDir = new File(gamedir, "resourcepacks/FEAR_Skin_Pack");
@@ -210,7 +214,8 @@ public class GameRunner {
                     fos.write(mcmetaContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 }
 
-                File optionsFile = new File(gamedir, "options.txt");
+     
+           File optionsFile = new File(gamedir, "options.txt");
                 if (optionsFile.exists()) {
                     StringBuilder sb = new StringBuilder();
                     try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(optionsFile), java.nio.charset.StandardCharsets.UTF_8))) {
@@ -241,7 +246,8 @@ public class GameRunner {
         ArrayList<String> launchClassPath = new ArrayList<>(classpath.length);
         for(File classpathEntry : classpath) {
             String entryPath = classpathEntry.getAbsolutePath();
-            if(!classpathEntry.exists()) { Log.w("GameRunner", "Skipped classpath entry " + entryPath + " because it is missing"); }
+            if(!classpathEntry.exists()) { L
+og.w("GameRunner", "Skipped classpath entry " + entryPath + " because it is missing"); }
             launchClassPath.add(entryPath);
         }
         launchClassPath.trimToSize();
@@ -278,11 +284,12 @@ public class GameRunner {
             rendererName = "opengles2";
             rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         }
-        if(rendererLibrary == null) {
+        if(rend
+ererLibrary == null) {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("krypton_wrapper") ? "libNG-GL4ES.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
@@ -311,7 +318,8 @@ public class GameRunner {
                 if (forgeSplashContent.contains("enabled=true")) {
                     Tools.write(forgeSplashFile, forgeSplashContent.replace("enabled=true", "enabled=false"));
                 }
-            } catch (IOException e) { Log.w(Tools.APP_NAME, "Could not disable Forge 1.12.2 and below splash screen!", e); }
+            } catch (IOExc
+eption e) { Log.w(Tools.APP_NAME, "Could not disable Forge 1.12.2 and below splash screen!", e); }
         } else { Log.w(Tools.APP_NAME, "Failed to create the configuration directory"); }
     }
 
@@ -337,7 +345,8 @@ public class GameRunner {
                     javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
                     Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
                 } catch (Exception e) { Log.e("LocalSkinServer", "Error starting/injecting local skin server", e); }
-            } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection."); }
+            
+} else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection."); }
             return;
         }
         String injectorUrl = minecraftAccount.authType.injectorUrl;
@@ -368,7 +377,8 @@ public class GameRunner {
         Map<String, String> varArgMap = new ArrayMap<>();
         varArgMap.put("classpath_separator", ":");
         varArgMap.put("library_directory", Tools.DIR_HOME_LIBRARY);
-        varArgMap.put("version_name", versionInfo.id);
+        varArgMap.put("version_name", vers
+ionInfo.id);
         varArgMap.put("natives_directory", Tools.NATIVE_LIB_DIR);
         List<String> minecraftArgs = new ArrayList<>();
         if (versionInfo.arguments != null) {
@@ -405,7 +415,8 @@ public class GameRunner {
         varArgMap.put("version_type", versionInfo.type);
 
         List<String> minecraftArgs = new ArrayList<>();
-        if (versionInfo.arguments != null && versionInfo.arguments.game != null) {
+        if (versionIn
+fo.arguments != null && versionInfo.arguments.game != null) {
             for (Object arg : versionInfo.arguments.game) {
                 if (arg instanceof String) { minecraftArgs.add((String) arg); }
             }
