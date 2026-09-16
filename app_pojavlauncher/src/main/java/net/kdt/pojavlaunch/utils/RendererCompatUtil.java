@@ -9,6 +9,7 @@ import android.os.Build;
 
 import net.kdt.pojavlaunch.Architecture;
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.gpu.KryptonWrapperManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,6 +40,9 @@ public class RendererCompatUtil {
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
         // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        // Krypton Wrapper (NG-GL4ES) requires the library to be present
+        boolean appHasKryptonWrapper = new File(Tools.NATIVE_LIB_DIR, "libNG-GL4ES.so").exists() ||
+                                      new File(Tools.NATIVE_LIB_DIR, "libngg_fcl.so").exists();
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
@@ -46,6 +50,14 @@ public class RendererCompatUtil {
             if(rendererId.equals("turnip_zink")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
+                continue;
+            }
+            if(rendererId.equals("krypton_wrapper")) {
+                // Krypton Wrapper requires API29+ and the library files
+                if(deviceCompatibleMesa && appHasKryptonWrapper) {
+                    rendererIds.add(rendererId);
+                    rendererNames.add(defaultRendererNames[i]);
+                }
                 continue;
             }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
