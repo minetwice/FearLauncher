@@ -1,3 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- App name part -->
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
+    <string name="app_version">version</string>
+
+    <!-- Action bar part-->
+    <string name="action_settings">Settings</string>
+
+    <!-- Check for updates -->
+    <string name="update_message">An update is available!</string>
+
+    <!-- Generic strings -->
+    <string name="local_login">Local account</string>
+    <string name="external_login">Login with Microsoft</string>
+
+    <!-- Main activity -->
+    <string name="main_share_logs">Share log files</string>
+    <string name="main_install_jar_failed">Failed to install .jar file</string>
+    <string name="main_nolaunch_warn_exit">Warning: You are about to exit without launching Minecraft. Continue?</string>
+
+    <!-- Launcher part -->
+    <string name="mcl_launch_error">Unable to launch Minecraft</string>
+    <string name="mcl_launch_error_failed">Failed to launch Minecraft. Please check the log for more information.</string>
+
+    <string name="mcl_setting_title_javaargs">JVM Launch arguments</string>
+    <string name="mcl_setting_subtitle_javaargs">Be careful, this may make game crash if modified without knowledge.</string>
+    <string name="mcl_setting_category_renderer">Renderer</string>
+    <string name="mcl_setting_renderer_krypton">Krypton Wrapper (NG-GL4ES) - all versions, shader support, Mali/Adreno</string>
+    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - all versions till 1.21.4, fast</string>
+    <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - all versions, mid</string>
+    <string name="mcl_setting_renderer_freedreno_kgsl">Freedreno - all versions, fast, Adreno-only</string>
+    <string name="mcl_setting_renderer_ltw">LTW (OpenGL ES 3) - 1.17+ only, fast</string>
+    <string name="mcl_setting_veroption_release">Release</string>
+    <string name="mcl_setting_veroption_snapshot">Snapshot</string>
+    <string name="mcl_setting_veroption_oldalpha">Old-alpha</string>
+    <string name="mcl_setting_veroption_oldbeta">Old-beta</string>
+    <string name="mcl_setting_java_sandbox">Sandbox .jar execution</string>
+    <string name="mcl_setting_java_sandbox_subtitle">Control the availability of the sandbox security manager when executing a .jar file.</string>
+    <string name="mcl_version_clone">Clone</string>
+
+    <!-- Global strings -->
+    <string name="global_edit">Edit</string>
+    <string name="global_error">Error</string>
+    <string name="global_load">Load</string>
+    <string name="global_name">Name</string>
+    <string name="global_remove">Remove</string>
+    <string name="global_clone">Clone</string>
+    <string name="global_restart">Restart</string>
+    <string name="global_save">Save</string>
+    <string name="global_default">Default</string>
+    <string name="global_cancel">Cancel</string>
+    <string name="global_ok">OK</string>
+    <string name="global_yes">Yes</string>
+    <string name="global_no">No</string>
+
+    <!-- PLACEHOLDER_MINIMAL: full strings will be restored from good commit if build needs more -->
+    <string name="mcl_setting_veroption_installed">Installed</string>
 </resources>
