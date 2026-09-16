@@ -55,10 +55,10 @@
     <string name="mcl_setting_subtitle_javaargs">Be careful, this may make game crash if modified without knowledge.</string>
     <string name="mcl_setting_category_renderer">Renderer</string>
     <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - all versions till 1.21.4, fast</string>
+    <string name="mcl_setting_renderer_ng_gl4es">Krypton Wrapper - all versions, fast</string>
     <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - all versions, mid</string>
     <string name="mcl_setting_renderer_freedreno_kgsl">Freedreno - all versions, fast, Adreno-only</string>
     <string name="mcl_setting_renderer_ltw">LTW (OpenGL ES 3) - 1.17+ only, fast</string>
-    <string name="mcl_setting_renderer_quasar">Quasar (OpenGL ES 3.1) - All versions, optimized for Mali/Adreno</string>
     <string name="mcl_setting_veroption_release">Release</string>
     <string name="mcl_setting_veroption_snapshot">Snapshot</string>
     <string name="mcl_setting_veroption_oldalpha">Old-alpha</string>
@@ -399,7 +399,7 @@ If you want to use the official download source, press \"Switch to official site
     <string name="mcl_button_social_media">Discord</string>
     <string name="ltw_render_distance_warning_msg">Your GPU is not capable of rendering above 7 render distance without Sodium or other similar mods. The render distance will be automatically reduced when you click "OK".</string>
     <string name="mcl_button_open_directory">Open game directory</string>
-    <string name="social_media_invite" translatable="false">https://discord.gg/VHdwQFsaGX</string>
+    <string name="social_media_invite" translatable="false">https://discord.gg/9xBZSNG3Uc</string>
     <string name="local_login_bad_username_title">Unsuitable username</string>
     <string name="local_login_bad_username_text">The username must be between 3–16 characters long, and must only contain latin letters, numbers 0–9 and underscores.</string>
     <string name="quick_setting_title">Quick settings</string>
@@ -415,6 +415,7 @@ If you want to use the official download source, press \"Switch to official site
     <string name="oauth_web_complete">Authenticating…</string>
     <string name="auth_select_microsoft">Microsoft account</string>
     <string name="auth_select_elyby">Ely.by account</string>
+    <string name="auth_select_craftynmc">CraftynMC account</string>
     <string name="auth_select_local">Local account</string>
     <string name="instance_dir_missing">Instance is missing</string>
     <string name="gamedir_open_failed">Failed to open game directory</string>
@@ -465,8 +466,4 @@ If you want to use the official download source, press \"Switch to official site
 
 <!-- Shown in version text when no instance is selected -->
 <string name="no_instance_selected">No version selected</string>
-    <string name="preference_quasar_shader_fixes_title">Enable Quasar Shader Fixes</string>
-    <string name="preference_quasar_shader_fixes_desc">Apply fixes for Mali GPU shader compatibility</string>
-    <string name="preference_quasar_force_gles31_title">Force OpenGL ES 3.1</string>
-    <string name="preference_quasar_force_gles31_desc">Force GLES 3.1 context (may improve performance on newer devices)</string>
 </resources>
