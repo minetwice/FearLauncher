@@ -1,1 +1,294 @@
-PLACEHOLDER_WILL_FAIL
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- App name part -->
+    <string name="app_name">Fear Launcher</string>
+    <string name="app_short_name">FearLauncher</string>
+
+    <!-- Login strings -->
+    <string name="login_online_username_hint">Username</string>
+    <string name="login_online_login_label">Login</string>
+
+    <!-- Hint -->
+    <string name="hint_control_mapping">"Touch the top center cogwheel to open the context menu ⚙\nTap a button to customize: edit, resize, remove, or change its keybinds."</string>
+
+    <!-- Warnings -->
+    <string name="warning_remove_account">This account will be removed!</string>
+
+    <!-- AlertDialog title -->
+    <string name="alerttitle_installmod">Select a mod installer</string>
+
+    <!-- Error messages -->
+    <string name="error_fatal">FearLauncher has unexpectedly crashed</string>
+    <string name="error_no_version">No version!</string>
+    <string name="error_show_more">Show more</string>
+    <string name="error_show_less">Show less</string>
+
+    <!-- Toast messages -->
+    <string name="toast_permission_denied">The read/write to storage permission is required!</string>
+    <string name="toast_optifine_success">Install successful</string>
+
+    <!-- MCLauncherActivity: Tabs -->
+    <string name="mcl_tab_wiki">Wiki</string>
+
+    <!-- MCLauncherActivity: Strings -->
+    <string name="mcl_launch_cleancache">Cleaning cache files</string>
+    <string name="mcl_launch_downloading">Downloading %s</string>
+    
+    <!-- FIXED: Single definition with to prevent build errors -->
+    <string name="mcl_launch_downloading_progress" formatted="false">Downloading %s (%.2f MB / %.2f MB)</string>
+    
+    <string name="mcl_launch_download_assets">Preparing to download resources</string>
+    <string name="mcl_options">Options</string>
+    <string name="mcl_option_customcontrol">Custom controls</string>
+    <string name="mcl_setting_title_use_surface_view">Use alternate surface rendering</string>
+    <string name="mcl_setting_subtitle_use_surface_view">May help performance in GPU bound scenarios.</string>
+    <string name="mcl_setting_title_ignore_notch">Ignore notch</string>
+    <string name="mcl_setting_subtitle_ignore_notch">Ignores the notch and extends the screen under it.\nGives you a more immersive experience.</string>
+    <string name="mcl_setting_title_resolution_scaler">Resolution Scaler</string>
+    <string name="mcl_setting_subtitle_resolution_scaler">Allows you to decrease the game resolution. 100% is full resolution.</string>
+    <string name="mcl_setting_title_longpresstrigger">Trigger long press delay</string>
+    <string name="mcl_setting_subtitle_longpresstrigger">Change long press trigger delay for destroying blocks and dropping items.</string>    <string name="mcl_setting_title_buttonscale">Control buttons scaling</string>
+    <string name="mcl_setting_subtitle_buttonscale">Upscale them if the buttons are too small.</string>
+    <string name="mcl_setting_title_mousescale">Mouse scaling</string>
+    <string name="mcl_setting_subtitle_mousescale">Change the size of the virtual mouse.</string>
+    <string name="mcl_setting_title_javaargs">JVM Launch arguments</string>
+    <string name="mcl_setting_subtitle_javaargs">Be careful, this may make game crash if modified without knowledge.</string>
+    <string name="mcl_setting_category_renderer">Renderer</string>
+    <string name="mcl_setting_renderer_gles2_4">Holy GL4ES - all versions till 1.21.4, fast</string>
+    <string name="mcl_setting_renderer_ng_gl4es">Krypton Wrapper - all versions, fast</string>
+    <string name="mcl_setting_renderer_vulkan_zink">Zink (Vulkan) - all versions, mid</string>
+    <string name="mcl_setting_renderer_freedreno_kgsl">Freedreno - all versions, fast, Adreno-only</string>
+    <string name="mcl_setting_renderer_ltw">LTW (OpenGL ES 3) - 1.17+ only, fast</string>
+    <string name="mcl_setting_veroption_release">Release</string>
+    <string name="mcl_setting_veroption_snapshot">Snapshot</string>
+    <string name="mcl_setting_veroption_oldalpha">Old-alpha</string>
+    <string name="mcl_setting_veroption_oldbeta">Old-beta</string>
+    <string name="mcl_setting_java_sandbox">Sandbox .jar execution</string>
+    <string name="mcl_setting_java_sandbox_subtitle">Control the availability of the sandbox security manager when executing a .jar file.</string>
+    <string name="mcl_version_clone">Clone</string>
+
+    <!-- Global strings -->
+    <string name="global_edit">Edit</string>
+    <string name="global_error">Error</string>
+    <string name="global_load">Load</string>
+    <string name="global_name">Name</string>
+    <string name="global_remove">Remove</string>
+    <string name="global_clone">Clone</string>
+    <string name="global_restart">Restart</string>
+    <string name="global_save">Save</string>
+    <string name="global_unpacking">Unpacking %s</string>
+    <string name="global_error_field_empty">This field can\'t be empty</string>
+    <string name="global_waiting">Wait</string>
+    <string name="global_select">Select</string>
+    <string name="global_retry">Retry</string>
+    <string name="global_default">Default</string>
+
+    <!-- MainActivity: strings -->
+    <string name="mcn_exit_title">Application/Game exited with code %d, check latestlog.txt for more details.</string>
+    <string name="mcn_abort_title">Application/Game aborted, check latestlog.txt for more information</string>
+    <string name="mcn_exit_confirm">Are you sure want to force close?</string>
+    <string name="mcn_check_fail_vulkan_support">Zink (Vulkan) renderer is not supported on this device!</string>
+
+    <!-- MainActivity: Control buttons -->
+    <string name="control_chat">Chat</string>
+    <string name="control_debug">Debug</string>
+    <string name="control_primary">Pri</string>
+    <string name="control_secondary">Sec</string>
+    <string name="control_shift">◇</string>
+    <string name="control_inventory">Inv</string>
+    <string name="control_up">▲</string>
+    <string name="control_left">◀</string>    <string name="control_right">▶</string>
+    <string name="control_down">▼</string>
+    <string name="control_jump">⬛</string>
+    <string name="control_thirdperson">3rd</string>
+    <string name="control_listplayers">Tab</string>
+    <string name="control_mouse">Mouse</string>
+    <string name="control_mouseoff">Mouse: off</string>
+    <string name="control_mouseon">Mouse: on </string>
+
+    <!-- MainActivity: Menu advanced controls -->
+    <string name="control_forceclose">Force close</string>
+    <string name="control_viewout">Log output</string>
+    <string name="control_adebug">Input Debug</string>
+    <string name="control_customkey">Send custom keycode</string>
+
+    <!-- ImportControlActivity Strings -->
+    <string name="import_control_label">Import controls</string>
+    <string name="import_control_invalid_file">Invalid or corrupted file</string>
+    <string name="import_control_import_button">import controls</string>
+    <string name="import_control_verifying_file">File is being verified, please wait and try again…</string>
+    <string name="import_control_invalid_name">Invalid name or file already exists</string>
+    <string name="import_control_done">Importation done</string>
+
+    <string name="customctrl_toggle">Toggleable</string>
+    <string name="customctrl_size">Size</string>
+    <string name="customctrl_mapping">Mapping</string>
+    <string name="customctrl_orientation">Orientation</string>
+    <string name="customctrl_background_bitmap">Background image</string>
+    <string name="customctrl_background_color">Background color</string>
+    <string name="customctrl_background_color_warning">Changing background color will reset the background image</string>
+    <string name="customctrl_corner_radius">Corner radius</string>
+    <string name="customctrl_stroke_width">Stroke width</string>
+    <string name="customctrl_stroke_color">Stroke color</string>
+    <string name="customctrl_button_opacity">Button Opacity</string>
+    <string name="customctrl_addbutton">Add button</string>
+    <string name="customctrl_addbutton_drawer">Add button drawer</string>
+    <string name="customctrl_addbutton_joystick">Add joystick</string>
+    <string name="customctrl_addsubbutton">Add sub-button</string>
+    <string name="customctrl_selectdefault">Select default controlmap</string>
+    <string name="customctrl_export">Export controlmap</string>
+    <string name="main_share_logs">Share log file</string>
+    <string name="main_install_jar_file">Execute a .jar</string>
+    <string name="main_play">Play</string>
+    <string name="autoram_info_msg">Memory set to %d MB</string>
+    <string name="mcl_setting_check_libraries">Check libraries after downloading</string>
+    <string name="mcl_setting_check_libraries_subtitle">This option forces the launcher to check the library hash if it\'s available. Prevents broken downloads.</string>
+    <string name="dl_library_sha_fail">Library %s is damaged and will be redownloaded</string>
+    <string name="dl_library_sha_unknown">Library %s can\'t be checked, have to assume it\'s good</string>
+    <string name="dl_library_sha_pass">Library %s is fine and usable</string>
+    <string name="mcl_disable_gestures">Disable gestures</string>    <string name="mcl_disable_gestures_subtitle">Disables gestures, such as hold to break block, and tap to place a block.</string>
+    <string name="mcl_disable_swap_hand">Disable double tap to swap hands</string>
+    <string name="mcl_disable_swap_hand_subtitle">Disables double tapping on the hotbar item to swap it in the second hand.</string>
+    <string name="mcl_setting_title_mousespeed">Mouse Speed</string>
+    <string name="mcl_setting_subtitle_mousespeed">Changes the speed of the virtual mouse.</string>
+    <string name="customctrl_passthru">Mouse pass-thru</string>
+    <string name="customctrl_swipeable">Swipeable</string>
+    <string name="customctrl_forward_lock">Forward lock</string>
+    <string name="customctrl_absolute_tracking">Absolute finger tracking</string>
+    
+    <string name="memory_warning_msg" formatted="false">The current amount of free RAM (%d) is lower than allocated RAM (%d), which may lead to crashes. Change the allocation if the game crashes.</string>
+    <string name="address_memory_warning_msg" formatted="false">The current amount of free addressable RAM space (%d) is lower than the allocated RAM (%d), which will lead to crashes. Change the allocation if the game crashes.</string>
+    
+    <string name="mcl_memory_allocation">Memory allocation</string>
+    <string name="mcl_memory_allocation_subtitle">Controls how much memory is given to Minecraft.</string>
+    <string name="multirt_runtime_corrupt">Corrupted Java Runtime</string>
+    <string name="multirt_runtime_incompatiblearch">Incompatible architecture: %s</string>
+    <string name="multirt_config_title">Java Runtimes</string>
+    <string name="multirt_config_add">Add new</string>
+    <string name="multirt_title">Runtime Manager</string>
+    <string name="multirt_subtitle">Manage installed Java Runtimes.</string>
+    <string name="multirt_progress_caching">Caching...</string>
+    <string name="multirt_config_setdefault">Set default</string>
+    <string name="multirt_config_setdefault_already">Default</string>
+    <string name="multirt_config_removeerror_last">You must have at least one Java Runtime installed.</string>
+    <string name="multirt_nocompatiblert">Can\'t find any compatible Java Runtime. This version requires Java %d or newer.</string>
+    <string name="multirt_nojava8rt">Can\'t find Java 8. In order to use this option, you need to install Java 8.</string>
+    <string name="multirt_delete_runtime">Delete runtime</string>
+    <string name="pvc_gameDirectory">Game directory</string>
+    <string name="pvc_jvmArgs">JVM arguments</string>
+    <string name="preference_mouse_start_title">Start with virtual mouse on</string>
+    <string name="preference_mouse_start_description">The virtual mouse appears at startup when this option is on.</string>
+    <string name="preference_video_title">Video and renderer</string>
+    <string name="preference_video_description">Resolution, renderer and performance</string>
+    <string name="preference_control_title">Control customization</string>
+    <string name="preference_control_description">Gestures, buttons and scaling</string>
+    <string name="preference_java_title">Java Tweaks</string>
+    <string name="preference_java_description">Java Runtimes, JVM Arguments, RAM amount and sandbox</string>
+    <string name="preference_misc_title">Miscellaneous settings</string>
+    <string name="preference_misc_description">Version list and libraries check</string>
+    <string name="preference_experimental_title">Experimental Stuff</string>
+    <string name="preference_experimental_description">Use things there with consideration, no support</string>
+    <string name="preference_sustained_performance_title">Enable sustained performance mode</string>
+    <string name="preference_sustained_performance_description">Limit thermal throttling by limiting peak performance.</string>
+    <string name="preference_force_vsync_title">Force enable VSync</string>
+    <string name="preference_force_vsync_description">Limit thermal throttling by limiting peak performance.</string>
+    <string name="preference_use_angle_title">Use ANGLE</string>
+    <string name="preference_use_angle_description">Allows using ANGLE instead of the system driver. Can fix graphical issues with mods on some GPUs</string>
+    <string name="preference_force_english_title">Force language to English</string>
+    <string name="preference_force_english_description">Allows you to see original strings, as intended by developers. Requires a restart.</string>    <string name="preference_edit_controls_title">Edit custom controls</string>
+    <string name="preference_edit_controls_summary">Tweak the control scheme to fit your needs.</string>
+    <string name="preference_category_gyro_controls">Gyroscope controls</string>
+    <string name="preference_category_virtual_mouse">Virtual mouse</string>
+    <string name="preference_gyro_invert_x_axis">Invert X axis</string>
+    <string name="preference_gyro_invert_y_axis">Invert Y axis</string>
+    <string name="preference_gyro_invert_x_axis_description">Invert the horizontal axis.</string>
+    <string name="preference_gyro_invert_y_axis_description">Invert the vertical axis.</string>
+    <string name="preference_gyro_smoothing_title">Enable gyroscope smoothing</string>
+    <string name="preference_gyro_smoothing_description">Reduce jitter in exchange of latency.</string>
+    <string name="preference_back_title">Back to the last screen</string>
+    <string name="unnamed">Unnamed</string>
+    <string name="profiles_latest_snapshot">Latest snapshot</string>
+    <string name="profiles_latest_release">Latest release</string>
+    <string name="profiles_profile_name">Name</string>
+    <string name="profiles_profile_version">Version</string>
+    <string name="instance_shared_data">Shared data (click to switch)</string>
+    <string name="instance_shared_data_on">Store game data in a shared directory</string>
+    <string name="instance_shared_data_off">Store game data in the instance directory</string>
+    <string name="global_delete">Delete</string>
+    <string name="pedit_java_runtime">Java Runtime</string>
+    <string name="pedit_renderer">Renderer</string>
+    <string name="color_default_hex" translatable="false">FFFF0000</string>
+    <string name="notif_channel_name">General</string>
+    <string name="notif_channel_id" translatable="false">channel_id</string>
+    <string name="lazy_service_default_title">Fear Foreground Service</string>
+    <string name="mcl_setting_veroption_installed">Installed</string>
+    <string name="use_global_default">(Use global default)</string>
+    <string name="default_control">Default controlmap</string>
+    <string name="progresslayout_tasks_in_progress">%d tasks in progress</string>
+    <string name="notification_terminate">Terminate</string>
+    <string name="notification_game_runs">The game is running!</string>
+    <string name="folder_dialog_create">Create</string>
+    <string name="folder_dialog_insert_name">Insert folder name</string>
+    <string name="folder_fragment_create">Create folder</string>
+    <string name="folder_fragment_select">Select folder</string>
+    <string name="main_login_done">Login done</string>
+    <string name="main_add_account">Add account</string>
+    <string name="tasks_ongoing">Tasks are in progress, please wait</string>
+    <string name="no_saved_accounts">No saved accounts</string>
+    <string name="mc_download_failed">Failed to download Minecraft! This could be due to bad network connection, incorrectly placed files, etc..</string>
+    <string name="xerr_unknown">Unknown Xbox Live API error %d</string>
+    <string name="xerr_no_account">You don\'t seem to have an Xbox Live account. Please log in once on https://minecraft.net/ and try again.</string>
+    <string name="xerr_adult_verification">An adult needs to verify your account.</string>
+    <string name="xerr_child">Your account is a child account, and needs to be added into a Family in order to log in.</string>
+    <string name="minecraft_not_owned">It seems like this account does not have a Minecraft profile. If you have Xbox Game Pass, please log in on https://minecraft.net/ and set it up.</string>
+    <string name="xerr_not_available">Xbox Live is not available in your country</string>
+    <string name="preference_enable_gyro_title">Enable gyroscope controls</string>
+    <string name="preference_enable_gyro_description">Enabling this will allow you to turn in-game by turning your phone.</string>
+    <string name="preference_gyro_sensitivity_title">Gyroscope controls sensitivity</string>    <string name="preference_gyro_sensitivity_description">Adjust the sensitivity of gyroscope controls.</string>
+    <string name="toast_turn_on_gyro">Enable gyroscope controls first to use this!</string>
+    <string name="preference_gyro_sample_rate_title">Gyroscope sampling rate</string>
+    <string name="preference_gyro_sample_rate_description">If you have performance issues with gyroscope controls, increase this.</string>
+    <string name="log_view_button_output_on">Output\nON</string>
+    <string name="log_view_button_output_off">Output\nOFF</string>
+    <string name="search_modpack_download_error">Failed to download modpack</string>
+    <string name="generic_install">Install</string>
+    <string name="preference_category_gestures">Gestures</string>
+    <string name="preference_category_buttons">Buttons</string>
+    <string name="mcl_setting_subtitle_buttonallcaps">Makes all button labels uppercase.</string>
+    <string name="mcl_setting_title_buttonallcaps">Button labels all-caps</string>
+    <string name="preference_category_controller_settings">Controller settings</string>
+    <string name="preference_remap_controller_description">Remap controller buttons to keyboard keys.</string>
+    <string name="preference_remap_controller_title">Remap controller</string>
+    <string name="preference_wipe_controller_description">Reset all controller mappings to default.</string>
+    <string name="preference_wipe_controller_title">Wipe controller mappings</string>
+    <string name="preference_deadzone_scale_description">Adjust the deadzone of the controller sticks.</string>
+    <string name="preference_deadzone_scale_title">Controller deadzone scale</string>
+    <string name="preference_category_experimental_settings">Experimental settings</string>
+    <string name="preference_shader_dump_description">Dump shader source for debugging.</string>
+    <string name="preference_shader_dump_title">Dump shaders</string>
+    <string name="preference_force_big_core_desc">Forces the Minecraft render thread to run on the core with the highest maximum frequency.</string>
+    <string name="preference_force_big_core_title">Force the renderer to run on the big core</string>
+    <string name="customctrl_editor_exit">Leave editor</string>
+    <string name="customctrl_editor_exit_title">Leaving?</string>
+    <string name="customctrl_editor_exit_msg">Are you sure you want to exit?</string>
+    <string name="quick_setting_title">Quick settings</string>
+    <string name="customctrl_visibility_title">Visibility</string>
+    <string name="customctrl_visibility_ingame">In-game</string>
+    <string name="customctrl_visibility_in_menus">In menus</string>
+    <string name="cropper_lock_horizontal">Lock horizontal</string>
+    <string name="cropper_lock_vertical">Lock vertical</string>
+    <string name="cropper_reset">Reset</string>
+    <string name="version_select_hint">Select a version</string>
+    <string name="generic_apply">Apply</string>
+    <string name="controller_remapper_exit_part1">Press</string>
+    <string name="controller_button_select">Select</string>
+    <string name="controller_remapper_exit_part2">to exit</string>
+    <string name="controller_remapper_operating_mode">Operating mode</string>
+    <string name="controller_remapper_expand_entry">Expand</string>
+    <string name="storage_required">Storage access is required</string>
+    <string name="log_view_label_log_output">Log output</string>
+    <string name="log_view_button_scroll_on">Scroll: on</string>
+    <string name="log_view_button_scroll_off">Scroll: off</string>
+    <string name="no_account_hint">Add Account</string>
+    <string name="no_instance_selected">No version selected</string>
+</resources>
