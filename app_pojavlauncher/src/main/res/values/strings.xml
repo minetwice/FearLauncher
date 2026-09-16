@@ -250,4 +250,9 @@
     <string name="preference_gyro_sample_rate_description">If you have performance issues with gyroscope controls, increase this.</string>
     <string name="no_account_hint">Add Account</string>
     <string name="no_instance_selected">No version selected</string>
+
+    <string name="customctrl_editor_exit">Leave editor</string>
+    <string name="customctrl_editor_exit_title">Leaving?</string>
+    <string name="customctrl_editor_exit_msg">Are you sure you want to exit?</string>
+    <string name="quick_setting_title">Quick settings</string>
 </resources>
