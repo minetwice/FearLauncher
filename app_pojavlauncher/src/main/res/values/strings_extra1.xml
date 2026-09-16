@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="cropper_title">Select image region</string>
+    <string name="customctrl_absolute_tracking">Absolute finger tracking</string>
+    <string name="customctrl_addsubbutton">Add sub-button</string>
+    <string name="customctrl_background_bitmap">Background image</string>
+    <string name="customctrl_background_color">Background color</string>
+    <string name="customctrl_background_color_warning">Changing background color will reset the background image</string>
+    <string name="customctrl_button_opacity">Button Opacity</string>
+    <string name="customctrl_corner_radius">Corner radius</string>
+    <string name="customctrl_editor_exit_msg">Are you sure you want to exit?</string>
+    <string name="customctrl_editor_exit_title">Leaving?</string>
+    <string name="customctrl_forward_lock">Forward lock</string>
+    <string name="customctrl_mapping">Mapping</string>
+    <string name="customctrl_orientation">Orientation</string>
+    <string name="customctrl_passthru">Mouse pass-thru</string>
+    <string name="customctrl_size">Size</string>
+    <string name="customctrl_stroke_color">Stroke color</string>
+    <string name="customctrl_stroke_width">Stroke width</string>
+    <string name="customctrl_swipeable">Swipeable</string>
+    <string name="customctrl_toggle">Toggleable</string>
+    <string name="customctrl_visibility_in_menus">In menus</string>
+    <string name="customctrl_visibility_ingame">In-game</string>
+    <string name="customctrl_visibility_title">Visibility</string>
+    <string name="default_control">Default controlmap</string>
+    <string name="dl_library_sha_fail">Library %s is damaged and will be redownloaded</string>
+    <string name="dl_library_sha_pass">Library %s is fine and usable</string>
+    <string name="dl_library_sha_unknown">Library %s can\'t be checked, have to assume it\'s good</string>
+    <string name="dl_switch_to_official_site">Switch to official site</string>
+    <string name="dl_tampered_manifest_title">Version manifest might have been tampered with</string>
+    <string name="dl_turn_off_manifest_checks">Turn off manifest checks</string>
+    <string name="downloading_java_runtime_platform" formatted="false">Downloading runtime, stage 2/2 (%.2f/%.2f MB)</string>
+    <string name="downloading_java_runtime_uni" formatted="false">Downloading runtime, stage 1/2 (%.2f/%.2f MB)</string>
+    <string name="exception_failed_to_unpack_jre17">Failed to install JRE 17</string>
+    <string name="execute_jar_failed_to_read_file">Failed to read the .jar file</string>
+    <string name="execute_jar_incompatible_runtime">Execute .jar feature is not compatible with Java %d</string>
+    <string name="fabric_dl_cant_read_meta">Failed to read %s loader metadata. Please try again later.</string>
+    <string name="fabric_dl_cant_read_meta2">Failed to read Fabric loader metadata. Please try again later.</string>
+    <string name="fabric_dl_game_version">Minecraft version</string>
+    <string name="fabric_dl_install">Install</string>
+    <string name="fabric_dl_loader_title">Select versions</string>
+    <string name="fabric_dl_loader_version">%s loader version</string>
+    <string name="fabric_dl_only_stable">Show only stable versions</string>
+    <string name="fabric_dl_progress">Downloading %s loader metadata</string>
+    <string name="folder_dialog_create">Create</string>
+    <string name="folder_dialog_insert_name">Insert folder name</string>
+    <string name="folder_fragment_create">Create folder</string>
+    <string name="folder_fragment_select">Select folder</string>
+    <string name="forge_dl_no_installer">Sorry, but this version of Forge does not have an installer, which is not yet supported.</string>
+    <string name="forge_dl_progress">Downloading installer for %s</string>
+    <string name="forge_dl_searching">Searching for Forge version number</string>
+    <string name="forge_dl_select_version">Select Forge version</string>
+    <string name="gamedir_open_failed">Failed to open game directory</string>
+    <string name="generic_apply">Apply</string>
+    <string name="generic_debug">Debug</string>
+    <string name="generic_install">Install</string>
+    <string name="global_delete">Delete</string>
+    <string name="global_error_field_empty">This field can\'t be empty</string>
+    <string name="global_save_and_exit">Save and exit</string>
+    <string name="global_unpacking">Unpacking %s</string>
+    <string name="hint_control_mapping">"Touch the top center cogwheel to open the context menu ⚙\nTap a button to customize: edit, resize, remove, or change its keybinds."</string>
+</resources>
