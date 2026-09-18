@@ -309,12 +309,27 @@ public class JREUtils {
                 } else {
                     Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
                 }
-                renderLibrary = "libOSMesa_8.so";
-                useGles = false;
-                bypassNamespace = true;
-                glesVersion = 3;
+                // OSMesa is loaded via LIB_MESA_NAME in osmesa_loader — NOT as GLFW's EGL lib.
+                // GLFW needs real eglGetProcAddress from system libEGL, or window creation fails.
                 if(preloadVk) preloadVulkan();
-                break;
+                // 1) Init driver namespace + touch OSMesa so Zink stack is ready
+                if (!configureRenderspec("libOSMesa_8.so", true, false, 3)) {
+                    Logger.appendToLog("[FearRender] OSMesa namespace load failed (continuing)");
+                }
+                // 2) Point renderspec EGL at system libEGL for GLFW eglGetProcAddress
+                renderLibrary = "/system/lib64/libEGL.so";
+                useGles = false;
+                bypassNamespace = false;
+                glesVersion = 3;
+                if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
+                    Logger.appendToLog("[FearRender] /system/lib64/libEGL.so failed, trying libEGL.so");
+                    renderLibrary = "libEGL.so";
+                    if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
+                        Log.e("RENDER_LIBRARY", "Failed to load system EGL for Zink/Fear Render");
+                        return null;
+                    }
+                }
+                return "libOSMesa_8.so";
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
                 useGles = true;
