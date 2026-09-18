@@ -1,7 +1,7 @@
 //
 // FearLauncher — LWJGL dlopen/dlsym hook v2.13
 // Non-Zink (Krypton): pass-through dlopen + route missing GL symbols via gl4es_GetProcAddress
-// Zink: eglBindAPI hook so GLFW accepts desktop OpenGL (OSMesa provides GL)
+// Zink: eglBindAPI + eglQueryString + eglGetProcAddress for desktop OpenGL facade
 //
 #include "jvm_hooks.h"
 
@@ -92,7 +92,6 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     if (!filename) return 0;
     if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL)
         return (jlong) pojavexec_loadVulkanDriver();
-    /* Prefer GLOBAL so GL symbols resolve process-wide */
     int mode = (int) jmode;
     if (strstr(filename, "ng_gl4es") || strstr(filename, "gl4es"))
         mode |= RTLD_GLOBAL;
@@ -108,7 +107,6 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
 }
 
 static int is_gl_symbol(const char* symbol) {
-    /* glfw* and glX* must NOT be treated as OpenGL entry points */
     if (strncmp(symbol, "glfw", 4) == 0 || strncmp(symbol, "GLFW", 4) == 0)
         return 0;
     if (strncmp(symbol, "glX", 3) == 0 || strncmp(symbol, "GLX", 3) == 0)
@@ -125,7 +123,6 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
 
-    /* Only intercept real GL calls when Krypton (ng_gl4es) is active */
     if (is_gl_symbol(symbol)) {
         const char* fear = getenv("FEAR_RENDERER");
         if (fear && strcmp(fear, "ng_gl4es") == 0) {
@@ -137,7 +134,6 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
     }
 
-    /* eglGetProcAddress: only force hook for Krypton; otherwise use real symbol */
     if (strcmp(symbol, "eglGetProcAddress") == 0) {
         const char* fear = getenv("FEAR_RENDERER");
         if (fear && strcmp(fear, "ng_gl4es") == 0)
@@ -176,17 +172,18 @@ static void try_install_egl_bytehook(void) {
         int st = bytehook_init(0, 0);
         printf("LWJGL hook v2.13: bytehook_init -> %d\n", st);
     }
-    /* Krypton: full eglGetProcAddress hook for GL translation */
     if (fear && strcmp(fear, "ng_gl4es") == 0) {
         void* stub = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
         printf("LWJGL hook v2.13: bytehook eglGetProcAddress -> %p\n", stub);
         return;
     }
-    /* Zink/Fear Render: only eglBindAPI so GLFW accepts desktop OpenGL (OSMesa provides it) */
     if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
               || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0)) {
-        void* stub = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
-        printf("LWJGL hook v2.13: bytehook eglBindAPI (Zink) -> %p\n", stub);
+        extern const char* eglQueryString_hook(void* display, int name);
+        void* a = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
+        void* b = bytehook_hook_all(NULL, "eglQueryString", (void*)eglQueryString_hook, NULL, NULL);
+        void* c = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+        printf("LWJGL hook v2.13: Zink egl hooks BindAPI=%p QueryString=%p GetProc=%p\n", a, b, c);
         return;
     }
     printf("LWJGL hook v2.13: skip egl bytehook (renderer=%s)\n", fear ? fear : "null");
