@@ -106,6 +106,17 @@ static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
     return (jlong) handle;
 }
 
+static int is_gl_symbol(const char* symbol) {
+    /* glfw* and glX* must NOT be treated as OpenGL entry points */
+    if (strncmp(symbol, "glfw", 4) == 0 || strncmp(symbol, "GLFW", 4) == 0)
+        return 0;
+    if (strncmp(symbol, "glX", 3) == 0 || strncmp(symbol, "GLX", 3) == 0)
+        return 0;
+    if (strncmp(symbol, "egl", 3) == 0 || strncmp(symbol, "EGL", 3) == 0)
+        return 0;
+    return (strncmp(symbol, "gl", 2) == 0 || strncmp(symbol, "GL", 2) == 0);
+}
+
 static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                  __attribute__((unused)) jclass class,
                  jlong handle,
@@ -113,18 +124,32 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
 
-    /* Route all GL lookups through Krypton when active */
-    if (strncmp(symbol, "gl", 2) == 0 || strncmp(symbol, "GL", 2) == 0) {
-        void* glsym = resolve_gl_symbol(symbol);
-        if (glsym) {
-            return (jlong) glsym;
+    /* Only intercept real GL calls when Krypton (ng_gl4es) is active */
+    if (is_gl_symbol(symbol)) {
+        const char* fear = getenv("FEAR_RENDERER");
+        if (fear && strcmp(fear, "ng_gl4es") == 0) {
+            void* glsym = resolve_gl_symbol(symbol);
+            if (glsym) {
+                return (jlong) glsym;
+            }
+            printf("LWJGL hook v2.13: GL symbol MISS %s\n", symbol);
         }
-        printf("LWJGL hook v2.13: GL symbol MISS %s\n", symbol);
     }
 
-    /* eglGetProcAddress -> our hook so GLFW/LWJGL FunctionProvider is correct */
+    /* eglGetProcAddress: only force hook for Krypton; otherwise use real symbol */
     if (strcmp(symbol, "eglGetProcAddress") == 0) {
-        return (jlong) eglGetProcAddress_hook;
+        const char* fear = getenv("FEAR_RENDERER");
+        if (fear && strcmp(fear, "ng_gl4es") == 0)
+            return (jlong) eglGetProcAddress_hook;
+        void* real = dlsym((void*) handle, symbol);
+        if (!real) real = dlsym(RTLD_DEFAULT, symbol);
+        if (!real) {
+            void* egl = dlopen("libEGL.so", RTLD_NOW | RTLD_NOLOAD);
+            if (!egl) egl = dlopen("libEGL.so", RTLD_NOW);
+            if (!egl) egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
+            if (egl) real = dlsym(egl, "eglGetProcAddress");
+        }
+        return (jlong) real;
     }
 
     void* sym = dlsym((void*) handle, symbol);
@@ -133,6 +158,12 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 static void try_install_egl_bytehook(void) {
+    /* Only for Krypton — Zink/OSMesa needs real system eglGetProcAddress */
+    const char* fear = getenv("FEAR_RENDERER");
+    if (!fear || strcmp(fear, "ng_gl4es") != 0) {
+        printf("LWJGL hook v2.13: skip egl bytehook (renderer=%s)\n", fear ? fear : "null");
+        return;
+    }
     void* bh = dlopen("libbytehook.so", RTLD_NOW);
     if (!bh) {
         printf("LWJGL hook v2.13: libbytehook.so not found\n");
