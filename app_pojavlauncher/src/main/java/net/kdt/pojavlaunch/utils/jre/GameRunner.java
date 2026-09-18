@@ -152,7 +152,7 @@ public class GameRunner {
             javaArgList.add("-Dlog4j.configurationFile=" + configFile);
         }
 
-        String dirPath = runtime.path + "/lib";
+        String dirPath = MultiRTUtils.getRuntimeHome(runtime.name).getAbsolutePath() + "/lib";
         javaArgList.add("-Djava.library.path="+dirPath+":"+Tools.NATIVE_LIB_DIR);
         javaArgList.add("-Djna.boot.library.path="+dirPath);
 
@@ -243,8 +243,8 @@ public class GameRunner {
         varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
         varArgMap.put("auth_xuid", profile.xuid);
         varArgMap.put("assets_root", Tools.ASSETS_PATH);
-        varArgMap.put("assets_index_name", versionInfo.assets);
         varArgMap.put("game_assets", Tools.ASSETS_PATH);
+        varArgMap.put("assets_index_name", versionInfo.assets);
         varArgMap.put("game_directory", gameDir.getAbsolutePath());
         varArgMap.put("user_properties", "{}");
         varArgMap.put("user_type", userType);
