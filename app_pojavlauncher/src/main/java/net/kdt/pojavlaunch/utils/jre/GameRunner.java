@@ -101,10 +101,7 @@ public class GameRunner {
     public static List<String> getMinecraftClientArgs(MinecraftAccount profile, JMinecraftVersionList.Version versionInfo, File gameDir) {
         String userType = "mojang";
         try {
-            Date creationDate = null;
-            if (versionInfo.releaseTime != null) {
-                creationDate = Tools.ISO_DATEFORMAT.parse(versionInfo.releaseTime);
-            }
+            Date creationDate = DateUtils.parseReleaseDate(versionInfo.releaseTime);
             if (creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) userType = "msa";
         } catch (ParseException e) { Log.e("GameRunner", "date", e); }
 
