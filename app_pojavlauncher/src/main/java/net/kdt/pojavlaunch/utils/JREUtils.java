@@ -121,9 +121,10 @@ public class JREUtils {
         switch(renderer) {
             case "turnip_zink":
             case "vulkan_zink":
+            case "fear_render":
             case "panvk_zink":
-                if ("panvk_zink".equals(renderer)) {
-                    Logger.appendToLog("[PanVK] Initializing Zink on Panfrost Vulkan (libvulkan_panfrost.so)...");
+                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
+                    Logger.appendToLog("[FearRender] Initializing Fear Render (Panfrost Vulkan + Zink)...");
                 } else {
                     Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
                 }
@@ -134,7 +135,7 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
-                if ("panvk_zink".equals(renderer)) {
+                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
                 }
                 break;
@@ -158,7 +159,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "fear_render".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -299,9 +300,10 @@ public class JREUtils {
         switch (renderer){
             case "turnip_zink":
             case "vulkan_zink":
+            case "fear_render":
             case "panvk_zink":
-                if ("panvk_zink".equals(renderer)) {
-                    Logger.appendToLog("[PanVK] Loading OSMesa + Panfrost Vulkan driver...");
+                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
+                    Logger.appendToLog("[FearRender] Loading OSMesa + libvulkan_panfrost.so...");
                     setUseTurnip(false);
                 } else {
                     Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
