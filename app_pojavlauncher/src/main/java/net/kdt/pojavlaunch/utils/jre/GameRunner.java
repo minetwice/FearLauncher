@@ -181,7 +181,8 @@ public class GameRunner {
         String lwjglGlLib;
         if (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")
                 || rendererName.equals("panvk_zink") || rendererName.equals("fear_render")) {
-            lwjglGlLib = "libmh_drive_vulkan_mesa.so";
+            // Resolve GL symbols from OSMesa (Zink); avoid mh_drive stub / ng_gl4es
+            lwjglGlLib = Tools.NATIVE_LIB_DIR + "/libOSMesa_8.so";
         } else if (rendererName.equals("ng_gl4es") || rendererName.equals("krypton_wrapper")) {
             lwjglGlLib = Tools.NATIVE_LIB_DIR + "/libng_gl4es.so";
         } else if (rendererName.equals("opengles3_ltw")) {
