@@ -88,10 +88,11 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
             printf("configureRenderspec: OSMesa symbols NOT ready (LIB_MESA_NAME=%s)\n",
                    getenv("LIB_MESA_NAME") ? getenv("LIB_MESA_NAME") : "null");
         }
-        /* Ensure system eglGetProcAddress is in the process for any leftover EGL probes */
-        void* sys = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_GLOBAL);
-        if (!sys) sys = dlopen("libEGL.so", RTLD_NOW | RTLD_GLOBAL);
-        if (sys) printf("configureRenderspec: system libEGL preloaded GLOBAL\n");
+        /* Load system EGL LOCAL only (for real eglGetProcAddress fallback).
+         * RTLD_GLOBAL was stealing eglChooseConfig from our facade. */
+        void* sys = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_LOCAL);
+        if (!sys) sys = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
+        if (sys) printf("configureRenderspec: system libEGL loaded LOCAL (no symbol steal)\n");
         fear_install_zink_egl_hooks();
     } else {
         bridge_environ.config_renderer = RENDERER_GL4ES;
