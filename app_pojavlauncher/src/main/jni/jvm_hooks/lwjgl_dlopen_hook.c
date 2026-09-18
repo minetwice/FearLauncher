@@ -1,7 +1,6 @@
 //
 // FearLauncher — LWJGL dlopen/dlsym hook v2.13
-// Non-Zink (Krypton): pass-through dlopen + route missing GL symbols via gl4es_GetProcAddress
-// Zink: eglBindAPI + eglQueryString + eglGetProcAddress for desktop OpenGL facade
+// Zink: force EGL symbols (incl. eglChooseConfig) through facade via bytehook + dlsym redirect
 //
 #include "jvm_hooks.h"
 
@@ -37,6 +36,34 @@ extern const char* eglQueryString(void* dpy, int name);
 
 static void* g_ng_handle = NULL;
 static void* (*g_gl4es_getproc)(const char*) = NULL;
+static void* (*g_real_dlsym)(void*, const char*) = NULL;
+
+static int is_zink_renderer_local(void) {
+    const char* fear = getenv("FEAR_RENDERER");
+    if (!fear) return 0;
+    return (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
+         || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0);
+}
+
+/* Intercept native dlsym so GLFW gets facade pointers even when it binds via dlsym(handle) */
+static void* dlsym_egl_redirect(void* handle, const char* symbol) {
+    if (symbol && is_zink_renderer_local()) {
+        if (strcmp(symbol, "eglChooseConfig") == 0) {
+            printf("dlsym_redirect: eglChooseConfig -> facade\n"); fflush(stdout);
+            return (void*)eglChooseConfig;
+        }
+        if (strcmp(symbol, "eglGetDisplay") == 0) return (void*)eglGetDisplay;
+        if (strcmp(symbol, "eglInitialize") == 0) return (void*)eglInitialize;
+        if (strcmp(symbol, "eglCreateContext") == 0) return (void*)eglCreateContext;
+        if (strcmp(symbol, "eglMakeCurrent") == 0) return (void*)eglMakeCurrent;
+        if (strcmp(symbol, "eglCreateWindowSurface") == 0) return (void*)eglCreateWindowSurface;
+        if (strcmp(symbol, "eglBindAPI") == 0) return (void*)eglBindAPI_hook;
+        if (strcmp(symbol, "eglGetProcAddress") == 0) return (void*)eglGetProcAddress_hook;
+        if (strcmp(symbol, "eglQueryString") == 0) return (void*)eglQueryString;
+    }
+    if (g_real_dlsym) return g_real_dlsym(handle, symbol);
+    return NULL;
+}
 
 static void ensure_ng_gl4es(void) {
     if (g_ng_handle) return;
@@ -78,10 +105,8 @@ jlong ndlopen_bugfix(JNIEnv *env, jclass clazz, jlong filename, jint mode) {
     int flags = (int) mode;
     if (flags == 0) flags = RTLD_LAZY;
     void* handle = dlopen(name, flags);
-    if (!handle && strstr(name, "lib")) {
-        /* retry with RTLD_NOW */
+    if (!handle && strstr(name, "lib"))
         handle = dlopen(name, RTLD_NOW);
-    }
     return (jlong) handle;
 }
 
@@ -89,11 +114,15 @@ jlong ndlsym_hook(JNIEnv *env, jclass clazz, jlong handle, jlong name) {
     const char* symbol = (const char*) name;
     if (!symbol) return 0;
 
-    /* Skip intercepting GLFW symbols — let real libglfw provide them */
     if (strncmp(symbol, "glfw", 4) == 0 || strncmp(symbol, "GLFW", 4) == 0) {
         void* sym = dlsym((void*) handle, symbol);
         if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
         return (jlong) sym;
+    }
+
+    if (is_zink_renderer_local() && strncmp(symbol, "egl", 3) == 0) {
+        void* r = dlsym_egl_redirect((void*)handle, symbol);
+        if (r) return (jlong) r;
     }
 
     const char* fear = getenv("FEAR_RENDERER");
@@ -138,15 +167,22 @@ static void try_install_egl_bytehook(void) {
         void* a = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
         void* b = bytehook_hook_all(NULL, "eglQueryString", (void*)eglQueryString_hook, NULL, NULL);
         void* c = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-        /* Force ChooseConfig/CreateContext through facade — LWJGL often binds these via dlsym, not GetProc */
         void* d = bytehook_hook_all(NULL, "eglChooseConfig", (void*)eglChooseConfig, NULL, NULL);
         void* e = bytehook_hook_all(NULL, "eglGetDisplay", (void*)eglGetDisplay, NULL, NULL);
         void* f = bytehook_hook_all(NULL, "eglInitialize", (void*)eglInitialize, NULL, NULL);
         void* g = bytehook_hook_all(NULL, "eglCreateContext", (void*)eglCreateContext, NULL, NULL);
         void* h = bytehook_hook_all(NULL, "eglMakeCurrent", (void*)eglMakeCurrent, NULL, NULL);
         void* i = bytehook_hook_all(NULL, "eglCreateWindowSurface", (void*)eglCreateWindowSurface, NULL, NULL);
-        printf("LWJGL hook v2.13: Zink egl hooks BindAPI=%p Query=%p GetProc=%p Choose=%p GetDisplay=%p Init=%p CreateCtx=%p MakeCurrent=%p CreateWin=%p\n",
-               a, b, c, d, e, f, g, h, i);
+        if (!g_real_dlsym) {
+            void* libc = dlopen("libc.so", RTLD_NOW | RTLD_NOLOAD);
+            if (!libc) libc = dlopen("libc.so.6", RTLD_NOW | RTLD_NOLOAD);
+            if (libc) g_real_dlsym = (void*(*)(void*, const char*))dlsym(libc, "dlsym");
+            if (!g_real_dlsym) g_real_dlsym = (void*(*)(void*, const char*))dlsym(RTLD_NEXT, "dlsym");
+            printf("LWJGL hook v2.13: real_dlsym=%p\n", (void*)g_real_dlsym);
+        }
+        void* j = bytehook_hook_all(NULL, "dlsym", (void*)dlsym_egl_redirect, NULL, NULL);
+        printf("LWJGL hook v2.13: Zink egl hooks BindAPI=%p Query=%p GetProc=%p Choose=%p GetDisplay=%p Init=%p CreateCtx=%p MakeCurrent=%p CreateWin=%p dlsym=%p\n",
+               a, b, c, d, e, f, g, h, i, j);
         fflush(stdout);
         return;
     }
