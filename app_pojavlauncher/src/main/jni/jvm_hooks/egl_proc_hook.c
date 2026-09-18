@@ -215,7 +215,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list,
                            EGLConfig* configs, EGLint config_size, EGLint* num_config) {
     if (num_config) *num_config = 1;
     if (configs && config_size > 0) configs[0] = (EGLConfig)&g_fake_config;
-    printf("eglChooseConfig: 1 fake config\n");
+    printf("eglChooseConfig: 1 fake config\n"); fflush(stdout);
     return EGL_TRUE;
 }
 
@@ -268,7 +268,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
             egl_error = EGL_BAD_ALLOC;
             return EGL_NO_CONTEXT;
         }
-        /* Always use NULL sharelist — GLFW/gl4es share handles are not OSMesa contexts */
         printf("eglCreateContext: calling OSMesaCreateContext(RGBA, NULL)...\n");
         fflush(stdout);
         void* ctx = OSMesaCreateContext_p(0x1908 /* OSMESA_RGBA */, NULL);
@@ -353,6 +352,10 @@ __attribute__((visibility("default")))
 void* eglGetProcAddress_hook(const char* procname) {
     if (!procname) return NULL;
     ensure_init();
+    if (strncmp(procname, "egl", 3) == 0) {
+        printf("eglGetProcAddress: %s\n", procname);
+        fflush(stdout);
+    }
     if (strcmp(procname, "eglBindAPI") == 0) return (void*)eglBindAPI;
     if (strcmp(procname, "eglQueryString") == 0) return (void*)eglQueryString;
     if (strcmp(procname, "eglGetDisplay") == 0) return (void*)eglGetDisplay;
