@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mcl_setting_renderer_panvk_zink">PanVK Zink (Mali) - experimental, shaders</string>
+</resources>
