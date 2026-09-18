@@ -190,7 +190,11 @@ public class GameRunner {
             lwjglGlLib = "libgl4es_114.so";
         }
         javaArgList.add("-Dorg.lwjgl.opengl.libname=" + lwjglGlLib);
-        if (rendererName.equals("ng_gl4es") || rendererName.equals("opengles2") || rendererName.equals("opengles3_ltw")) {
+        // System EGL needed for GLFW window creation (Zink/OSMesa and GLES paths)
+        if (rendererName.equals("ng_gl4es") || rendererName.equals("opengles2")
+                || rendererName.equals("opengles3_ltw")
+                || rendererName.equals("fear_render") || rendererName.equals("panvk_zink")
+                || rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")) {
             javaArgList.add("-Dorg.lwjgl.egl.libname=libEGL.so");
         }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
@@ -203,6 +207,13 @@ public class GameRunner {
         try {
             net.kdt.pojavlaunch.Logger.appendToLog("[GameRunner] Starting JVM " + versionId + " renderer=" + rendererName);
         } catch (Throwable ignored) {}
+
+        // CWD must be game dir (log4j logs/, configs, etc.)
+        try {
+            JREUtils.chdir(gamedir.getAbsolutePath());
+        } catch (Throwable t) {
+            Log.w("GameRunner", "chdir failed", t);
+        }
 
         try {
             JavaRunner.nativeSetupExit(activity);
