@@ -135,6 +135,7 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("LIBGL_EGL", "libEGL.so");
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
                 }
