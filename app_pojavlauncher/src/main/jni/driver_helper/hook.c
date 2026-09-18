@@ -4,6 +4,8 @@
 #include <android/dlext.h>
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
+#include <stdint.h>
 #include <bytehook.h>
 #include "native_hooks.h"
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
@@ -16,12 +18,14 @@ static struct android_namespace_t* (*android_get_exported_namespace_p)(const cha
 //NOLINTEND
 static void* ready_handle;
 
-// External hook from lwjgl_dlopen_hook.c
-void* eglGetProcAddress_hook(const char* procname);
-
 void install_global_egl_hook(bytehook_hook_all_t bytehook_hook_all_p) {
-    // Forcefully hook eglGetProcAddress in native GL libraries using bytehook
-    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    /* Resolve at runtime so liblinkerhook.so loads without depending on pojavexec symbols */
+    void* hook = dlsym(RTLD_DEFAULT, "eglGetProcAddress_hook");
+    if (!hook) {
+        printf("install_global_egl_hook: eglGetProcAddress_hook not found\n");
+        return;
+    }
+    bytehook_hook_all_p(NULL, "eglGetProcAddress", hook, NULL, NULL);
 }
 
 static const char *sphal_namespaces[3] = {
@@ -46,8 +50,6 @@ __attribute__((visibility("default"), used)) void *android_load_sphal_library(co
     if(strstr(filename, "vulkan.")) {
         return ready_handle;
     }
-    //printf("__loader_android_get_exported_namespace = %p\n__loader_android_dlopen_ext = %p\n", __loader_android_get_exported_namespace,
-    //       __loader_android_dlopen_ext);
     struct android_namespace_t* androidNamespace;
     for(int i = 0; i < 3; i++) {
         androidNamespace = android_get_exported_namespace_p(sphal_namespaces[i]);
