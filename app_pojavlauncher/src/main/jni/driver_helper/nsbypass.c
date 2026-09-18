@@ -106,51 +106,114 @@ bool patch_elf_soname(int patchfd, int realfd, size_t size, const char* patchnam
 
 #define PAGE_ALIGN(addr)        (((addr)+pagesize-1)&(~(pagesize-1)))
 
+static int open_system_lib(const char* name, char* found_path, size_t found_path_len) {
+    static const char* dirs[] = {
+        "/system/lib64",
+        "/system_ext/lib64",
+        "/vendor/lib64",
+        "/apex/com.android.vndk.v31/lib64",
+        "/apex/com.android.vndk.v33/lib64",
+        "/apex/com.android.vndk.v34/lib64",
+        "/system/lib",
+        NULL
+    };
+    for (int i = 0; dirs[i]; i++) {
+        char pathbuf[PATH_MAX];
+        snprintf(pathbuf, sizeof(pathbuf), "%s/%s", dirs[i], name);
+        int fd = open(pathbuf, O_RDONLY);
+        if (fd != -1) {
+            if (found_path && found_path_len)
+                snprintf(found_path, found_path_len, "%s", pathbuf);
+            printf("nsbypass: found %s at %s\n", name, pathbuf);
+            return fd;
+        }
+    }
+    printf("nsbypass: could not find %s in system paths (errno=%d)\n", name, errno);
+    return -1;
+}
+
 void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* patch_name, int flags) {
     int pagesize = getpagesize();
     char pathbuf[PATH_MAX];
+    char found[PATH_MAX];
     static uint16_t patchid;
     int patch_fd, real_fd;
     size_t fsize, totalsize;
 
-    snprintf(pathbuf, PATH_MAX, "%s/%s", SEARCH_PATH, name);
-    real_fd = open(pathbuf, O_RDONLY);
+    real_fd = open_system_lib(name, found, sizeof(found));
     if(real_fd == -1) return NULL;
 
     {
         struct stat64 real_stat;
-        if (fstat64(real_fd, &real_stat)) goto fail_real;
+        if (fstat64(real_fd, &real_stat)) {
+            printf("nsbypass: fstat64 failed errno=%d\n", errno);
+            goto fail_real;
+        }
         fsize = real_stat.st_size;
         totalsize = PAGE_ALIGN(fsize);
     }
 
     patch_fd = (int) syscall(__NR_memfd_create, patch_name, MFD_CLOEXEC);
     if(patch_fd == -1) {
-        // TODO: use ASharedMemory as fallback
-        // NOTE: use page-aligned size (totalsize) for ashmem
-        snprintf(pathbuf, PATH_MAX, "%s/%"PRIu16"", tmpdir, patchid++);
-        patch_fd = open(pathbuf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+        printf("nsbypass: memfd_create failed errno=%d, trying tmpdir\n", errno);
+        if (tmpdir && tmpdir[0]) {
+            snprintf(pathbuf, PATH_MAX, "%s/mjlvlk_%"PRIu16".so", tmpdir, patchid++);
+            patch_fd = open(pathbuf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+        }
     }
-    if(patch_fd == -1) goto fail_real;
+    if(patch_fd == -1) {
+        printf("nsbypass: patch_fd create failed errno=%d\n", errno);
+        goto fail_real;
+    }
 
-    if(ftruncate64(patch_fd, totalsize) == -1) goto fail_both;
+    if(ftruncate64(patch_fd, totalsize) == -1) {
+        printf("nsbypass: ftruncate64 failed errno=%d\n", errno);
+        goto fail_both;
+    }
 
     bool patch_result = patch_elf_soname(patch_fd, real_fd, fsize, patch_name);
     close(real_fd);
+    real_fd = -1;
     if(!patch_result) {
+        printf("nsbypass: patch_elf_soname failed for %s -> %s\n", name, patch_name);
         close(patch_fd);
         return NULL;
     }
 
     android_dlextinfo extinfo;
+    memset(&extinfo, 0, sizeof(extinfo));
     extinfo.flags = ANDROID_DLEXT_USE_NAMESPACE | ANDROID_DLEXT_USE_LIBRARY_FD;
     extinfo.library_fd = patch_fd;
     extinfo.library_namespace = driver_namespace;
-    return android_dlopen_ext(patch_name, flags, &extinfo);
+    void* handle = android_dlopen_ext(patch_name, flags, &extinfo);
+    if (!handle) {
+        printf("nsbypass: android_dlopen_ext(%s) failed: %s\n", patch_name, dlerror());
+        /* Fallback: write patched bytes to tmp file and ns_dlopen by path */
+        if (tmpdir && tmpdir[0]) {
+            snprintf(pathbuf, PATH_MAX, "%s/%s", tmpdir, patch_name);
+            int out = open(pathbuf, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            if (out != -1) {
+                char *buf = mmap(NULL, fsize, PROT_READ, MAP_SHARED, patch_fd, 0);
+                if (buf && buf != MAP_FAILED) {
+                    ssize_t w = write(out, buf, fsize);
+                    munmap(buf, fsize);
+                    close(out);
+                    if (w == (ssize_t)fsize) {
+                        handle = linker_ns_dlopen(pathbuf, flags);
+                        printf("nsbypass: file fallback dlopen(%s) => %p\n", pathbuf, handle);
+                    }
+                } else {
+                    close(out);
+                }
+            }
+        }
+    }
+    close(patch_fd);
+    return handle;
 
     fail_both:
     close(patch_fd);
     fail_real:
-    close(real_fd);
+    if (real_fd != -1) close(real_fd);
     return NULL;
 }
