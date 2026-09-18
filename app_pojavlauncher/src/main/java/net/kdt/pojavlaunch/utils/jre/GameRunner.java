@@ -62,7 +62,7 @@ public class GameRunner {
     private static boolean affectedByRenderDistanceIssue(JMinecraftVersionList.Version version) throws ParseException {
         if(LauncherPreferences.PREF_USE_ANGLE) return false;
         GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
-        if(info.glesMajorVersion > 3 || (info.glesMajorVersion == 3 && info.glesMinorVersion >= 1)) return false;
+        if(info.glesMajorVersion >= 3) return false;
         Date creationDate = DateUtils.parseReleaseDate(version.releaseTime);
         if(creationDate == null) return false;
         return !DateUtils.dateBefore(creationDate, 2021, 10, 1);
