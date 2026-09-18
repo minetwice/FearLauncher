@@ -21,6 +21,7 @@ extern void (*glClearColor_p) (GLclampf red, GLclampf green, GLclampf blue, GLcl
 extern void (*glClear_p) (GLbitfield mask);
 extern void (*glReadPixels_p) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * data);
 extern void (*glReadBuffer_p) (GLenum mode);
+extern void* (*OSMesaGetProcAddress_p) (const char* funcName);
 
 void dlsym_OSMesa();
 bool osmesa_is_loaded();
