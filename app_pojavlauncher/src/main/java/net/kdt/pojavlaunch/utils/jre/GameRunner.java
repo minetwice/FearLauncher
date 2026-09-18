@@ -69,7 +69,7 @@ public class GameRunner {
     }
 
     private static boolean isCompatContext(JMinecraftVersionList.Version version) throws Exception{
-        Date creationDate = DateUtils.getOpenGLVersionCutOffDate(version);
+        Date creationDate = DateUtils.getOriginalReleaseDate(version);
         if(creationDate == null) return true;
         return DateUtils.dateBefore(creationDate, 2021, 6, 8);
     }
