@@ -108,17 +108,23 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
     linkerhook_pass_handles(driver_handle, (void*)android_dlopen_ext, android_get_exported_namespace);
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
-    printf("DriverHook: %s loaded, mjlvlk ptr=%p\n", label, libvulkan);
+    printf("DriverHook: %s unique mjlvlk ptr=%p\n", label, libvulkan);
+    if (!libvulkan) {
+        printf("DriverHook: unique open failed, trying linker_ns_dlopen(libvulkan.so)\n");
+        libvulkan = linker_ns_dlopen("libvulkan.so", RTLD_LOCAL | RTLD_NOW);
+        printf("DriverHook: ns_dlopen libvulkan => %p\n", libvulkan);
+    }
     if (libvulkan) {
         strncpy(loaded_name, driver_soname, sizeof(loaded_name) - 1);
         driver_loaded = true;
+        printf("DriverHook: %s ready (vulkan handle=%p, driver=%s)\n", label, libvulkan, driver_soname);
         return true;
     }
-    printf("DriverHook: libmjlvlk / unique vulkan open failed for %s\n", label);
-    dlclose(dl_android);
-    dlclose(driver_handle);
-    dlclose(linkerhook);
-    return false;
+    /* Driver + android_dlopen_ext hook are installed; continue even without mjlvlk handle */
+    printf("DriverHook: vulkan handle null but driver %s hooked — continuing\n", label);
+    strncpy(loaded_name, driver_soname, sizeof(loaded_name) - 1);
+    driver_loaded = true;
+    return true;
 }
 
 bool load_turnip_vulkan() {
@@ -135,8 +141,12 @@ void* pojavexec_loadVulkanDriver() {
     if (android_get_device_api_level() >= 28) {
         const char* fear = getenv("FEAR_RENDERER");
         if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0)) {
-            if (load_panvk_vulkan())
-                return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
+            if (load_panvk_vulkan()) {
+                void* h = linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
+                if (h) return h;
+                h = linker_ns_dlopen("libvulkan.so", RTLD_LOCAL);
+                if (h) return h;
+            }
             printf("VulkanLoader: Fear Render / PanVK path failed, falling back\n");
         }
         if (turnip_enabled && load_turnip_vulkan())
