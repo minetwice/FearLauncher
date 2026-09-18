@@ -2,7 +2,7 @@
 <resources>
     <string-array name="renderer">
         <item>Turnip Zink (Vulkan — Adreno)</item>
-        <item>@string/mcl_setting_renderer_panvk_zink</item>
+        <item>@string/mcl_setting_renderer_fear_render</item>
         <item>@string/mcl_setting_renderer_gles2_4</item>
         <item>@string/mcl_setting_renderer_ng_gl4es</item>
         <item>@string/mcl_setting_renderer_vulkan_zink</item>
@@ -38,12 +38,12 @@
     </string-array>
     
     <string-array name="renderer_values">
-        <item>turnip_zink</item> <!-- Turnip Zink: OSMesa-based Zink (GL→Vulkan via Mesa/Turnip) -->
-        <item>panvk_zink</item> <!-- PanVK Zink: OSMesa Zink on Mali Panfrost Vulkan -->
-        <item>opengles2</item> <!-- holy-gl4es with OpenGL ES 2/"3" -->
-        <item>ng_gl4es</item> <!-- Krypton Wrapper (NG-GL4ES) -->
-        <item>vulkan_zink</item> <!-- zink with OpenGL -->
-        <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->
+        <item>turnip_zink</item>
+        <item>fear_render</item>
+        <item>opengles2</item>
+        <item>ng_gl4es</item>
+        <item>vulkan_zink</item>
+        <item>opengles3_ltw</item>
     </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>

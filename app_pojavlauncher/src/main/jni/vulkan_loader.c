@@ -1,5 +1,5 @@
 //
-// FearLauncher Vulkan loader — Turnip (Adreno) + PanVK (Mali/Panfrost)
+// FearLauncher Vulkan loader — Turnip (Adreno) + Fear Render / PanVK (Mali)
 //
 
 #include <android/api-level.h>
@@ -78,7 +78,7 @@ bool load_turnip_vulkan() {
 }
 
 bool load_panvk_vulkan() {
-    return load_named_vulkan_driver("libvulkan_panfrost.so", "PanVK");
+    return load_named_vulkan_driver("libvulkan_panfrost.so", "FearRender/PanVK");
 }
 #endif
 
@@ -86,10 +86,10 @@ void* pojavexec_loadVulkanDriver() {
 #ifdef ENABLE_TURNIP_LOADER
     if (android_get_device_api_level() >= 28) {
         const char* fear = getenv("FEAR_RENDERER");
-        if (fear && strcmp(fear, "panvk_zink") == 0) {
+        if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0)) {
             if (load_panvk_vulkan())
                 return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
-            printf("VulkanLoader: PanVK path failed, falling back\n");
+            printf("VulkanLoader: Fear Render / PanVK path failed, falling back\n");
         }
         if (turnip_enabled && load_turnip_vulkan())
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
@@ -105,9 +105,9 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
     (void)env; (void)clazz;
 #ifdef ENABLE_TURNIP_LOADER
     const char* fear = getenv("FEAR_RENDERER");
-    if (fear && strcmp(fear, "panvk_zink") == 0) {
+    if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0)) {
         if (!load_panvk_vulkan())
-            printf("VulkanLoader: preload PanVK failed\n");
+            printf("VulkanLoader: preload Fear Render PanVK failed\n");
         return;
     }
     if (!turnip_enabled) return;
