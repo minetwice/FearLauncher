@@ -8,6 +8,8 @@
 #include "driver_helper/nsbypass.h"
 #include "ctxbridges/bridge_environ.h"
 #include "ctxbridges/osmesa_loader.h"
+
+extern void fear_install_zink_egl_hooks(void);
 #include <jni.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -90,6 +92,7 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
         void* sys = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_GLOBAL);
         if (!sys) sys = dlopen("libEGL.so", RTLD_NOW | RTLD_GLOBAL);
         if (sys) printf("configureRenderspec: system libEGL preloaded GLOBAL\n");
+        fear_install_zink_egl_hooks();
     } else {
         bridge_environ.config_renderer = RENDERER_GL4ES;
         printf("configureRenderspec: config_renderer=RENDERER_GL4ES\n");
