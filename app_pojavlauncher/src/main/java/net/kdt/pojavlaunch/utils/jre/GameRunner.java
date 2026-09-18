@@ -71,7 +71,7 @@ public class GameRunner {
         }
 
         String lwjglGlLib;
-        if (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("panvk_zink")) {
+        if (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("panvk_zink") || rendererName.equals("fear_render")) {
             lwjglGlLib = "libmh_drive_vulkan_mesa.so";
         } else if (rendererName.equals("ng_gl4es")) {
             lwjglGlLib = Tools.NATIVE_LIB_DIR + "/libng_gl4es.so";
@@ -92,11 +92,9 @@ public class GameRunner {
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
 
         try {
-            // Continue with existing JVM launch pipeline used by this launcher build
             net.kdt.pojavlaunch.Logger.appendToLog("[GameRunner] Starting " + versionId + " renderer=" + rendererName);
         } catch (Throwable ignored) {}
 
-        // Keep process exit path consistent with prior builds
         Tools.fullyExit();
     }
 
@@ -107,7 +105,6 @@ public class GameRunner {
             if (versionInfo.releaseTime != null) {
                 creationDate = Tools.ISO_DATEFORMAT.parse(versionInfo.releaseTime);
             }
-            // DateUtils has dateBefore (not dateAfter)
             if (creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) userType = "msa";
         } catch (ParseException e) { Log.e("GameRunner", "date", e); }
 

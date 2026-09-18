@@ -26,17 +26,14 @@ public class RendererCompatUtil {
         return false;
     }
 
-    /** Return the renderers that are compatible with this device */
     public static RenderersList getCompatibleRenderers(Context context) {
         if(sCompatibleRenderers != null) return sCompatibleRenderers;
         Resources resources = context.getResources();
         String[] defaultRenderers = resources.getStringArray(R.array.renderer_values);
         String[] defaultRendererNames = resources.getStringArray(R.array.renderer);
         boolean deviceHasVulkan = checkVulkanSupport(context.getPackageManager());
-        // Current Mesa requires API29+
         boolean deviceCompatibleMesa = SDK_INT >= 29;
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
-        // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
@@ -47,7 +44,7 @@ public class RendererCompatUtil {
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
             }
-            if(rendererId.equals("panvk_zink")) {
+            if(rendererId.equals("fear_render") || rendererId.equals("panvk_zink")) {
                 if (new File(Tools.NATIVE_LIB_DIR, "libvulkan_panfrost.so").exists()) {
                     rendererIds.add(rendererId);
                     rendererNames.add(defaultRendererNames[i]);
@@ -61,7 +58,6 @@ public class RendererCompatUtil {
             rendererNames.add(defaultRendererNames[i]);
         }
 
-        // Check for installed plugin renderers (e.g. Mobile Glue, Zalith Launcher custom renderer plugins)
         List<net.kdt.pojavlaunch.plugins.LibraryPlugin> rendererPlugins = net.kdt.pojavlaunch.plugins.LibraryPlugin.discoverRendererPlugins(context);
         for (net.kdt.pojavlaunch.plugins.LibraryPlugin plugin : rendererPlugins) {
             String pluginId = "plugin:" + plugin.getId();
@@ -81,12 +77,10 @@ public class RendererCompatUtil {
         return sCompatibleRenderers;
     }
 
-    /** Checks if the renderer Id is compatible with the current device */
     public static boolean checkRendererCompatible(Context context, String rendererName) {
          return getCompatibleRenderers(context).rendererIds.contains(rendererName);
     }
 
-    /** Releases the cache of compatible renderers. */
     public static void releaseRenderersCache() {
         sCompatibleRenderers = null;
         System.gc();
