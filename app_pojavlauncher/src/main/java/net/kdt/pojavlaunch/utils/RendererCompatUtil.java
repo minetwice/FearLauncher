@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Build;
 
-import net.kdt.pojavlaunch.Architecture;
 import net.kdt.pojavlaunch.Tools;
 
 import java.io.File;
@@ -46,6 +45,13 @@ public class RendererCompatUtil {
             if(rendererId.equals("turnip_zink")) {
                 rendererIds.add(rendererId);
                 rendererNames.add(defaultRendererNames[i]);
+                continue;
+            }
+            if(rendererId.equals("panvk_zink")) {
+                if (new File(Tools.NATIVE_LIB_DIR, "libvulkan_panfrost.so").exists()) {
+                    rendererIds.add(rendererId);
+                    rendererNames.add(defaultRendererNames[i]);
+                }
                 continue;
             }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
