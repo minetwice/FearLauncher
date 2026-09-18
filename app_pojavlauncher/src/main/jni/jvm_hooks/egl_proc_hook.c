@@ -124,6 +124,12 @@ static void ensure_init(void) {
         real_eglGetProcAddress = (void*(*)(const char*))dlsym(egl, "eglGetProcAddress");
         real_eglBindAPI = (int(*)(int))dlsym(egl, "eglBindAPI");
     }
+    /* Never load ng_gl4es for Zink/Fear — it steals EGL and crashes OSMesaCreateContext */
+    if (is_zink_renderer()) {
+        printf("ensure_init: Zink/Fear path, skipping ng_gl4es\n");
+        fflush(stdout);
+        return;
+    }
     const char* native_dir = getenv("POJAV_NATIVEDIR");
     if (native_dir && native_dir[0]) {
         char path[512];
@@ -251,16 +257,23 @@ __attribute__((visibility("default")))
 EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
                             EGLContext share_context, const EGLint* attrib_list) {
     ensure_init();
-    printf("eglCreateContext: zink=%d osmesa=%d\n", is_zink_renderer(), osmesa_is_loaded());
+    printf("eglCreateContext: zink=%d osmesa=%d share=%p\n",
+           is_zink_renderer(), osmesa_is_loaded(), share_context);
+    fflush(stdout);
     if (is_zink_renderer()) {
         if (!osmesa_is_loaded()) dlsym_OSMesa();
         if (!osmesa_is_loaded() || !OSMesaCreateContext_p) {
             printf("eglCreateContext: OSMesa not available\n");
+            fflush(stdout);
             egl_error = EGL_BAD_ALLOC;
             return EGL_NO_CONTEXT;
         }
-        void* ctx = OSMesaCreateContext_p(0x1908 /* OSMESA_RGBA */, share_context);
+        /* Always use NULL sharelist — GLFW/gl4es share handles are not OSMesa contexts */
+        printf("eglCreateContext: calling OSMesaCreateContext(RGBA, NULL)...\n");
+        fflush(stdout);
+        void* ctx = OSMesaCreateContext_p(0x1908 /* OSMESA_RGBA */, NULL);
         printf("eglCreateContext: OSMesa ctx=%p\n", ctx);
+        fflush(stdout);
         if (!ctx) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
         return (EGLContext)ctx;
     }
