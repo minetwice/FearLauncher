@@ -27,6 +27,13 @@ bridge_environ_t bridge_environ = {0};
 /* from egl_proc_hook.c */
 extern void* eglGetProcAddress_hook(const char* procname);
 extern int eglBindAPI_hook(int api);
+extern void* eglGetDisplay(void* display_id);
+extern int eglInitialize(void* dpy, int* major, int* minor);
+extern int eglChooseConfig(void* dpy, const int* attrib_list, void** configs, int config_size, int* num_config);
+extern void* eglCreateContext(void* dpy, void* config, void* share, const int* attrib_list);
+extern int eglMakeCurrent(void* dpy, void* draw, void* read, void* ctx);
+extern void* eglCreateWindowSurface(void* dpy, void* config, void* win, const int* attrib_list);
+extern const char* eglQueryString(void* dpy, int name);
 
 static void* g_ng_handle = NULL;
 static void* (*g_gl4es_getproc)(const char*) = NULL;
@@ -62,91 +69,39 @@ static void* resolve_gl_symbol(const char* symbol) {
         void* s = dlsym(g_ng_handle, symbol);
         if (s) return s;
     }
-    return eglGetProcAddress_hook(symbol);
+    return NULL;
 }
 
-JNIEXPORT void JNICALL
-Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {
-    if (surface == NULL) return;
-    bridge_environ.pojavWindow = ANativeWindow_fromSurface(env, surface);
-    bridge_environ.savedWidth = ANativeWindow_getWidth(bridge_environ.pojavWindow);
-    bridge_environ.savedHeight = ANativeWindow_getHeight(bridge_environ.pojavWindow);
-    LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
-         bridge_environ.savedWidth, bridge_environ.savedHeight);
-    if (osmesa_is_loaded()) osm_setup_window();
-}
-
-JNIEXPORT void JNICALL
-Java_net_kdt_pojavlaunch_utils_JREUtils_releaseBridgeWindow(JNIEnv* env, jclass clazz) {
-    if (bridge_environ.pojavWindow != NULL) {
-        ANativeWindow_release(bridge_environ.pojavWindow);
-        bridge_environ.pojavWindow = NULL;
-    }
-}
-
-static jlong ndlopen_bugfix(__attribute__((unused)) JNIEnv *env,
-                     __attribute__((unused)) jclass class,
-                     jlong filename_ptr,
-                     jint jmode) {
-    const char* filename = (const char*) filename_ptr;
-    if (!filename) return 0;
-    if (strstr(filename, "libvulkan.so") == filename || strstr(filename, "vulkan.") != NULL)
-        return (jlong) pojavexec_loadVulkanDriver();
-    int mode = (int) jmode;
-    if (strstr(filename, "ng_gl4es") || strstr(filename, "gl4es"))
-        mode |= RTLD_GLOBAL;
-    void* handle = dlopen(filename, mode);
-    if (handle && (strstr(filename, "ng_gl4es") || strstr(filename, "gl4es"))) {
-        g_ng_handle = handle;
-        g_gl4es_getproc = (void*(*)(const char*))dlsym(handle, "gl4es_GetProcAddress");
-        if (!g_gl4es_getproc)
-            g_gl4es_getproc = (void*(*)(const char*))dlsym(handle, "glXGetProcAddress");
-        printf("LWJGL hook v2.13: dlopen %s -> %p getproc=%p\n", filename, handle, (void*)g_gl4es_getproc);
+jlong ndlopen_bugfix(JNIEnv *env, jclass clazz, jlong filename, jint mode) {
+    const char* name = (const char*) filename;
+    if (!name) return 0;
+    int flags = (int) mode;
+    if (flags == 0) flags = RTLD_LAZY;
+    void* handle = dlopen(name, flags);
+    if (!handle && strstr(name, "lib")) {
+        /* retry with RTLD_NOW */
+        handle = dlopen(name, RTLD_NOW);
     }
     return (jlong) handle;
 }
 
-static int is_gl_symbol(const char* symbol) {
-    if (strncmp(symbol, "glfw", 4) == 0 || strncmp(symbol, "GLFW", 4) == 0)
-        return 0;
-    if (strncmp(symbol, "glX", 3) == 0 || strncmp(symbol, "GLX", 3) == 0)
-        return 0;
-    if (strncmp(symbol, "egl", 3) == 0 || strncmp(symbol, "EGL", 3) == 0)
-        return 0;
-    return (strncmp(symbol, "gl", 2) == 0 || strncmp(symbol, "GL", 2) == 0);
-}
-
-static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
-                 __attribute__((unused)) jclass class,
-                 jlong handle,
-                 jlong symbol_ptr) {
-    const char* symbol = (const char*) symbol_ptr;
+jlong ndlsym_hook(JNIEnv *env, jclass clazz, jlong handle, jlong name) {
+    const char* symbol = (const char*) name;
     if (!symbol) return 0;
 
-    if (is_gl_symbol(symbol)) {
-        const char* fear = getenv("FEAR_RENDERER");
-        if (fear && strcmp(fear, "ng_gl4es") == 0) {
-            void* glsym = resolve_gl_symbol(symbol);
-            if (glsym) {
-                return (jlong) glsym;
-            }
-            printf("LWJGL hook v2.13: GL symbol MISS %s\n", symbol);
-        }
+    /* Skip intercepting GLFW symbols — let real libglfw provide them */
+    if (strncmp(symbol, "glfw", 4) == 0 || strncmp(symbol, "GLFW", 4) == 0) {
+        void* sym = dlsym((void*) handle, symbol);
+        if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
+        return (jlong) sym;
     }
 
-    if (strcmp(symbol, "eglGetProcAddress") == 0) {
-        const char* fear = getenv("FEAR_RENDERER");
-        if (fear && strcmp(fear, "ng_gl4es") == 0)
-            return (jlong) eglGetProcAddress_hook;
-        void* real = dlsym((void*) handle, symbol);
-        if (!real) real = dlsym(RTLD_DEFAULT, symbol);
-        if (!real) {
-            void* egl = dlopen("libEGL.so", RTLD_NOW | RTLD_NOLOAD);
-            if (!egl) egl = dlopen("libEGL.so", RTLD_NOW);
-            if (!egl) egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
-            if (egl) real = dlsym(egl, "eglGetProcAddress");
+    const char* fear = getenv("FEAR_RENDERER");
+    if (fear && strcmp(fear, "ng_gl4es") == 0) {
+        if (strncmp(symbol, "gl", 2) == 0) {
+            void* s = resolve_gl_symbol(symbol);
+            if (s) return (jlong) s;
         }
-        return (jlong) real;
     }
 
     void* sym = dlsym((void*) handle, symbol);
@@ -183,7 +138,16 @@ static void try_install_egl_bytehook(void) {
         void* a = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
         void* b = bytehook_hook_all(NULL, "eglQueryString", (void*)eglQueryString_hook, NULL, NULL);
         void* c = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-        printf("LWJGL hook v2.13: Zink egl hooks BindAPI=%p QueryString=%p GetProc=%p\n", a, b, c);
+        /* Force ChooseConfig/CreateContext through facade — LWJGL often binds these via dlsym, not GetProc */
+        void* d = bytehook_hook_all(NULL, "eglChooseConfig", (void*)eglChooseConfig, NULL, NULL);
+        void* e = bytehook_hook_all(NULL, "eglGetDisplay", (void*)eglGetDisplay, NULL, NULL);
+        void* f = bytehook_hook_all(NULL, "eglInitialize", (void*)eglInitialize, NULL, NULL);
+        void* g = bytehook_hook_all(NULL, "eglCreateContext", (void*)eglCreateContext, NULL, NULL);
+        void* h = bytehook_hook_all(NULL, "eglMakeCurrent", (void*)eglMakeCurrent, NULL, NULL);
+        void* i = bytehook_hook_all(NULL, "eglCreateWindowSurface", (void*)eglCreateWindowSurface, NULL, NULL);
+        printf("LWJGL hook v2.13: Zink egl hooks BindAPI=%p Query=%p GetProc=%p Choose=%p GetDisplay=%p Init=%p CreateCtx=%p MakeCurrent=%p CreateWin=%p\n",
+               a, b, c, d, e, f, g, h, i);
+        fflush(stdout);
         return;
     }
     printf("LWJGL hook v2.13: skip egl bytehook (renderer=%s)\n", fear ? fear : "null");
