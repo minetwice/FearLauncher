@@ -1,7 +1,7 @@
 //
 // FearLauncher — LWJGL dlopen/dlsym hook v2.13
 // Non-Zink (Krypton): pass-through dlopen + route missing GL symbols via gl4es_GetProcAddress
-// Zink path was simplified; eglGetProcAddress_hook is in egl_proc_hook.c
+// Zink: eglBindAPI hook so GLFW accepts desktop OpenGL (OSMesa provides GL)
 //
 #include "jvm_hooks.h"
 
@@ -26,6 +26,7 @@ bridge_environ_t bridge_environ = {0};
 
 /* from egl_proc_hook.c */
 extern void* eglGetProcAddress_hook(const char* procname);
+extern int eglBindAPI_hook(int api);
 
 static void* g_ng_handle = NULL;
 static void* (*g_gl4es_getproc)(const char*) = NULL;
@@ -158,12 +159,7 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 }
 
 static void try_install_egl_bytehook(void) {
-    /* Only for Krypton — Zink/OSMesa needs real system eglGetProcAddress */
     const char* fear = getenv("FEAR_RENDERER");
-    if (!fear || strcmp(fear, "ng_gl4es") != 0) {
-        printf("LWJGL hook v2.13: skip egl bytehook (renderer=%s)\n", fear ? fear : "null");
-        return;
-    }
     void* bh = dlopen("libbytehook.so", RTLD_NOW);
     if (!bh) {
         printf("LWJGL hook v2.13: libbytehook.so not found\n");
@@ -180,8 +176,20 @@ static void try_install_egl_bytehook(void) {
         int st = bytehook_init(0, 0);
         printf("LWJGL hook v2.13: bytehook_init -> %d\n", st);
     }
-    void* stub = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-    printf("LWJGL hook v2.13: bytehook eglGetProcAddress -> %p\n", stub);
+    /* Krypton: full eglGetProcAddress hook for GL translation */
+    if (fear && strcmp(fear, "ng_gl4es") == 0) {
+        void* stub = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+        printf("LWJGL hook v2.13: bytehook eglGetProcAddress -> %p\n", stub);
+        return;
+    }
+    /* Zink/Fear Render: only eglBindAPI so GLFW accepts desktop OpenGL (OSMesa provides it) */
+    if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
+              || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0)) {
+        void* stub = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
+        printf("LWJGL hook v2.13: bytehook eglBindAPI (Zink) -> %p\n", stub);
+        return;
+    }
+    printf("LWJGL hook v2.13: skip egl bytehook (renderer=%s)\n", fear ? fear : "null");
 }
 
 void installLwjglDlopenHook(JNIEnv *env) {
