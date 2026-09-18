@@ -1,10 +1,13 @@
 //
 // Created by maks on 09.04.2026.
+// FearLauncher: configureRenderspec + mark Zink/OSMesa renderer for bridge.
 //
 
 #include "utils.h"
 #include "pojavexec.h"
 #include "driver_helper/nsbypass.h"
+#include "ctxbridges/bridge_environ.h"
+#include "ctxbridges/osmesa_loader.h"
 #include <jni.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -44,6 +47,7 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
                                                             jint gles_version) {
     if(eglPath != NULL) {
         const char* egl_path = (*env)->GetStringUTFChars(env, eglPath, NULL);
+        if (renderspec.egl_path) free((void*)renderspec.egl_path);
         renderspec.egl_path = strdup(egl_path);
         (*env)->ReleaseStringUTFChars(env, eglPath, egl_path);
         if(!renderspec.egl_path) return false;
@@ -69,11 +73,30 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_configureRenderspec(JNIEnv *env, jclass 
 
     renderspec.force_gles_context = use_gles;
     renderspec.override_major_version = gles_version;
+
+    /* Zink / OSMesa path — critical: bridge must know we are not GL4ES/EGL-GLES */
+    if (!use_gles) {
+        bridge_environ.config_renderer = RENDERER_VK_ZINK;
+        printf("configureRenderspec: config_renderer=RENDERER_VK_ZINK\n");
+        /* Eager OSMesa symbol load so context path is ready before glfwCreateWindow */
+        dlsym_OSMesa();
+        if (osmesa_is_loaded()) {
+            printf("configureRenderspec: OSMesa symbols ready\n");
+        } else {
+            printf("configureRenderspec: OSMesa symbols NOT ready (LIB_MESA_NAME=%s)\n",
+                   getenv("LIB_MESA_NAME") ? getenv("LIB_MESA_NAME") : "null");
+        }
+        /* Ensure system eglGetProcAddress is in the process for any leftover EGL probes */
+        void* sys = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_GLOBAL);
+        if (!sys) sys = dlopen("libEGL.so", RTLD_NOW | RTLD_GLOBAL);
+        if (sys) printf("configureRenderspec: system libEGL preloaded GLOBAL\n");
+    } else {
+        bridge_environ.config_renderer = RENDERER_GL4ES;
+        printf("configureRenderspec: config_renderer=RENDERER_GL4ES\n");
+    }
     return true;
 }
 
 const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
     return &renderspec;
 }
-
-
