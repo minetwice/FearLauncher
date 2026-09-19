@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <android/native_window.h>
-#include <android/log.h>
 #include <setjmp.h>
 #include <signal.h>
 #include "ctxbridges/osmesa_loader.h"
@@ -190,14 +189,7 @@ static int is_zink_renderer(void) {
     const char* fear = getenv("FEAR_RENDERER");
     if (!fear) return 0;
     return (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
-         || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0
-         || strcmp(fear, "mesa_softpipe") == 0);
-}
-
-static int is_fear_panvk_renderer(void) {
-    const char* fear = getenv("FEAR_RENDERER");
-    if (!fear) return 0;
-    return (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0);
+         || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0);
 }
 
 static void ensure_init(void) {
@@ -209,7 +201,9 @@ static void ensure_init(void) {
         real_eglGetProcAddress = (void*(*)(const char*))dlsym(egl, "eglGetProcAddress");
         real_eglBindAPI = (int(*)(int))dlsym(egl, "eglBindAPI");
     }
-    if (is_zink_renderer()) return;
+    if (is_zink_renderer()) {
+        return;
+    }
     const char* native_dir = getenv("POJAV_NATIVEDIR");
     if (native_dir && native_dir[0]) {
         char path[512];
@@ -392,32 +386,13 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     if (share_context) share = (osm_render_window_t*)share_context;
     OSMesaContext share_ctx = share ? share->context : NULL;
 
-    OSMesaContext octx = NULL;
-
-    if (is_fear_panvk_renderer()) {
-        setenv("GALLIUM_DRIVER", "zink", 1);
-        setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
-        unsetenv("LIBGL_ALWAYS_SOFTWARE");
-        unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
-        setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
-        setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-        octx = fear_safe_osmesa_create(share_ctx);
-        if (octx) {
-            __android_log_print(ANDROID_LOG_INFO, "FearRender", "Zink+PanVK hardware context created");
-        } else {
-            __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink+PanVK failed, software fallback");
-        }
-    }
-
-    if (!octx) {
-        setenv("GALLIUM_DRIVER", "softpipe", 1);
-        setenv("MESA_LOADER_DRIVER_OVERRIDE", "softpipe", 1);
-        setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
-        unsetenv("MESA_GL_VERSION_OVERRIDE");
-        unsetenv("MESA_GLSL_VERSION_OVERRIDE");
-        unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
-        octx = fear_safe_osmesa_create(share_ctx);
-    }
+    setenv("GALLIUM_DRIVER", "softpipe", 1);
+    setenv("MESA_LOADER_DRIVER_OVERRIDE", "softpipe", 1);
+    setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+    unsetenv("MESA_GL_VERSION_OVERRIDE");
+    unsetenv("MESA_GLSL_VERSION_OVERRIDE");
+    unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
+    OSMesaContext octx = fear_safe_osmesa_create(share_ctx);
 
     if (!octx) {
         setenv("GALLIUM_DRIVER", "llvmpipe", 1);
@@ -444,8 +419,44 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     }
 
     if (!octx) {
-        egl_error = EGL_BAD_ALLOC;
-        return EGL_NO_CONTEXT;
+        /* System Mali GLES + gl4es fallback */
+        void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
+        if (!egl) egl = dlopen("libEGL.so", RTLD_NOW);
+        if (!egl) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
+        void* (*getDisp)(void*) = dlsym(egl, "eglGetDisplay");
+        int (*init)(void*, int*, int*) = dlsym(egl, "eglInitialize");
+        int (*bindApi)(int) = dlsym(egl, "eglBindAPI");
+        int (*choose)(void*, const int*, void*, int, int*) = dlsym(egl, "eglChooseConfig");
+        void* (*createCtx)(void*, void*, void*, const int*) = dlsym(egl, "eglCreateContext");
+        if (!getDisp || !createCtx) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
+        void* sys_dpy = getDisp((void*)0);
+        if (init) init(sys_dpy, 0, 0);
+        if (bindApi) bindApi(0x30A0);
+        int attribs[] = {0x3040, 0x0040, 0x3024, 8, 0x3023, 8, 0x3022, 8, 0x3021, 8, 0x3025, 24, 0x3033, 4, 0x3038};
+        void* cfg = 0; int n = 0;
+        if (choose) choose(sys_dpy, attribs, &cfg, 1, &n);
+        if (n < 1) {
+            int simple[] = {0x3040, 4, 0x3038};
+            if (choose) choose(sys_dpy, simple, &cfg, 1, &n);
+        }
+        int ctxa[] = {0x3098, 3, 0x3038};
+        void* ctx = createCtx(sys_dpy, cfg, 0, ctxa);
+        if (!ctx) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
+        const char* nd = getenv("POJAV_NATIVEDIR");
+        if (nd) {
+            char p[512];
+            snprintf(p, sizeof(p), "%s/libng_gl4es.so", nd);
+            void* h = dlopen(p, RTLD_NOW | RTLD_GLOBAL);
+            if (h) {
+                gl4es_GetProcAddress = (void*(*)(const char*))dlsym(h, "gl4es_GetProcAddress");
+                ng_handle = h;
+            }
+        }
+        osm_render_window_t* win = calloc(1, sizeof(osm_render_window_t));
+        if (!win) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
+        win->context = (OSMesaContext)ctx;
+        win->state = 2;
+        return (EGLContext)win;
     }
 
     osm_render_window_t* win = calloc(1, sizeof(osm_render_window_t));
@@ -476,6 +487,33 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     if (!is_zink_renderer()) return EGL_FALSE;
     if (!ctx) return EGL_TRUE;
     osm_render_window_t* win = (osm_render_window_t*)ctx;
+    if (win->state == 2) {
+        /* System GLES — use real eglMakeCurrent */
+        void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_NOLOAD);
+        if (!egl) egl = dlopen("libEGL.so", RTLD_NOW | RTLD_NOLOAD);
+        int (*mk)(void*, void*, void*, void*) = egl ? dlsym(egl, "eglMakeCurrent") : NULL;
+        void* (*getDisp)(void*) = egl ? dlsym(egl, "eglGetDisplay") : NULL;
+        void* (*createWin)(void*, void*, void*, const int*) = egl ? dlsym(egl, "eglCreateWindowSurface") : NULL;
+        int (*choose)(void*, const int*, void*, int, int*) = egl ? dlsym(egl, "eglChooseConfig") : NULL;
+        if (mk && getDisp) {
+            void* sys_dpy = getDisp((void*)0);
+            void* surf = draw;
+            if ((!surf || surf == (void*)0x2) && bridge_environ.pojavWindow)
+                surf = bridge_environ.pojavWindow;
+            if (surf && surf != (void*)0x2 && createWin && choose) {
+                static void* g_sys_surf = NULL;
+                if (!g_sys_surf) {
+                    void* cfg = 0; int n = 0;
+                    int simple[] = {0x3040, 4, 0x3038};
+                    choose(sys_dpy, simple, &cfg, 1, &n);
+                    if (n > 0) g_sys_surf = createWin(sys_dpy, cfg, surf, NULL);
+                }
+                if (g_sys_surf) surf = g_sys_surf;
+            }
+            return mk(sys_dpy, surf, surf, (void*)win->context) ? EGL_TRUE : EGL_FALSE;
+        }
+        return EGL_FALSE;
+    }
     if (draw && draw != (EGLSurface)0x2 && draw != (EGLSurface)0x3) {
         win->newNativeSurface = (ANativeWindow*)draw;
         bridge_environ.pojavWindow = (ANativeWindow*)draw;
@@ -494,6 +532,14 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
 __attribute__((visibility("default")))
 EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
     if (is_zink_renderer()) {
+        osm_render_window_t* cur = osm_get_current();
+        if (cur && cur->state == 2) {
+            void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_NOLOAD);
+            if (!egl) egl = dlopen("libEGL.so", RTLD_NOW | RTLD_NOLOAD);
+            int (*swap)(void*, void*) = egl ? dlsym(egl, "eglSwapBuffers") : NULL;
+            void* (*getDisp)(void*) = egl ? dlsym(egl, "eglGetDisplay") : NULL;
+            if (swap && getDisp) return swap(getDisp((void*)0), surface) ? EGL_TRUE : EGL_FALSE;
+        }
         osm_swap_buffers();
     }
     return EGL_TRUE;
@@ -547,6 +593,11 @@ void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "eglReleaseThread") == 0) return (void*)eglReleaseThread;
     if (strcmp(procname, "eglGetProcAddress") == 0) return (void*)eglGetProcAddress;
 
+    if (gl4es_GetProcAddress && strncmp(procname, "gl", 2) == 0 && strncmp(procname, "glfw", 4) != 0) {
+        void* sym = gl4es_GetProcAddress(procname);
+        if (sym) return sym;
+        if (ng_handle) { void* s = dlsym(ng_handle, procname); if (s) return s; }
+    }
     if (is_zink_renderer() && osmesa_is_loaded()) {
         void* mesa = get_mesa_dl_handle();
         if (mesa) { void* s = dlsym(mesa, procname); if (s) return s; }
