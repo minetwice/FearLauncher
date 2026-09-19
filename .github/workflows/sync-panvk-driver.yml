@@ -1,0 +1,156 @@
+name: Sync PanVK Driver (Mesa)
+
+# Builds the PanVK Vulkan driver (libvulkan_panfrost.so) from the Mesa_lib
+# fork and commits it into the launcher's jniLibs. This is the driver that
+# the Fear Render (PanVK + Zink) renderer uses on Mali GPUs.
+on:
+  workflow_dispatch:
+    inputs:
+      mesa_ref:
+        description: 'Mesa_lib ref (branch) to build the driver from'
+        required: false
+        default: 'main-17061956483348987644'
+        type: string
+      commit_branch:
+        description: 'FearLauncher branch to commit the driver into'
+        required: false
+        default: 'feat/krypton-renderer'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout FearLauncher
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_branch }}
+          persist-credentials: true
+
+      - name: Checkout Mesa source
+        uses: actions/checkout@v4
+        with:
+          repository: minetwice/Mesa_lib
+          ref: ${{ inputs.mesa_ref }}
+          path: mesa
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26b
+          add-to-path: true
+
+      - name: Add NDK and Local Binaries to PATH
+        run: |
+          echo "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Build Dependencies & Upgrade Meson
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake bison flex python3-mako pkg-config libdrm-dev python3-pip \
+            llvm-dev clang libclang-dev spirv-tools spirv-headers libllvmspirvlib-18-dev llvm-spirv-18 \
+            libexpat1-dev zlib1g-dev libzstd-dev
+          pip3 install --user "meson>=1.4.0" ninja packaging pyyaml
+          meson --version
+
+      - name: Build Host Tools (mesa-clc & precomp-compiler)
+        run: |
+          cd mesa
+          meson setup build-host \
+            -Dgallium-drivers=zink \
+            -Dvulkan-drivers= \
+            -Degl=disabled \
+            -Dgles1=disabled \
+            -Dgles2=disabled \
+            -Dglx=disabled \
+            -Dopengl=true \
+            -Dgbm=disabled \
+            -Dplatforms= \
+            -Dtools=panfrost \
+            -Dmesa-clc=enabled \
+            -Dinstall-mesa-clc=true \
+            -Dprecomp-compiler=enabled \
+            -Dinstall-precomp-compiler=true \
+            -Dllvm=enabled \
+            --prefix=/tmp/host-tools
+          meson compile -C build-host
+          meson install -C build-host
+          echo "/tmp/host-tools/bin" >> $GITHUB_PATH
+
+      - name: Create Android Cross File
+        run: |
+          cat << 'EOF' > mesa/android-aarch64.txt
+          [binaries]
+          c = 'aarch64-linux-android26-clang'
+          cpp = 'aarch64-linux-android26-clang++'
+          ar = 'llvm-ar'
+          strip = 'llvm-strip'
+          pkg-config = 'pkg-config'
+
+          [properties]
+          pkg_config_libdir = '/disable/non/android/system/pc/files'
+
+          [host_machine]
+          system = 'android'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+          EOF
+
+      - name: Configure Meson for Android ARM64
+        run: |
+          cd mesa
+          export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
+          # lld >= 17 hard-errors on version-script symbols removed by --gc-sections;
+          # --undefined-version keeps the link tolerant if the dri target gets built.
+          export LDFLAGS="-Wl,--undefined-version"
+          meson setup build-android \
+            --cross-file android-aarch64.txt \
+            -Dplatforms=android \
+            -Dandroid-stub=true \
+            -Dplatform-sdk-version=26 \
+            -Dvulkan-drivers=panfrost \
+            -Dgallium-drivers=zink \
+            -Degl=disabled \
+            -Dgles1=disabled \
+            -Dgles2=disabled \
+            -Dglx=disabled \
+            -Dopengl=true \
+            -Dgbm=disabled \
+            -Dzstd=disabled \
+            -Dallow-fallback-for=libdrm \
+            -Dmesa-clc=system \
+            -Dprecomp-compiler=system \
+            -Dllvm=disabled \
+            -Dgallium-rusticl=false \
+            -Dmicrosoft-clc=disabled \
+            -Dbuildtype=release
+
+      - name: Compile Mesa
+        run: |
+          cd mesa
+          ninja -C build-android
+          echo "✅ Compilation successful!"
+          ls -la build-android/src/panfrost/vulkan/libvulkan_panfrost.so
+
+      - name: Commit driver into jniLibs
+        run: |
+          cp -v mesa/build-android/src/panfrost/vulkan/libvulkan_panfrost.so \
+            app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
+          if git diff --quiet -- app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so; then
+            echo "Driver unchanged, nothing to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
+            git commit -m "fear-render: sync PanVK driver from Mesa_lib (${{ inputs.mesa_ref }})"
+            git push
+            echo "✅ Driver committed"
+          fi

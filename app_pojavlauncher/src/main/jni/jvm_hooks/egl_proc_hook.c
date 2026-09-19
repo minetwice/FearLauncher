@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <android/native_window.h>
+#include <android/log.h>
 #include <setjmp.h>
 #include <signal.h>
 #include "ctxbridges/osmesa_loader.h"
@@ -190,6 +191,13 @@ static int is_zink_renderer(void) {
     if (!fear) return 0;
     return (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
          || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0);
+}
+
+/* Fear Render specifically = Mesa PanVK (Mali) + Zink, the hardware path. */
+static int is_fear_panvk_renderer(void) {
+    const char* fear = getenv("FEAR_RENDERER");
+    if (!fear) return 0;
+    return (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0);
 }
 
 static void ensure_init(void) {
@@ -386,13 +394,40 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     if (share_context) share = (osm_render_window_t*)share_context;
     OSMesaContext share_ctx = share ? share->context : NULL;
 
-    setenv("GALLIUM_DRIVER", "softpipe", 1);
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "softpipe", 1);
-    setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
-    unsetenv("MESA_GL_VERSION_OVERRIDE");
-    unsetenv("MESA_GLSL_VERSION_OVERRIDE");
-    unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
-    OSMesaContext octx = fear_safe_osmesa_create(share_ctx);
+    OSMesaContext octx = NULL;
+
+    /* Fear Render (PanVK + Zink): try the hardware Mesa path FIRST.
+     * The freshly built PanVK driver (libvulkan_panfrost.so) is loaded by
+     * vulkan_loader.c before this point, so Zink can create a real GPU
+     * context. Only if that fails do we fall back to software Mesa. */
+    if (is_fear_panvk_renderer()) {
+        setenv("GALLIUM_DRIVER", "zink", 1);
+        setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+        unsetenv("LIBGL_ALWAYS_SOFTWARE");
+        unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
+        setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
+        setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
+        octx = fear_safe_osmesa_create(share_ctx);
+        if (octx) {
+            __android_log_print(ANDROID_LOG_INFO, "FearRender",
+                "Zink+PanVK hardware context created");
+            printf("FearRender: Zink+PanVK hardware context created\n");
+        } else {
+            __android_log_print(ANDROID_LOG_WARN, "FearRender",
+                "Zink+PanVK context failed, falling back to software Mesa");
+            printf("FearRender: Zink+PanVK context failed, falling back\n");
+        }
+    }
+
+    if (!octx) {
+        setenv("GALLIUM_DRIVER", "softpipe", 1);
+        setenv("MESA_LOADER_DRIVER_OVERRIDE", "softpipe", 1);
+        setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+        unsetenv("MESA_GL_VERSION_OVERRIDE");
+        unsetenv("MESA_GLSL_VERSION_OVERRIDE");
+        unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
+        octx = fear_safe_osmesa_create(share_ctx);
+    }
 
     if (!octx) {
         setenv("GALLIUM_DRIVER", "llvmpipe", 1);
