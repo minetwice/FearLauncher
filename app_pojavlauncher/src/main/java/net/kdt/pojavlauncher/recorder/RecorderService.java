@@ -20,7 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import net.kdt.pojavlauncher.R;
+import git.artdeell.mojo.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,9 +119,7 @@ public class RecorderService extends Service {
 
             virtualDisplay = mediaProjection.createVirtualDisplay(
                 "RecorderDisplay",
-                width,
-                height,
-                dpi,
+                width, height, dpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 mediaRecorder.getSurface(),
                 null,
