@@ -376,6 +376,15 @@
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_recorder_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="RECORDER DASHBOARD"
+                    android:drawableStart="@drawable/ic_px_image"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_logs_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"

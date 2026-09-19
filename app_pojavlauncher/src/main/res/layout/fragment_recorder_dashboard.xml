@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="16dp">
+
+    <!-- Header bar with crimson theme accents -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerVertical="true">
+
+            <TextView
+                android:id="@+id/tv_recorder_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GAMEPLAY RECORDER DASHBOARD"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Capture smooth 1080p/60-120 FPS clips with noise reduction audio"
+                android:textColor="#FF003C"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
+        </LinearLayout>
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/btn_record_new"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/premium_red_button_bg"
+            android:text="● START RECORDING"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
+    </RelativeLayout>
+
+    <!-- Empty state view -->
+    <LinearLayout
+        android:id="@+id/tv_empty_recordings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/premium_glass_black_bg"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_px_image"
+            app:tint="#FF003C"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NO RECORDINGS FOUND"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Click '● START RECORDING' above to capture your high FPS gameplay!"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp"
+            android:textAlignment="center" />
+    </LinearLayout>
+
+    <!-- RecyclerView for Recordings Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_recordings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false" />
+
+</LinearLayout>
