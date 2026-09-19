@@ -397,7 +397,8 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     ensure_init();
     if (!is_zink_renderer()) return EGL_FALSE;
     if (!ctx) {
-        if (OSMesaMakeCurrent_p) OSMesaMakeCurrent_p(NULL, NULL, 0, 0, 0);
+        printf("eglMakeCurrent: release current\n");
+        fflush(stdout);
         return EGL_TRUE;
     }
     if (!osmesa_is_loaded()) dlsym_OSMesa();
@@ -409,20 +410,47 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         if (nw > 0) w = nw;
         if (nh > 0) h = nh;
     }
+    if (w < 1) w = 1;
+    if (h < 1) h = 1;
     static void* tmp_buf = NULL;
     static int tmp_w = 0, tmp_h = 0;
     if (!tmp_buf || tmp_w != w || tmp_h != h) {
         free(tmp_buf);
-        tmp_buf = malloc((size_t)w * (size_t)h * 4);
+        size_t sz = (size_t)w * (size_t)h * 4;
+        tmp_buf = malloc(sz);
+        if (tmp_buf) memset(tmp_buf, 0, sz);
         tmp_w = w; tmp_h = h;
     }
     if (!tmp_buf || !OSMesaMakeCurrent_p) {
+        printf("eglMakeCurrent: no buffer or OSMesaMakeCurrent\n");
+        fflush(stdout);
         egl_error = EGL_BAD_CONTEXT;
         return EGL_FALSE;
     }
     GLboolean ok = OSMesaMakeCurrent_p(ctx, tmp_buf, 0x1401 /* GL_UNSIGNED_BYTE */, w, h);
-    printf("eglMakeCurrent: OSMesa -> %d (%dx%d)\n", (int)ok, w, h);
-    return ok ? EGL_TRUE : EGL_FALSE;
+    printf("eglMakeCurrent: OSMesa -> %d (%dx%d) ctx=%p buf=%p\n", (int)ok, w, h, ctx, tmp_buf);
+    fflush(stdout);
+    if (!ok) {
+        if (OSMesaPixelStore_p) {
+            OSMesaPixelStore_p(0x10, 0);
+            OSMesaPixelStore_p(0x11, 0);
+        }
+        ok = OSMesaMakeCurrent_p(ctx, tmp_buf, 0x1401, w, h);
+        printf("eglMakeCurrent: retry -> %d\n", (int)ok);
+        fflush(stdout);
+    }
+    if (!ok) {
+        egl_error = EGL_BAD_CONTEXT;
+        return EGL_FALSE;
+    }
+    return EGL_TRUE;
+}
+
+__attribute__((visibility("default")))
+EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) {
+    printf("eglSurfaceAttrib: attr=0x%x val=%d\n", (unsigned)attribute, (int)value);
+    fflush(stdout);
+    return EGL_TRUE;
 }
 
 __attribute__((visibility("default")))
@@ -477,6 +505,7 @@ void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "eglDestroySurface") == 0) return (void*)eglDestroySurface;
     if (strcmp(procname, "eglMakeCurrent") == 0) return (void*)eglMakeCurrent;
     if (strcmp(procname, "eglSwapBuffers") == 0) return (void*)eglSwapBuffers;
+    if (strcmp(procname, "eglSurfaceAttrib") == 0) return (void*)eglSurfaceAttrib;
     if (strcmp(procname, "eglSwapInterval") == 0) return (void*)eglSwapInterval;
     if (strcmp(procname, "eglQueryAPI") == 0) return (void*)eglQueryAPI;
     if (strcmp(procname, "eglReleaseThread") == 0) return (void*)eglReleaseThread;
@@ -519,6 +548,7 @@ static void* dlsym_egl_redirect_early(void* handle, const char* symbol) {
         if (strcmp(symbol, "eglGetProcAddress") == 0) return (void*)eglGetProcAddress;
         if (strcmp(symbol, "eglQueryString") == 0) return (void*)eglQueryString;
         if (strcmp(symbol, "eglSwapBuffers") == 0) return (void*)eglSwapBuffers;
+        if (strcmp(symbol, "eglSurfaceAttrib") == 0) return (void*)eglSurfaceAttrib;
         if (strcmp(symbol, "eglTerminate") == 0) return (void*)eglTerminate;
         if (strcmp(symbol, "eglGetError") == 0) return (void*)eglGetError;
         if (strcmp(symbol, "eglDestroyContext") == 0) return (void*)eglDestroyContext;
