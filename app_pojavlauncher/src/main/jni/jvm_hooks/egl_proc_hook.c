@@ -58,6 +58,81 @@
 #ifndef EGL_OPENGL_ES2_BIT
 #define EGL_OPENGL_ES2_BIT 0x0004
 #endif
+#ifndef EGL_OPENGL_ES_BIT
+#define EGL_OPENGL_ES_BIT 0x0001
+#endif
+#ifndef EGL_PBUFFER_BIT
+#define EGL_PBUFFER_BIT 0x0001
+#endif
+#ifndef EGL_PIXMAP_BIT
+#define EGL_PIXMAP_BIT 0x0002
+#endif
+#ifndef EGL_COLOR_BUFFER_TYPE
+#define EGL_COLOR_BUFFER_TYPE 0x303F
+#endif
+#ifndef EGL_RGB_BUFFER
+#define EGL_RGB_BUFFER 0x308E
+#endif
+#ifndef EGL_CONFIG_CAVEAT
+#define EGL_CONFIG_CAVEAT 0x3027
+#endif
+#ifndef EGL_SAMPLES
+#define EGL_SAMPLES 0x3031
+#endif
+#ifndef EGL_SAMPLE_BUFFERS
+#define EGL_SAMPLE_BUFFERS 0x3032
+#endif
+#ifndef EGL_TRANSPARENT_TYPE
+#define EGL_TRANSPARENT_TYPE 0x3034
+#endif
+#ifndef EGL_NATIVE_RENDERABLE
+#define EGL_NATIVE_RENDERABLE 0x302D
+#endif
+#ifndef EGL_NATIVE_VISUAL_ID
+#define EGL_NATIVE_VISUAL_ID 0x302E
+#endif
+#ifndef EGL_NATIVE_VISUAL_TYPE
+#define EGL_NATIVE_VISUAL_TYPE 0x302F
+#endif
+#ifndef EGL_CONFIG_ID
+#define EGL_CONFIG_ID 0x3028
+#endif
+#ifndef EGL_BUFFER_SIZE
+#define EGL_BUFFER_SIZE 0x3020
+#endif
+#ifndef EGL_LEVEL
+#define EGL_LEVEL 0x3029
+#endif
+#ifndef EGL_MAX_PBUFFER_WIDTH
+#define EGL_MAX_PBUFFER_WIDTH 0x302C
+#endif
+#ifndef EGL_MAX_PBUFFER_HEIGHT
+#define EGL_MAX_PBUFFER_HEIGHT 0x302A
+#endif
+#ifndef EGL_MAX_PBUFFER_PIXELS
+#define EGL_MAX_PBUFFER_PIXELS 0x302B
+#endif
+#ifndef EGL_BIND_TO_TEXTURE_RGB
+#define EGL_BIND_TO_TEXTURE_RGB 0x3039
+#endif
+#ifndef EGL_BIND_TO_TEXTURE_RGBA
+#define EGL_BIND_TO_TEXTURE_RGBA 0x303A
+#endif
+#ifndef EGL_MIN_SWAP_INTERVAL
+#define EGL_MIN_SWAP_INTERVAL 0x303B
+#endif
+#ifndef EGL_MAX_SWAP_INTERVAL
+#define EGL_MAX_SWAP_INTERVAL 0x303C
+#endif
+#ifndef EGL_LUMINANCE_SIZE
+#define EGL_LUMINANCE_SIZE 0x303D
+#endif
+#ifndef EGL_ALPHA_MASK_SIZE
+#define EGL_ALPHA_MASK_SIZE 0x303E
+#endif
+#ifndef EGL_CONFORMANT
+#define EGL_CONFORMANT 0x3042
+#endif
 #ifndef EGL_BLUE_SIZE
 #define EGL_BLUE_SIZE 0x3022
 #endif
@@ -124,7 +199,6 @@ static void ensure_init(void) {
         real_eglGetProcAddress = (void*(*)(const char*))dlsym(egl, "eglGetProcAddress");
         real_eglBindAPI = (int(*)(int))dlsym(egl, "eglBindAPI");
     }
-    /* Never load ng_gl4es for Zink/Fear — it steals EGL and crashes OSMesaCreateContext */
     if (is_zink_renderer()) {
         printf("ensure_init: Zink/Fear path, skipping ng_gl4es\n");
         fflush(stdout);
@@ -216,7 +290,12 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list,
                            EGLConfig* configs, EGLint config_size, EGLint* num_config) {
     if (num_config) *num_config = 1;
     if (configs && config_size > 0) configs[0] = (EGLConfig)&g_fake_config;
-    printf("eglChooseConfig: 1 fake config\n"); fflush(stdout);
+    printf("eglChooseConfig: 1 fake config (size=%d)\n", config_size);
+    if (attrib_list) {
+        for (int i = 0; attrib_list[i] != EGL_NONE && i < 64; i += 2)
+            printf("  attrib 0x%x = %d\n", (unsigned)attrib_list[i], (int)attrib_list[i+1]);
+    }
+    fflush(stdout);
     return EGL_TRUE;
 }
 
@@ -224,12 +303,37 @@ __attribute__((visibility("default")))
 EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint* value) {
     if (!value) return EGL_FALSE;
     switch (attribute) {
+        case EGL_BUFFER_SIZE: *value = 32; break;
         case EGL_RED_SIZE: case EGL_GREEN_SIZE: case EGL_BLUE_SIZE: case EGL_ALPHA_SIZE: *value = 8; break;
         case EGL_DEPTH_SIZE: *value = 24; break;
         case EGL_STENCIL_SIZE: *value = 8; break;
-        case EGL_SURFACE_TYPE: *value = EGL_WINDOW_BIT; break;
-        case EGL_RENDERABLE_TYPE: *value = EGL_OPENGL_BIT | EGL_OPENGL_ES2_BIT; break;
-        default: *value = 0; break;
+        case EGL_SURFACE_TYPE: *value = EGL_WINDOW_BIT | EGL_PBUFFER_BIT; break;
+        case EGL_RENDERABLE_TYPE: *value = EGL_OPENGL_BIT | EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES_BIT; break;
+        case EGL_COLOR_BUFFER_TYPE: *value = EGL_RGB_BUFFER; break;
+        case EGL_CONFIG_CAVEAT: *value = EGL_NONE; break;
+        case EGL_SAMPLES: *value = 0; break;
+        case EGL_SAMPLE_BUFFERS: *value = 0; break;
+        case EGL_TRANSPARENT_TYPE: *value = EGL_NONE; break;
+        case EGL_NATIVE_RENDERABLE: *value = EGL_TRUE; break;
+        case EGL_NATIVE_VISUAL_ID: *value = 0; break;
+        case EGL_NATIVE_VISUAL_TYPE: *value = EGL_NONE; break;
+        case EGL_CONFIG_ID: *value = 1; break;
+        case EGL_LEVEL: *value = 0; break;
+        case EGL_MAX_PBUFFER_WIDTH: *value = 4096; break;
+        case EGL_MAX_PBUFFER_HEIGHT: *value = 4096; break;
+        case EGL_MAX_PBUFFER_PIXELS: *value = 4096 * 4096; break;
+        case EGL_BIND_TO_TEXTURE_RGB: *value = EGL_FALSE; break;
+        case EGL_BIND_TO_TEXTURE_RGBA: *value = EGL_FALSE; break;
+        case EGL_MIN_SWAP_INTERVAL: *value = 0; break;
+        case EGL_MAX_SWAP_INTERVAL: *value = 1; break;
+        case EGL_LUMINANCE_SIZE: *value = 0; break;
+        case EGL_ALPHA_MASK_SIZE: *value = 0; break;
+        case EGL_CONFORMANT: *value = EGL_OPENGL_BIT | EGL_OPENGL_ES2_BIT; break;
+        default:
+            printf("eglGetConfigAttrib: unknown attrib 0x%x -> 0\n", (unsigned)attribute);
+            fflush(stdout);
+            *value = 0;
+            break;
     }
     return EGL_TRUE;
 }
@@ -395,7 +499,6 @@ void* eglGetProcAddress_hook(const char* procname) {
     return dlsym(RTLD_DEFAULT, procname);
 }
 
-/* Early install — configureRenderspec, before GLFW binds EGL */
 static void* (*g_real_dlsym_early)(void*, const char*) = NULL;
 static int g_hooks_installed = 0;
 
