@@ -26,6 +26,11 @@
             android:id="@+id/nav_skins"
             android:icon="@drawable/ic_px_edit"
             android:title="Skins" />
+
+        <item
+            android:id="@+id/nav_recorder"
+            android:icon="@drawable/ic_px_image"
+            android:title="Recorder" />
             
         <item
             android:id="@+id/nav_settings"

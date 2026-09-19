@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="16dp">
+
+    <!-- Header bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tv_recorder_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RECORDER DASHBOARD"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_recorder_title"
+            android:text="View, playback, and export smooth videos with FPS boost &amp; noise reduction"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp" />
+
+        <Button
+            android:id="@+id/btn_record_new"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/premium_red_button_bg"
+            android:text="● RECORD"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
+    </RelativeLayout>
+
+    <!-- Empty state view -->
+    <TextView
+        android:id="@+id/tv_empty_recordings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="No screen recordings found.\nStart playing Minecraft and record your gameplay!"
+        android:textColor="#80FFFFFF"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <!-- RecyclerView for Recordings Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_recordings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false" />
+
+</LinearLayout>

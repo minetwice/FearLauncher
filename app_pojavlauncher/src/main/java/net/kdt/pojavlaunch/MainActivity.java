@@ -98,6 +98,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     private GameService.LocalBinder mServiceBinder;
 
     private QuickSettingSideDialog mQuickSettingSideDialog;
+    private androidx.activity.result.ActivityResultLauncher<Intent> mMediaProjectionLauncher;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -150,8 +151,49 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         // Set the activity for the executor. Must do this here, or else Tools.showErrorRemote() may not
         // execute the correct method
         ContextExecutor.setActivity(this);
+
+        mMediaProjectionLauncher = registerForActivityResult(
+                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Intent recorderIntent = new Intent(this, net.kdt.pojavlaunch.recorder.RecorderService.class);
+                        recorderIntent.setAction(net.kdt.pojavlaunch.recorder.RecorderService.ACTION_START);
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_RESULT_CODE, result.getResultCode());
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_DATA, result.getData());
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_FPS, 60);
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_BITRATE, 12_000_000);
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_ENABLE_AUDIO, true);
+                        recorderIntent.putExtra(net.kdt.pojavlaunch.recorder.RecorderService.EXTRA_NOISE_REDUCTION, true);
+                        ContextCompat.startForegroundService(this, recorderIntent);
+                    } else {
+                        Toast.makeText(this, "Screen recording permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
         //Now, attach to the service. The game will only start when this happens, to make sure that we know the right state.
         bindService(gameServiceIntent, this, 0);
+    }
+
+    private void toggleScreenRecorder() {
+        if (net.kdt.pojavlaunch.recorder.RecorderService.isRecording()) {
+            Intent stopIntent = new Intent(this, net.kdt.pojavlaunch.recorder.RecorderService.class);
+            stopIntent.setAction(net.kdt.pojavlaunch.recorder.RecorderService.ACTION_STOP);
+            startService(stopIntent);
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Please grant Overlay permission to display recording controls", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        android.net.Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+                return;
+            }
+            android.media.projection.MediaProjectionManager projectionManager =
+                    (android.media.projection.MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            if (projectionManager != null) {
+                mMediaProjectionLauncher.launch(projectionManager.createScreenCaptureIntent());
+            }
+        }
     }
 
     protected void initLayout(int resId) {
@@ -181,8 +223,13 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             setTitle("Minecraft " + version);
 
             // Menu
+            String[] defaultMenu = getResources().getStringArray(R.array.menu_ingame);
+            String[] customMenu = new String[defaultMenu.length + 1];
+            System.arraycopy(defaultMenu, 0, customMenu, 0, defaultMenu.length);
+            customMenu[defaultMenu.length] = "Record Gameplay";
+
             gameActionArrayAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.menu_ingame));
+                    android.R.layout.simple_list_item_1, customMenu);
             gameActionClickListener = (parent, view, position, id) -> {
                 switch(position) {
                      case 0: dialogForceClose(MainActivity.this); break;
@@ -190,6 +237,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
                      case 2: dialogSendCustomKey(); break;
                      case 3: openQuickSettings(); break;
                      case 4: openCustomControls(); break;
+                     case 5: toggleScreenRecorder(); break;
                 }
                 drawerLayout.closeDrawers();
             };

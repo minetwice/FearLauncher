@@ -345,7 +345,9 @@ public class LauncherActivity extends BaseActivity {
             // "Account" item REMOVED – no more nav_account
             menu.add(0, R.id.nav_skins, 3, "Skins")
                     .setIcon(R.drawable.ic_px_edit);
-            menu.add(0, R.id.nav_settings, 4, "Settings")
+            menu.add(0, R.id.nav_recorder, 4, "Recorder")
+                    .setIcon(R.drawable.ic_px_image);
+            menu.add(0, R.id.nav_settings, 5, "Settings")
                     .setIcon(R.drawable.ic_px_sliders);
 
             menu.findItem(R.id.nav_dashboard).setChecked(true);
@@ -366,6 +368,11 @@ public class LauncherActivity extends BaseActivity {
                             .commit();
                 } else if (id == R.id.nav_mods) {
                     Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
+                } else if (id == R.id.nav_recorder) {
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new net.kdt.pojavlaunch.recorder.RecorderDashboardFragment())
+                            .commit();
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
                 }
