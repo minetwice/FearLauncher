@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
-import net.kdt.pojavlauncher.R;
+import git.artdeell.mojo.R;
 
 public class FloatingRecorderUI {
     private WindowManager windowManager;
