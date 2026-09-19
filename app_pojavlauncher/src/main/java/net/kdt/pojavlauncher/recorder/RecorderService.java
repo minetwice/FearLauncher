@@ -199,7 +199,7 @@ public class RecorderService extends Service {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("FearLauncher Recorder")
             .setContentText(text)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.notif_icon)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build();
     }
