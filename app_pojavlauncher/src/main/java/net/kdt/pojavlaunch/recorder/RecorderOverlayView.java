@@ -166,10 +166,11 @@ public class RecorderOverlayView {
         mBtnStop.setOnClickListener(v -> mService.stopRecording());
         root.addView(mBtnStop);
 
-        // Make floating overlay touch draggable
+        // Make floating overlay touch draggable without blocking child clicks
         root.setOnTouchListener(new View.OnTouchListener() {
             private int initialX, initialY;
             private float initialTouchX, initialTouchY;
+            private boolean isMoving = false;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -179,14 +180,21 @@ public class RecorderOverlayView {
                         initialY = mParams.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
-                        return true;
+                        isMoving = false;
+                        return false;
                     case MotionEvent.ACTION_MOVE:
-                        mParams.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        mParams.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        if (mWindowManager != null && mOverlayView != null) {
-                            mWindowManager.updateViewLayout(mOverlayView, mParams);
+                        int dx = (int) (event.getRawX() - initialTouchX);
+                        int dy = (int) (event.getRawY() - initialTouchY);
+                        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                            isMoving = true;
+                            mParams.x = initialX + dx;
+                            mParams.y = initialY + dy;
+                            if (mWindowManager != null && mOverlayView != null) {
+                                mWindowManager.updateViewLayout(mOverlayView, mParams);
+                            }
+                            return true;
                         }
-                        return true;
+                        break;
                 }
                 return false;
             }

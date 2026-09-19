@@ -273,6 +273,16 @@ public class MainMenuFragment extends Fragment {
         }
 
         // Drawer Operations Click Listeners
+        View trayRecorder = view.findViewById(R.id.tray_recorder_btn);
+        if (trayRecorder != null) {
+            trayRecorder.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.recorder.RecorderDashboardFragment.class, net.kdt.pojavlaunch.recorder.RecorderDashboardFragment.TAG, null);
+            });
+        }
+
         View trayLogs = view.findViewById(R.id.tray_logs_btn);
         if (trayLogs != null) {
             trayLogs.setOnClickListener(v -> {

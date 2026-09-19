@@ -131,7 +131,6 @@ public class VideoExportDialog extends Dialog {
 
         for (int i = 0; i < trackCount; i++) {
             MediaFormat format = extractor.getTrackFormat(i);
-            extractor.selectTrack(i);
             trackMap[i] = muxer.addTrack(format);
         }
 
@@ -141,19 +140,30 @@ public class VideoExportDialog extends Dialog {
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
         for (int i = 0; i < trackCount; i++) {
+            extractor.unselectTrack(i);
+        }
+
+        for (int i = 0; i < trackCount; i++) {
             extractor.selectTrack(i);
             while (true) {
-                int sampleSize = extractor.readSampleData(buffer, 0);
-                if (sampleSize < 0) break;
+                int trackIndex = extractor.getSampleTrackIndex();
+                if (trackIndex < 0) break;
 
-                bufferInfo.offset = 0;
-                bufferInfo.size = sampleSize;
-                bufferInfo.presentationTimeUs = extractor.getSampleTime();
-                bufferInfo.flags = extractor.getSampleFlags();
+                if (trackIndex == i) {
+                    int sampleSize = extractor.readSampleData(buffer, 0);
+                    if (sampleSize > 0) {
+                        bufferInfo.offset = 0;
+                        bufferInfo.size = sampleSize;
+                        bufferInfo.presentationTimeUs = extractor.getSampleTime();
+                        bufferInfo.flags = extractor.getSampleFlags();
 
-                muxer.writeSampleData(trackMap[i], buffer, bufferInfo);
+                        muxer.writeSampleData(trackMap[i], buffer, bufferInfo);
+                    }
+                }
                 extractor.advance();
             }
+            extractor.unselectTrack(i);
+            extractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
         }
 
         extractor.release();

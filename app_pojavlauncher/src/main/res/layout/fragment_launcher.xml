@@ -27,7 +27,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Top Left: Hamburger, Logo & Launcher Name -->
+        <!-- Top Left: Hamburger (3-line sidebar trigger), Logo & Launcher Name -->
         <ImageButton
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="@dimen/_24sdp"
@@ -381,6 +381,15 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_recorder_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="RECORDER DASHBOARD"
+                    android:drawableStart="@drawable/ic_px_image"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 

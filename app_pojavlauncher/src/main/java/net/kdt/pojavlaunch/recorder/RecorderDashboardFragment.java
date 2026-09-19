@@ -51,12 +51,40 @@ public class RecorderDashboardFragment extends Fragment {
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(2);
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
+    private androidx.activity.result.ActivityResultLauncher<Intent> mMediaProjectionLauncher;
+
     private final BroadcastReceiver mRefreshReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             loadVideos();
         }
     };
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mMediaProjectionLauncher = registerForActivityResult(
+                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    Context context = getContext();
+                    if (context == null) return;
+                    if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                        Intent recorderIntent = new Intent(context, RecorderService.class);
+                        recorderIntent.setAction(RecorderService.ACTION_START);
+                        recorderIntent.putExtra(RecorderService.EXTRA_RESULT_CODE, result.getResultCode());
+                        recorderIntent.putExtra(RecorderService.EXTRA_DATA, result.getData());
+                        recorderIntent.putExtra(RecorderService.EXTRA_FPS, 60);
+                        recorderIntent.putExtra(RecorderService.EXTRA_BITRATE, 12_000_000);
+                        recorderIntent.putExtra(RecorderService.EXTRA_ENABLE_AUDIO, true);
+                        recorderIntent.putExtra(RecorderService.EXTRA_NOISE_REDUCTION, true);
+                        androidx.core.content.ContextCompat.startForegroundService(context, recorderIntent);
+                        updateRecordButtonState();
+                    } else {
+                        Toast.makeText(context, "Screen recording permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
 
     @Nullable
     @Override
@@ -71,12 +99,45 @@ public class RecorderDashboardFragment extends Fragment {
         mAdapter = new VideoAdapter();
         mRecyclerView.setAdapter(mAdapter);
 
-        mBtnRecord.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "To record gameplay, open MainActivity or Quick Settings while playing!", Toast.LENGTH_LONG).show();
-        });
+        mBtnRecord.setOnClickListener(v -> toggleRecording());
 
+        updateRecordButtonState();
         loadVideos();
         return view;
+    }
+
+    private void updateRecordButtonState() {
+        if (mBtnRecord == null) return;
+        if (RecorderService.isRecording()) {
+            mBtnRecord.setText("■ STOP RECORDING");
+        } else {
+            mBtnRecord.setText("● START RECORDING");
+        }
+    }
+
+    private void toggleRecording() {
+        Context context = getContext();
+        if (context == null) return;
+
+        if (RecorderService.isRecording()) {
+            Intent stopIntent = new Intent(context, RecorderService.class);
+            stopIntent.setAction(RecorderService.ACTION_STOP);
+            context.startService(stopIntent);
+            updateRecordButtonState();
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(context)) {
+                Toast.makeText(context, "Please grant Overlay permission to display recording controls", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + context.getPackageName()));
+                startActivity(intent);
+                return;
+            }
+            android.media.projection.MediaProjectionManager projectionManager =
+                    (android.media.projection.MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            if (projectionManager != null) {
+                mMediaProjectionLauncher.launch(projectionManager.createScreenCaptureIntent());
+            }
+        }
     }
 
     @Override
