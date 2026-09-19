@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW") || line.contains("Sodium") || line.contains("PanVK") || line.contains("DriverHook")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW") || line.contains("Sodium") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("softpipe")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -104,6 +104,20 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "mesa_softpipe":
+                // Softpipe-only OSMesa build (Panfork CI without pan_base/kbase).
+                // MUST use softpipe — zink/panfrost are not linked and cause hang/ANR.
+                Logger.appendToLog("[MesaSoftpipe] OSMesa + softpipe (CPU). Expect low FPS; set resolution ~30-50%.");
+                envMap.put("GALLIUM_DRIVER", "softpipe");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "softpipe");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "3.3");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "330");
+                envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
+                envMap.put("vblank_mode", "0");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
             case "turnip_zink":
             case "vulkan_zink":
             case "fear_render":
@@ -120,7 +134,6 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
-                // Point LIBGL_EGL at our facade so GLFW/LWJGL does not use system GLES-only EGL
                 envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
@@ -144,7 +157,8 @@ public class JREUtils {
         if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
         if(PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
         boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "fear_render".equals(renderer);
-        if (!isZink) envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
+        boolean isOSmesa = isZink || "mesa_softpipe".equals(renderer);
+        if (!isOSmesa) envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -161,7 +175,7 @@ public class JREUtils {
         setupFfmpegEnv(context, envMap);
         setupRendererEnv(envMap, renderer);
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
-        if (isZink) envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
+        if (isOSmesa) envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
         else envMap.put("POJAV_RENDERER", renderer);
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
         if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) setUseTurnip(true);
@@ -253,6 +267,20 @@ public class JREUtils {
         }
 
         switch (renderer){
+            case "mesa_softpipe":
+                Logger.appendToLog("[MesaSoftpipe] Loading libOSMesa_8.so (softpipe CPU)...");
+                if (!configureRenderspec("libOSMesa_8.so", true, false, 3)) {
+                    Logger.appendToLog("[MesaSoftpipe] OSMesa namespace load failed (continuing)");
+                }
+                renderLibrary = Tools.NATIVE_LIB_DIR + "/libpojavexec.so";
+                if (!configureRenderspec(renderLibrary, false, false, 3)) {
+                    renderLibrary = "libpojavexec.so";
+                    if (!configureRenderspec(renderLibrary, false, false, 3)) {
+                        Log.e("RENDER_LIBRARY", "Failed to load pojavexec for mesa_softpipe");
+                        return null;
+                    }
+                }
+                return "libOSMesa_8.so";
             case "turnip_zink":
             case "vulkan_zink":
             case "fear_render":
