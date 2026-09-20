@@ -115,10 +115,10 @@
 
         <!-- JAVA GUI INSTALLER (Sensor Landscape for Flexibility) -->
         <activity
-            android:process=":gui_installer"
+            android:process=":game"
             android:name="net.kdt.pojavlaunch.JavaGUILauncherActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorlandscape" />
 
         <!-- CUSTOM CONTROLS EDITOR (Sensor Landscape) -->
         <activity
@@ -138,7 +138,7 @@
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:launchMode="singleTop"
             android:process=":game"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorlandscape" />
 
         <!-- FILE PROVIDER -->
         <provider
@@ -156,7 +156,8 @@
         <service 
             android:name="net.kdt.pojavlaunch.services.ProgressService"
             android:foregroundServiceType="dataSync"
-            android:exported="false" />
+            android:exported="false"
+/>
             
         <service 
             android:name="net.kdt.pojavlaunch.services.GameService" 
@@ -179,10 +180,16 @@
             android:exported="false"
             android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-    </application>
+        <activity
+            android:name="net.kdt.pojavlauncher.recorder.ExportPickActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+   </application>
 
     <queries>
         <package android:name="git.fear.ffmpeg"/>
         <package android:name="git.fear.angle"/>
     </queries>
-</manifest>
+    </manifest>

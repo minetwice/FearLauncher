@@ -50,7 +50,7 @@
             android:background="@drawable/premium_button_bg"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constrainEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
@@ -67,7 +67,7 @@
         android:layout_marginTop="8dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/rec_header_divider"
+        app:layout_constraintTop_toBotomOf="@id/rec_header_divider"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -76,7 +76,7 @@
             android:orientation="vertical"
             android:padding="8dp">
 
-            <!-- ============ STATUS CARD ============ -->
+            <!-- =========== STATUS CARD ============ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -191,15 +191,15 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="10dp" />
 
-            <!-- ============ VIDEO QUALITY ============ -->
+            <!-- ============ VIDEO QUALITY ============= -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="• VIDEO QUALITY"
                 android:textColor="#80FFFFFF"
-                android:textSize="@dimen/_8ssp"
+                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
-                android:letterSpacing="0.05"
+                 android:letterSpacing="0.05"
                 android:layout_marginBottom="6dp" />
 
             <LinearLayout
@@ -358,6 +358,37 @@
                 android:textSize="@dimen/_7ssp"
                 android:lineSpacingExtra="3dp"
                 android:layout_marginTop="14dp"
+                android:layout_marginBottom="14dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33FF003C"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• MY RECORDINGS"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:id="@+id/rec_recordings_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/rec_recordings_empty"
+                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No recordings yet — hit START RECORDING!"
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_8ssp"
                 android:layout_marginBottom="8dp" />
         </LinearLayout>
     </ScrollView>
