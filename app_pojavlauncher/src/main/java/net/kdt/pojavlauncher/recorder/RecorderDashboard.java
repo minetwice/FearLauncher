@@ -5,13 +5,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.SoundEffectConstants;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -208,9 +213,112 @@ public final class RecorderDashboard {
             }
         });
 
+        // ---- my recordings ----
+        LinearLayout recordingsList = dialog.findViewById(R.id.rec_recordings_list);
+        TextView recordingsEmpty = dialog.findViewById(R.id.rec_recordings_empty);
+        if (recordingsList != null) {
+            populateRecordings(context, recordingsList, recordingsEmpty);
+        }
+
         dialog.show();
         updater[0].run();
         timerHandler.post(tick);
+    }
+
+    private static void populateRecordings(final Context context, LinearLayout list, TextView empty) {
+        list.removeAllViews();
+        java.util.List<RecordingStore.Entry> recordings = RecordingStore.list(context);
+        if (recordings.isEmpty()) {
+            if (empty != null) empty.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (empty != null) empty.setVisibility(View.GONE);
+        for (final RecordingStore.Entry entry : recordings) {
+            LinearLayout item = new LinearLayout(context);
+            item.setOrientation(LinearLayout.HORIZONTAL);
+            item.setGravity(Gravity.CENTER_VERTICAL);
+            item.setPadding(dp(context, 12), dp(context, 10), dp(context, 8), dp(context, 10));
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColor(0x1AFFFFFF);
+            bg.setCornerRadius(dp(context, 10));
+            bg.setStroke(1, 0x33FF003C);
+            item.setBackground(bg);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.bottomMargin = dp(context, 8);
+            item.setLayoutParams(lp);
+
+            LinearLayout infoBox = new LinearLayout(context);
+            infoBox.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams infoLp = new LinearLayout.LayoutParams(0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            infoBox.setLayoutParams(infoLp);
+
+            TextView name = new TextView(context);
+            name.setText(entry.name);
+            name.setTextColor(0xFFFFFFFF);
+            name.setTextSize(11);
+            name.setTypeface(Typeface.DEFAULT_BOLD);
+            name.setSingleLine(true);
+            infoBox.addView(name);
+
+            TextView info = new TextView(context);
+            info.setText(formatEntryInfo(entry));
+            info.setTextColor(0x80FFFFFF);
+            info.setTextSize(9);
+            infoBox.addView(info);
+            item.addView(infoBox);
+
+            Button play = makeListButton(context, "PLAY");
+            play.setOnClickListener(v -> {
+                v.playSoundEffect(SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                RecordingPlayerDialog.show(context, entry);
+            });
+            item.addView(play);
+
+            Button export = makeListButton(context, "EXPORT");
+            export.setOnClickListener(v -> {
+                v.playSoundEffect(SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                ExportBoardDialog.show(context, entry);
+            });
+            item.addView(export);
+
+            list.addView(item);
+        }
+    }
+
+    private static Button makeListButton(Context context, String label) {
+        Button b = new Button(context);
+        b.setText(label);
+        b.setTextColor(0xFFFF003C);
+        b.setTextSize(9);
+        b.setTypeface(Typeface.DEFAULT_BOLD);
+        b.setAllCaps(false);
+        b.setPadding(dp(context, 10), dp(context, 6), dp(context, 10), dp(context, 6));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0x22FF003C);
+        bg.setCornerRadius(dp(context, 8));
+        bg.setStroke(1, 0x66FF003C);
+        b.setBackground(bg);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, dp(context, 34));
+        lp.leftMargin = dp(context, 6);
+        b.setLayoutParams(lp);
+        return b;
+    }
+
+    private static String formatEntryInfo(RecordingStore.Entry e) {
+        String dur = e.durationMs > 0
+                ? String.format(java.util.Locale.US, "%02d:%02d · ",
+                        e.durationMs / 60000, (e.durationMs / 1000) % 60) : "";
+        return dur + String.format(java.util.Locale.US, "%.1f MB", e.sizeBytes / (1024.0 * 1024.0));
+    }
+
+    private static int dp(Context context, int v) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v,
+                context.getResources().getDisplayMetrics()));
     }
 
     private static void sendAction(Context context, String action) {
