@@ -2,12 +2,16 @@ name: Build Mesa EGL PanVK+Zink (arm64)
 
 # Builds the EGL-enabled Mesa stack for the Fear Render (PanVK + Zink) renderer
 # on Mali GPUs:
-#   libEGL_mesa.so + libglapi.so + libgallium_dri.so (zink) + libmesa_util.so
-#   + libvulkan_panfrost.so (PanVK, same as the one committed to jniLibs).
+#   libEGL (EGL entry points) + libgallium_dri.so (zink GL implementation)
+#   + libvulkan_panfrost.so (PanVK, same as the one committed to jniLibs)
 #
-# jniLibs already carries libvulkan_panfrost.so (see sync-panvk-driver.yml);
-# this artifact supplies the GL side that the launcher EGL facade will load at
-# runtime. Built from the same Mesa_lib fork/ref so the two stay in sync.
+# Notes:
+# - This Mesa_lib fork removed the use-elf-tls option; __thread dispatch means
+#   the GLES2 entrypoint wrapper (libGLESv2.so) cannot link on Android
+#   (emutls symbols are hidden inside libgallium_dri.so). GL entry points are
+#   fetched through eglGetProcAddress instead, so -Dgles2=disabled is fine.
+# - GLVND is off, so the EGL target is src/egl/libEGL.so; it is collected as
+#   libEGL_mesa.so in the artifact.
 
 on:
   push:
@@ -115,8 +119,6 @@ jobs:
           export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
           # lld >= 17 hard-errors on version-script symbols removed by --gc-sections
           export LDFLAGS="-Wl,--undefined-version"
-          # use-elf-tls=false is mandatory for Android: __thread becomes emutls,
-          # which cannot be resolved across shared libraries (libGLESv2 link error)
           meson setup build-android \
             --cross-file android-aarch64.txt \
             -Dplatforms=android \
@@ -125,11 +127,11 @@ jobs:
             -Dvulkan-drivers=panfrost \
             -Dgallium-drivers=zink \
             -Dgles1=disabled \
+            -Dgles2=disabled \
             -Dglx=disabled \
             -Dopengl=true \
             -Dgbm=disabled \
             -Dzstd=disabled \
-            -Duse-elf-tls=false \
             -Dallow-fallback-for=libdrm \
             -Dmesa-clc=system \
             -Dprecomp-compiler=system \
@@ -148,26 +150,23 @@ jobs:
         run: |
           mkdir -p out/arm64-v8a
           cd mesa/build-android
-          for lib in \
-            src/panfrost/vulkan/libvulkan_panfrost.so \
-            src/egl/libEGL_mesa.so \
-            src/gallium/targets/dri/libgallium_dri.so \
-            src/util/libmesa_util.so ; do
-            if [ -f "$lib" ]; then
-              cp -v "$lib" ../../out/arm64-v8a/
-            else
-              echo "note: $lib not at expected path, searching..."
-              find src -name "$(basename "$lib")" -exec cp -v {} ../../out/arm64-v8a/ \; || true
-            fi
-          done
-          # glapi can land in either mapi location depending on Mesa version
-          find src/mapi -name 'libglapi.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
-          # GLES entry point lib (used by the EGL facade)
-          find src -name 'libGLESv2_mesa.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
 
-          # hard-fail if any essential library is missing
+          # essentials (hard-fail if missing)
+          cp -v src/panfrost/vulkan/libvulkan_panfrost.so ../../out/arm64-v8a/
+          if [ -f src/egl/libEGL.so ]; then
+            cp -v src/egl/libEGL.so ../../out/arm64-v8a/libEGL_mesa.so
+          else
+            find src/egl -name 'libEGL*.so' -exec cp -v {} ../../out/arm64-v8a/ \;
+          fi
+          find src/gallium/targets -name 'libgallium_dri.so' -exec cp -v {} ../../out/arm64-v8a/ \;
+
+          # optional extras — collect only if this fork produced them
+          find src/mapi -name 'libglapi.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
+          find src/util -name 'libmesa_util.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
+          find src -name 'libGLESv2*.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
+
           ok=1
-          for f in libvulkan_panfrost.so libEGL_mesa.so libgallium_dri.so libglapi.so libmesa_util.so; do
+          for f in libvulkan_panfrost.so libEGL_mesa.so libgallium_dri.so; do
             if [ ! -f "../../out/arm64-v8a/$f" ]; then
               echo "FATAL: $f was not built"
               ok=0
