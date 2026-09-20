@@ -1,0 +1,186 @@
+name: Build Mesa EGL PanVK+Zink (arm64)
+
+# Builds the EGL-enabled Mesa stack for the Fear Render (PanVK + Zink) renderer
+# on Mali GPUs:
+#   libEGL_mesa.so + libglapi.so + libgallium_dri.so (zink) + libmesa_util.so
+#   + libvulkan_panfrost.so (PanVK, same as the one committed to jniLibs).
+#
+# jniLibs already carries libvulkan_panfrost.so (see sync-panvk-driver.yml);
+# this artifact supplies the GL side that the launcher EGL facade will load at
+# runtime. Built from the same Mesa_lib fork/ref so the two stay in sync.
+
+on:
+  push:
+    branches:
+      - feat/krypton-renderer
+    paths:
+      - '.github/workflows/build-mesa-egl-panvk.yml'
+  workflow_dispatch:
+    inputs:
+      mesa_ref:
+        description: 'Mesa_lib ref (branch) to build from'
+        required: false
+        default: 'main-17061956483348987644'
+        type: string
+
+concurrency:
+  group: mesa-egl-panvk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-aarch64:
+    name: Mesa EGL+PanVK+Zink aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout FearLauncher
+        uses: actions/checkout@v4
+
+      - name: Checkout Mesa source
+        uses: actions/checkout@v4
+        with:
+          repository: minetwice/Mesa_lib
+          ref: ${{ inputs.mesa_ref || 'main-17061956483348987644' }}
+          path: mesa
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26b
+          add-to-path: true
+
+      - name: Add NDK and Local Binaries to PATH
+        run: |
+          echo "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Build Dependencies & Upgrade Meson
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake bison flex python3-mako pkg-config libdrm-dev python3-pip \
+            llvm-dev clang libclang-dev spirv-tools spirv-headers libllvmspirvlib-18-dev llvm-spirv-18 \
+            libexpat1-dev zlib1g-dev libzstd-dev
+          pip3 install --user "meson>=1.4.0" ninja packaging pyyaml
+          meson --version
+
+      - name: Build Host Tools (mesa-clc & precomp-compiler)
+        run: |
+          cd mesa
+          meson setup build-host \
+            -Dgallium-drivers=zink \
+            -Dvulkan-drivers= \
+            -Degl=disabled \
+            -Dgles1=disabled \
+            -Dgles2=disabled \
+            -Dglx=disabled \
+            -Dopengl=true \
+            -Dgbm=disabled \
+            -Dplatforms= \
+            -Dtools=panfrost \
+            -Dmesa-clc=enabled \
+            -Dinstall-mesa-clc=true \
+            -Dprecomp-compiler=enabled \
+            -Dinstall-precomp-compiler=true \
+            -Dllvm=enabled \
+            --prefix=/tmp/host-tools
+          meson compile -C build-host
+          meson install -C build-host
+          echo "/tmp/host-tools/bin" >> $GITHUB_PATH
+
+      - name: Create Android Cross File
+        run: |
+          cat << 'EOF' > mesa/android-aarch64.txt
+          [binaries]
+          c = 'aarch64-linux-android26-clang'
+          cpp = 'aarch64-linux-android26-clang++'
+          ar = 'llvm-ar'
+          strip = 'llvm-strip'
+          pkg-config = 'pkg-config'
+
+          [properties]
+          pkg_config_libdir = '/disable/non/android/system/pc/files'
+
+          [host_machine]
+          system = 'android'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+          EOF
+
+      - name: Configure Meson for Android ARM64
+        run: |
+          cd mesa
+          export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
+          # lld >= 17 hard-errors on version-script symbols removed by --gc-sections
+          export LDFLAGS="-Wl,--undefined-version"
+          meson setup build-android \
+            --cross-file android-aarch64.txt \
+            -Dplatforms=android \
+            -Dandroid-stub=true \
+            -Dplatform-sdk-version=26 \
+            -Dvulkan-drivers=panfrost \
+            -Dgallium-drivers=zink \
+            -Dgles1=disabled \
+            -Dglx=disabled \
+            -Dopengl=true \
+            -Dgbm=disabled \
+            -Dzstd=disabled \
+            -Dallow-fallback-for=libdrm \
+            -Dmesa-clc=system \
+            -Dprecomp-compiler=system \
+            -Dllvm=disabled \
+            -Dgallium-rusticl=false \
+            -Dmicrosoft-clc=disabled \
+            -Dbuildtype=release
+
+      - name: Compile Mesa
+        run: |
+          cd mesa
+          ninja -C build-android
+          echo "Compilation successful!"
+
+      - name: Collect .so Files
+        run: |
+          mkdir -p out/arm64-v8a
+          cd mesa/build-android
+          for lib in \
+            src/panfrost/vulkan/libvulkan_panfrost.so \
+            src/egl/libEGL_mesa.so \
+            src/gallium/targets/dri/libgallium_dri.so \
+            src/util/libmesa_util.so ; do
+            if [ -f "$lib" ]; then
+              cp -v "$lib" ../../out/arm64-v8a/
+            else
+              echo "note: $lib not at expected path, searching..."
+              find src -name "$(basename "$lib")" -exec cp -v {} ../../out/arm64-v8a/ \; || true
+            fi
+          done
+          # glapi can land in either mapi location depending on Mesa version
+          find src/mapi -name 'libglapi.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
+          # GLES entry point lib (used by the EGL facade)
+          find src -name 'libGLESv2_mesa.so' -exec cp -v {} ../../out/arm64-v8a/ \; || true
+
+          # hard-fail if any essential library is missing
+          ok=1
+          for f in libvulkan_panfrost.so libEGL_mesa.so libgallium_dri.so libglapi.so libmesa_util.so; do
+            if [ ! -f "../../out/arm64-v8a/$f" ]; then
+              echo "FATAL: $f was not built"
+              ok=0
+            fi
+          done
+          if [ "$ok" != "1" ]; then
+            echo "--- built .so files (first 80) ---"
+            find src -name '*.so' | head -80
+            exit 1
+          fi
+          echo "--- collected ---"
+          ls -la ../../out/arm64-v8a/
+
+      - name: Upload .so Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: fear-launcher-mesa-panvk-zink-arm64
+          path: out/arm64-v8a/
+          retention-days: 7
