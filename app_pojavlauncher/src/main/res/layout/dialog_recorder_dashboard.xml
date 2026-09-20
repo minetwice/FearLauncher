@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR RECORDER DASHBOARD — Cyber-Red Holographic Control Center -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="12dp">
+
+    <!-- Top Action Bar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rec_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/rec_back_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FF003C"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEAR RECORDER"
+            android:textColor="#FF003C"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/rec_back_btn" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/rec_close_btn"
+            android:layout_width="100dp"
+            android:layout_height="36dp"
+            android:text="COLLAPSE"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:background="@drawable/premium_button_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/rec_header_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1.5dp"
+        android:background="#FF003C"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/rec_top_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/rec_header_divider"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- ============ STATUS CARD ============ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="56dp"
+                    android:layout_height="56dp">
+
+                    <View
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/rec_ring_bg" />
+
+                    <View
+                        android:id="@+id/rec_status_dot"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/rec_dot_bg" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="RECORDER STATUS"
+                        android:textColor="#80FF003C"
+                        android:textSize="@dimen/_8ssp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/rec_status_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="READY TO RECORD"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_14ssp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/rec_timer_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textColor="#FF003C"
+                        android:textSize="@dimen/_12ssp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ============ AUDIO SOURCES ============ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• AUDIO SOURCES"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_btn_device_audio"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="🔊  DEVICE AUDIO"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginEnd="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_btn_mic"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="🎙  MICROPHONE"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Device audio records game + system sound. Mic records your voice."
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="10dp" />
+
+            <!-- ============ VIDEO QUALITY ============ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• VIDEO QUALITY"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_q_720"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="720P"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_q_1080"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="1080P"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_q_max"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="MAX"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_fps_30"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="30 FPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_fps_60"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="60 FPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_br_8"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="8 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_br_16"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="16 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_br_24"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="24 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- ============ MAIN CONTROLS ============ -->
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/rec_btn_start"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="START RECORDING"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:background="@drawable/premium_red_button_bg"
+                android:layout_marginTop="16dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/rec_btn_pause"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:text="PAUSE"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/rec_location_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recordings are saved to Movies/FearLauncher\nA floating control bubble appears while recording (pause, resume, stop, mic)."
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
