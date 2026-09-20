@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
+import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
@@ -228,7 +229,7 @@ public class RecorderService extends Service {
             DisplayMetrics dm = getResources().getDisplayMetrics();
             mVirtualDisplay = mProjection.createVirtualDisplay(
                     "FearRecorder", mVideoWidth, mVideoHeight, dm.densityDpi,
-                    mVideoInputSurface, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, null, mMainHandler);
+                    mVideoInputSurface, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR);
 
             // ---- audio encoder ----
             MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE, 2);
@@ -282,9 +283,9 @@ public class RecorderService extends Service {
                     AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
             if (minBuf <= 0) minBuf = 8192;
             AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration.Builder(projection)
-                    .addMatchingUsage(AudioPlaybackCaptureConfiguration.USAGE_MEDIA)
-                    .addMatchingUsage(AudioPlaybackCaptureConfiguration.USAGE_GAME)
-                    .addMatchingUsage(AudioPlaybackCaptureConfiguration.USAGE_UNKNOWN)
+                    .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                    .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                    .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
                     .build();
             AudioFormat format = new AudioFormat.Builder()
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
@@ -294,7 +295,7 @@ public class RecorderService extends Service {
             AudioRecord record = new AudioRecord.Builder()
                     .setAudioFormat(format)
                     .setBufferSizeInBytes(Math.max(minBuf * 2, 16384))
-                    .setAudioPlaybackCaptureConfiguration(config)
+                    .setAudioPlaybackCaptureConfig(config)
                     .build();
             if (record.getState() != AudioRecord.STATE_INITIALIZED) return null;
             record.startRecording();
@@ -731,7 +732,7 @@ public class RecorderService extends Service {
         Intent open = getPackageManager().getLaunchIntentForPackage(getPackageName());
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_media_video)
+                .setSmallIcon(R.drawable.ic_rec_video)
                 .setContentTitle(paused ? "Fear Recorder (paused)" : "Fear Recorder — recording")
                 .setContentText(text)
                 .setOngoing(true)
