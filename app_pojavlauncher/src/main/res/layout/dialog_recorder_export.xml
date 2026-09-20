@@ -27,14 +27,26 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <com.kdt.mcgui.MineButton
+        <net.kdt.pojavlauncher.recorder.SmallButton
+            android:id="@+id/rec_export_hide"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:text="◉"
+            android:padding="2dp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/rec_export_close" />
+
+        <net.kdt.pojavlauncher.recorder.SmallButton
             android:id="@+id/rec_export_close"
-            android:layout_width="100dp"
+            android:layout_width="84dp"
             android:layout_height="36dp"
             android:text="COLLAPSE"
+            android:padding="2dp"
             android:textColor="#FFFFFF"
-            android:textSize="@dimen/_8ssp"
-            android:textStyle="bold"
             android:background="@drawable/premium_button_bg"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -80,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_res_same"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -92,7 +104,7 @@
                     android:background="@drawable/premium_button_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_res_1080"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -105,7 +117,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_res_1440"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -118,7 +130,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_res_4k"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -156,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_fps_same"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -168,7 +180,7 @@
                     android:background="@drawable/premium_button_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_fps_30"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -181,7 +193,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_fps_60"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
@@ -219,29 +231,45 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/rec_audio_internal"
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_audio_both"
                     android:layout_width="0dp"
-                    android:layout_height="34dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
-                    android:text="◆  DEVICE"
+                    android:text="⊕ BOTH"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
                     android:background="@drawable/premium_button_bg"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/rec_audio_mic"
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_audio_miconly"
                     android:layout_width="0dp"
-                    android:layout_height="34dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
-                    android:text="●  MIC"
+                    android:text="◉ MIC ONLY"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:background="@drawable/premium_button_bg"
-                    android:layout_marginStart="6dp" />
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_audio_deviceonly"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:text="▤ DEVICE ONLY"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -250,19 +278,19 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="6dp">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_audio_nr"
                     android:layout_width="0dp"
                     android:layout_height="34dp"
                     android:layout_weight="1"
-                    android:text="✧  NOISE CUT"
+                    android:text="≋  NOISE CUT"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:background="@drawable/premium_glass_black_bg"
                     android:layout_marginEnd="6dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_audio_boost"
                     android:layout_width="0dp"
                     android:layout_height="34dp"
@@ -300,7 +328,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_dest_downloads"
                     android:layout_width="0dp"
                     android:layout_height="34dp"
@@ -312,12 +340,12 @@
                     android:background="@drawable/premium_button_bg"
                     android:layout_marginEnd="6dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_dest_pick"
                     android:layout_width="0dp"
                     android:layout_height="34dp"
                     android:layout_weight="1"
-                    android:text="▤  PICK FOLDER"
+                    android:text="▦  PICK FOLDER"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
@@ -343,17 +371,17 @@
                 <ProgressBar
                     android:id="@+id/rec_export_spinner"
                     style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:indeterminateTint="#FF003C" />
 
                 <ProgressBar
                     android:id="@+id/rec_export_progress"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="10dp"
                     android:layout_weight="1"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     android:max="100"
                     android:progressTint="#FF003C" />
             </LinearLayout>
@@ -364,8 +392,8 @@
                 android:layout_height="wrap_content"
                 android:text="Ready to export"
                 android:textColor="#80FFFFFF"
-                android:textSize="@dimen/_8ssp"
-                android:layout_marginTop="6dp" />
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginTop="4dp" />
 
             <com.kdt.mcgui.MineButton
                 android:id="@+id/rec_export_btn"
@@ -379,10 +407,10 @@
                 android:background="@drawable/premium_red_button_bg"
                 android:layout_marginTop="12dp" />
 
-            <com.kdt.mcgui.MineButton
+            <net.kdt.pojavlauncher.recorder.SmallButton
                 android:id="@+id/rec_export_cancel"
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
+                android:layout_height="34dp"
                 android:text="CANCEL"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_10ssp"
