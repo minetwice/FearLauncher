@@ -38,14 +38,14 @@ public final class RecordingStore {
                 Uri collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
                 try (Cursor c = context.getContentResolver().query(
                         collection,
-                               new String[]{MediaStore.Video.Media._ID,
-                                       MediaStore.Video.Media.DISPLAY_NAME,
-                                         MediaStore.Video.Media.DURATION,
-                                        MediaStore.Video.Media.SIZE,
-                                      MediaStore.Video.Media.DATE_ADDED},
-                                 MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?",
-                            new String[]{"Movies/FearLauncher%"}, null)) {
-                     if (c != null) {
+                        new String[]{MediaStore.Video.Media._ID,
+                                MediaStore.Video.Media.DISPLAY_NAME,
+                                MediaStore.Video.Media.DURATION,
+                                MediaStore.Video.Media.SIZE,
+                                MediaStore.Video.Media.DATE_ADDED},
+                        MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?",
+                        new String[]{"Movies/FearLauncher%"}, null)) {
+                    if (c != null) {
                         while (c.moveToNext()) {
                             Entry e = new Entry();
                             long id = c.getLong(0);
@@ -85,7 +85,8 @@ public final class RecordingStore {
     public static void setDataSource(Context context, android.media.MediaExtractor extractor, Entry e)
             throws Exception {
         if (e.uri != null) {
-            extractor.setDataSource(context, e.uri, null);         } else if (e.path != null) {
+            extractor.setDataSource(context, e.uri, null);
+        } else if (e.path != null) {
             extractor.setDataSource(e.path);
         } else {
             throw new Exception("Recording has no data source");

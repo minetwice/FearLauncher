@@ -24,7 +24,8 @@ public class ExportPickActivity extends Activity {
     private static volatile Listener sListener;
 
     public static void pick(Context context, String suggestedName, Listener listener) {
-        sListener = listener;        Intent intent = new Intent(context, ExportPickActivity.class);
+        sListener = listener;
+        Intent intent = new Intent(context, ExportPickActivity.class);
         intent.putExtra("name", suggestedName);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
@@ -33,17 +34,27 @@ public class ExportPickActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String name = "fear_rec_export.mp4";        if (getIntent() != null && getIntent().getStringExtra("name") != null) {
+        String name = "fear_rec_export.mp4";
+        if (getIntent() != null && getIntent().getStringExtra("name") != null) {
             name = getIntent().getStringExtra("name");
         }
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);        intent.addCategory(Intent.CATEGORY_OPENABLE);        intent.setType("video/mp4");        intent.putExtra(Intent.EXTRA_TITLE, name);        startActivityForResult(intent, REQUEST_SAVE_AS);    }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("video/mp4");
+        intent.putExtra(Intent.EXTRA_TITLE, name);
+        startActivityForResult(intent, REQUEST_SAVE_AS);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_SAVE_AS) {            Listener listener = sListener;
-            sListener = null;            if (listener != null) {
-                listener.onExportTargetPicked(resultCode == RESULT_OK && data != null ? data.getData() : null);            }
-        }        finish();
+        if (requestCode == REQUEST_SAVE_AS) {
+            Listener listener = sListener;
+            sListener = null;
+            if (listener != null) {
+                listener.onExportTargetPicked(resultCode == RESULT_OK && data != null ? data.getData() : null);
+            }
+        }
+        finish();
     }
 }
