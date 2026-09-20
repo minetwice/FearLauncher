@@ -38,7 +38,7 @@
             app:tint="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="+id/rec_export_close" />
+            app:layout_constraintEnd_toStartOf="@+id/rec_export_close" />
 
         <net.kdt.pojavlauncher.recorder.SmallButton
             android:id="@+id/rec_export_close"

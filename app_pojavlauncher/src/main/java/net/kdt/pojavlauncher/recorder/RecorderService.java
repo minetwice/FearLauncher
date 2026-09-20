@@ -61,6 +61,8 @@ public class RecorderService extends Service {
     public static final String ACTION_MIC_OFF = "net.kdt.pojavlauncher.recorder.action.MIC_OFF";
     public static final String ACTION_DEVICE_ON = "net.kdt.pojavlauncher.recorder.action.DEVICE_ON";
     public static final String ACTION_DEVICE_OFF = "net.kdt.pojavlauncher.recorder.action.DEVICE_OFF";
+    public static final String ACTION_VC_ON = "net.kdt.pojavlauncher.recorder.action.VC_ON";
+    public static final String ACTION_VC_OFF = "net.kdt.pojavlauncher.recorder.action.VC_OFF";
 
     public static final String ACTION_STATE_CHANGED = "net.kdt.pojavlauncher.recorder.STATE_CHANGED";
     public static final String EXTRA_STATE = "state";
@@ -82,6 +84,7 @@ public class RecorderService extends Service {
     private static volatile int sState = STATE_IDLE;
     private static volatile boolean sMicEnabled = true;
     private static volatile boolean sDeviceAudioEnabled = true;
+    private static volatile boolean sVcMode = false;
     private static volatile long sStartElapsed;
     private static volatile long sPausedTotalMs;
     private static volatile long sPauseStart;
@@ -89,6 +92,7 @@ public class RecorderService extends Service {
     public static int getState() { return sState; }
     public static boolean isMicEnabledStatic() { return sMicEnabled; }
     public static boolean isDeviceAudioEnabledStatic() { return sDeviceAudioEnabled; }
+    public static boolean isVcModeStatic() { return sVcMode; }
 
     public static long getRecordedMs() {
         if (sState == STATE_IDLE) return 0;
@@ -191,6 +195,14 @@ public class RecorderService extends Service {
                 break;
             case ACTION_DEVICE_OFF:
                 setDeviceAudio(false);
+                break;
+            case ACTION_VC_ON:
+                sVcMode = true;
+                broadcastState();
+                break;
+            case ACTION_VC_OFF:
+                sVcMode = false;
+                broadcastState();
                 break;
         }
         return START_NOT_STICKY;
@@ -547,6 +559,9 @@ public class RecorderService extends Service {
         private float env = 0f;
         private float gain = 1f;
 
+        // adaptive room-noise floor (tracks the quietest ambient level)
+        private float noiseFloor = 500f;
+
         short process(short s) {
             float x = s;
             // 1) rumble + mains hum cut
@@ -556,10 +571,20 @@ public class RecorderService extends Service {
             x1 = x;
             y2 = y1;
             y1 = hp;
-            // 2) noise gate: instant attack envelope, ~80ms decay
+            // 2) adaptive noise gate: the threshold follows the room's noise
+            //    floor, so quiet rooms stay natural while noisy rooms still
+            //    cut hiss + background rumble properly
             float abs = hp < 0f ? -hp : hp;
             env = Math.max(abs, env * 0.998f);
-            float target = env > 1100f ? 1f : 0.05f;
+            if (env < noiseFloor) {
+                noiseFloor = env;
+            } else {
+                noiseFloor += (env - noiseFloor) * 0.0002f;
+            }
+            if (noiseFloor < 80f) noiseFloor = 80f;
+            else if (noiseFloor > 6000f) noiseFloor = 6000f;
+            float gateThreshold = Math.max(500f, noiseFloor * 3.2f);
+            float target = env > gateThreshold ? 1f : 0.04f;
             float coef = target > gain ? 0.006f : 0.0004f;
             gain += (target - gain) * coef;
             float v = hp * gain;
@@ -568,6 +593,25 @@ public class RecorderService extends Service {
             v += 0.42f * (v - lp);
             // 4) gentle lift so the voice stays forward after the gate
             v *= 1.25f;
+            if (v > 32767f) v = 32767f;
+            else if (v < -32768f) v = -32768f;
+            return (short) v;
+        }
+
+        /**
+         * VC mode: teammates' voices arrive through the phone speaker, so the
+         * noise gate must stay OFF (it would cut the distant speaker audio).
+         * Rumble cut + a lift keeps the call clear instead.
+         */
+        short processVc(short s) {
+            float x = s;
+            float hp = 0.98598f * x - 1.97196f * x1 + 0.98598f * x2
+                    + 1.97177f * y1 - 0.97221f * y2;
+            x2 = x1;
+            x1 = x;
+            y2 = y1;
+            y1 = hp;
+            float v = hp * 1.6f;
             if (v > 32767f) v = 32767f;
             else if (v < -32768f) v = -32768f;
             return (short) v;
@@ -618,8 +662,9 @@ public class RecorderService extends Service {
                     int copy = Math.min(micChunk.length, FRAME_SAMPLES);
                     for (int i = 0; i < FRAME_SAMPLES; i++) {
                         short m = (i < copy) ? micChunk[i] : (short) 0;
-                        // studio-mic processing (rumble cut + noise gate + sweet presence)
-                        short processed = mMicDsp.process(m);
+                        // studio-mic processing (rumble cut + noise gate + sweet presence).
+                        // VC mode swaps in the gate-free chain so speaker voices pass.
+                        short processed = sVcMode ? mMicDsp.processVc(m) : mMicDsp.process(m);
                         mAudioFrames[0][i * 2] = clamp(mAudioFrames[0][i * 2] + processed);
                         mAudioFrames[0][i * 2 + 1] = clamp(mAudioFrames[0][i * 2 + 1] + processed);
                         mAudioFrames[2][i] = processed;

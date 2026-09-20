@@ -55,6 +55,7 @@ public final class RecorderDashboard {
         Button selBoth = dialog.findViewById(R.id.rec_sel_both);
         Button selMic = dialog.findViewById(R.id.rec_sel_mic);
         Button selDevice = dialog.findViewById(R.id.rec_sel_device);
+        Button vcBtn = dialog.findViewById(R.id.rec_btn_vc);
         Button q720 = dialog.findViewById(R.id.rec_q_720);
         Button q1080 = dialog.findViewById(R.id.rec_q_1080);
         Button qMax = dialog.findViewById(R.id.rec_q_max);
@@ -104,9 +105,13 @@ public final class RecorderDashboard {
                         ? 0xFF9E9E9E : 0xFFFF003C);
             }
 
-            startBtn.setText(state == RecorderService.STATE_IDLE ? "● START RECORDING" : "■ STOP RECORDING");
+            startBtn.setText(state == RecorderService.STATE_IDLE ? "START RECORDING" : "STOP RECORDING");
+            startBtn.setCompoundDrawablesWithIntrinsicBounds(state == RecorderService.STATE_IDLE
+                    ? R.drawable.rec_ic_play : R.drawable.rec_ic_stop, 0, 0, 0);
             pauseBtn.setVisibility(state == RecorderService.STATE_IDLE ? View.GONE : View.VISIBLE);
-            pauseBtn.setText(state == RecorderService.STATE_PAUSED ? "► RESUME" : "‖ PAUSE");
+            pauseBtn.setText(state == RecorderService.STATE_PAUSED ? "RESUME" : "PAUSE");
+            pauseBtn.setCompoundDrawablesWithIntrinsicBounds(state == RecorderService.STATE_PAUSED
+                    ? R.drawable.rec_ic_play : R.drawable.rec_ic_pause, 0, 0, 0);
 
             boolean devOk = device && Build.VERSION.SDK_INT >= 29;
             selBoth.setBackgroundResource(mic && devOk
@@ -123,6 +128,9 @@ public final class RecorderDashboard {
             int f = fps[0];
             fps30.setBackgroundResource(f == 30 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
             fps60.setBackgroundResource(f == 60 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+            vcBtn.setText(RecorderService.isVcModeStatic() ? "VC MODE: ON" : "VC MODE: OFF");
+            vcBtn.setBackgroundResource(RecorderService.isVcModeStatic()
+                    ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
             int b = bitrate[0];
             br8.setBackgroundResource(b == 8_000_000 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
             br16.setBackgroundResource(b == 16_000_000 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
@@ -194,6 +202,15 @@ public final class RecorderDashboard {
         selBoth.setOnClickListener(audioSelection);
         selMic.setOnClickListener(audioSelection);
         selDevice.setOnClickListener(audioSelection);
+
+        // VC mode: gate off + lift — captures teammates' voices through the
+        // phone speaker (Android blocks direct call-audio capture).
+        vcBtn.setOnClickListener(v -> {
+            chipClick.onClick(v);
+            sendAction(context, RecorderService.isVcModeStatic()
+                    ? RecorderService.ACTION_VC_OFF : RecorderService.ACTION_VC_ON);
+            updater[0].run();
+        });
 
         pauseBtn.setOnClickListener(v -> {
             chipClick.onClick(v);
@@ -312,7 +329,7 @@ public final class RecorderDashboard {
             infoBox.addView(info);
             item.addView(infoBox);
 
-            Button play = makeListButton(context, "► PLAY");
+            Button play = makeListButton(context, "PLAY", R.drawable.rec_ic_play);
             play.setOnClickListener(v -> {
                 v.playSoundEffect(SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
@@ -320,7 +337,7 @@ public final class RecorderDashboard {
             });
             item.addView(play);
 
-            Button export = makeListButton(context, "▲ EXPORT");
+            Button export = makeListButton(context, "EXPORT", R.drawable.rec_ic_export);
             export.setOnClickListener(v -> {
                 v.playSoundEffect(SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
@@ -346,9 +363,10 @@ public final class RecorderDashboard {
                 .withEndAction(() -> tray.setVisibility(View.GONE)).start();
     }
 
-    private static Button makeListButton(Context context, String label) {
+    private static Button makeListButton(Context context, String label, int iconRes) {
         Button b = new Button(context);
         b.setText(label);
+        b.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
         b.setTextColor(0xFFFF003C);
         b.setTextSize(9);
         b.setTypeface(Typeface.DEFAULT_BOLD);
