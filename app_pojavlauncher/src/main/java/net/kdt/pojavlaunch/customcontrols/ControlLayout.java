@@ -234,6 +234,16 @@ public class ControlLayout extends FrameLayout {
 		setControlVisible(mControlVisible);
 	}
 
+	/** Whether the control layer is currently shown in-game. */
+	public boolean areControlVisible(){
+		return mControlVisible;
+	}
+
+	/** Shared bitmap storage for all control buttons (used by the editor + game). */
+	public LayoutBitmaps getBitmaps(){
+		return mLayout == null ? LayoutBitmaps.createEmpty() : mLayout.mLayoutBitmaps;
+	}
+
 	public float getLayoutScale(){
 		return mLayout.scaledAt;
 	}
@@ -329,6 +339,7 @@ public class ControlLayout extends FrameLayout {
 	private static boolean eventInViewBounds(MotionEvent event, View view) {
 		float x = event.getX();
 		float y = event.getY();
+		float y2 = event.getY();
 		return x > view.getLeft() && x < view.getRight() && y > view.getTop() && y < view.getBottom();
 	}
 
