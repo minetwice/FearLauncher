@@ -1,11 +1,11 @@
 // FearLauncher EGL facade for Zink/OSMesa + Krypton GL resolver
-// Exports standard EGL symbols so GLFW can dlopen(libpojavexec) and get OpenGL support.
-// ANR FIX: softpipe is never used for normal play (it freezes every frame).
+// ANR FIX: softpipe never used; OSMesaCreateContext has 3s hang timeout.
 #include <dlfcn.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <android/native_window.h>
 #include <android/log.h>
 #include <setjmp.h>
@@ -31,9 +31,6 @@
 #endif
 #ifndef EGL_BAD_ALLOC
 #define EGL_BAD_ALLOC 0x3003
-#endif
-#ifndef EGL_BAD_CONTEXT
-#define EGL_BAD_CONTEXT 0x3006
 #endif
 #ifndef EGL_CLIENT_APIS
 #define EGL_CLIENT_APIS 0x308D
@@ -67,9 +64,6 @@
 #endif
 #ifndef EGL_PBUFFER_BIT
 #define EGL_PBUFFER_BIT 0x0001
-#endif
-#ifndef EGL_PIXMAP_BIT
-#define EGL_PIXMAP_BIT 0x0002
 #endif
 #ifndef EGL_COLOR_BUFFER_TYPE
 #define EGL_COLOR_BUFFER_TYPE 0x303F
@@ -161,12 +155,6 @@
 #ifndef EGL_NO_CONTEXT
 #define EGL_NO_CONTEXT ((void*)0)
 #endif
-#ifndef EGL_NO_SURFACE
-#define EGL_NO_SURFACE ((void*)0)
-#endif
-#ifndef EGL_NO_DISPLAY
-#define EGL_NO_DISPLAY ((void*)0)
-#endif
 
 typedef void* EGLDisplay;
 typedef void* EGLContext;
@@ -219,77 +207,38 @@ static void ensure_init(void) {
     }
 }
 
-__attribute__((visibility("default")))
-EGLint eglGetError(void) {
-    EGLint e = egl_error;
-    egl_error = EGL_SUCCESS;
-    return e;
+__attribute__((visibility("default"))) EGLint eglGetError(void) { EGLint e = egl_error; egl_error = EGL_SUCCESS; return e; }
+__attribute__((visibility("default"))) EGLDisplay eglGetDisplay(void* display_id) { ensure_init(); return (EGLDisplay)0x1; }
+__attribute__((visibility("default"))) EGLBoolean eglInitialize(EGLDisplay dpy, EGLint* major, EGLint* minor) {
+    ensure_init(); if (major) *major = 1; if (minor) *minor = 5; egl_initialized = 1; return EGL_TRUE;
 }
-
-__attribute__((visibility("default")))
-EGLDisplay eglGetDisplay(void* display_id) {
-    ensure_init();
-    return (EGLDisplay)0x1;
-}
-
-__attribute__((visibility("default")))
-EGLBoolean eglInitialize(EGLDisplay dpy, EGLint* major, EGLint* minor) {
-    ensure_init();
-    if (major) *major = 1;
-    if (minor) *minor = 5;
-    egl_initialized = 1;
-    return EGL_TRUE;
-}
-
-__attribute__((visibility("default")))
-EGLBoolean eglTerminate(EGLDisplay dpy) {
-    egl_initialized = 0;
-    return EGL_TRUE;
-}
-
-__attribute__((visibility("default")))
-const char* eglQueryString(EGLDisplay dpy, EGLint name) {
+__attribute__((visibility("default"))) EGLBoolean eglTerminate(EGLDisplay dpy) { egl_initialized = 0; return EGL_TRUE; }
+__attribute__((visibility("default"))) const char* eglQueryString(EGLDisplay dpy, EGLint name) {
     ensure_init();
     if (name == EGL_CLIENT_APIS) return "OpenGL OpenGL_ES";
     if (name == EGL_VENDOR) return "FearLauncher";
     if (name == EGL_VERSION) return "1.5 FearLauncher-OSMesa";
-    if (name == EGL_EXTENSIONS)
-        return "EGL_KHR_create_context EGL_KHR_create_context_no_error EGL_KHR_surfaceless_context EGL_KHR_get_all_proc_addresses";
+    if (name == EGL_EXTENSIONS) return "EGL_KHR_create_context EGL_KHR_surfaceless_context";
     return "";
 }
-
-__attribute__((visibility("default")))
-EGLBoolean eglBindAPI(EGLenum api) {
+__attribute__((visibility("default"))) EGLBoolean eglBindAPI(EGLenum api) {
     ensure_init();
-    if (is_zink_renderer() && (api == EGL_OPENGL_API || api == EGL_OPENGL_ES_API)) {
-        current_api = api;
-        return EGL_TRUE;
-    }
+    if (is_zink_renderer() && (api == EGL_OPENGL_API || api == EGL_OPENGL_ES_API)) { current_api = api; return EGL_TRUE; }
     if (real_eglBindAPI) return (EGLBoolean)real_eglBindAPI((int)api);
-    current_api = api;
-    return EGL_TRUE;
+    current_api = api; return EGL_TRUE;
 }
-
-__attribute__((visibility("default")))
-EGLenum eglQueryAPI(void) { return current_api; }
-
-__attribute__((visibility("default")))
-EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig* configs, EGLint config_size, EGLint* num_config) {
+__attribute__((visibility("default"))) EGLenum eglQueryAPI(void) { return current_api; }
+__attribute__((visibility("default"))) EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig* configs, EGLint config_size, EGLint* num_config) {
     if (num_config) *num_config = 1;
     if (configs && config_size > 0) configs[0] = (EGLConfig)&g_fake_config;
     return EGL_TRUE;
 }
-
-__attribute__((visibility("default")))
-EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list,
-                           EGLConfig* configs, EGLint config_size, EGLint* num_config) {
+__attribute__((visibility("default"))) EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list, EGLConfig* configs, EGLint config_size, EGLint* num_config) {
     if (num_config) *num_config = 1;
     if (configs && config_size > 0) configs[0] = (EGLConfig)&g_fake_config;
     return EGL_TRUE;
 }
-
-__attribute__((visibility("default")))
-EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint* value) {
+__attribute__((visibility("default"))) EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint* value) {
     if (!value) return EGL_FALSE;
     switch (attribute) {
         case EGL_BUFFER_SIZE: *value = 32; break;
@@ -300,32 +249,12 @@ EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute
         case EGL_RENDERABLE_TYPE: *value = EGL_OPENGL_BIT | EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES_BIT; break;
         case EGL_COLOR_BUFFER_TYPE: *value = EGL_RGB_BUFFER; break;
         case EGL_CONFIG_CAVEAT: *value = EGL_NONE; break;
-        case EGL_SAMPLES: *value = 0; break;
-        case EGL_SAMPLE_BUFFERS: *value = 0; break;
-        case EGL_TRANSPARENT_TYPE: *value = EGL_NONE; break;
-        case EGL_NATIVE_RENDERABLE: *value = EGL_TRUE; break;
-        case EGL_NATIVE_VISUAL_ID: *value = 0; break;
-        case EGL_NATIVE_VISUAL_TYPE: *value = EGL_NONE; break;
         case EGL_CONFIG_ID: *value = 1; break;
-        case EGL_LEVEL: *value = 0; break;
-        case EGL_MAX_PBUFFER_WIDTH: *value = 4096; break;
-        case EGL_MAX_PBUFFER_HEIGHT: *value = 4096; break;
-        case EGL_MAX_PBUFFER_PIXELS: *value = 4096 * 4096; break;
-        case EGL_BIND_TO_TEXTURE_RGB: *value = EGL_FALSE; break;
-        case EGL_BIND_TO_TEXTURE_RGBA: *value = EGL_FALSE; break;
-        case EGL_MIN_SWAP_INTERVAL: *value = 0; break;
-        case EGL_MAX_SWAP_INTERVAL: *value = 1; break;
-        case EGL_LUMINANCE_SIZE: *value = 0; break;
-        case EGL_ALPHA_MASK_SIZE: *value = 0; break;
-        case EGL_CONFORMANT: *value = EGL_OPENGL_BIT | EGL_OPENGL_ES2_BIT; break;
         default: *value = 0; break;
     }
     return EGL_TRUE;
 }
-
-__attribute__((visibility("default")))
-EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
-                                  EGLNativeWindowType win, const EGLint* attrib_list) {
+__attribute__((visibility("default"))) EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint* attrib_list) {
     if (win && is_zink_renderer()) {
         bridge_environ.pojavWindow = (ANativeWindow*)win;
         bridge_environ.savedWidth = ANativeWindow_getWidth((ANativeWindow*)win);
@@ -333,71 +262,63 @@ EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
     }
     return (EGLSurface)(win ? win : (void*)0x2);
 }
-
-__attribute__((visibility("default")))
-EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint* attrib_list) {
-    return (EGLSurface)0x3;
-}
-
-__attribute__((visibility("default")))
-EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface surface) { return EGL_TRUE; }
+__attribute__((visibility("default"))) EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint* attrib_list) { return (EGLSurface)0x3; }
+__attribute__((visibility("default"))) EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface surface) { return EGL_TRUE; }
 
 static sigjmp_buf g_osmesa_jmp;
 static volatile int g_osmesa_guard;
-static void fear_osmesa_segv(int sig) {
-    (void)sig;
-    if (g_osmesa_guard) siglongjmp(g_osmesa_jmp, 1);
-}
+static void fear_osmesa_segv(int sig) { (void)sig; if (g_osmesa_guard) siglongjmp(g_osmesa_jmp, 1); }
+static void fear_osmesa_alrm(int sig) { (void)sig; if (g_osmesa_guard) siglongjmp(g_osmesa_jmp, 2); }
 
 static OSMesaContext fear_safe_osmesa_create(OSMesaContext share) {
     if (!OSMesaCreateContext_p) return NULL;
-    struct sigaction sa, old_sa;
+    struct sigaction sa, old_sa, sa_alrm, old_alrm;
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = fear_osmesa_segv;
     sigemptyset(&sa.sa_mask);
+    memset(&sa_alrm, 0, sizeof(sa_alrm));
+    sa_alrm.sa_handler = fear_osmesa_alrm;
+    sigemptyset(&sa_alrm.sa_mask);
     g_osmesa_guard = 1;
     sigaction(SIGSEGV, &sa, &old_sa);
+    sigaction(SIGALRM, &sa_alrm, &old_alrm);
+    alarm(3);
     OSMesaContext ctx = NULL;
-    if (sigsetjmp(g_osmesa_jmp, 1) == 0) {
+    int jc = sigsetjmp(g_osmesa_jmp, 1);
+    if (jc == 0) {
         ctx = OSMesaCreateContext_p(GL_RGBA, share);
     } else {
         ctx = NULL;
+        if (jc == 2)
+            __android_log_print(ANDROID_LOG_WARN, "FearRender", "OSMesaCreateContext timed out (3s) — avoid ANR");
     }
+    alarm(0);
     g_osmesa_guard = 0;
+    sigaction(SIGALRM, &old_alrm, NULL);
     sigaction(SIGSEGV, &old_sa, NULL);
     return ctx;
 }
 
 __attribute__((visibility("default")))
-EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
-                            EGLContext share_context, const EGLint* attrib_list) {
+EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list) {
     ensure_init();
-    if (!is_zink_renderer()) {
-        egl_error = EGL_BAD_ALLOC;
-        return EGL_NO_CONTEXT;
-    }
+    if (!is_zink_renderer()) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
     if (!osmesa_is_loaded()) dlsym_OSMesa();
-    if (!osmesa_is_loaded() || !OSMesaCreateContext_p) {
-        egl_error = EGL_BAD_ALLOC;
-        return EGL_NO_CONTEXT;
-    }
+    if (!osmesa_is_loaded() || !OSMesaCreateContext_p) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
 
-    osm_render_window_t* share = NULL;
-    if (share_context) share = (osm_render_window_t*)share_context;
+    osm_render_window_t* share = share_context ? (osm_render_window_t*)share_context : NULL;
     OSMesaContext share_ctx = share ? share->context : NULL;
 
-    /* ANR FIX: never softpipe — it freezes every frame after context create */
     setenv("GALLIUM_DRIVER", "zink", 1);
     setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     unsetenv("LIBGL_ALWAYS_SOFTWARE");
     setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
     setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
     OSMesaContext octx = fear_safe_osmesa_create(share_ctx);
-    if (octx) {
+    if (octx)
         __android_log_print(ANDROID_LOG_INFO, "FearRender", "Zink context ok");
-    } else {
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink failed — system GLES (no softpipe)");
-    }
+    else
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink failed/timeout — system path");
 
     if (!octx) {
         void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
@@ -415,22 +336,15 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
         int attribs[] = {0x3040, 0x0040, 0x3024, 8, 0x3023, 8, 0x3022, 8, 0x3021, 8, 0x3025, 24, 0x3033, 4, 0x3038};
         void* cfg = 0; int n = 0;
         if (choose) choose(sys_dpy, attribs, &cfg, 1, &n);
-        if (n < 1) {
-            int simple[] = {0x3040, 4, 0x3038};
-            if (choose) choose(sys_dpy, simple, &cfg, 1, &n);
-        }
+        if (n < 1) { int simple[] = {0x3040, 4, 0x3038}; if (choose) choose(sys_dpy, simple, &cfg, 1, &n); }
         int ctxa[] = {0x3098, 3, 0x3038};
         void* ctx = createCtx(sys_dpy, cfg, 0, ctxa);
         if (!ctx) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
         const char* nd = getenv("POJAV_NATIVEDIR");
         if (nd) {
-            char p[512];
-            snprintf(p, sizeof(p), "%s/libng_gl4es.so", nd);
+            char p[512]; snprintf(p, sizeof(p), "%s/libng_gl4es.so", nd);
             void* h = dlopen(p, RTLD_NOW | RTLD_GLOBAL);
-            if (h) {
-                gl4es_GetProcAddress = (void*(*)(const char*))dlsym(h, "gl4es_GetProcAddress");
-                ng_handle = h;
-            }
+            if (h) { gl4es_GetProcAddress = (void*(*)(const char*))dlsym(h, "gl4es_GetProcAddress"); ng_handle = h; }
         }
         osm_render_window_t* win = calloc(1, sizeof(osm_render_window_t));
         if (!win) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
@@ -449,20 +363,17 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     return (EGLContext)win;
 }
 
-__attribute__((visibility("default")))
-EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx) {
+__attribute__((visibility("default"))) EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx) {
     if (is_zink_renderer() && ctx) {
         osm_render_window_t* win = (osm_render_window_t*)ctx;
-        if (win->state != 2 && win->context && OSMesaDestroyContext_p)
-            OSMesaDestroyContext_p(win->context);
+        if (win->state != 2 && win->context && OSMesaDestroyContext_p) OSMesaDestroyContext_p(win->context);
         free(win->color_buffer);
         free(win);
     }
     return EGL_TRUE;
 }
 
-__attribute__((visibility("default")))
-EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
+__attribute__((visibility("default"))) EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
     ensure_init();
     if (!is_zink_renderer()) return EGL_FALSE;
     if (!ctx) return EGL_TRUE;
@@ -477,8 +388,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         if (mk && getDisp) {
             void* sys_dpy = getDisp((void*)0);
             void* surf = draw;
-            if ((!surf || surf == (void*)0x2) && bridge_environ.pojavWindow)
-                surf = bridge_environ.pojavWindow;
+            if ((!surf || surf == (void*)0x2) && bridge_environ.pojavWindow) surf = bridge_environ.pojavWindow;
             if (surf && surf != (void*)0x2 && createWin && choose) {
                 static void* g_sys_surf = NULL;
                 if (!g_sys_surf) {
@@ -503,13 +413,8 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     return EGL_TRUE;
 }
 
-__attribute__((visibility("default")))
-EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) {
-    return EGL_TRUE;
-}
-
-__attribute__((visibility("default")))
-EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
+__attribute__((visibility("default"))) EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) { return EGL_TRUE; }
+__attribute__((visibility("default"))) EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
     if (is_zink_renderer()) {
         osm_render_window_t* cur = osm_get_current();
         if (cur && cur->state == 2) {
@@ -523,31 +428,14 @@ EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
     }
     return EGL_TRUE;
 }
+__attribute__((visibility("default"))) EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) { return EGL_TRUE; }
+__attribute__((visibility("default"))) EGLBoolean eglReleaseThread(void) { return EGL_TRUE; }
+__attribute__((visibility("default"))) int eglBindAPI_hook(int api) { return (int)eglBindAPI((EGLenum)api); }
+__attribute__((visibility("default"))) const char* eglQueryString_hook(void* display, int name) { return eglQueryString((EGLDisplay)display, (EGLint)name); }
+__attribute__((visibility("default"))) void* eglGetProcAddress_hook(const char* procname);
+__attribute__((visibility("default"))) void* eglGetProcAddress(const char* procname) { return eglGetProcAddress_hook(procname); }
 
-__attribute__((visibility("default")))
-EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) { return EGL_TRUE; }
-
-__attribute__((visibility("default")))
-EGLBoolean eglReleaseThread(void) { return EGL_TRUE; }
-
-__attribute__((visibility("default")))
-int eglBindAPI_hook(int api) { return (int)eglBindAPI((EGLenum)api); }
-
-__attribute__((visibility("default")))
-const char* eglQueryString_hook(void* display, int name) {
-    return eglQueryString((EGLDisplay)display, (EGLint)name);
-}
-
-__attribute__((visibility("default")))
-void* eglGetProcAddress_hook(const char* procname);
-
-__attribute__((visibility("default")))
-void* eglGetProcAddress(const char* procname) {
-    return eglGetProcAddress_hook(procname);
-}
-
-__attribute__((visibility("default")))
-void* eglGetProcAddress_hook(const char* procname) {
+__attribute__((visibility("default"))) void* eglGetProcAddress_hook(const char* procname) {
     if (!procname) return NULL;
     ensure_init();
     if (strcmp(procname, "eglBindAPI") == 0) return (void*)eglBindAPI;
@@ -571,7 +459,6 @@ void* eglGetProcAddress_hook(const char* procname) {
     if (strcmp(procname, "eglQueryAPI") == 0) return (void*)eglQueryAPI;
     if (strcmp(procname, "eglReleaseThread") == 0) return (void*)eglReleaseThread;
     if (strcmp(procname, "eglGetProcAddress") == 0) return (void*)eglGetProcAddress;
-
     if (gl4es_GetProcAddress && strncmp(procname, "gl", 2) == 0 && strncmp(procname, "glfw", 4) != 0) {
         void* sym = gl4es_GetProcAddress(procname);
         if (sym) return sym;
@@ -582,16 +469,12 @@ void* eglGetProcAddress_hook(const char* procname) {
         if (mesa) { void* s = dlsym(mesa, procname); if (s) return s; }
         if (OSMesaGetProcAddress_p) { void* s = OSMesaGetProcAddress_p(procname); if (s) return s; }
     }
-    if (real_eglGetProcAddress) {
-        void* sym = real_eglGetProcAddress(procname);
-        if (sym) return sym;
-    }
+    if (real_eglGetProcAddress) { void* sym = real_eglGetProcAddress(procname); if (sym) return sym; }
     return dlsym(RTLD_DEFAULT, procname);
 }
 
 static void* (*g_real_dlsym_early)(void*, const char*) = NULL;
 static int g_hooks_installed = 0;
-
 static void* dlsym_egl_redirect_early(void* handle, const char* symbol) {
     if (symbol && is_zink_renderer()) {
         if (strcmp(symbol, "eglChooseConfig") == 0) return (void*)eglChooseConfig;
@@ -606,13 +489,12 @@ static void* dlsym_egl_redirect_early(void* handle, const char* symbol) {
         if (strcmp(symbol, "eglGetProcAddress") == 0) return (void*)eglGetProcAddress;
         if (strcmp(symbol, "eglQueryString") == 0) return (void*)eglQueryString;
         if (strcmp(symbol, "eglSwapBuffers") == 0) return (void*)eglSwapBuffers;
-        if (strcmp(symbol, "eglSurfaceAttrib") == 0) return (void*)eglSurfaceAttrib;
-        if (strcmp(symbol, "eglTerminate") == 0) return (void*)eglTerminate;
-        if (strcmp(symbol, "eglGetError") == 0) return (void*)eglGetError;
         if (strcmp(symbol, "eglDestroyContext") == 0) return (void*)eglDestroyContext;
         if (strcmp(symbol, "eglDestroySurface") == 0) return (void*)eglDestroySurface;
         if (strcmp(symbol, "eglSwapInterval") == 0) return (void*)eglSwapInterval;
         if (strcmp(symbol, "eglCreatePbufferSurface") == 0) return (void*)eglCreatePbufferSurface;
+        if (strcmp(symbol, "eglGetError") == 0) return (void*)eglGetError;
+        if (strcmp(symbol, "eglTerminate") == 0) return (void*)eglTerminate;
         if (strcmp(symbol, "eglQueryAPI") == 0) return (void*)eglQueryAPI;
         if (strcmp(symbol, "eglReleaseThread") == 0) return (void*)eglReleaseThread;
     }
@@ -620,10 +502,8 @@ static void* dlsym_egl_redirect_early(void* handle, const char* symbol) {
     return NULL;
 }
 
-__attribute__((visibility("default")))
-void fear_install_zink_egl_hooks(void) {
-    if (g_hooks_installed) return;
-    if (!is_zink_renderer()) return;
+__attribute__((visibility("default"))) void fear_install_zink_egl_hooks(void) {
+    if (g_hooks_installed || !is_zink_renderer()) return;
     void* bh = dlopen("libbytehook.so", RTLD_NOW);
     if (!bh) return;
     int (*bytehook_init)(int, int) = (int (*)(int, int))dlsym(bh, "bytehook_init");
