@@ -25,8 +25,8 @@ import androidx.appcompat.app.AlertDialog;
 import git.artdeell.mojo.R;
 
 /**
- * The Fear Recorder dashboard: audio sources, quality chips, live timer
- * and start/stop controls, styled like the rest of the launcher UI.
+ * The Fear Recorder dashboard: audio source selection, quality chips, live
+ * timer and start/stop controls, styled like the rest of the launcher UI.
  */
 public final class RecorderDashboard {
 
@@ -52,8 +52,9 @@ public final class RecorderDashboard {
         TextView statusText = dialog.findViewById(R.id.rec_status_text);
         TextView timerText = dialog.findViewById(R.id.rec_timer_text);
         View statusDot = dialog.findViewById(R.id.rec_status_dot);
-        Button deviceBtn = dialog.findViewById(R.id.rec_btn_device_audio);
-        Button micBtn = dialog.findViewById(R.id.rec_btn_mic);
+        Button selBoth = dialog.findViewById(R.id.rec_sel_both);
+        Button selMic = dialog.findViewById(R.id.rec_sel_mic);
+        Button selDevice = dialog.findViewById(R.id.rec_sel_device);
         Button q720 = dialog.findViewById(R.id.rec_q_720);
         Button q1080 = dialog.findViewById(R.id.rec_q_1080);
         Button qMax = dialog.findViewById(R.id.rec_q_max);
@@ -107,8 +108,13 @@ public final class RecorderDashboard {
             pauseBtn.setVisibility(state == RecorderService.STATE_IDLE ? View.GONE : View.VISIBLE);
             pauseBtn.setText(state == RecorderService.STATE_PAUSED ? "► RESUME" : "‖ PAUSE");
 
-            micBtn.setBackgroundResource(mic ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-            deviceBtn.setBackgroundResource(device ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+            boolean devOk = device && Build.VERSION.SDK_INT >= 29;
+            selBoth.setBackgroundResource(mic && devOk
+                    ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+            selMic.setBackgroundResource(mic && !devOk
+                    ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+            selDevice.setBackgroundResource(devOk && !mic
+                    ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
 
             int q = quality[0];
             q720.setBackgroundResource(q == 720 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
@@ -155,31 +161,39 @@ public final class RecorderDashboard {
         br16.setOnClickListener(v -> { chipClick.onClick(v); bitrate[0] = 16_000_000; updater[0].run(); });
         br24.setOnClickListener(v -> { chipClick.onClick(v); bitrate[0] = 24_000_000; updater[0].run(); });
 
-        micBtn.setOnClickListener(v -> {
+        // audio source selection: BOTH / MIC ONLY / DEVICE ONLY
+        View.OnClickListener audioSelection = v -> {
             chipClick.onClick(v);
-            if (RecorderService.getState() == RecorderService.STATE_IDLE) {
-                micOn[0] = !micOn[0];
-                micBtn.setBackgroundResource(micOn[0] ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+            boolean mic;
+            boolean device;
+            if (v == selMic) {
+                mic = true;
+                device = false;
+            } else if (v == selDevice) {
+                mic = false;
+                device = true;
             } else {
-                sendAction(context, RecorderService.isMicEnabledStatic()
-                        ? RecorderService.ACTION_MIC_OFF : RecorderService.ACTION_MIC_ON);
+                mic = true;
+                device = true;
             }
-        });
-
-        deviceBtn.setOnClickListener(v -> {
-            chipClick.onClick(v);
-            if (Build.VERSION.SDK_INT < 29) {
+            if (device && Build.VERSION.SDK_INT < 29) {
                 Toast.makeText(context, "Device audio capture needs Android 10+", Toast.LENGTH_SHORT).show();
-                return;
+                device = false;
             }
             if (RecorderService.getState() == RecorderService.STATE_IDLE) {
-                deviceOn[0] = !deviceOn[0];
-                deviceBtn.setBackgroundResource(deviceOn[0] ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                micOn[0] = mic;
+                deviceOn[0] = device;
             } else {
-                sendAction(context, RecorderService.isDeviceAudioEnabledStatic()
-                        ? RecorderService.ACTION_DEVICE_OFF : RecorderService.ACTION_DEVICE_ON);
+                if (RecorderService.isMicEnabledStatic() != mic)
+                    sendAction(context, mic ? RecorderService.ACTION_MIC_ON : RecorderService.ACTION_MIC_OFF);
+                if (RecorderService.isDeviceAudioEnabledStatic() != device)
+                    sendAction(context, device ? RecorderService.ACTION_DEVICE_ON : RecorderService.ACTION_DEVICE_OFF);
             }
-        });
+            updater[0].run();
+        };
+        selBoth.setOnClickListener(audioSelection);
+        selMic.setOnClickListener(audioSelection);
+        selDevice.setOnClickListener(audioSelection);
 
         pauseBtn.setOnClickListener(v -> {
             chipClick.onClick(v);
