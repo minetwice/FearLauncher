@@ -1,5 +1,7 @@
 //
 // FearLauncher Vulkan loader — Turnip (Adreno) + Fear Render / PanVK (Mali)
+// Fixed: never claim "PanVK ready" when unique libmjlvlk open fails (libgpud_sys.so).
+// Half-hooked PanVK + system Vulkan = SIGSEGV / ANR.
 //
 
 #include <android/api-level.h>
@@ -56,6 +58,18 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
         return false;
     }
 
+    /* Driver file must exist in native lib dir */
+    {
+        char path[PATH_MAX];
+        snprintf(path, sizeof(path), "%s/%s", native_dir, driver_soname);
+        FILE* f = fopen(path, "rb");
+        if (!f) {
+            printf("DriverHook: %s not present at %s — skip custom driver\n", driver_soname, path);
+            return false;
+        }
+        fclose(f);
+    }
+
     if (!linker_ns_load(native_dir)) {
         printf("DriverHook: linker_ns_load failed for %s\n", label);
         return false;
@@ -110,20 +124,17 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
     printf("DriverHook: %s unique mjlvlk ptr=%p\n", label, libvulkan);
     if (!libvulkan) {
-        printf("DriverHook: unique open failed, trying linker_ns_dlopen(libvulkan.so)\n");
-        libvulkan = linker_ns_dlopen("libvulkan.so", RTLD_LOCAL | RTLD_NOW);
-        printf("DriverHook: ns_dlopen libvulkan => %p\n", libvulkan);
+        /* CRITICAL: do NOT fall back to system libvulkan while custom driver is hooked.
+           That mixed state causes SIGSEGV (libgpud_sys.so / ICD mismatch). */
+        printf("DriverHook: unique open failed for %s — aborting custom driver (no half-hook)\n", label);
+        dlclose(dl_android);
+        dlclose(driver_handle);
+        dlclose(linkerhook);
+        return false;
     }
-    if (libvulkan) {
-        strncpy(loaded_name, driver_soname, sizeof(loaded_name) - 1);
-        driver_loaded = true;
-        printf("DriverHook: %s ready (vulkan handle=%p, driver=%s)\n", label, libvulkan, driver_soname);
-        return true;
-    }
-    /* Driver + android_dlopen_ext hook are installed; continue even without mjlvlk handle */
-    printf("DriverHook: vulkan handle null but driver %s hooked — continuing\n", label);
     strncpy(loaded_name, driver_soname, sizeof(loaded_name) - 1);
     driver_loaded = true;
+    printf("DriverHook: %s ready (vulkan handle=%p, driver=%s)\n", label, libvulkan, driver_soname);
     return true;
 }
 
@@ -147,7 +158,7 @@ void* pojavexec_loadVulkanDriver() {
                 h = linker_ns_dlopen("libvulkan.so", RTLD_LOCAL);
                 if (h) return h;
             }
-            printf("VulkanLoader: Fear Render / PanVK path failed, falling back\n");
+            printf("VulkanLoader: Fear Render / PanVK path failed — using system Vulkan for Zink\n");
         }
         if (turnip_enabled && load_turnip_vulkan())
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
@@ -164,8 +175,11 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
 #ifdef ENABLE_TURNIP_LOADER
     const char* fear = getenv("FEAR_RENDERER");
     if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0)) {
-        if (!load_panvk_vulkan())
-            printf("VulkanLoader: preload Fear Render PanVK failed\n");
+        if (!load_panvk_vulkan()) {
+            printf("VulkanLoader: preload Fear Render PanVK failed — system Vulkan (safe)\n");
+            void* sys = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+            printf("VulkanLoader: system libvulkan.so = %p\n", sys);
+        }
         return;
     }
     if (!turnip_enabled) return;
