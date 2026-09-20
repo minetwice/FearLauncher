@@ -207,7 +207,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="• AUDIO SOURCES & CLEANUP"
+                android:text="• AUDIO SOURCES + CLEANUP"
                 android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
@@ -278,7 +278,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tap DEVICE/MIC to mute that source. Noise Cut removes hiss & rumble, Voice Boost lifts commentary."
+                android:text="Tap DEVICE/MIC to mute that source. Noise Cut removes hiss + rumble, Voice Boost lifts commentary."
                 android:textColor="#59FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:layout_marginTop="4dp"
