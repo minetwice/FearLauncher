@@ -39,6 +39,16 @@ public final class RecorderDashboard {
 
         View backBtn = dialog.findViewById(R.id.rec_back_btn);
         View closeBtn = dialog.findViewById(R.id.rec_close_btn);
+        final Button[] filters = {
+                dialog.findViewById(R.id.rec_filter_quality),
+                dialog.findViewById(R.id.rec_filter_fps),
+                dialog.findViewById(R.id.rec_filter_audio),
+                dialog.findViewById(R.id.rec_filter_tune)};
+        final View[] trays = {
+                dialog.findViewById(R.id.rec_tray_quality),
+                dialog.findViewById(R.id.rec_tray_fps),
+                dialog.findViewById(R.id.rec_tray_audio),
+                dialog.findViewById(R.id.rec_tray_tune)};
         TextView statusText = dialog.findViewById(R.id.rec_status_text);
         TextView timerText = dialog.findViewById(R.id.rec_timer_text);
         View statusDot = dialog.findViewById(R.id.rec_status_dot);
@@ -93,9 +103,9 @@ public final class RecorderDashboard {
                         ? 0xFF9E9E9E : 0xFFFF003C);
             }
 
-            startBtn.setText(state == RecorderService.STATE_IDLE ? "START RECORDING" : "STOP RECORDING");
+            startBtn.setText(state == RecorderService.STATE_IDLE ? "● START RECORDING" : "■ STOP RECORDING");
             pauseBtn.setVisibility(state == RecorderService.STATE_IDLE ? View.GONE : View.VISIBLE);
-            pauseBtn.setText(state == RecorderService.STATE_PAUSED ? "RESUME" : "PAUSE");
+            pauseBtn.setText(state == RecorderService.STATE_PAUSED ? "► RESUME" : "‖ PAUSE");
 
             micBtn.setBackgroundResource(mic ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
             deviceBtn.setBackgroundResource(device ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
@@ -117,6 +127,25 @@ public final class RecorderDashboard {
             v.playSoundEffect(SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
         };
+
+        // filter bar: tap a chip, its tray slides open below it; tap again to fold it
+        for (int i = 0; i < filters.length; i++) {
+            final int idx = i;
+            filters[i].setOnClickListener(v -> {
+                chipClick.onClick(v);
+                boolean opening = trays[idx].getVisibility() != View.VISIBLE;
+                for (int j = 0; j < filters.length; j++) {
+                    if (j == idx) {
+                        if (opening) expandTray(context, trays[j]);
+                        else collapseTray(context, trays[j]);
+                    } else {
+                        collapseTray(context, trays[j]);
+                    }
+                    filters[j].setBackgroundResource(j == idx && opening
+                            ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+                }
+            });
+        }
         q720.setOnClickListener(v -> { chipClick.onClick(v); quality[0] = 720; updater[0].run(); });
         q1080.setOnClickListener(v -> { chipClick.onClick(v); quality[0] = 1080; updater[0].run(); });
         qMax.setOnClickListener(v -> { chipClick.onClick(v); quality[0] = 0; updater[0].run(); });
@@ -269,7 +298,7 @@ public final class RecorderDashboard {
             infoBox.addView(info);
             item.addView(infoBox);
 
-            Button play = makeListButton(context, "PLAY");
+            Button play = makeListButton(context, "► PLAY");
             play.setOnClickListener(v -> {
                 v.playSoundEffect(SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
@@ -277,7 +306,7 @@ public final class RecorderDashboard {
             });
             item.addView(play);
 
-            Button export = makeListButton(context, "EXPORT");
+            Button export = makeListButton(context, "▲ EXPORT");
             export.setOnClickListener(v -> {
                 v.playSoundEffect(SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
@@ -287,6 +316,20 @@ public final class RecorderDashboard {
 
             list.addView(item);
         }
+    }
+
+    private static void expandTray(Context context, View tray) {
+        if (tray.getVisibility() == View.VISIBLE) return;
+        tray.setAlpha(0f);
+        tray.setTranslationY(-dp(context, 12));
+        tray.setVisibility(View.VISIBLE);
+        tray.animate().alpha(1f).translationY(0f).setDuration(220).start();
+    }
+
+    private static void collapseTray(Context context, View tray) {
+        if (tray.getVisibility() != View.VISIBLE) return;
+        tray.animate().alpha(0f).translationY(-dp(context, 12)).setDuration(160)
+                .withEndAction(() -> tray.setVisibility(View.GONE)).start();
     }
 
     private static Button makeListButton(Context context, String label) {
