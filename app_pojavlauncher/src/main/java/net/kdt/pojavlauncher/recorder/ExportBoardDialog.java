@@ -43,9 +43,12 @@ public final class ExportBoardDialog {
     private Button mAudioInternal, mAudioMic, mNrBtn, mBoostBtn;
     private Button mDestDownloads, mDestPick;
     private ProgressBar mProgress;
+    private ProgressBar mSpinner;
     private TextView mStatus;
     private Button mExportBtn;
     private RecordingExporter mExporter;
+    private android.net.Uri mOutUri;
+    private long mExportStartMs;
 
     private ExportBoardDialog(Context context, RecordingStore.Entry entry) {
         mContext = context;
@@ -68,11 +71,13 @@ public final class ExportBoardDialog {
         mDestDownloads = mDialog.findViewById(R.id.rec_dest_downloads);
         mDestPick = mDialog.findViewById(R.id.rec_dest_pick);
         mProgress = mDialog.findViewById(R.id.rec_export_progress);
+        mSpinner = mDialog.findViewById(R.id.rec_export_spinner);
         mStatus = mDialog.findViewById(R.id.rec_export_status);
         mExportBtn = mDialog.findViewById(R.id.rec_export_btn);
         Button cancelBtn = mDialog.findViewById(R.id.rec_export_cancel);
 
         mProgress.setVisibility(View.GONE);
+        mSpinner.setVisibility(View.GONE);
 
         mResSame.setOnClickListener(v -> setResolution(0, 0));
         mRes1080.setOnClickListener(v -> setResolution(1920, 1080));
@@ -173,6 +178,7 @@ public final class ExportBoardDialog {
         mExportBtn.setEnabled(!locked);
         mExportBtn.setAlpha(locked ? 0.5f : 1f);
         mProgress.setVisibility(locked ? View.VISIBLE : View.GONE);
+        mSpinner.setVisibility(locked ? View.VISIBLE : View.GONE);
     }
 
     private String suggestName() {
@@ -202,6 +208,7 @@ public final class ExportBoardDialog {
     }
 
     private void beginExport(Uri outUri) {
+        mOutUri = outUri;
         try {
             android.os.ParcelFileDescriptor pfd =
                     mContext.getContentResolver().openFileDescriptor(outUri, "rw");
@@ -214,7 +221,8 @@ public final class ExportBoardDialog {
 
     private void runExport(android.os.ParcelFileDescriptor pfd) {
         lockUi(true);
-        mStatus.setText("Exporting…");
+        mExportStartMs = System.currentTimeMillis();
+        mStatus.setText("Preparing…");
         RecordingExporter.Options options = new RecordingExporter.Options();
         options.targetWidth = mResolution[0];
         options.targetHeight = mResolution[1];
@@ -228,10 +236,13 @@ public final class ExportBoardDialog {
             private final Handler handler = new Handler(Looper.getMainLooper());
 
             @Override
-            public void onProgress(int percent) {
+            public void onProgress(int percent, String stage) {
                 handler.post(() -> {
                     mProgress.setProgress(percent);
-                    mStatus.setText("Exporting… " + percent + "%");
+                    long elapsed = System.currentTimeMillis() - mExportStartMs;
+                    String eta = formatEta(percent > 0 ? elapsed * (100 - percent) / percent : -1L);
+                    mStatus.setText(stage + "  " + percent + "%"
+                            + (eta != null ? "  ·  " + eta + " left" : ""));
                 });
             }
 
@@ -246,6 +257,12 @@ public final class ExportBoardDialog {
             @Override
             public void onError(String message) {
                 handler.post(() -> {
+                    // remove the broken/partial output file so no 0-byte junk is left behind
+                    try {
+                        if (mOutUri != null) mContext.getContentResolver().delete(mOutUri, null, null);
+                    } catch (Exception ignored) {
+                    }
+                    mOutUri = null;
                     lockUi(false);
                     mStatus.setText(message);
                     Toast.makeText(mContext, "Export failed: " + message, Toast.LENGTH_LONG).show();
@@ -253,5 +270,12 @@ public final class ExportBoardDialog {
             }
         });
         new Thread(() -> mExporter.export(mContext, mEntry, options, pfd), "FearExport").start();
+    }
+
+    private static String formatEta(long ms) {
+        if (ms < 0) return null;
+        long s = (ms + 999) / 1000;
+        if (s < 60) return s + "s";
+        return (s / 60) + "m " + (s % 60) + "s";
     }
 }
