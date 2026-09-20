@@ -6,12 +6,16 @@ name: Build Mesa EGL PanVK+Zink (arm64)
 #   + libvulkan_panfrost.so (PanVK, same as the one committed to jniLibs)
 #
 # Notes:
-# - This Mesa_lib fork removed the use-elf-tls option; __thread dispatch means
-#   the GLES2 entrypoint wrapper (libGLESv2.so) cannot link on Android
-#   (emutls symbols are hidden inside libgallium_dri.so). GL entry points are
-#   fetched through eglGetProcAddress instead, so -Dgles2=disabled is fine.
+# - This Mesa_lib fork removed the use-elf-tls option and hardcodes a
+#   thread-local glapi dispatch (u_thread.h __THREAD_INITIAL_EXEC). On Android
+#   clang lowers that to emutls, whose control vars stay hidden inside
+#   libgallium_dri.so, so libEGL.so fails to link with
+#   "undefined symbol: __emutls_v._mesa_glapi_tls_Dispatch". The patch step
+#   below turns it into a plain global (what mainline use-elf-tls=false does).
 # - GLVND is off, so the EGL target is src/egl/libEGL.so; it is collected as
 #   libEGL_mesa.so in the artifact.
+# - GL entry points are fetched through eglGetProcAddress, so
+#   -Dgles2=disabled (no libGLESv2 entrypoint wrapper) is fine.
 
 on:
   push:
@@ -47,6 +51,15 @@ jobs:
           repository: minetwice/Mesa_lib
           ref: ${{ inputs.mesa_ref || 'main-17061956483348987644' }}
           path: mesa
+
+      - name: Patch glapi TLS for Android
+        run: |
+          # see workflow header note — this mirrors mainline use-elf-tls=false.
+          # Only the plain "thread_local" fallback branch is changed; the Apple
+          # and glibc branches are left untouched.
+          sed -i 's|^#define __THREAD_INITIAL_EXEC thread_local$|#define __THREAD_INITIAL_EXEC|' mesa/src/util/u_thread.h
+          echo "--- patched u_thread.h TLS macros ---"
+          grep -n "__THREAD_INITIAL_EXEC" mesa/src/util/u_thread.h
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
