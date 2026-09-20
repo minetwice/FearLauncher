@@ -1,6 +1,7 @@
 //
 // FearLauncher — LWJGL dlopen/dlsym hook v2.13
-// Zink + mesa_softpipe: force EGL symbols through OSMesa facade via bytehook
+// ROOT FIX: no global EGL bytehook for GLES/Krypton (breaks window + input).
+// OSMesa facade hooks only when FEAR_PANVK_OK=1 (or FEAR_FORCE_ZINK=1).
 //
 #include "jvm_hooks.h"
 
@@ -23,7 +24,6 @@
 
 bridge_environ_t bridge_environ = {0};
 
-/* from egl_proc_hook.c */
 extern void* eglGetProcAddress_hook(const char* procname);
 extern int eglBindAPI_hook(int api);
 extern void* eglGetDisplay(void* display_id);
@@ -48,10 +48,7 @@ static int is_zink_renderer_local(void) {
 
 static void* dlsym_egl_redirect(void* handle, const char* symbol) {
     if (symbol && is_zink_renderer_local()) {
-        if (strcmp(symbol, "eglChooseConfig") == 0) {
-            printf("dlsym_redirect: eglChooseConfig -> facade\n"); fflush(stdout);
-            return (void*)eglChooseConfig;
-        }
+        if (strcmp(symbol, "eglChooseConfig") == 0) return (void*)eglChooseConfig;
         if (strcmp(symbol, "eglGetDisplay") == 0) return (void*)eglGetDisplay;
         if (strcmp(symbol, "eglInitialize") == 0) return (void*)eglInitialize;
         if (strcmp(symbol, "eglCreateContext") == 0) return (void*)eglCreateContext;
@@ -145,14 +142,24 @@ static void try_install_egl_bytehook(void) {
         int st = bytehook_init(0, 0);
         printf("LWJGL hook v2.13: bytehook_init -> %d\n", st);
     }
+    /* ROOT FIX: never global-hook system EGL for GLES/Krypton */
     if (fear && strcmp(fear, "ng_gl4es") == 0) {
-        void* stub = bytehook_hook_all(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
-        printf("LWJGL hook v2.13: bytehook eglGetProcAddress -> %p\n", stub);
+        printf("LWJGL hook v2.13: skip all egl bytehook for ng_gl4es (system EGL)\n");
         return;
     }
+    if (fear && strcmp(fear, "opengles2") == 0) {
+        printf("LWJGL hook v2.13: skip all egl bytehook for opengles2\n");
+        return;
+    }
+    const char* panvk = getenv("FEAR_PANVK_OK");
+    int zink_ok = (panvk && panvk[0] == '1') || (getenv("FEAR_FORCE_ZINK") && getenv("FEAR_FORCE_ZINK")[0] == '1');
     if (fear && (strcmp(fear, "fear_render") == 0 || strcmp(fear, "panvk_zink") == 0
               || strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0
               || strcmp(fear, "mesa_softpipe") == 0)) {
+        if (!zink_ok && strcmp(fear, "mesa_softpipe") != 0) {
+            printf("LWJGL hook v2.13: skip OSMesa egl bytehook (FEAR_PANVK_OK!=1, renderer=%s)\n", fear);
+            return;
+        }
         extern const char* eglQueryString_hook(void* display, int name);
         void* a = bytehook_hook_all(NULL, "eglBindAPI", (void*)eglBindAPI_hook, NULL, NULL);
         void* b = bytehook_hook_all(NULL, "eglQueryString", (void*)eglQueryString_hook, NULL, NULL);
