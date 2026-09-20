@@ -1,5 +1,5 @@
 // FearLauncher EGL facade for Zink/OSMesa + Krypton GL resolver
-// ANR FIX: softpipe never used; OSMesaCreateContext has 3s hang timeout.
+// ANR FIX: skip OSMesa Zink when PanVK not fully loaded (FEAR_PANVK_OK!=1).
 #include <dlfcn.h>
 #include <string.h>
 #include <stdio.h>
@@ -282,7 +282,7 @@ static OSMesaContext fear_safe_osmesa_create(OSMesaContext share) {
     g_osmesa_guard = 1;
     sigaction(SIGSEGV, &sa, &old_sa);
     sigaction(SIGALRM, &sa_alrm, &old_alrm);
-    alarm(3);
+    alarm(1);
     OSMesaContext ctx = NULL;
     int jc = sigsetjmp(g_osmesa_jmp, 1);
     if (jc == 0) {
@@ -290,7 +290,7 @@ static OSMesaContext fear_safe_osmesa_create(OSMesaContext share) {
     } else {
         ctx = NULL;
         if (jc == 2)
-            __android_log_print(ANDROID_LOG_WARN, "FearRender", "OSMesaCreateContext timed out (3s) — avoid ANR");
+            __android_log_print(ANDROID_LOG_WARN, "FearRender", "OSMesaCreateContext timed out (1s) — avoid ANR");
     }
     alarm(0);
     g_osmesa_guard = 0;
@@ -309,16 +309,27 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     osm_render_window_t* share = share_context ? (osm_render_window_t*)share_context : NULL;
     OSMesaContext share_ctx = share ? share->context : NULL;
 
-    setenv("GALLIUM_DRIVER", "zink", 1);
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
-    unsetenv("LIBGL_ALWAYS_SOFTWARE");
-    setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
-    setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-    OSMesaContext octx = fear_safe_osmesa_create(share_ctx);
-    if (octx)
-        __android_log_print(ANDROID_LOG_INFO, "FearRender", "Zink context ok");
-    else
-        __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink failed/timeout — system path");
+    /* ANR FIX: only try OSMesa/Zink if PanVK fully loaded.
+       Half-broken Zink on OSMesa hangs the render thread → "App is not responding". */
+    OSMesaContext octx = NULL;
+    const char* panvk_ok = getenv("FEAR_PANVK_OK");
+    int try_zink = (panvk_ok && panvk_ok[0] == '1') ||
+                   (getenv("FEAR_FORCE_ZINK") && getenv("FEAR_FORCE_ZINK")[0] == '1');
+    if (try_zink) {
+        setenv("GALLIUM_DRIVER", "zink", 1);
+        setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+        unsetenv("LIBGL_ALWAYS_SOFTWARE");
+        setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
+        setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
+        octx = fear_safe_osmesa_create(share_ctx);
+        if (octx)
+            __android_log_print(ANDROID_LOG_INFO, "FearRender", "Zink context ok");
+        else
+            __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink failed/timeout — system path");
+    } else {
+        __android_log_print(ANDROID_LOG_WARN, "FearRender",
+            "Skip OSMesa Zink (FEAR_PANVK_OK!=1) — system EGL path (no ANR hang)");
+    }
 
     if (!octx) {
         void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
