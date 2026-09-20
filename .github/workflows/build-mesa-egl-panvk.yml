@@ -115,6 +115,8 @@ jobs:
           export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
           # lld >= 17 hard-errors on version-script symbols removed by --gc-sections
           export LDFLAGS="-Wl,--undefined-version"
+          # use-elf-tls=false is mandatory for Android: __thread becomes emutls,
+          # which cannot be resolved across shared libraries (libGLESv2 link error)
           meson setup build-android \
             --cross-file android-aarch64.txt \
             -Dplatforms=android \
@@ -127,6 +129,7 @@ jobs:
             -Dopengl=true \
             -Dgbm=disabled \
             -Dzstd=disabled \
+            -Duse-elf-tls=false \
             -Dallow-fallback-for=libdrm \
             -Dmesa-clc=system \
             -Dprecomp-compiler=system \
