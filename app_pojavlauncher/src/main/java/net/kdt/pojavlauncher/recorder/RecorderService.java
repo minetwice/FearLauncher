@@ -202,9 +202,20 @@ public class RecorderService extends Service {
     private Thread mInternalReaderThread;
     private Thread mMicReaderThread;
     private volatile boolean mReadersRunning = false;
-    private final java.util.concurrent.LinkedBlockingQueue<short[]> mInternalQueue =
+    /** One audio chunk stamped with its capture time (jitter-free PTS). */
+    private static final class AudioChunk {
+        final short[] data;
+        final long nanoTime;
+
+        AudioChunk(short[] data, long nanoTime) {
+            this.data = data;
+            this.nanoTime = nanoTime;
+        }
+    }
+
+    private final java.util.concurrent.LinkedBlockingQueue<AudioChunk> mInternalQueue =
             new java.util.concurrent.LinkedBlockingQueue<>();
-    private final java.util.concurrent.LinkedBlockingQueue<short[]> mMicQueue =
+    private final java.util.concurrent.LinkedBlockingQueue<AudioChunk> mMicQueue =
             new java.util.concurrent.LinkedBlockingQueue<>();
 
     private MediaCodec createAacEncoder(int channels, int bitrate) throws Exception {
@@ -229,7 +240,7 @@ public class RecorderService extends Service {
                 if (n > 0) {
                     short[] copy = new short[n];
                     System.arraycopy(buf, 0, copy, 0, n);
-                    mInternalQueue.offer(copy);
+                    mInternalQueue.offer(new AudioChunk(copy, System.nanoTime()));
                     while (mInternalQueue.size() > 32) mInternalQueue.poll(); // drop oldest if mixer stalls
                 }
             } catch (Exception e) {
@@ -248,7 +259,7 @@ public class RecorderService extends Service {
                 if (n > 0) {
                     short[] copy = new short[n];
                     System.arraycopy(buf, 0, copy, 0, n);
-                    mMicQueue.offer(copy);
+                    mMicQueue.offer(new AudioChunk(copy, System.nanoTime()));
                     while (mMicQueue.size() > 32) mMicQueue.poll();
                 }
             } catch (Exception e) {
@@ -417,6 +428,8 @@ public class RecorderService extends Service {
         if (sState != STATE_RECORDING) return;
         sState = STATE_PAUSED;
         sPauseStart = SystemClock.elapsedRealtime();
+        mInternalQueue.clear();
+        mMicQueue.clear();
         try {
             if (mVirtualDisplay != null) mVirtualDisplay.setSurface(null);
         } catch (Exception ignored) {
@@ -430,6 +443,9 @@ public class RecorderService extends Service {
         if (sState != STATE_PAUSED) return;
         sPausedTotalMs += SystemClock.elapsedRealtime() - sPauseStart;
         sState = STATE_RECORDING;
+        // discard audio captured while paused — it would replay after resume
+        mInternalQueue.clear();
+        mMicQueue.clear();
         try {
             if (mVirtualDisplay != null && mVideoInputSurface != null)
                 mVirtualDisplay.setSurface(mVideoInputSurface);
@@ -519,6 +535,8 @@ public class RecorderService extends Service {
     }
 
     private static final int FRAME_SAMPLES = 1024; // per channel
+    private static final long CHUNK_US = 1_000_000L * FRAME_SAMPLES / SAMPLE_RATE;
+    private long mLastAudioPtsUs = 0;
     // mix frame: stereo; internal frame: stereo; mic frame: mono
     private final short[][] mAudioFrames = {
             new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES]};
@@ -531,18 +549,20 @@ public class RecorderService extends Service {
                     Thread.sleep(40);
                     continue;
                 }
-                short[] intChunk = null;
-                short[] micChunk = null;
+                AudioChunk intChunkObj = null;
+                AudioChunk micChunkObj = null;
                 if (sDeviceAudioEnabled) {
-                    intChunk = mInternalQueue.poll(20, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    intChunkObj = mInternalQueue.poll(20, java.util.concurrent.TimeUnit.MILLISECONDS);
                 } else {
                     mInternalQueue.clear();
                 }
                 if (sMicEnabled) {
-                    micChunk = mMicQueue.poll();
+                    micChunkObj = mMicQueue.poll(20, java.util.concurrent.TimeUnit.MILLISECONDS);
                 } else {
                     mMicQueue.clear();
                 }
+                short[] intChunk = intChunkObj != null ? intChunkObj.data : null;
+                short[] micChunk = micChunkObj != null ? micChunkObj.data : null;
 
                 java.util.Arrays.fill(mAudioFrames[0], (short) 0);
                 java.util.Arrays.fill(mAudioFrames[1], (short) 0);
@@ -566,7 +586,16 @@ public class RecorderService extends Service {
                     }
                 }
 
-                long ptsUs = (System.nanoTime() - mStartNanos) / 1000L;
+                // PTS from actual capture time: no jitter, no overlap, pause-safe.
+                // (Old wall-clock PTS caused overlapping frames = crackling noise.)
+                long base;
+                if (intChunkObj != null) base = intChunkObj.nanoTime;
+                else if (micChunkObj != null) base = micChunkObj.nanoTime;
+                else base = System.nanoTime();
+                long ptsUs = (base - mStartNanos) / 1000L;
+                if (ptsUs < mLastAudioPtsUs + CHUNK_US) ptsUs = mLastAudioPtsUs + CHUNK_US;
+                if (ptsUs < 0) ptsUs = 0;
+                mLastAudioPtsUs = ptsUs;
                 // strict order: mix, internal, mic — fixes muxer track order for the export studio
                 for (int i = 0; i < 3; i++) {
                     feedAudio(i, ptsUs);
@@ -595,7 +624,10 @@ public class RecorderService extends Service {
                 ByteBuffer in = encoder.getInputBuffer(index);
                 if (in != null) {
                     short[] frame = mAudioFrames[which];
+                    // PCM must be written in native byte order (little-endian on ARM).
+                    // Big-endian bytes = the garbled "chan-chan" noise bug.
                     ByteBuffer buffer = ByteBuffer.wrap(mBytes);
+                    buffer.order(java.nio.ByteOrder.nativeOrder());
                     for (int i = 0; i < frame.length; i++) {
                         buffer.putShort(frame[i]);
                     }
@@ -757,6 +789,7 @@ public class RecorderService extends Service {
         mAudioTrackIds[2] = -1;
         mInternalQueue.clear();
         mMicQueue.clear();
+        mLastAudioPtsUs = 0;
         sState = STATE_IDLE;
     }
 
