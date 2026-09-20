@@ -138,15 +138,15 @@
                 android:textColor="#59FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:layout_marginTop="4dp"
-                androoid:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp" />
 
-            <!-- ============== SMOOTHNESS ============= -->
+            <!-- ============ SMOOTHNESS ============ -->
             <TextView
-                 android:layout_width="match_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="â€¢ SMOOTHENES (CONSTANT FPS)"
+                android:text="â€¢ SMOOTHNESS (CONSTANT FPS)"
                 android:textColor="#80FFFFFF"
-                 android:textSize="@dimen/_8ssp"
+                android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05"
                 android:layout_marginBottom="6dp" />
@@ -203,11 +203,11 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="10dp" />
 
-            <!-- ============= AUDIO ============ -->
+            <!-- ============ AUDIO ============ -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="â€¢ AUDIO SOURCES &amp; CLEANUP"
+                android:text="â€¢ AUDIO SOURCES & CLEANUP"
                 android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
@@ -215,5 +215,165 @@
                 android:layout_marginBottom="6dp" />
 
             <LinearLayout
-                android:layout_width="match_parentˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡Ðô‰ÝÉ…Á}½¹Ñ•¹Ðˆ(€€€€€€€€€€€€€€€…¹‘É½¥é½É¥•¹Ñ…Ñ¥½¸ô‰¡½É¥é½¹Ñ…°ˆø((€€€€€€€€€€€€€€€€ñ½´¹­‘Ð¹µÕ¤¹5¥¹•	ÕÑÑ½¸(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é¥ô‰ ­¥½É•}…Õ‘¥½}¥¹Ñ•É¹…°ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ôˆÁ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡ÐôˆÐÑ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý•¥¡ÐôˆÄˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÐô‹Â~R(€Y%=8ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑ½±½Èôˆˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑM¥é”ô‰‘¥µ•¸½|áÍÍÀˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑMÑå±”ô‰‰½±ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é‰…­É½Õ¹ô‰‘É…Ý…‰±”½ÁÉ•µ¥Õµ}‰ÕÑÑ½¹}‰œˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹¹ôˆÙ‘Àˆ€¼ø((€€€€€€€€€€€€€€€€ñ½´¹­‘Ð¹µÕ¤¹5¥¹•	ÕÑÑ½¸(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é¥ô‰ ­¥½É•}…Õ‘¥½}µ¥Œˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ôˆÁ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡ÐôˆÐÑ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý•¥¡ÐôˆÄˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÐô‹Â~:d€5%=8ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑ½±½Èôˆˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑM¥é”ô‰‘¥µ•¸½|áÍÍÀˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑMÑå±”ô‰‰½±ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é‰…­É½Õ¹ô‰‘É…Ý…‰±”½ÁÉ•µ¥Õµ}‰ÕÑÑ½¹}‰œˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹MÑ…ÉÐôˆÙ‘Àˆ€¼ø(€€€€€€€€€€€€ð½1¥¹•…É1…å½ÕÐø((€€€€€€€€€€€€ñ1¥¹•…É1…å½ÕÐ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ô‰µ…Ñ¡}Á…É•¹Ðˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡Ðô‰ÝÉ…Á}½¹Ñ•¹Ðˆ(€€€€€€€€€€€€€€€…¹‘É½¥é½É¥•¹Ñ…Ñ¥½¸ô‰¡½É¥é½¹Ñ…°ˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹Q½ÀôˆÙ‘Àˆø((€€€€€€€€€€€€€€€€ñ½´¹­‘Ð¹µÕ¤¹5¥¹•	ÕÑÑ½¸(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é¥ô‰ ­¥½É•}…Õ‘¥½}¹Èˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ôˆÁ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡ÐôˆÐÑ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý•¥¡ÐôˆÄˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÐô‹Šr €9=%MUPˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑ½±½Èôˆˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑM¥é”ô‰‘¥µ•¸½|áÍÍÀˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑMÑå±”ô‰‰½±ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é‰…­É½Õ¹ô‰‘É…Ý…‰±”½ÁÉ•µ¥Õµ}±…ÍÍ}‰±…­}‰œˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹¹ôˆÙ‘Àˆ€¼ø((€€€€€€€€€€€€€€€€ñ½´¹­‘Ð¹µÕ¤¹5¥¹•	ÕÑÑ½¸(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é¥ô‰ ­¥½É•}…Õ‘¥½}‰½½ÍÐˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ôˆÁ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡ÐôˆÐÑ‘Àˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý•¥¡ÐôˆÄˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÐô‹Â~Nˆ€Y=%	==MPˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑ½±½Èôˆˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑM¥é”ô‰‘¥µ•¸½|áÍÍÀˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑMÑå±”ô‰‰½±ˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é‰…­É½Õ¹ô‰‘É…Ý…‰±”½ÁÉ•µ¥Õµ}±…ÍÍ}‰±…­}‰œˆ(€€€€€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹MÑ…ÉÐôˆÙ‘Àˆ€¼ø(€€€€€€€€€€€€ð½1¥¹•…É1…å½ÕÐø((€€€€€€€€€€€€ñQ•áÑY¥•Ü(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ô‰µ…Ñ¡}Á…É•¹Ðˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}¡•¥¡Ðô‰ÝÉ…Á}½¹Ñ•¹Ðˆ(€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÐô‰Q…ÀY%½5%Ñ¼µÕÑ”Ñ¡…ÐÍ½ÕÉ”¸9½¥Í”ÕÐÉ•µ½Ù•Ì¡¥ÍÌ€™…µÀìÉÕµ‰±”°Y½¥”	½½ÍÐ±¥™ÑÌ½µµ•¹Ñ…Éä¸ˆ(€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑ½±½ÈôˆŒÔåˆ(€€€€€€€€€€€€€€€…¹‘É½¥éÑ•áÑM¥é”ô‰‘¥µ•¸½|ÝÍÍÀˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹Q½ÀôˆÑ‘Àˆ(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}µ…É¥¹	½ÑÑ½´ôˆÄÁ‘Àˆ€¼ø((€€€€€€€€€€€€ð„´´€ôôôôôôôôôôôôMYQ<€ôôôôôôôôôôôô€´´ø(€€€€€€€€€€€€ñQ•áÑY¥•Ü(€€€€€€€€€€€€€€€…¹‘É½¥é±…å½ÕÑ}Ý¥‘Ñ ô‰µ…Ñ¡}Á…É•¹Ò ¢æG&ö–C¦Æ–÷WEö†V–v‡CÒ'w&ö6öçFVçB ¢æG&ö–C§FW‡CÒ.(
-"4dRDò 
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_audio_internal"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="ðŸ”Š  DEVICE ON"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginEnd="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_audio_mic"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="ðŸŽ™  MIC ON"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_audio_nr"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="âœ¨  NOISE CUT"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_audio_boost"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="ðŸ“¢  VOICE BOOST"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap DEVICE/MIC to mute that source. Noise Cut removes hiss & rumble, Voice Boost lifts commentary."
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="10dp" />
+
+            <!-- ============ SAVE TO ============ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="â€¢ SAVE TO"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_dest_downloads"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="â¬‡  DOWNLOADS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginEnd="6dp" />
+
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/rec_dest_pick"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="ðŸ“  PICK FOLDER"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Downloads saves to Download/FearLauncher. Pick Folder lets you choose any directory and file name."
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp" />
+
+            <ProgressBar
+                android:id="@+id/rec_export_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progressTint="#FF003C" />
+
+            <TextView
+                android:id="@+id/rec_export_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ready to export"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:layout_marginTop="6dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/rec_export_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="EXPORT VIDEO"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:background="@drawable/premium_red_button_bg"
+                android:layout_marginTop="12dp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/rec_export_cancel"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:text="CANCEL"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
