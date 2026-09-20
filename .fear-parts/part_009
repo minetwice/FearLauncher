@@ -1,0 +1,23 @@
+assert t.count(b'{') == t.count(b'}'), 'MainMenuFragment braces unbalanced'
+with open(FR, 'wb') as f: f.write(t)
+
+# ---------- commits ----------
+GC = ['git', '-c', 'user.name=Twicefear', '-c', 'user.email=ytd82774@gmail.com']
+def commit(msg, *paths):
+    run(*GC, 'add', '--', *paths)
+    r = subprocess.run(GC + ['commit', '-m', msg], capture_output=True)
+    if r.returncode:
+        sys.stderr.write(r.stderr.decode('utf-8', 'replace'))
+        sys.exit(1)
+
+commit('fear-ui v4: fix layout emission typo + landscape sync',
+        L + '/fragment_launcher.xml', LL + '/fragment_launcher.xml')
+commit('fear-ui v4: outline-free glass drawables',
+        D + '/home_icon_chip_bg.xml', D + '/home_news_card_bg.xml',
+        D + '/tray_panel_bg.xml', D + '/drawer_panel_bg.xml')
+commit('fear-ui v4: move ProgressLayout into launcher fragment (status above instance select)',
+        L + '/activity_pojav_launcher.xml', LL + '/activity_pojav_launcher.xml',
+        J + '/LauncherActivity.java')
+commit('fear-ui v4: wire fragment ProgressLayout + dashboard openers', FR)
+run('git', 'push', 'origin', 'HEAD:feat/krypton-renderer')
+print('ALL OK - pushed 4 commits')

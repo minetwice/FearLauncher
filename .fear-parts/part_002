@@ -1,0 +1,5 @@
+ b'<?xml version="1.0" encoding="utf-8"?>\n<!-- FEAR UI v4: low opacity glass chip (no outline) -->\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n    <solid android:color="#59000000" />\n    <corners android:radius="12dp" />\n</shape>\n'),
+ D + '/home_news_card_bg.xml': ('924c3622c6e4f070f4ef91961995d61486f7a28c',
+ b'<?xml version="1.0" encoding="utf-8"?>\n<!-- FEAR UI v4: small info card (no outline) -->\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n    <solid android:color="#99101218" />\n    <corners android:radius="16dp" />\n</shape>\n'),
+ D + '/tray_panel_bg.xml': ('9f207ffe45d9290841e6b057ca421d69bd1c1805',
+ b'<?xml version="1.0" encoding="utf-8"?>\n<!-- FEAR UI v4: hamburger panel glass (no outline) -->\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n    <gradient android:angle="0" android:startColor="#F207080B" android:endColor="#E60B0D11" />\n    <corners android:topLeftRadius="0dp" android:bottomLeftRadius="0dp"\n        android:topRightRadius="26dp" android:bottomRightRadius="26dp" />\n</shape>\n'),

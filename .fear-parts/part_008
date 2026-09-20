@@ -1,0 +1,18 @@
+ b'        com.kdt.mcgui.ProgressLayout plWire = view.findViewById(R.id.progress_layout);\n'
+ b'        if (plWire != null) {\n'
+ b'            ProgressKeeper.addTaskCountListener(plWire);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.AUTHENTICATE);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST);\n'
+ b'            plWire.observe(com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL);\n'
+ b'        }\n')
+t = rep(t,
+ b'        ProgressKeeper.removeTaskCountListener(mPlayStateListener);\n',
+ b'        ProgressKeeper.removeTaskCountListener(mPlayStateListener);\n'
+ b'        com.kdt.mcgui.ProgressLayout plCleanup = getView() != null ? getView().findViewById(R.id.progress_layout) : null;\n'
+ b'        if (plCleanup != null) {\n'
+ b'            plCleanup.cleanUpObservers();\n'
+ b'            ProgressKeeper.removeTaskCountListener(plCleanup);\n'
+ b'        }\n')

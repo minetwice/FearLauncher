@@ -76,7 +76,7 @@ public class LauncherActivity extends BaseActivity {
     };
 
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
-        if (ProgressKeeper.getTaskCount() > 0) {
+        if (mProgressLayout.hasProcesses()) {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;
         }
@@ -174,6 +174,7 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
         mProgressServiceKeeper = new ProgressServiceKeeper(this);
         ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
+        ProgressKeeper.addTaskCountListener(mProgressLayout);
 
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
@@ -195,6 +196,12 @@ public class LauncherActivity extends BaseActivity {
                 ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
         );
 
+        mProgressLayout.observe(ProgressLayout.DOWNLOAD_MINECRAFT);
+        mProgressLayout.observe(ProgressLayout.UNPACK_RUNTIME);
+        mProgressLayout.observe(ProgressLayout.INSTALL_MODPACK);
+        mProgressLayout.observe(ProgressLayout.AUTHENTICATE);
+        mProgressLayout.observe(ProgressLayout.DOWNLOAD_VERSION_LIST);
+        mProgressLayout.observe(ProgressLayout.INSTANCE_INSTALL);
 
         // Auto-reload listener
         ProgressKeeper.addTaskCountListener(tc -> {
@@ -233,6 +240,8 @@ public class LauncherActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mProgressLayout.cleanUpObservers();
+        ProgressKeeper.removeTaskCountListener(mProgressLayout);
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
@@ -307,8 +316,7 @@ public class LauncherActivity extends BaseActivity {
 
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
-        // ProgressLayout now lives inside the launcher fragment layout
-        mProgressLayout = findViewById(R.id.progress_layout); // may be null now
+        mProgressLayout = findViewById(R.id.progress_layout);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mNavigationView = findViewById(R.id.sidebar_navigation);
     }

@@ -1,0 +1,22 @@
+act = rep(act, blk, b'')
+assert blobsha(act) == '117102ea902f5a43f8929e176479d7fcba108066', 'activity layout output sha mismatch'
+with open(p, 'wb') as f: f.write(act)
+
+p = LL + '/activity_pojav_launcher.xml'
+act = open(p, 'rb').read()
+assert blobsha(act) == 'bd1b2626cd4e1e685454c13ff039d166d41989d2', 'land activity layout input sha mismatch'
+blk = (b'        <com.kdt.mcgui.ProgressLayout\n'
+       b'            android:id="@+id/progress_layout"\n'
+       b'            android:layout_width="match_parent"\n'
+       b'            android:layout_height="wrap_content"\n'
+       b'            android:visibility="gone" />\n')
+act = rep(act, blk, b'')
+assert blobsha(act) == 'e6b622a3132268314591caf78ec90d26760e2368', 'land activity layout output sha mismatch'
+with open(p, 'wb') as f: f.write(act)
+
+# ---------- TASK 5: LauncherActivity.java ----------
+p = J + '/LauncherActivity.java'
+t = open(p, 'rb').read()
+assert blobsha(t) == 'db16ce2c8b6873171830bff65f6fb4641ed70d75', 'LauncherActivity input sha mismatch'
+t = rep(t, b'if (mProgressLayout.hasProcesses()) {', b'if (ProgressKeeper.getTaskCount() > 0) {')
+t = rep(t, b'        ProgressKeeper.addTaskCountListener(mProgressLayout);\n', b'')

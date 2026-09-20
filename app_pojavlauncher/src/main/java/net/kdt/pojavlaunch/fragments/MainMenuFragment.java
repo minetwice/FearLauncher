@@ -233,12 +233,14 @@ public class MainMenuFragment extends Fragment {
             headerNotificationBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                com.kdt.mcgui.ProgressLayout pl = view.findViewById(R.id.progress_layout);
-                if (pl != null) {
-                    pl.setVisibility(View.VISIBLE);
-                    pl.onClick(pl);
+                if (requireActivity() instanceof net.kdt.pojavlaunch.LauncherActivity) {
+                    com.kdt.mcgui.ProgressLayout pl = ((net.kdt.pojavlaunch.LauncherActivity) requireActivity()).getProgressLayout();
+                    if (pl != null) {
+                        pl.setVisibility(View.VISIBLE);
+                        pl.onClick(pl);
+                    }
                 } else {
-                    Toast.makeText(requireContext(), "NO ACTIVE DOWNLOAD TASKS.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -284,12 +286,13 @@ public class MainMenuFragment extends Fragment {
         View trayDownloads = view.findViewById(R.id.tray_downloads_btn);
         if (trayDownloads != null) {
             trayDownloads.setOnClickListener(v -> {
-                com.kdt.mcgui.ProgressLayout plD = view.findViewById(R.id.progress_layout);
-                if (plD != null) {
-                    plD.setVisibility(View.VISIBLE);
-                    plD.onClick(plD);
-                } else {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                int count = ProgressKeeper.getTaskCount();
+                if (count == 0) {
                     Toast.makeText(requireContext(), "No active background downloads.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), count + " background download task(s) active.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -407,17 +410,6 @@ public class MainMenuFragment extends Fragment {
 
         // Monitor background tasks to update the Play button states
         ProgressKeeper.addTaskCountListener(mPlayStateListener, true);
-        // Wire the in-flow ProgressLayout (moved from LauncherActivity into the fragment layout)
-        com.kdt.mcgui.ProgressLayout plWire = view.findViewById(R.id.progress_layout);
-        if (plWire != null) {
-            ProgressKeeper.addTaskCountListener(plWire);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.AUTHENTICATE);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST);
-            plWire.observe(com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL);
-        }
     }
 
     private void playChallengeSound() {
@@ -1690,10 +1682,5 @@ public class MainMenuFragment extends Fragment {
         }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
-        com.kdt.mcgui.ProgressLayout plCleanup = getView() != null ? getView().findViewById(R.id.progress_layout) : null;
-        if (plCleanup != null) {
-            plCleanup.cleanUpObservers();
-            ProgressKeeper.removeTaskCountListener(plCleanup);
-        }
     }
 }

@@ -1,0 +1,18 @@
+ D + '/drawer_panel_bg.xml': ('9d12fe1b0f52538d03bc2254bc5a17349c35220a',
+ b'<?xml version="1.0" encoding="utf-8"?>\n<!-- FEAR UI v4: in-game drawer glass (no outline) -->\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n    <solid android:color="#E607080B" />\n    <corners android:topLeftRadius="26dp" android:bottomLeftRadius="26dp"\n        android:topRightRadius="0dp" android:bottomRightRadius="0dp" />\n</shape>\n'),
+}
+for path, (sha, data) in drawables.items():
+    assert blobsha(data) == sha, 'drawable content sha mismatch: ' + path
+    with open(path, 'wb') as f: f.write(data)
+
+# ---------- TASK 4: activity layouts ----------
+p = L + '/activity_pojav_launcher.xml'
+act = open(p, 'rb').read()
+assert blobsha(act) == '19830bea5c9172d2284902025351ed5a75918ca3', 'activity layout input sha mismatch'
+blk = (b'        <!-- Progress Layout -->\n'
+       b'        <com.kdt.mcgui.ProgressLayout\n'
+       b'            android:id="@+id/progress_layout"\n'
+       b'            android:layout_width="match_parent"\n'
+       b'            android:layout_height="wrap_content"\n'
+       b'            android:visibility="gone" />\n'
+       b'\n')

@@ -1,0 +1,19 @@
+ b'                if (requireActivity() instanceof net.kdt.pojavlaunch.LauncherActivity) {\n'
+ b'                    com.kdt.mcgui.ProgressLayout pl = ((net.kdt.pojavlaunch.LauncherActivity) requireActivity()).getProgressLayout();\n'
+ b'                    if (pl != null) {\n'
+ b'                        pl.setVisibility(View.VISIBLE);\n'
+ b'                        pl.onClick(pl);\n'
+ b'                    }\n'
+ b'                } else {\n'
+ b'                    Toast.makeText(requireContext(), "NO NEW NOTIFICATIONS ACTIVE.", Toast.LENGTH_SHORT).show();\n'
+ b'                }\n',
+ b'                com.kdt.mcgui.ProgressLayout pl = view.findViewById(R.id.progress_layout);\n'
+ b'                if (pl != null) {\n'
+ b'                    pl.setVisibility(View.VISIBLE);\n'
+ b'                    pl.onClick(pl);\n'
+ b'                } else {\n'
+ b'                    Toast.makeText(requireContext(), "NO ACTIVE DOWNLOAD TASKS.", Toast.LENGTH_SHORT).show();\n'
+ b'                }\n')
+t = rep(t,
+ b'                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);\n'
+ b'                net.kdt.pojavlaunch.SoundManager.playClick();\n'

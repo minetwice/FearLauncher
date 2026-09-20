@@ -1,0 +1,13 @@
+    b'    <TextView android:id="+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />',
+    b'    <TextView android:id="@+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />')
+anchor = b'    <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />'
+i = frag.index(anchor) + len(anchor)
+frag = frag[:i] + b'\n' + frag[i:]
+assert blobsha(frag) == '898972a161674a454612f55b72e696fb76a36bb4', 'fixed portrait fragment sha mismatch'
+with open(L + '/fragment_launcher.xml', 'wb') as f: f.write(frag)
+# ---------- TASK 2: landscape gets the same bytes ----------
+with open(LL + '/fragment_launcher.xml', 'wb') as f: f.write(frag)
+
+# ---------- TASK 3: drawables ----------
+drawables = {
+ D + '/home_icon_chip_bg.xml': ('a531a0e83f28e8da82eb4cd910d39161283b4d0a',
