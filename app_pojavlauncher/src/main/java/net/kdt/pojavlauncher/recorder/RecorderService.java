@@ -534,9 +534,50 @@ public class RecorderService extends Service {
         }
     }
 
+    /**
+     * Live studio-mic chain: rumble/hum cut, noise gate with smoothed gain
+     * (no clicks), presence lift so the voice sounds close and sweet.
+     * Runs per mic sample before the mic is mixed into any track.
+     */
+    private static final class MicDsp {
+        // 2nd-order Butterworth high-pass ~140Hz @ 44.1kHz
+        private float x1, x2, y1, y2;
+        // one-pole low-pass state for the presence lifter
+        private float lp;
+        private float env = 0f;
+        private float gain = 1f;
+
+        short process(short s) {
+            float x = s;
+            // 1) rumble + mains hum cut
+            float hp = 0.98598f * x - 1.97196f * x1 + 0.98598f * x2
+                    + 1.97177f * y1 - 0.97221f * y2;
+            x2 = x1;
+            x1 = x;
+            y2 = y1;
+            y1 = hp;
+            // 2) noise gate: instant attack envelope, ~80ms decay
+            float abs = hp < 0f ? -hp : hp;
+            env = Math.max(abs, env * 0.998f);
+            float target = env > 1100f ? 1f : 0.05f;
+            float coef = target > gain ? 0.006f : 0.0004f;
+            gain += (target - gain) * coef;
+            float v = hp * gain;
+            // 3) presence lift: adds ~3dB of sparkle above ~3.5kHz (sweet tone)
+            lp += 0.5f * (v - lp);
+            v += 0.42f * (v - lp);
+            // 4) gentle lift so the voice stays forward after the gate
+            v *= 1.25f;
+            if (v > 32767f) v = 32767f;
+            else if (v < -32768f) v = -32768f;
+            return (short) v;
+        }
+    }
+
     private static final int FRAME_SAMPLES = 1024; // per channel
     private static final long CHUNK_US = 1_000_000L * FRAME_SAMPLES / SAMPLE_RATE;
     private long mLastAudioPtsUs = 0;
+    private final MicDsp mMicDsp = new MicDsp();
     // mix frame: stereo; internal frame: stereo; mic frame: mono
     private final short[][] mAudioFrames = {
             new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES]};
@@ -577,12 +618,11 @@ public class RecorderService extends Service {
                     int copy = Math.min(micChunk.length, FRAME_SAMPLES);
                     for (int i = 0; i < FRAME_SAMPLES; i++) {
                         short m = (i < copy) ? micChunk[i] : (short) 0;
-                        // gentle mic boost so commentary sits over game audio
-                        short scaled = (short) Math.max(Short.MIN_VALUE,
-                                Math.min(Short.MAX_VALUE, m * 1.4f));
-                        mAudioFrames[0][i * 2] = clamp(mAudioFrames[0][i * 2] + scaled);
-                        mAudioFrames[0][i * 2 + 1] = clamp(mAudioFrames[0][i * 2 + 1] + scaled);
-                        mAudioFrames[2][i] = scaled;
+                        // studio-mic processing (rumble cut + noise gate + sweet presence)
+                        short processed = mMicDsp.process(m);
+                        mAudioFrames[0][i * 2] = clamp(mAudioFrames[0][i * 2] + processed);
+                        mAudioFrames[0][i * 2 + 1] = clamp(mAudioFrames[0][i * 2 + 1] + processed);
+                        mAudioFrames[2][i] = processed;
                     }
                 }
 
