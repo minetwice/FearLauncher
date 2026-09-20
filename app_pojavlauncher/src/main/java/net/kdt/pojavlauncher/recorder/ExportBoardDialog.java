@@ -40,7 +40,7 @@ public final class ExportBoardDialog {
 
     private Button mResSame, mRes1080, mRes1440, mRes4k;
     private Button mFpsSame, mFps30, mFps60;
-    private Button mAudioInternal, mAudioMic, mNrBtn, mBoostBtn;
+    private Button mAudioBoth, mAudioMicOnly, mAudioDeviceOnly, mNrBtn, mBoostBtn;
     private Button mDestDownloads, mDestPick;
     private ProgressBar mProgress;
     private ProgressBar mSpinner;
@@ -57,6 +57,7 @@ public final class ExportBoardDialog {
         mDialog.setContentView(R.layout.dialog_recorder_export);
 
         View close = mDialog.findViewById(R.id.rec_export_close);
+        View hideBtn = mDialog.findViewById(R.id.rec_export_hide);
         mResSame = mDialog.findViewById(R.id.rec_res_same);
         mRes1080 = mDialog.findViewById(R.id.rec_res_1080);
         mRes1440 = mDialog.findViewById(R.id.rec_res_1440);
@@ -64,8 +65,9 @@ public final class ExportBoardDialog {
         mFpsSame = mDialog.findViewById(R.id.rec_fps_same);
         mFps30 = mDialog.findViewById(R.id.rec_fps_30);
         mFps60 = mDialog.findViewById(R.id.rec_fps_60);
-        mAudioInternal = mDialog.findViewById(R.id.rec_audio_internal);
-        mAudioMic = mDialog.findViewById(R.id.rec_audio_mic);
+        mAudioBoth = mDialog.findViewById(R.id.rec_audio_both);
+        mAudioMicOnly = mDialog.findViewById(R.id.rec_audio_miconly);
+        mAudioDeviceOnly = mDialog.findViewById(R.id.rec_audio_deviceonly);
         mNrBtn = mDialog.findViewById(R.id.rec_audio_nr);
         mBoostBtn = mDialog.findViewById(R.id.rec_audio_boost);
         mDestDownloads = mDialog.findViewById(R.id.rec_dest_downloads);
@@ -86,8 +88,9 @@ public final class ExportBoardDialog {
         mFpsSame.setOnClickListener(v -> { mFps[0] = 0; refreshChips(); });
         mFps30.setOnClickListener(v -> { mFps[0] = 30; refreshChips(); });
         mFps60.setOnClickListener(v -> { mFps[0] = 60; refreshChips(); });
-        mAudioInternal.setOnClickListener(v -> { mMuteInternal = !mMuteInternal; refreshChips(); });
-        mAudioMic.setOnClickListener(v -> { mMuteMic = !mMuteMic; refreshChips(); });
+        mAudioBoth.setOnClickListener(v -> { mMuteInternal = false; mMuteMic = false; refreshChips(); });
+        mAudioMicOnly.setOnClickListener(v -> { mMuteInternal = true; mMuteMic = false; refreshChips(); });
+        mAudioDeviceOnly.setOnClickListener(v -> { mMuteInternal = false; mMuteMic = true; refreshChips(); });
         mNrBtn.setOnClickListener(v -> { mNoiseReduction = !mNoiseReduction; refreshChips(); });
         mBoostBtn.setOnClickListener(v -> { mVoiceBoost = !mVoiceBoost; refreshChips(); });
         mDestDownloads.setOnClickListener(v -> { mSaveToDownloads = true; refreshChips(); });
@@ -111,6 +114,8 @@ public final class ExportBoardDialog {
                 mDialog.dismiss();
             }
         });
+        // eye button: hide the board, keep exporting in the background
+        hideBtn.setOnClickListener(v -> mDialog.dismiss());
         close.setOnClickListener(v -> {
             if (mExporter != null) mExporter.cancel();
             mDialog.dismiss();
@@ -159,9 +164,12 @@ public final class ExportBoardDialog {
         mFps60.setBackgroundResource(mFps[0] == 60
                 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
 
-        mAudioInternal.setBackgroundResource(!mMuteInternal
+        boolean bothAudio = !mMuteInternal && !mMuteMic;
+        mAudioBoth.setBackgroundResource(bothAudio
                 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
-        mAudioMic.setBackgroundResource(!mMuteMic
+        mAudioMicOnly.setBackgroundResource(mMuteInternal && !mMuteMic
+                ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
+        mAudioDeviceOnly.setBackgroundResource(mMuteMic && !mMuteInternal
                 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
         mNrBtn.setBackgroundResource(mNoiseReduction
                 ? R.drawable.premium_button_bg : R.drawable.premium_glass_black_bg);
@@ -249,8 +257,8 @@ public final class ExportBoardDialog {
             @Override
             public void onDone() {
                 handler.post(() -> {
-                    Toast.makeText(mContext, "Export saved!", Toast.LENGTH_LONG).show();
-                    mDialog.dismiss();
+                    Toast.makeText(mContext.getApplicationContext(), "Export saved!", Toast.LENGTH_LONG).show();
+                    if (mDialog.isShowing()) mDialog.dismiss();
                 });
             }
 
@@ -265,7 +273,7 @@ public final class ExportBoardDialog {
                     mOutUri = null;
                     lockUi(false);
                     mStatus.setText(message);
-                    Toast.makeText(mContext, "Export failed: " + message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(mContext.getApplicationContext(), "Export failed: " + message, Toast.LENGTH_LONG).show();
                 });
             }
         });
