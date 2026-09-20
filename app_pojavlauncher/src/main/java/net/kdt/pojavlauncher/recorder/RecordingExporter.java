@@ -47,7 +47,7 @@ public class RecordingExporter {
     }
 
     public interface Listener {
-        void onProgress(int percent);
+        void onProgress(int percent, String stage);
 
         void onDone();
 
@@ -212,12 +212,14 @@ public class RecordingExporter {
 
         mSurfaceTexture = new android.graphics.SurfaceTexture(mTextureId);
         mSurfaceTexture.setDefaultBufferSize(srcW, srcH);
+        // two-arg variant: the single-arg one needs a Looper on this thread —
+        // the export thread has none, which crashed every export at 0 bytes.
         mSurfaceTexture.setOnFrameAvailableListener(st -> {
             synchronized (mFrameSync) {
                 mFrameAvailable = true;
                 mFrameSync.notifyAll();
             }
-        });
+        }, new android.os.Handler(android.os.Looper.getMainLooper()));
         mDecoderSurface = new Surface(mSurfaceTexture);
 
         mVideoDecoder = MediaCodec.createDecoderByType(videoFormat.getString(MediaFormat.KEY_MIME));
@@ -254,6 +256,7 @@ public class RecordingExporter {
         }
 
         // ---------------- main transcode loop ----------------
+        if (mListener != null) mListener.onProgress(0, "Preparing…");
         final long frameDurUs = 1_000_000L / targetFps;
         long nextTickUs = 0;
         long audioPtsUs = 0;
@@ -348,8 +351,13 @@ public class RecordingExporter {
                 audioDone = mAacEos;
             }
 
+            String stage;
+            if (videoDone) stage = "Finalizing audio…";
+            else if (targetW != srcW || targetH != srcH) stage = "Upscaling video to " + targetH + "p · " + targetFps + " fps…";
+            else if (options.targetFps > 0) stage = "Smoothing to " + targetFps + " fps…";
+            else stage = "Re-encoding video…";
             int percent = (int) (Math.min(nextTickUs, durationUs) * 100L / durationUs);
-            if (mListener != null) mListener.onProgress(Math.min(99, percent));
+            if (mListener != null) mListener.onProgress(Math.min(99, percent), stage);
         }
 
         if (!mCancelled) {
