@@ -104,7 +104,10 @@ public class RecorderService extends Service {
     private VirtualDisplay mVirtualDisplay;
     private Surface mVideoInputSurface;
     private MediaCodec mVideoEncoder;
-    private MediaCodec mAudioEncoder;
+    // audio encoders: [0] = mix (stereo, what players play), [1] = device audio only (stereo),
+    // [2] = mic only (mono). Separate tracks let the export studio mute each source later.
+    private final MediaCodec[] mAudioEncoders = new MediaCodec[3];
+    private final int[] mAudioTrackIds = new int[]{-1, -1, -1};
     private MediaMuxer mMuxer;
     private ParcelFileDescriptor mMuxerFd;
     private String mOutputPath;      // legacy (< API 29) file path
@@ -117,7 +120,6 @@ public class RecorderService extends Service {
     private final Object mMuxerLock = new Object();
     private volatile boolean mMuxerStarted;
     private volatile int mVideoTrack = -1;
-    private volatile int mAudioTrack = -1;
     private volatile long mStartNanos;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
@@ -197,6 +199,64 @@ public class RecorderService extends Service {
     private volatile boolean mMicWanted = true;
     private volatile boolean mDeviceWanted = true;
 
+    private Thread mInternalReaderThread;
+    private Thread mMicReaderThread;
+    private volatile boolean mReadersRunning = false;
+    private final java.util.concurrent.LinkedBlockingQueue<short[]> mInternalQueue =
+            new java.util.concurrent.LinkedBlockingQueue<>();
+    private final java.util.concurrent.LinkedBlockingQueue<short[]> mMicQueue =
+            new java.util.concurrent.LinkedBlockingQueue<>();
+
+    private MediaCodec createAacEncoder(int channels, int bitrate) throws Exception {
+        MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE, channels);
+        audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+        audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitrate);
+        audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16384);
+        MediaCodec encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+        encoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        encoder.start();
+        return encoder;
+    }
+
+    /** Dedicated reader thread per AudioRecord so blocking reads never stall each other. */
+    private void internalReaderLoop() {
+        short[] buf = new short[FRAME_SAMPLES * 2];
+        while (mReadersRunning) {
+            try {
+                AudioRecord r = mInternalAudio;
+                if (r == null) { Thread.sleep(50); continue; }
+                int n = r.read(buf, 0, buf.length);
+                if (n > 0) {
+                    short[] copy = new short[n];
+                    System.arraycopy(buf, 0, copy, 0, n);
+                    mInternalQueue.offer(copy);
+                    while (mInternalQueue.size() > 32) mInternalQueue.poll(); // drop oldest if mixer stalls
+                }
+            } catch (Exception e) {
+                try { Thread.sleep(50); } catch (InterruptedException ignored) { return; }
+            }
+        }
+    }
+
+    private void micReaderLoop() {
+        short[] buf = new short[FRAME_SAMPLES];
+        while (mReadersRunning) {
+            try {
+                AudioRecord r = mMicAudio;
+                if (r == null) { Thread.sleep(50); continue; }
+                int n = r.read(buf, 0, buf.length);
+                if (n > 0) {
+                    short[] copy = new short[n];
+                    System.arraycopy(buf, 0, copy, 0, n);
+                    mMicQueue.offer(copy);
+                    while (mMicQueue.size() > 32) mMicQueue.poll();
+                }
+            } catch (Exception e) {
+                try { Thread.sleep(50); } catch (InterruptedException ignored) { return; }
+            }
+        }
+    }
+
     // ------------------------------------------------------------------
     // START
     // ------------------------------------------------------------------
@@ -233,14 +293,10 @@ public class RecorderService extends Service {
                     "FearRecorder", mVideoWidth, mVideoHeight, dm.densityDpi,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mVideoInputSurface, null, mMainHandler);
 
-            // ---- audio encoder ----
-            MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE, 2);
-            audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-            audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, AUDIO_BITRATE);
-            audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16384);
-            mAudioEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
-            mAudioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-            mAudioEncoder.start();
+            // ---- audio encoders: mix + device-only + mic-only ----
+            mAudioEncoders[0] = createAacEncoder(2, AUDIO_BITRATE);
+            mAudioEncoders[1] = createAacEncoder(2, 128000);
+            mAudioEncoders[2] = createAacEncoder(1, 96000);
 
             // ---- audio sources ----
             sMicEnabled = mMicWanted;
@@ -262,6 +318,11 @@ public class RecorderService extends Service {
 
             mVideoThread = new Thread(this::videoDrainLoop, "FearRec-Video");
             mVideoThread.start();
+            mReadersRunning = true;
+            mInternalReaderThread = new Thread(this::internalReaderLoop, "FearRec-Int");
+            mInternalReaderThread.start();
+            mMicReaderThread = new Thread(this::micReaderLoop, "FearRec-Mic");
+            mMicReaderThread.start();
             mAudioThread = new Thread(this::audioLoop, "FearRec-Audio");
             mAudioThread.start();
 
@@ -391,18 +452,9 @@ public class RecorderService extends Service {
                 Toast.makeText(this, "Microphone not available", Toast.LENGTH_SHORT).show();
                 return;
             }
-            sMicEnabled = true;
-        } else if (!on && mMicAudio != null) {
-            try {
-                mMicAudio.stop();
-                mMicAudio.release();
-            } catch (Exception ignored) {
-            }
-            mMicAudio = null;
-            sMicEnabled = false;
-        } else {
-            sMicEnabled = on;
         }
+        sMicEnabled = on;
+        if (!on) mMicQueue.clear();
         updateNotification();
         FloatingRecorderUI.notifyState(this);
         broadcastState();
@@ -424,18 +476,9 @@ public class RecorderService extends Service {
                 Toast.makeText(this, "Device audio not available", Toast.LENGTH_SHORT).show();
                 return;
             }
-            sDeviceAudioEnabled = true;
-        } else if (!on && mInternalAudio != null) {
-            try {
-                mInternalAudio.stop();
-                mInternalAudio.release();
-            } catch (Exception ignored) {
-            }
-            mInternalAudio = null;
-            sDeviceAudioEnabled = false;
-        } else {
-            sDeviceAudioEnabled = on;
         }
+        sDeviceAudioEnabled = on;
+        if (!on) mInternalQueue.clear();
         updateNotification();
         FloatingRecorderUI.notifyState(this);
         broadcastState();
@@ -476,9 +519,9 @@ public class RecorderService extends Service {
     }
 
     private static final int FRAME_SAMPLES = 1024; // per channel
-    private final short[] mMixBuf = new short[FRAME_SAMPLES * 2];
-    private final short[] mInternalBuf = new short[FRAME_SAMPLES * 2];
-    private final short[] mMicBuf = new short[FRAME_SAMPLES];
+    // mix frame: stereo; internal frame: stereo; mic frame: mono
+    private final short[][] mAudioFrames = {
+            new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES * 2], new short[FRAME_SAMPLES]};
     private final byte[] mBytes = new byte[FRAME_SAMPLES * 4];
 
     private void audioLoop() {
@@ -488,55 +531,54 @@ public class RecorderService extends Service {
                     Thread.sleep(40);
                     continue;
                 }
-                java.util.Arrays.fill(mMixBuf, (short) 0);
-                boolean hasAudio = false;
+                short[] intChunk = null;
+                short[] micChunk = null;
+                if (sDeviceAudioEnabled) {
+                    intChunk = mInternalQueue.poll(20, java.util.concurrent.TimeUnit.MILLISECONDS);
+                } else {
+                    mInternalQueue.clear();
+                }
+                if (sMicEnabled) {
+                    micChunk = mMicQueue.poll();
+                } else {
+                    mMicQueue.clear();
+                }
 
-                AudioRecord internal = mInternalAudio;
-                if (internal != null && sDeviceAudioEnabled) {
-                    int n = internal.read(mInternalBuf, 0, mInternalBuf.length);
-                    if (n > 0) {
-                        for (int i = 0; i < FRAME_SAMPLES * 2; i++) {
-                            if (i < n) mMixBuf[i] = mInternalBuf[i];
-                        }
-                        hasAudio = true;
+                java.util.Arrays.fill(mAudioFrames[0], (short) 0);
+                java.util.Arrays.fill(mAudioFrames[1], (short) 0);
+                java.util.Arrays.fill(mAudioFrames[2], (short) 0);
+
+                if (intChunk != null) {
+                    int copy = Math.min(intChunk.length, FRAME_SAMPLES * 2);
+                    System.arraycopy(intChunk, 0, mAudioFrames[0], 0, copy);
+                    System.arraycopy(intChunk, 0, mAudioFrames[1], 0, copy);
+                }
+                if (micChunk != null) {
+                    int copy = Math.min(micChunk.length, FRAME_SAMPLES);
+                    for (int i = 0; i < FRAME_SAMPLES; i++) {
+                        short m = (i < copy) ? micChunk[i] : (short) 0;
+                        // gentle mic boost so commentary sits over game audio
+                        short scaled = (short) Math.max(Short.MIN_VALUE,
+                                Math.min(Short.MAX_VALUE, m * 1.4f));
+                        mAudioFrames[0][i * 2] = clamp(mAudioFrames[0][i * 2] + scaled);
+                        mAudioFrames[0][i * 2 + 1] = clamp(mAudioFrames[0][i * 2 + 1] + scaled);
+                        mAudioFrames[2][i] = scaled;
                     }
                 }
 
-                AudioRecord mic = mMicAudio;
-                if (mic != null && sMicEnabled) {
-                    int n = mic.read(mMicBuf, 0, FRAME_SAMPLES);
-                    if (n > 0) {
-                        for (int i = 0; i < FRAME_SAMPLES; i++) {
-                            short m = (n > i) ? mMicBuf[i] : (short) 0;
-                            // gentle mic level so commentary sits over game audio
-                            short scaled = (short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, m * 1.4f));
-                            mMixBuf[i * 2] = clamp(mMixBuf[i * 2] + scaled);
-                            mMixBuf[i * 2 + 1] = clamp(mMixBuf[i * 2 + 1] + scaled);
-                        }
-                        hasAudio = true;
-                    }
-                }
-
-                if (!hasAudio) {
-                    // keep the AAC track fed with silence so A/V stays in sync
-                    Thread.sleep(5);
-                }
-
-                ByteBuffer buffer = ByteBuffer.wrap(mBytes);
-                for (int i = 0; i < mMixBuf.length; i++) {
-                    buffer.putShort(mMixBuf[i]);
-                }
                 long ptsUs = (System.nanoTime() - mStartNanos) / 1000L;
-                feedAudio(mBytes, mBytes.length, ptsUs);
-                drainAudio();
+                // strict order: mix, internal, mic — fixes muxer track order for the export studio
+                for (int i = 0; i < 3; i++) {
+                    feedAudio(i, ptsUs);
+                    drainAudio(i);
+                }
             } catch (InterruptedException e) {
                 break;
             } catch (Exception e) {
                 android.util.Log.e(TAG, "Audio loop error", e);
             }
         }
-        // flush + EOS
-        drainAudio();
+        for (int i = 0; i < 3; i++) drainAudio(i);
     }
 
     private static short clamp(int v) {
@@ -545,15 +587,21 @@ public class RecorderService extends Service {
         return (short) v;
     }
 
-    private void feedAudio(byte[] data, int length, long ptsUs) {
+    private void feedAudio(int which, long ptsUs) {
         try {
-            int index = mAudioEncoder.dequeueInputBuffer(10_000);
+            MediaCodec encoder = mAudioEncoders[which];
+            int index = encoder.dequeueInputBuffer(10_000);
             if (index >= 0) {
-                ByteBuffer in = mAudioEncoder.getInputBuffer(index);
+                ByteBuffer in = encoder.getInputBuffer(index);
                 if (in != null) {
+                    short[] frame = mAudioFrames[which];
+                    ByteBuffer buffer = ByteBuffer.wrap(mBytes);
+                    for (int i = 0; i < frame.length; i++) {
+                        buffer.putShort(frame[i]);
+                    }
                     in.clear();
-                    in.put(data, 0, length);
-                    mAudioEncoder.queueInputBuffer(index, 0, length, ptsUs, 0);
+                    in.put(mBytes, 0, frame.length * 2);
+                    encoder.queueInputBuffer(index, 0, frame.length * 2, ptsUs, 0);
                 }
             }
         } catch (Exception e) {
@@ -561,28 +609,29 @@ public class RecorderService extends Service {
         }
     }
 
-    private void drainAudio() {
+    private void drainAudio(int which) {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         try {
             while (true) {
-                int index = mAudioEncoder.dequeueOutputBuffer(info, 0);
+                MediaCodec encoder = mAudioEncoders[which];
+                int index = encoder.dequeueOutputBuffer(info, 0);
                 if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     synchronized (mMuxerLock) {
-                        mAudioTrack = mMuxer.addTrack(mAudioEncoder.getOutputFormat());
+                        mAudioTrackIds[which] = mMuxer.addTrack(encoder.getOutputFormat());
                         maybeStartMuxer();
                     }
                 } else if (index >= 0) {
                     synchronized (mMuxerLock) {
                         if (mMuxerStarted && info.size > 0) {
-                            ByteBuffer out = mAudioEncoder.getOutputBuffer(index);
+                            ByteBuffer out = encoder.getOutputBuffer(index);
                             if (out != null) {
                                 out.position(info.offset);
                                 out.limit(info.offset + info.size);
-                                mMuxer.writeSampleData(mAudioTrack, out, info);
+                                mMuxer.writeSampleData(mAudioTrackIds[which], out, info);
                             }
                         }
                     }
-                    mAudioEncoder.releaseOutputBuffer(index, false);
+                    encoder.releaseOutputBuffer(index, false);
                     if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) return;
                 } else {
                     return;
@@ -594,7 +643,8 @@ public class RecorderService extends Service {
     }
 
     private void maybeStartMuxer() {
-        if (!mMuxerStarted && mVideoTrack >= 0 && mAudioTrack >= 0) {
+        if (!mMuxerStarted && mVideoTrack >= 0
+                && mAudioTrackIds[0] >= 0 && mAudioTrackIds[1] >= 0 && mAudioTrackIds[2] >= 0) {
             mMuxer.start();
             mMuxerStarted = true;
         }
@@ -607,19 +657,24 @@ public class RecorderService extends Service {
         if (sState == STATE_IDLE) return;
         sState = STATE_IDLE;
         mRunning.set(false);
+        mReadersRunning = false;
         broadcastState();
         FloatingRecorderUI.detach();
 
+        try {
+            if (mInternalReaderThread != null) { mInternalReaderThread.interrupt(); mInternalReaderThread.join(300); }
+        } catch (InterruptedException ignored) {
+        }
+        try {
+            if (mMicReaderThread != null) { mMicReaderThread.interrupt(); mMicReaderThread.join(300); }
+        } catch (InterruptedException ignored) {
+        }
         try {
             if (mAudioThread != null) {
                 mAudioThread.interrupt();
                 mAudioThread.join(800);
             }
         } catch (InterruptedException ignored) {
-        }
-        try {
-            if (mAudioEncoder != null) mAudioEncoder.signalEndOfInputStream();
-        } catch (Exception ignored) {
         }
         try {
             if (mVideoEncoder != null) mVideoEncoder.signalEndOfInputStream();
@@ -677,10 +732,12 @@ public class RecorderService extends Service {
         mMicAudio = null;
         try { if (mVideoEncoder != null) mVideoEncoder.stop(); } catch (Exception ignored) {}
         try { if (mVideoEncoder != null) mVideoEncoder.release(); } catch (Exception ignored) {}
-        try { if (mAudioEncoder != null) mAudioEncoder.stop(); } catch (Exception ignored) {}
-        try { if (mAudioEncoder != null) mAudioEncoder.release(); } catch (Exception ignored) {}
+        for (int i = 0; i < 3; i++) {
+            try { if (mAudioEncoders[i] != null) mAudioEncoders[i].stop(); } catch (Exception ignored) {}
+            try { if (mAudioEncoders[i] != null) mAudioEncoders[i].release(); } catch (Exception ignored) {}
+            mAudioEncoders[i] = null;
+        }
         mVideoEncoder = null;
-        mAudioEncoder = null;
         try { if (mVirtualDisplay != null) mVirtualDisplay.release(); } catch (Exception ignored) {}
         mVirtualDisplay = null;
         try { if (mProjection != null) mProjection.stop(); } catch (Exception ignored) {}
@@ -695,7 +752,11 @@ public class RecorderService extends Service {
         }
         mMuxerStarted = false;
         mVideoTrack = -1;
-        mAudioTrack = -1;
+        mAudioTrackIds[0] = -1;
+        mAudioTrackIds[1] = -1;
+        mAudioTrackIds[2] = -1;
+        mInternalQueue.clear();
+        mMicQueue.clear();
         sState = STATE_IDLE;
     }
 
