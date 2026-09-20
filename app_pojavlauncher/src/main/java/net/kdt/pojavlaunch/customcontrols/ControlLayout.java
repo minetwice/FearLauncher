@@ -85,6 +85,24 @@ public class ControlLayout extends FrameLayout {
 
 	public void loadLayout(CustomControls controlLayout) {
 		boolean sanitizedModified = false;
+		// FEAR fix: layouts corrupted by an earlier buggy build (buttons fullscreen-sized and
+		// stacked at one spot) are detected here and silently reset to the bundled default.
+		if (isCorruptLayout(controlLayout)) {
+			Log.w("ControlLayout", "Corrupt control layout detected (insane sizes) - resetting to bundled default");
+			try (java.io.InputStream is = getContext().getAssets().open("default.json")) {
+				java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+				byte[] tmp = new byte[8192];
+				int n;
+				while ((n = is.read(tmp)) > 0) bos.write(tmp, 0, n);
+				CustomControls def = LayoutConverter.internalLoad(new Point(getWidth(), getHeight()), bos.toString("UTF-8"));
+				if (def != null) {
+					def.mLayoutBitmaps = LayoutBitmaps.createEmpty();
+					controlLayout = def;
+				}
+			} catch (Throwable th) {
+				Log.e("ControlLayout", "Failed to reset to default controls", th);
+			}
+		}
 		if(controlLayout != null) {
 			sanitizedModified = LayoutSanitizer.sanitizeLayout(controlLayout);
 		}
@@ -234,6 +252,22 @@ public class ControlLayout extends FrameLayout {
 		setControlVisible(mControlVisible);
 	}
 
+	/** Detects broken layouts saved by buggy builds: fullscreen-sized buttons or invalid scale. */
+	private static boolean isCorruptLayout(CustomControls controls) {
+		if (controls == null) return false;
+		if (controls.scaledAt <= 0f) return true;
+		for (ControlData data : controls.mControlDataList) {
+			if (data.getWidth() > 600 || data.getHeight() > 600) return true;
+		}
+		for (ControlDrawerData drawer : controls.mDrawerDataList) {
+			if (drawer.properties.getWidth() > 600 || drawer.properties.getHeight() > 600) return true;
+		}
+		for (ControlJoystickData stick : controls.mJoystickDataList) {
+			if (stick.getWidth() > 600 || stick.getHeight() > 600) return true;
+		}
+		return false;
+	}
+
 	/** Whether the control layer is currently shown in-game. */
 	public boolean areControlVisible(){
 		return mControlVisible;
@@ -288,7 +322,7 @@ public class ControlLayout extends FrameLayout {
 				View v = getChildAt(i);
 				if(v instanceof ControlInterface)
 					mButtons.add(((ControlInterface) v));
-			}
+				}
 		}
 		return mButtons;
 	}
@@ -350,8 +384,8 @@ public class ControlLayout extends FrameLayout {
 		ev.offsetLocation(v.getX(), v.getY());
 
 		if (action == MotionEvent.ACTION_UP
-				|| action == MotionEvent.ACTION_CANCEL
-				|| action == MotionEvent.ACTION_POINTER_UP) {
+			|| action == MotionEvent.ACTION_CANCEL
+			|| action == MotionEvent.ACTION_POINTER_UP) {
 			if (lastControlButton != null) lastControlButton.handleReleased();
 			mapTable.put(v, null);
 			return;
