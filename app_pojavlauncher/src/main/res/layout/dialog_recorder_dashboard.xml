@@ -40,14 +40,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.kdt.mcgui.MineButton
+        <net.kdt.pojavlauncher.recorder.SmallButton
             android:id="@+id/rec_close_btn"
-            android:layout_width="96dp"
+            android:layout_width="72dp"
             android:layout_height="30dp"
             android:text="COLLAPSE"
+            android:padding="2dp"
             android:textColor="#FFFFFF"
-            android:textSize="@dimen/_7ssp"
-            android:textStyle="bold"
             android:background="@drawable/premium_button_bg"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -135,24 +134,30 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="8dp">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_filter_quality"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
                     android:layout_weight="1"
-                    android:text="◈ QUALITY ▾"
+                    android:text="▣ QUALITY ▾"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:background="@drawable/premium_glass_black_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_filter_fps"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
                     android:layout_weight="1"
-                    android:text="◉ FPS ▾"
+                    android:text="» FPS ▾"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
@@ -160,12 +165,15 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_filter_audio"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
                     android:layout_weight="1"
-                    android:text="♪ AUDIO ▾"
+                    android:text="♫ AUDIO ▾"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
@@ -173,12 +181,15 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_filter_tune"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
                     android:layout_weight="1"
-                    android:text="✦ TUNE ▾"
+                    android:text="☰ TUNE ▾"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
@@ -195,7 +206,7 @@
                 android:layout_marginTop="4dp"
                 android:visibility="gone">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_q_720"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -207,7 +218,7 @@
                     android:background="@drawable/premium_glass_black_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_q_1080"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -220,7 +231,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_q_max"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -242,7 +253,7 @@
                 android:layout_marginTop="4dp"
                 android:visibility="gone">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_fps_30"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -254,7 +265,7 @@
                     android:background="@drawable/premium_button_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_fps_60"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -281,35 +292,51 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <com.kdt.mcgui.MineButton
-                        android:id="@+id/rec_btn_device_audio"
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_both"
                         android:layout_width="0dp"
-                        android:layout_height="28dp"
+                        android:layout_height="30dp"
                         android:layout_weight="1"
-                        android:text="◆ DEVICE AUDIO"
+                        android:text="⊕ BOTH"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_7ssp"
-                        android:textStyle="bold"
                         android:background="@drawable/premium_button_bg"
                         android:layout_marginEnd="4dp" />
 
-                    <com.kdt.mcgui.MineButton
-                        android:id="@+id/rec_btn_mic"
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_mic"
                         android:layout_width="0dp"
-                        android:layout_height="28dp"
+                        android:layout_height="30dp"
                         android:layout_weight="1"
-                        android:text="● MICROPHONE"
+                        android:text="◉ MIC ONLY"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_7ssp"
-                        android:textStyle="bold"
-                        android:background="@drawable/premium_button_bg"
+                        android:background="@drawable/premium_glass_black_bg"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp" />
+
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_device"
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:layout_weight="1"
+                        android:text="▤ DEVICE ONLY"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/premium_glass_black_bg"
                         android:layout_marginStart="4dp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Record both together or just one — tap to include / exclude. Works live while recording."
+                    android:text="Record both together or a single source — switches live while recording."
                     android:textColor="#59FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="4dp" />
@@ -324,7 +351,7 @@
                 android:layout_marginTop="4dp"
                 android:visibility="gone">
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_br_8"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -336,7 +363,7 @@
                     android:background="@drawable/premium_glass_black_bg"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_br_16"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -349,7 +376,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp" />
 
-                <com.kdt.mcgui.MineButton
+                <net.kdt.pojavlauncher.recorder.SmallButton
                     android:id="@+id/rec_br_24"
                     android:layout_width="0dp"
                     android:layout_height="28dp"
@@ -375,7 +402,7 @@
                 android:background="@drawable/premium_red_button_bg"
                 android:layout_marginTop="12dp" />
 
-            <com.kdt.mcgui.MineButton
+            <net.kdt.pojavlauncher.recorder.SmallButton
                 android:id="@+id/rec_btn_pause"
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
