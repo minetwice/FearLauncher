@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR RECORDER — compact filter-tray dashboard -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/premium_gradient_bg"
+    android:padding="10dp">
+
+    <!-- Top Action Bar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rec_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="6dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/rec_back_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="5dp"
+            android:src="@drawable/ic_px_arrow_left"
+            android:background="@drawable/premium_glass_black_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEAR RECORDER"
+            android:textColor="#FF003C"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <net.kdt.pojavlauncher.recorder.SmallButton
+            android:id="@+id/rec_close_btn"
+            android:layout_width="72dp"
+            android:layout_height="30dp"
+            android:text="COLLAPSE"
+            android:padding="2dp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/premium_button_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/rec_header_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1.5dp"
+        android:background="#FF003C"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/rec_top_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/rec_header_divider"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="6dp">
+
+            <!-- ============ STATUS STRIP ============ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
+
+                <FrameLayout
+                    android:layout_width="26dp"
+                    android:layout_height="26dp">
+
+                    <View
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/rec_ring_bg" />
+
+                    <View
+                        android:id="@+id/rec_status_dot"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/rec_dot_bg" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/rec_status_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="READY TO RECORD"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06"
+                    android:layout_marginStart="12dp" />
+
+                <TextView
+                    android:id="@+id/rec_timer_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="#FF1744"
+                    android:textSize="@dimen/_12ssp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <!-- ============ FILTER BAR ============ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_filter_quality"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:text="QUALITY"
+                    android:drawableStart="@drawable/rec_ic_quality"
+                    android:drawablePadding="4dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_filter_fps"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:text="FPS"
+                    android:drawableStart="@drawable/rec_ic_fps"
+                    android:drawablePadding="4dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_filter_audio"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:text="AUDIO"
+                    android:drawableStart="@drawable/rec_ic_device"
+                    android:drawablePadding="4dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_filter_tune"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:text="TUNE"
+                    android:drawableStart="@drawable/rec_ic_tune"
+                    android:drawablePadding="4dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:padding="2dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- ============ QUALITY TRAY ============ -->
+            <LinearLayout
+                android:id="@+id/rec_tray_quality"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_q_720"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="720P"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_q_1080"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="1080P"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_q_max"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="MAX"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- ============ FPS TRAY ============ -->
+            <LinearLayout
+                android:id="@+id/rec_tray_fps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_fps_30"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="30 FPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_button_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_fps_60"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="60 FPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- ============ AUDIO TRAY ============ -->
+            <LinearLayout
+                android:id="@+id/rec_tray_audio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_both"
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:layout_weight="1"
+                        android:text="BOTH"
+                        android:drawableStart="@drawable/rec_ic_both"
+                        android:drawablePadding="4dp"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/premium_button_bg"
+                        android:layout_marginEnd="4dp" />
+
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_mic"
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:layout_weight="1"
+                        android:text="MIC ONLY"
+                        android:drawableStart="@drawable/rec_ic_mic"
+                        android:drawablePadding="4dp"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/premium_glass_black_bg"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp" />
+
+                    <net.kdt.pojavlauncher.recorder.SmallButton
+                        android:id="@+id/rec_sel_device"
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:layout_weight="1"
+                        android:text="DEVICE ONLY"
+                        android:drawableStart="@drawable/rec_ic_device"
+                        android:drawablePadding="4dp"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:padding="2dp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/premium_glass_black_bg"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Record both together or a single source — switches live while recording."
+                    android:textColor="#59FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- ============ TUNE TRAY ============ -->
+            <LinearLayout
+                android:id="@+id/rec_tray_tune"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_br_8"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="8 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_br_16"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="16 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <net.kdt.pojavlauncher.recorder.SmallButton
+                    android:id="@+id/rec_br_24"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="24 MBPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_7ssp"
+                    android:textStyle="bold"
+                    android:background="@drawable/premium_glass_black_bg"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- ============ RECORD CONTROLS ============ -->
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/rec_btn_start"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="START RECORDING"
+                android:drawableStart="@drawable/rec_ic_play"
+                android:drawablePadding="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:background="@drawable/premium_red_button_bg"
+                android:layout_marginTop="12dp" />
+
+            <net.kdt.pojavlauncher.recorder.SmallButton
+                android:id="@+id/rec_btn_pause"
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:text="PAUSE"
+                android:drawableStart="@drawable/rec_ic_pause"
+                android:drawablePadding="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginTop="6dp"
+                android:visibility="gone" />
+
+            <!-- ============ MY RECORDINGS ============ -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33FF003C"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MY RECORDINGS"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:id="@+id/rec_recordings_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/rec_recordings_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No recordings yet — your captures will appear here after you stop recording."
+                android:textColor="#59FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:lineSpacingExtra="3dp"
+                android:visibility="gone"
+                android:layout_marginBottom="10dp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
