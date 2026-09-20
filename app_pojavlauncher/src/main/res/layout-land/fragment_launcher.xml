@@ -368,7 +368,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="• OPERATIONS & DIAGNOSTICS"
+                    android:text="• OPERATIONS &amp; DIAGNOSTICS"
                     android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
@@ -463,7 +463,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="• DEV & COMMAND EXPERIMENT"
+                    android:text="• DEV &amp; COMMAND EXPERIMENT"
                     android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
@@ -492,7 +492,7 @@
                     android:id="@+id/tray_info_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"
-                    android:text="INFO & CREATORS"
+                    android:text="INFO &amp; CREATORS"
                     android:drawableStart="@drawable/ic_px_experiment"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="16dp" />
