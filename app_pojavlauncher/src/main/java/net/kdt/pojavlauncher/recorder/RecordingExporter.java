@@ -39,7 +39,7 @@ public class RecordingExporter {
     public static class Options {
         public int targetWidth;     // 0 = keep source resolution
         public int targetHeight;
-        public int targetFps;       // 0 = keep source timing (VFR passthrough)
+        public int targetFps;      // 0 = keep source timing (VFR passthrough)
         public boolean muteInternal;
         public boolean muteMic;
         public boolean noiseReduction;
@@ -61,6 +61,9 @@ public class RecordingExporter {
 
     private volatile boolean mCancelled = false;
     private final Listener mListener;
+    // progress bookkeeping (real percent + at-least-1s UI refresh)
+    private int mLastPercent = -1;
+    private long mLastNotifyMs = 0L;
 
     // ---- EGL / GL ----
     private EGLDisplay mEGLDisplay = EGL14.EGL_NO_DISPLAY;
@@ -356,8 +359,16 @@ public class RecordingExporter {
             else if (targetW != srcW || targetH != srcH) stage = "Upscaling video to " + targetH + "p · " + targetFps + " fps…";
             else if (options.targetFps > 0) stage = "Smoothing to " + targetFps + " fps…";
             else stage = "Re-encoding video…";
-            int percent = (int) (Math.min(nextTickUs, durationUs) * 100L / durationUs);
-            if (mListener != null) mListener.onProgress(Math.min(99, percent), stage);
+            // real progress: how far into the SOURCE video we actually are
+            long posUs = videoExtractor.getSampleTime();
+            if (posUs < 0 || videoDone) posUs = durationUs;
+            int percent = (int) Math.min(99, posUs * 100L / durationUs);
+            long nowMs = System.currentTimeMillis();
+            if (mListener != null && (percent != mLastPercent || nowMs - mLastNotifyMs >= 1000)) {
+                mLastPercent = percent;
+                mLastNotifyMs = nowMs;
+                mListener.onProgress(percent, stage);
+            }
         }
 
         if (!mCancelled) {
