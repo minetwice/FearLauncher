@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR LAUNCHER v3 — glass dark UI, no animated background, left icon rail + hero card + news strip -->
+<!-- FEAR LAUNCHER v4 — centered head, thin instance select, play, top-right pencil, in-flow download status -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -25,144 +25,139 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingVertical="@dimen/_10sdp"
+        android:paddingVertical="@dimen/_8sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
             android:id="@+id/hamburger_menu_icon"
-            android:layout_width="@dimen/_32sdp"
-            android:layout_height="@dimen/_32sdp"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:src="@drawable/ic_hamburger"
             android:background="@drawable/home_icon_chip_bg"
             android:padding="@dimen/_7sdp"
-            app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_10sdp" />
+            app:tint="#FF4D6D" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <ImageView
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
+            android:layout_width="@dimen/_26sdp"
+            android:layout_height="@dimen/_26sdp"
             android:src="@drawable/ic_app_logo" />
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FEAR LAUNCHER"
             android:textColor="#FFFFFF"
-            android:textSize="@dimen/_11ssp"
+            android:textSize="@dimen/_10ssp"
             android:textStyle="bold"
             android:letterSpacing="0.14"
-            android:layout_marginStart="@dimen/_8sdp" />
+            android:layout_marginStart="@dimen/_6sdp" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/edit_profile_button_main"
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
+            android:src="@drawable/ic_px_edit"
+            android:background="@drawable/home_icon_chip_bg"
+            android:padding="@dimen/_6sdp"
+            app:tint="#FF4D6D"
+            android:layout_marginEnd="@dimen/_6sdp" />
+
+        <ImageButton
+            android:id="@+id/settings_button_main"
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
+            android:src="@drawable/ic_sharp_settings_24"
+            android:background="@drawable/home_icon_chip_bg"
+            android:padding="@dimen/_6sdp"
+            app:tint="#FF4D6D"
+            android:layout_marginEnd="@dimen/_6sdp" />
 
         <ImageButton
             android:id="@+id/header_account_hub_btn"
-            android:layout_width="@dimen/_30sdp"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
             android:src="@drawable/ic_account_circle"
             android:background="@drawable/home_icon_chip_bg"
             android:padding="@dimen/_6sdp"
             app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_8sdp" />
+            android:layout_marginEnd="@dimen/_6sdp" />
 
         <ImageButton
             android:id="@+id/header_notification_btn"
-            android:layout_width="@dimen/_30sdp"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
             android:src="@drawable/ic_px_bell"
             android:background="@drawable/home_icon_chip_bg"
             android:padding="@dimen/_6sdp"
             app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_8sdp" />
+            android:layout_marginEnd="@dimen/_6sdp" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/header_avatar_card"
-            android:layout_width="@dimen/_30sdp"
-            android:layout_height="@dimen/_30sdp"
-            app:cardCornerRadius="@dimen/_15sdp"
-            app:cardBackgroundColor="#20FFFFFF"
+            android:layout_width="@dimen/_28sdp"
+            android:layout_height="@dimen/_28sdp"
+            app:cardCornerRadius="@dimen/_14sdp"
+            app:cardBackgroundColor="#1AFFFFFF"
             app:cardElevation="0dp"
             android:foreground="?attr/selectableItemBackground"
             android:clickable="true">
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/ic_account_circle"
-                android:padding="0dp" />
+                android:src="@drawable/ic_account_circle" />
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 
-    <!-- ============ MAIN CONTENT ============ -->
+    <!-- ============ CENTERED CONTENT ============ -->
     <LinearLayout
         android:id="@+id/home_content_pane"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingBottom="@dimen/_10sdp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingHorizontal="@dimen/_20sdp"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/home_news_strip"
+        app:layout_constraintVertical_bias="0.42">
 
-        <!-- LEFT ICON RAIL -->
+        <!-- HEAD (centered identity) -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:background="@drawable/home_icon_chip_bg"
-            android:paddingVertical="@dimen/_8sdp"
-            android:paddingHorizontal="@dimen/_6sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            android:layout_gravity="center_vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <ImageButton
-                android:id="@+id/edit_profile_button_main"
-                android:layout_width="@dimen/_34sdp"
-                android:layout_height="@dimen/_34sdp"
-                android:src="@drawable/ic_px_edit"
-                android:background="@android:color/transparent"
-                android:padding="@dimen/_8sdp"
-                app:tint="#FF4D6D"
-                android:layout_marginBottom="@dimen/_8sdp" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="@dimen/_44sdp"
+                android:layout_height="@dimen/_44sdp"
+                app:cardCornerRadius="@dimen/_22sdp"
+                app:cardBackgroundColor="#141A2430"
+                app:cardElevation="0dp">
+                <com.kdt.mcgui.MinecraftSkinView
+                    android:id="@+id/homepage_skin_head"
+                    android:layout_width="40dp"
+                    android:layout_height="38dp"
+                    android:layout_gravity="center" />
+            </androidx.cardview.widget.CardView>
 
-            <ImageButton
-                android:id="@+id/settings_button_main"
-                android:layout_width="@dimen/_34sdp"
-                android:layout_height="@dimen/_34sdp"
-                android:src="@drawable/ic_sharp_settings_24"
-                android:background="@android:color/transparent"
-                android:padding="@dimen/_8sdp"
-                app:tint="#FF4D6D" />
-        </LinearLayout>
-
-        <!-- CENTER COLUMN -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginEnd="@dimen/_10sdp">
-
-            <!-- HERO CARD -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@drawable/home_hero_card_bg"
-                android:padding="@dimen/_16sdp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PLAYER CARD"
-                    android:textColor="#FF4D6D"
-                    android:textSize="@dimen/_8ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.18"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                android:layout_marginStart="@dimen/_12sdp">
 
                 <TextView
                     android:id="@+id/account_name_display"
@@ -170,7 +165,7 @@
                     android:layout_height="wrap_content"
                     android:text="Guest"
                     android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_18ssp"
+                    android:textSize="@dimen/_17ssp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -178,188 +173,159 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1.21.1"
-                    android:textColor="#73FFFFFF"
-                    android:textSize="@dimen/_9ssp"
-                    android:layout_marginTop="2dp" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="@dimen/_8sdp">
-
-                    <TextView
-                        android:id="@+id/card_runtime_info"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="JVM: INTERNAL"
-                        android:textColor="#42FF42"
-                        android:textSize="@dimen/_7ssp"
-                        android:textStyle="bold"
-                        android:background="#1A42FF42"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp"
-                        android:layout_marginEnd="6dp" />
-
-                    <TextView
-                        android:id="@+id/card_loader_info"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="LOADER: AUTO"
-                        android:textColor="#FF4D6D"
-                        android:textSize="@dimen/_7ssp"
-                        android:textStyle="bold"
-                        android:background="#1AFF4D6D"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#14FFFFFF"
-                    android:layout_marginTop="@dimen/_10sdp"
-                    android:layout_marginBottom="@dimen/_10sdp" />
-
-                <!-- LAUNCH row -->
-                <com.kdt.mcgui.mcVersionSpinner
-                    android:id="@+id/mc_version_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:background="@drawable/premium_glass_black_bg" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/play_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_42sdp"
-                    android:text="LAUNCH"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_13ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.1"
-                    android:background="@drawable/premium_play_button_bg"
-                    android:layout_marginTop="@dimen/_10sdp" />
-
-                <!-- Live status strip -->
-                <TextView
-                    android:id="@+id/homepage_chat_bubble"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/home_news_card_bg"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="8dp"
-                    android:textColor="#E6FFFFFF"
-                    android:textSize="10sp"
-                    android:textAlignment="center"
-                    android:fontFamily="monospace"
-                    android:text="[SYSTEM] Boot sequence ready."
-                    android:layout_marginTop="@dimen/_12sdp" />
-            </LinearLayout>
-
-            <!-- NEWS STRIP -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="@dimen/_10sdp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/home_news_card_bg"
-                    android:padding="@dimen/_10sdp"
-                    android:layout_marginEnd="@dimen/_6sdp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="FEAR CORE"
-                        android:textColor="#FF4D6D"
-                        android:textSize="@dimen/_8ssp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.12"
-                        android:layout_marginBottom="2dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Krypton and Fear render pipelines ready. EGL facade auto-falls back safely."
-                        android:textColor="#8CFFFFFF"
-                        android:textSize="@dimen/_8ssp"
-                        android:maxLines="2"
-                        android:ellipsize="end" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/home_news_card_bg"
-                    android:padding="@dimen/_10sdp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="RECORDER"
-                        android:textColor="#FF4D6D"
-                        android:textSize="@dimen/_8ssp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.12"
-                        android:layout_marginBottom="2dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Mic, device audio and VC speaker capture with adaptive noise gate."
-                        android:textColor="#8CFFFFFF"
-                        android:textSize="@dimen/_8ssp"
-                        android:maxLines="2"
-                        android:ellipsize="end" />
-                </LinearLayout>
+                    android:textColor="#66FFFFFF"
+                    android:textSize="@dimen/_8ssp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- RIGHT COLUMN: skin viewer -->
+        <!-- small status chips -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/_6sdp">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/card_runtime_info"
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/home_hero_card_bg"
-                android:padding="@dimen/_12sdp">
+                android:layout_height="wrap_content"
+                android:text="JVM: INTERNAL"
+                android:textColor="#42FF42"
+                android:textSize="@dimen/_7ssp"
+                android:textStyle="bold"
+                android:background="#142FFF42"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp"
+                android:layout_marginEnd="5dp" />
 
-                <com.kdt.mcgui.MinecraftSkinView
-                    android:id="@+id/homepage_skin_head"
-                    android:layout_width="120dp"
-                    android:layout_height="104dp" />
+            <TextView
+                android:id="@+id/card_loader_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LOADER: AUTO"
+                android:textColor="#FF4D6D"
+                android:textSize="@dimen/_7ssp"
+                android:textStyle="bold"
+                android:background="#14FF4D6D"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp" />
+        </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="LIVE SKIN"
-                    android:textColor="#59FFFFFF"
-                    android:textSize="@dimen/_7ssp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.12"
-                    android:layout_marginTop="@dimen/_8sdp" />
-            </LinearLayout>
+        <!-- DOWNLOAD STATUS (appears above instance select while downloading) -->
+        <com.kdt.mcgui.ProgressLayout
+            android:id="@+id/progress_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:visibility="gone" />
+
+        <!-- INSTANCE SELECT (thin) -->
+        <com.kdt.mcgui.mcVersionSpinner
+            android:id="@+id/mc_version_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_28sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:background="@drawable/home_icon_chip_bg" />
+
+        <!-- PLAY -->
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/play_button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:text="LAUNCH"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_12ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:background="@drawable/premium_play_button_bg" />
+
+        <!-- Live status strip -->
+        <TextView
+            android:id="@+id/homepage_chat_bubble"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/home_news_card_bg"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="7dp"
+            android:textColor="#CCFFFFFF"
+            android:textSize="9sp"
+            android:textAlignment="center"
+            android:fontFamily="monospace"
+            android:text="[SYSTEM] Boot sequence ready."
+            android:layout_marginTop="@dimen/_12sdp" />
+    </LinearLayout>
+
+    <!-- ============ BOTTOM STRIP ============ -->
+    <LinearLayout
+        android:id="@+id/home_news_strip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_10sdp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/home_news_card_bg"
+            android:padding="@dimen/_9sdp"
+            android:layout_marginEnd="@dimen/_5sdp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FEAR CORE"
+                android:textColor="#FF4D6D"
+                android:textSize="@dimen/_7ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Krypton and Fear render pipelines ready."
+                android:textColor="#73FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/home_news_card_bg"
+            android:padding="@dimen/_9sdp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DOWNLOADS"
+                android:textColor="#FF4D6D"
+                android:textSize="@dimen/_7ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap the bell for the full dashboard."
+                android:textColor="#73FFFFFF"
+                android:textSize="@dimen/_7ssp"
+                android:maxLines="1"
+                android:ellipsize="end" />
         </LinearLayout>
     </LinearLayout>
 
     <!-- UI Logic Dummies -->
     <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <TextView android:id="@+id/account_type_label" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <TextView android:id="@+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/account_section" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/edit_profile_button" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_home" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
@@ -367,7 +333,7 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- ============ HAMBURGER SLIDE-OUT PANEL (glass, rounded right, animated) ============ -->
+    <!-- ============ HAMBURGER SLIDE-OUT PANEL ============ -->
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_tray"
         android:layout_width="274dp"
@@ -394,7 +360,6 @@
                 android:padding="@dimen/_14sdp"
                 android:background="@drawable/tray_panel_bg">
 
-                <!-- Panel header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -440,12 +405,11 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- SECTION 1: OPERATIONS -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="OPERATIONS"
-                    android:textColor="#73FFFFFF"
+                    android:textColor="#66FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.14"
@@ -473,7 +437,7 @@
                     android:id="@+id/tray_downloads_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"
-                    android:text="BACKGROUND DOWNLOADS"
+                    android:text="DOWNLOAD DASHBOARD"
                     android:drawableStart="@drawable/ic_px_file_dl"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
@@ -487,12 +451,11 @@
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="12dp" />
 
-                <!-- SECTION 2: LIBRARY -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="LIBRARY"
-                    android:textColor="#73FFFFFF"
+                    android:textColor="#66FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.14"
@@ -534,12 +497,11 @@
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="12dp" />
 
-                <!-- SECTION 3: SYSTEM -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="SYSTEM"
-                    android:textColor="#73FFFFFF"
+                    android:textColor="#66FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.14"
