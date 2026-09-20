@@ -38,6 +38,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import git.artdeell.mojo.R;
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -229,7 +231,7 @@ public class RecorderService extends Service {
             DisplayMetrics dm = getResources().getDisplayMetrics();
             mVirtualDisplay = mProjection.createVirtualDisplay(
                     "FearRecorder", mVideoWidth, mVideoHeight, dm.densityDpi,
-                    mVideoInputSurface, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR);
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mVideoInputSurface, null, mMainHandler);
 
             // ---- audio encoder ----
             MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE, 2);
