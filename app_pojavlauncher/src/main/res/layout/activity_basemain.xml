@@ -38,56 +38,56 @@
                 android:orientation="vertical"
                 android:translationZ="1dp"
                 android:visibility="gone"
-                app:defaultCursorDrawable="@drawable/ic_mouse_pointer" />
+            app:defaultCursorDrawable="@drawable/ic_mouse_pointer" />
 
-            <!-- TEXT INPUT FIELD -->
-            <.net.kdt.pojavlaunch.customcontrols.keyboard.TouchCharInput
-                android:id="@+id/mainTouchCharInput"
-                android:layout_width="1dp"
-                android:layout_height="1dp"
-                android:background="@android:color/darker_gray"
-                android:ems="10"
-                android:imeOptions="flagNoFullscreen|flagNoExtractUi|flagNoPersonalizedLearning|actionDone"
-                android:inputType="textFilter|textImeMultiLine|textAutoComplete|textAutoCorrect"
-                tools:ignore="TouchTargetSizeCheck" />
+        <!-- TEXT INPUT FIELD -->
+        <net.kdt.pojavlaunch.customcontrols.keyboard.TouchCharInput
+            android:id="@+id/mainTouchCharInput"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:ems="10"
+            android:imeOptions="flagNoFullscreen|flagNoExtractUi|flagNoPersonalizedLearning|actionDone"
+            android:inputType="textFilter|textImeMultiLine|textAutoComplete|textAutoCorrect"
+            tools:ignore="TouchTargetSizeCheck" />
 
-            <!-- DRAWER PULL BUTTON (Updated Style) -->
-            <net.kdt.pojavlaunch.customcontrols.handleview.DrawerPullButton
-                android:id="@+id/drawer_button"
-                android:layout_width="48dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center_horizontal"
-                android:elevation="10dp"
-                android:padding="8dp"
-                android:backgroundTint="@color/fear_primary" />
+        <!-- DRAWER PULL BUTTON (Updated Style) -->
+        <net.kdt.pojavlaunch.customcontrols.handleview.DrawerPullButton
+            android:id="@+id/drawer_button"
+            android:layout_width="48dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_horizontal"
+            android:elevation="10dp"
+            android:padding="8dp"
+            android:backgroundTint="@color/fear_primary" />
 
-            <!-- HOTBAR VIEW -->
-            <net.kdt.pojavlaunch.customcontrols.mouse.HotbarView
-                android:id="@+id/hotbar_view"
-                android:layout_width="0px"
-                android:layout_height="0px" />
+        <!-- HOTBAR VIEW -->
+        <net.kdt.pojavlaunch.customcontrols.mouse.HotbarView
+            android:id="@+id/hotbar_view"
+            android:layout_width="0px"
+            android:layout_height="0px" />
 
-        </net.kdt.pojavlaunch.customcontrols.ControlLayout>
+    </net.kdt.pojavlaunch.customcontrols.ControlLayout>
 
-        <!-- LOGGER OVERLAY -->
-        <com.kdt.LoggerView
-            android:id="@+id/mainLoggerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#CC000000"
-            android:visibility="gone" />
-
-    </FrameLayout>
-
-    <!-- NAVIGATION DRAWER (Right Side) -->
-    <ListView
-        android:id="@+id/main_navigation_view"
-        android:layout_width="270dp"
+    <!-- LOGGER OVERLAY -->
+    <com.kdt.LoggerView
+        android:id="@+id/mainLoggerView"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="right"
-        android:background="@drawable/drawer_panel_bg"
-        android:fitsSystemWindows="false"
-        android:divider="#1AFF003C"
-        android:dividerHeight="1dp" />
+        android:background="#CC000000"
+        android:visibility="gone" />
+
+</FrameLayout>
+
+<!-- NAVIGATION DRAWER (Right Side) -->
+<ListView
+    android:id="@+id/main_navigation_view"
+    android:layout_width="270dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="right"
+    android:background="@drawable/drawer_panel_bg"
+    android:fitsSystemWindows="false"
+    android:divider="#1AFF003C"
+    android:dividerHeight="1dp" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
