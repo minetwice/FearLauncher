@@ -24,11 +24,6 @@ public class SmallButton extends com.kdt.mcgui.MineButton {
         compact();
     }
 
-    public SmallButton(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        compact();
-    }
-
     private void compact() {
         setTextSize(TypedValue.COMPLEX_UNIT_PX,
                 getResources().getDimensionPixelSize(R.dimen._8ssp));
