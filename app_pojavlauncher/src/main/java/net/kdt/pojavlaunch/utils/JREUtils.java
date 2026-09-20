@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW") || line.contains("Sodium") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("softpipe")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("Krypton") || line.contains("GLFW") || line.contains("Sodium") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("softpipe") || line.contains("noafbc")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -105,8 +105,6 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "mesa_softpipe":
-                // Softpipe-only OSMesa build (Panfork CI without pan_base/kbase).
-                // MUST use softpipe — zink/panfrost are not linked and cause hang/ANR.
                 Logger.appendToLog("[MesaSoftpipe] OSMesa + softpipe (CPU). Expect low FPS; set resolution ~30-50%.");
                 envMap.put("GALLIUM_DRIVER", "softpipe");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "softpipe");
@@ -124,6 +122,7 @@ public class JREUtils {
             case "panvk_zink":
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     Logger.appendToLog("[FearRender] Initializing Fear Render (Panfrost Vulkan + Zink)...");
+                    Logger.appendToLog("[FearRender] Mali texture fix: PAN_MESA_DEBUG=noafbc,linear");
                 } else {
                     Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
                 }
@@ -135,6 +134,10 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
                 envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
+                // Mali-Gxx block/world texture corruption is almost always AFBC.
+                envMap.put("PAN_MESA_DEBUG", "noafbc,linear");
+                envMap.put("PANVK_DEBUG", "noafbc");
+                envMap.put("mesa_glthread", "false");
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
                 }
