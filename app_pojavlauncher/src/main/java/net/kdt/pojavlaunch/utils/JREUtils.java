@@ -131,6 +131,19 @@ public class JREUtils {
                 envMap.put("mesa_glthread", "false");
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
+                    // EGL facade wiring: arm Mesa EGL redirection (Zink via Panfrost Vulkan) only when the
+                    // full stack is shipped. The native side (egl_proc_hook) keeps a safe fallback:
+                    // if Zink init fails or times out (1s guard), it falls back to system EGL + gl4es.
+                    boolean mesaStackPresent =
+                            new File(Tools.NATIVE_LIB_DIR, "libEGL_mesa.so").exists()
+                            && new File(Tools.NATIVE_LIB_DIR, "libgallium_dri.so").exists()
+                            && new File(Tools.NATIVE_LIB_DIR, "libvulkan_panfrost.so").exists();
+                    if (mesaStackPresent) {
+                        envMap.put("FEAR_PANVK_OK", "1");
+                        Logger.appendToLog("[FearRender] EGL facade ARMED (Mesa EGL + Zink + PanVK present)");
+                    } else {
+                        Logger.appendToLog("[FearRender] EGL facade NOT armed (Mesa stack incomplete) - system EGL fallback");
+                    }
                 }
                 break;
             case "ng_gl4es":
@@ -200,7 +213,7 @@ public class JREUtils {
         ArrayList<String> parsedArguments = new ArrayList<>(0);
         args = args.trim().replace(" ", "");
         String[] separators = new String[]{"-XX:-","-XX:+", "-XX:","--", "-D", "-X", "-javaagent:", "-verbose"};
-        for(String prefix : separators){
+        for(String prefix: separators){
             while (true){
                 int start = args.indexOf(prefix);
                 if(start == -1) break;
