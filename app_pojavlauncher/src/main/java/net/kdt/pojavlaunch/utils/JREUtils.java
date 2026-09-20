@@ -105,15 +105,8 @@ public class JREUtils {
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
             case "mesa_softpipe":
-                Logger.appendToLog("[MesaSoftpipe] OSMesa + softpipe (CPU). Expect low FPS; set resolution ~30-50%.");
+                Logger.appendToLog("[MesaSoftpipe] disabled path");
                 envMap.put("GALLIUM_DRIVER", "softpipe");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "softpipe");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "3.3");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "330");
-                envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
-                envMap.put("vblank_mode", "0");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
             case "turnip_zink":
@@ -122,7 +115,7 @@ public class JREUtils {
             case "panvk_zink":
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     Logger.appendToLog("[FearRender] Initializing Fear Render (Panfrost Vulkan + Zink)...");
-                    Logger.appendToLog("[FearRender] Mali texture fix: PAN_MESA_DEBUG=noafbc,linear");
+                    Logger.appendToLog("[FearRender] Mali texture fix: PAN_MESA_DEBUG=noafbc");
                 } else {
                     Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
                 }
@@ -134,9 +127,7 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
                 envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
-                // Mali-Gxx block/world texture corruption is almost always AFBC.
-                envMap.put("PAN_MESA_DEBUG", "noafbc,linear");
-                envMap.put("PANVK_DEBUG", "noafbc");
+                envMap.put("PAN_MESA_DEBUG", "noafbc");
                 envMap.put("mesa_glthread", "false");
                 if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
@@ -158,11 +149,17 @@ public class JREUtils {
         envMap.put("LIBGL_NOINTOVLHACK", "1");
         envMap.put("LIBGL_NORMALIZE", "1");
         if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
-        if(PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
         boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "fear_render".equals(renderer);
         boolean isOSmesa = isZink || "mesa_softpipe".equals(renderer);
+        if (PREF_VSYNC_IN_ZINK && !isZink) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
         if (!isOSmesa) envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
-        envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+        // Zink/Fear Render: never force VSync — slow frames → ANR dialog
+        if (isZink) {
+            envMap.put("FORCE_VSYNC", "false");
+            envMap.put("POJAV_VSYNC_IN_ZINK", "0");
+        } else {
+            envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+        }
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("XDG_CACHE_HOME", Tools.DIR_CACHE.getAbsolutePath());
@@ -271,19 +268,6 @@ public class JREUtils {
 
         switch (renderer){
             case "mesa_softpipe":
-                Logger.appendToLog("[MesaSoftpipe] Loading libOSMesa_8.so (softpipe CPU)...");
-                if (!configureRenderspec("libOSMesa_8.so", true, false, 3)) {
-                    Logger.appendToLog("[MesaSoftpipe] OSMesa namespace load failed (continuing)");
-                }
-                renderLibrary = Tools.NATIVE_LIB_DIR + "/libpojavexec.so";
-                if (!configureRenderspec(renderLibrary, false, false, 3)) {
-                    renderLibrary = "libpojavexec.so";
-                    if (!configureRenderspec(renderLibrary, false, false, 3)) {
-                        Log.e("RENDER_LIBRARY", "Failed to load pojavexec for mesa_softpipe");
-                        return null;
-                    }
-                }
-                return "libOSMesa_8.so";
             case "turnip_zink":
             case "vulkan_zink":
             case "fear_render":
@@ -305,11 +289,9 @@ public class JREUtils {
                     renderLibrary = "libpojavexec.so";
                 }
                 useGles = false;
-                bypassNamespace = false;
                 glesVersion = 3;
                 Logger.appendToLog("[FearRender] EGL facade -> " + renderLibrary);
                 if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
-                    Logger.appendToLog("[FearRender] libpojavexec EGL facade failed, trying bare name");
                     renderLibrary = "libpojavexec.so";
                     if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
                         Log.e("RENDER_LIBRARY", "Failed to load pojavexec EGL facade for Zink/Fear Render");
@@ -326,21 +308,15 @@ public class JREUtils {
                 Logger.appendToLog("[Krypton] Loading Krypton Wrapper (libng_gl4es.so)...");
                 try {
                     System.load(Tools.NATIVE_LIB_DIR + "/libng_gl4es.so");
-                    Logger.appendToLog("[Krypton] libng_gl4es.so preloaded from NATIVE_LIB_DIR");
                 } catch (Throwable t) {
-                    try {
-                        System.loadLibrary("ng_gl4es");
-                        Logger.appendToLog("[Krypton] libng_gl4es.so preloaded via loadLibrary");
-                    } catch (Throwable t2) {
+                    try { System.loadLibrary("ng_gl4es"); } catch (Throwable t2) {
                         Log.e("RENDER_LIBRARY", "Failed to preload libng_gl4es.so", t2);
-                        Logger.appendToLog("[Krypton] WARNING: preload failed: " + t2.getMessage());
                     }
                 }
                 renderLibrary = "libEGL.so";
                 useGles = true;
                 glesVersion = Math.max(2, Integer.parseInt((String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION)));
                 if (!configureRenderspec(renderLibrary, false, useGles, glesVersion)) {
-                    Logger.appendToLog("[Krypton] libEGL.so failed, trying /system/lib64/libEGL.so");
                     if (!configureRenderspec("/system/lib64/libEGL.so", false, useGles, glesVersion)) {
                         Log.e("RENDER_LIBRARY", "Failed to load system EGL for Krypton");
                         return null;
