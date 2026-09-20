@@ -1,11 +1,13 @@
 // FearLauncher EGL facade for Zink/OSMesa + Krypton GL resolver
 // Exports standard EGL symbols so GLFW can dlopen(libpojavexec) and get OpenGL support.
+// ANR FIX: softpipe is never used for normal play (it freezes every frame).
 #include <dlfcn.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <android/native_window.h>
+#include <android/log.h>
 #include <setjmp.h>
 #include <signal.h>
 #include "ctxbridges/osmesa_loader.h"
@@ -201,9 +203,7 @@ static void ensure_init(void) {
         real_eglGetProcAddress = (void*(*)(const char*))dlsym(egl, "eglGetProcAddress");
         real_eglBindAPI = (int(*)(int))dlsym(egl, "eglBindAPI");
     }
-    if (is_zink_renderer()) {
-        return;
-    }
+    if (is_zink_renderer()) return;
     const char* native_dir = getenv("POJAV_NATIVEDIR");
     if (native_dir && native_dir[0]) {
         char path[512];
@@ -386,40 +386,20 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     if (share_context) share = (osm_render_window_t*)share_context;
     OSMesaContext share_ctx = share ? share->context : NULL;
 
-    setenv("GALLIUM_DRIVER", "softpipe", 1);
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "softpipe", 1);
-    setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
-    unsetenv("MESA_GL_VERSION_OVERRIDE");
-    unsetenv("MESA_GLSL_VERSION_OVERRIDE");
-    unsetenv("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE");
+    /* ANR FIX: never softpipe — it freezes every frame after context create */
+    setenv("GALLIUM_DRIVER", "zink", 1);
+    setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+    unsetenv("LIBGL_ALWAYS_SOFTWARE");
+    setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
+    setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
     OSMesaContext octx = fear_safe_osmesa_create(share_ctx);
-
-    if (!octx) {
-        setenv("GALLIUM_DRIVER", "llvmpipe", 1);
-        setenv("MESA_LOADER_DRIVER_OVERRIDE", "llvmpipe", 1);
-        octx = fear_safe_osmesa_create(share_ctx);
+    if (octx) {
+        __android_log_print(ANDROID_LOG_INFO, "FearRender", "Zink context ok");
+    } else {
+        __android_log_print(ANDROID_LOG_WARN, "FearRender", "Zink failed — system GLES (no softpipe)");
     }
 
     if (!octx) {
-        setenv("GALLIUM_DRIVER", "zink", 1);
-        setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
-        unsetenv("LIBGL_ALWAYS_SOFTWARE");
-        setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
-        setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-        octx = fear_safe_osmesa_create(share_ctx);
-    }
-
-    if (!octx) {
-        unsetenv("GALLIUM_DRIVER");
-        unsetenv("MESA_LOADER_DRIVER_OVERRIDE");
-        unsetenv("LIBGL_ALWAYS_SOFTWARE");
-        unsetenv("MESA_GL_VERSION_OVERRIDE");
-        unsetenv("MESA_GLSL_VERSION_OVERRIDE");
-        octx = fear_safe_osmesa_create(share_ctx);
-    }
-
-    if (!octx) {
-        /* System Mali GLES + gl4es fallback */
         void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW);
         if (!egl) egl = dlopen("libEGL.so", RTLD_NOW);
         if (!egl) { egl_error = EGL_BAD_ALLOC; return EGL_NO_CONTEXT; }
@@ -488,7 +468,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     if (!ctx) return EGL_TRUE;
     osm_render_window_t* win = (osm_render_window_t*)ctx;
     if (win->state == 2) {
-        /* System GLES — use real eglMakeCurrent */
         void* egl = dlopen("/system/lib64/libEGL.so", RTLD_NOW | RTLD_NOLOAD);
         if (!egl) egl = dlopen("libEGL.so", RTLD_NOW | RTLD_NOLOAD);
         int (*mk)(void*, void*, void*, void*) = egl ? dlsym(egl, "eglMakeCurrent") : NULL;
