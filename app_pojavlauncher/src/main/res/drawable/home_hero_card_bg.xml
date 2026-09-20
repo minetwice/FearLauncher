@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR UI: hero card glass (red/black) -->
+<!-- FEAR UI v3: dark glass card, faint red hairline -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#B20B0B10" />
+    <solid android:color="#B30C0E13" />
     <corners android:radius="24dp" />
-    <stroke android:width="1dp" android:color="#29FF003C" />
+    <stroke android:width="1dp" android:color="#1FFF003C" />
 </shape>
