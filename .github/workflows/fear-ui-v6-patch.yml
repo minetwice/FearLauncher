@@ -10,12 +10,13 @@ jobs:
           fetch-depth: 5
       - name: apply v6
         run: |
-          echo c2h1dGlsLmltcG9ydA== | base64 -d > /dev/null
+          echo aW1wb3J0IHNodXRpbApzaHV0aWwuY29weWZpbGUoJ2FwcF9wb2phdmxhdW5jaGVyL3NyYy9tYWluL3Jlcy9sYXlvdXQvZnJhZ21lbnRfbGF1bmNoZXIueG1sJywKICAgICAgICAgICAgICAgICdhcHBfcG9qYXZsYXVuY2hlci9zcmMvbWFpbi9yZXMvbGF5b3V0LWxhbmQvZnJhZ21lbnRfbGF1bmNoZXIueG1sJykKcGF0aCA9ICdhcHBfcG9qYXZsYXVuY2hlci9zcmMvbWFpbi9qYXZhL25ldC9rZHQvcG9qYXZsYXVuY2gvZnJhZ21lbnRzL01haW5NZW51RnJhZ21lbnQuamF2YScKdCA9IG9wZW4ocGF0aCwgZW5jb2Rpbmc9J3V0Zi04JykucmVhZCgpCmFuY2hvciA9ICcgICAgICAgIG1WZXJzaW9uU3Bpbm5lciAgICAgICAgICA9IHZpZXcuZmluZFZpZXdCeUlkKFIuaWQubWNfdmVyc2lvbl9zcGlubmVyKTsnCmFzc2VydCB0LmNvdW50KGFuY2hvcikgPT0gMSwgJ2FuY2hvciBub3QgZm91bmQnCmlucyA9IGFuY2hvciArICcnJwoKICAgICAgICAvLyBQbGF5ZXIgaGVhZCBvcGVucyB0aGUgbG9naW4gcGFnZSAodjYpCiAgICAgICAgVmlldyBza2luSGVhZFZpZXcgPSB2aWV3LmZpbmRWaWV3QnlJZChSLmlkLmhvbWVwYWdlX3NraW5faGVhZCk7CiAgICAgICAgaWYgKHNraW5IZWFkVmlldyAhPSBudWxsKSB7CiAgICAgICAgICAgIHNraW5IZWFkVmlldy5zZXRPbkNsaWNrTGlzdGVuZXIodiAtPiB7CiAgICAgICAgICAgICAgICB2LnBsYXlTb3VuZEVmZmVjdChhbmRyb2lkLnZpZXcuU291bmRFZmZlY3RDb25zdGFudHMuQ0xJQ0spOwogICAgICAgICAgICAgICAgbmV0LmtkdC5wb2phdmxhdW5jaC5Tb3VuZE1hbmFnZXIucGxheUNsaWNrKCk7CiAgICAgICAgICAgICAgICBUb29scy5zd2FwRnJhZ21lbnQocmVxdWlyZUFjdGl2aXR5KCksIFNlbGVjdEF1dGhGcmFnbWVudC5jbGFzcywgU2VsZWN0QXV0aEZyYWdtZW50LlRBRywgbnVsbCk7CiAgICAgICAgICAgIH0pOwogICAgICAgIH0nJycKdCA9IHQucmVwbGFjZShhbmNob3IsIGlucykKYXNzZXJ0IHQuY291bnQoJ1Rvb2xzLnN3YXBGcmFnbWVudChyZXF1aXJlQWN0aXZpdHkoKSwgU2VsZWN0QXV0aEZyYWdtZW50LmNsYXNzJykgPT0gMQphc3NlcnQgdC5jb3VudCgneycpID09IHQuY291bnQoJ30nKQpvcGVuKHBhdGgsICd3JywgZW5jb2Rpbmc9J3V0Zi04JywgbmV3bGluZT0nJykud3JpdGUodCkKcHJpbnQoJ3Y2IHBhdGNoIE9LJykK | base64 -d > /tmp/patch_v6.py
+          python3 /tmp/patch_v6.py
       - name: commit
         run: |
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
           git add -A
           if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
-          git commit -m "placeholder"
+          git commit -m "fear-ui v6: landscape layout sync + player head opens login page"
           git push
