@@ -1,0 +1,20 @@
+name: mc8 patch
+on: push
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - name: apply mc8
+        run: python3 scripts/mc8.py
+      - name: commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
+          git commit -m "fix: MC8 - master MineButton theme default to blue, sweep all 63 resource files red to navy/blue, glass transparency, COLLAPSE clipping fix"
+          git push
