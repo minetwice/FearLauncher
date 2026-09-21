@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR LAUNCHER v4 — centered head, thin instance select, play, top-right pencil, in-flow download status -->
+<!-- FEAR LAUNCHER v6 - minimal top bar (pencil + settings only), centered logo/head/play, square player head -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -17,13 +17,13 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <!-- ============ TOP BAR ============ -->
+    <!-- ============ TOP BAR: PENCIL + SETTINGS ONLY ============ -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:gravity="center_vertical|end"
         android:paddingHorizontal="@dimen/_12sdp"
         android:paddingVertical="@dimen/_8sdp"
         app:layout_constraintTop_toTopOf="parent"
@@ -31,94 +31,23 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
-            android:id="@+id/hamburger_menu_icon"
+            android:id="@+id/edit_profile_button_main"
             android:layout_width="@dimen/_30sdp"
             android:layout_height="@dimen/_30sdp"
-            android:src="@drawable/ic_hamburger"
-            android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_7sdp"
-            app:tint="#FF4D6D" />
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <ImageView
-            android:layout_width="@dimen/_26sdp"
-            android:layout_height="@dimen/_26sdp"
-            android:src="@drawable/ic_app_logo" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="FEAR LAUNCHER"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_10ssp"
-            android:textStyle="bold"
-            android:letterSpacing="0.14"
-            android:layout_marginStart="@dimen/_6sdp" />
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/edit_profile_button_main"
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
             android:src="@drawable/ic_px_edit"
             android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_6sdp"
+            android:padding="@dimen/_7sdp"
             app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_6sdp" />
+            android:layout_marginEnd="@dimen/_8sdp" />
 
         <ImageButton
             android:id="@+id/settings_button_main"
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:src="@drawable/ic_sharp_settings_24"
             android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_6sdp"
-            app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_6sdp" />
-
-        <ImageButton
-            android:id="@+id/header_account_hub_btn"
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
-            android:src="@drawable/ic_account_circle"
-            android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_6sdp"
-            app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_6sdp" />
-
-        <ImageButton
-            android:id="@+id/header_notification_btn"
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
-            android:src="@drawable/ic_px_bell"
-            android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_6sdp"
-            app:tint="#FF4D6D"
-            android:layout_marginEnd="@dimen/_6sdp" />
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/header_avatar_card"
-            android:layout_width="@dimen/_28sdp"
-            android:layout_height="@dimen/_28sdp"
-            app:cardCornerRadius="@dimen/_14sdp"
-            app:cardBackgroundColor="#1AFFFFFF"
-            app:cardElevation="0dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:clickable="true">
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_account_circle" />
-        </androidx.cardview.widget.CardView>
-
+            android:padding="@dimen/_7sdp"
+            app:tint="#FF4D6D" />
     </LinearLayout>
 
     <!-- ============ CENTERED CONTENT ============ -->
@@ -130,53 +59,44 @@
         android:gravity="center_horizontal"
         android:paddingHorizontal="@dimen/_20sdp"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
-        app:layout_constraintBottom_toTopOf="@id/home_news_strip"
-        app:layout_constraintVertical_bias="0.42">
+        app:layout_constraintBottom_toTopOf="@id/home_bottom_bar"
+        app:layout_constraintVertical_bias="0.45">
 
-        <!-- HEAD (centered identity) -->
-        <LinearLayout
+        <!-- LAUNCHER LOGO (dead center) -->
+        <ImageView
+            android:layout_width="@dimen/_44sdp"
+            android:layout_height="@dimen/_44sdp"
+            android:src="@drawable/ic_app_logo" />
+
+        <!-- PLAYER HEAD - full square, click opens login page -->
+        <com.kdt.mcgui.MinecraftSkinView
+            android:id="@+id/homepage_skin_head"
+            android:layout_width="@dimen/_72sdp"
+            android:layout_height="@dimen/_72sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:background="@drawable/home_icon_chip_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground" />
+
+        <!-- identity -->
+        <TextView
+            android:id="@+id/account_name_display"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:text="Guest"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_15ssp"
+            android:textStyle="bold"
+            android:layout_marginTop="@dimen/_8sdp" />
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/_44sdp"
-                android:layout_height="@dimen/_44sdp"
-                app:cardCornerRadius="@dimen/_22sdp"
-                app:cardBackgroundColor="#141A2430"
-                app:cardElevation="0dp">
-                <com.kdt.mcgui.MinecraftSkinView
-                    android:id="@+id/homepage_skin_head"
-                    android:layout_width="40dp"
-                    android:layout_height="38dp"
-                    android:layout_gravity="center" />
-            </androidx.cardview.widget.CardView>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="@dimen/_12sdp">
-
-                <TextView
-                    android:id="@+id/account_name_display"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Guest"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_17ssp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/version_text_display"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1.21.1"
-                    android:textColor="#66FFFFFF"
-                    android:textSize="@dimen/_8ssp" />
-            </LinearLayout>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/version_text_display"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.21.1"
+            android:textColor="#66FFFFFF"
+            android:textSize="@dimen/_8ssp" />
 
         <!-- small status chips -->
         <LinearLayout
@@ -256,70 +176,39 @@
             android:layout_marginTop="@dimen/_12sdp" />
     </LinearLayout>
 
-    <!-- ============ BOTTOM STRIP ============ -->
+    <!-- ============ BOTTOM BAR: MENU + DOWNLOADS ============ -->
     <LinearLayout
-        android:id="@+id/home_news_strip"
+        android:id="@+id/home_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/_12sdp"
         android:paddingBottom="@dimen/_10sdp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <LinearLayout
+        <ImageButton
+            android:id="@+id/hamburger_menu_icon"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:src="@drawable/ic_hamburger"
+            android:background="@drawable/home_icon_chip_bg"
+            android:padding="@dimen/_8sdp"
+            app:tint="#FF4D6D" />
+
+        <Space
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/home_news_card_bg"
-            android:padding="@dimen/_9sdp"
-            android:layout_marginEnd="@dimen/_5sdp">
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FEAR CORE"
-                android:textColor="#FF4D6D"
-                android:textSize="@dimen/_7ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Krypton and Fear render pipelines ready."
-                android:textColor="#73FFFFFF"
-                android:textSize="@dimen/_7ssp"
-                android:maxLines="1"
-                android:ellipsize="end" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/home_news_card_bg"
-            android:padding="@dimen/_9sdp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DOWNLOADS"
-                android:textColor="#FF4D6D"
-                android:textSize="@dimen/_7ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tap the bell for the full dashboard."
-                android:textColor="#73FFFFFF"
-                android:textSize="@dimen/_7ssp"
-                android:maxLines="1"
-                android:ellipsize="end" />
-        </LinearLayout>
+        <ImageButton
+            android:id="@+id/header_notification_btn"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:src="@drawable/ic_px_bell"
+            android:background="@drawable/home_icon_chip_bg"
+            android:padding="@dimen/_8sdp"
+            app:tint="#FF4D6D" />
     </LinearLayout>
 
     <!-- UI Logic Dummies -->
@@ -332,7 +221,8 @@
     <View android:id="@+id/tab_installations" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-
+    <ImageButton android:id="@+id/header_account_hub_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <androidx.cardview.widget.CardView android:id="@+id/header_avatar_card" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
     <!-- ============ HAMBURGER SLIDE-OUT PANEL ============ -->
     <androidx.cardview.widget.CardView
