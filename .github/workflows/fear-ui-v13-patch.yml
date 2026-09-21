@@ -1,0 +1,20 @@
+name: fear-ui v13 patch
+on: push
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - name: apply v13
+        run: python3 scripts/patch_step13.py
+      - name: commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
+          git commit -m "fear-ui v13: real SFX, bottom status strip removed, Zimoxy-style login button"
+          git push
