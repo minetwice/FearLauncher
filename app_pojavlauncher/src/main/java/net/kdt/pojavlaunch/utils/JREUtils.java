@@ -140,10 +140,12 @@ public class JREUtils {
                 // Zink's out-of-order command submission -> flickering/corrupted chunks.
                 // Force conservative, in-order submission.
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    envMap.put("ZINK_DEBUG", "noreorder");
+                    // MC17: noreorder + sync = fully in-order, synchronized submission.
+                    // Costs FPS but eliminates block-texture glitching on Mali.
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
                     envMap.put("GALLIUM_THREAD", "0");
                     envMap.put("mesa_glthread", "false");
-                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - block-glitch fix active: ZINK_DEBUG=noreorder, GALLIUM_THREAD=0, mesa_glthread=false");
+                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 ultimate fix active: ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");
                 } else {
                     envMap.put("mesa_glthread", "false");
                 }
