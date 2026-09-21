@@ -1,6 +1,6 @@
 package net.kdt.pojavlaunch.fragments;
 
-import static net.kdt.pojavlaunch.Tols.openPath;
+import static net.kdt.pojavlaunch.Tools.openPath;
 import static net.kdt.pojavlaunch.Tools.shareLog;
 
 import android.content.Context;
@@ -28,7 +28,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclernview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.kdt.mcgui.mcVersionSpinner;
 
@@ -505,7 +505,7 @@ public class MainMenuFragment extends Fragment {
                         advToast.animate()
                                 .translationX(startX)
                                 .setDuration(600)
-                                 .withEndAction(() -> advToast.setVisibility(View.GONE))
+                                .withEndAction(() -> advToast.setVisibility(View.GONE))
                                 .start();
                     }, 5000);
                 })
@@ -538,7 +538,7 @@ public class MainMenuFragment extends Fragment {
     private int getDarkerShade(int color) {
         float[] hsv = new float[3];
         android.graphics.Color.colorToHSV(color, hsv);
-        hsv[2] += 0.45f; // Reduce value/brightness to make a perfect secondary dark gradient counterpart
+        hsv[2] *= 0.45f; // Reduce value/brightness to make a perfect secondary dark gradient counterpart
         return android.graphics.Color.HSVToColor(hsv);
     }
 
@@ -624,7 +624,7 @@ public class MainMenuFragment extends Fragment {
                         net.kdt.pojavlaunch.SoundManager.playClick();
                         prefs.edit().putInt("launcher_bg_animation", animIdx).apply();
                         applyThemeColors(mRootView);
-                        Toast.makeText(requireContext(), "INTENSE ANIMATION ACTIVATED", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "INTENSE ANIMATION ACTIVATED!", Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -658,9 +658,9 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=kg3P4rhdTFennJf_"));
-                            startActivity(intent);
+                        startActivity(intent);
                     } catch (Exception e) {
-                             e.printStackTrace();
+                        e.printStackTrace();
                     }
                 });
             }
@@ -671,23 +671,22 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=EFIdj3J2JATCyP2k"));
-                             startActivity(intent);
+                        startActivity(intent);
                     } catch (Exception e) {
-                             e.printStackTrace();
+                        e.printStackTrace();
                     }
                 });
             }
 
             if (btnDiscordTwicefear != null) {
-                if (btnDiscordTwicefear != null) {
-                    btnDiscordTwicefear.setOnClickListener(v -> {
-                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        try {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/NGMjxn9a7"));
-                            startActivity(intent);
+                btnDiscordTwicefear.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/NGMjxn9a7"));
+                        startActivity(intent);
                     } catch (Exception e) {
-                             e.printStackTrace();
+                        e.printStackTrace();
                     }
                 });
             }
@@ -698,10 +697,9 @@ public class MainMenuFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/bsGtVV5sk"));
-                               startActivity(intent);
+                        startActivity(intent);
                     } catch (Exception e) {
-                                    e.printStackTrace();
-                        }
+                        e.printStackTrace();
                     }
                 });
             }
@@ -742,7 +740,7 @@ public class MainMenuFragment extends Fragment {
                 File entityDir = new File(packDir, "assets/minecraft/textures/entity");
                 entityDir.mkdirs();
 
-                File stegePng = new File(entityDir, "steve.png");
+                File stevePng = new File(entityDir, "steve.png");
                 File alexPng = new File(entityDir, "alex.png");
 
                 if (skinPath.equals("steve") || skinPath.equals("alex")) {
@@ -781,7 +779,7 @@ public class MainMenuFragment extends Fragment {
     private void copyFileStream(File src, File dst) throws java.io.IOException {
         try (java.io.InputStream in = new java.io.FileInputStream(src);
              java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
-            byte[] buf = new byte[1025];
+            byte[] buf = new byte[1024];
             int len;
             while ((len = in.read(buf)) > 0) {
                 out.write(buf, 0, len);
@@ -951,7 +949,7 @@ public class MainMenuFragment extends Fragment {
             rightPane.addView(execLayout);
         });
 
-        // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adapter)
+        // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adaptive)
         navSkin.setOnClickListener(v2 -> {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
@@ -977,7 +975,7 @@ public class MainMenuFragment extends Fragment {
 
                 currentViewer.loadSkin(activeSkinPath, isAlex);
 
-                // Feather /Lunar style automatic 360-degree continuous rotatable loop animation
+                // Feather / Lunar style automatic 360-degree continuous rotatable loop animation
                 if (mSkinRotationAnimator != null) {
                     mSkinRotationAnimator.cancel();
                 }
@@ -994,14 +992,14 @@ public class MainMenuFragment extends Fragment {
                 java.lang.Runnable updateModelButtonsUI = () -> {
                     boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
                     if (currentIsAlex) {
-                        btnAlexModel.setBackgroundResource(R.drawable.premiumbutton_bg);
-                          btnAlexModel.setTextColor(Color.WHITE);
-                        btnSteveModel.setBackgroundResource(R.drawable.premiumglass_black_bg);
+                        btnAlexModel.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnAlexModel.setTextColor(Color.WHITE);
+                        btnSteveModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnSteveModel.setTextColor(Color.WHITE);
                     } else {
-                        btnSteveModel.setBackgroundResource(R.drawable.premiumbutton_bg);
-                          btnSteveModel.setTextColor(Color.WHITE);
-                        btnAlexModel.setBackgroundResource(R.drawable.premiumglass_black_bg);
+                        btnSteveModel.setBackgroundResource(R.drawable.premium_button_bg);
+                        btnSteveModel.setTextColor(Color.WHITE);
+                        btnAlexModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
                         btnAlexModel.setTextColor(Color.WHITE);
                     }
                 };
@@ -1015,8 +1013,8 @@ public class MainMenuFragment extends Fragment {
                     currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), false);
                 });
 
-                btnAlexModel.setOnClickListener(vA  -> {
-                    vA#playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                btnAlexModel.setOnClickListener(vA -> {
+                    vA.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     prefs.edit().putBoolean("active_skin_is_alex", true).apply();
                     updateModelButtonsUI.run();
@@ -1043,9 +1041,9 @@ public class MainMenuFragment extends Fragment {
                     steveTitle.setTextColor(Color.WHITE);
                 }
                 steveCard.setOnClickListener(vSteve -> {
-                    vsteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                        net.kdt.pojavlaunch.SoundManager.playClick();
-                        prefs.edit().putString("active_skin_path", "steve").apply();
+                    vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    prefs.edit().putString("active_skin_path", "steve").apply();
                     mRefreshSkinPaneRunnable.run();
                 });
                 libraryContainer.addView(steveCard);
@@ -1079,24 +1077,24 @@ public class MainMenuFragment extends Fragment {
                             String name = f.getName();
                             if (name.startsWith("custom_skin_")) {
                                 name = "<unnamed skin>";
-                               } else if (name.endsWith(".png")) {
-                                  name = name.substring(0, name.length() - 4);
-                               }
-                              customTitle.setText(name);
-                             customViewer.loadSkin(f.getAbsolutePath(), isAlex);
+                            } else if (name.endsWith(".png")) {
+                                name = name.substring(0, name.length() - 4);
+                            }
+                            customTitle.setText(name);
+                            customViewer.loadSkin(f.getAbsolutePath(), isAlex);
 
                             if (f.getAbsolutePath().equals(activeSkinPath)) {
                                 customCard.setBackgroundResource(R.drawable.premium_button_bg);
                                 customTitle.setTextColor(Color.WHITE);
-                             }
+                            }
 
                             customCard.setOnClickListener(vCust -> {
-                                  vCust.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                   net.kdt.pojavlaunch.SoundManager.playClick();
-                                      prefs.edit().putString("active_skin_path", f.getAbsolutePath()).apply();
-                                           mRefreshSkinPaneRunnable.run();
-                                });
-                             libraryContainer.addView(customCard);
+                                vCust.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                                net.kdt.pojavlaunch.SoundManager.playClick();
+                                prefs.edit().putString("active_skin_path", f.getAbsolutePath()).apply();
+                                mRefreshSkinPaneRunnable.run();
+                            });
+                            libraryContainer.addView(customCard);
                         }
                     }
                 }
@@ -1107,7 +1105,7 @@ public class MainMenuFragment extends Fragment {
             mRefreshSkinPaneRunnable.run();
         });
 
-        // SPLIT-PANE 4: ACCOUNT HUB (microsoft & local offline login panels side-by-side with profile management)
+        // SPLIT-PANE 4: ACCOUNT HUB (Microsoft & Local Offline login panels side-by-side with profile management)
         navAccount.setOnClickListener(v2 -> {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
@@ -1123,8 +1121,9 @@ public class MainMenuFragment extends Fragment {
             View emptyState = accountHubView.findViewById(R.id.empty_account_state);
             EditText inputUsername = accountHubView.findViewById(R.id.local_username_input);
             TextView errorText = accountHubView.findViewById(R.id.local_error_text);
-            View cardCMmojang = accountHubView.findViewById(R.id.card_type_mojang);
-            View cardCLocal = accountHubView.findViewById(R.id.card_type_local);
+            View cardMs = accountHubView.findViewById(R.id.card_type_ms);
+            View cardMojang = accountHubView.findViewById(R.id.card_type_mojang);
+            View cardLocal = accountHubView.findViewById(R.id.card_type_local);
             Button btnAddAccount = accountHubView.findViewById(R.id.btn_add_account);
             Button btnSwitchAccount = accountHubView.findViewById(R.id.btn_switch_account);
             View troubleLink = accountHubView.findViewById(R.id.trouble_logging_in);
@@ -1147,7 +1146,7 @@ public class MainMenuFragment extends Fragment {
                     e.printStackTrace();
                 }
                 if (emptyState != null) {
-                    emptyState.setVisibility(accountListWrapper[0].isEmpty() ? View.ViSIBLE : View.GONE);
+                    emptyState.setVisibility(accountListWrapper[0].isEmpty() ? View.VISIBLE : View.GONE);
                 }
             };
 
@@ -1162,288 +1161,435 @@ public class MainMenuFragment extends Fragment {
                     return new VH(inflater.inflate(R.layout.item_account, parent, false));
                 }
 
-                @÷fW'&–FP¢V&Æ–2fö–Böä&–æEf–Wt†öÆFW"„æöäçVÆÂd‚‚Â–çB÷6—F–öâ’°¢æWBæ¶GBçö¦fÆVæ6‚æWF†VçF–6F÷"æ66÷VçG2äÖ–æV7&gD66÷VçB62Ò66÷VçDÆ—7Ew&W%³ÒævWG÷6—F–öâ“°¢‚çW6W&æÖRç6WEFW‡B†62çW6W&æÖR“° ¢7G&–ærG—TÆ&VÂÒ$Æö6Â#°¢–b†62æWF…G—RÒçVÆÂ’°¢7v—F6‚†62æWF…G—R’°¢66RÔ”5$õ4ôeC¢G—TÆ&VÂÒ$Ö–7&÷6ögB#²'&V³°¢66R5$eE”åôÔ3§G—TÆ&VÂÒ$7&gG–äÔ2#²'&V³°¢FVfVÇC¢G—TÆ&VÂÒ$Æö6Â#²'&V³°¢Ğ¢Ğ¢‚çG—Rç6WEFW‡B‡G—TÆ&VÂ“° ¢&ööÆVâ—4Æ—7E6VÆV7FVBÒ6VÆV7FVD65w&W%³ÒÒçVÆÂbb6VÆV7FVD65w&W%³ÒæÕ6fTÆö6F–öâÒçVÆÀ¢bb62æÕ6fTÆö6F–öâÒçVÆÀ¢bb6VÆV7FVD65w&W%³ÒæÕ6fTÆö6F–öâævWDæÖR‚’æWVÇ2†62æÕ6fTÆö6F–öâævWDæÖR‚’“° ¢–b†—4Æ—7E6VÆV7FVB’°¢‚æ—FVÕf–Wrç6WD&6¶w&÷VæE&W6÷W&6R…"æG&v&ÆRç&VÖ—VÕöWF…÷G—Uö6&Eö&r“°¢ÒVÇ6R°¢‚æ—FVÕf–Wrç6WD&6¶w&÷VæE&W6÷W&6R…"æG&v&ÆRç&VÖ—VÕövÆ75ö&Æ6µö&r“°¢Ğ ¢&ööÆVâ—47W'&VçD7F—fRÒ7W'&VçD7F—fRÒçVÆÂbb7W'&VçD7F—fRæÕ6fTÆö6F–öâÒçVÆÀ¢bb62æÕ6fTÆö6F–öâÒçVÆÀ¢bb7W'&VçD7F—fRæÕ6fTÆö6F–öâævWDæÖR‚’æWVÇ2†7W'&VçD7F—fRæÕ6fTÆö6F–öâævWDæÖR‚’“²òòf—‚6ö×&RÇv—2G'VRÂvR6ö×&R62Fò7F—fR ¢—47W'&VçD7F—fRÒ7W'&VçD7F—fRÒçVÆÂbb7W'&VçD7F—fRæÕ6fTÆö6F–öâÒçVÆÀ¢bb62æÕ6fTÆö6F–öâÒçVÆÀ¢bb7W'&VçD7F—fRæÕ6fTÆö6F–öâævWDæÖR‚’æWVÇ2†62æÕ6fTÆö6F–öâævWDæÖR‚’“° ¢–b†—47W'&VçD7F—fR’°¢‚ç7FGW5FW‡Bç6WEFW‡B‚$7F—fR"“°¢‚ç7FGW5FW‡Bç6WEFW‡D6öÆ÷"„6öÆ÷"ç'6T6öÆ÷"‚"4dcDCDB"’“°¢‚ç7FGW4F÷Bç6WD&6¶w&÷VæD6öÆ÷"„6öÆ÷"ç'6T6öÆ÷"‚"4dcDCDB"’“°¢ÒVÇ6R°¢‚ç7FGW5FW‡Bç6WEFW‡B‡G—TÆ&VÂ“°¢‚ç7FGW5FW‡Bç6WEFW‡D6öÆ÷"„6öÆ÷"ç'6T6öÆ÷"‚"3ƒdddddb"’“°¢‚ç7FGW4F÷Bç6WD&6¶w&÷VæD6öÆ÷"„6öÆ÷"ç'6T6öÆ÷"‚"3ƒdddddb"’“°¢Ğ ¢‚æ—FVÕf–Wrç6WDöä6Æ–6´Æ—7FVæW"‡bÓâ°¢6VÆV7FVD65w&W%³ÒÒ63°¢æ÷F–g”FF6WD6†ævVB‚“°¢Ò“° ¢‚æFVÆWFT'Fâç6WDöä6Æ–6´Æ—7FVæW"‡bÓâ°¢÷WÖVçR÷WÒæWr÷WÖVçR‡bævWD6öçFW‡B‚’Â‚æFVÆWFT'Fâ“°¢÷WævWDÖVçR‚’æFB‚$FVÆWFR"“°¢÷Wç6WDöäÖVçT—FVÔ6Æ–6´Æ—7FVæW"†—FVÒÓâ°¢–b‚$FVÆWFR"æWVÇ2†—FVÒævWEF—FÆR‚’’’°¢G'’°¢æWBæ¶GBçö¦fÆVæ6‚æWF†VçF–6F÷"æ66÷VçG2ä66÷VçG2æFVÆWFR†62“°¢ÆöD66÷VçG4Æ—7Bç'Vâ‚“°¢æ÷F–g”FF6WD6†ævVB‚“°¢–b‡6VÆV7FVD65w&W%³ÒÒçVÆÂbb6VÆV7FVD65w&W%³ÒæÕ6fTÆö6F–öâÒçVÆÀ¢bb62æÕ6fTÆö6F–öâÒçVÆÀ¢bb6VÆV7FVD65w&W%³ÒæÕ6fTÆö6F–öâævWDæÖR‚’æWVÇ2†62æÕ6fTÆö6F–öâævWDæÖR‚’’’°¢6VÆV7FVD65w&W%³ÒÒçVÆÃ°¢Ğ¢&Vg&W6„66÷VçET’‚“°¢Fö7BæÖ¶UFW‡B‡&WV—&T6öçFW‡B‚’Â$66÷VçB&VÖ÷fVB"ÂFö7BäÄTäuD…õ4„õ%B’ç6†÷r‚“°¢Ò6F6‚„W†6WF–öâR’°¢Rç&–çE7F6µG&6R‚“°¢Ğ¢&WGW&âG'VS°¢Ò“°¢÷Wç6†÷r‚“°¢Ò“°¢Ğ ¢verride public int getItemCount() { return accountListWrapper[0].size(); }
+                @Override
+                public void onBindViewHolder(@NonNull VH h, int position) {
+                    net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount acc = accountListWrapper[0].get(position);
+                    h.username.setText(acc.username);
 
-                class VH^[™È™XŞXÛ\•šY]Ë•šY]ÒÛ\ˆÂˆ^šY]È\Ù\›˜[YK\Kİ]\Õ^ÂˆšY]Èİ]\Ñİ[]PÂˆŠ›Û“[šY]ÈŠHÂˆİ\\ŠŠNÂˆ\Ù\›˜[YHH‹™š[™šY]ĞRY
-‹šY˜XØÛİ[İ\Ù\›˜[YJNÂˆ\HH‹™š[™šY]ĞRY
-‹šY˜XØÛİ[İ\JNÂˆİ]\Õ^H‹™š[™šY]ĞRY
-‹šY˜XØÛİ[Üİ]\×İ^
-NÂˆİ]\ÑİH‹™š[™šY]ĞRY
-‹šY˜XØÛİ[Üİ]\×Ùİ
-NÂˆ[]PˆH‹™š[™šY]ĞRY
-‹šY˜XØÛİ[Ù[]WØŠNÂˆBˆBˆB‚ˆXY\\ˆY\\ˆH™]ÈXY\\Š
-NÂˆYˆ
-™XŞXÛ\•šY]ÈOH[
-HÂˆ™XŞXÛ\•šY]ËœÙ]^[İ]X[˜YÙ\Š™]È[™X\“^[İ]X[˜YÙ\Š™\]Z\™PÛÛ^
+                    String typeLabel = "Local";
+                    if (acc.authType != null) {
+                        switch (acc.authType) {
+                            case MICROSOFT: typeLabel = "Microsoft"; break;
+                            case CRAFTYN_MC:typeLabel = "CraftynMC"; break;
+                            default:        typeLabel = "Local";     break;
+                        }
+                    }
+                    h.type.setText(typeLabel);
 
-JJNÂˆ™XŞXÛ\•šY]ËœÙ]Y\\ŠY\\ŠNÂˆB‚ˆ˜]˜K›[™Ë”[›˜X›H\]P]]RHH
+                    boolean isListSelected = selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName());
 
-HOˆÂˆYˆ
-Ø\™[Ú˜[™ÈOH[
-HØ\™[Ú˜[™ËœÙ]Ù[XİY
-Ù[XİY]]\VÌHOH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\K“RPÔ“ÔÓÑ•
-NÂˆYˆ
-Ø\™ØØ[OH[
-HØ\™ØØ[œÙ]Ù[XİY
-Ù[XİY]]\VÌHOH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\KÔQ•S—ÓPÊNÂ‚ˆYˆ
-[œ]\Ù\›˜[YHOH[
-HÂˆYˆ
-Ù[XİY]]\VÌHOH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\K“ĞĞS
-HÂˆ[œ]\Ù\›˜[YKœÙ][˜X›Y
-YJNÂˆ[œ]\Ù\›˜[YKœÙ][JKŒŠNÂˆH[ÙHÂˆ[œ]\Ù\›˜[YKœÙ][˜X›Y
-˜[ÙJNÂˆ[œ]\Ù\›˜[YKœÙ][JŠNÂˆ[œ]\Ù\›˜[YKœÙ]^
-ˆŠNÂˆBˆBˆYˆ
-\œ›Ü•^OH[
-H\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë‘ÓÓ‘JNÂˆNÂ‚ˆ\]P]]RKœ[Š
-NÂ‚ˆYˆ
-Ø\™[Ú˜[™ÈOH[
-HØ\™[Ú˜[™ËœÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÈÙ[XİY]]\VÌHH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\K“RPÔ“ÔÓÑ•È\]P]]RKœ[Š
-NÈJNÂˆYˆ
-Ø\™ØØ[OH[
-HØ\™ØØ[œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÈÙ[XİY]]\VÌHH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\KÔQ•S—ÓPÎÈ\]P]]RKœ[Š
-NÈJNÂ‚ˆYˆ
-”İÚ]ÚXØÛİ[OH[
-HÂˆ”İÚ]ÚXØÛİ[œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÂˆYˆ
-Ù[XİYXØÕÜ˜\\–ÌHOH[
-HÂˆ™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹˜XØÛİ[ËXØÛİ[ËœÙ]İ\œ™[
-Ù[XİYXØÕÜ˜\\–ÌJNÂˆ™Yœ™\ÚXØÛİ[RJ
-NÂˆØ\İ›XZÙU^
-™\]Z\™PÛÛ^
+                    if (isListSelected) {
+                        h.itemView.setBackgroundResource(R.drawable.premium_auth_type_card_bg);
+                    } else {
+                        h.itemView.setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    }
 
-K”İÚ]ÚYÈˆ
-ÈÙ[XİYXØÕÜ˜\\–ÌK\Ù\›˜[YKØ\İ“S‘ÕÔÒÔ•
-KœÚİÊ
-NÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆH[ÙHÂˆØ\İ›XZÙU^
-™\]Z\™PÛÛ^
+                    boolean isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && currentActive.mSaveLocation.getName().equals(currentActive.mSaveLocation.getName()); // fix compare always true, we compare acc to active!
 
-K”X\ÙHÙ[Xİ[ˆXØÛİ[š\œİ‹Ø\İ“S‘ÕÔÒÔ•
-KœÚİÊ
-NÂˆBˆJNÂˆB‚ˆYˆ
-YXØÛİ[OH[
-HÂˆYXØÛİ[œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÂˆYˆ
-Ù[XİY]]\VÌHOH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\K“RPÔ“ÔÓÑ•
-HÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆÛÛËœİØ\œ˜YÛY[
-™\]Z\™PXİ]š]J
-KZXÜ›ÜÛÙÙÚ[‘œ˜YÛY[˜Û\ÜËZXÜ›ÜÛÙÙÚ[‘œ˜YÛY[•QË[
-NÂˆ™]\›ÂˆBˆYˆ
-Ù[XİY]]\VÌHOH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\KÔQ•S—ÓPÊHÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆÛÛËœİØ\œ˜YÛY[
-™\]Z\™PXİ]š]J
-KÜ˜Y[“ÙÚ[‘œ˜YÛY[˜Û\ÜËÜ˜Y[“ÙÚ[‘œ˜YÛY[•QË[
-NÂˆ™]\›ÂˆBˆYˆ
-[œ]\Ù\›˜[YHOH[
-H™]\›Âˆİš[™È\Ù\›˜[YHH[œ]\Ù\›˜[YK™Ù]^
+                    isCurrentActive = currentActive != null && currentActive.mSaveLocation != null
+                            && acc.mSaveLocation != null
+                            && currentActive.mSaveLocation.getName().equals(acc.mSaveLocation.getName());
 
-KÔİš[™Ê
-Kš[J
-NÂ‚ˆYˆ
-[™›ÚY^•^][Ëš\Ñ[\J\Ù\›˜[YJJHÂˆYˆ
-\œ›Ü•^OH[
-HÈ\œ›Ü•^œÙ]^
-•\Ù\›˜[YHØ[››İ™H[\HŠNÈ\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÈBˆ™]\›ÂˆBˆYˆ
-\Ù\›˜[YK›[™İ
+                    if (isCurrentActive) {
+                        h.statusText.setText("Active");
+                        h.statusText.setTextColor(Color.parseColor("#FF4D4D"));
+                        h.statusDot.setBackgroundColor(Color.parseColor("#FF4D4D"));
+                    } else {
+                        h.statusText.setText(typeLabel);
+                        h.statusText.setTextColor(Color.parseColor("#80FFFFFF"));
+                        h.statusDot.setBackgroundColor(Color.parseColor("#80FFFFFF"));
+                    }
 
-HÊHÂˆYˆ
-\œ›Ü•^OH[
-HÈ\œ›Ü•^œÙ]^
-•\Ù\›˜[YH]\İ™H]X\İÈÚ\˜Xİ\œÈŠNÈ\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÈBˆ™]\›ÂˆBˆYˆ
-\Ù\›˜[YK›[™İ
+                    h.itemView.setOnClickListener(v -> {
+                        selectedAccWrapper[0] = acc;
+                        notifyDataSetChanged();
+                    });
 
-HˆMŠHÂˆYˆ
-\œ›Ü•^OH[
-HÈ\œ›Ü•^œÙ]^
-•\Ù\›˜[YH]\İ™HMˆÚ\˜Xİ\œÈÜˆ\ÜÈŠNÈ\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÈBˆ™]\›ÂˆBˆYˆ
-]\Ù\›˜[YK›X]Ú\Ê–ØK^KVŒNW×JÈŠJHÂˆYˆ
-\œ›Ü•^OH[
-HÈ\œ›Ü•^œÙ]^
-“Û›H]\œË[X™\œÈ[™È[İÙYŠNÈ\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÈBˆ™]\›ÂˆB‚ˆYˆ
-\œ›Ü•^OH[
-H\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë‘ÓÓ‘JNÂ‚ˆHÂˆ™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹˜XØÛİ[ÓZ[™XÜ˜YXØÛİ[XØÛİ[H™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹˜XØÛİ[ËXØÛİ[Ë˜Ü™X]JXØÈOˆÂˆXØË\Ù\›˜[YHH\Ù\›˜[YNÂˆXØË˜]]\HH™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹]]\K“ĞĞSÂˆXØË˜XØÙ\ÜÕÚÙ[ˆHŒÂˆXØËœ›Ùš[RYHŒLLLLÂˆXØËœ™Yœ™\ÚÚÙ[ˆHŒÂˆJNÂˆ™]šÙœÚ˜]›][˜Ú˜]][XØ]Ü‹˜XØÛİ[ËXØÛİ[ËœÙ]İ\œ™[
-XØÛİ[
-NÂˆ™Yœ™\ÚXØÛİ[RJ
-NÂˆØ\İ›XZÙU^
-™\]Z\™PÛÛ^
+                    h.deleteBtn.setOnClickListener(v -> {
+                        PopupMenu popup = new PopupMenu(v.getContext(), h.deleteBtn);
+                        popup.getMenu().add("Delete");
+                        popup.setOnMenuItemClickListener(item -> {
+                            if ("Delete".equals(item.getTitle())) {
+                                try {
+                                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.delete(acc);
+                                    loadAccountsList.run();
+                                    notifyDataSetChanged();
+                                    if (selectedAccWrapper[0] != null && selectedAccWrapper[0].mSaveLocation != null
+                                            && acc.mSaveLocation != null
+                                            && selectedAccWrapper[0].mSaveLocation.getName().equals(acc.mSaveLocation.getName())) {
+                                        selectedAccWrapper[0] = null;
+                                    }
+                                    refreshAccountUI();
+                                    Toast.makeText(requireContext(), "Account removed", Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            return true;
+                        });
+                        popup.show();
+                    });
+                }
 
-KXØÛİ[	Èˆ
-È\Ù\›˜[YH
-È‰ÈÜ™X]YH‹Ø\İ“S‘ÕÔÒÔ•
-KœÚİÊ
-NÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆHØ]Ú
-^Ù\[ÛˆJHÂˆYˆ
-\œ›Ü•^OH[
-HÈ\œ›Ü•^œÙ]^
-‘˜Z[Yˆˆ
-ÈK™Ù]Y\ÜØYÙJ
-JNÈ\œ›Ü•^œÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÈBˆBˆJNÂˆB‚ˆšYÚ[™K˜YšY]ÊXØÛİ[X•šY]ÊNÂˆJNÂ‚ˆËÈÔUTS‘HNˆS”UPTS‘ÈÚ]ÚÚ[œËÈÚY\œÂˆ˜]“[ÙXÚÜËœÙ]ÛÛXÚÓ\İ[™\ŠŒˆOˆÂˆŒ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ™\Ù]˜]]ÛœËœ[Š
-NÂˆ˜]“[ÙXÚÜËœÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆ˜]“[ÙXÚÜËœÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂ‚ˆšYÚ[™Kœ™[[İ™P[šY]ÜÊ
-NÂˆ]ÛˆX\ˆH™]È]ÛŠ™\]Z\™PÛÛ^
+                @Override public int getItemCount() { return accountListWrapper[0].size(); }
 
-JNÂˆX\‹œÙ]^
-“ÔSˆÕTÕÓHÓÓ•“ÓÈPTS‘ÈÚ]ÚÚ[œËÈÚY\œÈŠNÂˆX\‹œÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆX\‹œÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂˆX\‹œÙ]ÛÛXÚÓ\İ[™\Š“X\OˆÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆİ\Xİ]š]J™]È[[
-™\]Z\™PÛÛ^
+                class VH extends RecyclerView.ViewHolder {
+                    TextView username, type, statusText;
+                    View statusDot, deleteBtn;
+                    VH(@NonNull View v) {
+                        super(v);
+                        username   = v.findViewById(R.id.account_username);
+                        type       = v.findViewById(R.id.account_type);
+                        statusText = v.findViewById(R.id.account_status_text);
+                        statusDot  = v.findViewById(R.id.account_status_dot);
+                        deleteBtn  = v.findViewById(R.id.account_delete_btn);
+                    }
+                }
+            }
 
-Kİ\İÛPÛÛ›ÛĞXİ]š]K˜Û\ÜÊJNÂˆJNÂˆšYÚ[™K˜YšY]ÊX\ŠNÂˆJNÂ‚ˆËÈÔUTS‘HˆSÑPÒÈS‘ÒS‘H
-SÑ4ÒÔÊBˆYˆ
-˜]“[ÙXÚÜÈOH[
-HÂˆ˜]“[ÙXÚÜËœÙ]ÛÛXÚÓ\İ[™\ŠŒˆOˆÂˆŒ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ™\Ù]˜]]ÛœËœ[Š
-NÂˆ˜]“[ÙXÚÜËœÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆ˜]“[ÙXÚÜËœÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂ‚ˆšYÚ[™Kœ™[[İ™P[šY]ÜÊ
-NÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆ[™H[™HH™]È[™J
-NÂˆ[™Kœ]İš[™Ê›[ÙH‹›[ÙXÚÈŠNÂˆÛÛËœİØ\œ˜YÛY[
-™\]Z\™PXİ]š]J
-KÙX\˜Ú[Ùœ˜YÛY[˜Û\ÜËÙX\˜Ú[Ùœ˜YÛY[•QË[™JNÂˆJNÂˆB‚ˆËÈÔUTS‘HÎˆQÓˆS”ÕSTˆ
-[ÙËÚY\œË™\Ûİ\˜ÙHXÚÜÊBˆYˆ
-˜]YÛœÈOH[
-HÂˆ˜]YÛœËœÙ]ÛÛXÚÓ\İ[™\ŠŒˆOˆÂˆŒ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ™\Ù]˜]]ÛœËœ[Š
-NÂˆ˜]YÛœËœÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆ˜]YÛœËœÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂ‚ˆšYÚ[™Kœ™[[İ™P[šY]ÜÊ
-NÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆ[™H[™HH™]È[™J
-NÂˆ[™Kœ]İš[™Ê›[ÙH‹˜YÛˆŠNÂˆÛÛËœİØ\œ˜YÛY[
-™\]Z\™PXİ]š]J
-KÙX\˜Ú[Ùœ˜YÛY[˜Û\ÜËÙX\˜Ú[Ùœ˜YÛY[•QË[™JNÂˆJNÂˆB‚‚ˆËÈÔUTS‘HˆSSQU–HÑÔÂˆ˜]“ÙÜËœÙ]ÛÛXÚÓ\İ[™\ŠŒˆOˆÂˆŒ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ™\Ù]˜]]ÛœËœ[Š
-NÂˆ˜]“ÙÜËœÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆ˜]“ÙÜËœÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂ‚ˆšYÚ[™Kœ™[[İ™P[šY]ÜÊ
-NÂˆ]ÛˆÚ\™PˆH™]È]ÛŠ™\]Z\™PÛÛ^
+            HubAdapter adapter = new HubAdapter();
+            if (recyclerView != null) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+                recyclerView.setAdapter(adapter);
+            }
 
-JNÂˆÚ\™P‹œÙ]^
-‘VÔ•ÖTÕSTÈÑÔÈSSQU–HŠNÂˆÚ\™P‹œÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆÚ\™P‹œÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂˆÚ\™P‹œÙ]ÛÛXÚÓ\İ[™\Š”Ú\™HOˆÂˆX[ÙË™\ÛZ\ÜÊ
-NÂˆÚ\™SÙÊ™\]Z\™PÛÛ^
+            java.lang.Runnable updateAuthUI = () -> {
+                if (cardMs != null) cardMs.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT);
+                if (cardMojang != null) cardMojang.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC);
+                if (cardLocal != null) cardLocal.setSelected(selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL);
 
-JNÂˆJNÂˆšYÚ[™K˜YšY]ÊÚ\™PŠNÂˆJNÂ‚ˆËÈÔUTS‘HNˆÔ‘PUÔ”È	ˆS‘“ÂˆYˆ
-˜]’[™›ÈOH[
-HÂˆ˜]’[™›ËœÙ]ÛÛXÚÓ\İ[™\ŠŒˆOˆÂˆŒ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ™\Ù]˜]]ÛœËœ[Š
-NÂˆ˜]’[™›ËœÙ]˜XÚÙÜ›İ[™™\Ûİ\˜ÙJ‹™˜]ØX›Kœ™[Z][WØ]Û—Ø™ÊNÂˆ˜]’[™›ËœÙ]^ÛÛÜŠ‘‘‘‘‘‘‘ŠNÂ‚ˆšYÚ[™Kœ™[[İ™P[šY]ÜÊ
-NÂˆšY]È[™›ÕšY]ÈHX[ÙË™Ù]^[İ][™›]\Š
-Kš[™›]J‹›^[İ]™X[Ù×ØÜ™X]Üœ×Ú[™›ËšYÚ[™K˜[ÙJNÂ‚ˆËÈYH˜XÚÙÜ›İ[™Ùˆ[™›ÕšY]È[œÚYHœ˜[YS^[İ]È›[™ÙX[[\ÜÛBˆ[™›ÕšY]ËœÙ]˜XÚÙÜ›İ[™
-[
-NÂ‚ˆšY]È•ÚXÙY™X\ˆH[™›ÕšY]Ë™š[™šY]ĞRY
-‹šY˜—Ş]İÚXÙY™X\ŠNÂˆšY]È’[š[ÜˆH[™›ÕšY]Ë™š[™šY]ĞRY
-‹šY˜—Ş]Ú[š[ÜŠNÂ‚ˆYˆ
-•ÚXÙY™X\ˆOH[
-HÂˆ•ÚXÙY™X\‹œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÂˆ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ[[[[H™]È[[
-[[PÕSÓ—Õ’QUË[™›ÚY›™]•\šKœ\œÙJšÎ‹ËŞ[İ]X™K˜ÛÛKĞÚXÙY™X\ŒÏÜÚOQÛ]Qš˜ŞUŒİÈŠJNÂˆİ\Xİ]š]J[[
-NÂˆJNÂˆB‚ˆYˆ
-’[š[ÜˆOH[
-HÂˆ’[š[Ü‹œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÂˆ‹œ^TÛİ[™Y™™Xİ
-[™›ÚYšY]Ë”Ûİ[™Y™™XİÛÛœİ[ËÓPÒÊNÂˆ™]šÙœÚ˜]›][˜Ú”Ûİ[™X[˜YÙ\‹œ^PÛXÚÊ
-NÂˆ[[[[H™]È[[
-[[PÕSÓ—Õ’QUË[™›ÚY›™]•\šKœ\œÙJšÎ‹ËŞ[İ]X™K˜ÛÛKĞ[š[ÜŒOÜÚO]ÖXÎ“RÕ\HŠJNÂˆİ\Xİ]š]J[[
-NÂˆJNÂˆB‚ˆšYÚ[™K˜YšY]Ê[™›ÕšY]ÊNÂˆJNÂˆB‚ˆËÈY˜][Ù[Xİ[Û‚ˆYˆ
-œÚÚ[ˆ‹™\]X[ÊY˜][XŠJHÂˆ˜]”ÚÚ[‹œ\™›Ü›PÛXÚÊ
-NÂˆH[ÙHYˆ
-˜XØÛİ[‹™\]X[ÊY˜][XŠJHÂˆ˜]XØÛİ[œ\™›Ü›PÛXÚÊ
-NÂˆH[ÙHÂˆ˜]”Ù][™ÜËœ\™›Ü›PÛXÚÊ
-NÂˆB‚ˆX[ÙËœÚİÊ
-NÂˆB‚ˆš]˜]H›ÚY[š[X]R][\ÔÙ\]Y[X[JšY]ÑÜ›İ\ÛÛZ[™\‹›ÛÛX[ˆÚİÊHÂˆ[Ûİ[HÛÛZ[™\‹™Ù]Ú[Ûİ[
+                if (inputUsername != null) {
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.LOCAL) {
+                        inputUsername.setEnabled(true);
+                        inputUsername.setAlpha(1.0f);
+                    } else {
+                        inputUsername.setEnabled(false);
+                        inputUsername.setAlpha(0.4f);
+                        inputUsername.setText("");
+                    }
+                }
+                if (errorText != null) errorText.setVisibility(View.GONE);
+            };
 
-NÂˆ›Üˆ
-[HHÈHÛİ[ÈJÊÊHÂˆš[˜[šY]ÈÚ[HÛÛZ[™\‹™Ù]Ú[]
-JNÂˆYˆ
-Ú[[œİ[˜Ù[ÙˆÛÛKšÙ›XÙİZK“][˜Ú\“Y[P]ÛˆÚ[[œİ[˜Ù[Ùˆ^šY]ÈÚ[[œİ[˜Ù[Ùˆ[™X\“^[İ]
-HÂˆ[š[X][Ûˆ[š[HH[š[X][Û•][Ë›ØY[š[X][ÛŠ™\]Z\™PÛÛ^
+            updateAuthUI.run();
 
-KÚİÈÈ‹˜[š[Kš][WÙ˜YWÚ[ˆˆ‹˜[š[Kš][WÙ˜YWÛİ]
-NÂˆ[š[KœÙ]İ\Ù™œÙ]
-H
-ˆL
-NÂˆÚ[œİ\[š[X][ÛŠ[š[JNÂˆBˆBˆB‚ˆš]˜]H›ÚYÜ[XØÛİ[X[˜YÙ\Š
-HÂˆXØÛİ[X[˜YÙ\‘œ˜YÛY[ÚY]H™]ÈXØÛİ[X[˜YÙ\‘œ˜YÛY[
+            if (cardMs != null) cardMs.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT; updateAuthUI.run(); });
+            if (cardMojang != null) cardMojang.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC; updateAuthUI.run(); });
+            if (cardLocal != null) cardLocal.setOnClickListener(v -> { selectedAuthType[0] = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL; updateAuthUI.run(); });
 
-NÂˆÚY]œÙ]ÛXØÛİ[Ù[XİY\İ[™\ŠXØÛİ[OˆÂˆXØÛİ[ËœÙ]İ\œ™[
-XØÛİ[
-NÂˆ™Yœ™\ÚXØÛİ[RJ
-NÂˆJNÂˆÚY]œÚİÊÙ]Ú[œ˜YÛY[X[˜YÙ\Š
-KXØÛİ[X[˜YÙ\‘œ˜YÛY[•QÊNÂˆB‚ˆX›XÈ›ÚY™Yœ™\ÚXØÛİ[RJ
-HÂˆZ[™XÜ˜YXØÛİ[İ\œ™[HXØÛİ[Ë™Ù]İ\œ™[
+            if (btnSwitchAccount != null) {
+                btnSwitchAccount.setOnClickListener(v -> {
+                    if (selectedAccWrapper[0] != null) {
+                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(selectedAccWrapper[0]);
+                        refreshAccountUI();
+                        Toast.makeText(requireContext(), "Switched to " + selectedAccWrapper[0].username, Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(requireContext(), "Please select an account first", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
 
-NÂˆİš[™È\Ù\›˜[YHHYXØÛİ[Âˆİš[™È\SX™[H•\ÈX[˜YÙHÂ‚ˆYˆ
-İ\œ™[OH[	‰ˆİ\œ™[\Ù\›˜[YHOH[ˆ	‰ˆXİ\œ™[\Ù\›˜[YKš\Ñ[\J
-H	‰ˆXİ\œ™[\Ù\›˜[YK™\]X[ÊŒŠJHÂˆ\Ù\›˜[YHHİ\œ™[\Ù\›˜[YNÂˆYˆ
-İ\œ™[˜]]\HOH[
-HÂˆİÚ]Ú
-İ\œ™[˜]]\JHÂˆØ\ÙHRPÔ“ÔÓÑ•ˆ\SX™[H“ZXÜ›ÜÛÙXØÛİ[Èœ™XZÎÂˆØ\ÙHÔQ•S—ÓPÎ\SX™[HÜ˜Y[“PÈXØÛİ[Èœ™XZÎÂˆY˜][ˆ\SX™[H“ØØ[XØÛİ[Èœ™XZÎÂˆBˆBˆB‚ˆYˆ
-PXØÛİ[˜[YHOH[
-HPXØÛİ[˜[YKœÙ]^
-\Ù\›˜[YJNÂˆYˆ
-PXØÛİ[\SX™[OH[
-HPXØÛİ[\SX™[œÙ]^
-\SX™[
-NÂ‚ˆYˆ
-PXØÛİ[˜[YQ\Ü^HOH[
-HPXØÛİ[˜[YQ\Ü^KœÙ]^
-\Ù\›˜[YJNÂ‚ˆYˆ
-T›ÛİšY]ÈOH[
-HÂˆ™Yœ™\ÚÚÚ[’XY\Ü^JT›ÛİšY]ÊNÂˆBˆB‚ˆš]˜]H›ÚY™Yœ™\ÚÚÚ[’XY\Ü^JšY]ÈšY]ÊHÂˆÛÛKšÙ›XÙİZK“Z[™XÜ˜YÚÚ[•šY]ÈÚÚ[•šY]ÈHšY]Ë™š[™šY]ĞRY
-‹šYšÛY\YÙWÜÚÚ[—ÚXY
-NÂˆYˆ
-ÚÚ[•šY]ÈOH[
-H™]\›Â‚ˆ[™›ÚY˜ÛÛ[”Ú\™Y™Y™\™[˜Ù\È™YœÈH[™›ÚYœ™Y™\™[˜ÙK”™Y™\™[˜ÙSX[˜YÙ\‹™Ù]Y˜][Ú\™Y™Y™\™[˜Ù\Ê™\]Z\™PÛÛ^
+            if (btnAddAccount != null) {
+                btnAddAccount.setOnClickListener(v -> {
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.MICROSOFT) {
+                        dialog.dismiss();
+                        Tools.swapFragment(requireActivity(), MicrosoftLoginFragment.class, MicrosoftLoginFragment.TAG, null);
+                        return;
+                    }
+                    if (selectedAuthType[0] == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
+                        dialog.dismiss();
+                        Tools.swapFragment(requireActivity(), CraftynLoginFragment.class, CraftynLoginFragment.TAG, null);
+                        return;
+                    }
+                    if (inputUsername == null) return;
+                    String username = inputUsername.getText().toString().trim();
 
-JNÂˆİš[™ÈXİ]™TÚÚ[”]H™YœË™Ù]İš[™Ê˜Xİ]™WÜÚÚ[—Ü]‹œİ]™HŠNÂˆ›ÛÛX[ˆXİ]™TÚÚ[’\Ğ[^H™YœË™Ù]›ÛÛX[Š˜Xİ]™WÜÚÚ[—Ú\×Ø[^‹˜[ÙJNÂ‚ˆÚÚ[•šY]ËœÙ]ÚİÒXYÛ›JYJNÂˆÚÚ[•šY]Ë›ØYÚÚ[ŠXİ]™TÚÚ[”]Xİ]™TÚÚ[’\Ğ[^
-NÂ‚ˆËÈ]]Ë\›İ][Ûˆ[š[X][ÛˆÛÜ›ÜˆÑÚÚ[ˆXY
-ÍŒYÜ™Y\ÈÛÛ[[İ\ËÛÚÚ[™Èİ˜ZYÚ
-BˆYˆ
-RXY›İ][Û[š[X]ÜˆOH[
-HÂˆRXY›İ][Û[š[X]Ü‹˜Ø[˜Ù[
+                    if (android.text.TextUtils.isEmpty(username)) {
+                        if (errorText != null) { errorText.setText("Username cannot be empty"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (username.length() < 3) {
+                        if (errorText != null) { errorText.setText("Username must be at least 3 characters"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (username.length() > 16) {
+                        if (errorText != null) { errorText.setText("Username must be 16 characters or less"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
+                    if (!username.matches("[a-zA-Z0-9_]+")) {
+                        if (errorText != null) { errorText.setText("Only letters, numbers and _ allowed"); errorText.setVisibility(View.VISIBLE); }
+                        return;
+                    }
 
-NÂˆBˆRXY›İ][Û[š[X]ÜˆH[™›ÚY˜[š[X][Û‹•˜[YP[š[X]Ü‹›Ù‘›Ø]
-‹ÍŒŠNÂˆRXY›İ][Û[š[X]Ü‹œÙ]\˜][ÛŠŒ
-NÈËÈˆÙXÛÛ™È›ÜˆH[Û[ÛİÍŒ›İ][Û‚ˆRXY›İ][Û[š[X]Ü‹œÙ]™\X]Ûİ[
-[™›ÚY˜[š[X][Û‹•˜[YP[š[X]Ü‹’S‘’S’UJNÂˆRXY›İ][Û[š[X]Ü‹œÙ][\œÛ]ÜŠ™]È[™›ÚYšY]Ë˜[š[X][Û‹“[™X\’[\œÛ]ÜŠ
-JNÂˆRXY›İ][Û[š[X]Ü‹˜Y\]S\İ[™\Š[š[X][ÛˆOˆÂˆ›Ø]˜[H
-›Ø]
-H[š[X][Û‹™Ù][š[X]Y˜[YJ
-NÂˆÚÚ[•šY]ËœÙ]›İ][Û[™Û\Ê˜[ŠNÂˆJNÂˆRXY›İ][Û[š[X]Ü‹œİ\
+                    if (errorText != null) errorText.setVisibility(View.GONE);
 
-NÂ‚ˆËÈÙ]\Ú]X˜›H\YÜ™Y][™ÜÈÛÜˆ^šY]ÈÚ]X˜›HHšY]Ë™š[™šY]ĞRY
-‹šYšÛY\YÙWØÚ]ØX˜›JNÂˆYˆ
-Ú]X˜›HOH[
-HÂˆYˆ
-PÚ]X˜›R[™\ˆOH[
-HÂˆPÚ]X˜›R[™\ˆH™]È[™›ÚY›ÜË’[™\Š[™›ÚY›ÜË“ÛÜ\‹™Ù]XZ[“ÛÜ\Š
-JNÂˆH[ÙHÂˆYˆ
-PÚ]X˜›T[›˜X›HOH[
-HÂˆPÚ]X˜›R[™\‹œ™[[İ™PØ[˜XÚÜÊPÚ]X˜›T[›˜X›JNÂˆBˆB‚ˆPÚ]X˜›T[›˜X›HH™]È˜]˜K›[™Ë”[›˜X›J
-HÂˆš]˜]Hš[˜[˜]˜K][”˜[™ÛH˜[™ÛHH™]È˜]˜K][”˜[™ÛJ
-NÂˆİ™\œšYBˆX›XÈ›ÚY[Š
-HÂˆİš[™È\ÙÈHÒUÓQTÔĞQÑTÖÜ˜[™ÛK›™^[
-ÒUÓQTÔĞQÑTË›[™İ
-WNÂˆÚ]X˜›KœÙ]^
-\ÙÊNÂˆÚ]X˜›KœÙ]š\ÚXš[]JšY]Ë•’TÒP“JNÂˆÚ]X˜›KœÙ][JŠNÂˆÚ]X˜›KœÙ]ØØ[V
-ŠNÂˆÚ]X˜›KœÙ]ØØ[VJŠNÂ‚ˆËÈ[š[X]HØØ[H\	ˆ˜YH[¢
+                    try {
+                        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account = net.kdt.pojavlaunch.authenticator.accounts.Accounts.create(acc -> {
+                            acc.username    = username;
+                            acc.authType    = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
+                            acc.accessToken = "0";
+                            acc.profileId   = "00000000-0000-0000-0000-000000000000";
+                            acc.refreshToken = "0";
+                        });
+                        net.kdt.pojavlaunch.authenticator.accounts.Accounts.setCurrent(account);
+                        refreshAccountUI();
+                        Toast.makeText(requireContext(), "Account '" + username + "' created!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    } catch (Exception e) {
+                        if (errorText != null) { errorText.setText("Failed: " + e.getMessage()); errorText.setVisibility(View.VISIBLE); }
+                    }
+                });
+            }
+
+            rightPane.addView(accountHubView);
+        });
+
+        // SPLIT-PANE 5: INPUT MAPPING
+        navControls.setOnClickListener(v2 -> {
+            v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            resetNavButtons.run();
+            navControls.setBackgroundResource(R.drawable.premium_button_bg);
+            navControls.setTextColor(0xFFFFFFFF);
+
+            rightPane.removeAllViews();
+            Button mapBtn = new Button(requireContext());
+            mapBtn.setText("OPEN CUSTOM CONTROLS MAPPING");
+            mapBtn.setBackgroundResource(R.drawable.premium_button_bg);
+            mapBtn.setTextColor(0xFFFFFFFF);
+            mapBtn.setOnClickListener(vMap -> {
+                dialog.dismiss();
+                startActivity(new Intent(requireContext(), CustomControlsActivity.class));
+            });
+            rightPane.addView(mapBtn);
+        });
+
+        // SPLIT-PANE 6: MODPACK ENGINE (MODPACKS)
+        if (navModpacks != null) {
+            navModpacks.setOnClickListener(v2 -> {
+                v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                resetNavButtons.run();
+                navModpacks.setBackgroundResource(R.drawable.premium_button_bg);
+                navModpacks.setTextColor(0xFFFFFFFF);
+
+                rightPane.removeAllViews();
+                dialog.dismiss();
+                Bundle bundle = new Bundle();
+                bundle.putString("mode", "modpack");
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+            });
+        }
+
+        // SPLIT-PANE 7: ADDON INSTALLER (MODS, SHADERS, RESOURCE PACKS)
+        if (navAddons != null) {
+            navAddons.setOnClickListener(v2 -> {
+                v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                resetNavButtons.run();
+                navAddons.setBackgroundResource(R.drawable.premium_button_bg);
+                navAddons.setTextColor(0xFFFFFFFF);
+
+                rightPane.removeAllViews();
+                dialog.dismiss();
+                Bundle bundle = new Bundle();
+                bundle.putString("mode", "addon");
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+            });
+        }
+
+
+        // SPLIT-PANE 8: TELEMETRY LOGS
+        navLogs.setOnClickListener(v2 -> {
+            v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            resetNavButtons.run();
+            navLogs.setBackgroundResource(R.drawable.premium_button_bg);
+            navLogs.setTextColor(0xFFFFFFFF);
+
+            rightPane.removeAllViews();
+            Button shareBtn = new Button(requireContext());
+            shareBtn.setText("EXPORT SYSTEMS LOGS TELEMETRY");
+            shareBtn.setBackgroundResource(R.drawable.premium_button_bg);
+            shareBtn.setTextColor(0xFFFFFFFF);
+            shareBtn.setOnClickListener(vShare -> {
+                dialog.dismiss();
+                shareLog(requireContext());
+            });
+            rightPane.addView(shareBtn);
+        });
+
+        // SPLIT-PANE 9: CREATORS & INFO
+        if (navInfo != null) {
+            navInfo.setOnClickListener(v2 -> {
+                v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                resetNavButtons.run();
+                navInfo.setBackgroundResource(R.drawable.premium_button_bg);
+                navInfo.setTextColor(0xFFFFFFFF);
+
+                rightPane.removeAllViews();
+                View infoView = dialog.getLayoutInflater().inflate(R.layout.dialog_creators_info, rightPane, false);
+
+                // Hide background of infoView inside FrameLayout to blend seamlessly
+                infoView.setBackground(null);
+
+                View btnTwicefear = infoView.findViewById(R.id.btn_yt_twicefear);
+                View btnHellzior = infoView.findViewById(R.id.btn_yt_hellzior);
+
+                if (btnTwicefear != null) {
+                    btnTwicefear.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3?si=GlmuDrjczuTf63tg"));
+                        startActivity(intent);
+                    });
+                }
+
+                if (btnHellzior != null) {
+                    btnHellzior.setOnClickListener(v -> {
+                        v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@hellzior01?si=wYc8fMKTlddEpPlQ"));
+                        startActivity(intent);
+                    });
+                }
+
+                rightPane.addView(infoView);
+            });
+        }
+
+        // Default selection
+        if ("skin".equals(defaultTab)) {
+            navSkin.performClick();
+        } else if ("account".equals(defaultTab)) {
+            navAccount.performClick();
+        } else {
+            navSettings.performClick();
+        }
+
+        dialog.show();
+    }
+
+    private void animateItemsSequentially(ViewGroup container, boolean show) {
+        int count = container.getChildCount();
+        for (int i = 0; i < count; i++) {
+            final View child = container.getChildAt(i);
+            if (child instanceof com.kdt.mcgui.LauncherMenuButton || child instanceof TextView || child instanceof LinearLayout) {
+                Animation anim = AnimationUtils.loadAnimation(requireContext(), show ? R.anim.item_fade_in : R.anim.item_fade_out);
+                anim.setStartOffset(i * 50L);
+                child.startAnimation(anim);
+            }
+        }
+    }
+
+    private void openAccountManager() {
+        AccountManagerFragment sheet = new AccountManagerFragment();
+        sheet.setOnAccountSelectedListener(account -> {
+            Accounts.setCurrent(account);
+            refreshAccountUI();
+        });
+        sheet.show(getChildFragmentManager(), AccountManagerFragment.TAG);
+    }
+
+    public void refreshAccountUI() {
+        MinecraftAccount current = Accounts.getCurrent();
+        String username = "Add Account";
+        String typeLabel = "Tap to manage";
+
+        if (current != null && current.username != null
+                && !current.username.isEmpty() && !current.username.equals("0")) {
+            username = current.username;
+            if (current.authType != null) {
+                switch (current.authType) {
+                    case MICROSOFT: typeLabel = "Microsoft Account"; break;
+                    case CRAFTYN_MC:typeLabel = "CraftynMC Account"; break;
+                    default:        typeLabel = "Local Account";     break;
+                }
+            }
+        }
+
+        if (mAccountName != null) mAccountName.setText(username);
+        if (mAccountTypeLabel != null) mAccountTypeLabel.setText(typeLabel);
+
+        if (mAccountNameDisplay != null) mAccountNameDisplay.setText(username);
+
+        if (mRootView != null) {
+            refreshSkinHeadDisplay(mRootView);
+        }
+    }
+
+    private void refreshSkinHeadDisplay(View view) {
+        com.kdt.mcgui.MinecraftSkinView skinView = view.findViewById(R.id.homepage_skin_head);
+        if (skinView == null) return;
+
+        android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String activeSkinPath = prefs.getString("active_skin_path", "steve");
+        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+
+        skinView.setShowHeadOnly(true);
+        skinView.loadSkin(activeSkinPath, activeSkinIsAlex);
+
+        // Auto-rotation animation loop for 3D skin head (360 degrees continuous, looking straight)
+        if (mHeadRotationAnimator != null) {
+            mHeadRotationAnimator.cancel();
+        }
+        mHeadRotationAnimator = android.animation.ValueAnimator.ofFloat(0f, 360f);
+        mHeadRotationAnimator.setDuration(6000); // 6 seconds for a full smooth 360 rotation
+        mHeadRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        mHeadRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        mHeadRotationAnimator.addUpdateListener(animation -> {
+            float val = (float) animation.getAnimatedValue();
+            skinView.setRotationAngles(val, 0f);
+        });
+        mHeadRotationAnimator.start();
+
+        // Setup Chat Bubble typed greetings loop
+        TextView chatBubble = view.findViewById(R.id.homepage_chat_bubble);
+        if (chatBubble != null) {
+            if (mChatBubbleHandler == null) {
+                mChatBubbleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            } else {
+                if (mChatBubbleRunnable != null) {
+                    mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
+                }
+            }
+
+            mChatBubbleRunnable = new java.lang.Runnable() {
+                private final java.util.Random random = new java.util.Random();
+                @Override
+                public void run() {
+                    String msg = CHAT_MESSAGES[random.nextInt(CHAT_MESSAGES.length)];
+                    chatBubble.setText(msg);
+                    chatBubble.setVisibility(View.VISIBLE);
+                    chatBubble.setAlpha(0f);
+                    chatBubble.setScaleX(0f);
+                    chatBubble.setScaleY(0f);
+
+                    // Animate scale up & fade in
                     chatBubble.animate()
                             .alpha(1f)
                             .scaleX(1f)
                             .scaleY(1f)
-                           .setDuration(400)
-                           .setInterpolator(new android.view.animation.OvershootInterpolator(1.4f))
+                            .setDuration(400)
+                            .setInterpolator(new android.view.animation.OvershootInterpolator(1.4f))
                             .withEndAction(() -> {
                                 // Keep visible for 4 seconds, then fade out
                                 chatBubble.postDelayed(() -> {
-                                   chatBubble.animate()
-                                             .alpha(0f)
-                                             .scaleX(0.5f)
-                                              .scaleY(0.5f)
+                                    chatBubble.animate()
+                                            .alpha(0f)
+                                            .scaleX(0.5f)
+                                            .scaleY(0.5f)
                                             .setDuration(300)
-                                             .withEndAction(() -> chatBubble.setVisibility(View.GONE))
-                                             .start();
-                               }, 4000);
-                           })
+                                            .withEndAction(() -> chatBubble.setVisibility(View.GONE))
+                                            .start();
+                                }, 4000);
+                            })
                             .start();
 
                     // Re-run every 15 seconds
@@ -1507,12 +1653,12 @@ WNÂˆÚ]X˜›KœÙ]^
     @Override
     public void onResume() {
         super.onResume();
-            E        ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+        ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
         refreshAccountUI();
         updateVersionText();
     }
 
-    Override
+    @Override
     public void onDestroyView() {
         if (mHeadRotationAnimator != null) {
             mHeadRotationAnimator.cancel();
@@ -1530,7 +1676,7 @@ WNÂˆÚ]X˜›KœÙ]^
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
         com.kdt.mcgui.ProgressLayout plCleanup = getView() != null ? getView().findViewById(R.id.progress_layout) : null;
         if (plCleanup != null) {
-            plCleanup.clearUpObservers();
+            plCleanup.cleanUpObservers();
             ProgressKeeper.removeTaskCountListener(plCleanup);
         }
     }
