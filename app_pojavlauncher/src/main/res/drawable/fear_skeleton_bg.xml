@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR UI: black bg with subtle blocky Minecraft skeleton watermark + vignette -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><solid android:color="#FF000000" /></shape>
+    </item>
+    <item android:gravity="right|center_vertical" android:width="240dp" android:height="420dp">
+        <vector xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="240dp" android:height="420dp"
+            android:viewportWidth="240" android:viewportHeight="420">
+            <path android:fillColor="#14F2F4F7" android:pathData="M70,20 h100 v70 h-25 v22 h-12 v-20 h-26 v20 h-12 v-22 h-25 z" />
+            <path android:fillColor="#26DC143C" android:pathData="M92,52 h22 v22 h-22 z M126,52 h22 v22 h-22 z" />
+            <path android:fillColor="#14DC143C" android:pathData="M113,74 h14 v14 h-14 z" />
+            <path android:fillColor="#12F2F4F7" android:pathData="M105,112 h30 v150 h-30 z" />
+            <path android:fillColor="#12F2F4F7" android:pathData="M55,125 h130 v16 h-130 z M60,160 h120 v16 h-120 z M65,195 h110 v16 h-110 z" />
+            <path android:fillColor="#10F2F4F7" android:pathData="M40,120 h20 v130 h-20 z M180,120 h20 v130 h-20 z" />
+            <path android:fillColor="#12F2F4F7" android:pathData="M80,262 h80 v30 h-80 z" />
+            <path android:fillColor="#10F2F4F7" android:pathData="M85,292 h28 v110 h-28 z M127,292 h28 v110 h-28 z" />
+        </vector>
+    </item>
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="#00000000" android:centerColor="#00000000" android:endColor="#B4000000" />
+        </shape>
+    </item>
+</layer-list>
