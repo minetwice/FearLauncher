@@ -298,6 +298,19 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- UI Logic Dummies -->
+    <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="@+id/account_type_label" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="@+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/account_section" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/edit_profile_button" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_home" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_installations" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+
+    <include layout="@layout/splash_overlay_layout" />
+
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
     <FrameLayout
         android:id="@+id/settings_tray"
