@@ -850,6 +850,7 @@ public class MainMenuFragment extends Fragment {
         overlay.setVisibility(View.VISIBLE);
         overlay.setAlpha(1f);
         overlay.bringToFront();
+        net.kdt.pojavlaunch.SoundManager.playClick();
         android.view.View logo = overlay.findViewById(R.id.splash_logo);
         android.view.View beam = overlay.findViewById(R.id.splash_beam);
         android.view.View title = overlay.findViewById(R.id.splash_title);
@@ -883,6 +884,7 @@ public class MainMenuFragment extends Fragment {
         logo.animate().alpha(1f).scaleX(1f).scaleY(1f)
                 .setDuration(900).setStartDelay(850)
                 .setInterpolator(dec).start();
+        overlay.postDelayed(() -> net.kdt.pojavlaunch.SoundManager.playClick(), 1650);
         beam.animate().alpha(1f).scaleX(1f)
                 .setDuration(260).setStartDelay(1650)
                 .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
