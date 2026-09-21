@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import git.artdeell.mojo.R;
-import git.artdeell.mojo.jvm.JavaRunner;
-import git.artdeell.mojo.jvm.VMLoadException;
 
 public class GameRunner {
     private static boolean hasSodium(File gameDir) {

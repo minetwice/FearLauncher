@@ -59,4 +59,6 @@
     <string name="main_nolaunch_warn_exit">Warning: You are about to exit without launching Minecraft. Continue?</string>
     <string name="main_install_jar_failed">Failed to install .jar file</string>
     <string name="app_version">version</string>
+    <string name="profiles_latest_release">Latest release</string>
+    <string name="profiles_latest_snapshot">Latest snapshot</string>
 </resources>
