@@ -1626,57 +1626,6 @@ public class MainMenuFragment extends Fragment {
         });
         mHeadRotationAnimator.start();
 
-        // Setup Chat Bubble typed greetings loop
-        TextView chatBubble = view.findViewById(R.id.homepage_chat_bubble);
-        if (chatBubble != null) {
-            if (mChatBubbleHandler == null) {
-                mChatBubbleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-            } else {
-                if (mChatBubbleRunnable != null) {
-                    mChatBubbleHandler.removeCallbacks(mChatBubbleRunnable);
-                }
-            }
-
-            mChatBubbleRunnable = new java.lang.Runnable() {
-                private final java.util.Random random = new java.util.Random();
-                @Override
-                public void run() {
-                    String msg = CHAT_MESSAGES[random.nextInt(CHAT_MESSAGES.length)];
-                    chatBubble.setText(msg);
-                    chatBubble.setVisibility(View.VISIBLE);
-                    chatBubble.setAlpha(0f);
-                    chatBubble.setScaleX(0f);
-                    chatBubble.setScaleY(0f);
-
-                    // Animate scale up & fade in
-                    chatBubble.animate()
-                            .alpha(1f)
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(400)
-                            .setInterpolator(new android.view.animation.OvershootInterpolator(1.4f))
-                            .withEndAction(() -> {
-                                // Keep visible for 4 seconds, then fade out
-                                chatBubble.postDelayed(() -> {
-                                    chatBubble.animate()
-                                            .alpha(0f)
-                                            .scaleX(0.5f)
-                                            .scaleY(0.5f)
-                                            .setDuration(300)
-                                            .withEndAction(() -> chatBubble.setVisibility(View.GONE))
-                                            .start();
-                                }, 4000);
-                            })
-                            .start();
-
-                    // Re-run every 15 seconds
-                    mChatBubbleHandler.postDelayed(this, 15000);
-                }
-            };
-
-            // Start loop with a slight initial delay of 1 second
-            mChatBubbleHandler.postDelayed(mChatBubbleRunnable, 1000);
-        }
     }
 
     private void handlePlayButton() {
