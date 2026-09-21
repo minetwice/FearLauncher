@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR UI v5: transparent glass panel + soft shadow + ripple (no border) -->
+<!-- FEAR UI v7: transparent crimson glass panel + soft shadow + ripple -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#2EFF4D6D">
+    android:color="#2EDC143C">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="12dp" />
@@ -19,7 +19,13 @@
             <item android:bottom="4dp">
                 <shape android:shape="rectangle">
                     <corners android:radius="12dp" />
-                    <gradient android:angle="90" android:startColor="#960F121C" android:endColor="#7A0B0D14" />
+                    <gradient android:angle="90" android:startColor="#960E1014" android:endColor="#7A0A0C10" />
+                </shape>
+            </item>
+            <item android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="#1CDC143C" />
                 </shape>
             </item>
         </layer-list>

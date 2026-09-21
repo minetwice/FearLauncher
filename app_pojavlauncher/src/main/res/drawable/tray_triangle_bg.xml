@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR UI v7: triangle-shaped side tray - dark glass, slanted top edge, crimson edge line -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="274dp"
+    android:height="820dp"
+    android:viewportWidth="274"
+    android:viewportHeight="820">
+    <!-- dark glass body with pointed top-left and angled top edge -->
+    <path
+        android:fillColor="#F2030507"
+        android:pathData="M0,0 L214,0 L274,86 L274,820 L0,820 Z" />
+    <!-- soft inner shadow strip along the angled edge -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M0,0 L214,0 L274,86 L274,116 L214,44 L0,40 Z" />
+    <!-- crimson accent edge line following the slant -->
+    <path
+        android:strokeColor="#66DC143C"
+        android:strokeWidth="3"
+        android:pathData="M214,0 L274,86" />
+    <!-- subtle crimson glow at the point -->
+    <path
+        android:fillColor="#14DC143C"
+        android:pathData="M0,0 L214,0 L274,86 L274,120 L180,20 L0,18 Z" />
+</vector>

@@ -3,62 +3,55 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Status Bar Component (Compact) -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- FLOATING DOWNLOAD ICON (compact chip, appears on the side while downloading) -->
+    <LinearLayout
         android:id="@+id/progress_bar_status_root"
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/_46sdp"
         android:layout_height="wrap_content"
-        android:background="@drawable/premium_glass_black_bg"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@drawable/download_float_chip"
         android:clickable="true"
         android:focusable="true"
-        android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingVertical="@dimen/_8sdp">
+        android:paddingTop="@dimen/_8sdp"
+        android:paddingBottom="@dimen/_6sdp">
 
-        <!-- Dragon Loading Animation Placeholder (Wavy effect) -->
         <ProgressBar
             android:id="@+id/progress_generic_progressbar"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:indeterminateDrawable="@drawable/loading_dragon"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:layout_width="@dimen/_22sdp"
+            android:layout_height="@dimen/_22sdp"
+            android:indeterminateDrawable="@drawable/loading_dragon" />
 
         <TextView
             android:id="@+id/progress_textview"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_12sdp"
-            android:layout_marginEnd="@dimen/_12sdp"
-            android:text="5 Tasks in queue..."
+            android:layout_marginTop="@dimen/_4sdp"
+            android:text="DL"
             android:textColor="#FFFFFF"
-            android:textSize="@dimen/_10ssp"
+            android:textSize="@dimen/_7ssp"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@id/progress_generic_progressbar"
-            app:layout_constraintEnd_toStartOf="@+id/progress_expand_hint"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <TextView
             android:id="@+id/progress_expand_hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:text="VIEW DASHBOARD"
             android:textColor="#4DFFFFFF"
             android:textSize="@dimen/_8ssp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:textStyle="bold" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
     <!-- FULL SCREEN DOWNLOAD DASHBOARD -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/download_dashboard_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CC000000"
+        android:background="#E6000000"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true">
@@ -66,16 +59,16 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="@dimen/_24sdp"
+            android:layout_margin="@dimen/_16sdp"
             android:background="@drawable/premium_glass_black_bg"
-            android:padding="@dimen/_24sdp">
+            android:padding="@dimen/_18sdp">
 
             <!-- Header -->
             <TextView
                 android:id="@+id/dash_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DOWNLOAD COMMANDER"
+                android:text="DOWNLOADS"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_20ssp"
                 android:textStyle="bold"
@@ -87,7 +80,7 @@
                 android:id="@+id/dash_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Monitoring real-time data streams and asset acquisition."
+                android:text="Live progress of every active download"
                 android:textColor="#B3FFFFFF"
                 android:textSize="@dimen/_10ssp"
                 app:layout_constraintTop_toBottomOf="@id/dash_title"
