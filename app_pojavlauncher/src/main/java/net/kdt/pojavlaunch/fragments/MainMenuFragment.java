@@ -246,6 +246,8 @@ public class MainMenuFragment extends Fragment {
         }
 
         view.post(() -> playSplashIntro(view));
+        loadInstanceCarousel(view);
+        bindSocialButtons(view);
 
         // Universal press bounce animation (FEAR UI)
         android.view.View.OnTouchListener bounceFx = (v2, ev) -> {
@@ -825,6 +827,47 @@ public class MainMenuFragment extends Fragment {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private void loadInstanceCarousel(View view) {
+        android.widget.LinearLayout carousel = view.findViewById(R.id.homepage_instance_carousel);
+        if (carousel == null) return;
+        carousel.removeAllViews();
+        try {
+            net.kdt.pojavlaunch.instances.Instances data = net.kdt.pojavlaunch.instances.Instances.loadDisplay();
+            for (int i = 0; i < data.list.size(); i++) {
+                final net.kdt.pojavlaunch.instances.DisplayInstance di = data.list.get(i);
+                android.view.View card = getLayoutInflater().inflate(R.layout.item_home_instance_card, carousel, false);
+                android.widget.TextView name = card.findViewById(R.id.home_inst_name);
+                android.widget.TextView ver = card.findViewById(R.id.home_inst_version);
+                if (name != null) name.setText(di.name);
+                if (ver != null) ver.setText(di.versionId);
+                card.setBackgroundResource(i == data.selectedIndex ? R.drawable.theme_button_bg : R.drawable.premium_glass_black_bg);
+                card.setOnClickListener(v3 -> {
+                    v3.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    try { net.kdt.pojavlaunch.instances.Instances.setSelectedInstance(di); } catch (Throwable ignored) {}
+                    for (int j = 0; j < carousel.getChildCount(); j++) {
+                        carousel.getChildAt(j).setBackgroundResource(R.drawable.premium_glass_black_bg);
+                    }
+                    v3.setBackgroundResource(R.drawable.theme_button_bg);
+                    android.widget.TextView vt = view.findViewById(R.id.version_text_display);
+                    if (vt != null && di.versionId != null) vt.setText(di.versionId);
+                });
+                carousel.addView(card);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private void bindSocialButtons(View view) {
+        View discord = view.findViewById(R.id.social_discord_btn);
+        if (discord != null) discord.setOnClickListener(v -> {
+            try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/9xBZSNG3Uc"))); } catch (Throwable ignored) {}
+        });
+        View tg = view.findViewById(R.id.social_telegram_btn);
+        if (tg != null) tg.setOnClickListener(v -> {
+            try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3"))); } catch (Throwable ignored) {}
+        });
     }
 
     private void collapseTray(View settingsTray) {

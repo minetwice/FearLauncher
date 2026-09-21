@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR LAUNCHER - GIGACAT-style fresh home -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,48 +9,41 @@
     android:clipToPadding="false"
     android:background="@drawable/theme_bg">
 
-    <!-- Unified Dynamic Background Animation Layer -->
     <com.kdt.mcgui.BackgroundAnimationView
         android:id="@+id/background_animation_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Header Bar -->
+    <!-- == TOP BAR == -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/_16sdp"
+        android:paddingHorizontal="@dimen/_12sdp"
         android:paddingVertical="@dimen/_8sdp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Top Left: Hamburger, Logo & Launcher Name -->
         <ImageButton
             android:id="@+id/hamburger_menu_icon"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:src="@drawable/ic_skull_new"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#4D9BFF"
-            android:layout_marginEnd="@dimen/_6sdp" />
+            android:layout_marginEnd="10dp" />
 
-        <ImageButton
-            android:id="@+id/header_account_hub_btn"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_account_circle"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#4D9BFF"
-            android:layout_marginEnd="@dimen/_8sdp" />
-
-        <ImageView
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_app_logo" />
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:padding="5dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_app_logo"
+                android:contentDescription="@null" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="0dp"
@@ -59,222 +53,250 @@
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_12ssp"
             android:textStyle="bold"
-            android:letterSpacing="0.12"
-            android:layout_marginStart="@dimen/_6sdp" />
+            android:letterSpacing="0.1"
+            android:layout_marginStart="10dp" />
 
-        <!-- Top Right: Avatar, Notification -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/header_avatar_card"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            app:cardCornerRadius="@dimen/_12sdp"
-            app:cardBackgroundColor="#20FFFFFF"
-            app:cardElevation="0dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:layout_marginEnd="@dimen/_10sdp">
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_account_circle"
-                android:padding="0dp" />
-        </androidx.cardview.widget.CardView>
+        <ImageButton
+            android:id="@+id/social_discord_btn"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_discord"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:alpha="0.9"
+            android:layout_marginEnd="12dp" />
+
+        <ImageButton
+            android:id="@+id/social_telegram_btn"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_telegram"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:alpha="0.9"
+            android:layout_marginEnd="12dp" />
 
         <ImageButton
             android:id="@+id/header_notification_btn"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:src="@drawable/ic_px_bell"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#4D9BFF" />
+            app:tint="#4D9BFF"
+            android:layout_marginEnd="12dp" />
+
+        <FrameLayout
+            android:layout_width="42dp"
+            android:layout_height="42dp">
+            <androidx.cardview.widget.CardView
+                android:id="@+id/header_avatar_card"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="21dp"
+                app:cardBackgroundColor="#3313162C"
+                app:cardElevation="0dp">
+                <com.kdt.mcgui.MinecraftSkinView
+                    android:id="@+id/homepage_skin_head"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </androidx.cardview.widget.CardView>
+            <ImageButton
+                android:id="@+id/header_account_hub_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:contentDescription="@null" />
+        </FrameLayout>
 
     </LinearLayout>
 
-    <!-- Main Content Area: STRUCTURAL REVOLUTION (STUNNING TRI-PANE DASHBOARD) -->
-    <LinearLayout
+    <!-- == MAIN STACK == -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingHorizontal="@dimen/_16sdp"
-        android:paddingBottom="@dimen/_12sdp"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/_10sdp"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- HERO: PLAYER CARD (Lunar-style) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:background="@drawable/premium_glass_black_bg"
-            android:padding="@dimen/_16sdp"
-            android:layout_marginHorizontal="@dimen/_6sdp">
+            android:orientation="vertical">
 
+            <!-- HERO CARD -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="@dimen/_16sdp"
+                android:layout_marginHorizontal="@dimen/_12sdp"
+                android:layout_marginTop="@dimen/_8sdp">
 
-                <FrameLayout
-                    android:layout_width="86dp"
-                    android:layout_height="86dp"
-                    android:background="@drawable/premium_glass_black_bg"
-                    android:padding="6dp"
-                    android:layout_marginEnd="@dimen/_12sdp">
-                    <com.kdt.mcgui.MinecraftSkinView
-                        android:id="@+id/homepage_skin_head"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center" />
-                </FrameLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FEAR LAUNCHER"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_22ssp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04" />
+
+                <TextView
+                    android:id="@+id/version_text_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1.21.1"
+                    android:textColor="#A855F7"
+                    android:textSize="@dimen/_10ssp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
 
                     <TextView
-                        android:id="@+id/account_name_display"
+                        android:id="@+id/card_runtime_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Guest"
-                        android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_15ssp"
+                        android:text="JVM: INTERNAL"
+                        android:textColor="#42FF42"
+                        android:textSize="@dimen/_8ssp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.02" />
+                        android:background="#2042FF42"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginEnd="6dp" />
 
                     <TextView
-                        android:id="@+id/version_text_display"
+                        android:id="@+id/card_loader_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1.21.1"
-                        android:textColor="#80FFFFFF"
-                        android:textSize="@dimen/_9ssp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="6dp">
-
-                        <TextView
-                            android:id="@+id/card_runtime_info"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="JVM: INTERNAL"
-                            android:textColor="#42FF42"
-                            android:textSize="@dimen/_7ssp"
-                            android:textStyle="bold"
-                            android:background="#2042FF42"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="3dp"
-                            android:layout_marginEnd="6dp" />
-
-                        <TextView
-                            android:id="@+id/card_loader_info"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="LOADER: AUTO"
-                            android:textColor="#4D9BFF"
-                            android:textSize="@dimen/_7ssp"
-                            android:textStyle="bold"
-                            android:background="#294D9BFF"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="3dp" />
-                    </LinearLayout>
+                        android:text="LOADER: AUTO"
+                        android:textColor="#4D9BFF"
+                        android:textSize="@dimen/_8ssp"
+                        android:textStyle="bold"
+                        android:background="#294D9BFF"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/account_name_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Guest"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="@dimen/_12ssp"
+                    android:layout_marginTop="10dp" />
+
+                <TextView
+                    android:id="@+id/homepage_chat_bubble"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="10sp"
+                    android:textStyle="italic"
+                    android:text="[SYSTEM] Boot sequence ready." />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#1AFFFFFF"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.kdt.mcgui.mcVersionSpinner
+                        android:id="@+id/mc_version_spinner"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/premium_glass_black_bg" />
+
+                    <ImageButton
+                        android:id="@+id/settings_button_main"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:src="@drawable/ic_sharp_settings_24"
+                        android:background="@drawable/premium_glass_black_bg"
+                        android:padding="9dp"
+                        app:tint="#4D9BFF"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="12dp">
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/play_button"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="PLAY"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_14ssp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.15"
+                        android:drawablePadding="10dp"
+                        android:background="@drawable/theme_button_bg" />
+
+                    <ImageButton
+                        android:id="@+id/edit_profile_button_main"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:src="@drawable/ic_refresh"
+                        android:background="@drawable/premium_glass_black_bg"
+                        android:padding="12dp"
+                        android:layout_marginStart="10dp" />
+                </LinearLayout>
+
             </LinearLayout>
 
+            <!-- INSTANCE CAROUSEL -->
             <TextView
-                android:id="@+id/homepage_chat_bubble"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INSTANCES"
+                android:textColor="#A855F7"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12"
+                android:layout_marginStart="@dimen/_16sdp"
+                android:layout_marginTop="@dimen/_14sdp"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:background="@drawable/premium_glass_black_bg"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="8dp"
-                android:textColor="#E6FFFFFF"
-                android:textSize="10sp"
-                android:textAlignment="center"
-                android:fontFamily="monospace"
-                android:text="[SYSTEM] Boot sequence ready." />
+                android:scrollbars="none"
+                android:clipToPadding="false"
+                android:paddingStart="@dimen/_12sdp"
+                android:paddingEnd="@dimen/_12sdp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#1AFFFFFF"
-                android:layout_marginTop="@dimen/_12sdp"
-                android:layout_marginBottom="@dimen/_12sdp" />
+                <LinearLayout
+                    android:id="@+id/homepage_instance_carousel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
 
-            <com.kdt.mcgui.mcVersionSpinner
-                android:id="@+id/mc_version_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_36sdp"
-                android:layout_marginBottom="@dimen/_12sdp"
-                android:background="@drawable/premium_glass_black_bg" />
-
-            <com.kdt.mcgui.MineButton
-                android:id="@+id/play_button"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="PLAY"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_13ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08"
-                android:background="@drawable/theme_button_bg" />
+            </HorizontalScrollView>
 
         </LinearLayout>
-
-        <!-- QUICK UTILITIES -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginHorizontal="@dimen/_6sdp"
-            android:layout_marginTop="@dimen/_10sdp">
-
-            <ImageButton
-                android:id="@+id/edit_profile_button_main"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:src="@drawable/ic_px_edit"
-                android:background="@drawable/premium_glass_black_bg"
-                android:padding="10dp"
-                app:tint="#4D9BFF"
-                android:layout_marginEnd="6dp" />
-
-            <ImageButton
-                android:id="@+id/settings_button_main"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:src="@drawable/ic_sharp_settings_24"
-                android:background="@drawable/premium_glass_black_bg"
-                android:padding="10dp"
-                app:tint="#4D9BFF" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- UI Logic Dummies -->
-    <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <TextView android:id="@+id/account_type_label" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <TextView android:id="@+id/version_text" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/account_section" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/edit_profile_button" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/tab_home" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/tab_installations" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-
-    <include layout="@layout/splash_overlay_layout" />
+    </ScrollView>
 
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
     <FrameLayout
