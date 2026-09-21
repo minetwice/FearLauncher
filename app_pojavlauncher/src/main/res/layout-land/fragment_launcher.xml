@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/premium_gradient_bg">
+    android:background="@drawable/fear_skeleton_bg">
 
     <!-- Unified Dynamic Background Animation Layer -->
     <com.kdt.mcgui.BackgroundAnimationView
@@ -32,9 +32,9 @@
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_hamburger"
+            android:src="@drawable/ic_skull_new"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FF003C"
+            app:tint="#DC143C"
             android:layout_marginEnd="@dimen/_6sdp" />
 
         <ImageButton
@@ -43,7 +43,7 @@
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_account_circle"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FF003C"
+            app:tint="#DC143C"
             android:layout_marginEnd="@dimen/_8sdp" />
 
         <ImageView
@@ -86,7 +86,7 @@
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_px_bell"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FF003C" />
+            app:tint="#DC143C" />
 
     </LinearLayout>
 
@@ -116,7 +116,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="COGNITIVE STATUS"
-                android:textColor="#FF003C"
+                android:textColor="#DC143C"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
@@ -129,7 +129,7 @@
                 android:layout_height="80dp"
                 android:layout_marginBottom="@dimen/_8sdp" />
 
-            <!-- Redesigned High-Tech micro terminal telemetry bubble -->
+            <!-- Redesigned High-Tech micro terminal telemetry bubble (Thought bar without emojis) -->
             <TextView
                 android:id="@+id/homepage_chat_bubble"
                 android:layout_width="match_parent"
@@ -202,7 +202,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="LOADER: AUTO"
-                    android:textColor="#FF003C"
+                    android:textColor="#DC143C"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:background="#20FF003C"
@@ -251,7 +251,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="COMMAND UTILITIES"
-                android:textColor="#FF003C"
+                android:textColor="#DC143C"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
@@ -265,7 +265,7 @@
                 android:src="@drawable/ic_px_edit"
                 android:background="@drawable/premium_glass_black_bg"
                 android:padding="8dp"
-                app:tint="#FF003C"
+                app:tint="#DC143C"
                 android:layout_marginBottom="8dp" />
 
             <!-- Config dashboard button -->
@@ -276,7 +276,7 @@
                 android:src="@drawable/ic_sharp_settings_24"
                 android:background="@drawable/premium_glass_black_bg"
                 android:padding="8dp"
-                app:tint="#FF003C" />
+                app:tint="#DC143C" />
 
         </LinearLayout>
 
@@ -293,16 +293,19 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
+    <include layout="@layout/splash_overlay_layout" />
+
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:id="@+id/settings_tray"
-        android:layout_width="260dp"
+        android:layout_width="246dp"
         android:layout_height="match_parent"
         android:visibility="gone"
-        app:cardBackgroundColor="#F2050102"
-        app:cardCornerRadius="0dp"
-        app:cardElevation="32dp"
-        app:layout_constraintStart_toStartOf="parent">
+        android:background="@drawable/tray_triangle_bg"
+        android:elevation="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -358,7 +361,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="SYSTEMS ONLINE"
-                            android:textColor="#FF003C"
+                            android:textColor="#DC143C"
                             android:textSize="@dimen/_7ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -495,10 +498,10 @@
                     android:textColor="#000000"
                     android:textSize="@dimen/_10ssp"
                     android:textStyle="bold"
-                    android:background="@drawable/premium_button_bg" />
+                    android:background="@drawable/crimson_button_bg" />
             </LinearLayout>
         </ScrollView>
-    </androidx.cardview.widget.CardView>
+    </FrameLayout>w>
 
     <!-- Minecraft Advancement Made Toast Overlay -->
     <androidx.constraintlayout.widget.ConstraintLayout

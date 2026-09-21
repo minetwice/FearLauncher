@@ -22,8 +22,20 @@ public class SoundManager {
                 .build();
     }
 
+    private static android.media.ToneGenerator sTone;
+
     public static void playClick() {
-        // Fallback standard touch click played in the View layer
+        try {
+            if (sTone == null) sTone = new android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 30);
+            sTone.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 60);
+        } catch (Throwable ignored) {}
+    }
+
+    public static void playShine() {
+        try {
+            if (sTone == null) sTone = new android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 50);
+            sTone.startTone(android.media.ToneGenerator.TONE_PROP_ACK, 160);
+        } catch (Throwable ignored) {}
     }
 
     public static void startMusic(Context context) {
