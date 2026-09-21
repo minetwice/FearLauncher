@@ -65,9 +65,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_40sdp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:text="Sign in"
+                android:text="LOGIN"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/premium_play_button_bg" />
+                android:background="@drawable/crimson_button_bg" />
 
             <LinearLayout
                 android:layout_width="wrap_content"

@@ -168,20 +168,6 @@
             android:letterSpacing="0.1"
             android:background="@drawable/premium_play_button_bg" />
 
-        <!-- Live status strip -->
-        <TextView
-            android:id="@+id/homepage_chat_bubble"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/home_news_card_bg"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="7dp"
-            android:textColor="#CCFFFFFF"
-            android:textSize="9sp"
-            android:textAlignment="center"
-            android:fontFamily="monospace"
-            android:text="[SYSTEM] Boot sequence ready."
-            android:layout_marginTop="@dimen/_12sdp" />
     </LinearLayout>
 
     <!-- ============ BOTTOM BAR: MENU + DOWNLOADS ============ -->

@@ -884,7 +884,7 @@ public class MainMenuFragment extends Fragment {
         logo.animate().alpha(1f).scaleX(1f).scaleY(1f)
                 .setDuration(900).setStartDelay(850)
                 .setInterpolator(dec).start();
-        overlay.postDelayed(() -> net.kdt.pojavlaunch.SoundManager.playClick(), 1650);
+        overlay.postDelayed(() -> net.kdt.pojavlaunch.SoundManager.playShine(), 1650);
         beam.animate().alpha(1f).scaleX(1f)
                 .setDuration(260).setStartDelay(1650)
                 .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
