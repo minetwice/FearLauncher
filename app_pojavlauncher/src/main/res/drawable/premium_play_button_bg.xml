@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#40FF4D4D">
+<!-- FEAR UI v5: play button red gradient with soft shadow depth (no border) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <!-- Premium cyber-red to deep red neon gradient background -->
-            <gradient
-                android:startColor="#FF003C"
-                android:endColor="#8E0812"
-                android:angle="0" />
             <corners android:radius="@dimen/_8sdp" />
-            <stroke
-                android:width="2dp"
-                android:color="#FF4D4D" />
+            <gradient android:angle="270" android:startColor="#B3000510" android:endColor="#E6000208" />
         </shape>
     </item>
-</ripple>
+    <item android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/_8sdp" />
+            <gradient android:angle="0" android:startColor="#FF003C" android:endColor="#8E0812" />
+        </shape>
+    </item>
+</layer-list>

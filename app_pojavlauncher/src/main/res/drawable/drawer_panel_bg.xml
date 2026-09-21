@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR UI v4: in-game drawer glass (no outline) -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#E607080B" />
-    <corners android:topLeftRadius="26dp" android:bottomLeftRadius="26dp"
-        android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
-</shape>
+<!-- FEAR UI v5: in-game drawer glass with top sheen (no border) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:topLeftRadius="26dp" android:bottomLeftRadius="26dp"
+                android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
+            <solid android:color="#E607080B" />
+        </shape>
+    </item>
+    <item android:bottom="6dp">
+        <shape android:shape="rectangle">
+            <corners android:topLeftRadius="24dp" android:bottomLeftRadius="24dp"
+                android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
+            <gradient android:angle="270" android:startColor="#12FFFFFF" android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
+</layer-list>
