@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
+    android:background="@drawable/theme_bg"
     android:padding="@dimen/_12sdp">
 
     <!-- Header Overlay (Glassmorphism Control Center) -->
@@ -49,7 +49,7 @@
                 android:text="MODPACKS"
                 android:textSize="@dimen/_9ssp"
                 android:textColor="#000000"
-                android:background="@drawable/premium_button_bg"
+                android:background="@drawable/theme_button_bg"
                 android:layout_marginEnd="4dp" />
 
             <com.kdt.mcgui.MineButton
@@ -89,7 +89,7 @@
             android:id="@+id/search_mod_edittext"
             android:layout_width="0dp"
             android:layout_height="@dimen/_36sdp"
-            android:background="@drawable/premium_edit_bg"
+            android:background="@drawable/theme_button_bg"
             android:hint="SEARCH PROTOCOL..."
             android:textColor="#FFFFFF"
             android:textColorHint="#50FFFFFF"
@@ -160,7 +160,7 @@
         android:textColor="#000000"
         android:textSize="@dimen/_12ssp"
         android:textStyle="bold"
-        android:background="@drawable/premium_button_bg"
+        android:background="@drawable/theme_button_bg"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

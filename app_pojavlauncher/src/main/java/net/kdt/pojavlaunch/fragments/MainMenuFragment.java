@@ -247,6 +247,26 @@ public class MainMenuFragment extends Fragment {
 
         view.post(() -> playSplashIntro(view));
 
+        // Universal press bounce animation (FEAR UI)
+        android.view.View.OnTouchListener bounceFx = (v2, ev) -> {
+            if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                v2.animate().scaleX(0.92f).scaleY(0.92f).setDuration(80).start();
+            } else if (ev.getAction() == android.view.MotionEvent.ACTION_UP || ev.getAction() == android.view.MotionEvent.ACTION_CANCEL) {
+                v2.animate().scaleX(1f).scaleY(1f).setDuration(170)
+                        .setInterpolator(new android.view.animation.OvershootInterpolator(2.4f)).start();
+            }
+            return false;
+        };
+        View trayScroller = view.findViewById(R.id.tray_container);
+        if (trayScroller instanceof android.view.ViewGroup) {
+            android.view.ViewGroup trayVg = (android.view.ViewGroup) trayScroller;
+            for (int bi = 0; bi < trayVg.getChildCount(); bi++) {
+                trayVg.getChildAt(bi).setOnTouchListener(bounceFx);
+            }
+        }
+        android.view.View playFx = view.findViewById(R.id.play_button);
+        if (playFx != null) playFx.setOnTouchListener(bounceFx);
+
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
@@ -353,16 +373,6 @@ public class MainMenuFragment extends Fragment {
                 bundle.putString("mode", "addon");
                 bundle.putString("initial_category", "shaders");
                 Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View traySkin = view.findViewById(R.id.tray_skin_btn);
-        if (traySkin != null) {
-            traySkin.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                openCommandDashboard("skin");
             });
         }
 
@@ -915,7 +925,6 @@ public class MainMenuFragment extends Fragment {
         // Navigation buttons inside the left rail
         Button navSettings = dialog.findViewById(R.id.dash_nav_settings);
         Button navExecute = dialog.findViewById(R.id.dash_nav_execute);
-        Button navSkin = dialog.findViewById(R.id.dash_nav_skin);
         Button navAccount = dialog.findViewById(R.id.dash_nav_account);
         Button navControls = dialog.findViewById(R.id.dash_nav_controls);
         Button navModpacks = dialog.findViewById(R.id.dash_nav_modpacks);
@@ -930,8 +939,6 @@ public class MainMenuFragment extends Fragment {
             navSettings.setTextColor(0xFFFFFFFF);
             navExecute.setBackgroundResource(R.drawable.premium_glass_black_bg);
             navExecute.setTextColor(0xFFFFFFFF);
-            navSkin.setBackgroundResource(R.drawable.premium_glass_black_bg);
-            navSkin.setTextColor(0xFFFFFFFF);
             navAccount.setBackgroundResource(R.drawable.premium_glass_black_bg);
             navAccount.setTextColor(0xFFFFFFFF);
             navControls.setBackgroundResource(R.drawable.premium_glass_black_bg);
@@ -957,7 +964,7 @@ public class MainMenuFragment extends Fragment {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
-            navSettings.setBackgroundResource(R.drawable.premium_button_bg);
+            navSettings.setBackgroundResource(R.drawable.theme_button_bg);
             navSettings.setTextColor(0xFFFFFFFF);
 
             // Inflate options inside the right pane container dynamically
@@ -981,7 +988,7 @@ public class MainMenuFragment extends Fragment {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
-            navExecute.setBackgroundResource(R.drawable.premium_button_bg);
+            navExecute.setBackgroundResource(R.drawable.theme_button_bg);
             navExecute.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
@@ -992,7 +999,7 @@ public class MainMenuFragment extends Fragment {
 
             Button launchBtn = new Button(requireContext());
             launchBtn.setText("LAUNCH INSTALLER (.JAR)");
-            launchBtn.setBackgroundResource(R.drawable.premium_button_bg);
+            launchBtn.setBackgroundResource(R.drawable.theme_button_bg);
             launchBtn.setTextColor(0xFFFFFFFF);
             launchBtn.setPadding(24, 12, 24, 12);
             launchBtn.setOnClickListener(vLaunch -> {
@@ -1004,168 +1011,12 @@ public class MainMenuFragment extends Fragment {
             rightPane.addView(execLayout);
         });
 
-        // SPLIT-PANE 3: SKIN CUSTOMIZER (Zalith & Premium Adaptive)
-        navSkin.setOnClickListener(v2 -> {
-            v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            net.kdt.pojavlaunch.SoundManager.playClick();
-            resetNavButtons.run();
-            navSkin.setBackgroundResource(R.drawable.premium_button_bg);
-            navSkin.setTextColor(0xFFFFFFFF);
-
-            mRefreshSkinPaneRunnable = () -> {
-                rightPane.removeAllViews();
-                View skinPane = dialog.getLayoutInflater().inflate(R.layout.premium_skin_customizer_pane, rightPane, false);
-
-                com.kdt.mcgui.MinecraftSkinView currentViewer = skinPane.findViewById(R.id.skin_current_viewer);
-                Button btnSteveModel = skinPane.findViewById(R.id.skin_btn_steve_model);
-                Button btnAlexModel = skinPane.findViewById(R.id.skin_btn_alex_model);
-                LinearLayout libraryContainer = skinPane.findViewById(R.id.skin_library_container);
-
-                android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-                final String activeSkinPath = prefs.getString("active_skin_path", "steve");
-                final boolean isAlex = prefs.getBoolean("active_skin_is_alex", false);
-
-                // Auto sync selected skin to Minecraft game textures folder (Step 2)
-                syncSkinToMinecraftResourcePack(requireContext(), activeSkinPath);
-
-                currentViewer.loadSkin(activeSkinPath, isAlex);
-
-                // Feather / Lunar style automatic 360-degree continuous rotatable loop animation
-                if (mSkinRotationAnimator != null) {
-                    mSkinRotationAnimator.cancel();
-                }
-                mSkinRotationAnimator = android.animation.ValueAnimator.ofFloat(0f, 360f);
-                mSkinRotationAnimator.setDuration(12000); // Elegant 12 seconds full rotation
-                mSkinRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-                mSkinRotationAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
-                mSkinRotationAnimator.addUpdateListener(animation -> {
-                    float val = (float) animation.getAnimatedValue();
-                    currentViewer.setRotationAngles(val, 0f);
-                });
-                mSkinRotationAnimator.start();
-
-                java.lang.Runnable updateModelButtonsUI = () -> {
-                    boolean currentIsAlex = prefs.getBoolean("active_skin_is_alex", false);
-                    if (currentIsAlex) {
-                        btnAlexModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnAlexModel.setTextColor(Color.WHITE);
-                        btnSteveModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnSteveModel.setTextColor(Color.WHITE);
-                    } else {
-                        btnSteveModel.setBackgroundResource(R.drawable.premium_button_bg);
-                        btnSteveModel.setTextColor(Color.WHITE);
-                        btnAlexModel.setBackgroundResource(R.drawable.premium_glass_black_bg);
-                        btnAlexModel.setTextColor(Color.WHITE);
-                    }
-                };
-                updateModelButtonsUI.run();
-
-                btnSteveModel.setOnClickListener(vS -> {
-                    vS.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    prefs.edit().putBoolean("active_skin_is_alex", false).apply();
-                    updateModelButtonsUI.run();
-                    currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), false);
-                });
-
-                btnAlexModel.setOnClickListener(vA -> {
-                    vA.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    prefs.edit().putBoolean("active_skin_is_alex", true).apply();
-                    updateModelButtonsUI.run();
-                    currentViewer.loadSkin(prefs.getString("active_skin_path", "steve"), true);
-                });
-
-                libraryContainer.removeAllViews();
-
-                View newSkinCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_new_skin, libraryContainer, false);
-                newSkinCard.setOnClickListener(vNew -> {
-                    vNew.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    mSkinPickerLauncher.launch("image/*");
-                });
-                libraryContainer.addView(newSkinCard);
-
-                View steveCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
-                com.kdt.mcgui.MinecraftSkinView steveViewer = steveCard.findViewById(R.id.item_skin_viewer);
-                TextView steveTitle = steveCard.findViewById(R.id.item_skin_title);
-                steveTitle.setText("Steve");
-                steveViewer.loadSkin("steve", false);
-                if ("steve".equalsIgnoreCase(activeSkinPath)) {
-                    steveCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    steveTitle.setTextColor(Color.WHITE);
-                }
-                steveCard.setOnClickListener(vSteve -> {
-                    vSteve.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    prefs.edit().putString("active_skin_path", "steve").apply();
-                    mRefreshSkinPaneRunnable.run();
-                });
-                libraryContainer.addView(steveCard);
-
-                View alexCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
-                com.kdt.mcgui.MinecraftSkinView alexViewer = alexCard.findViewById(R.id.item_skin_viewer);
-                TextView alexTitle = alexCard.findViewById(R.id.item_skin_title);
-                alexTitle.setText("Alex");
-                alexViewer.loadSkin("alex", true);
-                if ("alex".equalsIgnoreCase(activeSkinPath)) {
-                    alexCard.setBackgroundResource(R.drawable.premium_button_bg);
-                    alexTitle.setTextColor(Color.WHITE);
-                }
-                alexCard.setOnClickListener(vAlex -> {
-                    vAlex.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                    net.kdt.pojavlaunch.SoundManager.playClick();
-                    prefs.edit().putString("active_skin_path", "alex").apply();
-                    mRefreshSkinPaneRunnable.run();
-                });
-                libraryContainer.addView(alexCard);
-
-                File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
-                if (skinsDir.exists() && skinsDir.isDirectory()) {
-                    File[] skinFiles = skinsDir.listFiles(f -> f.isFile() && f.getName().toLowerCase().endsWith(".png"));
-                    if (skinFiles != null) {
-                        for (File f : skinFiles) {
-                            View customCard = dialog.getLayoutInflater().inflate(R.layout.item_premium_library_skin, libraryContainer, false);
-                            com.kdt.mcgui.MinecraftSkinView customViewer = customCard.findViewById(R.id.item_skin_viewer);
-                            TextView customTitle = customCard.findViewById(R.id.item_skin_title);
-
-                            String name = f.getName();
-                            if (name.startsWith("custom_skin_")) {
-                                name = "<unnamed skin>";
-                            } else if (name.endsWith(".png")) {
-                                name = name.substring(0, name.length() - 4);
-                            }
-                            customTitle.setText(name);
-                            customViewer.loadSkin(f.getAbsolutePath(), isAlex);
-
-                            if (f.getAbsolutePath().equals(activeSkinPath)) {
-                                customCard.setBackgroundResource(R.drawable.premium_button_bg);
-                                customTitle.setTextColor(Color.WHITE);
-                            }
-
-                            customCard.setOnClickListener(vCust -> {
-                                vCust.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                                net.kdt.pojavlaunch.SoundManager.playClick();
-                                prefs.edit().putString("active_skin_path", f.getAbsolutePath()).apply();
-                                mRefreshSkinPaneRunnable.run();
-                            });
-                            libraryContainer.addView(customCard);
-                        }
-                    }
-                }
-
-                rightPane.addView(skinPane);
-            };
-
-            mRefreshSkinPaneRunnable.run();
-        });
-
         // SPLIT-PANE 4: ACCOUNT HUB (Microsoft & Local Offline login panels side-by-side with profile management)
         navAccount.setOnClickListener(v2 -> {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
-            navAccount.setBackgroundResource(R.drawable.premium_button_bg);
+            navAccount.setBackgroundResource(R.drawable.theme_button_bg);
             navAccount.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
@@ -1409,13 +1260,13 @@ public class MainMenuFragment extends Fragment {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
-            navControls.setBackgroundResource(R.drawable.premium_button_bg);
+            navControls.setBackgroundResource(R.drawable.theme_button_bg);
             navControls.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
             Button mapBtn = new Button(requireContext());
             mapBtn.setText("OPEN CUSTOM CONTROLS MAPPING");
-            mapBtn.setBackgroundResource(R.drawable.premium_button_bg);
+            mapBtn.setBackgroundResource(R.drawable.theme_button_bg);
             mapBtn.setTextColor(0xFFFFFFFF);
             mapBtn.setOnClickListener(vMap -> {
                 dialog.dismiss();
@@ -1430,7 +1281,7 @@ public class MainMenuFragment extends Fragment {
                 v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
-                navModpacks.setBackgroundResource(R.drawable.premium_button_bg);
+                navModpacks.setBackgroundResource(R.drawable.theme_button_bg);
                 navModpacks.setTextColor(0xFFFFFFFF);
 
                 rightPane.removeAllViews();
@@ -1447,7 +1298,7 @@ public class MainMenuFragment extends Fragment {
                 v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
-                navAddons.setBackgroundResource(R.drawable.premium_button_bg);
+                navAddons.setBackgroundResource(R.drawable.theme_button_bg);
                 navAddons.setTextColor(0xFFFFFFFF);
 
                 rightPane.removeAllViews();
@@ -1464,13 +1315,13 @@ public class MainMenuFragment extends Fragment {
             v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
             net.kdt.pojavlaunch.SoundManager.playClick();
             resetNavButtons.run();
-            navLogs.setBackgroundResource(R.drawable.premium_button_bg);
+            navLogs.setBackgroundResource(R.drawable.theme_button_bg);
             navLogs.setTextColor(0xFFFFFFFF);
 
             rightPane.removeAllViews();
             Button shareBtn = new Button(requireContext());
             shareBtn.setText("EXPORT SYSTEMS LOGS TELEMETRY");
-            shareBtn.setBackgroundResource(R.drawable.premium_button_bg);
+            shareBtn.setBackgroundResource(R.drawable.theme_button_bg);
             shareBtn.setTextColor(0xFFFFFFFF);
             shareBtn.setOnClickListener(vShare -> {
                 dialog.dismiss();
@@ -1485,7 +1336,7 @@ public class MainMenuFragment extends Fragment {
                 v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 resetNavButtons.run();
-                navInfo.setBackgroundResource(R.drawable.premium_button_bg);
+                navInfo.setBackgroundResource(R.drawable.theme_button_bg);
                 navInfo.setTextColor(0xFFFFFFFF);
 
                 rightPane.removeAllViews();
@@ -1520,9 +1371,7 @@ public class MainMenuFragment extends Fragment {
         }
 
         // Default selection
-        if ("skin".equals(defaultTab)) {
-            navSkin.performClick();
-        } else if ("account".equals(defaultTab)) {
+        if ("account".equals(defaultTab)) {
             navAccount.performClick();
         } else {
             navSettings.performClick();

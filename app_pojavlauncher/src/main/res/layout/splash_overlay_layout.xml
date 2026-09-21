@@ -30,6 +30,6 @@
             <ImageView android:id="@+id/splash_logo" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null" android:scaleType="fitCenter" android:src="@drawable/ic_app_logo" />
         </FrameLayout>
         <View android:id="@+id/splash_beam" android:layout_width="220dp" android:layout_height="4dp" android:layout_marginTop="18dp" android:background="@drawable/splash_beam_bg" />
-        <TextView android:id="@+id/splash_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:letterSpacing="0.25" android:text="FEAR LAUNCHER" android:textColor="#DC143C" android:textSize="16sp" android:textStyle="bold" />
+        <TextView android:id="@+id/splash_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:letterSpacing="0.25" android:text="FEAR LAUNCHER" android:textColor="#4D9BFF" android:textSize="16sp" android:textStyle="bold" />
     </LinearLayout>
 </FrameLayout>

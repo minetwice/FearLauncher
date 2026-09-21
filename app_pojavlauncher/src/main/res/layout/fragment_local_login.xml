@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/fear_bg_dark">
+    android:background="@drawable/theme_bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="@dimen/_520sdp"
@@ -53,7 +53,7 @@
                 android:id="@+id/login_edit_email"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_36sdp"
-                android:background="@drawable/premium_edit_bg"
+                android:background="@drawable/theme_button_bg"
                 android:hint="Username / Email"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#40FFFFFF"
@@ -67,7 +67,7 @@
                 android:layout_marginTop="@dimen/_12sdp"
                 android:text="Sign in"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/premium_play_button_bg" />
+                android:background="@drawable/theme_button_bg" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -147,7 +147,7 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.2"
                 android:alpha="0.8"
-                android:background="@drawable/premium_edit_bg"
+                android:background="@drawable/theme_button_bg"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
                 android:layout_marginBottom="8dp"

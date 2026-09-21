@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/fear_skeleton_bg">
+    android:background="@drawable/theme_bg">
 
     <!-- Unified Dynamic Background Animation Layer -->
     <com.kdt.mcgui.BackgroundAnimationView
@@ -34,7 +34,7 @@
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_skull_new"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#DC143C"
+            app:tint="#4D9BFF"
             android:layout_marginEnd="@dimen/_6sdp" />
 
         <ImageButton
@@ -43,7 +43,7 @@
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_account_circle"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#DC143C"
+            app:tint="#4D9BFF"
             android:layout_marginEnd="@dimen/_8sdp" />
 
         <ImageView
@@ -86,7 +86,7 @@
             android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_px_bell"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#DC143C" />
+            app:tint="#4D9BFF" />
 
     </LinearLayout>
 
@@ -116,7 +116,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="COGNITIVE STATUS"
-                android:textColor="#DC143C"
+                android:textColor="#4D9BFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
@@ -202,7 +202,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="LOADER: AUTO"
-                    android:textColor="#DC143C"
+                    android:textColor="#4D9BFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:background="#20FF003C"
@@ -233,7 +233,7 @@
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
-                android:background="@drawable/premium_play_button_bg" />
+                android:background="@drawable/theme_button_bg" />
 
         </LinearLayout>
 
@@ -251,7 +251,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="COMMAND UTILITIES"
-                android:textColor="#DC143C"
+                android:textColor="#4D9BFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
@@ -265,7 +265,7 @@
                 android:src="@drawable/ic_px_edit"
                 android:background="@drawable/premium_glass_black_bg"
                 android:padding="8dp"
-                app:tint="#DC143C"
+                app:tint="#4D9BFF"
                 android:layout_marginBottom="8dp" />
 
             <!-- Config dashboard button -->
@@ -276,7 +276,7 @@
                 android:src="@drawable/ic_sharp_settings_24"
                 android:background="@drawable/premium_glass_black_bg"
                 android:padding="8dp"
-                app:tint="#DC143C" />
+                app:tint="#4D9BFF" />
 
         </LinearLayout>
 
@@ -328,7 +328,7 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="12dp"
-                    android:background="@drawable/premium_edit_bg"
+                    android:background="@drawable/theme_button_bg"
                     android:padding="8dp">
 
                     <androidx.cardview.widget.CardView
@@ -361,7 +361,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="SYSTEMS ONLINE"
-                            android:textColor="#DC143C"
+                            android:textColor="#4D9BFF"
                             android:textSize="@dimen/_7ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -443,16 +443,7 @@
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_skin_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="SKIN CUSTOMIZER"
-                    android:drawableStart="@drawable/ic_account_circle"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- SECTION 3: SYSTEM CONTROLS -->
+                                <!-- SECTION 3: SYSTEM CONTROLS -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -498,7 +489,7 @@
                     android:textColor="#000000"
                     android:textSize="@dimen/_10ssp"
                     android:textStyle="bold"
-                    android:background="@drawable/crimson_button_bg" />
+                    android:background="@drawable/theme_button_bg" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>w>
