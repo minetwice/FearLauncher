@@ -40,7 +40,7 @@
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
-                android:background="@drawable/premium_button_bg" />
+                android:background="@drawable/crimson_button_bg" />
 
             <com.kdt.mcgui.MineButton
                 android:id="@+id/rec_player_stop"
@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="00:00 / 00:00"
-                android:textColor="#FF003C"
+                android:textColor="#DC143C"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
                 android:gravity="center"
@@ -70,10 +70,10 @@
                 android:layout_width="88dp"
                 android:layout_height="38dp"
                 android:text="CLOSE"
-                android:textColor="#000000"
+                android:textColor="#FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
-                android:background="@drawable/premium_button_bg"
+                android:background="@drawable/crimson_button_bg"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:progressTint="#FF003C"
-            android:thumbTint="#FF003C" />
+            android:progressTint="#DC143C"
+            android:thumbTint="#DC143C" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
