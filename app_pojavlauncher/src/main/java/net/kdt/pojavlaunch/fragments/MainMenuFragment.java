@@ -187,6 +187,16 @@ public class MainMenuFragment extends Fragment {
         View headerNotificationBtn = view.findViewById(R.id.header_notification_btn);
         mVersionSpinner          = view.findViewById(R.id.mc_version_spinner);
 
+        // Player head opens the login page (v6)
+        View skinHeadView = view.findViewById(R.id.homepage_skin_head);
+        if (skinHeadView != null) {
+            skinHeadView.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Tools.swapFragment(requireActivity(), SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+            });
+        }
+
         // Refresh UI
         refreshAccountUI();
         updateVersionText();
