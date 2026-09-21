@@ -53,13 +53,13 @@
     <!-- FLOATING DOWNLOAD ICON (appears on the side while downloading; click opens dashboard) -->
     <com.kdt.mcgui.ProgressLayout
         android:id="@+id/progress_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_6sdp"
-        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header_layout" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <!-- ============ CENTERED CONTENT ============ -->
     <LinearLayout
@@ -146,8 +146,9 @@
         <!-- INSTANCE SELECT (thin) -->
         <com.kdt.mcgui.mcVersionSpinner
             android:id="@+id/mc_version_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_28sdp"
+            android:layout_width="170dp"
+            android:layout_height="@dimen/_26sdp"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/_10sdp"
             android:background="@drawable/home_icon_chip_bg" />
 
@@ -195,7 +196,7 @@
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="@dimen/_36sdp"
             android:layout_height="@dimen/_36sdp"
-            android:src="@drawable/skull_liquid_avd"
+            android:src="@drawable/ic_skull_new"
             android:background="@drawable/home_icon_chip_bg"
             android:padding="@dimen/_5sdp" />
 
@@ -227,10 +228,12 @@
     <ImageButton android:id="@+id/header_account_hub_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <androidx.cardview.widget.CardView android:id="@+id/header_avatar_card" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
+    <include layout="@layout/splash_overlay_layout" />
+
     <!-- ============ HAMBURGER SLIDE-OUT PANEL (TRIANGLE) ============ -->
     <FrameLayout
         android:id="@+id/settings_tray"
-        android:layout_width="274dp"
+        android:layout_width="246dp"
         android:layout_height="match_parent"
         android:visibility="gone"
         android:background="@drawable/tray_triangle_bg"

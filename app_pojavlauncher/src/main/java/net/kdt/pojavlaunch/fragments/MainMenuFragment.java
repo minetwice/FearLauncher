@@ -253,6 +253,8 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        view.post(() -> playSplashIntro(view));
+
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (hamburgerBtn != null && settingsTray != null) {
@@ -268,8 +270,12 @@ public class MainMenuFragment extends Fragment {
 
                 if (settingsTray.getVisibility() != View.VISIBLE) {
                     settingsTray.setVisibility(View.VISIBLE);
-                    Animation slideIn = AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_in);
-                    settingsTray.startAnimation(slideIn);
+                    settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                    settingsTray.animate()
+                            .translationX(0f).setDuration(240)
+                            .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                            .withEndAction(() -> settingsTray.setLayerType(View.LAYER_TYPE_NONE, null))
+                            .start();
                     bindPerformanceStats(view);
                 } else {
                     collapseTray(settingsTray);
@@ -821,19 +827,72 @@ public class MainMenuFragment extends Fragment {
 
     private void collapseTray(View settingsTray) {
         if (settingsTray != null && settingsTray.getVisibility() == View.VISIBLE) {
-            Animation slideOut = AnimationUtils.loadAnimation(requireContext(), R.anim.tray_slide_out);
-            slideOut.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    settingsTray.setVisibility(View.GONE);
-                }
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-            });
-            settingsTray.startAnimation(slideOut);
+            settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            settingsTray.animate()
+                    .translationX(-settingsTray.getWidth() - 24)
+                    .setDuration(200)
+                    .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                    .withEndAction(() -> {
+                        settingsTray.setVisibility(View.GONE);
+                        settingsTray.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }).start();
         }
+    }
+
+    private static boolean sSplashPlayed = false;
+
+    /** v9 splash intro: logo shards fly in and join, red ray flashes at the join, then fades out. */
+    private void playSplashIntro(View view) {
+        if (sSplashPlayed) return;
+        sSplashPlayed = true;
+        android.widget.FrameLayout overlay = view.findViewById(R.id.splash_overlay);
+        if (overlay == null) return;
+        overlay.setVisibility(View.VISIBLE);
+        overlay.setAlpha(1f);
+        overlay.bringToFront();
+        android.view.View logo = overlay.findViewById(R.id.splash_logo);
+        android.view.View beam = overlay.findViewById(R.id.splash_beam);
+        android.view.View title = overlay.findViewById(R.id.splash_title);
+        android.view.View stage = overlay.findViewById(R.id.splash_stage);
+        if (logo == null || beam == null || stage == null) return;
+        float cx = overlay.getWidth() / 2f;
+        float cy = overlay.getHeight() / 2f;
+        int[] ids = {R.id.splash_shard_1, R.id.splash_shard_2, R.id.splash_shard_3, R.id.splash_shard_4};
+        float[][] offs = {{-cx, -cy}, {cx, -cy}, {-cx, cy}, {cx, cy}};
+        logo.setAlpha(0f);
+        logo.setScaleX(0.6f);
+        logo.setScaleY(0.6f);
+        beam.setAlpha(0f);
+        beam.setScaleX(0.1f);
+        if (title != null) title.setAlpha(0f);
+        android.view.animation.DecelerateInterpolator dec = new android.view.animation.DecelerateInterpolator();
+        for (int i = 0; i < ids.length; i++) {
+            android.view.View shard = overlay.findViewById(ids[i]);
+            if (shard == null) continue;
+            shard.setTranslationX(offs[i][0]);
+            shard.setTranslationY(offs[i][1]);
+            shard.setAlpha(1f);
+            shard.animate()
+                    .translationX(0f).translationY(0f)
+                    .setDuration(1100)
+                    .setStartDelay(i * 90L)
+                    .setInterpolator(dec)
+                    .withEndAction(() -> shard.animate().alpha(0f).setDuration(200).start())
+                    .start();
+        }
+        logo.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                .setDuration(900).setStartDelay(850)
+                .setInterpolator(dec).start();
+        beam.animate().alpha(1f).scaleX(1f)
+                .setDuration(260).setStartDelay(1650)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
+                .withEndAction(() -> beam.animate().alpha(0f).setDuration(700).setStartDelay(750).start())
+                .start();
+        if (title != null) {
+            title.animate().alpha(1f).setDuration(500).setStartDelay(2050).start();
+        }
+        overlay.animate().alpha(0f).setDuration(800).setStartDelay(3850)
+                .withEndAction(() -> overlay.setVisibility(View.GONE)).start();
     }
 
     private void bindPerformanceStats(View root) {

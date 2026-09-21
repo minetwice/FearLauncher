@@ -6,6 +6,7 @@
     <!-- FLOATING DOWNLOAD ICON (compact chip, appears on the side while downloading) -->
     <LinearLayout
         android:id="@+id/progress_bar_status_root"
+        android:visibility="gone"
         android:layout_width="@dimen/_46sdp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
