@@ -26,7 +26,7 @@
         android:textColor="#FFFFFF"
         android:textSize="@dimen/_14ssp"
         android:textStyle="bold"
-        android:shadowColor="#80000000"
+        android:shadowColor="#80#000000"
         android:shadowDx="2"
         android:shadowDy="2"
         android:shadowRadius="2"

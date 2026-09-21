@@ -555,7 +555,7 @@ public class MainMenuFragment extends Fragment {
 
         android.content.SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
         // Default to beautiful custom red/cyber-red ARGB color value (#FFFF003C)
-        int primaryColor = prefs.getInt("launcher_theme_color_argb", 0xFFFF003C);
+        int primaryColor = prefs.getInt("launcher_theme_color_v2", 0xFF4D9BFF);
         int secondaryColor = getDarkerShade(primaryColor);
         int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
 
@@ -609,7 +609,7 @@ public class MainMenuFragment extends Fragment {
             // Bind Color Wheel drag/touch listener to instantly update and skin launcher in real-time (Step 3)
             if (colorWheel != null) {
                 colorWheel.setOnColorSelectedListener(color -> {
-                    prefs.edit().putInt("launcher_theme_color_argb", color).apply();
+                    prefs.edit().putInt("launcher_theme_color_v2", color).apply();
                     prefs.edit().putInt("launcher_theme_color", 1).apply(); // non-zero trigger for MineButton tints
                     applyThemeColors(mRootView);
                 });

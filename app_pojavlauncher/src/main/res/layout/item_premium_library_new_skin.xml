@@ -12,14 +12,14 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@drawable/ic_add"
-        android:tint="#80FFFFFF"
+        android:tint="#80#FFFFFF"
         android:layout_marginBottom="8dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New skin"
-        android:textColor="#80FFFFFF"
+        android:textColor="#80#FFFFFF"
         android:textSize="9sp"
         android:textStyle="bold" />
 

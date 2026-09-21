@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="🚨 FEAR NETWORK SYSTEM CREATORS 🚨"
-        android:textColor="#FF003C"
+        android:textColor="#4D9BFF"
         android:textSize="@dimen/_14ssp"
         android:textStyle="bold"
         android:letterSpacing="0.08"
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="Architects and Visionaries behind the Ultimate High-Performance Experience"
-        android:textColor="#B3FFFFFF"
+        android:textColor="#B3#FFFFFF"
         android:textSize="@dimen/_8ssp"
         android:textStyle="italic"
         android:layout_marginTop="2dp" />
@@ -39,7 +39,7 @@
         android:id="@+id/info_divider"
         android:layout_width="match_parent"
         android:layout_height="1.5dp"
-        android:background="#FF003C"
+        android:background="#4D9BFF"
         android:layout_marginTop="6dp"
         android:layout_marginBottom="8dp" />
 
@@ -63,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#12FF003C"
+                android:background="#19#4D9BFF"
                 android:padding="@dimen/_10sdp"
                 android:layout_marginBottom="12dp">
 
@@ -79,7 +79,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="THE ARCHITECT OF THE FEAR WORLD — MASTER DEVELOPER"
-                    android:textColor="#FF4D4D"
+                    android:textColor="#7CB9FF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:layout_marginTop="1dp"
@@ -89,7 +89,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6FFFFFF"
+                    android:textColor="#E6#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"
@@ -155,7 +155,7 @@ Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#12FF003C"
+                android:background="#19#4D9BFF"
                 android:padding="@dimen/_10sdp"
                 android:layout_marginBottom="12dp">
 
@@ -171,7 +171,7 @@ Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to 
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="THE STABILITY ENFORCER &amp; CORE EXECUTION WIZARD"
-                    android:textColor="#FF4D4D"
+                    android:textColor="#7CB9FF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:layout_marginTop="1dp"
@@ -181,7 +181,7 @@ Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6FFFFFF"
+                    android:textColor="#E6#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"
@@ -247,7 +247,7 @@ Working side-by-side with Twicefear, Hellzior maintains strict control over vers
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#12FF003C"
+                android:background="#19#4D9BFF"
                 android:padding="@dimen/_10sdp">
 
                 <TextView
@@ -262,7 +262,7 @@ Working side-by-side with Twicefear, Hellzior maintains strict control over vers
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="THE CONTROLS ARCHITECT &amp; INPUT SYSTEM INNOVATOR"
-                    android:textColor="#FF4D4D"
+                    android:textColor="#7CB9FF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:layout_marginTop="1dp"
@@ -272,7 +272,7 @@ Working side-by-side with Twicefear, Hellzior maintains strict control over vers
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6FFFFFF"
+                    android:textColor="#E6#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"
@@ -300,7 +300,7 @@ It's Crazy Play's continuous research into custom gestures, virtual mapping, and
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="✨ ALLIED DEVELOPER — FEAR PARTNER NETWORK ✨"
-                    android:textColor="#FF4D4D"
+                    android:textColor="#7CB9FF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
                     android:layout_gravity="center"

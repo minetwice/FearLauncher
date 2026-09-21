@@ -93,7 +93,7 @@
                     android:background="@drawable/theme_button_bg"
                     android:hint="Username"
                     android:textColor="#FFFFFF"
-                    android:textColorHint="#40FFFFFF"
+                    android:textColorHint="#40#FFFFFF"
                     android:paddingHorizontal="12dp"
                     android:textSize="@dimen/_10ssp"
                     android:inputType="text" />
@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:layout_marginStart="4dp"
-                    android:textColor="#66FFFFFF"
+                    android:textColor="#66#FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:text="Enter username to verify" />
 
@@ -117,7 +117,7 @@
                     android:background="@drawable/theme_button_bg"
                     android:hint="Security Key / Password"
                     android:textColor="#FFFFFF"
-                    android:textColorHint="#40FFFFFF"
+                    android:textColorHint="#40#FFFFFF"
                     android:paddingHorizontal="12dp"
                     android:textSize="@dimen/_10ssp"
                     android:inputType="textPassword" />
@@ -136,7 +136,7 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="@dimen/_150sdp"
-                android:background="#1AFFFFFF"
+                android:background="#1A#FFFFFF"
                 app:layout_constraintStart_toEndOf="@id/login_input_group"
                 app:layout_constraintEnd_toStartOf="@+id/right_visual_container"
                 app:layout_constraintTop_toTopOf="@id/login_input_group"
@@ -163,7 +163,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CraftynMC Station v2.0"
-                    android:textColor="#B3FFFFFF"
+                    android:textColor="#B3#FFFFFF"
                     android:textSize="@dimen/_10ssp"
                     android:textStyle="bold" />
 
@@ -172,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Live Sync Skin &amp; Account Portal"
-                    android:textColor="#66FFFFFF"
+                    android:textColor="#66#FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:gravity="center" />
             </LinearLayout>
@@ -237,7 +237,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="Account creation"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_8ssp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -247,7 +247,7 @@
                     android:id="@+id/stage_line_1"
                     android:layout_width="@dimen/_50sdp"
                     android:layout_height="2.5dp"
-                    android:background="#40FFFFFF"
+                    android:background="#40#FFFFFF"
                     android:layout_gravity="center_vertical"
                     android:layout_marginBottom="12dp" />
 
@@ -277,7 +277,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="Connectivity"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_8ssp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -287,7 +287,7 @@
                     android:id="@+id/stage_line_2"
                     android:layout_width="@dimen/_50sdp"
                     android:layout_height="2.5dp"
-                    android:background="#40FFFFFF"
+                    android:background="#40#FFFFFF"
                     android:layout_gravity="center_vertical"
                     android:layout_marginBottom="12dp" />
 
@@ -317,7 +317,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="Done"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_8ssp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -330,7 +330,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Initializing secure socket..."
-                android:textColor="#B3FFFFFF"
+                android:textColor="#B3#FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

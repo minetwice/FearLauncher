@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E602050D"
+    android:background="#E6#02050D"
     android:clickable="true"
     android:focusable="true">
 
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_8sdp"
             android:text="Add and organize your Minecraft game profiles"
-            android:textColor="#80FFFFFF"
+            android:textColor="#80#FFFFFF"
             android:textSize="@dimen/_8ssp"
             app:layout_constraintTop_toBottomOf="@id/manager_title"
             app:layout_constraintStart_toEndOf="@id/btn_close_account_manager" />
@@ -85,7 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Your linked identities"
-                    android:textColor="#66FFFFFF"
+                    android:textColor="#66#FFFFFF"
                     android:textSize="@dimen/_7ssp" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -111,14 +111,14 @@
                             android:layout_width="@dimen/_28sdp"
                             android:layout_height="@dimen/_28sdp"
                             android:src="@drawable/ic_mc_skull"
-                            app:tint="#20FFFFFF"/>
+                            app:tint="#20#FFFFFF"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="No accounts found"
-                            android:textColor="#40FFFFFF"
+                            android:textColor="#40#FFFFFF"
                             android:textSize="@dimen/_9ssp"/>
                     </LinearLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -158,7 +158,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Begin your journey"
-                    android:textColor="#66FFFFFF"
+                    android:textColor="#66#FFFFFF"
                     android:textSize="@dimen/_7ssp" />
 
                 <!-- Account Name Input -->
@@ -170,12 +170,12 @@
                     android:background="@drawable/premium_edit_bg"
                     android:hint="Account Name"
                     android:textColor="#FFFFFF"
-                    android:textColorHint="#40FFFFFF"
+                    android:textColorHint="#40#FFFFFF"
                     android:paddingHorizontal="@dimen/_8sdp"
                     android:textSize="@dimen/_10ssp"
                     android:drawableStart="@drawable/ic_account_circle"
                     android:drawablePadding="@dimen/_6sdp"
-                    app:tint="#66FFFFFF"/>
+                    app:tint="#66#FFFFFF"/>
 
                 <!-- Selection Category -->
                 <TextView
@@ -183,7 +183,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_8sdp"
                     android:text="Select Account Type"
-                    android:textColor="#B3FFFFFF"
+                    android:textColor="#B3#FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold" />
 
@@ -227,7 +227,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Single Sign-On, Cross-play"
-                            android:textColor="#80FFFFFF"
+                            android:textColor="#80#FFFFFF"
                             android:textSize="@dimen/_5ssp"
                             android:gravity="center" />
                     </LinearLayout>
@@ -264,7 +264,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Legacy Accounts"
-                            android:textColor="#80FFFFFF"
+                            android:textColor="#80#FFFFFF"
                             android:textSize="@dimen/_5ssp"
                             android:gravity="center" />
                     </LinearLayout>
@@ -301,7 +301,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Offline, No Cross-play"
-                            android:textColor="#80FFFFFF"
+                            android:textColor="#80#FFFFFF"
                             android:textSize="@dimen/_5ssp"
                             android:gravity="center" />
                     </LinearLayout>
@@ -313,7 +313,7 @@
                     android:id="@+id/local_error_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#FF5252"
+                    android:textColor="#7CB9FF"
                     android:textSize="@dimen/_8ssp"
                     android:visibility="gone"
                     android:layout_marginTop="2dp" />
@@ -337,7 +337,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/_4sdp"
                     android:text="Trouble logging in?"
-                    android:textColor="#80FFFFFF"
+                    android:textColor="#80#FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:clickable="true"
                     android:focusable="true"/>

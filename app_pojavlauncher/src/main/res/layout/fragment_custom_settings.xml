@@ -83,7 +83,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#33FF003C"
+                android:background="#40#4D9BFF"
                 android:layout_marginBottom="12dp" />
 
             <!-- Subsystem Status Indicators -->
@@ -118,7 +118,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="• COMPLIANCE STATUS"
-                android:textColor="#80FFFFFF"
+                android:textColor="#80#FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
@@ -127,14 +127,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Optimized for multi-threaded performance. Native JNI layers running smoothly."
-                android:textColor="#80FFFFFF"
+                android:textColor="#80#FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:layout_marginBottom="16dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#1AFFFFFF"
+                android:background="#1A#FFFFFF"
                 android:layout_marginBottom="12dp" />
 
             <!-- Logo representation -->

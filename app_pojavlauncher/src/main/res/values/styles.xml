@@ -31,8 +31,8 @@
         <item name="android:windowBackground">@drawable/premium_dialog_bg</item>
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColor">#FFFFFF</item>
-        <item name="android:textColorSecondary">#B3FFFFFF</item>
-        <item name="colorAccent">#FFFF003C</item> <!-- Neon red color accent for dialog UI controls/buttons -->
+        <item name="android:textColorSecondary">#B3#FFFFFF</item>
+        <item name="colorAccent">#FF#4D9BFF</item> <!-- Neon red color accent for dialog UI controls/buttons -->
         <item name="colorOnSurface">#FFFFFF</item>
     </style>
 
@@ -128,11 +128,11 @@
     <!-- FEAR CARDS AND BUTTONS                          -->
     <!-- ═══════════════════════════════════════════════ -->
     <style name="FearCard" parent="Widget.MaterialComponents.CardView">
-        <item name="cardBackgroundColor">#1AFFFFFF</item>
+        <item name="cardBackgroundColor">#1A#FFFFFF</item>
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="strokeWidth">1dp</item>
-        <item name="strokeColor">#4DFFFFFF</item>
+        <item name="strokeColor">#4D#FFFFFF</item>
     </style>
 
     <style name="FearPlayButton" parent="Widget.MaterialComponents.Button">

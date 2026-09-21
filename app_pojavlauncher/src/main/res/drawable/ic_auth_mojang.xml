@@ -5,7 +5,7 @@
     android:viewportHeight="36">
     <!-- Red Background Rounded Shape -->
     <path
-        android:fillColor="#E31D24"
+        android:fillColor="#7C3AED"
         android:pathData="M18,34 C9.16,34 2,26.84 2,18 C2,9.16 9.16,2 18,2 C26.84,2 34,9.16 34,18 C34,26.84 26.84,34 18,34 Z" />
     <!-- White abstract Mojang emblem -->
     <path

@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ACTIVE IDENTITIES"
-                android:textColor="#FF003C"
+                android:textColor="#4D9BFF"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05" />
@@ -36,14 +36,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Manage your active gaming profiles"
-                android:textColor="#80FFFFFF"
+                android:textColor="#80#FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:layout_marginBottom="8dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#1AFFFFFF"
+                android:background="#1A#FFFFFF"
                 android:layout_marginBottom="8dp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -71,14 +71,14 @@
                         android:layout_width="@dimen/_28sdp"
                         android:layout_height="@dimen/_28sdp"
                         android:src="@drawable/ic_mc_skull"
-                        app:tint="#4DFF003C"/>
+                        app:tint="#66#4D9BFF"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="No identities initialized"
-                        android:textColor="#40FFFFFF"
+                        android:textColor="#40#FFFFFF"
                         android:textSize="@dimen/_9ssp"/>
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -110,7 +110,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="CONSOLIDATE NEW PROFILE"
-                android:textColor="#FF003C"
+                android:textColor="#4D9BFF"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05" />
@@ -119,14 +119,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Establish credentials for authentication"
-                android:textColor="#80FFFFFF"
+                android:textColor="#80#FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:layout_marginBottom="8dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#1AFFFFFF"
+                android:background="#1A#FFFFFF"
                 android:layout_marginBottom="8dp" />
 
             <!-- Account Name Input -->
@@ -137,12 +137,12 @@
                 android:background="@drawable/premium_edit_bg"
                 android:hint="Account Username"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#40FFFFFF"
+                android:textColorHint="#40#FFFFFF"
                 android:paddingHorizontal="@dimen/_10sdp"
                 android:textSize="@dimen/_10ssp"
                 android:drawableStart="@drawable/ic_account_circle"
                 android:drawablePadding="@dimen/_6sdp"
-                app:tint="#66FFFFFF"
+                app:tint="#66#FFFFFF"
                 android:singleLine="true"/>
 
             <!-- Selection Category -->
@@ -151,7 +151,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:text="Select Protocol Method"
-                android:textColor="#B3FFFFFF"
+                android:textColor="#B3#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold" />
 
@@ -195,7 +195,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Secure Official Auth"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
                 </LinearLayout>
@@ -232,7 +232,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Render community server"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
                 </LinearLayout>
@@ -269,7 +269,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="No online capability"
-                        android:textColor="#80FFFFFF"
+                        android:textColor="#80#FFFFFF"
                         android:textSize="@dimen/_5ssp"
                         android:gravity="center" />
                 </LinearLayout>
@@ -281,7 +281,7 @@
                 android:id="@+id/local_error_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FF3B30"
+                android:textColor="#7CB9FF"
                 android:textSize="@dimen/_8ssp"
                 android:visibility="gone"
                 android:layout_marginTop="4dp" />
@@ -305,7 +305,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="6dp"
                 android:text="Need assistance with configuration?"
-                android:textColor="#80FFFFFF"
+                android:textColor="#80#FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:clickable="true"
                 android:focusable="true"/>

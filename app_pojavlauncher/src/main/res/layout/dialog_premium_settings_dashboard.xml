@@ -44,6 +44,7 @@
             android:id="@+id/dash_done_btn"
             android:layout_width="100dp"
             android:layout_height="36dp"
+            android:layout_marginEnd="12dp"
             android:text="COLLAPSE"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_8ssp"
@@ -212,7 +213,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="SELECT MODULE FOR SYSTEM CONTROLS"
-            android:textColor="#B3FFFFFF"
+            android:textColor="#B3#FFFFFF"
             android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1" />

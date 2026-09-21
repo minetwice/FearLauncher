@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#80FF003C">
+    android:color="#80#4D9BFF">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="10dp" />
@@ -14,18 +14,18 @@
                     <!-- Pressed State: Darker Glass and Glowing Border -->
                     <item>
                         <shape>
-                            <solid android:color="#F20B0305" />
+                            <solid android:color="#F2#0B0305" />
                             <corners android:radius="10dp" />
-                            <stroke android:width="2dp" android:color="#FF003C" />
+                            <stroke android:width="2dp" android:color="#4D9BFF" />
                         </shape>
                     </item>
                     <!-- Gloss shine overlay -->
                     <item android:top="2dp" android:left="2dp" android:right="2dp">
                         <shape>
                             <gradient
-                                android:startColor="#60FFFFFF"
-                                android:centerColor="#00FFFFFF"
-                                android:endColor="#00FFFFFF"
+                                android:startColor="#60#FFFFFF"
+                                android:centerColor="#00#FFFFFF"
+                                android:endColor="#00#FFFFFF"
                                 android:angle="270" />
                             <corners android:radius="9dp" />
                         </shape>
@@ -37,18 +37,18 @@
                     <!-- Base State: Premium Dark Glass background -->
                     <item>
                         <shape>
-                            <solid android:color="#E60F0204" />
+                            <solid android:color="#A6#0D1220" />
                             <corners android:radius="10dp" />
-                            <stroke android:width="1.5dp" android:color="#4DFF003C" />
+                            <stroke android:width="1.5dp" android:color="#66#4D9BFF" />
                         </shape>
                     </item>
                     <!-- Glass Gloss highlight overlay -->
                     <item android:top="1dp" android:left="1dp" android:right="1dp">
                         <shape>
                             <gradient
-                                android:startColor="#30FFFFFF"
-                                android:centerColor="#00FFFFFF"
-                                android:endColor="#00FFFFFF"
+                                android:startColor="#30#FFFFFF"
+                                android:centerColor="#00#FFFFFF"
+                                android:endColor="#00#FFFFFF"
                                 android:angle="270" />
                             <corners android:radius="9dp" />
                         </shape>
@@ -58,9 +58,9 @@
                         <shape>
                             <gradient
                                 android:angle="45"
-                                android:startColor="#00FFFFFF"
-                                android:centerColor="#30FF003C"
-                                android:endColor="#00FFFFFF"
+                                android:startColor="#00#FFFFFF"
+                                android:centerColor="#3D#4D9BFF"
+                                android:endColor="#00#FFFFFF"
                                 android:type="linear" />
                         </shape>
                     </item>
@@ -68,9 +68,9 @@
                         <shape>
                             <gradient
                                 android:angle="45"
-                                android:startColor="#00FFFFFF"
-                                android:centerColor="#20FFFFFF"
-                                android:endColor="#00FFFFFF"
+                                android:startColor="#00#FFFFFF"
+                                android:centerColor="#20#FFFFFF"
+                                android:endColor="#00#FFFFFF"
                                 android:type="linear" />
                         </shape>
                     </item>
