@@ -89,7 +89,7 @@
             android:id="@+id/search_mod_edittext"
             android:layout_width="0dp"
             android:layout_height="@dimen/_36sdp"
-            android:background="@drawable/theme_button_bg"
+            android:background="@drawable/premium_glass_black_bg"
             android:hint="SEARCH PROTOCOL..."
             android:textColor="#FFFFFF"
             android:textColorHint="#50FFFFFF"
