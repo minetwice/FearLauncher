@@ -1,0 +1,20 @@
+name: mc4 patch
+on: push
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - name: apply mc4
+        run: python3 scripts/mc4.py
+      - name: commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
+          git commit -m "fix: MC4 - add 5 missing strings (notif_channel_id, tasks_ongoing, mcn_*, select_bta_version)"
+          git push
