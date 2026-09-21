@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR UI: deep midnight navy gradient with soft vignette -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="#0A0B14" android:centerColor="#0D1020" android:endColor="#12152B" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="#334D9BFF" android:centerColor="#00000000" android:endColor="#00A855F7" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="#00000000" android:centerColor="#00000000" android:endColor="#99000000" />
+        </shape>
+    </item>
+</layer-list>

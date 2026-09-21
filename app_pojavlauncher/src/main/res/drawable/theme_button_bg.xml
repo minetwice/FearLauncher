@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR UI: electric blue gradient button with glow depth + ripple -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#404D9BFF">
+    <item android:id="@android:id/mask">
+        <shape>
+            <corners android:radius="10dp" />
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient android:angle="270" android:startColor="#B3000A20" android:endColor="#D9000616" />
+                </shape>
+            </item>
+            <item android:bottom="3dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient android:angle="0" android:startColor="#4D9BFF" android:endColor="#7C3AED" />
+                </shape>
+            </item>
+            <item android:bottom="3dp" android:top="1dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient android:angle="270" android:startColor="#4DFFFFFF" android:endColor="#00FFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>
