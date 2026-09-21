@@ -562,8 +562,9 @@ public class MainMenuFragment extends Fragment {
         int bgAnimType = prefs.getInt("launcher_bg_animation", 0);
 
         // 1. Tint BackgroundAnimationView and apply the correct animation mode (from the 15 Intense styles)
-        com.kdt.mcgui.BackgroundAnimationView animBgView = view.findViewById(R.id.background_animation_view);
-        if (animBgView != null) {
+        View animBgHolder = view.findViewById(R.id.background_animation_view);
+        if (animBgHolder instanceof com.kdt.mcgui.BackgroundAnimationView) {
+            com.kdt.mcgui.BackgroundAnimationView animBgView = (com.kdt.mcgui.BackgroundAnimationView) animBgHolder;
             animBgView.setAnimationType(bgAnimType);
             animBgView.setThemeColors(primaryColor, secondaryColor);
         }
@@ -864,7 +865,7 @@ public class MainMenuFragment extends Fragment {
         if (discord != null) discord.setOnClickListener(v -> {
             try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/9xBZSNG3Uc"))); } catch (Throwable ignored) {}
         });
-        View tg = view.findViewById(R.id.social_telegram_btn);
+        View tg = view.findViewById(R.id.social_youtube_btn);
         if (tg != null) tg.setOnClickListener(v -> {
             try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3"))); } catch (Throwable ignored) {}
         });

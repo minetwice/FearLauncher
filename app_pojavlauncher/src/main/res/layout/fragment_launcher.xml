@@ -9,10 +9,13 @@
     android:clipToPadding="false"
     android:background="@drawable/theme_bg">
 
-    <com.kdt.mcgui.BackgroundAnimationView
+    <ImageView
         android:id="@+id/background_animation_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/fear_bg_full"
+        android:contentDescription="@null" />
 
     <!-- == TOP BAR == -->
     <LinearLayout
@@ -56,23 +59,35 @@
             android:letterSpacing="0.1"
             android:layout_marginStart="10dp" />
 
-        <ImageButton
-            android:id="@+id/social_discord_btn"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_discord"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:alpha="0.9"
-            android:layout_marginEnd="12dp" />
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="10dp">
+            <ImageButton
+                android:id="@+id/social_discord_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_discord"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="5dp"
+                android:scaleType="fitCenter" />
+        </FrameLayout>
 
-        <ImageButton
-            android:id="@+id/social_telegram_btn"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_telegram"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:alpha="0.9"
-            android:layout_marginEnd="12dp" />
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="10dp">
+            <ImageButton
+                android:id="@+id/social_youtube_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_youtube_logo"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:scaleType="fitCenter" />
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/header_notification_btn"
@@ -408,7 +423,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"
                     android:text="BACKGROUND DOWNLOADS"
-                    android:drawableStart="@drawable/ic_px_file_dl"
+                    android:drawableStart="@drawable/ic_download"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 
