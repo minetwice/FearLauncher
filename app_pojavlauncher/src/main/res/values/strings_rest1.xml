@@ -43,22 +43,7 @@
     <string name="preference_controller_binding_title">Controller bindings</string>
     <string name="preference_controller_deadzone_title">Joystick deadzone</string>
     <string name="preference_copy_game_logs_title">Copy game logs to clipboard</string>
-    <string name="preference_enable_gyro_title">Enable gyroscope controls</string>
-    <string name="preference_gyro_invert_x_axis">Invert X axis</string>
-    <string name="preference_gyro_invert_y_axis">Invert Y axis</string>
-    <string name="preference_gyro_sensitivity_title">Gyroscope controls sensitivity</string>
     <string name="preference_gyro_smoothing_title">Smooth gyroscope controls</string>
     <string name="preference_reset_gyro_title">Reset gyroscope</string>
     <string name="preference_verify_manifest_title">Verify game version manifest</string>
-    <string name="profiles_profile_name">Name</string>
-    <string name="profiles_profile_version">Version</string>
-    <string name="pvc_gameDirectory">Game directory</string>
-    <string name="pvc_jvmArgs">JVM arguments</string>
-    <string name="pedit_java_runtime">Java Runtime</string>
-    <string name="pedit_renderer">Renderer</string>
-    <string name="unnamed">Unnamed</string>
-    <string name="use_global_default">(Use global default)</string>
-    <string name="version_select_hint">Select a version</string>
-    <string name="storage_required">FearLauncher requires external storage to be attached.</string>
-    <string name="search_modpack_download_error">Failed to download modpack metadata</string>
 </resources>

@@ -23,12 +23,6 @@
     <string name="multirt_subtitle">Manage installed Java Runtimes.</string>
     <string name="multirt_title">Runtime Manager</string>
     <string name="minecraft_not_owned">It seems like this account does not have a Minecraft profile.</string>
-    <string name="mcl_button_open_directory">Open game directory</string>
-    <string name="mcl_button_social_media">Discord</string>
-    <string name="mcl_disable_gestures">Disable gestures</string>
-    <string name="mcl_disable_gestures_subtitle">Disables gestures such as hold to break block.</string>
-    <string name="mcl_disable_swap_hand">Disable double tap to swap hands</string>
-    <string name="mcl_disable_swap_hand_subtitle">Disables double tapping on the hotbar item to swap hands.</string>
     <string name="modpack_download_applying_overrides" formatted="false">Applying overrides (%d/%d)</string>
     <string name="modpack_download_downloading_metadata" formatted="false">Downloading modpack metadata (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods" formatted="false">Downloading mods (%.2f MB / %.2f MB)</string>
