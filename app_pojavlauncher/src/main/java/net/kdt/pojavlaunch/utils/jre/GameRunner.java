@@ -180,7 +180,7 @@ public class GameRunner {
 
         String lwjglGlLib;
         if (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")
-                || rendererName.equals("panvk_zink") || rendererName.equals("fear_render")) {
+                || rendererName.equals("panvk_zink")) {
             // Resolve GL symbols from OSMesa (Zink); avoid mh_drive stub / ng_gl4es
             lwjglGlLib = Tools.NATIVE_LIB_DIR + "/libOSMesa_8.so";
         } else if (rendererName.equals("ng_gl4es") || rendererName.equals("krypton_wrapper")) {
@@ -192,7 +192,7 @@ public class GameRunner {
         }
         javaArgList.add("-Dorg.lwjgl.opengl.libname=" + lwjglGlLib);
         // Zink/Fear: GLFW must use our EGL facade (libpojavexec), not system libEGL
-        if (rendererName.equals("fear_render") || rendererName.equals("panvk_zink")
+        if (rendererName.equals("panvk_zink")
                 || rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")) {
             javaArgList.add("-Dorg.lwjgl.egl.libname=" + Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
         } else if (rendererName.equals("ng_gl4es") || rendererName.equals("opengles2")

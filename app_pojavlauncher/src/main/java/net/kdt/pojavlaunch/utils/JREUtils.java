@@ -111,11 +111,10 @@ public class JREUtils {
                 break;
             case "turnip_zink":
             case "vulkan_zink":
-            case "fear_render":
             case "panvk_zink":
-                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
-                    Logger.appendToLog("[FearRender] Initializing Fear Render (Panfrost Vulkan + Zink)...");
-                    Logger.appendToLog("[FearRender] Mali texture fix: PAN_MESA_DEBUG=noafbc");
+                if ("panvk_zink".equals(renderer)) {
+                    Logger.appendToLog("[PanVK] Initializing PanVK Zink renderer (Panfrost Vulkan + Zink)...");
+                    Logger.appendToLog("[PanVK] Mali texture fix: PAN_MESA_DEBUG=noafbc");
                 } else {
                     Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
                 }
@@ -129,7 +128,7 @@ public class JREUtils {
                 envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
                 envMap.put("PAN_MESA_DEBUG", "noafbc");
                 envMap.put("mesa_glthread", "false");
-                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
+                if ("panvk_zink".equals(renderer)) {
                     envMap.put("MESA_VK_DEVICE_SELECT_FORCE_DEFAULT_DEVICE", "1");
                     // EGL facade wiring: arm Mesa EGL redirection (Zink via Panfrost Vulkan) only when the
                     // full stack is shipped. The native side (egl_proc_hook) keeps a safe fallback:
@@ -162,7 +161,7 @@ public class JREUtils {
         envMap.put("LIBGL_NOINTOVLHACK", "1");
         envMap.put("LIBGL_NORMALIZE", "1");
         if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "fear_render".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);
         boolean isOSmesa = isZink || "mesa_softpipe".equals(renderer);
         if (PREF_VSYNC_IN_ZINK && !isZink) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
         if (!isOSmesa) envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
@@ -283,17 +282,16 @@ public class JREUtils {
             case "mesa_softpipe":
             case "turnip_zink":
             case "vulkan_zink":
-            case "fear_render":
             case "panvk_zink":
-                if ("fear_render".equals(renderer) || "panvk_zink".equals(renderer)) {
-                    Logger.appendToLog("[FearRender] Loading OSMesa + libvulkan_panfrost.so...");
+                if ("panvk_zink".equals(renderer)) {
+                    Logger.appendToLog("[PanVK] Loading OSMesa + libvulkan_panfrost.so...");
                     setUseTurnip(false);
                 } else {
                     Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
                 }
                 if(preloadVk) preloadVulkan();
                 if (!configureRenderspec("libOSMesa_8.so", true, false, 3)) {
-                    Logger.appendToLog("[FearRender] OSMesa namespace load failed (continuing)");
+                    Logger.appendToLog("[PanVK] OSMesa namespace load failed (continuing)");
                 }
                 String nativeDir = Tools.NATIVE_LIB_DIR;
                 if (nativeDir != null && !nativeDir.isEmpty()) {

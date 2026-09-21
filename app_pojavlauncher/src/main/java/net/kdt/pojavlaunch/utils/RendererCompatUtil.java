@@ -44,7 +44,7 @@ public class RendererCompatUtil {
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
             }
-            if(rendererId.equals("fear_render") || rendererId.equals("panvk_zink")) {
+            if(rendererId.equals("panvk_zink")) {
                 if (new File(Tools.NATIVE_LIB_DIR, "libvulkan_panfrost.so").exists()) {
                     rendererIds.add(rendererId);
                     rendererNames.add(defaultRendererNames[i]);
