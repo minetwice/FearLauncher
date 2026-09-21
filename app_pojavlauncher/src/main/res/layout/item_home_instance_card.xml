@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR UI: home instance carousel card -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="150dp"
+    android:layout_height="170dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="10dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/premium_glass_black_bg">
+    <ImageView
+        android:id="@+id/home_inst_icon"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:src="@drawable/ic_skull_new"
+        android:contentDescription="@null" />
+    <TextView
+        android:id="@+id/home_inst_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textColor="#FFFFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/home_inst_version"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:textColor="#80FFFFFF"
+        android:textSize="9sp" />
+</LinearLayout>
