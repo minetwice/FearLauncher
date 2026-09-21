@@ -19,7 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:tint="#66#FFFFFF" />
+        app:tint="#66FFFFFF" />
 
     <!-- Name & Type -->
     <LinearLayout
@@ -46,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Microsoft"
-            android:textColor="#80#FFFFFF"
+            android:textColor="#80FFFFFF"
             android:textSize="@dimen/_7ssp" />
 
     </LinearLayout>
@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Status"
-            android:textColor="#40#FFFFFF"
+            android:textColor="#40FFFFFF"
             android:textSize="@dimen/_6ssp"
             android:textStyle="bold" />
 
@@ -107,6 +107,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#80#FFFFFF" />
+        app:tint="#80FFFFFF" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

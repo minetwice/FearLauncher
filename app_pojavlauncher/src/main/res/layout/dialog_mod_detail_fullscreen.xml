@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FA#000000"
+    android:background="#FA000000"
     android:padding="12dp">
 
     <!-- Header / Close button -->
@@ -34,7 +34,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="SPECIFICATION TELEMETRY"
-        android:textColor="#80#FFFFFF"
+        android:textColor="#80FFFFFF"
         android:textSize="@dimen/_9ssp"
         android:textStyle="bold"
         android:letterSpacing="0.1"
@@ -109,7 +109,7 @@
                     android:id="@+id/detail_source_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#80#FFFFFF"
+                    android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:layout_marginStart="4dp" />
             </LinearLayout>
@@ -152,7 +152,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="LOADER / ENGINE"
-                android:textColor="#80#FFFFFF"
+                android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="3dp" />
@@ -173,7 +173,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="GAME VERSION"
-                android:textColor="#80#FFFFFF"
+                android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_7ssp"
                 android:textStyle="bold"
                 android:layout_marginBottom="3dp" />
@@ -272,7 +272,7 @@
                 android:visibility="gone"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#20#FFFFFF"
+                app:cardBackgroundColor="#20FFFFFF"
                 android:layout_marginBottom="12dp">
                 <ImageView
                     android:id="@+id/detail_preview_image"
@@ -293,7 +293,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="DOCUMENTATION &amp; FIELD MANUAL"
-                    android:textColor="#80#FFFFFF"
+                    android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"

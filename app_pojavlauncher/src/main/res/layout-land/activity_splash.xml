@@ -25,7 +25,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#40#FFFFFF" />
+        app:tint="#40FFFFFF" />
 
     <!-- Logo Holder (Will be logo.png) -->
     <ImageView

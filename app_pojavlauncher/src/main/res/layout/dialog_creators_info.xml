@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="Architects and Visionaries behind the Ultimate High-Performance Experience"
-        android:textColor="#B3#FFFFFF"
+        android:textColor="#B3FFFFFF"
         android:textSize="@dimen/_8ssp"
         android:textStyle="italic"
         android:layout_marginTop="2dp" />
@@ -63,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#19#4D9BFF"
+                android:background="#194D9BFF"
                 android:padding="@dimen/_10sdp"
                 android:layout_marginBottom="12dp">
 
@@ -89,7 +89,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6#FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"
@@ -155,7 +155,7 @@ Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#19#4D9BFF"
+                android:background="#194D9BFF"
                 android:padding="@dimen/_10sdp"
                 android:layout_marginBottom="12dp">
 
@@ -181,7 +181,7 @@ Under Twicefear's active, uncompromising leadership, FEAR Launcher has risen to 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6#FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"
@@ -247,7 +247,7 @@ Working side-by-side with Twicefear, Hellzior maintains strict control over vers
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#19#4D9BFF"
+                android:background="#194D9BFF"
                 android:padding="@dimen/_10sdp">
 
                 <TextView
@@ -272,7 +272,7 @@ Working side-by-side with Twicefear, Hellzior maintains strict control over vers
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#E6#FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="@dimen/_7ssp"
                     android:layout_marginTop="6dp"
                     android:lineSpacingMultiplier="1.2"

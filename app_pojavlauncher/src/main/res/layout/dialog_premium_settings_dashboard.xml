@@ -213,7 +213,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="SELECT MODULE FOR SYSTEM CONTROLS"
-            android:textColor="#B3#FFFFFF"
+            android:textColor="#B3FFFFFF"
             android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1" />

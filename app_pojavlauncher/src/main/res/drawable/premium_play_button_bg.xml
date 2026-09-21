@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#40#7CB9FF">
+    android:color="#407CB9FF">
     <item>
         <shape android:shape="rectangle">
             <!-- Premium cyber-red to deep red neon gradient background -->

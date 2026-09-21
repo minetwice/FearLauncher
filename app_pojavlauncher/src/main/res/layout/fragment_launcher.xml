@@ -68,7 +68,7 @@
             android:layout_width="@dimen/_24sdp"
             android:layout_height="@dimen/_24sdp"
             app:cardCornerRadius="@dimen/_12sdp"
-            app:cardBackgroundColor="#20#FFFFFF"
+            app:cardBackgroundColor="#20FFFFFF"
             app:cardElevation="0dp"
             android:foreground="?attr/selectableItemBackground"
             android:clickable="true"
@@ -137,7 +137,7 @@
                 android:background="@drawable/premium_glass_black_bg"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="8dp"
-                android:textColor="#E6#FFFFFF"
+                android:textColor="#E6FFFFFF"
                 android:textSize="10sp"
                 android:textAlignment="center"
                 android:fontFamily="monospace"
@@ -171,7 +171,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1.21.1"
-                android:textColor="#80#FFFFFF"
+                android:textColor="#80FFFFFF"
                 android:textSize="@dimen/_9ssp"
                 android:layout_marginTop="2dp" />
 
@@ -192,7 +192,7 @@
                     android:textColor="#42FF42"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
-                    android:background="#20#42FF42"
+                    android:background="#2042FF42"
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="3dp"
                     android:layout_marginEnd="6dp" />
@@ -205,7 +205,7 @@
                     android:textColor="#4D9BFF"
                     android:textSize="@dimen/_7ssp"
                     android:textStyle="bold"
-                    android:background="#29#4D9BFF"
+                    android:background="#294D9BFF"
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="3dp" />
             </LinearLayout>
@@ -214,7 +214,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#1A#FFFFFF"
+                android:background="#1AFFFFFF"
                 android:layout_marginBottom="12dp" />
 
             <com.kdt.mcgui.mcVersionSpinner
@@ -335,7 +335,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         app:cardCornerRadius="20dp"
-                        app:cardBackgroundColor="#20#FFFFFF"
+                        app:cardBackgroundColor="#20FFFFFF"
                         app:cardElevation="2dp">
                         <ImageView
                             android:layout_width="match_parent"
@@ -372,7 +372,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="• OPERATIONS &amp; DIAGNOSTICS"
-                    android:textColor="#80#FFFFFF"
+                    android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"
@@ -410,7 +410,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="• INSTALLED MODULES"
-                    android:textColor="#80#FFFFFF"
+                    android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"
@@ -448,7 +448,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="• DEV &amp; COMMAND EXPERIMENT"
-                    android:textColor="#80#FFFFFF"
+                    android:textColor="#80FFFFFF"
                     android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"

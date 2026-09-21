@@ -5,7 +5,7 @@
     android:id="@+id/splash_overlay"
     android:layout_width="0dp"
     android:layout_height="0dp"
-    android:background="#FF#000000"
+    android:background="#FF000000"
     android:clickable="true"
     android:focusable="true"
     android:visibility="invisible"

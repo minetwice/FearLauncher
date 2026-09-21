@@ -56,7 +56,7 @@
                 android:background="@drawable/theme_button_bg"
                 android:hint="Username / Email"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#40#FFFFFF"
+                android:textColorHint="#40FFFFFF"
                 android:paddingHorizontal="16dp"
                 android:textSize="@dimen/_11ssp" />
 
@@ -80,7 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Save"
-                    android:textColor="#B3#FFFFFF"
+                    android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FFFFFF"
                     android:paddingEnd="12dp" />
@@ -90,7 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Auto Login"
-                    android:textColor="#B3#FFFFFF"
+                    android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FFFFFF" />
             </LinearLayout>
@@ -100,7 +100,7 @@
         <View
             android:layout_width="1dp"
             android:layout_height="@dimen/_160sdp"
-            android:background="#1A#FFFFFF"
+            android:background="#1AFFFFFF"
             app:layout_constraintStart_toEndOf="@id/login_input_group"
             app:layout_constraintEnd_toStartOf="@+id/right_visual_container"
             app:layout_constraintTop_toTopOf="@id/login_input_group"
@@ -169,7 +169,7 @@
                     android:layout_height="wrap_content"
                     android:text="Local Auth"
                     android:checked="true"
-                    android:textColor="#B3#FFFFFF"
+                    android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FFFFFF" />
 
@@ -178,7 +178,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Microsoft Auth"
-                    android:textColor="#B3#FFFFFF"
+                    android:textColor="#B3FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:buttonTint="#FFFFFF" />
             </LinearLayout>

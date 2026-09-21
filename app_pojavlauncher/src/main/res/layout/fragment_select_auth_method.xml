@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Choose your preferred Minecraft authentication mechanism"
-            android:textColor="#80#FFFFFF"
+            android:textColor="#80FFFFFF"
             android:textSize="@dimen/_8ssp"
             app:layout_constraintTop_toBottomOf="@id/add_account_title"
             app:layout_constraintStart_toStartOf="parent"
@@ -84,7 +84,7 @@
             android:layout_width="@dimen/_160sdp"
             android:layout_height="@dimen/_160sdp"
             android:src="@drawable/ic_app_logo"
-            app:tint="#26#4D9BFF"
+            app:tint="#264D9BFF"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

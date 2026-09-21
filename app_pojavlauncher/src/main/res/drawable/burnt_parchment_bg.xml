@@ -44,7 +44,7 @@
     <!-- Layer 5: Subtle horizontal burnt creases/veins inside the parchment for an authentic map feel -->
     <item android:left="25dp" android:right="25dp" android:top="25dp" android:bottom="25dp">
         <shape android:shape="rectangle">
-            <stroke android:width="1dp" android:color="#15#6C4D24" />
+            <stroke android:width="1dp" android:color="#156C4D24" />
             <corners android:radius="4dp" />
         </shape>
     </item>
