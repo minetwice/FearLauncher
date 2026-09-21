@@ -115,7 +115,6 @@ static void force_zink_env(void) {
     setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
     setenv("MESA_GL_VERSION_OVERRIDE", "4.6", 1);
     setenv("MESA_GLSL_VERSION_OVERRIDE", "460", 1);
-    setenv("LIBGL_NOERROR", "1", 1);
     setenv("mesa_glthread", "false", 1);
     unsetenv("LIBGL_ES");
     const char* cache = getenv("MESA_GLSL_CACHE_DIR");
@@ -129,7 +128,9 @@ static void force_zink_env(void) {
     }
     unsetenv("MESA_VK_WSI_PRESENT_MODE");
     unsetenv("MESA_PRESENT_MODE");
-    setenv("ZINK_DESCRIPTORS", "lazy", 1);
+    /* MC16: do NOT force ZINK_DESCRIPTORS/lazy here - it overwrites the
+       ZINK_DEBUG=noreorder / conservative env applied from Java
+       (JREUtils.setupRendererEnv) for Mali / system-Vulkan devices. */
 }
 
 static volatile int g_glfw_initialized = 0;

@@ -23,33 +23,21 @@ public class ZinkWorkarounds {
      */
     private static final String[][] GPU_WORKAROUNDS = {
         {
-            // Mali-G615 variants (missing: logicOp, fillModeNonSolid, shaderClipDistance)
-            "mali-g615", "mali g615", "mali-g615 mc2", "arm mali-g615",
-            // Workarounds
-            "ZINK_FEATURES=+logicOp,+fillModeNonSolid,+shaderClipDistance",
-            "ZINK_USE_SOFTWARE_CLIP_DISTANCE=1",
-            "ZINK_EMULATE_LOGIC_OP=1",
-            "ZINK_EMULATE_FILL_MODE_NON_SOLID=1",
-            "MESA_GL_VERSION_OVERRIDE=4.5",
-            "MESA_GLSL_VERSION_OVERRIDE=450",
-            "ZINK_DEBUG=warn",
-            "ZINK_SYNC=1"
-        },
-        {
-            // Mali-G78 (may have some missing features)
-            "mali-g78", "mali g78",
-            "ZINK_FEATURES=+shaderClipDistance",
-            "ZINK_USE_SOFTWARE_CLIP_DISTANCE=1",
-            "ZINK_DEBUG=warn"
-        },
-        {
-            // Mali-G57
-            "mali-g57", "mali g57",
-            "ZINK_FEATURES=+shaderClipDistance",
-            "ZINK_USE_SOFTWARE_CLIP_DISTANCE=1"
+            // Mali GPUs run Zink on the ARM proprietary system Vulkan driver, which is
+            // non-conformant for Zink (no fillModeNonSolid / shaderClipDistance / logicOp)
+            // and mishandles out-of-order command submission -> flickering blocks/chunks.
+            // REAL Mesa environment variables (verified against the bundled
+            // Mesa 25.1.4 OSMesa/Zink build):
+            //   ZINK_DEBUG=noreorder  - do not reorder command streams
+            //   GALLIUM_THREAD=0      - disable gallium threaded context
+            //   mesa_glthread=false    - disable Mesa GL thread
+            "mali-g615", "mali g615", "mali", "arm mali",
+            "ZINK_DEBUG=noreorder",
+            "GALLIUM_THREAD=0",
+            "mesa_glthread=false"
         }
     };
-    
+
     /**
      * Get workaround environment variables for a specific GPU model.
      * 
@@ -64,22 +52,19 @@ public class ZinkWorkarounds {
         String gpuLower = gpuModel.toLowerCase().trim();
         
         for (String[] workaround : GPU_WORKAROUNDS) {
-            // First elements are GPU patterns to match
-            int patternCount = workaround.length - 1;
-            boolean matches = false;
-            
-            for (int i = 0; i < patternCount; i++) {
-                if (gpuLower.contains(workaround[i].toLowerCase())) {
-                    matches = true;
-                    break;
-                }
+            // Elements after the first KEY=VALUE string are env vars; those before are GPU patterns.
+            int firstEnv = -1;
+            for (int i = 0; i < workaround.length; i++) {
+                if (workaround[i].indexOf('=') >= 0) { firstEnv = i; break; }
             }
-            
-            if (matches) {
-                // Return all elements after the patterns (the environment variables)
-                String[] envVars = new String[workaround.length - patternCount];
-                System.arraycopy(workaround, patternCount, envVars, 0, envVars.length);
-                return envVars;
+            if (firstEnv <= 0) continue;
+
+            for (int i = 0; i < firstEnv; i++) {
+                if (gpuLower.contains(workaround[i].toLowerCase())) {
+                    String[] envVars = new String[workaround.length - firstEnv];
+                    System.arraycopy(workaround, firstEnv, envVars, 0, envVars.length);
+                    return envVars;
+                }
             }
         }
         

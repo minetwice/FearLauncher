@@ -70,57 +70,33 @@ public class TurnipZinkManager {
     public static void applyGPUWorkarounds() {
         String gpuModel = getGpuModel();
         Log.i(TAG, "Detected GPU: " + gpuModel);
-        
+
         // Get workaround environment variables for this GPU
         String[] workarounds = ZinkWorkarounds.getWorkaroundEnv(gpuModel);
-        
+
         if (workarounds.length > 0) {
             Log.i(TAG, "Applying " + workarounds.length + " workarounds for GPU");
             for (String workaround : workarounds) {
                 String[] parts = workaround.split("=", 2);
                 if (parts.length == 2) {
-                    System.setProperty(parts[0], parts[1]);
-                    Log.i(TAG, "Applied workaround: " + parts[0] + "=" + parts[1]);
+                    // MC16: these must be REAL process environment variables -
+                    // Mesa (native) never reads Java System properties, and the
+                    // previous fake ZINK_* variables (ZINK_FEATURES,
+                    // ZINK_EMULATE_LOGIC_OP, ...) are not read by Mesa at all.
+                    try {
+                        android.system.Os.setenv(parts[0], parts[1], true);
+                        Log.i(TAG, "Applied workaround: " + parts[0] + "=" + parts[1]);
+                    } catch (Throwable t) {
+                        Log.w(TAG, "setenv failed for " + parts[0], t);
+                    }
                 }
             }
         } else {
             Log.i(TAG, "No specific workarounds needed for GPU: " + gpuModel);
         }
-        
-        // Apply universal Zink optimizations
-        applyUniversalWorkarounds();
-    }
-    
-    /**
-     * Apply universal Zink optimizations
-     */
-    private static void applyUniversalWorkarounds() {
-        // Ensure Zink driver is used
-        System.setProperty("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-        System.setProperty("GALLIUM_DRIVER", "zink");
-        System.setProperty("MESA_GLSL_VERSION_OVERRIDE", "460");
-        System.setProperty("MESA_GL_VERSION_OVERRIDE", "4.6");
-        
-        // Shader cache settings
-        System.setProperty("MESA_SHADER_CACHE_DIR", 
-            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/cache");
-        System.setProperty("MESA_GLSL_CACHE_DIR", 
-            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/cache");
-        System.setProperty("MESA_GLSL_CACHE_DISABLE", "false");
-        
-        // Performance and compatibility
-        System.setProperty("LIBGL_NOINTOVLHACK", "1");
-        System.setProperty("LIBGL_NOERROR", "1");
-        System.setProperty("LIBGL_NORMALIZE", "1");
-        System.setProperty("LIBGL_MIPMAP", "3");
-        
-        // Turnip-Zink specific
-        System.setProperty("POJAV_VSYNC_IN_ZINK", "1");
-        System.setProperty("vblank_mode", "0");
-        System.setProperty("FORCE_VSYNC", "true");
-        System.setProperty("FEAR_RENDERER", "turnip_zink");
-        
-        Log.i(TAG, "Applied universal Zink workarounds");
+        // NOTE (MC16): the old applyUniversalWorkarounds() only set Java System
+        // properties, which the native Mesa stack never reads - it was inert.
+        // The real launch-time environment is set by JREUtils.setEnviroimentForGame().
     }
     
     /**

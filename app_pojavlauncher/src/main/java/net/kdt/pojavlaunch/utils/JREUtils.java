@@ -134,6 +134,19 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
+                // MC16: block-glitch fix. On Mali (or any non-Adreno GPU) Zink runs on the
+                // proprietary system Vulkan driver, which is non-conformant for Zink
+                // (missing fillModeNonSolid/shaderClipDistance/logicOp) and mishandles
+                // Zink's out-of-order command submission -> flickering/corrupted chunks.
+                // Force conservative, in-order submission.
+                if (!GLInfoUtils.getGlInfo().isAdreno()) {
+                    envMap.put("ZINK_DEBUG", "noreorder");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - block-glitch fix active: ZINK_DEBUG=noreorder, GALLIUM_THREAD=0, mesa_glthread=false");
+                } else {
+                    envMap.put("mesa_glthread", "false");
+                }
                 break;
         }
     }
