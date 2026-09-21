@@ -1,0 +1,22 @@
+name: fear-ui v7 patch
+on: push
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - name: apply v7
+        run: |
+          echo aW1wb3J0IHNodXRpbApzaHV0aWwuY29weWZpbGUoJ2FwcF9wb2phdmxhdW5jaGVyL3NyYy9tYWluL3Jlcy9sYXlvdXQvZnJhZ21lbnRfbGF1bmNoZXIueG1sJywKICAgICAgICAgICAgICAgICdhcHBfcG9qYXZsYXVuY2hlci9zcmMvbWFpbi9yZXMvbGF5b3V0LWxhbmQvZnJhZ21lbnRfbGF1bmNoZXIueG1sJykKcGF0aCA9ICdhcHBfcG9qYXZsYXVuY2hlci9zcmMvbWFpbi9qYXZhL25ldC9rZHQvcG9qYXZsYXVuY2gvZnJhZ21lbnRzL01haW5NZW51RnJhZ21lbnQuamF2YScKdCA9IG9wZW4ocGF0aCwgZW5jb2Rpbmc9J3V0Zi04JykucmVhZCgpCgojIDEuIHBsYXkgYnV0dG9uIHNob3dzIERPV05MT0FESU5HIHdoaWxlIHRhc2tzIHJ1bgpvbGQxID0gJ21iLnNldFRleHQoIkxBVU5DSElORy4uLiIpOycKbmV3MSA9ICdtYi5zZXRUZXh0KCJET1dOTE9BRElORy4uLiIpOycKYXNzZXJ0IHQuY291bnQob2xkMSkgPT0gMSwgJ0xBVU5DSElORyBhbmNob3InCnQgPSB0LnJlcGxhY2Uob2xkMSwgbmV3MSkKCiMgMi4gc2t1bGwgaWNvbiBsaXF1aWQgYW5pbWF0aW9uIG9uIGhhbWJ1cmdlciBjbGljawpvbGQyID0gJycnICAgICAgICAgICAgaGFtYnVyZ2VyQnRuLnNldE9uQ2xpY2tMaXN0ZW5lcih2IC0+IHsKICAgICAgICAgICAgICAgIHYucGxheVNvdW5kRWZmZWN0KGFuZHJvaWQudmlldy5Tb3VuZEVmZmVjdENvbnN0YW50cy5DTElDSyk7CiAgICAgICAgICAgICAgICBuZXQua2R0LnBvamF2bGF1bmNoLlNvdW5kTWFuYWdlci5wbGF5Q2xpY2soKTsKJycnCm5ldzIgPSAnJycgICAgICAgICAgICBoYW1idXJnZXJCdG4uc2V0T25DbGlja0xpc3RlbmVyKHYgLT4gewogICAgICAgICAgICAgICAgdi5wbGF5U291bmRFZmZlY3QoYW5kcm9pZC52aWV3LlNvdW5kRWZmZWN0Q29uc3RhbnRzLkNMSUNLKTsKICAgICAgICAgICAgICAgIG5ldC5rZHQucG9qYXZsYXVuY2guU291bmRNYW5hZ2VyLnBsYXlDbGljaygpOwogICAgICAgICAgICAgICAgaWYgKHYgaW5zdGFuY2VvZiBhbmRyb2lkLndpZGdldC5JbWFnZUJ1dHRvbikgewogICAgICAgICAgICAgICAgICAgIGFuZHJvaWQuZ3JhcGhpY3MuZHJhd2FibGUuRHJhd2FibGUgaGQgPSAoKGFuZHJvaWQud2lkZ2V0LkltYWdlQnV0dG9uKSB2KS5nZXREcmF3YWJsZSgpOwogICAgICAgICAgICAgICAgICAgIGlmIChoZCBpbnN0YW5jZW9mIGFuZHJvaWQuZ3JhcGhpY3MuZHJhd2FibGUuQW5pbWF0YWJsZSkgewogICAgICAgICAgICAgICAgICAgICAgICAoKGFuZHJvaWQuZ3JhcGhpY3MuZHJhd2FibGUuQW5pbWF0YWJsZSkgaGQpLnN0YXJ0KCk7CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgfQonJycKYXNzZXJ0IHQuY291bnQob2xkMikgPT0gMSwgJ2hhbWJ1cmdlciBhbmNob3InCnQgPSB0LnJlcGxhY2Uob2xkMiwgbmV3MikKYXNzZXJ0IHQuY291bnQoJ3snKSA9PSB0LmNvdW50KCd9JykKb3BlbihwYXRoLCAndycsIGVuY29kaW5nPSd1dGYtOCcsIG5ld2xpbmU9JycpLndyaXRlKHQpCnByaW50KCd2NyBqYXZhIHBhdGNoIE9LJykK | base64 -d > /tmp/patch_v7.py
+          python3 /tmp/patch_v7.py
+      - name: commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
+          git commit -m "fear-ui v7: landscape sync + play button DOWNLOADING state + skull liquid animation"
+          git push
