@@ -139,7 +139,7 @@ public class MainMenuFragment extends Fragment {
                 if (playButton instanceof com.kdt.mcgui.MineButton) {
                     com.kdt.mcgui.MineButton mb = (com.kdt.mcgui.MineButton) playButton;
                     if (taskCount > 0) {
-                        mb.setText("LAUNCHING...");
+                        mb.setText("DOWNLOADING...");
                         mb.setEnabled(false);
                         mb.setAlpha(0.6f);
                     } else {
@@ -259,6 +259,12 @@ public class MainMenuFragment extends Fragment {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
+                if (v instanceof android.widget.ImageButton) {
+                    android.graphics.drawable.Drawable hd = ((android.widget.ImageButton) v).getDrawable();
+                    if (hd instanceof android.graphics.drawable.Animatable) {
+                        ((android.graphics.drawable.Animatable) hd).start();
+                    }
+                }
 
                 if (settingsTray.getVisibility() != View.VISIBLE) {
                     settingsTray.setVisibility(View.VISIBLE);

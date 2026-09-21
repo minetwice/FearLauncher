@@ -50,6 +50,17 @@
             app:tint="#FF4D6D" />
     </LinearLayout>
 
+    <!-- FLOATING DOWNLOAD ICON (appears on the side while downloading; click opens dashboard) -->
+    <com.kdt.mcgui.ProgressLayout
+        android:id="@+id/progress_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_6sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_layout" />
+
     <!-- ============ CENTERED CONTENT ============ -->
     <LinearLayout
         android:id="@+id/home_content_pane"
@@ -71,10 +82,11 @@
         <!-- PLAYER HEAD - full square, click opens login page -->
         <com.kdt.mcgui.MinecraftSkinView
             android:id="@+id/homepage_skin_head"
-            android:layout_width="@dimen/_72sdp"
-            android:layout_height="@dimen/_72sdp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:background="@drawable/home_icon_chip_bg"
+            android:layout_width="@dimen/_56sdp"
+            android:layout_height="@dimen/_56sdp"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:scaleX="0.82"
+            android:scaleY="0.82"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground" />
@@ -131,14 +143,6 @@
                 android:paddingVertical="3dp" />
         </LinearLayout>
 
-        <!-- DOWNLOAD STATUS (appears above instance select while downloading) -->
-        <com.kdt.mcgui.ProgressLayout
-            android:id="@+id/progress_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:visibility="gone" />
-
         <!-- INSTANCE SELECT (thin) -->
         <com.kdt.mcgui.mcVersionSpinner
             android:id="@+id/mc_version_spinner"
@@ -150,7 +154,7 @@
         <!-- PLAY -->
         <com.kdt.mcgui.MineButton
             android:id="@+id/play_button"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/_150sdp"
             android:layout_height="@dimen/_40sdp"
             android:layout_marginTop="@dimen/_10sdp"
             android:text="LAUNCH"
@@ -189,12 +193,11 @@
 
         <ImageButton
             android:id="@+id/hamburger_menu_icon"
-            android:layout_width="@dimen/_32sdp"
-            android:layout_height="@dimen/_32sdp"
-            android:src="@drawable/ic_hamburger"
+            android:layout_width="@dimen/_36sdp"
+            android:layout_height="@dimen/_36sdp"
+            android:src="@drawable/skull_liquid_avd"
             android:background="@drawable/home_icon_chip_bg"
-            android:padding="@dimen/_8sdp"
-            app:tint="#FF4D6D" />
+            android:padding="@dimen/_5sdp" />
 
         <Space
             android:layout_width="0dp"
@@ -224,15 +227,13 @@
     <ImageButton android:id="@+id/header_account_hub_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <androidx.cardview.widget.CardView android:id="@+id/header_avatar_card" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <!-- ============ HAMBURGER SLIDE-OUT PANEL ============ -->
-    <androidx.cardview.widget.CardView
+    <!-- ============ HAMBURGER SLIDE-OUT PANEL (TRIANGLE) ============ -->
+    <FrameLayout
         android:id="@+id/settings_tray"
         android:layout_width="274dp"
         android:layout_height="match_parent"
         android:visibility="gone"
-        app:cardBackgroundColor="#F206070A"
-        app:cardCornerRadius="26dp"
-        app:cardElevation="24dp"
+        android:background="@drawable/tray_triangle_bg"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -248,8 +249,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/_14sdp"
-                android:background="@drawable/tray_panel_bg">
+                android:paddingStart="@dimen/_14sdp"
+                android:paddingEnd="@dimen/_16sdp"
+                android:paddingTop="@dimen/_16sdp"
+                android:paddingBottom="@dimen/_16sdp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -436,7 +439,7 @@
                     android:background="@drawable/premium_button_bg" />
             </LinearLayout>
         </ScrollView>
-    </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
     <!-- Minecraft Advancement Made Toast Overlay -->
     <androidx.constraintlayout.widget.ConstraintLayout
