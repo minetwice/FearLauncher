@@ -66,4 +66,36 @@
     <string name="mcn_abort_title">Application/Game aborted, check latestlog.txt for more information</string>
     <string name="mcn_exit_title">Application/Game exited with code %d, check latestlog.txt for more details.</string>
     <string name="select_bta_version">Select \"Better than Adventure!\" version</string>
+    <string name="curseforge_api_key" translatable="false">DUMMY</string>
+    <string name="mcn_exit_confirm">Are you sure want to force close?</string>
+    <string name="modpack_install_download_failed">Failed to download modpack files</string>
+    <string name="notification_permission_dialog_text">FearLauncher requires a permission to post notifications to prevent game/modpack downloads from stopping when you leave the app. Without this permission, Android may shut down your downloads when you put FearLauncher in background mode.</string>
+    <string name="preference_controller_map_wiped">The controller config has been wiped.</string>
+    <string name="progresslayout_tasks_in_progress">%d tasks in progress</string>
+    <string name="runtime_error_install_failed">Failed to install Java %d. Please check your Internet connection and try again.</string>
+    <string name="runtime_error_missing">Java %d is not yet installed. Please choose another compatible runtime or connect to the Internet to install it automatically.</string>
+    <string name="runtime_error_title">Runtime not available</string>
+    <string name="search_modpack_error">Failed to find modpacks</string>
+    <string name="search_modpack_no_result">No modpacks found</string>
+    <string name="social_media_invite" translatable="false">https://discord.gg/9xBZSNG3Uc</string>
+    <string name="vml_err_detached">Thread is detached from the Java VM</string>
+    <string name="vml_err_exists">The VM is already loaded</string>
+    <string name="vml_err_inval">Bad arguments</string>
+    <string name="vml_err_nomem">Out of RAM</string>
+    <string name="vml_err_ok">Success</string>
+    <string name="vml_err_unknown">Unknown error</string>
+    <string name="vml_err_version">Incompatible JNI version</string>
+    <string name="vml_fail_create_runtime">Failed to create the Java virtual machine: %s</string>
+    <string name="vml_fail_find_hooks">Failed to find hook targets. Check latestlog.txt för details</string>
+    <string name="vml_fail_find_hooks_native">Failed to find native hooks.</string>
+    <string name="vml_fail_insert_hooks">Failed to install hooks: %s</string>
+    <string name="vml_fail_load_classpath">Failed to load the classpath. Check latestlog.txt for details</string>
+    <string name="vml_fail_load_runtime">Failed to load the Java virtual machine: %s</string>
+    <string name="vml_fail_run_main">Failed to start the main class. Check latestlog.txt for details</string>
+    <string name="vml_huh">\???</string>
+    <string name="xerr_adult_verification">An adult needs to verify your account.</string>
+    <string name="xerr_child">Your account is a child account, and needs to be added into a Family in order to log in.</string>
+    <string name="xerr_no_account">You don't seem to have an Xbox Live account. Please log in once on https://minecraft.net/ and try again.</string>
+    <string name="xerr_not_available">Xbox Live is not available in your country</string>
+    <string name="xerr_unknown">Unknown Xbox Live API error %d</string>
 </resources>
