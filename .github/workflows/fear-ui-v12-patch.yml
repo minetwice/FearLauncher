@@ -1,0 +1,20 @@
+name: fear-ui v12 patch
+on: push
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - name: apply v12
+        run: python3 scripts/patch_step12.py
+      - name: commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then echo "nothing to do"; exit 0; fi
+          git commit -m "fear-ui v12: head full visible, splash SFX, instance editor + core settings restyle"
+          git push
