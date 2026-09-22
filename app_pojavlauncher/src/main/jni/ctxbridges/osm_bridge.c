@@ -36,7 +36,7 @@ static void osm_diag_sample(const char* where) {
     fprintf(stderr, "OSMDIAG[%s]: buf=%p %dx%d surf=%p win=%p disable=%d state=%d "
             "center=0x%08lx tl=0x%08lx br=0x%08lx\n",
             where, b->color_buffer, b->color_width, b->color_height,
-            (void*)b->nativeSurface, (void*)bridge_environ.pojavWindow,
+            b->nativeSurface, bridge_environ.pojavWindow,
             (int)b->disable_rendering, (int)b->state, c, tl, br);
 }
 
@@ -138,7 +138,7 @@ void osm_swap_surfaces(osm_render_window_t* bundle) {
     if (bundle->newNativeSurface != NULL) {
         __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Switching to new native surface %p",
                             bundle->newNativeSurface);
-        fprintf(stderr, "OSMDIAG: attaching native surface %p\n", (void*X©undle->newNativeSurface);
+        fprintf(stderr, "OSMDIAG: attaching native surface %p\n", bundle->newNativeSurface);
         bundle->nativeSurface = bundle->newNativeSurface;
         bundle->newNativeSurface = NULL;
         ANativeWindow_acquire(bundle->nativeSurface);
@@ -155,7 +155,7 @@ void osm_swap_surfaces(osm_render_window_t* bundle) {
     }
     __android_log_print(ANDROID_LOG_WARN, g_LogTag, "No native surface â€” color buffer only");
     fprintf(stderr, "OSMDIAG: no native surface (pojavWindow=%p) â€” rendering disabled\n",
-            (void*)bridge_environ.pojavWindow);
+            bridge_environ.pojavWindow);
     bundle->nativeSurface = NULL;
     bundle->disable_rendering = true;
     int w, h;
@@ -181,7 +181,7 @@ void osm_make_current(osm_render_window_t* bundle) {
     if (bridge_environ.mainWindowBundle == NULL) {
         bridge_environ.mainWindowBundle = (basic_render_window_t*) bundle;
         __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Main window bundle is now %p",
-                                  bridge_environ.mainWindowBundle);
+                            bridge_environ.mainWindowBundle);
         if (bridge_environ.pojavWindow != NULL)
             bundle->newNativeSurface = bridge_environ.pojavWindow;
     }
@@ -212,8 +212,8 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     if (bundle == NULL || bundle->nativeSurface == NULL || bundle->color_buffer == NULL) {
         if ((g_diag_blits++ % 120) == 0)
             fprintf(stderr, "OSMDIAG: blit skipped (bundle=%p surf=%p buf=%p)\n",
-                    (void*X©undle, (void*)(bundle ? bundle->nativeSurface : NULL),
-                    (void*)(bundle ? bundle->color_buffer : NULL));
+                    bundle, (bundle ? bundle->nativeSurface : NULL),
+                    (bundle ? bundle->color_buffer : NULL));
         return;
     }
     if (bundle->disable_rendering) {
@@ -244,11 +244,11 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     const int src_stride_bytes = src_w * 4;
     const int dst_stride_bytes = nb.stride * 4; /* stride is in pixels */
 
-    if (dst != NULL && copy_w > 0 && copy_h => 0) {
+    if (dst != NULL && copy_w > 0 && copy_h > 0) {
         for (int y = 0; y < copy_h; y++) {
-            memcpy(dst + (size_t(y * dst_stride_bytes,
+            memcpy(dst + (size_t)y * dst_stride_bytes,
                    src + (size_t)y * src_stride_bytes,
-                       (size_t)copy_w * 4u);
+                   (size_t)copy_w * 4u);
         }
     }
 
@@ -270,7 +270,7 @@ void osm_swap_buffers() {
         currentBundle->state = STATE_RENDERER_ALIVE;
     }
 
-    /* if surface arrived late, pick it up */
+    /* If surface arrived late, pick it up */
     if (currentBundle->nativeSurface == NULL && bridge_environ.pojavWindow != NULL) {
         currentBundle->newNativeSurface = bridge_environ.pojavWindow;
         osm_swap_surfaces(currentBundle);
@@ -303,7 +303,7 @@ void osm_setup_window() {
 
 void osm_swap_interval(int swapInterval) {
     if (bridge_environ.mainWindowBundle != NULL
-         && bridge_environ.mainWindowBundle->nativeSurface != NULL) {
+        && bridge_environ.mainWindowBundle->nativeSurface != NULL) {
         setNativeWindowSwapInterval(bridge_environ.mainWindowBundle->nativeSurface, swapInterval);
     }
 }
