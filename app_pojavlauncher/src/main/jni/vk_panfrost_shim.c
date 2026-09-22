@@ -72,6 +72,8 @@ static int wrapped_vkCreateInstance(const void* ci, const void* ac, void** out) 
     return r;
 }
 
+void* vkGetDeviceProcAddr(void* device, const char* pName);
+
 __attribute__ ((visibility ("default")))
 void* vkGetInstanceProcAddr(void* instance, const char* pName) {
     if (!pName)
