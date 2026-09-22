@@ -6,6 +6,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <android/log.h>
 #include "osm_bridge.h"
 #include "bridge_environ.h"
@@ -14,6 +15,30 @@ void setNativeWindowSwapInterval(struct ANativeWindow* nativeWindow, int swapInt
 
 static const char* g_LogTag = "OSMBridge";
 static __thread osm_render_window_t* currentBundle;
+
+/* ---- MC20 diagnostics: pixel sampling + present-path tracing ---- */
+static unsigned g_diag_swaps = 0;
+static unsigned g_diag_blits = 0;
+
+static void osm_diag_sample(const char* where) {
+    osm_render_window_t* b = currentBundle;
+    if (b == NULL) {
+        fprintf(stderr, "OSMDIAG[%s]: NO current bundle\n", where);
+        return;
+    }
+    unsigned long c = 0, tl = 0, br = 0;
+    if (b->color_buffer != NULL && b->color_width > 0 && b->color_height > 0) {
+        const uint32_t* px = (const uint32_t*) b->color_buffer;
+        c  = px[(size_t)(b->color_height / 2) * b->color_width + (b->color_width / 2)];
+        tl = px[0];
+        br = px[(size_t)(b->color_height - 1) * b->color_width + (b->color_width - 1)];
+    }
+    fprintf(stderr, "OSMDIAG[%s]: buf=%p %dx%d surf=%p win=%p disable=%d state=%d "
+            "center=0x%08lx tl=0x%08lx br=0x%08lx\n",
+            where, b->color_buffer, b->color_width, b->color_height,
+            (void*)b->nativeSurface, (void*)bridge_environ.pojavWindow,
+            (int)b->disable_rendering, (int)b->state, c, tl, br);
+}
 
 bool osm_init() {
     dlsym_OSMesa();
@@ -113,6 +138,7 @@ void osm_swap_surfaces(osm_render_window_t* bundle) {
     if (bundle->newNativeSurface != NULL) {
         __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Switching to new native surface %p",
                             bundle->newNativeSurface);
+        fprintf(stderr, "OSMDIAG: attaching native surface %p\n", (void*X�undle->newNativeSurface);
         bundle->nativeSurface = bundle->newNativeSurface;
         bundle->newNativeSurface = NULL;
         ANativeWindow_acquire(bundle->nativeSurface);
@@ -128,6 +154,8 @@ void osm_swap_surfaces(osm_render_window_t* bundle) {
         return;
     }
     __android_log_print(ANDROID_LOG_WARN, g_LogTag, "No native surface — color buffer only");
+    fprintf(stderr, "OSMDIAG: no native surface (pojavWindow=%p) — rendering disabled\n",
+            (void*)bridge_environ.pojavWindow);
     bundle->nativeSurface = NULL;
     bundle->disable_rendering = true;
     int w, h;
@@ -153,7 +181,7 @@ void osm_make_current(osm_render_window_t* bundle) {
     if (bridge_environ.mainWindowBundle == NULL) {
         bridge_environ.mainWindowBundle = (basic_render_window_t*) bundle;
         __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Main window bundle is now %p",
-                            bridge_environ.mainWindowBundle);
+                                  bridge_environ.mainWindowBundle);
         if (bridge_environ.pojavWindow != NULL)
             bundle->newNativeSurface = bridge_environ.pojavWindow;
     }
@@ -171,24 +199,39 @@ void osm_make_current(osm_render_window_t* bundle) {
     /* Always ensure we have a color buffer + bound context */
     int w, h;
     osm_resolve_size(&w, &h);
+    fprintf(stderr, "OSMDIAG: make_current resolved %dx%d\n", w, h);
     if (osm_ensure_color_buffer(bundle, w, h) == 0)
         osm_bind_color(bundle);
     else if (OSMesaMakeCurrent_p)
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
+    osm_diag_sample("make_current");
 }
 
 /** Copy tightly-packed RGBA color_buffer into locked ANativeWindow (respect stride). */
 static void osm_blit_to_native(osm_render_window_t* bundle) {
-    if (bundle == NULL || bundle->nativeSurface == NULL || bundle->color_buffer == NULL)
+    if (bundle == NULL || bundle->nativeSurface == NULL || bundle->color_buffer == NULL) {
+        if ((g_diag_blits++ % 120) == 0)
+            fprintf(stderr, "OSMDIAG: blit skipped (bundle=%p surf=%p buf=%p)\n",
+                    (void*)bundle, (void*)(bundle ? bundle->nativeSurface : NULL),
+                    (void*)(bundle ? bundle->color_buffer : NULL));
         return;
-    if (bundle->disable_rendering) return;
+    }
+    if (bundle->disable_rendering) {
+        if ((g_diag_blits++ % 120) == 0)
+            fprintf(stderr, "OSMDIAG: blit skipped (rendering disabled)\n");
+        return;
+    }
 
     ANativeWindow_Buffer nb;
     memset(&nb, 0, sizeof(nb));
     if (ANativeWindow_lock(bundle->nativeSurface, &nb, NULL) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "ANativeWindow_lock failed");
+        fprintf(stderr, "OSMDIAG: ANativeWindow_lock FAILED\n");
         return;
     }
+    if ((g_diag_blits++ % 120) == 0)
+        fprintf(stderr, "OSMDIAG: blit locked dst=%dx%d stride=%d src=%dx%d\n",
+                nb.width, nb.height, nb.stride, bundle->color_width, bundle->color_height);
 
     const int src_w = bundle->color_width;
     const int src_h = bundle->color_height;
@@ -215,7 +258,11 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
 }
 
 void osm_swap_buffers() {
-    if (currentBundle == NULL) return;
+    if (currentBundle == NULL) {
+        if ((g_diag_swaps++ % 100) == 0)
+            fprintf(stderr, "OSMDIAG: swap with NO current bundle\n");
+        return;
+    }
 
     if (currentBundle->state == STATE_RENDERER_NEW_WINDOW) {
         currentBundle->newNativeSurface = bridge_environ.pojavWindow;
@@ -223,13 +270,16 @@ void osm_swap_buffers() {
         currentBundle->state = STATE_RENDERER_ALIVE;
     }
 
-    /* If surface arrived late, pick it up */
+    /* if surface arrived late, pick it up */
     if (currentBundle->nativeSurface == NULL && bridge_environ.pojavWindow != NULL) {
         currentBundle->newNativeSurface = bridge_environ.pojavWindow;
         osm_swap_surfaces(currentBundle);
     }
 
     if (glFinish_p) glFinish_p();
+
+    if ((g_diag_swaps++ % 30) == 0)
+        osm_diag_sample("swap");
 
     osm_blit_to_native(currentBundle);
 
