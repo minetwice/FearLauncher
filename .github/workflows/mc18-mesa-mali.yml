@@ -1,0 +1,211 @@
+name: MC18 Build Mesa Zink (arm64 OSMesa + Mali glitch fix)
+
+# Builds the FearLauncher libOSMesa_8.so with Mali (ARM proprietary / PanVK) zink
+# workarounds and the Minecraft driconf profile, then commits it into jniLibs.
+# Fixes: block texture shifting/flickering on Mali GPUs (MC18 core fix).
+on:
+  push:
+    branches:
+      - Mega-checkpoint
+    paths:
+      - '.github/workflows/mc18-mesa-mali.yml'
+  workflow_dispatch:
+    inputs:
+      mesa_tag:
+        description: 'Mesa git tag/branch'
+        required: false
+        default: 'mesa-25.1.4'
+        type: string
+
+concurrency:
+  group: mesa-zink-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-aarch64:
+    name: Mesa OSMesa+Zink aarch64 (Mali fix)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip python3-setuptools \
+            libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev \
+            libxfixes-dev libdrm-dev libx11-dev libexpat1-dev \
+            bison flex gettext pkg-config \
+            unzip curl git ccache gettext-base
+          pip3 install --user mako meson ninja
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Env
+        run: |
+          echo "NDK_VER=android-ndk-r27c" >> $GITHUB_ENV
+          echo "SDK_VER=29" >> $GITHUB_ENV
+          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+          TAG="${{ github.event.inputs.mesa_tag }}"
+          if [ -z "$TAG" ]; then TAG="mesa-25.1.4"; fi
+          echo "MESA_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Download NDK
+        run: |
+          curl -L "https://dl.google.com/android/repository/${NDK_VER}-linux.zip" -o ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+
+      - name: Clone Mesa + drm + build-fix
+        run: |
+          git clone --depth 1 --branch libdrm-2.4.122 https://gitlab.freedesktop.org/mesa/drm.git \
+            || git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
+          git clone --depth 1 --branch "${MESA_TAG}" https://gitlab.freedesktop.org/mesa/mesa.git \
+            || git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git
+          # Prefer versioned build-fix branch if present
+          git clone --depth 1 --branch "${MESA_TAG#mesa-}" https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
+            || git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
+            || true
+          if [ -d mesa-build-fix ]; then
+            echo "Applying mesa-build-fix..."
+            cp -rf mesa-build-fix/* mesa/ || true
+          fi
+
+      - name: Apply Mali Zink glitch patches (MC18)
+        run: |
+          cd mesa
+          python3 ../scripts/mc18_patch.py
+
+      - name: Write meson cross-files
+        run: |
+          cat > cross-drm.ini << 'EOF'
+          [binaries]
+          ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
+          ar = ndk + '/llvm-ar'
+          c = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC']
+          cpp = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-static-libstdc++']
+          c_ld = 'lld'
+          cpp_ld = 'lld'
+          strip = ndk + '/aarch64-linux-android-strip'
+          pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.', '/usr/bin/pkg-config']
+          [host_machine]
+          system = 'android'
+          cpu_family = 'arm'
+          cpu = 'armv8'
+          endian = 'little'
+          EOF
+          envsubst < cross-drm.ini > build-crossfile-drm
+
+          cat > cross-mesa.ini << 'EOF'
+          [binaries]
+          ndk = '${WORK_DIR}/${NDK_VER}/toolchains/llvm/prebuilt/linux-x86_64/bin'
+          ar = ndk + '/llvm-ar'
+          c = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC']
+          cpp = ['ccache', ndk + '/aarch64-linux-android${SDK_VER}-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-static-libstdc++', '-Wno-c++11-narrowing']
+          c_ld = 'lld'
+          cpp_ld = 'lld'
+          strip = ndk + '/aarch64-linux-android-strip'
+          pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.:/tmp/drm-static/lib/pkgconfig', '/usr/bin/pkg-config']
+          [host_machine]
+          system = 'android'
+          cpu_family = 'arm'
+          cpu = 'armv8'
+          endian = 'little'
+          EOF
+          envsubst < cross-mesa.ini > build-crossfile
+
+      - name: Build libdrm (static)
+        run: |
+          cd drm
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dfreedreno=enabled -Dvc4=disabled -Detnaviv=disabled \
+            -Dfreedreno-kgsl=true \
+            -Dcairo-tests=disabled -Dvalgrind=disabled -Dtests=false || \
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dcairo-tests=disabled -Dvalgrind=disabled -Dtests=false
+          ninja -C build-android install
+
+      - name: Build Mesa (OSMesa + Zink) — Vera flags
+        run: |
+          cd mesa
+          # Exact pattern from Vera-Firefly/android-mesa-build (fixes driParseConfigFiles link)
+          meson setup build-android \
+            --prefix=/tmp/mesa \
+            --cross-file "../build-crossfile" \
+            -Dplatforms=android \
+            -Dplatform-sdk-version=33 \
+            -Dandroid-stub=true \
+            -Dandroid-libbacktrace=disabled \
+            -Dandroid-strict=false \
+            -Dxlib-lease=disabled \
+            -Degl=disabled \
+            -Dgbm=disabled \
+            -Dglx=disabled \
+            -Dllvm=disabled \
+            -Dopengl=true \
+            -Dosmesa=true \
+            -Dvulkan-drivers= \
+            -Dtools=drm-shim \
+            -Dgallium-drivers=zink,freedreno \
+            -Dfreedreno-kmds=kgsl,msm \
+            -Dbuildtype=release
+          ninja -C build-android -j"$(nproc)" install
+
+      - name: Package
+        run: |
+          mkdir -p out/arm64-v8a
+          if [ -f /tmp/mesa/lib/libOSMesa.so ]; then
+            cp /tmp/mesa/lib/libOSMesa.so out/arm64-v8a/libOSMesa_8.so
+          elif [ -f /tmp/mesa/lib/libOSMesa.so.8 ]; then
+            cp /tmp/mesa/lib/libOSMesa.so.8 out/arm64-v8a/libOSMesa_8.so
+          else
+            echo "libOSMesa not found"
+            find /tmp/mesa -name '*OSMesa*' || true
+            find /tmp/mesa -name '*.so*' | head -50 || true
+            exit 1
+          fi
+          find /tmp/mesa -name '*drm_shim*' -exec cp {} out/arm64-v8a/ \; 2>/dev/null || true
+          ls -la out/arm64-v8a/
+          cd out && zip -r ../mesa-zink-arm64-osmesa.zip .
+          ls -lh ../mesa-zink-arm64-osmesa.zip
+          file arm64-v8a/libOSMesa_8.so || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-zink-arm64-osmesa-mc18
+          path: mesa-zink-arm64-osmesa.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit new libOSMesa_8.so into Mega-checkpoint
+        run: |
+          cp -v out/arm64-v8a/libOSMesa_8.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          if git diff --cached --quiet; then
+            echo "libOSMesa_8.so unchanged, nothing to commit"
+          else
+            git pull --rebase || true
+            git commit -m "feat: MC18 - Mesa zink with Mali block-glitch fix (inconsistent_interpolation + Minecraft driconf profile)"
+            git push
+            echo "MC18: new libOSMesa_8.so committed"
+          fi
