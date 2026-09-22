@@ -35,13 +35,13 @@ def main():
     if len(t) < 5000 or 'osm_swap_buffers' not in t:
         print('pristine download failed (%d bytes)' % len(t))
         sys.exit(1)
-    for i, (old, new) in enumerate(pairs):
-        if new in t:
+    for i, (o, n) in enumerate(pairs):
+        if n in t:
             continue
-        if old not in t:
-            print('pair %d anchor missing: %s' % (i, old[:60]))
+        if o not in t:
+            print('pair %d anchor missing: %s' % (i, o[:60]))
             sys.exit(1)
-        t = t.replace(old, new, 1)
+        t = t.replace(o, n, 1)
     got = hashlib.sha1(t.encode()).hexdigest()
     if got != EXPECTED_SHA:
         print('sha mismatch: %s (want %s)' % (got, EXPECTED_SHA))
