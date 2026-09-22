@@ -37,7 +37,7 @@ static int shim_init(void) {
         return 0;
     }
     g_icd_gipa = (mjlvlk_gipa_fn) dlsym(g_icd, "vk_icdGetInstanceProcAddr");
-    if (!g_id_gipa) {
+    if (!g_icd_gipa) {
         printf("mjlvlk: %s has no vk_icdGetInstanceProcAddr export\n", path);
         return 0;
     }
