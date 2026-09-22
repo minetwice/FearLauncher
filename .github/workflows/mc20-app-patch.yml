@@ -1,16 +1,13 @@
 name: MC20 App Patch (panfork renderer)
 
 # Runs scripts/mc20_patch_app_ci.py, which idempotently wires the "panfork"
-# renderer into the app (JREUtils.java, headings_array.xml incl. restoring the
-# accidentally dropped customctrl_selectdefault menu entry, lwjgl_dlopen_hook.c)
-# and commits the result. The first step repairs known transport corruption
-# in the pushed patch script.
+# renderer into the app and commits the result. A repair step first fixes
+# known transport corruption inside the pushed patch script.
 on:
   push:
     branches: [ Mega-checkpoint ]
     paths:
       - 'scripts/mc20_patch_app_ci.py'
-      - 'scripts/mc20_fix.py'
   workflow_dispatch:
 
 permissions:
@@ -30,29 +27,30 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Repair patch script (transport corruption fixes)
+      - name: Repair patch script
         run: |
           python3 - << 'PY'
           from pathlib import Path
+          import hashlib
           p = Path('scripts/mc20_patch_app_ci.py')
           t = p.read_text()
-          fixed = []
+          B = 'Gall' + 'ium_driver=panfrost'
+          G = 'GAL' + 'LIUM_DRIVER=panfrost'
           fixes = [
-              ('Gallium_driver=panfrost', 'GALLIUM_DRIVER=panfrost'),
-              ('       t = t.replace(old, new, 1)', '        t = t.replace(old, new, 1)'),
-              ('RENDERER_VK_ZINC', 'RENDERER_VK_ZINK'),
-              ('t.counv(', 't.count('),
+              (B, G),
+              (' ' * 7 + 't = t.replace(old, new, 1)', ' ' * 8 + 't = t.replace(old, new, 1)'),
+              ('RENDERER_VK_ZIN' + 'C', 'RENDERER_VK_ZIN' + 'K'),
+              ('t.co' + 'unv(', 't.co' + 'unt('),
           ]
+          applied = []
           for bad, good in fixes:
               if bad in t and bad != good:
                   n = t.count(bad)
                   t = t.replace(bad, good)
-                  fixed.append('%s -> %s (x%d)' % (bad, good, n))
+                  applied.append('%d replacement(s)' % n)
           p.write_text(t)
-          import hashlib
-          data = t.encode()
-          print('post-fix sha1:', hashlib.sha1(data).hexdigest())
-          print('fixes applied:', fixed if fixed else 'none')
+          print('post-fix sha1:', hashlib.sha1(t.encode()).hexdigest())
+          print('applied:', applied if applied else 'none')
           PY
 
       - name: Run patch script
