@@ -4,8 +4,8 @@ name: MC19 Build PanVK driver (arm64)
 # Export fixes vs old sync-panvk-driver build:
 #   1. --default-library=static links the libdrm subproject in (old binary
 #      had UND drm* symbols -> would fail to dlopen).
-#   2. c_link_args -Wl,-u,vk_icd* force-keeps the ICD entry points that
-#      --gc-sections was stripping (old binary exported nothing).
+#   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link
+#      only (global c_link_args would poison meson's link checks).
 #   3. Hard verification: FAILS unless vk_icdGetInstanceProcAddr is exported.
 on:
   push:
@@ -117,11 +117,24 @@ jobs:
             -Dmicrosoft-clc=disabled \
             -Dbuildtype=release
 
-      - name: Force ICD exports into the link
+      - name: Force ICD exports into the final link (surgical build.ninja patch)
         run: |
-          cd mesa
-          meson configure build-android \
-            -Dc_link_args="-Wl,--undefined-version;-Wl,-u,vk_icdGetInstanceProcAddr;-Wl,-u,vk_icdNegotiateLoaderICDInterfaceVersion;-Wl,-u,vk_icdEnumerateInstanceExtensionProperties;-Wl,-u,vk_icdEnumerateInstanceLayerProperties"
+          cd mesa/build-android
+          python3 - << 'PYEOF'
+          p = 'build.ninja'
+          t = open(p).read()
+          flags = ' -Wl,--undefined-version -Wl,-u,vk_icdGetInstanceProcAddr -Wl,-u,vk_icdNegotiateLoaderICDInterfaceVersion -Wl,-u,vk_icdEnumerateInstanceExtensionProperties -Wl,-u,vk_icdEnumerateInstanceLayerProperties'
+          start = t.index('build src/panfrost/vulkan/libvulkan_panfrost.so:')
+          seg = t[start:]
+          li = seg.index('  LINK_ARGS = ')
+          end = seg.index(chr(10), li)
+          old = seg[li:end]
+          new = old + flags
+          t = t[:start] + seg.replace(old, new, 1)
+          open(p, 'w').write(t)
+          print('patched LINK_ARGS for libvulkan_panfrost.so:')
+          print(new[:240])
+          PYEOF
 
       - name: Compile Mesa
         run: |
