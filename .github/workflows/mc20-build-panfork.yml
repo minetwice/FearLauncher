@@ -102,7 +102,6 @@ jobs:
             -Dnouveau=disabled \
             -Dvmwgfx=disabled \
             -Dvc4=disabled \
-            -Dfreedreno=disabled \
             -Detnaviv=disabled \
             -Dman-pages=disabled \
             -Dtests=false
@@ -192,7 +191,7 @@ jobs:
           fi
           echo "--- panfrost wired in (string counts):"
           strings "$LIB" | grep -c "panfrost" || true
-          strings "$LIB" | grep "PANFORK\|/dev/mali" | head -5 || true
+          strings "$LIB" | grep "PANFORK\\|/dev/mali" | head -5 || true
           if ! strings "$LIB" | grep -q "/dev/mali"; then
             echo "FATAL: kbase device open path missing - panfrost not compiled in?"
             exit 1
