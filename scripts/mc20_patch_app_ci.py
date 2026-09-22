@@ -1,205 +1,186 @@
 #!/usr/bin/env python3
-"""MC20: apply Panfork renderer wiring to FearLauncher app files. Idempotent.
-
-Run from the repository root. Patches:
-  1. res/values/headings_array.xml - restore customctrl_selectdefault (lost in a
-     bad push), add the Panfork renderer to the renderer arrays.
-  2. utils/JREUtils.java - panfork renderer case + env + lib selection.
-  3. jni/jvm_hooks/lwjgl_dlopen_hook.c - panfork branch in glfwInit (no Vulkan
-     preload, Gallium_driver=panfrost, PAN_MESA_DEBUG=gl3,noafbc).
-"""
+"""MC20 diag patch v2: instrument osm_bridge.c (OSMDIAG pixel sampling + present tracing).
+Starts from the pristine file at commit fffcc05 (remote HEAD may be corrupted),
+applies replacements, sha1-verifies the result, and commits+pushes only on exact match.
+Run from the repository root."""
+import hashlib
+import subprocess
 import sys
 from pathlib import Path
 
-ok = True
+PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
+PRISTINE_URL = ('https://raw.githubusercontent.com/minetwice/FearLauncher/'
+                    'fffcc05/' + PATH)
+EXPECTED_SHA = '06fe0c7d4317e26aa376ebcc5956a54ac53d0193'
 
-def must(cond, msg):
-    global ok
-    if not cond:
-        print('FAIL:', msg)
-        ok = False
-    else:
-        print('ok:', msg)
+PAIRS = [
+    ('#include <stdlib.h>\n#include <android/log.h>',
+     '#include <stdlib.h>\n#include <stdio.h>\n#include <android/log.h>'),
+    ('static __thread osm_render_window_t* currentBundle;\n',
+     'static __thread osm_render_window_t* currentBundle;\×‹ÊˆKKKHPÌŒXYÛ›ÜİXÜÎˆ^[Ø[\[™È
+È™\Ù[\]˜XÚ[™ÈKKKH
+‹×œİ]XÈ[œÚYÛ™Y×ÙXY×ÜİØ\ÈH×œİ]XÈ[œÚYÛ™Y×ÙXY×Ø›]ÈH×—œİ]XÈ›ÚYÜÛWÙXY×ÜØ[\JÛÛœİÚ\ŠˆÚ\™JH×ˆÜÛWÜ™[™\—İÚ[™İ×İ
+ˆˆHİ\œ™[[™N×ˆYˆ
+ˆOH•S
+H×ˆœš[Šİ\œ‹“ÔÓQPQÖÉ\×Nˆ“Èİ\œ™[[™Wˆ‹Ú\™JN×ˆ™]\›×ˆWˆ[œÚYÛ™YÛ™ÈÈHHœˆH×ˆYˆ
+‹O˜ÛÛÜ—ØY™™\ˆOH•S	‰ˆ‹O˜ÛÛÜ—İÚYˆ	‰ˆ‹O˜ÛÛÜ—ÚZYÚˆ
+H×ˆÛÛœİZ[Ì—İ
+ˆH
+ÛÛœİZ[Ì—İ
+ŠH‹O˜ÛÛÜ—ØY™™\×ˆÈHÊÚ^™Wİ
+J‹O˜ÛÛÜ—ÚZYÚÈŠH
+ˆ‹O˜ÛÛÜ—İÚY
+È
+‹O˜ÛÛÜ—İÚYÈŠWN×ˆHÌN×ˆœˆHÊÚ^™Wİ
+J‹O˜ÛÛÜ—ÚZYÚHJH
+ˆ‹O˜ÛÛÜ—İÚY
+È
+‹O˜ÛÛÜ—İÚYHJWN×ˆWˆœš[Šİ\œ‹“ÔÓQPQÖÉ\×NˆYI\	Y	Yİ\™I\Ú[I\\ØX›OIYİ]OIY—ˆ˜Ù[\L	LL	LœL	Lˆ‹ˆÚ\™K‹O˜ÛÛÜ—ØY™™\‹‹O˜ÛÛÜ—İÚY‹O˜ÛÛÜ—ÚZYÚˆ
+›ÚY
+ŠX‹O›˜]]™Tİ\™˜XÙK
+›ÚY
+ŠXœšYÙWÙ[š\›Û‹œÚ˜]•Ú[™İËˆ
+[
+X‹O™\ØX›WÜ™[™\š[™Ë
+[
+X‹Oœİ]KËœŠN×ŸW‰ÊKˆ
+	È×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÒS‘“Ë×ÓÙÕYË”İÚ]Ú[™ÈÈ™]È˜]]™Hİ\™˜XÙH	\‹ˆ[™KO›™]Ó˜]]™Tİ\™˜XÙJNÉËˆ	È×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÒS‘“Ë×ÓÙÕYË”İÚ]Ú[™ÈÈ™]È˜]]™Hİ\™˜XÙH	\‹ˆ[™KO›™]Ó˜]]™Tİ\™˜XÙJN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆ]XÚ[™È˜]]™Hİ\™˜XÙH	\ˆ‹
+›ÚY
+ŠX[™KO›™]Ó˜]]™Tİ\™˜XÙJNÉÊKˆ
+	È×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÕĞT“‹×ÓÙÕYË“›È˜]]™Hİ\™˜XÙH8 %ÛÛÜˆY™™\ˆÛ›HŠNÉËˆ	È×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÕĞT“‹×ÓÙÕYË“›È˜]]™Hİ\™˜XÙH8 %ÛÛÜˆY™™\ˆÛ›HŠN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆ›È˜]]™Hİ\™˜XÙH
+Ú˜]•Ú[™İÏI\
+H8 %™[™\š[™È\ØX›Yˆ‹ˆ
+›ÚY
+ŠXœšYÙWÙ[š\›Û‹œÚ˜]•Ú[™İÊNÉÊKˆ
+	ÈÊˆ[Ø^\È[œİ\™HÙH]™HHÛÛÜˆY™™\ˆ
+È›İ[™ÛÛ^
+‹×ˆ[Ë×ˆÜÛWÜ™\ÛÛ™WÜÚ^™J	Ë	š
+N×ˆYˆ
+ÜÛWÙ[œİ\™WØÛÛÜ—ØY™™\Š[™KË
+HOH
+WˆÜÛWØš[™ØÛÛÜŠ[™JN×ˆ[ÙHYˆ
+ÔÓY\ØSXZÙPİ\œ™[Ü
+WˆÔÓY\ØSXZÙPİ\œ™[Ü
+[™KO˜ÛÛ^•SÓÕS”ÒQÓ‘QĞ–UK
+N×ŸIËˆ	ÈÊˆ[Ø^\È[œİ\™HÙH]™HHÛÛÜˆY™™\ˆ
+È›İ[™ÛÛ^
+‹×ˆ[Ë×ˆÜÛWÜ™\ÛÛ™WÜÚ^™J	Ë	š
+N×ˆœš[Šİ\œ‹“ÔÓQPQÎˆXZÙWØİ\œ™[™\ÛÛ™Y	Y	Yˆ‹Ë
+N×ˆYˆ
+ÜÛWÙ[œİ\™WØÛÛÜ—ØY™™\Š[™KË
+HOH
+WˆÜÛWØš[™ØÛÛÜŠ[™JN×ˆ[ÙHYˆ
+ÔÓY\ØSXZÙPİ\œ™[Ü
+WˆÔÓY\ØSXZÙPİ\œ™[Ü
+[™KO˜ÛÛ^•SÓÕS”ÒQÓ‘QĞ–UK
+N×ˆÜÛWÙXY×ÜØ[\J›XZÙWØİ\œ™[ŠN×ŸIÊKˆ
+	ÈYˆ
+[™HOH•S[™KO›˜]]™Tİ\™˜XÙHOH•S[™KO˜ÛÛÜ—ØY™™\ˆOH•S
+Wˆ™]\›×ˆYˆ
+[™KO™\ØX›WÜ™[™\š[™ÊH™]\›ÉËˆ	ÈYˆ
+[™HOH•S[™KO›˜]]™Tİ\™˜XÙHOH•S[™KO˜ÛÛÜ—ØY™™\ˆOH•S
+H×ˆYˆ
 
-# ---------------- 1) headings_array.xml ----------------
-p = Path('app_pojavlauncher/src/main/res/values/headings_array.xml')
-t = p.read_text()
+×ÙXY×Ø›]ÊÊÈ	HLŒ
+HOH
+Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ÚÚ\Y
+[™OI\İ\™I\YI\
+Wˆ‹ˆ
+›ÚY
+ŠX[™K
+›ÚY
+ŠJ[™HÈ[™KO›˜]]™Tİ\™˜XÙHˆ•S
+Kˆ
+›ÚY
+ŠJ[™HÈ[™KO˜ÛÛÜ—ØY™™\ˆˆ•S
+JN×ˆ™]\›×ˆWˆYˆ
+[™KO™\ØX›WÜ™[™\š[™ÊH×ˆYˆ
 
-# 1a. restore the accidentally dropped menu entry (belongs in BOTH menu arrays)
-SEL = '        <item>@string/customctrl_selectdefault</item>\n'
-for arr_name, next_item in [
-    ('menu_customcontrol', '        <item>@string/customctrl_editor_exit</item>'),
-    ('menu_customcontrol_customactivity', '        <item>@string/customctrl_export</item>'),
-]:
-    ai = t.find('name="%s"' % arr_name)
-    if ai == -1:
-        must(False, 'array %s not found' % arr_name)
-        continue
-    ae = t.find('</string-array>', ai)
-    block = t[ai:ae]
-    if 'customctrl_selectdefault' in block:
-        print('ok: selectdefault already in %s' % arr_name)
-    else:
-        ni = block.find(next_item)
-        if ni == -1:
-            must(False, '%s next-item anchor not found' % arr_name)
-        else:
-            ins = ai + ni
-            t = t[:ins] + SEL + t[ins:]
-            must(True, 'restored customctrl_selectdefault in %s' % arr_name)
+×ÙXY×Ø›]ÊÊÈ	HLŒ
+HOH
+Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ÚÚ\Y
+™[™\š[™È\ØX›Y
+WˆŠN×ˆ™]\›×ˆIÊKˆ
+	ÈYˆ
+S˜]]™UÚ[™İ×ÛØÚÊ[™KO›˜]]™Tİ\™˜XÙK	›˜‹•S
+HOH
+H×ˆ×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÑT”“Ô‹×ÓÙÕYËS˜]]™UÚ[™İ×ÛØÚÈ˜Z[YŠN×ˆ™]\›×ˆIËˆ	ÈYˆ
+S˜]]™UÚ[™İ×ÛØÚÊ[™KO›˜]]™Tİ\™˜XÙK	›˜‹•S
+HOH
+H×ˆ×Ø[™›ÚYÛÙ×Üš[
+S‘“ÒQÓÑ×ÑT”“Ô‹×ÓÙÕYËS˜]]™UÚ[™İ×ÛØÚÈ˜Z[YŠN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆS˜]]™UÚ[™İ×ÛØÚÈRSQˆŠN×ˆ™]\›×ˆWˆYˆ
 
-# 1b. Panfork renderer display name
-if 'Panfork (OpenGL' not in t:
-    anchor = '        <item>PanVK Zink (Vulkan \u2014 open-source Mali driver, glitch-free)</item>\n'
-    must(anchor in t, 'PanVK display-name anchor found')
-    if anchor in t:
-        t = t.replace(anchor, anchor + '        <item>Panfork (OpenGL \u2014 open-source Mali driver, MC20)</item>\n', 1)
+×ÙXY×Ø›]ÊÊÈ	HLŒ
+HOH
+Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ØÚÙYİIY	YİšYOIYÜ˜ÏIY	Yˆ‹ˆ˜‹ÚY˜‹šZYÚ˜‹œİšYK[™KO˜ÛÛÜ—İÚY[™KO˜ÛÛÜ—ÚZYÚ
+NÉÊKˆ
+	İ›ÚYÜÛWÜİØ\ØY™™\œÊ
+H×ˆYˆ
+İ\œ™[[™HOH•S
+H™]\›×‰Ëˆ	İ›ÚYÜÛWÜİØ\ØY™™\œÊ
+H×ˆYˆ
+İ\œ™[[™HOH•S
+H×ˆYˆ
 
-# 1c. Panfork renderer value
-if '<item>panfork</item>' not in t:
-    anchor = '        <item>panvk_zink</item> <!-- MC19 PanVK Zink: Zink on the open-source Panfrost Vulkan driver -->\n'
-    must(anchor in t, 'panvk_zink value anchor found')
-    if anchor in t:
-        t = t.replace(anchor, anchor + '        <item>panfork</item> <!-- MC20 Panfork: open-source Panfrost GL directly on the kbase kernel driver, via OSMesa -->\n', 1)
+×ÙXY×ÜİØ\ÊÊÈ	HL
+HOH
+Wˆœš[Šİ\œ‹“ÔÓQPQÎˆİØ\Ú]“Èİ\œ™[[™WˆŠN×ˆ™]\›×ˆW‰ÊKˆ
+	ÈYˆ
+Ûš[š\ÚÜ
+HÛš[š\ÚÜ
 
-p.write_text(t)
-t = p.read_text()
-must(t.count('<item>@string/customctrl_selectdefault</item>') == 2, 'XML: menu entries present in both arrays')
-must(t.count('<item>panfork</item>') == 1, 'XML: panfork value added')
-must('Panfork (OpenGL' in t, 'XML: panfork display name added')
+N×—ˆÜÛWØ›]İ×Û˜]]™Jİ\œ™[[™JN×‰Ëˆ	ÈYˆ
+Ûš[š\ÚÜ
+HÛš[š\ÚÜ
 
-# ---------------- 2) JREUtils.java ----------------
-p = Path('app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java')
-t = p.read_text()
-if '"panfork"' not in t:
-    old = '''        switch(renderer) {
-            case "panvk_zink":'''
-    new = '''        switch(renderer) {
-            case "panfork":
-                // MC20: Panfork - open-source Panfrost Gallium driver talking
-                // directly to the ARM kbase kernel driver, via OSMesa.
-                // No proprietary userspace blob (the glitch source), no Vulkan,
-                // no Zink translation layer. GL 3.3 via PAN_MESA_DEBUG=gl3.
-                Logger.appendToLog("[Panfork] Initializing Panfork renderer (open-source Panfrost GL on kbase kernel driver)...");
-                envMap.put("GALLIUM_DRIVER", "panfrost");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "panfrost");
-                envMap.put("PAN_MESA_DEBUG", "gl3,noafbc");
-                envMap.put("vblank_mode", "0");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("FEAR_RENDERER", renderer);
-                break;
-            case "panvk_zink":'''
-    must(old in t, 'JREUtils setupRendererEnv anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
+N×—ˆYˆ
 
-    old = '''        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);'''
-    new = '''        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "panfork".equals(renderer);'''
-    must(old in t, 'JREUtils isZink anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
+×ÙXY×ÜİØ\ÊÊÈ	HÌ
+HOH
+WˆÜÛWÙXY×ÜØ[\JœİØ\ŠN×—ˆÜÛWØ›]İ×Û˜]]™Jİ\œ™[[™JN×‰ÊK—B‚™YˆXZ[Š
+N‚ˆH]
+U
+BˆHœ™XYİ^
 
-    old = '''        if (isZink) {
-            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");'''
-    new = '''        if (isZink) {
-            envMap.put("LIB_MESA_NAME", "panfork".equals(renderer) ? "libOSMesa_panfork.so" : "libOSMesa_8.so");'''
-    must(old in t, 'JREUtils LIB_MESA_NAME anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
+BˆYˆ\ÚX‹œÚLJ™[˜ÛÙJ
+JKš^YÙ\İ
 
-    old = '''        switch (renderer){
-            case "panvk_zink":'''
-    new = '''        if ("panfork".equals(renderer)) preloadVk = false;
+HOHVPÕQÔÒN‚ˆš[
+	ÛÜÛWØœšYÙK˜È[™XYH]ÚY
+ÚHÚÊHH›İ[™ÈÈÉÊBˆ™]\›‚ˆš[
+	ÙİÛ›ØY[™Èš\İ[™HÜÛWØœšYÙK˜Èœ›ÛH™™˜ØÌH‹‹‰ÊBˆØXÚWØ\İH\ÚX‹œÚLJ™[˜ÛÙJ
+JKš^YÙ\İ
 
-        switch (renderer){
-            case "panfork":
-                Logger.appendToLog("[Panfork] Loading Panfork OSMesa (libOSMesa_panfork.so)...");
-                renderLibrary = "libOSMesa_panfork.so";
-                useGles = false;
-                bypassNamespace = true;
-                glesVersion = 3;
-                if(preloadVk) preloadVulkan();
-                break;
-            case "panvk_zink":'''
-    must(old in t, 'JREUtils loadGraphicsLibrary anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
-    p.write_text(t)
+VÎBˆˆHİXœ›ØÙ\ÜËœ[ŠÉØİ\›	Ë	Ë\ÔÓ	Ë’TÕS‘WÕT“
+È	ÏİIÈ
+ÈØXÚWØ\İKˆØ\\™WÛİ]]UYK^UYKÚXÚÏUYJBˆH‹œİİ]ˆYˆ[Š
+HLÜˆ	ÛÜÛWÜİØ\ØY™™\œÉÈ›İ[ˆ‚ˆš[
+	Üš\İ[™HİÛ›ØY˜Z[Y
+	Y]\ÊIÈ	H[Š
+JBˆŞ\Ë™^]
+JBˆ›ÜˆK
+Û™]ÊH[ˆ[[Y\˜]JRT”ÊN‚ˆYˆ™]È[ˆ‚ˆÛÛ[YBˆYˆÛ›İ[ˆ‚ˆš[
+	ÜZ\ˆ	Y[˜ÚÜˆZ\ÜÚ[™Îˆ	\ÉÈ	H
+KÛÎŒJJBˆŞ\Ë™^]
+JBˆHœ™\XÙJÛ™]ËJBˆÛİH\ÚX‹œÚLJ™[˜ÛÙJ
+JKš^YÙ\İ
 
-t = p.read_text()
-must(t.count('"panfork"') >= 5, 'JREUtils: panfork wired (5+ refs)')
-
-# ---------------- 3) lwjgl_dlopen_hook.c ----------------
-p = Path('app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c')
-t = p.read_text()
-if 'is_panfork_renderer' not in t:
-    old = '''    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0 || strcmp(fear, "panvk_zink") == 0))
-        z = true;'''
-    new = '''    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0 || strcmp(fear, "panvk_zink") == 0 || strcmp(fear, "panfork") == 0))
-        z = true;'''
-    must(old in t, 'hook is_zink_renderer anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
-
-    old = '''static void hide_pojav_from_sodium(void) {
-    unsetenv("POJAV_RENDERER");
-    unsetenv("POJAV_LAUNCHER");
-    printf("LWJGL hook v2.12: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\\n");
-}'''
-    new = old + '''
-
-/* MC20: Panfork = Gallium panfrost on the ARM kbase kernel driver, via OSMesa.
-   No Vulkan loader is needed at all. GL 3.3 unlocked via PAN_MESA_DEBUG=gl3,
-   AFBC off (Minecraft block-texture glitches on Mali). */
-static bool is_panfork_renderer(void) {
-    const char* fear = getenv("FEAR_RENDERER");
-    return fear && strcmp(fear, "panfork") == 0;
-}
-
-static void force_panfork_env(void) {
-    setenv("GALLIUM_DRIVER", "panfrost", 1);
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "panfrost", 1);
-    setenv("PAN_MESA_DEBUG", "gl3,noafbc", 1);
-    setenv("mesa_glthread", "false", 1);
-    unsetenv("LIBGL_ES");
-    const char* cache = getenv("MESA_GLSL_CACHE_DIR");
-    if (cache && cache[0]) {
-        setenv("MESA_SHADER_CACHE_DIR", cache, 1);
-        setenv("XDG_CACHE_HOME", cache, 0);
-        setenv("XDG_CONFIG_HOME", cache, 0);
-    }
-    if (!getenv("HOME") || !getenv("HOME")[0]) {
-        setenv("HOME", cache && cache[0] ? cache : "/data/local/tmp", 1);
-    }
-    printf("LWJGL hook v2.12: PANFORK env active (GALLIUM_DRIVER=panfrost, PAN_MESA_DEBUG=gl3,noafbc)\\n");
-}'''
-    must(old in t, 'hook hide_pojav anchor found')
-    if old in t:
-       t = t.replace(old, new, 1)
-
-    old = '''    if (!g_glfw_initialized) {
-        force_zink_env();
-        bridge_environ.config_renderer = RENDERER_VK_ZINC;
-        ensure_vulkan_ptr();'''
-    new = '''    if (!g_glfw_initialized) {
-        if (is_panfork_renderer()) {
-            force_panfork_env();
-            /* Same OSMesa present path as zink; no Vulkan driver is loaded. */
-            bridge_environ.config_renderer = RENDERER_VK_ZINK;
-        } else {
-            force_zink_env();
-            bridge_environ.config_renderer = RENDERER_VK_ZINC;
-            ensure_vulkan_ptr();
-        }'''
-    must(old in t, 'hook glfwInit anchor found')
-    if old in t:
-        t = t.replace(old, new, 1)
-    p.write_text(t)
-
-t = p.read_text()
-must(t.counv('is_panfork_renderer') == 2, 'hook: is_panfork_renderer defined+used')
-must('force_panfork_env' in t, 'hook: force_panfork_env present')
-
-print()
-print('ALL OK' if ok else 'FAILURES PRESENT - NOT COMMITTING')
-sys.exit(0 if ok else 1)
+BˆYˆÛİOHVPÕQÔÒN‚ˆš[
+	ÜÚHZ\ÛX]ÚY\ˆ]Úˆ	\È
+Ø[	\ÊIÈ	H
+ÛİVPÕQÔÒJJBˆŞ\Ë™^]
+JBˆÜš]Wİ^
+
+Bˆš[
+	Ü]ÚYÒËÚH	\ÉÈ	HÛİ
+BˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ØY	ËUKÚXÚÏUYJBˆHHİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ÙY™‰Ë	ËKXØXÚY	Ë	ËK\]ZY]	×JBˆYˆKœ™]\›˜ÛÙHOH‚ˆš[
+	Û›ÈÚ[™Ù\ÈÈÛÛ[Z]	ÊBˆ™]\›‚ˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ËXÉË	İ\Ù\‹›˜[YOUÚXÙY™X\‰Ëˆ	ËXÉË	İ\Ù\‹™[XZ[^]ÍÍÛXZ[˜ÛÛIËˆ	ØÛÛ[Z]	Ë	Ë[IËˆ	ÓPÌŒXYÎˆÜÛWØœšYÙHÔÓQPQÈ[œİ[Y[][Ûˆ
+ÒHØÜš\ŒŠI×KÚXÚÏUYJBˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	Ü\Ú	×KÚXÚÏUYJBˆš[
+	ØÛÛ[Z]Y
+È\ÚY	ÊB‚›XZ[Š
+B
