@@ -32,7 +32,7 @@ static bool is_zink_renderer() {
     const char* gallium = getenv("GALLIUM_DRIVER");
     const char* renderer = getenv("POJAV_RENDERER");
     bool z = false;
-    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0))
+    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0 || strcmp(fear, "panvk_zink") == 0))
         z = true;
     else if (gallium && strcmp(gallium, "zink") == 0)
         z = true;
