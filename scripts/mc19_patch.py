@@ -31,6 +31,9 @@ def write(p, t):
 
 def patch(p, old, new, what, expect=1):
     t = read(p)
+    if new in t:
+        print("MC19: already patched " + what + ", skipping")
+        return
     n = t.count(old)
     if n != expect:
         die("%s: anchor found %d times (expected %d)" % (what, n, expect))
