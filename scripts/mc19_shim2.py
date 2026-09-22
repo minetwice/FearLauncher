@@ -4,7 +4,7 @@ static int wrapped_vkCreateInstance(const void* ci, const void* ac, void** out) 
     if (!shim_init())
         return -13; /* VK_ERROR_INITIALIZATION_FAILED */
     int (*real)(const void*, const void*, void**) =
-        (int (*)(const void*, const void*, void**))g_icd_gipa(NULL, "vkCreateInstance");
+        (int (**(const void*, const void*, void**))g_icd_gipa(NULL, "vkCreateInstance");
     if (!real)
         return -13;
     int r = real(ci, ac, out);
@@ -42,3 +42,4 @@ void* vkGetDeviceProcAddr(void* device, const char* pName) {
     return g_icd_gdpa(device, pName);
 }
 '''
+# v2 - byte-exact retry marker
