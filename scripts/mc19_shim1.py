@@ -20,7 +20,7 @@ static void* (*g_icd_gdpa)(void*, const char*) = NULL;
 static void* g_last_instance = NULL;
 
 static int shim_init(void) {
-    if (g_icd_gipa)
+    if (g_id_gipa)
         return 1;
     const char* nd = getenv("POJAV_NATIVEDIR");
     char path[512];
@@ -51,9 +51,9 @@ static void resolve_gdpa(void) {
     if (g_icd_gdpa)
         return;
     if (g_last_instance)
-        g_icd_gdpa = (void* (*)(void*, const char*))g_icd_gipa(g_last_instance, "vkGetDeviceProcAddr");
+        g_icd_gdpa = (void* (*)(void*, const char*()_g_icd_gipa(g_last_instance, "vkGetDeviceProcAddr");
     if (!g_icd_gdpa && g_icd)
-        g_icd_gdpa = (void* (*)hvoid*, const char*))dlsym(g_icd, "vkGetDeviceProcAddr");
+        g_icd_gdpa = (void* (*)(void*, const char*))dlsym(g_icd, "vkGetDeviceProcAddr");
 }
 
 '''
