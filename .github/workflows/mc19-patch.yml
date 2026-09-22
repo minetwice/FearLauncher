@@ -24,17 +24,17 @@ jobs:
         with:
           persist-credentials: true
 
-    - name: Apply MC19 patches (PanVK Zink renderer)
+      - name: Apply MC19 patches (PanVK Zink renderer)
         run: python3 scripts/mc19_patch.py
 
-    - name: Commit
+      - name: Commit
         run: |
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
           git add -A
           if git diff --cached --quiet; then
             echo "nothing to commit (already patched)"
-         else
+          else
             git pull --rebase || true
             git commit -m "feat: MC19 - PanVK Zink renderer (open-source Panfrost Vulkan driver) + libmjlvlk shim"
             git push
