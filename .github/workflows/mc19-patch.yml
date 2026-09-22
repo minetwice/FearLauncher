@@ -1,0 +1,42 @@
+name: mc19 patch
+
+on:
+  push:
+    branches: [ Mega-checkpoint ]
+    paths:
+      - '.github/workflows/mc19-patch.yml'
+      - 'scripts/mc19_patch.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mc19-patch
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+    - name: Apply MC19 patches (PanVK Zink renderer)
+        run: python3 scripts/mc19_patch.py
+
+    - name: Commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "nothing to commit (already patched)"
+         else
+            git pull --rebase || true
+            git commit -m "feat: MC19 - PanVK Zink renderer (open-source Panfrost Vulkan driver) + libmjlvlk shim"
+            git push
+            echo "MC19 app patch committed"
+          fi
