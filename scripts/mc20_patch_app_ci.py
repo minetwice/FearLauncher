@@ -1,186 +1,63 @@
 #!/usr/bin/env python3
-"""MC20 diag patch v2: instrument osm_bridge.c (OSMDIAG pixel sampling + present tracing).
-Starts from the pristine file at commit fffcc05 (remote HEAD may be corrupted),
-applies replacements, sha1-verifies the result, and commits+pushes only on exact match.
-Run from the repository root."""
+"""MC20 diag patch v3 loader: assembles pairs from scripts/diag_parts/, then
+patches osm_bridge.c starting from the pristine file at commit fffcc05,
+sha1-verifies, and commits+pushes only on exact match."""
+import glob
 import hashlib
 import subprocess
 import sys
 from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
-PRISTINE_URL = ('https://raw.githubusercontent.com/minetwice/FearLauncher/'
-                    'fffcc05/' + PATH)
-EXPECTED_SHA = '06fe0c7d4317e26aa376ebcc5956a54ac53d0193'
+URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
+EXPECTED_SHA = 'caf5ab28ce7b3e9d455a050040cb82d52ef92874'
 
-PAIRS = [
-    ('#include <stdlib.h>\n#include <android/log.h>',
-     '#include <stdlib.h>\n#include <stdio.h>\n#include <android/log.h>'),
-    ('static __thread osm_render_window_t* currentBundle;\n',
-     'static __thread osm_render_window_t* currentBundle;\×‹ÊˆKKKHPÌŒXYÛ›ÜİXÜÎˆ^[Ø[\[™È
-È™\Ù[\]˜XÚ[™ÈKKKH
-‹×œİ]XÈ[œÚYÛ™Y×ÙXY×ÜİØ\ÈH×œİ]XÈ[œÚYÛ™Y×ÙXY×Ø›]ÈH×—œİ]XÈ›ÚYÜÛWÙXY×ÜØ[\JÛÛœİÚ\ŠˆÚ\™JH×ˆÜÛWÜ™[™\—İÚ[™İ×İ
-ˆˆHİ\œ™[[™N×ˆYˆ
-ˆOH•S
-H×ˆœš[Šİ\œ‹“ÔÓQPQÖÉ\×Nˆ“Èİ\œ™[[™Wˆ‹Ú\™JN×ˆ™]\›×ˆWˆ[œÚYÛ™YÛ™ÈÈHHœˆH×ˆYˆ
-‹O˜ÛÛÜ—ØY™™\ˆOH•S	‰ˆ‹O˜ÛÛÜ—İÚYˆ	‰ˆ‹O˜ÛÛÜ—ÚZYÚˆ
-H×ˆÛÛœİZ[Ì—İ
-ˆH
-ÛÛœİZ[Ì—İ
-ŠH‹O˜ÛÛÜ—ØY™™\×ˆÈHÊÚ^™Wİ
-J‹O˜ÛÛÜ—ÚZYÚÈŠH
-ˆ‹O˜ÛÛÜ—İÚY
-È
-‹O˜ÛÛÜ—İÚYÈŠWN×ˆHÌN×ˆœˆHÊÚ^™Wİ
-J‹O˜ÛÛÜ—ÚZYÚHJH
-ˆ‹O˜ÛÛÜ—İÚY
-È
-‹O˜ÛÛÜ—İÚYHJWN×ˆWˆœš[Šİ\œ‹“ÔÓQPQÖÉ\×NˆYI\	Y	Yİ\™I\Ú[I\\ØX›OIYİ]OIY—ˆ˜Ù[\L	LL	LœL	Lˆ‹ˆÚ\™K‹O˜ÛÛÜ—ØY™™\‹‹O˜ÛÛÜ—İÚY‹O˜ÛÛÜ—ÚZYÚˆ
-›ÚY
-ŠX‹O›˜]]™Tİ\™˜XÙK
-›ÚY
-ŠXœšYÙWÙ[š\›Û‹œÚ˜]•Ú[™İËˆ
-[
-X‹O™\ØX›WÜ™[™\š[™Ë
-[
-X‹Oœİ]KËœŠN×ŸW‰ÊKˆ
-	È×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÒS‘“Ë×ÓÙÕYË”İÚ]Ú[™ÈÈ™]È˜]]™Hİ\™˜XÙH	\‹ˆ[™KO›™]Ó˜]]™Tİ\™˜XÙJNÉËˆ	È×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÒS‘“Ë×ÓÙÕYË”İÚ]Ú[™ÈÈ™]È˜]]™Hİ\™˜XÙH	\‹ˆ[™KO›™]Ó˜]]™Tİ\™˜XÙJN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆ]XÚ[™È˜]]™Hİ\™˜XÙH	\ˆ‹
-›ÚY
-ŠX[™KO›™]Ó˜]]™Tİ\™˜XÙJNÉÊKˆ
-	È×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÕĞT“‹×ÓÙÕYË“›È˜]]™Hİ\™˜XÙH8 %ÛÛÜˆY™™\ˆÛ›HŠNÉËˆ	È×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÕĞT“‹×ÓÙÕYË“›È˜]]™Hİ\™˜XÙH8 %ÛÛÜˆY™™\ˆÛ›HŠN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆ›È˜]]™Hİ\™˜XÙH
-Ú˜]•Ú[™İÏI\
-H8 %™[™\š[™È\ØX›Yˆ‹ˆ
-›ÚY
-ŠXœšYÙWÙ[š\›Û‹œÚ˜]•Ú[™İÊNÉÊKˆ
-	ÈÊˆ[Ø^\È[œİ\™HÙH]™HHÛÛÜˆY™™\ˆ
-È›İ[™ÛÛ^
-‹×ˆ[Ë×ˆÜÛWÜ™\ÛÛ™WÜÚ^™J	Ë	š
-N×ˆYˆ
-ÜÛWÙ[œİ\™WØÛÛÜ—ØY™™\Š[™KË
-HOH
-WˆÜÛWØš[™ØÛÛÜŠ[™JN×ˆ[ÙHYˆ
-ÔÓY\ØSXZÙPİ\œ™[Ü
-WˆÔÓY\ØSXZÙPİ\œ™[Ü
-[™KO˜ÛÛ^•SÓÕS”ÒQÓ‘QĞ–UK
-N×ŸIËˆ	ÈÊˆ[Ø^\È[œİ\™HÙH]™HHÛÛÜˆY™™\ˆ
-È›İ[™ÛÛ^
-‹×ˆ[Ë×ˆÜÛWÜ™\ÛÛ™WÜÚ^™J	Ë	š
-N×ˆœš[Šİ\œ‹“ÔÓQPQÎˆXZÙWØİ\œ™[™\ÛÛ™Y	Y	Yˆ‹Ë
-N×ˆYˆ
-ÜÛWÙ[œİ\™WØÛÛÜ—ØY™™\Š[™KË
-HOH
-WˆÜÛWØš[™ØÛÛÜŠ[™JN×ˆ[ÙHYˆ
-ÔÓY\ØSXZÙPİ\œ™[Ü
-WˆÔÓY\ØSXZÙPİ\œ™[Ü
-[™KO˜ÛÛ^•SÓÕS”ÒQÓ‘QĞ–UK
-N×ˆÜÛWÙXY×ÜØ[\J›XZÙWØİ\œ™[ŠN×ŸIÊKˆ
-	ÈYˆ
-[™HOH•S[™KO›˜]]™Tİ\™˜XÙHOH•S[™KO˜ÛÛÜ—ØY™™\ˆOH•S
-Wˆ™]\›×ˆYˆ
-[™KO™\ØX›WÜ™[™\š[™ÊH™]\›ÉËˆ	ÈYˆ
-[™HOH•S[™KO›˜]]™Tİ\™˜XÙHOH•S[™KO˜ÛÛÜ—ØY™™\ˆOH•S
-H×ˆYˆ
+pairs = []
+for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
+    g = {}
+    exec(compile(Path(f).read_text(), f, 'exec'), g)
+    pairs.append((g['OLD'].decode('utf-8'), g['NEW'].decode('utf-8')))
+if len(pairs) != 9:
+    print('expected 9 parts, got %d' % len(pairs))
+    sys.exit(1)
 
-×ÙXY×Ø›]ÊÊÈ	HLŒ
-HOH
-Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ÚÚ\Y
-[™OI\İ\™I\YI\
-Wˆ‹ˆ
-›ÚY
-ŠX[™K
-›ÚY
-ŠJ[™HÈ[™KO›˜]]™Tİ\™˜XÙHˆ•S
-Kˆ
-›ÚY
-ŠJ[™HÈ[™KO˜ÛÛÜ—ØY™™\ˆˆ•S
-JN×ˆ™]\›×ˆWˆYˆ
-[™KO™\ØX›WÜ™[™\š[™ÊH×ˆYˆ
+def main():
+    p = Path(PATH)
+    t = p.read_text()
+    if hashlib.sha1(t.encode()).hexdigest() == EXPECTED_SHA:
+        print('already patched (sha ok) - nothing to do')
+        return
+    print('downloading pristine from fffcc05 ...')
+    bust = hashlib.sha1(t.encode()).hexdigest()[:8]
+    r = subprocess.run(['curl', '-sSL', URL + '?v=' + bust],
+                       capture_output=True, text=True, check=True)
+    t = r.stdout
+    if len(t) < 5000 or 'osm_swap_buffers' not in t:
+        print('pristine download failed (%d bytes)' % len(t))
+        sys.exit(1)
+    for i, (old, new) in enumerate(pairs):
+        if new in t:
+            continue
+        if old not in t:
+            print('pair %d anchor missing: %s' % (i, old[:60]))
+            sys.exit(1)
+        t = t.replace(old, new, 1)
+    got = hashlib.sha1(t.encode()).hexdigest()
+    if got != EXPECTED_SHA:
+        print('sha mismatch: %s (want %s)' % (got, EXPECTED_SHA))
+        sys.exit(1)
+    p.write_text(t)
+    print('patched OK, sha %s' % got)
+    subprocess.run(['git', 'add', PATH], check=True)
+    q = subprocess.run(['git', 'diff', '--cached', '--quiet'])
+    if q.returncode == 0:
+        print('no changes to commit')
+        return
+    subprocess.run(['git', '-c', 'user.name=Twicefear',
+                    '-c', 'user.email=ytd82774@gmail.com',
+                    'commit', '-m',
+                    'MC20 diag: osm_bridge OSMDIAG instrumentation (CI script v3)'], check=True)
+    subprocess.run(['git', 'push'], check=True)
+    print('committed + pushed')
 
-×ÙXY×Ø›]ÊÊÈ	HLŒ
-HOH
-Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ÚÚ\Y
-™[™\š[™È\ØX›Y
-WˆŠN×ˆ™]\›×ˆIÊKˆ
-	ÈYˆ
-S˜]]™UÚ[™İ×ÛØÚÊ[™KO›˜]]™Tİ\™˜XÙK	›˜‹•S
-HOH
-H×ˆ×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÑT”“Ô‹×ÓÙÕYËS˜]]™UÚ[™İ×ÛØÚÈ˜Z[YŠN×ˆ™]\›×ˆIËˆ	ÈYˆ
-S˜]]™UÚ[™İ×ÛØÚÊ[™KO›˜]]™Tİ\™˜XÙK	›˜‹•S
-HOH
-H×ˆ×Ø[™›ÚYÛÙ×Üš[
-S‘“ÒQÓÑ×ÑT”“Ô‹×ÓÙÕYËS˜]]™UÚ[™İ×ÛØÚÈ˜Z[YŠN×ˆœš[Šİ\œ‹“ÔÓQPQÎˆS˜]]™UÚ[™İ×ÛØÚÈRSQˆŠN×ˆ™]\›×ˆWˆYˆ
-
-×ÙXY×Ø›]ÊÊÈ	HLŒ
-HOH
-Wˆœš[Šİ\œ‹“ÔÓQPQÎˆ›]ØÚÙYİIY	YİšYOIYÜ˜ÏIY	Yˆ‹ˆ˜‹ÚY˜‹šZYÚ˜‹œİšYK[™KO˜ÛÛÜ—İÚY[™KO˜ÛÛÜ—ÚZYÚ
-NÉÊKˆ
-	İ›ÚYÜÛWÜİØ\ØY™™\œÊ
-H×ˆYˆ
-İ\œ™[[™HOH•S
-H™]\›×‰Ëˆ	İ›ÚYÜÛWÜİØ\ØY™™\œÊ
-H×ˆYˆ
-İ\œ™[[™HOH•S
-H×ˆYˆ
-
-×ÙXY×ÜİØ\ÊÊÈ	HL
-HOH
-Wˆœš[Šİ\œ‹“ÔÓQPQÎˆİØ\Ú]“Èİ\œ™[[™WˆŠN×ˆ™]\›×ˆW‰ÊKˆ
-	ÈYˆ
-Ûš[š\ÚÜ
-HÛš[š\ÚÜ
-
-N×—ˆÜÛWØ›]İ×Û˜]]™Jİ\œ™[[™JN×‰Ëˆ	ÈYˆ
-Ûš[š\ÚÜ
-HÛš[š\ÚÜ
-
-N×—ˆYˆ
-
-×ÙXY×ÜİØ\ÊÊÈ	HÌ
-HOH
-WˆÜÛWÙXY×ÜØ[\JœİØ\ŠN×—ˆÜÛWØ›]İ×Û˜]]™Jİ\œ™[[™JN×‰ÊK—B‚™YˆXZ[Š
-N‚ˆH]
-U
-BˆHœ™XYİ^
-
-BˆYˆ\ÚX‹œÚLJ™[˜ÛÙJ
-JKš^YÙ\İ
-
-HOHVPÕQÔÒN‚ˆš[
-	ÛÜÛWØœšYÙK˜È[™XYH]ÚY
-ÚHÚÊHH›İ[™ÈÈÉÊBˆ™]\›‚ˆš[
-	ÙİÛ›ØY[™Èš\İ[™HÜÛWØœšYÙK˜Èœ›ÛH™™˜ØÌH‹‹‰ÊBˆØXÚWØ\İH\ÚX‹œÚLJ™[˜ÛÙJ
-JKš^YÙ\İ
-
-VÎBˆˆHİXœ›ØÙ\ÜËœ[ŠÉØİ\›	Ë	Ë\ÔÓ	Ë’TÕS‘WÕT“
-È	ÏİIÈ
-ÈØXÚWØ\İKˆØ\\™WÛİ]]UYK^UYKÚXÚÏUYJBˆH‹œİİ]ˆYˆ[Š
-HLÜˆ	ÛÜÛWÜİØ\ØY™™\œÉÈ›İ[ˆ‚ˆš[
-	Üš\İ[™HİÛ›ØY˜Z[Y
-	Y]\ÊIÈ	H[Š
-JBˆŞ\Ë™^]
-JBˆ›ÜˆK
-Û™]ÊH[ˆ[[Y\˜]JRT”ÊN‚ˆYˆ™]È[ˆ‚ˆÛÛ[YBˆYˆÛ›İ[ˆ‚ˆš[
-	ÜZ\ˆ	Y[˜ÚÜˆZ\ÜÚ[™Îˆ	\ÉÈ	H
-KÛÎŒJJBˆŞ\Ë™^]
-JBˆHœ™\XÙJÛ™]ËJBˆÛİH\ÚX‹œÚLJ™[˜ÛÙJ
-JKš^YÙ\İ
-
-BˆYˆÛİOHVPÕQÔÒN‚ˆš[
-	ÜÚHZ\ÛX]ÚY\ˆ]Úˆ	\È
-Ø[	\ÊIÈ	H
-ÛİVPÕQÔÒJJBˆŞ\Ë™^]
-JBˆÜš]Wİ^
-
-Bˆš[
-	Ü]ÚYÒËÚH	\ÉÈ	HÛİ
-BˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ØY	ËUKÚXÚÏUYJBˆHHİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ÙY™‰Ë	ËKXØXÚY	Ë	ËK\]ZY]	×JBˆYˆKœ™]\›˜ÛÙHOH‚ˆš[
-	Û›ÈÚ[™Ù\ÈÈÛÛ[Z]	ÊBˆ™]\›‚ˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	ËXÉË	İ\Ù\‹›˜[YOUÚXÙY™X\‰Ëˆ	ËXÉË	İ\Ù\‹™[XZ[^]ÍÍÛXZ[˜ÛÛIËˆ	ØÛÛ[Z]	Ë	Ë[IËˆ	ÓPÌŒXYÎˆÜÛWØœšYÙHÔÓQPQÈ[œİ[Y[][Ûˆ
-ÒHØÜš\ŒŠI×KÚXÚÏUYJBˆİXœ›ØÙ\ÜËœ[ŠÉÙÚ]	Ë	Ü\Ú	×KÚXÚÏUYJBˆš[
-	ØÛÛ[Z]Y
-È\ÚY	ÊB‚›XZ[Š
-B
+main()
