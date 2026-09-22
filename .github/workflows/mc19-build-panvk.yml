@@ -136,11 +136,15 @@ jobs:
               for m in re.finditer(r'^[^\n]*libvulkan_panfrost[^\n]*$', t, re.M):
                   print('CANDIDATE:', m.group(0)[:220])
               raise SystemExit('libvulkan_panfrost.so linker edge not found')
-          li = t.index('  LINK_ARGS = ', idx)
+          m2 = re.search(r'^[ ]+LINK_ARGS = ', t[idx:], re.M)
+          if m2 is None:
+              print(t[idx:idx+900])
+              raise SystemExit('LINK_ARGS not found after linker edge')
+          li = idx + m2.end()
           end = t.index(chr(10), li)
           t = t[:end] + flags + t[end:]
           open(p, 'w').write(t)
-          print('patched LINK_ARGS ok')
+          print('PATCHED LINK_ARGS:', t[li:end][:300])
           PYEOF
 
       - name: Compile Mesa
