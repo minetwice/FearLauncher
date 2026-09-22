@@ -6,7 +6,9 @@ name: MC19 Build PanVK driver (arm64)
 #      had UND drm* symbols -> would fail to dlopen).
 #   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link
 #      only (global c_link_args would poison meson's link checks).
-#   3. Hard verification: FAILS unless vk_icdGetInstanceProcAddr is exported.
+#   3. Mesa's Android version script (vulkan-android.sym) demotes EVERYTHING
+#      except HMI to local - rewritten to also export the vk_icd* entrypoints.
+#   4. Hard verification: FAILS unless vk_icdGetInstanceProcAddr is exported.
 on:
   push:
     branches: [ Mega-checkpoint ]
@@ -93,6 +95,23 @@ jobs:
             "cpu = 'aarch64'" \
             "endian = 'little'" > android-aarch64.txt
           cat android-aarch64.txt
+
+      - name: Export ICD entrypoints (Mesa Android version script demotes all to local)
+        run: |
+          cat > mesa/src/vulkan/vulkan-android.sym << 'EOF'
+          {
+            global:
+              HMI;
+              vk_icdGetInstanceProcAddr;
+              vk_icdGetPhysicalDeviceProcAddr;
+              vk_icdNegotiateLoaderICDInterfaceVersion;
+              vk_icdEnumerateInstanceExtensionProperties;
+              vk_icdEnumerateInstanceLayerProperties;
+            local:
+              *;
+          };
+          EOF
+          cat mesa/src/vulkan/vulkan-android.sym
 
       - name: Configure Meson for Android ARM64
         run: |
