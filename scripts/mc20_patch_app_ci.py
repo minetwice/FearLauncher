@@ -23,7 +23,7 @@ if len(pairs) != 9:
 
 def main():
     p = Path(PATH)
-    t = p.read_text()
+    t = p.read_bytes().decode('utf-8', 'replace')
     if hashlib.sha1(t.encode()).hexdigest() == EXPECTED_SHA:
         print('already patched (sha ok) - nothing to do')
         return
