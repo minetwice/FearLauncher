@@ -1,0 +1,45 @@
+name: MC20 App Patch (panfork renderer)
+
+# Runs scripts/mc20_patch_app_ci.py, which idempotently wires the "panfork"
+# renderer into the app (JREUtils.java, headings_array.xml incl. restoring the
+# accidentally dropped customctrl_selectdefault menu entry, lwjgl_dlopen_hook.c)
+# and commits the result.
+on:
+  push:
+    branches: [ Mega-checkpoint ]
+    paths:
+      - 'scripts/mc20_patch_app_ci.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mc20-app-patch
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    name: Apply panfork app patches
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Run patch script
+        run: python3 scripts/mc20_patch_app_ci.py
+
+      - name: Commit patched files
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java app_pojavlauncher/src/main/res/values/headings_array.xml app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c
+          if git diff --cached --quiet; then
+            echo "Nothing to patch"
+          else
+            git pull --rebase || true
+            git commit -m "feat: MC20 - Panfork renderer app wiring (via mc20_patch_app_ci.py)"
+            git push
+          fi
