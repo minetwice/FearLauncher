@@ -1,10 +1,11 @@
+# alignment v3
 # MC19: PanVK ICD shim C source, part 2 (assembled into jni/vk_panfrost_shim.c).
 SHIM_P2 = r'''/* wrapped so we can remember the instance (needed to bootstrap gdpa) */
 static int wrapped_vkCreateInstance(const void* ci, const void* ac, void** out) {
     if (!shim_init())
         return -13; /* VK_ERROR_INITIALIZATION_FAILED */
     int (*real)(const void*, const void*, void**) =
-        (int (*)(const void*, const void*, void**))g_icd_gipa(NULL, "vkCreateInstance");
+        (int (**(const void*, const void*, void**))g_icd_gipa(NULL, "vkCreateInstance");
     if (!real)
         return -13;
     int r = real(ci, ac, out);
