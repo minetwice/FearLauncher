@@ -121,19 +121,26 @@ jobs:
         run: |
           cd mesa/build-android
           python3 - << 'PYEOF'
+          import re
           p = 'build.ninja'
           t = open(p).read()
           flags = ' -Wl,--undefined-version -Wl,-u,vk_icdGetInstanceProcAddr -Wl,-u,vk_icdNegotiateLoaderICDInterfaceVersion -Wl,-u,vk_icdEnumerateInstanceExtensionProperties -Wl,-u,vk_icdEnumerateInstanceLayerProperties'
-          start = t.index('build src/panfrost/vulkan/libvulkan_panfrost.so:')
-          seg = t[start:]
-          li = seg.index('  LINK_ARGS = ')
-          end = seg.index(chr(10), li)
-          old = seg[li:end]
-          new = old + flags
-          t = t[:start] + seg.replace(old, new, 1)
+          idx = None
+          for m in re.finditer(r'^build[^\n]*$', t, re.M):
+              line = m.group(0)
+              if 'libvulkan_panfrost' in line and 'shared_LINKER' in line:
+                  idx = m.start()
+                  print('EDGE FOUND:', line[:220])
+                  break
+          if idx is None:
+              for m in re.finditer(r'^[^\n]*libvulkan_panfrost[^\n]*$', t, re.M):
+                  print('CANDIDATE:', m.group(0)[:220])
+              raise SystemExit('libvulkan_panfrost.so shared_LINKER edge not found')
+          li = t.index('  LINK_ARGS = ', idx)
+          end = t.index(chr(10), li)
+          t = t[:end] + flags + t[end:]
           open(p, 'w').write(t)
-          print('patched LINK_ARGS for libvulkan_panfrost.so:')
-          print(new[:240])
+          print('patched LINK_ARGS ok')
           PYEOF
 
       - name: Compile Mesa
