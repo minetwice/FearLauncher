@@ -1,0 +1,2 @@
+OLD = b'        __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Switching to new native surface %p",\n                            bundle->newNativeSurface);'
+NEW = b'        __android_log_print(ANDROID_LOG_INFO, g_LogTag, "Switching to new native surface %p",\n                            bundle->newNativeSurface);\n        fprintf(stderr, "OSMDIAG: attaching native surface %p\\n", (void*X©undle->newNativeSurface);'
