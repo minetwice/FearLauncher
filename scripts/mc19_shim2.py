@@ -1,11 +1,11 @@
-# alignment v3
 # MC19: PanVK ICD shim C source, part 2 (assembled into jni/vk_panfrost_shim.c).
+# v4: paren-light - typedefs and spaced-out attribute parens keep the
+# base64 free of dense paren runs that break byte-exact pushes.
 SHIM_P2 = r'''/* wrapped so we can remember the instance (needed to bootstrap gdpa) */
 static int wrapped_vkCreateInstance(const void* ci, const void* ac, void** out) {
     if (!shim_init())
         return -13; /* VK_ERROR_INITIALIZATION_FAILED */
-    int (*real)(const void*, const void*, void**) =
-        (int (**(const void*, const void*, void**))g_icd_gipa(NULL, "vkCreateInstance");
+    mjlvlk_create_fn real = (mjlvlk_create_fn) g_icd_gipa(NULL, "vkCreateInstance");
     if (!real)
         return -13;
     int r = real(ci, ac, out);
@@ -16,22 +16,22 @@ static int wrapped_vkCreateInstance(const void* ci, const void* ac, void** out) 
     return r;
 }
 
-__attribute__((visibility("default"))
+__attribute__ ((visibility ("default")))
 void* vkGetInstanceProcAddr(void* instance, const char* pName) {
     if (!pName)
         return NULL;
     if (strcmp(pName, "vkGetInstanceProcAddr") == 0)
-        return (void*)&vkGetInstanceProcAddr;
+        return &vkGetInstanceProcAddr;
     if (strcmp(pName, "vkGetDeviceProcAddr") == 0)
-        return (void*)&vkGetDeviceProcAddr;
+        return &vkGetDeviceProcAddr;
     if (!shim_init())
         return NULL;
     if (strcmp(pName, "vkCreateInstance") == 0)
-        return (void*)&wrapped_vkCreateInstance;
-    return g_icd_gipa(instance, pName);
+        return &wrapped_vkCreateInstance;
+    return g_id_gipa(instance, pName);
 }
 
-__attribute__((visibility("default"))
+__attribute__ ((visibility ("default")))
 void* vkGetDeviceProcAddr(void* device, const char* pName) {
     if (!g_icd_gdpa) {
         if (!shim_init())
@@ -43,4 +43,3 @@ void* vkGetDeviceProcAddr(void* device, const char* pName) {
     return g_icd_gdpa(device, pName);
 }
 '''
-# v2 - byte-exact retry marker
