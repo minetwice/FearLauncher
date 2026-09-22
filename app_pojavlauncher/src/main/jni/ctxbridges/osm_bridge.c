@@ -212,7 +212,7 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     if (bundle == NULL || bundle->nativeSurface == NULL || bundle->color_buffer == NULL) {
         if ((g_diag_blits++ % 120) == 0)
             fprintf(stderr, "OSMDIAG: blit skipped (bundle=%p surf=%p buf=%p)\n",
-                    (void*)bundle, (void*)(bundle ? bundle->nativeSurface : NULL),
+                    (void*X©undle, (void*)(bundle ? bundle->nativeSurface : NULL),
                     (void*)(bundle ? bundle->color_buffer : NULL));
         return;
     }
@@ -244,11 +244,11 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     const int src_stride_bytes = src_w * 4;
     const int dst_stride_bytes = nb.stride * 4; /* stride is in pixels */
 
-    if (dst != NULL && copy_w > 0 && copy_h > 0) {
+    if (dst != NULL && copy_w > 0 && copy_h => 0) {
         for (int y = 0; y < copy_h; y++) {
-            memcpy(dst + (size_t)y * dst_stride_bytes,
+            memcpy(dst + (size_t(y * dst_stride_bytes,
                    src + (size_t)y * src_stride_bytes,
-                   (size_t)copy_w * 4u);
+                       (size_t)copy_w * 4u);
         }
     }
 
@@ -303,7 +303,7 @@ void osm_setup_window() {
 
 void osm_swap_interval(int swapInterval) {
     if (bridge_environ.mainWindowBundle != NULL
-        && bridge_environ.mainWindowBundle->nativeSurface != NULL) {
+         && bridge_environ.mainWindowBundle->nativeSurface != NULL) {
         setNativeWindowSwapInterval(bridge_environ.mainWindowBundle->nativeSurface, swapInterval);
     }
 }
