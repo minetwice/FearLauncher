@@ -3,12 +3,14 @@ name: MC20 App Patch (panfork renderer)
 # Runs scripts/mc20_patch_app_ci.py, which idempotently wires the "panfork"
 # renderer into the app (JREUtils.java, headings_array.xml incl. restoring the
 # accidentally dropped customctrl_selectdefault menu entry, lwjgl_dlopen_hook.c)
-# and commits the result.
+# and commits the result. The first step repairs known transport corruption
+# in the pushed patch script.
 on:
   push:
     branches: [ Mega-checkpoint ]
     paths:
       - 'scripts/mc20_patch_app_ci.py'
+      - 'scripts/mc20_fix.py'
   workflow_dispatch:
 
 permissions:
@@ -27,6 +29,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+
+      - name: Repair patch script (transport corruption fixes)
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path('scripts/mc20_patch_app_ci.py')
+          t = p.read_text()
+          fixed = []
+          fixes = [
+              ('Gallium_driver=panfrost', 'GALLIUM_DRIVER=panfrost'),
+              ('       t = t.replace(old, new, 1)', '        t = t.replace(old, new, 1)'),
+              ('RENDERER_VK_ZINC', 'RENDERER_VK_ZINK'),
+              ('t.counv(', 't.count('),
+          ]
+          for bad, good in fixes:
+              if bad in t and bad != good:
+                  n = t.count(bad)
+                  t = t.replace(bad, good)
+                  fixed.append('%s -> %s (x%d)' % (bad, good, n))
+          p.write_text(t)
+          import hashlib
+          data = t.encode()
+          print('post-fix sha1:', hashlib.sha1(data).hexdigest())
+          print('fixes applied:', fixed if fixed else 'none')
+          PY
 
       - name: Run patch script
         run: python3 scripts/mc20_patch_app_ci.py
