@@ -26,6 +26,7 @@
         <item>@string/customctrl_addbutton_joystick</item>
         <item>@string/global_load</item>
         <item>@string/global_save</item>
+        <item>@string/customctrl_selectdefault</item>
         <item>@string/customctrl_export</item>
     </string-array>
 

@@ -124,6 +124,19 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "panfork":
+                // MC20: Panfork - open-source Panfrost Gallium driver talking
+                // directly to the ARM kbase kernel driver, via OSMesa.
+                // No proprietary userspace blob (the glitch source), no Vulkan,
+                // no Zink translation layer. GL 3.3 via PAN_MESA_DEBUG=gl3.
+                Logger.appendToLog("[Panfork] Initializing Panfork renderer (open-source Panfrost GL on kbase kernel driver)...");
+                envMap.put("GALLIUM_DRIVER", "panfrost");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "panfrost");
+                envMap.put("PAN_MESA_DEBUG", "gl3,noafbc");
+                envMap.put("vblank_mode", "0");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
             case "panvk_zink":
                 // MC19: Zink on the open-source PanVK (Panfrost) driver.
                 // Clean path - no proprietary-driver workarounds needed.
@@ -177,7 +190,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer) || "panfork".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -202,7 +215,7 @@ public class JREUtils {
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
-            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
+            envMap.put("LIB_MESA_NAME", "panfork".equals(renderer) ? "libOSMesa_panfork.so" : "libOSMesa_8.so");
             // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
             // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
@@ -320,7 +333,17 @@ public class JREUtils {
             renderer = "opengles2";
         }
 
+        if ("panfork".equals(renderer)) preloadVk = false;
+
         switch (renderer){
+            case "panfork":
+                Logger.appendToLog("[Panfork] Loading Panfork OSMesa (libOSMesa_panfork.so)...");
+                renderLibrary = "libOSMesa_panfork.so";
+                useGles = false;
+                bypassNamespace = true;
+                glesVersion = 3;
+                if(preloadVk) preloadVulkan();
+                break;
             case "panvk_zink":
             case "turnip_zink":
             case "vulkan_zink":
