@@ -28,7 +28,7 @@ void* vkGetInstanceProcAddr(void* instance, const char* pName) {
         return NULL;
     if (strcmp(pName, "vkCreateInstance") == 0)
         return &wrapped_vkCreateInstance;
-    return g_id_gipa(instance, pName);
+    return g_icd_gipa(instance, pName);
 }
 
 __attribute__ ((visibility ("default")))
