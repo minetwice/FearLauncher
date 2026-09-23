@@ -6,7 +6,7 @@ name: MC20 Build Panfork OSMesa (arm64)
 #
 # Rendering path: LWJGL -> OSMesa -> Gallium panfrost -> ARM kbase kernel
 # driver (the SAME kernel driver the proprietary blob uses - proven to open
-# from the app process). No proprietary userspace blob (the Mali glitch
+# from the app process). No proprietary userspace blob (the mali glitch
 # source on this device), no Vulkan, no Zink translation layer.
 #
 # GPU: Mali-G615 (Valhall v10 CSF) - same generation as the G610/G710 the
@@ -55,9 +55,9 @@ jobs:
           ndk-version: r26b
           add-to-path: true
 
-      - name: Add NDK and Local Binaries to PATH
+      - name: Add NDK and Local Binaries to PATH 
         run: |
-          echo "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+          echo "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH 
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Build Dependencies
@@ -70,7 +70,7 @@ jobs:
       - name: Create Android Cross File
         run: |
           printf '%s\n' \
-            '[binaries]' \
+             '[binaries]' \
             "ar = 'llvm-ar'" \
             "c = 'aarch64-linux-android26-clang'" \
             "cpp = 'aarch64-linux-android26-clang++'" \
@@ -150,6 +150,10 @@ jobs:
           assert 'panfrost_create_screen' in t2, 'panfrost hook missing?!'
           print('panfrost_create_screen hook present: OK')
           PYEOF
+
+      - name: Apply MC20 soft-blit patch (panfrost CPU blit fallback)
+        run: |
+          python3 scripts/mc20_softblit_patch.py mesa
 
       - name: Configure Meson for Android ARM64
         run: |
