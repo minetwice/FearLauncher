@@ -288,12 +288,37 @@ static void osm_diag_shader_fbo_test(void) {
                 pEnd();
                 if (glFinish_p) glFinish_p();
                 pUseProgram(0);
-                if (g_pReadPixels != NULL) {
+                osm_diag_resolve_readpixels();
+                if (g_pReadPixels == NULL) {
+                    fprintf(stderr, "OSMDIAG: FBOTEST readpixels unresolved\n");
+                } else {
                     void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+                    void (*pBlitFramebuffer)(int, int, int, int, int, int, int, int, unsigned, unsigned);
                     memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
                     pReadPixels(8, 8, 1, 1, 0x1908u, 0x1401u, px);
                     fprintf(stderr, "OSMDIAG: FBOTEST read=%02x%02x%02x%02x (want ffff00ff yellow)\n",
                             px[0], px[1], px[2], px[3]);
+                    /* BLITTEST: blit yellow FBO to default framebuffer, bottom-right quarter */
+                    if (currentBundle != NULL && currentBundle->color_width > 0
+                        && currentBundle->color_buffer != NULL) {
+                        sym = dlsym(h, "glBlitFramebuffer");
+                        memcpy(&pBlitFramebuffer, &sym, sizeof(sym));
+                        if (pBlitFramebuffer == NULL) {
+                            fprintf(stderr, "OSMDIAG: BLITTEST glBlitFramebuffer missing\n");
+                        } else {
+                            vw = currentBundle->color_width;
+                            vh = currentBundle->color_height;
+                            pBindFramebuffer(0x8CA8u, fbo);
+                            pBindFramebuffer(0x8CA9u, 0);
+                            pBlitFramebuffer(0, 0, 256, 256, vw * 3 / 4, vh * 3 / 4, vw, vh, 0x4000u, 0x2600u);
+                            if (glFinish_p) glFinish_p();
+                            {
+                                const unsigned int* p32 = currentBundle->color_buffer;
+                                unsigned int brp = p32[(size_t)(vh * 19 / 20) * vw + (vw * 19 / 20)];
+                                fprintf(stderr, "OSMDIAG: BLITTEST br=0x%08x (want yellow-ish nonzero)\n", brp);
+                            }
+                        }
+                    }
                 }
             } else {
                 fprintf(stderr, "OSMDIAG: FBOTEST yellow fs failed to compile\n");
