@@ -398,8 +398,86 @@ static void hooked_glfwDestroyWindow_impl(void* window) {
     if (g_current_window == window) g_current_window = NULL;
 }
 
+/* ---- MC20 panfork: glBlitFramebuffer CPU fallback (GL blit broken on Valhall v11) ---- */
+static void* g_blit_real = NULL;
+static void* g_blit_fn_ptr = NULL;
+
+static void hooked_glBlitFramebuffer_impl(int srcX0, int srcY0, int srcX1, int srcY1,
+                                          int dstX0, int dstY0, int dstX1, int dstY1,
+                                          unsigned int mask, unsigned int filter) {
+    void* h;
+    void* sym;
+    void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+    void (*pDrawPixels)(int, int, unsigned, unsigned, const void*);
+    void (*pWindowPos2i)(int, int);
+    void (*pPixelZoom)(float, float);
+    void (*pEnable)(unsigned);
+    void (*pDisable)(unsigned);
+    int (*pIsEnabled)(unsigned);
+    int sw, sh, dw, dh;
+    int depth_on, blend_on, scissor_on, stencil_on;
+    unsigned char* buf;
+    float zoomx, zoomy;
+
+    if ((mask & ~0x4000u) != 0u) {
+        void (*real)(int, int, int, int, int, int, int, int, unsigned, unsigned);
+        if (g_blit_real != NULL) {
+            memcpy(&real, &g_blit_real, sizeof(real));
+            real(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+        }
+        return;
+    }
+    if ((mask & 0x4000u) == 0u) return;
+    sw = srcX1 - srcX0;
+    sh = srcY1 - srcY0;
+    dw = dstX1 - dstX0;
+    dh = dstY1 - dstY0;
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+    h = get_mesa_dl_handle();
+    if (h == NULL) return;
+    if (g_blit_real == NULL) g_blit_real = dlsym(h, "glBlitFramebuffer");
+    sym = dlsym(h, "glReadPixels"); memcpy(&pReadPixels, &sym, sizeof(sym));
+    sym = dlsym(h, "glDrawPixels"); memcpy(&pDrawPixels, &sym, sizeof(sym));
+    sym = dlsym(h, "glWindowPos2i"); memcpy(&pWindowPos2i, &sym, sizeof(sym));
+    sym = dlsym(h, "glPixelZoom"); memcpy(&pPixelZoom, &sym, sizeof(sym));
+    sym = dlsym(h, "glEnable"); memcpy(&pEnable, &sym, sizeof(sym));
+    sym = dlsym(h, "glDisable"); memcpy(&pDisable, &sym, sizeof(sym));
+    sym = dlsym(h, "glIsEnabled"); memcpy(&pIsEnabled, &sym, sizeof(sym));
+    if (pReadPixels == NULL || pDrawPixels == NULL || pWindowPos2i == NULL ||
+        pPixelZoom == NULL || pEnable == NULL || pDisable == NULL || pIsEnabled == NULL) {
+        fprintf(stderr, "LWJGL hook: BLITFALLBACK symbols missing\n");
+        return;
+    }
+    buf = malloc((size_t) sw * sh * 4);
+    if (buf == NULL) return;
+    pReadPixels(srcX0, srcY0, sw, sh, 0x1908u, 0x1401u, buf);
+    depth_on = pIsEnabled(0x0B71u);
+    blend_on = pIsEnabled(0x0BE2u);
+    scissor_on = pIsEnabled(0x0C11u);
+    stencil_on = pIsEnabled(0x0B90u);
+    if (depth_on) pDisable(0x0B71u);
+    if (blend_on) pDisable(0x0BE2u);
+    if (scissor_on) pDisable(0x0C11u);
+    if (stencil_on) pDisable(0x0B90u);
+    zoomx = (float) dw / (float) sw;
+    zoomy = (float) dh / (float) sh;
+    pPixelZoom(zoomx, zoomy);
+    pWindowPos2i(dstX0, dstY0);
+    pDrawPixels(sw, sh, 0x1908u, 0x1401u, buf);
+    pPixelZoom(1.0f, 1.0f);
+    if (depth_on) pEnable(0x0B71u);
+    if (blend_on) pEnable(0x0BE2u);
+    if (scissor_on) pEnable(0x0C11u);
+    if (stencil_on) pEnable(0x0B90u);
+    free(buf);
+}
+
 static void* hooked_glfwGetProcAddress_impl(const char* procname) {
     if (!procname) return NULL;
+    if (strcmp(procname, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
+        printf("LWJGL hook: glBlitFramebuffer -> CPU fallback (panfork)\n");
+        return (void*) hooked_glBlitFramebuffer_impl;
+    }
     void* mesa = get_mesa_dl_handle();
     void* sym = NULL;
     if (mesa != NULL) {
@@ -634,6 +712,15 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
 
         if (strncmp(symbol, "gl", 2) == 0) {
+            if (strcmp(symbol, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
+                if (g_blit_fn_ptr == NULL) {
+                    void* tmp = NULL;
+                    memcpy(&tmp, &hooked_glBlitFramebuffer_impl, sizeof(tmp));
+                    g_blit_fn_ptr = tmp;
+                }
+                printf("LWJGL hook: ndlsym glBlitFramebuffer -> CPU fallback (panfork)\n");
+                return (jlong) g_blit_fn_ptr;
+            }
             void* mesa = get_mesa_dl_handle();
             if (mesa != NULL) {
                 void* (*osm_get_proc)(const char*) = dlsym(mesa, "OSMesaGetProcAddress");

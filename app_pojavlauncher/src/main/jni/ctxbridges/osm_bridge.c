@@ -361,7 +361,7 @@ osm_render_window_t* osm_init_context(osm_render_window_t* share) {
     memset(render_window, 0, sizeof(osm_render_window_t));
     OSMesaContext osmesa_share = NULL;
     if (share != NULL) osmesa_share = share->context;
-    setenv("PAN_MESA_DEBUG", "gl3,noafbc,nofp16", 1);
+    setenv("PAN_MESA_DEBUG", "gl3,noafbc", 1);
     OSMesaContext context = OSMesaCreateContext_p(GL_RGBA, osmesa_share);
     if (context == NULL) {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag,
@@ -501,8 +501,10 @@ void osm_make_current(osm_render_window_t* bundle) {
     else if (OSMesaMakeCurrent_p)
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
     osm_diag_sample("make_current");
-    osm_diag_tri_test();
-    osm_diag_shader_fbo_test();
+    if (getenv("MC20_DIAG") != NULL) {
+        osm_diag_tri_test();
+        osm_diag_shader_fbo_test();
+    }
 }
 
 /** Copy tightly-packed RGBA color_buffer into locked ANativeWindow (respect stride). */
@@ -578,7 +580,7 @@ void osm_swap_buffers() {
 
     if (glFinish_p) glFinish_p();
 
-    if ((g_diag_swaps++ % 30) == 0)
+    if (g_diag_swaps < 2 || (g_diag_swaps++ % 500) == 0)
         osm_diag_sample("swap");
 
     osm_fallback_readback();
