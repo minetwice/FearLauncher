@@ -361,6 +361,7 @@ osm_render_window_t* osm_init_context(osm_render_window_t* share) {
     memset(render_window, 0, sizeof(osm_render_window_t));
     OSMesaContext osmesa_share = NULL;
     if (share != NULL) osmesa_share = share->context;
+    setenv("PAN_MESA_DEBUG", "gl3,noafbc,nofp16", 1);
     OSMesaContext context = OSMesaCreateContext_p(GL_RGBA, osmesa_share);
     if (context == NULL) {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag,
