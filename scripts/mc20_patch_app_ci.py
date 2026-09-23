@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MC20 diag patch v3 loader: assembles pairs from scripts/diag_parts/, then
+"""MC20 diag patch v4 loader: assembles pairs from scripts/diag_parts/, then
 patches osm_bridge.c starting from the pristine file at commit fffcc05,
 sha1-verifies, and commits+pushes only on exact match."""
 import glob
@@ -10,15 +10,15 @@ from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
 URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
-EXPECTED_SHA = 'caf5ab28ce7b3e9d455a050040cb82d52ef92874'
+EXPECTED_SHA = '62790491a47a162657c6130202d36c44fcbc6ab6'
 
 pairs = []
 for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
     g = {}
     exec(compile(Path(f).read_text(), f, 'exec'), g)
     pairs.append((g['OLD'].decode('utf-8'), g['NEW'].decode('utf-8')))
-if len(pairs) != 9:
-    print('expected 9 parts, got %d' % len(pairs))
+if len(pairs) != 11:
+    print('expected 11 parts, got %d' % len(pairs))
     sys.exit(1)
 
 def main():
@@ -56,7 +56,7 @@ def main():
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag: osm_bridge OSMDIAG instrumentation (CI script v3)'], check=True)
+                    'MC20 diag v2: clear test + glReadPixels fallback (CI script v4)'], check=True)
     subprocess.run(['git', 'push'], check=True)
     print('committed + pushed')
 
