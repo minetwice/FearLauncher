@@ -55,14 +55,14 @@ def apply_pairs(path, url, expected, globpat, n_expected, tag, marker):
 
 def main():
     a = apply_pairs(PATH, URL, EXPECTED_SHA, 'scripts/diag_parts/part_*.py', 14, 'osm', MARKER)
-    b = apply_pairs(HOOKPATH, HOOKURL, HOOK_EXPECTED_SHA, 'scripts/hook_parts/hook_*.py', 3, 'hook', HOOKMARKER)
+    b = apply_pairs(HOOOPATH, HOOKURL, HOOK_EXPECTED_SHA, 'scripts/hook_parts/hook_*.py', 3, 'hook', HOOKMARKER)
     if not (a or b):
         print('no changes to commit')
         return
-    subprocess.run(['git', 'add', PATH, HOOKPATH], check=True)
+    subprocess.run(['git', 'add', PATH, HOOOPATH], check=True)
     q = subprocess.run(['git', 'diff', '--cached', '--quiet'])
     if q.returncode == 0:
-        print('no changes to comit')
+        print('no changes to commit')
         return
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
