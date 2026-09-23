@@ -66,7 +66,7 @@ def main():
                     'commit', '-m',
                     'MC20 diag v2.7: glBlitNamedFramebuffer CPU fallback + req log (CI v11)'],
                    check=True)
-    subprocess.run(['git', ''push'], check=True)
+    subprocess.run(['git', 'push'], check=True)
     print('pushed')
 
 
