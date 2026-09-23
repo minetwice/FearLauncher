@@ -25,8 +25,9 @@ if 'panfrost_soft_blit' in t:
 else:
     old_inc = '''#include "pan_context.h"
 #include "pan_util.h"
-#include "util/format/u_format.h"'''
-    new_inc = '''include "pan_context.h"
+#include "util/format/u_format.h"
+'''
+    new_inc = '''#include "pan_context.h"
 #include "pan_util.h"
 #include "util/format/u_format.h"
 #include <stdio.h>
@@ -48,8 +49,8 @@ panfrost_soft_blit(struct pipe_context *pipe,
         unsigned x, y;
 
         if ((info->mask & PIPE_MASK_RGBA) == 0)
-                 return false;
-         if (info->mask & (PIPE_MASKZZ | PIPE_MASK_S))
+                return false;
+        if (info->mask & (PIPE_MASK_Z | PIPE_MASK_S))
                 return false;
         if (info->scissor_enable)
                  return false;
@@ -60,129 +61,18 @@ panfrost_soft_blit(struct pipe_context *pipe,
                  return false;
         if (info->src.box.width <= 0 || info->src.box.height <= 0 ||
             info->dst.box.width <= 0 || info->dst.box.height <= 0)
-                 return false;
+                return false;
         src_bpp = util_format_get_blocksize(info->src.format);
         dst_bpp = util_format_get_blocksize(info->dst.format);
         if (src_bpp != dst_bpp || src_bpp == 0)
                 return false;
 
         src = pipe->texture_map(pipe, info->src.resource, info->src.level,
-                                  PIPE_MAP_READ, &info->src.box, &strans);
+                                 PIPE_MAP_READ, &info->src.box, &strans);
         if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
                 return false;
         }
 
         dst = pipe->texture_map(pipe, info->dst.resource, info->dst.level,
-                                 PIPE_MAP_WRITE, &info->dst.box, &dtrans);
-        if (dst == NULL) {
-                fprintf(stderr, "PANFORKSOFTBLIT: dst map failed\\n");
-                pipe->texture_unmap(pipe, strans);
-                return false;
-        }
-
-        sw = info->src.box.width;
-        sh = info->src.box.height;
-        dw = info->dst.box.width;
-        dh = info->dst.box.height;
-        ss = strans->stride;
-        ds = dtrans->stride;
-
-        fprintf(stderr, "PANFORKSOFTBLIT: %ux%u -> %ux%u bpp=%u ss=%u ds=%u\\n",
-                sw, sh, dw, dh, src_bpp, ss, ds);
-
-        if (sw == dw && sh == dh) {
-                for (y = 0; y < sh; y++)
-                        memcpy(dst + (size_t) y * ds,
-                                src + (size_t) y * ss,
-                               (size_t) sw * src_bpp);
-        } else {
-                for (y = 0; y < dh; y++) {
-                        const uint8_t *srow =
-                                 src + (size_t) ((y * sh) / dh) * ss;
-                        uint8_t *drow = dst + (size_t) y * ds;
-                        for (x = 0; x < dw; x++) {
-                                unsigned sx = (x * sw) / dw;
-                                 memcpy(drow + (size_t) x * dst_bpp,
-                                        srow + (size_t) sx * src_bpp,
-                                       dst_bpp);
-                        }
-                }
-        }
-
-        pipe->texture_unmap(pipe, dtrans);
-        pipe->texture_unmap(pipe, strans);
-        return true;
-}
-'''
-    assert old_inc in t, 'pan_blit.c include anchor missing'
-    t = t.replace(old_inc, new_inc, 1)
-
-    old_blit = '''        if (info->render_condition_enable &&
-            !panfrost_render_condition_check(ctx))
-                return;
-
-        if (!util_blitter_is_blit_supported(ctx->blitter, info))
-                unreachable("Unsupported blit\\n");'''
-    new_blit = '''        if (info->render_condition_enable &&
-            !panfrost_render_condition_check(ctx))
-                return;
-
-        if (panfrost_soft_blit(pipe, info))
-                return;
-
-        if (!util_blitter_is_blit_supported(ctx->blitter, info))
-                unreachable("Unsupported blit\\n");'''
-    assert old_blit in t, 'panfrost_blit anchor missing'
-    t = t.replace(old_blit, new_blit, 1)
-    p.write_text(t)
-    print('pan_blit.c: soft-blit patched')
-
-# ---------- patch 2: mesa main/blit.c diagnostics ----------
-p = root / 'src/mesa/main/blit.c'
-t = p.read_text()
-
-if 'MC20BLIT' in t:
-    print('blit.c: already patched')
-else:
-    if '#include <stdio.h>' not in t.split('#include "main/glheader.h"')[0][-200:]:
-        pass
-    first_include = t.index('#include')
-    t = t[:first_include] + '#include <stdio.h>\n' + t[first_include:]
-
-    old_dst = '''            if (dstSurf) {
-               blit.dst.resource = dstSurf->texture;
-               blit.dst.level = dstSurf->u.tex.level;
-               blit.dst.box.z = dstSurf->u.tex.first_layer;
-               blit.dst.format = dstSurf->format;
-
-               ctx->pipe->blit(ctx->pipe, &blit);
-               dstRb->defined = true; /* front buffer tracking */
-            }'''
-    new_dst = '''            if (dstSurf) {
-               blit.dst.resource = dstSurf->texture;
-               blit.dst.level = dstSurf->u.tex.level;
-               blit.dst.box.z = dstSurf->u.tex.first_layer;
-               blit.dst.format = dstSurf->format;
-
-               fprintf(stderr, "MC20BLIT: color blit %dx%d -> %dx%d\\n",
-                       blit.src.box.width, blit.src.box.height,
-                       blit.dst.box.width, blit.dst.box.height);
-               ctx->pipe->blit(ctx->pipe, &blit);
-               dstRb->defined = true; /* front buffer tracking */
-            } else {
-               fprintf(stderr, "MC20BLIT: NULL dst surface, color blit skipped\\n");
-            }'''
-    if old_dst not in t:
-        # try 3-space variant
-        old_dst = old_dst.replace('            if (dstSurf) {', '         if (dstSurf) {')
-        # normalize all lines to 9-space base
-        lines = old_dst.split('\n')
-        fixed = [ln if not ln.startswith('         ') else ln for ln in lines]
-        old_dst = '\n'.join(fixed)
-    assert old_dst in t, 'blit.c color dst anchor missing'
-    t = t.replace(old_dst, new_dst, 1)
-    p.write_text(t)
-    print('blit.c: MC20BLIT diagnostics patched')
-
-print('soft-blit patch: OK')
+                                 %•UôÔõu$•DRÂf–æfòÓæG7Bæ&÷‚ÂfGG&ç2“°¢–b†G7BÓÒåTÄÂ’°¢g&–çFb‡7FFW'"Â%ädõ$µ4ôeD$Ä•C¢G7BÖf–ÆVEÅÆâ"“°¢—RÓçFW‡GW&U÷VæÖ‡—RÂ7G&ç2“°¢&WGW&âfÇ6S°¢Ğ ¢7rÒ–æfòÓç7&2æ&÷‚çv–GFƒ°¢6‚Ò–æfòÓç7&2æ&÷‚æ†V–v‡C°¢GrÒ–æfòÓæG7Bæ&÷‚çv–GFƒ°¢F‚Ò–æfòÓæG7Bæ&÷‚æ†V–v‡C°¢72Ò7G&ç2Óç7G&–FS°¢G2ÒGG&ç2Óç7G&–FS° ¢g&–çFb‡7FFW'"Â%ädõ$µ4ôeD$Ä•C¢WW‚WRÓâWW‚WR'ÒWR73ÒWRG3ÒWUÅÆâ"À¢7rÂ6‚ÂGrÂF‚Â7&5ö'Â72ÂG2“° ¢–b‡7rÓÒGrbb6‚ÓÒF‚’°¢f÷"‡’Ò²’Â6ƒ²’²²¢ÖVÖ7’†G7B²‡6—¦U÷B’’¢G2À¢7&2²‡6—¦U÷B’’¢72À¢‡6—¦U÷B’7r¢7&5ö'“°¢ÒVÇ6R°¢f÷"‡’Ò²’ÂFƒ²’²²’°¢6öç7BV–çC…÷B§7&÷rĞ¢7&2²‡6—¦U÷B’‚‡’¢6‚’òF‚’¢73°¢V–çC…÷B¦G&÷rÒG7B²‡6—¦U÷B’’¢G3°¢f÷"‡‚Ò²‚ÂGs²‚²²’°¢Vç6–væVB7‚Ò‡‚¢7r’òGs°¢ÖVÖ7’†G&÷r²‡6—¦U÷B’‚¢G7Eö'À¢7&÷r²‡6—¦U÷B’7‚¢7&5ö'À¢G7Eö'“°¢Ğ¢Ğ¢Ğ ¢—RÓçFW‡GW&U÷VæÖ‡—RÂGG&ç2“°¢—RÓçFW‡GW&U÷VæÖ‡—RÂ7G&ç2“°¢&WGW&âG'VS°§Ğ¢rrp¢76W'BöÆEö–æ2–âBÂwåö&Æ—Bæ2–æ6ÇVFRæ6†÷"Ö—76–ærp¢BÒBç&WÆ6R†öÆEö–æ2ÂæWuö–æ2Â ¢öÆEö&Æ—BÒrrr–b†–æfòÓç&VæFW%ö6öæF—F–öåöVæ&ÆRb`¢æg&÷7E÷&VæFW%ö6öæF—F–öåö6†V6²†7G‚’¢&WGW&ã° ¢–b‚WF–Åö&Æ—GFW%ö—5ö&Æ—E÷7W÷'FVB†7G‚Óæ&Æ—GFW"Â–æfò’¢Vç&V6†&ÆR‚%Vç7W÷'FVB&Æ—EÅÆâ"“²rrp¢æWuö&Æ—BÒrrr–b†–æfòÓç&VæFW%ö6öæF—F–öåöVæ&ÆRb`¢æg&÷7E÷&VæFW%ö6öæF—F–öåö6†V6²†7G‚’¢&WGW&ã° ¢–b‡æg&÷7E÷6ögEö&Æ—B‡—RÂ–æfò’¢&WGW&ã° ¢–b‚WF–Åö&Æ—GFW%ö—5ö&Æ—E÷7W÷'FVB†7G‚Óæ&Æ—GFW"Â–æfò’¢Vç&V6†&ÆR‚%Vç7W÷'FVB&Æ—EÅÆâ"“²rrp¢76W'BöÆEö&Æ—B–âBÂwæg&÷7Eö&Æ—Bæ6†÷"Ö—76–ærp¢BÒBç&WÆ6R†öÆEö&Æ—BÂæWuö&Æ—BÂ¢çw&—FU÷FW‡B‡B¢&–çB‚wåö&Æ—Bæ3¢6ögBÖ&Æ—BF6†VBr ¢2ÒÒÒÒÒÒÒÒÒÒF6‚#¢ÖW6Ö–âö&Æ—Bæ2F–væ÷7F–72ÒÒÒÒÒÒÒÒÒĞ§Ò&ö÷Bòw7&2öÖW6öÖ–âö&Æ—Bæ2p§BÒç&VE÷FW‡B‚ ¦–btÔ3#$Ä•Br–âC ¢&–çB‚v&Æ—Bæ3¢Ç&VG’F6†VBr¦VÇ6S ¢–br6–æ6ÇVFRÇ7FF–òæƒâræ÷B–âBç7Æ—B‚r6–æ6ÇVFR&Ö–âövÆ†VFW"æ‚"r•³Õ²Ó#¥Ó ¢70¢f—'7Eö–æ6ÇVFRÒBæ–æFW‚‚r6–æ6ÇVFRr¢BÒE³¦f—'7Eö–æ6ÇVFUÒ²r6–æ6ÇVFRÇ7FF–òæƒåÆâr²E¶f—'7Eö–æ6ÇVFS¥Ğ ¢öÆEöG7BÒrrr–b†G7E7W&b’°¢&Æ—BæG7Bç&W6÷W&6RÒG7E7W&bÓçFW‡GW&S°¢&Æ—BæG7BæÆWfVÂÒG7E7W&bÓçRçFW‚æÆWfVÃ°¢&Æ—BæG7Bæ&÷‚ç¢ÒG7E7W&bÓçRçFW‚æf—'7EöÆ–W#°¢&Æ—BæG7Bæf÷&ÖBÒG7E7W&bÓæf÷&ÖC° ¢7G‚Óç—RÓæ&Æ—B†7G‚Óç—RÂf&Æ—B“°¢G7E&"ÓæFVf–æVBÒG'VS²ò¢g&öçB'VffW"G&6¶–ær¢ğ¢Òrrp¢æWuöG7BÒrrr–b†G7E7W&b’°¢&Æ—BæG7Bç&W6÷W&6RÒG7E7W&bÓçFW‡GW&S°¢&Æ—BæG7BæÆWfVÂÒG7E7W&bÓçRçFW‚æÆWfVÃ°¢&Æ—BæG7Bæ&÷‚ç¢ÒG7E7W&bÓçRçFW‚æf—'7EöÆ–W#°¢&Æ—BæG7Bæf÷&ÖBÒG7E7W&bÓæf÷&ÖC° ¢g&–çFb‡7FFW'"Â$Ô3#$Ä•C¢6öÆ÷"&Æ—BVG‚VBÓâVG‚VEÅÆâ"À¢&Æ—Bç7&2æ&÷‚çv–GF‚Â&Æ—Bç7&2æ&÷‚æ†V–v‡BÀ¢&Æ—BæG7Bæ&÷‚çv–GF‚Â&Æ—BæG7Bæ&÷‚æ†V–v‡B“°¢7G‚Óç—RÓæ&Æ—B†7G‚Óç—RÂf&Æ—B“°¢G7E&"ÓæFVf–æVBÒG'VS²ò¢g&öçB'VffW"G&6¶–ær¢ğ¢ÒVÇ6R°¢g&–çFb‡7FFW'"Â$Ô3#$Ä•C¢åTÄÂG7B7W&f6RÂ6öÆ÷"&Æ—B6¶—VEÅÆâ"“°¢Òrrp¢–böÆEöG7Bæ÷B–âC ¢2G'’2×76Rf&–ç@¢öÆEöG7BÒöÆEöG7Bç&WÆ6R‚r–b†G7E7W&b’²rÂr–b†G7E7W&b’²r¢2æ÷&ÖÆ—¦RÆÂÆ–æW2Fò’×76R&6P¢Æ–æW2ÒöÆEöG7Bç7Æ—B‚uÆâr¢f—†VBÒ¶Æâ–bæ÷BÆâç7F'G7v—F‚‚rr’VÇ6RÆâf÷"Æâ–âÆ–æW5Ğ¢öÆEöG7BÒuÆâræ¦ö–â†f—†VB¢76W'BöÆEöG7B–âBÂv&Æ—Bæ26öÆ÷"G7Bæ6†÷"Ö—76–ærp¢BÒBç&WÆ6R†öÆEöG7BÂæWuöG7BÂ¢çw&—FU÷FW‡B‡B¢&–çB‚v&Æ—Bæ3¢Ô3#$Ä•BF–væ÷7F–72F6†VBr §&–çB‚w6ögBÖ&Æ—BF6ƒ¢ô²r 
