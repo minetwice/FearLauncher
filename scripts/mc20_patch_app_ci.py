@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """MC20 diag patch v4 loader: assembles pairs from scripts/diag_parts/, then
 patches osm_bridge.c starting from the pristine file at commit fffcc05,
-sha1-verifies, and commits+pushes only on exact match."""
+sha1-verifies, and commits+pushes only on exact match. Retry ok."""
 import glob
 import hashlib
 import subprocess
