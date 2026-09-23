@@ -10,7 +10,7 @@ from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
 URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
-EXPECTED_SHA = '62790491a47a162657c6130202d36c44fcbc6ab6'
+EXPECTED_SHA = '6f58fd9e7e670bf439e8d75cea6d14342fc7312b'
 
 pairs = []
 for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
@@ -56,7 +56,7 @@ def main():
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2: clear test + glReadPixels fallback (CI script v4)'], check=True)
+                    'MC20 diag v2.1: corner triangle test + glReadPixels fallback (CI v5)'], check=True)
     subprocess.run(['git', 'push'], check=True)
     print('committed + pushed')
 
