@@ -50,7 +50,7 @@ def main():
               'scripts/diag_parts/part_*.py', 14, 'osm', 'osm_swap_buffers')
     b = apply('app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c',
               'https://raw.githubusercontent.com/minetwice/FearLauncher/3df959a8cd2c961c8e3a06737ed1a923402b1b4e/app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c',
-              '983cd1a08a30ea0bcb086ce037adb8d20f560f90',
+              'e238728c42d58f43fe8ea37ec6b0eac1787dd2a5',
               'scripts/hook_parts/hook_*.py', 3, 'hook', 'hooked_glfwGetProcAddress_impl')
     if not (a or b):
         print('no changes')
@@ -64,9 +64,9 @@ def main():
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2.6: glBlitFramebuffer CPU fallback fix (CI v10)'],
+                    'MC20 diag v2.7: glBlitNamedFramebuffer CPU fallback + req log (CI v11)'],
                    check=True)
-    subprocess.run(['git', 'push'], check=True)
+    subprocess.run(['git', ''push'], check=True)
     print('pushed')
 
 
