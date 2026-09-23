@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
-URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
-EXPECTED_SHA = 'e0978a845bf46fb26713932e4e62efc01b206122'
+URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PAT
+EXPECTED_SHA = '4d440b37c8daf5b292a1895812f50df0008fa96b'
 
 pairs = []
 for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
@@ -56,7 +56,7 @@ def main():
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2.2: shader + FBO test (CI v6)'], check=True)
+                    'MC20 diag v2.3: FBO readback + blit test (CI v7)'], check=True)
     subprocess.run(['git', 'push'], check=True)
     print('committed + pushed')
 
