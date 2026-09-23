@@ -1,0 +1,2 @@
+OLD = b'static void* hooked_glfwGetProcAddress_impl(const char* procname) {\n    if (!procname) return NULL;\n    void* mesa = get_mesa_dl_handle();'
+NEW = b'static void* hooked_glfwGetProcAddress_impl(const char* procname) {\n    if (!procname) return NULL;\n    if (strcmp(procname, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {\n        printf("LWJGL hook: glBlitFramebuffer -> CPU fallback (panfork)\\n");\n        return (void*) hooked_glBlitFramebuffer_impl;\n    }\n    void* mesa = get_mesa_dl_handle();'

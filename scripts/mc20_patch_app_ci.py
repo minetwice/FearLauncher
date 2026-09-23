@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""MC20 diag patch v4 loader: assembles pairs from scripts/diag_parts/, then
-patches osm_bridge.c starting from the pristine file at commit fffcc05,
-sha1-verifies, and commits+pushes only on exact match. Retry ok."""
+"""MC20 diag patch v5 loader: assembles pairs from scripts/diag_parts/ (osm_bridge.c)
+and scripts/hook_parts/ (lwjgl_dlopen_hook.c), sha-verifies, commits+pushes on exact match."""
 import glob
 import hashlib
 import subprocess
@@ -10,53 +9,65 @@ from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
 URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
-EXPECTED_SHA = '719e9959c42e7d61b82bcfc00f28794592da7e91'
+EXPECTED_SHA = '5a070a3f8242cf57b2c66caa4176abdc2bdffbcd'
+MARKER = 'osm_swap_buffers'
 
-pairs = []
-for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
-    g = {}
-    exec(compile(Path(f).read_text(), f, 'exec'), g)
-    pairs.append((g['OLD'].decode('utf-8'), g['NEW'].decode('utf-8')))
-if len(pairs) != 14:
-    print('expected 14 parts, got %d' % len(pairs))
-    sys.exit(1)
+HOOKPATJH	Ø\ÜÚ˜]›][˜Ú\‹ÜÜ˜ËÛXZ[‹Ú›šKÚ›WÚÛÚÜËÛÚ™ÛÙÜ[—ÚÛÚË˜ÉÂ’ÓÒÕU$ÂÒv‡GG3¢ò÷&ræv—F‡V'W6W&6öçFVçBæ6öÒöÖ–æWGv–6RôfV$ÆVæ6†W"ó6Fc“S–†6C&3“c3†S6cs3vVC“#3C&##FRòr²„ôôµD )!==-}aAQ}M!€ô€œàÕ„ØàÄÌäÅ•ˆáˆÔÄäàÌÄĞÍ‘”ÙÌĞá”åÀÍˆÕŒÈäÍŒœ)!==-5AKER = 'hooked_glfwGetProcAddress_impl'
 
-def main():
-    p = Path(PATH)
+
+def apply_pairs(path, url, expected, globpat, n_expected, tag, marker):
+    pairs = []
+    for f in sorted(glob.glob(globpat)):
+        g = {}
+        exec(compile(Path(f).read_text(), f, 'exec'), g)
+        pairs.append((g['OLD'].decode(), g['NEW'].decode()))
+    if len(pairs) != n_expected:
+        print(tag + ': expected ' + str(n_expected) + ' parts, got ' + str(len(pairs)))
+        sys.exit(1)
+    p = Path(path)
     t = p.read_bytes().decode('utf-8', 'replace')
-    if hashlib.sha1(t.encode()).hexdigest() == EXPECTED_SHA:
-        print('already patched (sha ok) - nothing to do')
-        return
-    print('downloading pristine from fffcc05 ...')
+    if hashlib.sha1(t.encode()).hexdigest() == expected:
+        print(tag + ': already patched (sha ok) - nothing to do')
+        return False
+    print(tag + ': downloading pristine ...')
     bust = hashlib.sha1(t.encode()).hexdigest()[:8]
-    r = subprocess.run(['curl', '-sSL', URL + '?v=' + bust],
-                       capture_output=True, text=True, check=True)
+    r = subprocess.run(['curl', '-sL', url + '?v=' + bust],
+                       capture_output=True, text=True)
     t = r.stdout
-    if len(t) < 5000 or 'osm_swap_buffers' not in t:
-        print('pristine download failed (%d bytes)' % len(t))
+    if len(t) < 5000 or marker not in t:
+        print(tag + ': pristine download failed (' + str(len(t)) + ' bytes)')
         sys.exit(1)
     for i, (o, n) in enumerate(pairs):
         if n in t:
             continue
         if o not in t:
-            print('pair %d anchor missing: %s' % (i, o[:60]))
+            print(tag + ' pair ' + str(i) + ' anchor missing: ' + o[:60])
             sys.exit(1)
         t = t.replace(o, n, 1)
     got = hashlib.sha1(t.encode()).hexdigest()
-    if got != EXPECTED_SHA:
-        print('sha mismatch: %s (want %s)' % (got, EXPECTED_SHA))
+    if got != expected:
+        print(tag + ': sha mismatch: ' + got + ' (want ' + expected + ')')
         sys.exit(1)
     p.write_text(t)
-    print('patched OK, sha %s' % got)
-    subprocess.run(['git', 'add', PATH], check=True)
+    print(tag + ': patched OK, sha ' + got)
+    return True
+
+
+def main():
+    a = apply_pairs(PATH, URL, EXPECTED_SHA, 'scripts/diag_parts/part_*.py', 14, 'osm', MARKER)
+    b = apply_pairs(HOOKPATH, HOOKURL, HOOK_EXPECTED_SHA, 'scripts/hook_parts/hook_*.py', 3, 'hook', HOOKMARKER)
+    if not (a or b):
+        print('no changes to commit')
+        return
+    subprocess.run(['git', 'add', PATH, HOOKPATH], check=True)
     q = subprocess.run(['git', 'diff', '--cached', '--quiet'])
     if q.returncode == 0:
-        print('no changes to commit')
+        print('no changes to comit')
         return
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2.4: nofp16 blit fix attempt (CI v8)'], check=True)
+                    'MC20 diag v2.5: glBlitFramebuffer CPU fallback (CI v9)'], check=True)
     subprocess.run(['git', 'push'], check=True)
     print('committed + pushed')
 
