@@ -51,7 +51,7 @@ def main():
     b = apply('app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c',
               'https://raw.githubusercontent.com/minetwice/FearLauncher/3df959a8cd2c961c8e3a06737ed1a923402b1b4e/app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c',
               'e238728c42d58f43fe8ea37ec6b0eac1787dd2a5',
-              'scripts/hook_parts/hook_*.py', 3, 'hook', 'hooked_glfwGetProcAddress_impl')
+              'scripts/hook_parts/hook_*.py', 4, 'hook', 'hooked_glfwGetProcAddress_impl')
     if not (a or b):
         print('no changes')
         return
