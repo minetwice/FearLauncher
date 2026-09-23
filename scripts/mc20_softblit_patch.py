@@ -25,9 +25,8 @@ if 'panfrost_soft_blit' in t:
 else:
     old_inc = '''#include "pan_context.h"
 #include "pan_util.h"
-#include "util/format/u_format.h"
-'''
-    new_inc = '''#include "pan_context.h"
+#include "util/format/u_format.h"'''
+    new_inc = '''include "pan_context.h"
 #include "pan_util.h"
 #include "util/format/u_format.h"
 #include <stdio.h>
@@ -49,36 +48,36 @@ panfrost_soft_blit(struct pipe_context *pipe,
         unsigned x, y;
 
         if ((info->mask & PIPE_MASK_RGBA) == 0)
-                return false;
-        if (info->mask & (PIPE_MASK_Z | PIPE_MASK_S))
+                 return false;
+         if (info->mask & (PIPE_MASKZZ | PIPE_MASK_S))
                 return false;
         if (info->scissor_enable)
-                return false;
+                 return false;
         if (info->src.box.depth != 1 || info->dst.box.depth != 1)
-                return false;
+                 return false;
         if (info->src.resource->nr_samples > 1 ||
             info->dst.resource->nr_samples > 1)
-                return false;
+                 return false;
         if (info->src.box.width <= 0 || info->src.box.height <= 0 ||
             info->dst.box.width <= 0 || info->dst.box.height <= 0)
-                return false;
+                 return false;
         src_bpp = util_format_get_blocksize(info->src.format);
         dst_bpp = util_format_get_blocksize(info->dst.format);
         if (src_bpp != dst_bpp || src_bpp == 0)
                 return false;
 
-        src = pipe->transfer_map(pipe, info->src.resource, info->src.level,
-                                 PIPE_MAP_READ, &info->src.box, &strans);
-        if (src == NULL) {
+        src = pipe->texture_map(pipe, info->src.resource, info->src.level,
+                                  PIPE_MAP_READ, &info->src.box, &strans);
+       if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
                 return false;
         }
 
-        dst = pipe->transfer_map(pipe, info->dst.resource, info->dst.level,
-                                 PIPE_MAP_WRITE, &info->dst.box, &dtrans);
+        dst = pipe->texture_map(pipe, info->dst.resource, info->dst.level,
+                                  PIPE_MAP_WRITE, &info->dst.box, &dtrans);
         if (dst == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: dst map failed\\n");
-                pipe->transfer_unmap(pipe, strans);
+                pipe->texture_unmap(pipe, strans);
                 return false;
         }
 
@@ -95,24 +94,24 @@ panfrost_soft_blit(struct pipe_context *pipe,
         if (sw == dw && sh == dh) {
                 for (y = 0; y < sh; y++)
                         memcpy(dst + (size_t) y * ds,
-                               src + (size_t) y * ss,
+                                src + (size_t) y * ss,
                                (size_t) sw * src_bpp);
         } else {
                 for (y = 0; y < dh; y++) {
                         const uint8_t *srow =
-                                src + (size_t) ((y * sh) / dh) * ss;
+                                 src + (size_t) ((y * sh) / dh) * ss;
                         uint8_t *drow = dst + (size_t) y * ds;
                         for (x = 0; x < dw; x++) {
                                 unsigned sx = (x * sw) / dw;
-                                memcpy(drow + (size_t) x * dst_bpp,
-                                       srow + (size_t) sx * src_bpp,
-                                       dst_bpp);
+                                 memcpy(drow + (size_t) x * dst_bpp,
+                                         srow + (size_t) sx * src_bpp,
+                                        dst_bpp);
                         }
-                }
+                 }
         }
 
-        pipe->transfer_unmap(pipe, dtrans);
-        pipe->transfer_unmap(pipe, strans);
+        pipe->texture_unmap(pipe, dtrans);
+        pipe->texture_unmap(pipe, strans);
         return true;
 }
 '''
