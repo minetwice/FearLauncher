@@ -10,15 +10,15 @@ from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
 URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
-EXPECTED_SHA = '4d440b37c8daf5b292a1895812f50df0008fa96b'
+EXPECTED_SHA = '719e9959c42e7d61b82bcfc00f28794592da7e91'
 
 pairs = []
 for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
     g = {}
     exec(compile(Path(f).read_text(), f, 'exec'), g)
     pairs.append((g['OLD'].decode('utf-8'), g['NEW'].decode('utf-8')))
-if len(pairs) != 13:
-    print('expected 13 parts, got %d' % len(pairs))
+if len(pairs) != 14:
+    print('expected 14 parts, got %d' % len(pairs))
     sys.exit(1)
 
 def main():
@@ -56,7 +56,7 @@ def main():
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2.3: FBO readback + blit test (CI v7)'], check=True)
+                    'MC20 diag v2.4: nofp16 blit fix attempt (CI v8)'], check=True)
     subprocess.run(['git', 'push'], check=True)
     print('committed + pushed')
 
