@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 PATH = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
-URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PAT
+URL = 'https://raw.githubusercontent.com/minetwice/FearLauncher/fffcc05/' + PATH
 EXPECTED_SHA = '4d440b37c8daf5b292a1895812f50df0008fa96b'
 
 pairs = []
@@ -17,8 +17,8 @@ for f in sorted(glob.glob('scripts/diag_parts/part_*.py')):
     g = {}
     exec(compile(Path(f).read_text(), f, 'exec'), g)
     pairs.append((g['OLD'].decode('utf-8'), g['NEW'].decode('utf-8')))
-if len(pairs) != 12:
-    print('expected 12 parts, got %d' % len(pairs))
+if len(pairs) != 13:
+    print('expected 13 parts, got %d' % len(pairs))
     sys.exit(1)
 
 def main():
