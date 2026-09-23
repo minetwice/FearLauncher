@@ -59,7 +59,7 @@ def main():
         if 'mc20_softblit_patch.py' in wt:
             print('workflow: already ok')
         else:
-            anchor = '       - name: Configure Meson for Android ARM64\n'
+            anchor = '      - name: Configure Meson for Android ARM64\n'
             step = ('      - name: Apply MC20 soft-blit patch (panfrost CPU blit fallback)\n'
                     '        run: |\n'
                     '          python3 scripts/mc20_softblit_patch.py mesa\n\n')
