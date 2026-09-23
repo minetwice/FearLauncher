@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <dlfcn.h>
 #include <android/log.h>
 #include "osm_bridge.h"
 #include "bridge_environ.h"
@@ -38,6 +39,80 @@ static void osm_diag_sample(const char* where) {
             where, b->color_buffer, b->color_width, b->color_height,
             b->nativeSurface, bridge_environ.pojavWindow,
             (int)b->disable_rendering, (int)b->state, c, tl, br);
+}
+
+/* ---- MC20 diag v2: clear test + glReadPixels fallback ---- */
+static void* g_pReadPixels = NULL;
+static int g_diag_cleartest_done = 0;
+static int g_readback_flipped = 0;
+
+static void osm_diag_resolve_readpixels(void) {
+    void* h;
+    if (g_pReadPixels != NULL) return;
+    h = get_mesa_dl_handle();
+    if (h == NULL) return;
+    g_pReadPixels = dlsym(h, "glReadPixels");
+    fprintf(stderr, "OSMDIAG: glReadPixels = %p\n", g_pReadPixels);
+}
+
+static void osm_diag_clear_test(void) {
+    void* h;
+    void* sym;
+    void (*pClearColor)(float, float, float, float);
+    void (*pClear)(unsigned);
+    if (g_diag_cleartest_done) return;
+    g_diag_cleartest_done = 1;
+    h = get_mesa_dl_handle();
+    if (h == NULL) { fprintf(stderr, "OSMDIAG: cleartest: no mesa handle\n"); return; }
+    sym = dlsym(h, "glClearColor"); memcpy(&pClearColor, &sym, sizeof(sym));
+    sym = dlsym(h, "glClear"); memcpy(&pClear, &sym, sizeof(sym));
+    osm_diag_resolve_readpixels();
+    fprintf(stderr, "OSMDIAG: cleartest symbols clearColor=%p clear=%p readPixels=%p\n",
+            pClearColor, pClear, g_pReadPixels);
+    if (pClearColor == NULL || pClear == NULL) return;
+    pClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+    pClear(0x00004000u);
+    if (glFinish_p) glFinish_p();
+    if (g_pReadPixels != NULL) {
+        unsigned char px[4] = {1, 2, 3, 4};
+        void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+        memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
+        pReadPixels(8, 8, 1, 1, 0x1908u, 0x1401u, px);
+        fprintf(stderr, "OSMDIAG: CLEARTEST readpixels=%02x%02x%02x%02x (want ff00ffff)\n",
+                px[0], px[1], px[2], px[3]);
+    }
+    if (currentBundle != NULL && currentBundle->color_buffer != NULL
+        && currentBundle->color_width > 0 && currentBundle->color_height > 0) {
+        const unsigned int* p32 = currentBundle->color_buffer;
+        fprintf(stderr, "OSMDIAG: CLEARTEST rawbuf tl=0x%08x center=0x%08x (want ff00ffff)\n",
+                p32[0],
+                p32[(currentBundle->color_height / 2) * currentBundle->color_width + (currentBundle->color_width / 2)]);
+    }
+}
+
+/* Fallback: if the flush_front readback never delivers content (buffer still
+   all zero), pull the frame directly with glReadPixels (GL rows are bottom-up). */
+static void osm_fallback_readback(void) {
+    osm_render_window_t* b = currentBundle;
+    const unsigned int* p32;
+    unsigned int c, tl, br;
+    void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+    if (b == NULL || b->color_buffer == NULL || b->color_width <= 0 || b->color_height <= 0) return;
+    p32 = b->color_buffer;
+    c  = p32[(size_t)(b->color_height / 2) * b->color_width + (b->color_width / 2)];
+    tl = p32[0];
+    br = p32[(size_t)(b->color_height - 1) * b->color_width + (b->color_width - 1)];
+    if (c != 0 || tl != 0 || br != 0) {
+        g_readback_flipped = 0;
+        return;
+    }
+    osm_diag_resolve_readpixels();
+    if (g_pReadPixels == NULL) return;
+    memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
+    pReadPixels(0, 0, b->color_width, b->color_height, 0x1908u, 0x1401u, b->color_buffer);
+    g_readback_flipped = 1;
+    if ((g_diag_swaps % 120) == 0)
+        fprintf(stderr, "OSMDIAG: fallback glReadPixels readback applied (flipped)\n");
 }
 
 bool osm_init() {
@@ -205,6 +280,7 @@ void osm_make_current(osm_render_window_t* bundle) {
     else if (OSMesaMakeCurrent_p)
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
     osm_diag_sample("make_current");
+    osm_diag_clear_test();
 }
 
 /** Copy tightly-packed RGBA color_buffer into locked ANativeWindow (respect stride). */
@@ -230,8 +306,9 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
         return;
     }
     if ((g_diag_blits++ % 120) == 0)
-        fprintf(stderr, "OSMDIAG: blit locked dst=%dx%d stride=%d src=%dx%d\n",
-                nb.width, nb.height, nb.stride, bundle->color_width, bundle->color_height);
+        fprintf(stderr, "OSMDIAG: blit locked dst=%dx%d stride=%d src=%dx%d flipped=%d\n",
+                nb.width, nb.height, nb.stride, bundle->color_width, bundle->color_height,
+                g_readback_flipped);
 
     const int src_w = bundle->color_width;
     const int src_h = bundle->color_height;
@@ -246,8 +323,9 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
 
     if (dst != NULL && copy_w > 0 && copy_h > 0) {
         for (int y = 0; y < copy_h; y++) {
+            int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
             memcpy(dst + (size_t)y * dst_stride_bytes,
-                   src + (size_t)y * src_stride_bytes,
+                   src + (size_t)sy * src_stride_bytes,
                    (size_t)copy_w * 4u);
         }
     }
@@ -280,6 +358,8 @@ void osm_swap_buffers() {
 
     if ((g_diag_swaps++ % 30) == 0)
         osm_diag_sample("swap");
+
+    osm_fallback_readback();
 
     osm_blit_to_native(currentBundle);
 
