@@ -400,7 +400,6 @@ static void hooked_glfwDestroyWindow_impl(void* window) {
 
 /* ---- MC20 panfork: glBlitFramebuffer CPU fallback (GL blit broken on Valhall v11) ---- */
 static void* g_blit_real = NULL;
-static void* g_blit_fn_ptr = NULL;
 
 static void hooked_glBlitFramebuffer_impl(int srcX0, int srcY0, int srcX1, int srcY1,
                                           int dstX0, int dstY0, int dstX1, int dstY1,
@@ -713,13 +712,8 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
 
         if (strncmp(symbol, "gl", 2) == 0) {
             if (strcmp(symbol, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
-                if (g_blit_fn_ptr == NULL) {
-                    void* tmp = NULL;
-                    memcpy(&tmp, &hooked_glBlitFramebuffer_impl, sizeof(tmp));
-                    g_blit_fn_ptr = tmp;
-                }
                 printf("LWJGL hook: ndlsym glBlitFramebuffer -> CPU fallback (panfork)\n");
-                return (jlong) g_blit_fn_ptr;
+                return (jlong) hooked_glBlitFramebuffer_impl;
             }
             void* mesa = get_mesa_dl_handle();
             if (mesa != NULL) {
