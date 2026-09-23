@@ -159,6 +159,157 @@ static void osm_fallback_readback(void) {
         fprintf(stderr, "OSMDIAG: fallback glReadPixels readback applied (flipped)\n");
 }
 
+
+/* ---- MC20 diag v2.2: GLSL program test + FBO (render-to-texture) test ---- */
+static unsigned int g_diag_shader_fbo_done = 0;
+
+static void osm_diag_shader_fbo_test(void) {
+    void* h;
+    void* sym;
+    static const char* vsrc = "#version 120\nvoid main() { gl_Position = gl_Vertex; }";
+    static const char* fsrc_blue = "#version 120\nvoid main() { gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0); }";
+    static const char* fsrc_yellow = "#version 120\nvoid main() { gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); }";
+    unsigned int (*pCreateShader)(unsigned int);
+    void (*pShaderSource)(unsigned int, int, const char* const*, const int*);
+    void (*pCompileShader)(unsigned int);
+    void (*pGetShaderiv)(unsigned int, unsigned int, int*);
+    unsigned int (*pCreateProgram)(void);
+    void (*pAttachShader)(unsigned int, unsigned int);
+    void (*pLinkProgram)(unsigned int);
+    void (*pGetProgramiv)(unsigned int, unsigned int, int*);
+    void (*pUseProgram)(unsigned int);
+    void (*pGenFramebuffers)(int, unsigned int*);
+    void (*pBindFramebuffer)(unsigned int, unsigned int);
+    void (*pFramebufferTexture2D)(unsigned int, unsigned int, unsigned int, unsigned int, int);
+    unsigned int (*pCheckFramebufferStatus)(unsigned int);
+    unsigned int (*pGenTextures)(int, unsigned int*);
+    void (*pBindTexture)(unsigned int, unsigned int);
+    void (*pTexImage2D)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    void (*pBegin)(unsigned int);
+    void (*pEnd)(void);
+    void (*pVertex2f)(float, float);
+    void (*pViewport)(int, int, int, int);
+    unsigned int vs, fs, prog;
+    int compiled = 0, linked = 0;
+    unsigned int fbo = 0, tex = 0;
+    unsigned char px[4] = {9, 9, 9, 9};
+    int vw = 0, vh = 0;
+
+    if (g_diag_shader_fbo_done) return;
+    g_diag_shader_fbo_done = 1;
+    h = get_mesa_dl_handle();
+    if (h == NULL) { fprintf(stderr, "OSMDIAG: shadertest: no mesa handle\n"); return; }
+    sym = dlsym(h, "glCreateShader"); memcpy(&pCreateShader, &sym, sizeof(sym));
+    sym = dlsym(h, "glShaderSource"); memcpy(&pShaderSource, &sym, sizeof(sym));
+    sym = dlsym(h, "glCompileShader"); memcpy(&pCompileShader, &sym, sizeof(sym));
+    sym = dlsym(h, "glGetShaderiv"); memcpy(&pGetShaderiv, &sym, sizeof(sym));
+    sym = dlsym(h, "glCreateProgram"); memcpy(&pCreateProgram, &sym, sizeof(sym));
+    sym = dlsym(h, "glAttachShader"); memcpy(&pAttachShader, &sym, sizeof(sym));
+    sym = dlsym(h, "glLinkProgram"); memcpy(&pLinkProgram, &sym, sizeof(sym));
+    sym = dlsym(h, "glGetProgramiv"); memcpy(&pGetProgramiv, &sym, sizeof(sym));
+    sym = dlsym(h, "glUseProgram"); memcpy(&pUseProgram, &sym, sizeof(sym));
+    sym = dlsym(h, "glGenFramebuffers"); memcpy(&pGenFramebuffers, &sym, sizeof(sym));
+    sym = dlsym(h, "glBindFramebuffer"); memcpy(&pBindFramebuffer, &sym, sizeof(sym));
+    sym = dlsym(h, "glFramebufferTexture2D"); memcpy(&pFramebufferTexture2D, &sym, sizeof(sym));
+    sym = dlsym(h, "glCheckFramebufferStatus"); memcpy(&pCheckFramebufferStatus, &sym, sizeof(sym));
+    sym = dlsym(h, "glGenTextures"); memcpy(&pGenTextures, &sym, sizeof(sym));
+    sym = dlsym(h, "glBindTexture"); memcpy(&pBindTexture, &sym, sizeof(sym));
+    sym = dlsym(h, "glTexImage2D"); memcpy(&pTexImage2D, &sym, sizeof(sym));
+    sym = dlsym(h, "glBegin"); memcpy(&pBegin, &sym, sizeof(sym));
+    sym = dlsym(h, "glEnd"); memcpy(&pEnd, &sym, sizeof(sym));
+    sym = dlsym(h, "glVertex2f"); memcpy(&pVertex2f, &sym, sizeof(sym));
+    sym = dlsym(h, "glViewport"); memcpy(&pViewport, &sym, sizeof(sym));
+    if (pCreateShader == NULL || pShaderSource == NULL || pCompileShader == NULL ||
+        pGetShaderiv == NULL || pCreateProgram == NULL || pAttachShader == NULL ||
+        pLinkProgram == NULL || pGetProgramiv == NULL || pUseProgram == NULL ||
+        pBegin == NULL || pEnd == NULL || pVertex2f == NULL) {
+        fprintf(stderr, "OSMDIAG: shadertest: symbols missing\n");
+        return;
+    }
+
+    /* ---- SHADERTEST: GLSL program draws blue triangle, bottom-left ---- */
+    vs = pCreateShader(0x8B31u);
+    fs = pCreateShader(0x8B30u);
+    pShaderSource(vs, 1, &vsrc, NULL);
+    pShaderSource(fs, 1, &fsrc_blue, NULL);
+    pCompileShader(vs);
+    pCompileShader(fs);
+    pGetShaderiv(vs, 0x8B81u, &compiled);
+    fprintf(stderr, "OSMDIAG: SHADERTEST vs_compile=%d", compiled);
+    if (!compiled) { fprintf(stderr, " FAILED\n"); return; }
+    pGetShaderiv(fs, 0x8B81u, &compiled);
+    fprintf(stderr, " fs_compile=%d", compiled);
+    if (!compiled) { fprintf(stderr, " FAILED\n"); return; }
+    prog = pCreateProgram();
+    pAttachShader(prog, vs);
+    pAttachShader(prog, fs);
+    pLinkProgram(prog);
+    pGetProgramiv(prog, 0x8B82u, &linked);
+    fprintf(stderr, " link=%d\n", linked);
+    if (!linked) return;
+    pUseProgram(prog);
+    pBegin(0x0004u);
+    pVertex2f(-0.95f, -0.95f);
+    pVertex2f(-0.45f, -0.95f);
+    pVertex2f(-0.95f, -0.45f);
+    pEnd();
+    if (glFinish_p) glFinish_p();
+    pUseProgram(0);
+    if (currentBundle != NULL && currentBundle->color_buffer != NULL
+        && currentBundle->color_width > 0 && currentBundle->color_height > 0) {
+        const unsigned int* p32 = currentBundle->color_buffer;
+        unsigned int bl = p32[(size_t)(currentBundle->color_height * 19 / 20) * currentBundle->color_width + (currentBundle->color_width / 20)];
+        fprintf(stderr, "OSMDIAG: SHADERTEST bl=0x%08x (want ffff0000 blue)\n", bl);
+    }
+
+    /* ---- FBOTEST: render yellow triangle into texture-FBO, read back ---- */
+    if (pGenFramebuffers != NULL && pBindFramebuffer != NULL && pFramebufferTexture2D != NULL &&
+        pCheckFramebufferStatus != NULL && pGenTextures != NULL && pBindTexture != NULL &&
+        pTexImage2D != NULL && pViewport != NULL) {
+        pGenTextures(1, &tex);
+        pBindTexture(0x0DE1u, tex);
+        pTexImage2D(0x0DE1u, 0, 0x1908u, 256, 256, 0, 0x1908u, 0x1401u, NULL);
+        pGenFramebuffers(1, &fbo);
+        pBindFramebuffer(0x8D40u, fbo);
+        pFramebufferTexture2D(0x8D40u, 0x8CE0u, 0x0DE1u, tex, 0);
+        if (pCheckFramebufferStatus(0x8D40u) != 0x8CD5u) {
+            fprintf(stderr, "OSMDIAG: FBOTEST framebuffer NOT complete\n");
+        } else {
+            pViewport(0, 0, 256, 256);
+            pShaderSource(fs, 1, &fsrc_yellow, NULL);
+            pCompileShader(fs);
+            pGetShaderiv(fs, 0x8B81u, &compiled);
+            if (compiled) {
+                pUseProgram(prog);
+                pBegin(0x0004u);
+                pVertex2f(-0.95f, -0.95f);
+                pVertex2f(-0.45f, -0.95f);
+                pVertex2f(-0.95f, -0.45f);
+                pEnd();
+                if (glFinish_p) glFinish_p();
+                pUseProgram(0);
+                if (g_pReadPixels != NULL) {
+                    void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+                    memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
+                    pReadPixels(8, 8, 1, 1, 0x1908u, 0x1401u, px);
+                    fprintf(stderr, "OSMDIAG: FBOTEST read=%02x%02x%02x%02x (want ffff00ff yellow)\n",
+                            px[0], px[1], px[2], px[3]);
+                }
+            } else {
+                fprintf(stderr, "OSMDIAG: FBOTEST yellow fs failed to compile\n");
+            }
+            if (currentBundle != NULL && currentBundle->color_width > 0) {
+                vw = currentBundle->color_width;
+                vh = currentBundle->color_height;
+                pViewport(0, 0, vw, vh);
+            }
+        }
+        pBindFramebuffer(0x8D40u, 0);
+    } else {
+        fprintf(stderr, "OSMDIAG: FBOTEST symbols missing\n");
+    }
+}
+
 bool osm_init() {
     dlsym_OSMesa();
     return osmesa_is_loaded();
@@ -325,6 +476,7 @@ void osm_make_current(osm_render_window_t* bundle) {
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
     osm_diag_sample("make_current");
     osm_diag_tri_test();
+    osm_diag_shader_fbo_test();
 }
 
 /** Copy tightly-packed RGBA color_buffer into locked ANativeWindow (respect stride). */
