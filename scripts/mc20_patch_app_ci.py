@@ -55,18 +55,35 @@ def main():
     if not (a or b):
         print('no changes')
         return
+    wp = None
+    try:
+        wp = Path('.github/workflows/mc20-build-panfork.yml')
+        wt = wp.read_text()
+        if 'mc20_softblit_patch.py' in wt:
+            print('workflow: already ok')
+        else:
+            anchor = '      - name: Configure Meson for Android ARM64\n'
+            step = ('      - name: Apply MC20 soft-blit patch (panforst CPU blit fallback)\n'
+                      'run: |\n'
+                      'python3 scripts/mc20_softblit_patch.py mesa\n\n')
+            assert anchor in wt, 'meson step anchor missing'
+            wp.write_text(wt.replace(anchor, step + anchor, 1))
+            print('workflow: soft-blit step inserted')
+    except Exception as e:
+        print('workflow patch skipped: ' + str(e))
     subprocess.run(['git', 'add',
                     'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c',
-                    'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'], check=True)
+                    'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c',
+                    '.github/workflows/mc20-build-panfork.yml'], check=True)
     if subprocess.run(['git', 'diff', '--cached', '--quiet']).returncode == 0:
         print('no changes')
         return
     subprocess.run(['git', '-c', 'user.name=Twicefear',
                     '-c', 'user.email=ytd82774@gmail.com',
                     'commit', '-m',
-                    'MC20 diag v2.7: glBlitNamedFramebuffer CPU fallback + req log (CI v11)'],
+                    'MC20 diag v2.8: soft-blit workflow patch (CI v12)'],
                    check=True)
-    subprocess.run(['git', 'push'], check=True)
+    subprocess.run(['git', ''push'], check=True)
     print('pushed')
 
 
