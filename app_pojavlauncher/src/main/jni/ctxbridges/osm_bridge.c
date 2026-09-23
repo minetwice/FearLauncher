@@ -43,7 +43,7 @@ static void osm_diag_sample(const char* where) {
 
 /* ---- MC20 diag v2: clear test + glReadPixels fallback ---- */
 static void* g_pReadPixels = NULL;
-static int g_diag_cleartest_done = 0;
+static int g_diag_tritest_done = 0;
 static int g_readback_flipped = 0;
 
 static void osm_diag_resolve_readpixels(void) {
@@ -55,38 +55,82 @@ static void osm_diag_resolve_readpixels(void) {
     fprintf(stderr, "OSMDIAG: glReadPixels = %p\n", g_pReadPixels);
 }
 
-static void osm_diag_clear_test(void) {
+static void osm_diag_tri_test(void) {
     void* h;
     void* sym;
-    void (*pClearColor)(float, float, float, float);
     void (*pClear)(unsigned);
-    if (g_diag_cleartest_done) return;
-    g_diag_cleartest_done = 1;
+    void (*pEnable)(unsigned);
+    void (*pDisable)(unsigned);
+    void (*pBegin)(unsigned);
+    void (*pEnd)(void);
+    void (*pColor4f)(float, float, float, float);
+    void (*pVertex2f)(float, float);
+    void (*pTexCoord2f)(float, float);
+    unsigned char tex[3] = {255, 255, 255};
+    if (g_diag_tritest_done) return;
+    g_diag_tritest_done = 1;
     h = get_mesa_dl_handle();
-    if (h == NULL) { fprintf(stderr, "OSMDIAG: cleartest: no mesa handle\n"); return; }
-    sym = dlsym(h, "glClearColor"); memcpy(&pClearColor, &sym, sizeof(sym));
+    if (h == NULL) { fprintf(stderr, "OSMDIAG: tritest: no mesa handle\n"); return; }
     sym = dlsym(h, "glClear"); memcpy(&pClear, &sym, sizeof(sym));
-    osm_diag_resolve_readpixels();
-    fprintf(stderr, "OSMDIAG: cleartest symbols clearColor=%p clear=%p readPixels=%p\n",
-            pClearColor, pClear, g_pReadPixels);
-    if (pClearColor == NULL || pClear == NULL) return;
-    pClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-    pClear(0x00004000u);
-    if (glFinish_p) glFinish_p();
-    if (g_pReadPixels != NULL) {
-        unsigned char px[4] = {1, 2, 3, 4};
-        void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
-        memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
-        pReadPixels(8, 8, 1, 1, 0x1908u, 0x1401u, px);
-        fprintf(stderr, "OSMDIAG: CLEARTEST readpixels=%02x%02x%02x%02x (want ff00ffff)\n",
-                px[0], px[1], px[2], px[3]);
+    sym = dlsym(h, "glEnable"); memcpy(&pEnable, &sym, sizeof(sym));
+    sym = dlsym(h, "glDisable"); memcpy(&pDisable, &sym, sizeof(sym));
+    sym = dlsym(h, "glBegin"); memcpy(&pBegin, &sym, sizeof(sym));
+    sym = dlsym(h, "glEnd"); memcpy(&pEnd, &sym, sizeof(sym));
+    sym = dlsym(h, "glColor4f"); memcpy(&pColor4f, &sym, sizeof(sym));
+    sym = dlsym(h, "glVertex2f"); memcpy(&pVertex2f, &sym, sizeof(sym));
+    sym = dlsym(h, "glTexCoord2f"); memcpy(&pTexCoord2f, &sym, sizeof(sym));
+    fprintf(stderr, "OSMDIAG: tritest symbols clear=%p enable=%p disable=%p begin=%p end=%p\n",
+            pClear, pEnable, pDisable, pBegin, pEnd);
+    if (pClear == NULL || pEnable == NULL || pDisable == NULL || pBegin == NULL ||
+        pEnd == NULL || pColor4f == NULL || pVertex2f == NULL || pTexCoord2f == NULL) {
+        fprintf(stderr, "OSMDIAG: tritest: symbols missing\n");
+        return;
     }
+    pDisable(0x0B71u); /* GL_DEPTH_TEST */
+    pClear(0x00004300u); /* color | depth | stencil */
+    /* Plain red triangle, top-left */
+    pColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+    pBegin(0x0004u);
+    pVertex2f(-0.95f, 0.95f);
+    pVertex2f(-0.45f, 0.95f);
+    pVertex2f(-0.95f, 0.45f);
+    pEnd();
+    /* Textured green triangle, top-right (1x1 white texture) */
+    {
+        unsigned int texname = 0;
+        void (*pGenTextures)(int, unsigned int*);
+        void (*pBindTexture)(unsigned, unsigned int);
+        void (*pTexImage2D)(unsigned, int, int, int, int, int, unsigned, unsigned, const void*);
+        sym = dlsym(h, "glGenTextures"); memcpy(&pGenTextures, &sym, sizeof(sym));
+        sym = dlsym(h, "glBindTexture"); memcpy(&pBindTexture, &sym, sizeof(sym));
+        sym = dlsym(h, "glTexImage2D"); memcpy(&pTexImage2D, &sym, sizeof(sym));
+        if (pGenTextures && pBindTexture && pTexImage2D) {
+            pGenTextures(1, &texname);
+            pBindTexture(0x0DE1u, texname);
+            pTexImage2D(0x0DE1u, 0, 0x1907u, 1, 1, 0, 0x1907u, 0x1401u, tex);
+            pEnable(0x0DE1u);
+            pColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+            pBegin(0x0004u);
+            pTexCoord2f(0.0f, 0.0f);
+            pVertex2f(0.95f, 0.95f);
+            pTexCoord2f(1.0f, 0.0f);
+            pVertex2f(0.45f, 0.95f);
+            pTexCoord2f(0.0f, 1.0f);
+            pVertex2f(0.95f, 0.45f);
+            pEnd();
+        } else {
+            fprintf(stderr, "OSMDIAG: tritest: texture symbols missing, textured tri skipped\n");
+        }
+    }
+    if (glFinish_p) glFinish_p();
     if (currentBundle != NULL && currentBundle->color_buffer != NULL
         && currentBundle->color_width > 0 && currentBundle->color_height > 0) {
         const unsigned int* p32 = currentBundle->color_buffer;
-        fprintf(stderr, "OSMDIAG: CLEARTEST rawbuf tl=0x%08x center=0x%08x (want ff00ffff)\n",
-                p32[0],
-                p32[(currentBundle->color_height / 2) * currentBundle->color_width + (currentBundle->color_width / 2)]);
+        unsigned int tl = p32[(size_t)(currentBundle->color_height / 20) * currentBundle->color_width + (currentBundle->color_width / 20)];
+        unsigned int tr = p32[(size_t)(currentBundle->color_height / 20) * currentBundle->color_width + (currentBundle->color_width * 19 / 20)];
+        unsigned int mid = p32[(size_t)(currentBundle->color_height / 2) * currentBundle->color_width + (currentBundle->color_width / 2)];
+        fprintf(stderr, "OSMDIAG: TRITEST tl=0x%08x (want ff0000ff red) tr=0x%08x (want ff00ff00 green) mid=0x%08x (want 00000000)\n",
+                tl, tr, mid);
     }
 }
 
@@ -280,7 +324,7 @@ void osm_make_current(osm_render_window_t* bundle) {
     else if (OSMesaMakeCurrent_p)
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
     osm_diag_sample("make_current");
-    osm_diag_clear_test();
+    osm_diag_tri_test();
 }
 
 /** Copy tightly-packed RGBA color_buffer into locked ANativeWindow (respect stride). */
