@@ -63,9 +63,9 @@ def main():
             print('workflow: already ok')
         else:
             anchor = '      - name: Configure Meson for Android ARM64\n'
-            step = ('      - name: Apply MC20 soft-blit patch (panforst CPU blit fallback)\n'
-                      'run: |\n'
-                      'python3 scripts/mc20_softblit_patch.py mesa\n\n')
+            step = ('      - name: Apply MC20 soft-blit patch (panfrost CPU blit fallback)\n'
+                    '        run: |\n'
+                    '          python3 scripts/mc20_softblit_patch.py mesa\n\n')
             assert anchor in wt, 'meson step anchor missing'
             wp.write_text(wt.replace(anchor, step + anchor, 1))
             print('workflow: soft-blit step inserted')
@@ -83,7 +83,7 @@ def main():
                     'commit', '-m',
                     'MC20 diag v2.8: soft-blit workflow patch (CI v12)'],
                    check=True)
-    subprocess.run(['git', ''push'], check=True)
+    subprocess.run(['git', 'push'], check=True)
     print('pushed')
 
 
