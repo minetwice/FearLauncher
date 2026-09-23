@@ -1,2 +1,2 @@
-OLD = b'    if (glFinish_p) glFinish_p();\n\n    osm_blit_to_native(currentBundle);\n'
-NEW = b'    if (glFinish_p) glFinish_p();\n\n    if ((g_diag_swaps++ % 30) == 0)\n        osm_diag_sample("swap");\n\n    osm_blit_to_native(currentBundle);\n'
+OLD = b'    if (dst != NULL && copy_w > 0 && copy_h > 0) {\n        for (int y = 0; y < copy_h; y++) {\n            memcpy(dst + (size_t)y * dst_stride_bytes,\n                   src + (size_t)y * src_stride_bytes,\n                   (size_t)copy_w * 4u);\n        }\n    }'
+NEW = b'    if (dst != NULL && copy_w > 0 && copy_h > 0) {\n        for (int y = 0; y < copy_h; y++) {\n            int sy = g_readback_flipped ? (copy_h - 1 - y) : y;\n            memcpy(dst + (size_t)y * dst_stride_bytes,\n                   src + (size_t)sy * src_stride_bytes,\n                   (size_t)copy_w * 4u);\n        }\n    }'
