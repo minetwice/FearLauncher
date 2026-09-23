@@ -398,8 +398,12 @@ static void hooked_glfwDestroyWindow_impl(void* window) {
     if (g_current_window == window) g_current_window = NULL;
 }
 
-/* ---- MC20 panfork: glBlitFramebuffer CPU fallback (GL blit broken on Valhall v11) ---- */
+/* ---- MC20 panfork: blit CPU fallback (GL blit broken on Valhall v11).
+   v2.7: glBlitNamedFramebuffer (DSA, MC 1.21.6+ present path) + request logging. ---- */
 static void* g_blit_real = NULL;
+static unsigned char* g_blit_buf = NULL;
+static size_t g_blit_buf_size = 0;
+static int g_req_log_count = 0;
 
 static void hooked_glBlitFramebuffer_impl(int srcX0, int srcY0, int srcX1, int srcY1,
                                           int dstX0, int dstY0, int dstX1, int dstY1,
@@ -447,7 +451,12 @@ static void hooked_glBlitFramebuffer_impl(int srcX0, int srcY0, int srcX1, int s
         fprintf(stderr, "LWJGL hook: BLITFALLBACK symbols missing\n");
         return;
     }
-    buf = malloc((size_t) sw * sh * 4);
+    if (g_blit_buf == NULL || g_blit_buf_size < (size_t) sw * sh * 4) {
+        free(g_blit_buf);
+        g_blit_buf_size = (size_t) sw * sh * 4;
+        g_blit_buf = malloc(g_blit_buf_size);
+    }
+    buf = g_blit_buf;
     if (buf == NULL) return;
     pReadPixels(srcX0, srcY0, sw, sh, 0x1908u, 0x1401u, buf);
     depth_on = pIsEnabled(0x0B71u);
@@ -468,14 +477,49 @@ static void hooked_glBlitFramebuffer_impl(int srcX0, int srcY0, int srcX1, int s
     if (blend_on) pEnable(0x0BE2u);
     if (scissor_on) pEnable(0x0C11u);
     if (stencil_on) pEnable(0x0B90u);
-    free(buf);
+}
+
+static void hooked_glBlitNamedFramebuffer_impl(unsigned int readFbo, unsigned int drawFbo,
+                                                int srcX0, int srcY0, int srcX1, int srcY1,
+                                                int dstX0, int dstY0, int dstX1, int dstY1,
+                                                unsigned int mask, unsigned int filter) {
+    void* h;
+    void* sym;
+    void (*pBindFb)(unsigned, unsigned);
+    int (*pGetInt)(unsigned, int*);
+    int saveRead = 0, saveDraw = 0;
+
+    if ((mask & 0x4000u) == 0u) return;
+    h = get_mesa_dl_handle();
+    if (h == NULL) return;
+    sym = dlsym(h, "glBindFramebuffer"); memcpy(&pBindFb, &sym, sizeof(sym));
+    sym = dlsym(h, "glGetIntegerv"); memcpy(&pGetInt, &sym, sizeof(sym));
+    if (pBindFb == NULL || pGetInt == NULL) {
+        fprintf(stderr, "LWJGL hook: BLITFALLBACK named symbols missing\n");
+        return;
+    }
+    pGetInt(0x8CAAu, &saveRead);
+    pGetInt(0x8CA9u, &saveDraw);
+    pBindFb(0x8CAAu, readFbo);
+    pBindFb(0x8CA9u, drawFbo);
+    hooked_glBlitFramebuffer_impl(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+    pBindFb(0x8CAAu, (unsigned) saveRead);
+    pBindFb(0x8CA9u, (unsigned) saveDraw);
 }
 
 static void* hooked_glfwGetProcAddress_impl(const char* procname) {
     if (!procname) return NULL;
+    if (strncmp(procname, "gl", 2) == 0 && g_req_log_count < 1500) {
+        g_req_log_count++;
+        printf("LWJGL hook: REQ %s\n", procname);
+    }
     if (strcmp(procname, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
         printf("LWJGL hook: glBlitFramebuffer -> CPU fallback (panfork)\n");
         return (void*) hooked_glBlitFramebuffer_impl;
+    }
+    if (strcmp(procname, "glBlitNamedFramebuffer") == 0 && is_panfork_renderer()) {
+        printf("LWJGL hook: glBlitNamedFramebuffer -> CPU fallback (panfork)\n");
+        return (void*) hooked_glBlitNamedFramebuffer_impl;
     }
     void* mesa = get_mesa_dl_handle();
     void* sym = NULL;
@@ -711,9 +755,17 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         }
 
         if (strncmp(symbol, "gl", 2) == 0) {
+            if (g_req_log_count < 1500) {
+                g_req_log_count++;
+                printf("LWJGL hook: NREQ %s\n", symbol);
+            }
             if (strcmp(symbol, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
                 printf("LWJGL hook: ndlsym glBlitFramebuffer -> CPU fallback (panfork)\n");
                 return (jlong) hooked_glBlitFramebuffer_impl;
+            }
+            if (strcmp(symbol, "glBlitNamedFramebuffer") == 0 && is_panfork_renderer()) {
+                printf("LWJGL hook: ndlsym glBlitNamedFramebuffer -> CPU fallback (panfork)\n");
+                return (jlong) hooked_glBlitNamedFramebuffer_impl;
             }
             void* mesa = get_mesa_dl_handle();
             if (mesa != NULL) {
