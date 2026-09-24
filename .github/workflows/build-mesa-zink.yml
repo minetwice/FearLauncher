@@ -78,6 +78,11 @@ jobs:
 
       - name: Apply FearLauncher Mali-blob quirk toggles (runtime)
         run: |
+          echo "=== FEARPATCH DIAGNOSTICS: coherence handling in zink sources ==="
+          grep -n "coherent" mesa/src/gallium/drivers/zink/zink_resource.c | head -30 || true
+          grep -n "coherent" mesa/src/gallium/drivers/zink/zink_bo.c | head -20 || true
+          echo "=== FEARPATCH DIAGNOSTICS: resource.c around obj->coherent ==="
+          grep -n "obj->coherent" mesa/src/gallium/drivers/zink/*.c || true
           python3 << 'PYEOF'
           import re, sys
           def edit(path, pat, repl):
@@ -85,6 +90,10 @@ jobs:
               new, n = re.subn(pat, repl, s, count=1)
               if n == 0:
                   print("FEARPATCH FAIL: pattern not found in %s: %s" % (path, pat[:80]))
+                  print("=== FEARPATCH CONTEXT DUMP for %s ===" % path)
+                  for i, l in enumerate(s.splitlines()):
+                      if "coherent" in l or "bindless_texture" in l or "texture_transfer_mode" in l:
+                          print("%d: %s" % (i+1, l))
                   sys.exit(1)
               open(path, 'w').write(new)
               print("FEARPATCH OK: %s" % path)
