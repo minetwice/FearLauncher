@@ -30,6 +30,8 @@ jobs:
     name: Mesa OSMesa+Zink aarch64
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -233,3 +235,17 @@ jobs:
           path: mesa-zink-arm64-osmesa.zip
           if-no-files-found: error
           retention-days: 30
+
+      - name: Push new libOSMesa_8.so to repo jniLibs
+        run: |
+          cp out/arm64-v8a/libOSMesa_8.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git commit -m "mesa: rebuild libOSMesa_8.so with ZINK_MALI quirk toggles (FEARPATCH)"
+            git push
+            echo "PUSHED new libOSMesa_8.so"
+          fi
