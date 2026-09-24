@@ -124,6 +124,19 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "panvk_zink":
+                // MC19: Zink on the open-source PanVK (Panfrost) driver.
+                // Clean path - no proprietary-driver workarounds needed.
+                Logger.appendToLog("[PanVK] Initializing PanVK Zink renderer (open-source Panfrost Vulkan driver)...");
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("vblank_mode", "0");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("PAN_MESA_DEBUG", "noafbc");
+                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
@@ -164,7 +177,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -309,6 +322,7 @@ public class JREUtils {
 
 
         switch (renderer){
+            case "panvk_zink":
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
