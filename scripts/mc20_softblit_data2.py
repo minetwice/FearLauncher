@@ -1,7 +1,7 @@
 # data part 2 (NEW_INC_B)
 NEW_INC_B = '''        src = pipe->texture_map(pipe, info->src.resource, info->src.level,
-                                 PIPE_MAP_READ, &sbox, &strans);
-          if (src == NULL) {
+                                PIPE_MAP_READ, &sbox, &strans);
+        if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
                 return false;
         }
@@ -17,10 +17,8 @@ NEW_INC_B = '''        src = pipe->texture_map(pipe, info->src.resource, info->s
         ss = strans->stride;
         ds = dtrans->stride;
 
-        fprintf(stderr, "PANFORKSOFTBLIT: %ux%ue -> %ux%u bpp=%u ss=%u ds=%u\\n",
-                sw, sh, (info->src.box.height < 0) ? "(flip)" : "",
-                dw, dh, (info->dst.box.height < 0) ? "(flip)" : "",
-                src_bpp, ss, ds);
+        fprintf(stderr, "PANFORKSOFTBLIT: %ux%u -> %ux%u bpp=%u ss=%u ds=%u flip=%d\\n",
+                sw, sh, dw, dh, src_bpp, ss, ds, flip_y);
 
         {
                 int y;
