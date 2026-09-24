@@ -1,6 +1,7 @@
 //
-// FearLauncher Vulkan loader — Turnip (Adreno) + PanVK (Mali open-source)
-// Clean PanVK: loads libvulkan_panfrost.so properly (no half-hook / missing mjlvlk).
+// FearLauncher Vulkan loader
+// PanVK path: libmjlvlk.so (vk_panfrost_shim.c) -> libvulkan_panfrost.so ICD
+// Turnip path: linker namespace + libvulkan_freedreno.so (Adreno only)
 //
 
 #include <android/api-level.h>
@@ -32,6 +33,36 @@ static void* dlopen_in_native_dir(const char* native_dir, const char* soname, in
         printf("DriverHook: dlopen(%s) failed: %s\n", path, dlerror());
     }
     return dlopen(soname, flags);
+}
+
+/* Primary PanVK path: CMake-built libmjlvlk.so (vk_panfrost_shim.c).
+ * Shim dlopens libvulkan_panfrost.so and exports vkGetInstanceProcAddr.
+ * Zink uses this handle via VULKAN_PTR — never the system / Turnip loader. */
+static void* load_panvk_mjlvlk_shim(void) {
+    const char* native_dir = getenv("POJAV_NATIVEDIR");
+    char path[PATH_MAX];
+    if (native_dir && native_dir[0])
+        snprintf(path, sizeof(path), "%s/libmjlvlk.so", native_dir);
+    else
+        snprintf(path, sizeof(path), "libmjlvlk.so");
+
+    void* h = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+    if (!h) {
+        printf("VulkanLoader: PanVK mjlvlk shim FAILED (%s): %s\n", path, dlerror());
+        return NULL;
+    }
+    /* Touch symbols so Zink can dlsym them via VULKAN_PTR */
+    void* gipa = dlsym(h, "vkGetInstanceProcAddr");
+    void* gdpa = dlsym(h, "vkGetDeviceProcAddr");
+    if (!gipa) {
+        printf("VulkanLoader: mjlvlk missing vkGetInstanceProcAddr\n");
+        dlclose(h);
+        return NULL;
+    }
+    setenv("FEAR_PANVK_OK", "1", 1);
+    printf("VulkanLoader: PanVK mjlvlk shim OK path=%s handle=%p gipa=%p gdpa=%p\n",
+           path, h, gipa, gdpa);
+    return h;
 }
 
 static bool load_named_vulkan_driver(const char* driver_soname, const char* label) {
@@ -107,10 +138,10 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
     }
     linkerhook_pass_handles(driver_handle, (void*)android_dlopen_ext, android_get_exported_namespace);
 
-    void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
-    printf("DriverHook: %s unique mjlvlk ptr=%p\n", label, libvulkan);
+    void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk_turnip.so", RTLD_LOCAL | RTLD_NOW);
+    printf("DriverHook: %s unique ptr=%p\n", label, libvulkan);
     if (!libvulkan) {
-        printf("DriverHook: unique open failed for %s — abort custom driver\n", label);
+        printf("DriverHook: unique open failed for %s — abort\n", label);
         dlclose(dl_android);
         dlclose(driver_handle);
         dlclose(linkerhook);
@@ -119,8 +150,6 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
 
     strncpy(loaded_name, driver_soname, sizeof(loaded_name) - 1);
     driver_loaded = true;
-    if (strstr(driver_soname, "panfrost"))
-        setenv("FEAR_PANVK_OK", "1", 1);
     printf("DriverHook: %s ready (handle=%p, driver=%s)\n", label, libvulkan, driver_soname);
     return true;
 }
@@ -128,73 +157,29 @@ static bool load_named_vulkan_driver(const char* driver_soname, const char* labe
 bool load_turnip_vulkan() {
     return load_named_vulkan_driver("libvulkan_freedreno.so", "Turnip");
 }
-
-bool load_panvk_vulkan() {
-    return load_named_vulkan_driver("libvulkan_panfrost.so", "PanVK");
-}
-
-static bool install_panvk_icd_fallback(void) {
-    const char* native_dir = getenv("POJAV_NATIVEDIR");
-    const char* cache_dir = getenv("TMPDIR");
-    if (!cache_dir || !cache_dir[0]) cache_dir = getenv("HOME");
-    if (!native_dir || !native_dir[0] || !cache_dir || !cache_dir[0]) return false;
-
-    char so_path[PATH_MAX];
-    snprintf(so_path, sizeof(so_path), "%s/libvulkan_panfrost.so", native_dir);
-    FILE* check = fopen(so_path, "rb");
-    if (!check) {
-        printf("PanVK ICD: %s missing\n", so_path);
-        return false;
-    }
-    fclose(check);
-
-    char json_path[PATH_MAX];
-    snprintf(json_path, sizeof(json_path), "%s/panfrost_icd.json", cache_dir);
-    FILE* f = fopen(json_path, "w");
-    if (!f) {
-        printf("PanVK ICD: cannot write %s\n", json_path);
-        return false;
-    }
-    fprintf(f,
-        "{\n"
-        "  \"file_format_version\": \"1.0.0\",\n"
-        "  \"ICD\": {\n"
-        "    \"library_path\": \"%s\",\n"
-        "    \"api_version\": \"1.1.0\"\n"
-        "  }\n"
-        "}\n",
-        so_path);
-    fclose(f);
-
-    setenv("VK_ICD_FILENAMES", json_path, 1);
-    setenv("VK_DRIVER_FILES", json_path, 1);
-    setenv("FEAR_PANVK_OK", "1", 1);
-    printf("PanVK ICD fallback: VK_ICD_FILENAMES=%s\n", json_path);
-    return true;
-}
 #endif
 
 void* pojavexec_loadVulkanDriver() {
 #ifdef ENABLE_TURNIP_LOADER
     if (android_get_device_api_level() >= 28) {
         const char* fear = getenv("FEAR_RENDERER");
+        /* PanVK: ONLY mjlvlk shim — never Turnip, never bare system first */
         if (fear && (strcmp(fear, "panvk") == 0 || strcmp(fear, "panvk_zink") == 0)) {
-            if (load_panvk_vulkan()) {
-                void* h = linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
-                if (h) return h;
-                h = linker_ns_dlopen("libvulkan.so", RTLD_LOCAL);
-                if (h) return h;
-            }
-            if (install_panvk_icd_fallback()) {
-                void* h = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
-                printf("VulkanLoader: PanVK ICD + system libvulkan = %p\n", h);
-                if (h) return h;
-            }
+            void* h = load_panvk_mjlvlk_shim();
+            if (h) return h;
             setenv("FEAR_PANVK_OK", "0", 1);
-            printf("VulkanLoader: PanVK failed — system Vulkan fallback\n");
+            printf("VulkanLoader: PanVK mjlvlk missing — NOT using Turnip; system vulkan last resort\n");
+            void* sys = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+            printf("VulkanLoader: system vulkan fallback ptr=%p\n", sys);
+            return sys;
         }
-        if (turnip_enabled && load_turnip_vulkan())
-            return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
+        /* Turnip only when explicitly enabled (Adreno) */
+        if (turnip_enabled && load_turnip_vulkan()) {
+            void* h = linker_ns_dlopen("libmjlvlk_turnip.so", RTLD_LOCAL);
+            if (h) return h;
+            h = linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
+            if (h) return h;
+        }
     }
 #endif
     void* vulkan_ptr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
@@ -208,17 +193,13 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_preloadVulkan(JNIEnv *env, jclass clazz)
 #ifdef ENABLE_TURNIP_LOADER
     const char* fear = getenv("FEAR_RENDERER");
     if (fear && (strcmp(fear, "panvk") == 0 || strcmp(fear, "panvk_zink") == 0)) {
-        if (load_panvk_vulkan()) {
-            setenv("FEAR_PANVK_OK", "1", 1);
-            printf("VulkanLoader: PanVK preload OK (FEAR_PANVK_OK=1)\n");
-            return;
-        }
-        if (install_panvk_icd_fallback()) {
-            printf("VulkanLoader: PanVK ICD preload OK\n");
+        void* h = load_panvk_mjlvlk_shim();
+        if (h) {
+            printf("VulkanLoader: PanVK preload OK (mjlvlk shim)\n");
             return;
         }
         setenv("FEAR_PANVK_OK", "0", 1);
-        printf("VulkanLoader: PanVK preload failed (FEAR_PANVK_OK=0)\n");
+        printf("VulkanLoader: PanVK preload FAILED (no libmjlvlk.so)\n");
         return;
     }
     if (!turnip_enabled) return;
@@ -231,4 +212,5 @@ JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_setUseTurnip(JNIEnv *env, jclass clazz, jboolean enable) {
     (void)env; (void)clazz;
     turnip_enabled = enable;
+    printf("VulkanLoader: setUseTurnip(%d)\n", (int)enable);
 }
