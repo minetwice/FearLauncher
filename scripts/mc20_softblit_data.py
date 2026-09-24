@@ -9,57 +9,70 @@ NEW_INC_A = '''#include "pan_context.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
+#include <unistd.h>
 
-/* MC20: CPU fallback for color 2D blits. The GPU blitter path produces no
- * output on this device (Mali-G615 / Valhall v11 with the OSMesa winsys),
- * while texture_map-based readback is proven working (glReadPixels uses
- * the same path). Flip-aware: MC's present sends a NEGATIVE src box height
- * (GL Y-flip), which must be honoured by copying rows in reverse. */
-static bool
-panfrost_soft_blit(struct pipe_context *pipe,
-                   const struct pipe_blit_info *info)
-{
-        struct pipe_transfer *strans = NULL, *dtrans = NULL;
-        uint8_t *src = NULL, *dst = NULL;
-        unsigned src_bpp, dst_bpp, sw, sh, dw, dh, ss, ds;
-        bool flip_y, flip_x;
+/* MC20: CPU fallback for colo|ˆˆ›]ËˆHÔH›]\ˆ]›ÙXÙ\È›Âˆ
+ˆÝ]]Ûˆ\È]šXÙH
+X[KQÍŒMHÈ˜[[ŒLHÚ]HÔÓY\ØHÚ[œÞ\ÊKˆ
+ˆÚ[H^\™WÛX\X˜\ÙY™XY˜XÚÈ\È›Ý™[ˆÛÜšÚ[™È
+Û™XY^[È\Ù\Âˆ
+ˆHØ[YH]
+Kˆ›\X]Ø\™NˆPÉÜÈ™\Ù[Ù[™ÈH‘QÐUU‘HÜ˜È›ÞZYÚˆ
+ˆ
+ÓKY›\
+KÚXÚ]\Ý™HÛ›Ý\™YžHÛÜZ[™È›ÝÜÈ[ˆ™]™\œÙKˆ
+‹ÂœÝ]XÈ›ÛÛœ[™œ›ÜÝÜÛÙØ›]
+ÝXÝ\WØÛÛ^
+œ\KˆÛÛœÝÝXÝ\WØ›]Ú[™›È
+š[™›ÊBžÂˆÝXÝ\WÝ˜[œÙ™\ˆ
+œÝ˜[œÈH•S
+™˜[œÈH•SÂˆZ[Ý
+œÜ˜ÈH•S
+™ÝH•SÂˆ[œÚYÛ™YÜ˜×ØœÝØœÝËÚËÜËÎÂˆ›ÛÛ›\ÞK›\ÞÂ‚ˆYˆ
 
-        if ((info->mask & PIPE_MASK_RGBA) == 0)
-                return false;
-        if (info->mask & (PIPE_MASK_Z | PIPE_MASK_S))
-                return false;
-        if (info->scissor_enable)
-                return false;
-        if (info->src.box.depth != 1 || info->dst.box.depth != 1)
-                return false;
-        if (info->src.resource->nr_samples > 1 ||
-            info->dst.resource->nr_samples > 1)
-                return false;
-        if (info->src.box.width == 0 || info->src.box.height == 0 ||
-            info->dst.box.width == 0 || info->dst.box.height == 0)
-                return false;
-        src_bpp = util_format_get_blocksize(info->src.format);
-        dst_bpp = util_format_get_blocksize(info->dst.format);
-        if (src_bpp != dst_bpp || src_bpp == 0)
-                return false;
-
-        sw = (info->src.box.width < 0) ? -info->src.box.width : info->src.box.width;
-        sh = (info->src.box.height < 0) ? -info->src.box.height : info->src.box.height;
-        dw = (info->dst.box.width < 0) ? -info->dst.box.width : info->dst.box.width;
-        dh = (info->dst.box.height < 0) ? -info->dst.box.height : info->dst.box.height;
-        flip_y = (info->src.box.height < 0) != (info->dst.box.height < 0);
-        flip_x = (info->src.box.width < 0) != (info->dst.box.width < 0);
-
-        struct pipe_box sbox = info->src.box;
-        struct pipe_box dbox = info->dst.box;
-        if (sbox.x > sbox.x + info->src.box.width)
-                sbox.x = sbox.x + info->src.box.width;
-        if (sbox.y > sbox.y + info->src.box.height)
-                sbox.y = sbox.y + info->src.box.height;
-        if (dbox.x > dbox.x + info->dst.box.width)
-                dbox.x = dbox.x + info->dst.box.width;
-        if (dbox.y > dbox.y + info->dst.box.height)
-                dbox.y = dbox.y + info->dst.box.height;
-        sbox.width = sw; sbox.height = sh;
-        dbox.width = dw; dbox.height = dh;
-'''
+[™›ËO›X\ÚÈ	ˆTWÓPTÒ×Ô‘ÐJHOH
+Bˆ™]\›ˆ˜[ÙNÂˆYˆ
+[™›ËO›X\ÚÈ	ˆ
+TWÓPTÒ×ÖˆTWÓPTÒ×ÔÊJBˆ™]\›ˆ˜[ÙNÂˆYˆ
+[™›ËOœØÚ\ÜÛÜ—Ù[˜X›JBˆ™]\›ˆ˜[ÙNÂˆYˆ
+[™›ËOœÜ˜Ë˜›Þ™\OHH[™›ËO™Ý˜›Þ™\OHJBˆ™]\›ˆ˜[ÙNÂˆYˆ
+[™›ËOœÜ˜Ëœ™\ÛÝ\˜ÙKO›œ—ÜØ[\\ÈˆHˆ[™›ËO™Ýœ™\ÛÝ\˜ÙKO›œ—ÜØ[\\ÈˆJBˆ™]\›ˆ˜[ÙNÂˆYˆ
+[™›ËOœÜ˜Ë˜›ÞÚYOH[™›ËOœÜ˜Ë˜›ÞšZYÚOHˆ[™›ËO™Ý˜›ÞÚYOH[™›ËO™Ý˜›ÞšZYÚOH
+Bˆ™]\›ˆ˜[ÙNÂˆÜ˜×ØœH][Ù›Ü›X]ÙÙ]Ø›ØÚÜÚ^™J[™›ËOœÜ˜Ë™›Ü›X]
+NÂˆÝØœH][Ù›Ü›X]ÙÙ]Ø›ØÚÜÚ^™J[™›ËO™Ý™›Ü›X]
+NÂˆYˆ
+Ü˜×ØœOHÝØœÜ˜×ØœOH
+Bˆ™]\›ˆ˜[ÙNÂ‚ˆÝÈH
+[™›ËOœÜ˜Ë˜›ÞÚY
+HÈZ[™›ËOœÜ˜Ë˜›ÞÚYˆ[™›ËOœÜ˜Ë˜›ÞÚYÂˆÚH
+[™›ËOœÜ˜Ë˜›ÞšZYÚ
+HÈZ[™›ËOœÜ˜Ë˜›ÞšZYÚˆ[™›ËOœÜ˜Ë˜›ÞšZYÚÂˆÈH
+[™›ËO™Ý˜›ÞÚY
+HÈZ[™›ËO™Ý˜›ÞÚYˆ[™›ËO™Ý˜›ÞÚYÂˆH
+[™›ËO™Ý˜›ÞšZYÚ
+HÈZ[™›ËO™Ý˜›ÞšZYÚˆ[™›ËO™Ý˜›ÞšZYÚÂˆ›\ÞHH
+[™›ËOœÜ˜Ë˜›ÞšZYÚ
+HOH
+[™›ËO™Ý˜›ÞšZYÚ
+NÂˆ›\ÞH
+[™›ËOœÜ˜Ë˜›ÞÚY
+HOH
+[™›ËO™Ý˜›ÞÚY
+NÂ‚ˆÝXÝ\WØ›ÞØ›ÞH[™›ËOœÜ˜Ë˜›ÞÂˆÝXÝ\WØ›Þ›ÞH[™›ËO™Ý˜›ÞÂˆYˆ
+Ø›ÞžˆØ›Þž
+È[™›ËOœÜ˜Ë˜›ÞÚY
+BˆØ›ÞžHØ›Þž
+È[™›ËOœÜ˜Ë˜›ÞÚYÂˆYˆ
+Ø›ÞžHˆØ›ÞžH
+È[™›ËOœÜ˜Ë˜›ÞšZYÚ
+BˆØ›ÞžHHØ›ÞžH
+È[™›ËOœÜ˜Ë˜›ÞšZYÚÂˆYˆ
+›Þžˆ›Þž
+È[™›ËO™Ý˜›ÞÚY
+Bˆ›ÞžH›Þž
+È[™›ËO™Ý˜›ÞÚYÂˆYˆ
+›ÞžHˆ›ÞžH
+È[™›ËO™Ý˜›ÞšZYÚ
+Bˆ›ÞžHH›ÞžH
+È[™›ËO™Ý˜›ÞšZYÚÂˆØ›ÞÚYHÝÎÈØ›ÞšZYÚHÚÂˆ›ÞÚYHÎÈ›ÞšZYÚHÂ‰ÉÉÂ

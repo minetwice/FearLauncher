@@ -1,5 +1,20 @@
 # data part 2 (NEW_INC_B)
-NEW_INC_B = '''        src = pipe->texture_map(pipe, info->src.resource, info->src.level,
+NEW_INC_B = '''        /* MC20 v2.13: pace large present blits to ~30fps. Without this
+        * uncapped render loop spins at 100+ fps doing ~m0MB of CPU copies
+         * per frame, starving MC's worker threads during mod loading. */
+        if ((long) sw * (long) sh > 500000L) {
+                static struct timespec mc20_last;
+                struct timespec now;
+                long elapsed_ms;
+                clock_gettime(CLOCK_MONOTONIC, &now);
+                elapsed_ms = (now.tv_sec - mc20_last.tv_sec) * 1000L
+                            + (now.tv_nsec - mc20_last.tv_nsec) / 10000000L;
+                if (elapsed_ms < 33L && elapsed_ms >= 0L)
+                        usleep((useconds_t) ((33L - elapsed_ms) * 1000L));
+                clock_gettime(CLOCK_MONOTONIC, &mc20_last);
+        }
+
+        src = pipe->texture_map(pipe, info->src.resource, info->src.level,
                                 PIPE_MAP_READ, &sbox, &strans);
         if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
