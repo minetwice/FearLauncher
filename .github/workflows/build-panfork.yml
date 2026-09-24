@@ -80,7 +80,13 @@ jobs:
             -Ddefault_library=static \
             -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
             -Dnouveau=disabled -Dvmwgfx=disabled \
-            -Dfreedreno=disabled -Dvc4=disabled -Detnaviv=disabled
+            -Dcairo-tests=disabled -Dvalgrind=disabled -Dtests=false || \
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled
           ninja -C build-android install
 
       - name: Build Panfork (OSMesa + Panfrost)
