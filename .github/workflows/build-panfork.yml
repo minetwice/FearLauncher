@@ -1,0 +1,140 @@
+name: Build Panfork (arm64 OSMesa, Mali v11 G615 fix)
+
+# Rebuilds Pojav's panfork (open-source Panfrost GL on kbase) with a
+# v11->v10 arch clamp so Mali-G615 (Valhall v11, CSF) runs the v10 CSF path.
+# Artifact: panfork-arm64-osmesa (libOSMesa_panfork.so)
+# Also auto-pushes the new .so to app_pojavlauncher jniLibs.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: panfork-build
+  cancel-in-progress: true
+
+jobs:
+  build-aarch64:
+    name: Panfork OSMesa aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip python3-setuptools \
+            libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev \
+            libxfixes-dev libdrm-dev libx11-dev libexpat1-dev \
+            bison flex gettext pkg-config \
+            unzip curl git ccache gettext-base
+          pip3 install --user mako meson==1.2.3 ninja
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Env
+        run: |
+          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+
+      - name: Download NDK
+        run: |
+          curl -L "https://dl.google.com/android/repository/android-ndk-r27c-linux.zip" -o ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+          echo "ANDROID_NDK_ROOT=$WORK_DIR/android-ndk-r27c" >> $GITHUB_ENV
+
+      - name: Clone panfork + drm
+        run: |
+          git clone --depth 1 --branch csf https://github.com/PojavLauncherTeam/panfork_offscreen_rootless.git panfork
+          git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
+
+      - name: Apply FearLauncher G615 (Mali v11) fix
+        run: |
+          cd panfork
+          python3 << 'PYEOF'
+          import re, sys
+          s = open('src/panfrost/lib/pan_props.c').read()
+          old = 'dev->arch = pan_arch(dev->gpu_id);'
+          n = s.count(old)
+          if n != 1:
+              print("FEARPATCH FAIL: expected exactly 1 occurrence, found %d" % n)
+              sys.exit(1)
+          new = '''dev->arch = pan_arch(dev->gpu_id);
+        /* FearLauncher: Mali v11 (G615/G715) runs the v10 CSF generation.
+         * panfrost_versions only goes up to v10; without this clamp,
+         * pan_screen.c hits unreachable("Unhandled architecture major"). */
+        if (dev->arch == 11) dev->arch = 10;'''
+          open('src/panfrost/lib/pan_props.c','w').write(s.replace(old, new))
+          print("FEARPATCH OK: v11->v10 arch clamp applied")
+          PYEOF
+
+      - name: Build libdrm (static)
+        run: |
+          envsubst < panfork/android-drm-aarch64 > build-crossfile-drm
+          cd drm
+          meson setup build-android \
+            --prefix=/tmp/drm-static \
+            --cross-file "../build-crossfile-drm" \
+            -Ddefault_library=static \
+            -Dintel=disabled -Dradeon=disabled -Damdgpu=disabled \
+            -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Dfreedreno=disabled -Dvc4=disabled -Detnaviv=disabled
+          ninja -C build-android install
+
+      - name: Build Panfork (OSMesa + Panfrost)
+        run: |
+          envsubst < panfork/android-aarch64 > build-crossfile
+          cd panfork
+          meson setup build-android \
+            --prefix=/tmp/pan \
+            --cross-file "../build-crossfile" \
+            -Dplatforms=android \
+            -Dplatform-sdk-version=26 \
+            -Dandroid-stub=true \
+            -Dllvm=disabled \
+            -Dxlib-lease=disabled \
+            -Degl=disabled \
+            -Dgbm=disabled \
+            -Dglx=disabled \
+            -Dopengl=true \
+            -Dosmesa=true \
+            -Dvulkan-drivers= \
+            -Dgallium-drivers=swrast,panfrost \
+            -Dshared-glapi=false
+          ninja -C build-android install
+
+      - name: Package + push libOSMesa_panfork.so to repo jniLibs
+        run: |
+          mkdir -p out/arm64-v8a
+          if [ -f /tmp/pan/lib/libOSMesa.so ]; then
+            cp /tmp/pan/lib/libOSMesa.so out/arm64-v8a/libOSMesa_panfork.so
+          elif [ -f /tmp/pan/lib/libOSMesa.so.8 ]; then
+            cp /tmp/pan/lib/libOSMesa.so.8 out/arm64-v8a/libOSMesa_panfork.so
+          else
+            echo "libOSMesa not found"
+            find /tmp/pan -name '*OSMesa*' || true
+            find /tmp/pan -name '*.so*' | head -50 || true
+            exit 1
+          fi
+          ls -la out/arm64-v8a/
+          cp out/arm64-v8a/libOSMesa_panfork.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_panfork.so
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_panfork.so
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git commit -m "panfork: rebuild libOSMesa_panfork.so with Mali v11 (G615) arch clamp"
+            git push
+            echo "PUSHED new libOSMesa_panfork.so"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: panfork-arm64-osmesa
+          path: out/arm64-v8a/libOSMesa_panfork.so
+          if-no-files-found: error
+          retention-days: 30
