@@ -1,42 +1,49 @@
 # data part 2 (NEW_INC_B)
-NEW_INC_B = '''        if (src == NULL) {
+NEW_INC_B = '''        src = pipe->texture_map(pipe, info->src.resource, info->src.level,
+                                 PIPE_MAP_READ, &sbox, &strans);
+          if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
                 return false;
         }
 
         dst = pipe->texture_map(pipe, info->dst.resource, info->dst.level,
-                                 PIPE_MAP_WRITE, &info->dst.box, &dtrans);
+                                PIPE_MAP_WRITE, &dbox, &dtrans);
         if (dst == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: dst map failed\\n");
                 pipe->texture_unmap(pipe, strans);
                 return false;
         }
 
-        sw = info->src.box.width;
-        sh = info->src.box.height;
-        dw = info->dst.box.width;
-        dh = info->dst.box.height;
         ss = strans->stride;
         ds = dtrans->stride;
 
-        fprintf(stderr, "PANFORKSOFTBLIT: %ux%u -> %ux%u bpp=%u ss=%u ds=%u\\n",
-                sw, sh, dw, dh, src_bpp, ss, ds);
+        fprintf(stderr, "PANFORKSOFTBLIT: %ux%ue -> %ux%u bpp=%u ss=%u ds=%u\\n",
+                sw, sh, (info->src.box.height < 0) ? "(flip)" : "",
+                dw, dh, (info->dst.box.height < 0) ? "(flip)" : "",
+                src_bpp, ss, ds);
 
-        if (sw == dw && sh == dh) {
-                for (y = 0; y < sh; y++)
-                        memcpy(dst + (size_t) y * ds,
-                               src + (size_t) y * ss,
-                               (size_t) sw * src_bpp);
-        } else {
-                for (y = 0; y < dh; y++) {
-                        const uint8_t *srow =
-                                src + (size_t) ((y * sh) / dh) * ss;
-                        uint8_t *drow = dst + (size_t) y * ds;
-                        for (x = 0; x < dw; x++) {
-                                unsigned sx = (x * sw) / dw;
-                                memcpy(drow + (size_t) x * dst_bpp,
-                                       srow + (size_t) sx * src_bpp,
-                                       dst_bpp);
+        {
+                int y;
+                for (y = 0; y < (int) dh; y++) {
+                        int sy = (y * (int) sh) / (int) dh;
+                        const uint8_t *srow;
+                        uint8_t *drow;
+                        if (flip_y)
+                                sy = (int) sh - 1 - sy;
+                        srow = src + (size_t) sy * ss;
+                        drow = dst + (size_t) y * ds;
+                        if (sw == dw && !flip_x) {
+                                memcpy(drow, srow, (size_t) sw * src_bpp);
+                        } else {
+                                int x;
+                                for (x = 0; x < (int) dw; x++) {
+                                        int sx = (x * (int) sw) / (int) dw;
+                                        if (flip_x)
+                                                sx = (int) sw - 1 - sx;
+                                        memcpy(drow + (size_t) x * dst_bpp,
+                                                 srow + (size_t) sx * src_bpp,
+                                                dst_bpp);
+                                }
                         }
                 }
         }
