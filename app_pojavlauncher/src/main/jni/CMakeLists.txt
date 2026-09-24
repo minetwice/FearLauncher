@@ -23,6 +23,12 @@ add_library(pojavexec SHARED
         vulkan_loader.c
 )
 
+# MC19: flat Vulkan shim for PanVK (loaded as libmjlvlk.so)
+add_library(mjlvlk SHARED
+        vk_panfrost_shim.c
+)
+target_link_libraries(mjlvlk PRIVATE log dl)
+
 find_package(bytehook CONFIG REQUIRED)
 
 target_include_directories(pojavexec PRIVATE .)
