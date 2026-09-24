@@ -28,15 +28,16 @@ public class JREUtils {
             int failCount = 0;
             while (failCount < 15) {
                 try {
-                    ProcessBuilder pb = new ProcessBuilder("logcat", "v", "tag", "-R", "1").redirectErrorStream(true);
+                    ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
 
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), "UTF-8"), 32768)) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                           if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa")) || line.contains("OSMesa")) {
-                              Logger.appendToLog(line + "\n");
-                          }
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa")) {
+                                Logger.appendToLog(line + "\n");
+                            }
+                        }
                     }
 
                     int exitCode = p.waitFor();
@@ -69,7 +70,7 @@ public class JREUtils {
     /**
      * Sodium (and Create) call System.getenv("POJAV_RENDERER").
      * Os.unsetenv only updates libc — Java ProcessEnvironment is a separate cache.
-     * Clear both so PoctLaunchChecks does not abort.
+     * Clear both so PostLaunchChecks does not abort.
      */
     private static void scrubPojavDetectorEnv() {
         for (String key : new String[]{"POJAV_RENDERER", "POJAV_LAUNCHER"}) {
@@ -151,7 +152,7 @@ public class JREUtils {
                 break;
         }
     }
-    public static void setEnvironmentForGame(Context context, String renderer) throws Throwable {
+    public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
         envMap.put("LIBGL_NOERROR", "1");
@@ -204,7 +205,7 @@ public class JREUtils {
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
-            envMap.put("TU_DBUG", "sysmem");
+            envMap.put("TU_DEBUG", "sysmem");
         }
 
         overrideEnvVars(envMap);
@@ -213,7 +214,7 @@ public class JREUtils {
             Logger.appendToLog("Added custom env: " + env.getKey() + "=" + env.getValue());
             try {
                 Os.setenv(env.getKey(), env.getValue(), true);
-            } catch (NullPointerException exception){
+            }catch (NullPointerException exception){
                 Log.e("JREUtils", exception.toString());
             }
         }
@@ -244,8 +245,8 @@ public class JREUtils {
                         end = tempEnd;
                         continue;
                     }
-                       end = Math.min(end, tempEnd);
-               }
+                    end = Math.min(end, tempEnd);
+                }
                 if(end == -1) end = args.length();
                 String parsedSubString = args.substring(start, end);
                 args = args.replace(parsedSubString, "");
@@ -254,12 +255,12 @@ public class JREUtils {
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
                         if(lastString.charAt(lastString.length() - 1) == ',' ||
-                               parsedSubString.contains(",")){
+                                parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
-                     }
-                        parsedArguments.add(parsedSubString);
+                    }
+                    parsedArguments.add(parsedSubString);
                 }
                 else Log.w("JAVA ARGS PARSER", "Removed improper arguments: " + parsedSubString);
             }
@@ -288,21 +289,21 @@ public class JREUtils {
                         File chosenSo = candidates[0];
                         for (File candidate : candidates) {
                             String name = candidate.getName();
-                            if (name.contains("mobilegluglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL") || name.contains("OSMesa")) {
+                            if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL") || name.contains("OSMesa")) {
                                 chosenSo = candidate;
                                 break;
                             }
-                       }
+                        }
                         renderLibrary = chosenSo.getAbsolutePath();
                         useGles = true;
                         glesVersion = 3;
                         if (configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
-                           return renderLibrary;
+                            return renderLibrary;
                         }
                     }
                 }
             }
-            Log.w"RENDER_LIBRARY", "Plugin renderer load failed, falling back to GL4ES");
+            Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to GL4ES");
             renderer = "opengles2";
         }
 
@@ -339,7 +340,27 @@ public class JREUtils {
         return renderLibrary;
     }
 
-    public# public static int getDetectedVersion() {
+    public static int getDetectedVersion() {
         return GLInfoUtils.getGlInfo().glesMajorVersion;
+    }
+    public static native int chdir(String path);
+    public static native void setLdLibraryPath(String ldLibraryPath);
+    public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
+    public static native void preloadVulkan();
+    public static native void setUseTurnip(boolean enable);
+
+    public static native void setupBridgeWindow(android.view.Surface surface);
+    public static native void releaseBridgeWindow();
+
+    public static native void initFearShaderEngine(String cachePath, int version);
+    public static native void destroyFearShaderEngine();
+    public static native String getShaderCachePath();
+    public static native void clearShaderCache();
+    public static native int getTranslatedShaderCount();
+
+    public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
+    static {
+        System.loadLibrary("pojavexec");
+        System.loadLibrary("pojavexec_awt");
     }
 }
