@@ -114,16 +114,14 @@ jobs:
       - name: Package + push libOSMesa_panfork.so to repo jniLibs
         run: |
           mkdir -p out/arm64-v8a
-          if [ -f /tmp/pan/lib/libOSMesa.so ]; then
-            cp /tmp/pan/lib/libOSMesa.so out/arm64-v8a/libOSMesa_panfork.so
-          elif [ -f /tmp/pan/lib/libOSMesa.so.8 ]; then
-            cp /tmp/pan/lib/libOSMesa.so.8 out/arm64-v8a/libOSMesa_panfork.so
-          else
+          OSMESA=$(ls /tmp/pan/lib/libOSMesa.so* 2>/dev/null | head -1)
+          if [ -z "$OSMESA" ]; then
             echo "libOSMesa not found"
-            find /tmp/pan -name '*OSMesa*' || true
             find /tmp/pan -name '*.so*' | head -50 || true
             exit 1
           fi
+          echo "Found: $OSMESA"
+          cp "$OSMESA" out/arm64-v8a/libOSMesa_panfork.so
           ls -la out/arm64-v8a/
           cp out/arm64-v8a/libOSMesa_panfork.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_panfork.so
           git config user.name "Twicefear"
