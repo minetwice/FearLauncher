@@ -17,8 +17,41 @@ NEW_INC_B = '''
                 clock_gettime(CLOCK_MONOTONIC, &mc20_last);
         }
 
+        /* MC20 v2.14 GPUVERIFY: run the hardware blit (u_blitter) first,
+         * then sample what it wrote into dst. The CPU soft-blit below
+         * overwrites the result afterwards, so the screen stays correct
+         * either way - this only tells us (via log) if the GPU blit path
+         * writes anything on this device. */
+        {
+                struct panfrost_context *pctx = pan_context(pipe);
+                struct pipe_box vbox = dbox;
+                struct pipe_transfer *vtrans = NULL;
+                uint8_t *vdst;
+                int vstride;
+                panfrost_blitter_save(pctx, info->render_condition_enable);
+                util_blitter_blit(pctx->blitter, info);
+                vdst = pipe->texture_map(pipe, info->dst.resource,
+                                         info->dst.level, PIPE_MAP_READ,
+                                         &vbox, &vtrans);
+                vstride = vtrans ? vtrans->stride : (int) (dw * dst_bpp);
+                if (vdst) {
+                        uint32_t *pbase = (uint32_t *) vdst;
+                        int cx = (int) dw / 2;
+                        int cy = (int) dh / 2;
+                        fprintf(stderr, "GPUVERIFY: tl=%08x c=%08x br=%08x\\n",
+                               pbase[0],
+                                *(uint32_t *) (vdst + (size_t) cy * vstride
+                                           + (size_t) cx * 4),
+                                *(uint32_t *) (vdst + (size_t) (dh - 1) * vstride
+                                                         + (size_t) (dw - 1) * 4));
+                        pipe->texture_unmap(pipe, vtrans);
+                } else {
+                        fprintf(stderr, "GPUVERIFY: dst map FAILED\\n");
+                }
+        }
+
         src = pipe->texture_map(pipe, info->src.resource, info->src.level,
-                                PIPE_MAP_READ, &sbox, &strans);
+                                 PIPE_MAP_READ, &sbox, &strans);
         if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
                 return false;
@@ -56,10 +89,10 @@ NEW_INC_B = '''
                                         int sx = (x * (int) sw) / (int) dw;
                                         if (flip_x)
                                                 sx = (int) sw - 1 - sx;
-                                        memcpy(drow + (size_t) x * dst_bpp,
+                                       memcpy(drow + (size_t) x * dst_bpp,
                                                  srow + (size_t) sx * src_bpp,
                                                 dst_bpp);
-                                }
+                                 }
                         }
                 }
         }
