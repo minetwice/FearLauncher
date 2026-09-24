@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("PanVK")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("linkerhook")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -107,7 +107,7 @@ public class JREUtils {
             case "panvk":
             case "panvk_zink":
                 Logger.appendToLog("[PanVK] Initializing PanVK (Mesa Vulkan + Zink)...");
-                Logger.appendToLog("[PanVK] Mali texture fix: PAN_MESA_DEBUG=noafbc");
+                Logger.appendToLog("[PanVK] Mali texture fix: PAN_MESA_DEBUG=noafbc + ZINK_DEBUG=noreorder,sync");
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
@@ -116,6 +116,9 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", "panvk");
                 envMap.put("PAN_MESA_DEBUG", "noafbc");
+                // Until Panfrost ICD actually binds, proprietary Mali needs in-order Zink
+                envMap.put("ZINK_DEBUG", "noreorder,sync");
+                envMap.put("GALLIUM_THREAD", "0");
                 envMap.put("mesa_glthread", "false");
                 envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
                 break;
