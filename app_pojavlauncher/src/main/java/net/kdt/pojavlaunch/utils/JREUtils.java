@@ -33,7 +33,7 @@ public class JREUtils {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("linkerhook")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("PanVK") || line.contains("DriverHook") || line.contains("linkerhook") || line.contains("mjlvlk")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
@@ -116,7 +116,6 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", "panvk");
                 envMap.put("PAN_MESA_DEBUG", "noafbc");
-                // Until Panfrost ICD actually binds, proprietary Mali needs in-order Zink
                 envMap.put("ZINK_DEBUG", "noreorder,sync");
                 envMap.put("GALLIUM_THREAD", "0");
                 envMap.put("mesa_glthread", "false");
@@ -187,8 +186,12 @@ public class JREUtils {
         }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-        if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
+        // Never enable Turnip when user selected PanVK (Mali)
+        if (!"panvk".equals(renderer) && !"panvk_zink".equals(renderer)
+                && GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
+        } else if ("panvk".equals(renderer) || "panvk_zink".equals(renderer)) {
+            setUseTurnip(false);
         }
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
@@ -281,7 +284,7 @@ public class JREUtils {
         switch (renderer){
             case "panvk":
             case "panvk_zink":
-                Logger.appendToLog("[PanVK] Loading OSMesa + libvulkan_panfrost.so...");
+                Logger.appendToLog("[PanVK] Loading OSMesa + libmjlvlk (Panfrost ICD)...");
                 setUseTurnip(false);
                 renderLibrary = "libOSMesa_8.so";
                 useGles = false;
