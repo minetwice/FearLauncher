@@ -2,7 +2,6 @@ name: Build Mesa Zink (arm64 OSMesa)
 
 # Auto-builds Android aarch64 libOSMesa + Zink (Vera-Firefly style).
 # Artifact: mesa-zink-arm64-osmesa.zip
-
 on:
   push:
     branches:
@@ -76,6 +75,37 @@ jobs:
             echo "Applying mesa-build-fix..."
             cp -rf mesa-build-fix/* mesa/ || true
           fi
+
+      - name: Apply FearLauncher Mali-blob quirk toggles (runtime)
+        run: |
+          python3 << 'PYEOF'
+          import re, sys
+          def edit(path, pat, repl):
+              s = open(path).read()
+              new, n = re.subn(pat, repl, s, count=1)
+              if n == 0:
+                  print("FEARPATCH FAIL: pattern not found in %s: %s" % (path, pat[:80]))
+                  sys.exit(1)
+              open(path, 'w').write(new)
+              print("FEARPATCH OK: %s" % path)
+
+          # 1) ZINK_MALI_NOCOHERENT=1 -> always vkFlush/vkInvalidate mapped memory
+          edit('mesa/src/gallium/drivers/zink/zink_resource.c',
+               r'obj->coherent = screen->info\.mem_props\.memoryTypes\[obj->bo->base\.placement\]\.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;',
+               'obj->coherent = !debug_get_bool_option("ZINK_MALI_NOCOHERENT", false) &&\n'
+               '      (screen->info.mem_props.memoryTypes[obj->bo->base.placement].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);')
+
+          # 2) ZINK_MALI_NOBINDLESS=1 -> disable bindless / descriptor-indexing caps
+          edit('mesa/src/gallium/drivers/zink/zink_screen.c',
+               r'caps->bindless_texture =\n      \(zink_descriptor_mode',
+               'caps->bindless_texture = !debug_get_bool_option("ZINK_MALI_NOBINDLESS", false) &&\n      (zink_descriptor_mode')
+
+          # 3) ZINK_MALI_NOCOMPUTEUPLOAD=1 -> staging-blit-only texture uploads
+          edit('mesa/src/gallium/drivers/zink/zink_screen.c',
+               r'enum pipe_texture_transfer_mode mode = PIPE_TEXTURE_TRANSFER_BLIT;\n      if \(!screen->is_cpu &&',
+               'enum pipe_texture_transfer_mode mode = PIPE_TEXTURE_TRANSFER_BLIT;\n      if (!debug_get_bool_option("ZINK_MALI_NOCOMPUTEUPLOAD", false) &&\n          !screen->is_cpu &&')
+          print("FEARPATCH: all 3 quirk toggles applied")
+          PYEOF
 
       - name: Write meson cross-files
         run: |
