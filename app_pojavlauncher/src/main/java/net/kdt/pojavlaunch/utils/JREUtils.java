@@ -30,16 +30,14 @@ public class JREUtils {
                 try {
                     ProcessBuilder pb = new ProcessBuilder("logcat", "-v", "tag", "-T", "1").redirectErrorStream(true);
                     java.lang.Process p = pb.start();
-
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"), 32768)) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa")) {
+                            if (line.contains("jrelog") || line.contains("LIBGL") || line.contains("NativeInput") || line.contains("FEAR") || line.contains("FearRender") || line.contains("Mesa") || line.contains("OSMesa") || line.contains("PanVK")) {
                                 Logger.appendToLog(line + "\n");
                             }
                         }
                     }
-
                     int exitCode = p.waitFor();
                     if (exitCode != 0) {
                         Log.w("jrelog-logcat", "Logcat link lost. Sync code: " + exitCode + ". Re-establishing...");
@@ -67,40 +65,22 @@ public class JREUtils {
         reader.close();
     }
 
-    /**
-     * Sodium (and Create) call System.getenv("POJAV_RENDERER").
-     * Os.unsetenv only updates libc — Java ProcessEnvironment is a separate cache.
-     * Clear both so PostLaunchChecks does not abort.
-     */
     private static void scrubPojavDetectorEnv() {
         for (String key : new String[]{"POJAV_RENDERER", "POJAV_LAUNCHER"}) {
-            try {
-                Os.unsetenv(key);
-            } catch (Throwable t) {
-                Log.w("JREUtils", "Os.unsetenv(" + key + ") failed: " + t);
-            }
+            try { Os.unsetenv(key); } catch (Throwable t) { Log.w("JREUtils", "Os.unsetenv(" + key + ") failed: " + t); }
             try {
                 Class<?> pe = Class.forName("java.lang.ProcessEnvironment");
-                for (String fieldName : new String[]{
-                        "theEnvironment",
-                        "theUnmodifiableEnvironment",
-                        "theCaseInsensitiveEnvironment"
-                }) {
+                for (String fieldName : new String[]{"theEnvironment", "theUnmodifiableEnvironment", "theCaseInsensitiveEnvironment"}) {
                     try {
                         Field field = pe.getDeclaredField(fieldName);
                         field.setAccessible(true);
                         Object mapObj = field.get(null);
-                        if (mapObj instanceof Map) {
-                            ((Map<?, ?>) mapObj).remove(key);
-                        }
-                    } catch (NoSuchFieldException ignored) {
-                    }
+                        if (mapObj instanceof Map) ((Map<?, ?>) mapObj).remove(key);
+                    } catch (NoSuchFieldException ignored) {}
                 }
-            } catch (Throwable t) {
-                Log.w("JREUtils", "Java env scrub for " + key + " failed: " + t);
-            }
+            } catch (Throwable t) { Log.w("JREUtils", "Java env scrub for " + key + " failed: " + t); }
         }
-        Logger.appendToLog("[TurnipZink] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)");
+        Logger.appendToLog("[PanVK] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)");
     }
 
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
@@ -109,7 +89,7 @@ public class JREUtils {
         if (angle == null) return;
         String[] angleLibs = {"libEGL_angle.so", "libGLESv2_angle.so"};
         if (!angle.checkLibraries(angleLibs)) {
-            Log.e("AngleEnvSetup", "AnglePlugin exists, but the ANGLE libraries are not present. Is the plugin corrupted?");
+            Log.e("AngleEnvSetup", "ANGLE libraries missing");
             return;
         }
         envMap.put("LIBGL_EGL", angle.resolveAbsolutePath(angleLibs[0]));
@@ -124,18 +104,20 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "panvk":
             case "panvk_zink":
-                // MC19: Zink on the open-source PanVK (Panfrost) driver.
-                // Clean path - no proprietary-driver workarounds needed.
-                Logger.appendToLog("[PanVK] Initializing PanVK Zink renderer (open-source Panfrost Vulkan driver)...");
+                Logger.appendToLog("[PanVK] Initializing PanVK (Mesa Vulkan + Zink)...");
+                Logger.appendToLog("[PanVK] Mali texture fix: PAN_MESA_DEBUG=noafbc");
                 envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("FEAR_RENDERER", "panvk");
                 envMap.put("PAN_MESA_DEBUG", "noafbc");
+                envMap.put("mesa_glthread", "false");
+                envMap.put("LIBGL_EGL", Tools.NATIVE_LIB_DIR + "/libpojavexec.so");
                 break;
             case "turnip_zink":
             case "vulkan_zink":
@@ -147,41 +129,37 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
-                // MC16: block-glitch fix. On Mali (or any non-Adreno GPU) Zink runs on the
-                // proprietary system Vulkan driver, which is non-conformant for Zink
-                // (missing fillModeNonSolid/shaderClipDistance/logicOp) and mishandles
-                // Zink's out-of-order command submission -> flickering/corrupted chunks.
-                // Force conservative, in-order submission.
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    // MC17: noreorder + sync = fully in-order, synchronized submission.
-                    // Costs FPS but eliminates block-texture glitching on Mali.
                     envMap.put("ZINK_DEBUG", "noreorder,sync");
                     envMap.put("GALLIUM_THREAD", "0");
                     envMap.put("mesa_glthread", "false");
-                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 ultimate fix active: ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");
+                    Logger.appendToLog("[TurnipZink] Mali/proprietary Vulkan: ZINK_DEBUG=noreorder,sync");
                 } else {
                     envMap.put("mesa_glthread", "false");
                 }
                 break;
         }
     }
+
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
         envMap.put("LIBGL_NOERROR", "1");
         envMap.put("LIBGL_NOINTOVLHACK", "1");
         envMap.put("LIBGL_NORMALIZE", "1");
+        if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
+        if(PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        if(PREF_DUMP_SHADERS)
-            envMap.put("LIBGL_VGPU_DUMP", "1");
-        if(PREF_VSYNC_IN_ZINK)
-            envMap.put("POJAV_VSYNC_IN_ZINK", "1");
-
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "panvk_zink".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)
+                || "panvk_zink".equals(renderer) || "panvk".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
-        envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+        if ("panvk".equals(renderer) || "panvk_zink".equals(renderer)) {
+            envMap.put("FORCE_VSYNC", "false");
+        } else {
+            envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+        }
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("XDG_CACHE_HOME", Tools.DIR_CACHE.getAbsolutePath());
@@ -190,11 +168,9 @@ public class JREUtils {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
-		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
-		if (!modRuntimeDir.exists()) {
-    		modRuntimeDir.mkdirs();
-		}
-		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
+        File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
+        if (!modRuntimeDir.exists()) modRuntimeDir.mkdirs();
+        envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
@@ -203,18 +179,14 @@ public class JREUtils {
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
             envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
-            // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
-            // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
             envMap.put("POJAV_RENDERER", renderer);
         }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-
         if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
         }
-
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             Logger.appendToLog("Will use sysmem rendering for Turnip/Freedreno");
             envMap.put("FD_MESA_DEBUG", "sysmem");
@@ -222,20 +194,11 @@ public class JREUtils {
         }
 
         overrideEnvVars(envMap);
-
         for (Map.Entry<String, String> env : envMap.entrySet()) {
             Logger.appendToLog("Added custom env: " + env.getKey() + "=" + env.getValue());
-            try {
-                Os.setenv(env.getKey(), env.getValue(), true);
-            }catch (NullPointerException exception){
-                Log.e("JREUtils", exception.toString());
-            }
+            try { Os.setenv(env.getKey(), env.getValue(), true); } catch (NullPointerException exception) { Log.e("JREUtils", exception.toString()); }
         }
-
-        // Sodium System.getenv("POJAV_RENDERER") — scrub Java + libc
-        if (isZink) {
-            scrubPojavDetectorEnv();
-        }
+        if (isZink) scrubPojavDetectorEnv();
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
@@ -254,10 +217,7 @@ public class JREUtils {
                 for(String separator: separators){
                     int tempEnd = args.indexOf(separator, start + prefix.length());
                     if(tempEnd == -1) continue;
-                    if(end == -1){
-                        end = tempEnd;
-                        continue;
-                    }
+                    if(end == -1){ end = tempEnd; continue; }
                     end = Math.min(end, tempEnd);
                 }
                 if(end == -1) end = args.length();
@@ -267,8 +227,7 @@ public class JREUtils {
                     int arraySize = parsedArguments.size();
                     if(arraySize > 0){
                         String lastString = parsedArguments.get(arraySize - 1);
-                        if(lastString.charAt(lastString.length() - 1) == ',' ||
-                                parsedSubString.contains(",")){
+                        if(lastString.charAt(lastString.length() - 1) == ',' || parsedSubString.contains(",")){
                             parsedArguments.set(arraySize - 1, lastString + parsedSubString);
                             continue;
                         }
@@ -303,16 +262,12 @@ public class JREUtils {
                         for (File candidate : candidates) {
                             String name = candidate.getName();
                             if (name.contains("mobileglue") || name.contains("zink") || name.contains("mesa") || name.contains("ltw") || name.contains("gl4es") || name.contains("EGL") || name.contains("OSMesa")) {
-                                chosenSo = candidate;
-                                break;
+                                chosenSo = candidate; break;
                             }
                         }
                         renderLibrary = chosenSo.getAbsolutePath();
-                        useGles = true;
-                        glesVersion = 3;
-                        if (configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
-                            return renderLibrary;
-                        }
+                        useGles = true; glesVersion = 3;
+                        if (configureRenderspec(renderLibrary, true, useGles, glesVersion)) return renderLibrary;
                     }
                 }
             }
@@ -320,9 +275,17 @@ public class JREUtils {
             renderer = "opengles2";
         }
 
-
         switch (renderer){
+            case "panvk":
             case "panvk_zink":
+                Logger.appendToLog("[PanVK] Loading OSMesa + libvulkan_panfrost.so...");
+                setUseTurnip(false);
+                renderLibrary = "libOSMesa_8.so";
+                useGles = false;
+                bypassNamespace = true;
+                glesVersion = 3;
+                if(preloadVk) preloadVulkan();
+                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
@@ -362,16 +325,13 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
-
     public static native void setupBridgeWindow(android.view.Surface surface);
     public static native void releaseBridgeWindow();
-
     public static native void initFearShaderEngine(String cachePath, int version);
     public static native void destroyFearShaderEngine();
     public static native String getShaderCachePath();
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
-
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
