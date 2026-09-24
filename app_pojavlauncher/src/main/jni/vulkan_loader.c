@@ -57,9 +57,30 @@ bool load_turnip_vulkan() {
 
 void* pojavexec_loadVulkanDriver() {
 #ifdef ENABLE_TURNIP_LOADER
+    if(android_get_device_api_level() >= 28) { // the loader does not support below that
+        /* MC19: PanVK path - Zink renders on the open-source Panfrost Vulkan
+         * driver (libmjlvlk.so shim -> libvulkan_panfrost.so ICD) instead of
+         * the glitchy ARM proprietary system driver on Mali. */
+        const char* fear_renderer = getenv("FEAR_RENDERER");
+        if (fear_renderer && strcmp(fear_renderer, "panvk_zink") == 0) {
+            const char* nd = getenv("POJAV_NATIVEDIR");
+            char shim_path[512];
+            if (nd && nd[0])
+                snprintf(shim_path, sizeof(shim_path), "%s/libmjlvlk.so", nd);
+            else
+                snprintf(shim_path, sizeof(shim_path), "libmjlvlk.so");
+            void* panvk_shim = dlopen(shim_path, RTLD_NOW | RTLD_LOCAL);
+            if (panvk_shim) {
+                printf("VulkanLoader: MC19 PanVK shim loaded (%s)\n", shim_path);
+                return panvk_shim;
+            }
+            printf("VulkanLoader: MC19 PanVK shim FAILED (%s): %s - system vulkan fallback\n",
+                   shim_path, dlerror());
+        }
         if(turnip_enabled && load_turnip_vulkan())
             // Reference the vulkan driver separately to avoid weirdness from libraries calling dlclose
             return linker_ns_dlopen("libmjlvlk.so", RTLD_LOCAL);
+    }
 #endif
     void* vulkan_ptr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
     printf("VulkanLoader: loaded system vulkan, ptr=%p\n", vulkan_ptr);
