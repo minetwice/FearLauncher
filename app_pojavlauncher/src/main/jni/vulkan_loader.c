@@ -36,11 +36,11 @@ bool load_turnip_vulkan() {
     void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
     if(dl_android == NULL) goto fail_t;
 
-    void* androidget_exported_namespace = dlsym(dl_android, "android_get_exported_namespace");
+    void* android_get_exported_namespace = dlsym(dl_android, "android_get_exported_namespace");
     void (*linkerhook_pass_handles)(void*, void*, void*) = dlsym(linkerhook, "app__pojav_linkerhook_pass_handles");
 
-    if(linkerhook_pass_handles == NULL || androidget_exported_namespace == NULL) goto fail_d;
-    linkerhook_pass_handles(turnip_driver_handle, android_dlopen_ext, androidget_exported_namespace);
+    if(linkerhook_pass_handles == NULL || android_get_exported_namespace == NULL) goto fail_d;
+    linkerhook_pass_handles(turnip_driver_handle, android_dlopen_ext, android_get_exported_namespace);
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
     printf("DriverHook: Loaded mjlvlk, ptr=%p\n", libvulkan);
