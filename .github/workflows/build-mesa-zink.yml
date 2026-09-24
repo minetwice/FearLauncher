@@ -100,9 +100,9 @@ jobs:
 
           # 1) ZINK_MALI_NOCOHERENT=1 -> always vkFlush/vkInvalidate mapped memory
           edit('mesa/src/gallium/drivers/zink/zink_resource.c',
-               r'obj->coherent = screen->info\.mem_props\.memoryTypes\[obj->bo->base\.placement\]\.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;',
+               r'obj->coherent = screen->info\.mem_props\.memoryTypes\[obj->bo->base(\.base)?\.placement\]\.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;',
                'obj->coherent = !debug_get_bool_option("ZINK_MALI_NOCOHERENT", false) &&\n'
-               '      (screen->info.mem_props.memoryTypes[obj->bo->base.placement].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);')
+               '      (screen->info.mem_props.memoryTypes[obj->bo->base\1.placement].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);')
 
           # 2) ZINK_MALI_NOBINDLESS=1 -> disable bindless / descriptor-indexing caps
           edit('mesa/src/gallium/drivers/zink/zink_screen.c',
