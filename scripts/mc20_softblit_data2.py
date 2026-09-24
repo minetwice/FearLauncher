@@ -1,6 +1,5 @@
 # data part 2 (NEW_INC_B)
 NEW_INC_B = '''
-#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
         /* MC20 v2.13: pace large present blits to ~30fps. Without this
@@ -8,7 +7,7 @@ NEW_INC_B = '''
          * per frame, starving MC's worker threads during mod loading. */
         if ((long) sw * (long) sh > 500000L) {
                 static struct timespec mc20_last;
-                 struct timespec now;
+                struct timespec now;
                 long elapsed_ms;
                 clock_gettime(CLOCK_MONOTONIC, &now);
                 elapsed_ms = (now.tv_sec - mc20_last.tv_sec) * 1000L
@@ -18,43 +17,51 @@ NEW_INC_B = '''
                 clock_gettime(CLOCK_MONOTONIC, &mc20_last);
         }
 
-        /* MC20 v2.15: GPU blit + forced sync. GPUVERIFY proved the u_blitter
-          * GQU blit writes correct pixels (545/545 frames) - the old black
-          * screen was the bridge readback racing the ASYNC GPU blit.
-          * So: blit on the GPU, then force completion with a 1-pixel
-          * texture_map read before returning. Set FEAR_SOFTBLIT=1 to fall
-          * back to the legacy CPU copy below. */
-        if (getenv("FEAR_SOFTBLIT") == NULL) {
+        /* MC20 v2.14 GPUVERIFY: run the hardware blit (u_blitter) first,
+         * then sample what it wrote into dst. The CPU soft-blit below
+         * overwrites the result afterwards, so the screen stays correct
+         * either way - this only tells us (via log) if the GPU blit path
+         * writes anything on this device. */
+        {
                 struct panfrost_context *pctx = pan_context(pipe);
-                struct pipe_box syncbox = dbox;
-                struct pipe_transfer *synctrans = NULL;
+                struct pipe_box vbox = dbox;
+                struct pipe_transfer *vtrans = NULL;
+                uint8_t *vdst;
+                int vstride;
                 panfrost_blitter_save(pctx, info->render_condition_enable);
                 util_blitter_blit(pctx->blitter, info);
-                syncbox.width = 1;
-                syncbox.height = 1;
-                syncbox.depth = 1;
-                 pipe->texture_map(pipe, info->dst.resource, info->dst.level,
-                                          PIPE_MAP_READ, &syncbox, &synctrans);
-                if (synctrans)
-                        pipe->texture_unmap(pipe, synctrans);
-                fprintf(stderr, "GPUBLIT: %ux%u -> %ux%u flip=%d\\n",
-                        sw, sh, dw, dh, flip_y);
-                return true;
+                vdst = pipe->texture_map(pipe, info->dst.resource,
+                                         info->dst.level, PIPE_MAP_READ,
+                                         &vbox, &vtrans);
+                vstride = vtrans ? vtrans->stride : (int) (dw * dst_bpp);
+                if (vdst) {
+                        uint32_t *pbase = (uint32_t *) vdst;
+                        int cx = (int) dw / 2;
+                        int cy = (int) dh / 2;
+                        fprintf(stderr, "GPUVERIFY: tl=%08x c=%08x br=%08x\\n",
+                               pbase[0],
+                                *(uint32_t *) (vdst + (size_t) cy * vstride
+                                            + (size_t) cx * 4)
+                                *(uint32_t *) (vdst + (size_t) (dh - 1) * vstride
+                                                 + (size_t)(dw - 1) * 4));
+                        pipe->texture_unmap(pipe, vtrans);
+                } else {
+                        fprintf(stderr, "GPUVERIFY: dst map FAILED\\n");
+                }
         }
-        /* FEAR_SOFTBLIT=1: legacy CPU soft-blit path below */
 
         src = pipe->texture_map(pipe, info->src.resource, info->src.level,
                                  PIPE_MAP_READ, &sbox, &strans);
         if (src == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: src map failed\\n");
-                 return false;
+                return false;
         }
 
         dst = pipe->texture_map(pipe, info->dst.resource, info->dst.level,
-                                  PIPE_MAP_WRITE, &dbox, &dtrans);
+                                PIPE_MAP_WRITE, &dbox, &dtrans);
         if (dst == NULL) {
                 fprintf(stderr, "PANFORKSOFTBLIT: dst map failed\\n");
-                 pipe->texture_unmap(pipe, strans);
+                pipe->texture_unmap(pipe, strans);
                 return false;
         }
 
