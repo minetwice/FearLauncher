@@ -61,11 +61,11 @@ jobs:
           if n != 1:
               print("FEARPATCH FAIL: expected exactly 1 occurrence, found %d" % n)
               sys.exit(1)
-          new = '''dev->arch = pan_arch(dev->gpu_id);
-        /* FearLauncher: Mali v11 (G615/G715) runs the v10 CSF generation.
-         * panfrost_versions only goes up to v10; without this clamp,
-         * pan_screen.c hits unreachable("Unhandled architecture major"). */
-        if (dev->arch == 11) dev->arch = 10;'''
+          new = ('dev->arch = pan_arch(dev->gpu_id);\n'
+                 '        /* FearLauncher: Mali v11 (G615/G715) runs the v10 CSF generation.\n'
+                 '         * panfrost_versions only goes up to v10; without this clamp,\n'
+                 '         * pan_screen.c hits unreachable("Unhandled architecture major"). */\n'
+                 '        if (dev->arch == 11) dev->arch = 10;')
           open('src/panfrost/lib/pan_props.c','w').write(s.replace(old, new))
           print("FEARPATCH OK: v11->v10 arch clamp applied")
           PYEOF
