@@ -181,20 +181,13 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
-                // MC16: block-glitch fix. On Mali (or any non-Adreno GPU) Zink runs on the
-                // proprietary system Vulkan driver, which is non-conformant for Zink
-                // (missing fillModeNonSolid/shaderClipDistance/logicOp) and mishandles
-                // Zink's out-of-order command submission -> flickering/corrupted chunks.
-                // Force conservative, in-order submission.
+                // MC18: Mesa 26.2 zink is expected to handle the non-conformant system
+                // Vulkan driver natively. The old MC17 in-order/sync workaround has been
+                // retired; if artifacts return on non-Adreno GPUs, re-enable per-test with
+                // ZINK_DEBUG=noreorder,sync from a custom env var.
+                envMap.put("mesa_glthread", "false");
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    // MC17: noreorder + sync = fully in-order, synchronized submission.
-                    // Costs FPS but eliminates block-texture glitching on Mali.
-                    envMap.put("ZINK_DEBUG", "noreorder,sync");
-                    envMap.put("GALLIUM_THREAD", "0");
-                    envMap.put("mesa_glthread", "false");
-                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 ultimate fix active: ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");
-                } else {
-                    envMap.put("mesa_glthread", "false");
+                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - Mesa 26.2 zink, legacy MC17 workaround retired");
                 }
                 break;
         }

@@ -206,22 +206,11 @@ public class GameRunner {
         JREUtils.setEnviroimentForGame(activity, rendererName);
         JREUtils.chdir(instance.getGameDirectory().getAbsolutePath());
 
-        // MC17: Zink on Mali / proprietary system Vulkan - ultimate glitch fix.
-        // Zink generates mipmaps on an async compute queue which corrupts terrain
-        // texture data on ARM proprietary drivers, making block textures appear to
-        // slide/move rapidly. Mipmaps are disabled at launch to keep the terrain
-        // clean (ZINK_DEBUG=..,sync is set in JREUtils for the remaining races).
-        if ((rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink"))
-                && !GLInfoUtils.getGlInfo().isAdreno()) {
-            try {
-                MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());
-                MCOptionUtils.set("mipmapLevels", "0");
-                MCOptionUtils.save();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[TurnipZink] MC17: mipmapLevels=0 + full-sync zink (Mali block texture glitch fix)"); } catch (Throwable ignored) {}
-            } catch (Throwable t2) {
-                Log.w("GameRunner", "MC17 mipmap tweak failed", t2);
-            }
-        }
+        // MC18: turnip_zink on Mali / proprietary system Vulkan - legacy workaround retired.
+        // The MC17 mipmapLevels=0 force (async-compute mipmap corruption on ARM
+        // proprietary Vulkan) has been retired together with the ZINK_DEBUG sync
+        // workaround. Mesa 26.2 zink is expected to be clean; if the block-texture
+        // sliding ever returns, re-enable via options.txt.
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         if(rendererLibrary == null) {
