@@ -73,7 +73,7 @@ jobs:
                 envMap.put("FEAR_RENDERER", renderer);
                 envMap.put("vblank_mode", "0");
                 break;
-'''
+          '''
           anchor1 = '            case "panvk_zink":'
           i = s.find(anchor1)
           if i < 0:
@@ -86,7 +86,7 @@ jobs:
                 useGles = true;
                 glesVersion = 3;
                 break;
-'''
+          '''
           anchor2 = '            case "opengles3_ltw":'
           i = s.find(anchor2)
           if i < 0:
