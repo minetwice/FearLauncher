@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build-aarch64:
-    name: FearRender arm64 + wiring
+    name: FearRender arm64 + wiring + shader-diag
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -43,6 +43,80 @@ jobs:
             MobileGlues-cpp/3rdparty/SPIRV-Cross \
             MobileGlues-cpp/include/ska
 
+      - name: FEARPATCH (MobileGlues source, applied per-run on the fresh clone)
+        run: |
+          python3 << 'PYEOF'
+          import sys
+
+          # --- Patch 1: glsl_for_es.cpp - make translator errors ALWAYS visible ---
+          # Default build hides glslang/SPIRV-Cross errors behind debug-only LOG_E/LOG_D.
+          # When translation fails, the ORIGINAL desktop GLSL is passed to the GLES
+          # driver, which then fails with a confusing error like 'L0001: Expected
+          # identifier, found uniform'. Surface the real cause in the log.
+          p = 'mg/MobileGlues-cpp/gl/glsl/glsl_for_es.cpp'
+          s = open(p).read()
+
+          a = 'LOG_D("GLSL Compiling ERROR: \\n%s", shader.getInfoLog())'
+          b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:\\n%s", shader.getInfoLog())'
+          n = s.count(a)
+          if n != 1:
+              print("FEARPATCH FAIL: glslang compile-error anchor count = %d" % n); sys.exit(1)
+          s = s.replace(a, b, 1)
+
+          a = 'LOG_D("Shader Linking ERROR: %s", program.getInfoLog())'
+          b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV LINK ERROR: %s", program.getInfoLog())'
+          n = s.count(a)
+          if n != 1:
+              print("FEARPATCH FAIL: glslang link-error anchor count = %d" % n); sys.exit(1)
+          s = s.replace(a, b, 1)
+
+          a = 'LOG_E("Error: %s failed in spirv-cross: %s", what, spvc_context_get_last_error_string(context))'
+          b = 'LOG_W_FORCE("[FearRender] SPIRV-Cross ERROR: %s failed: %s", what, spvc_context_get_last_error_string(context))'
+          n = s.count(a)
+          if n != 1:
+              print("FEARPATCH FAIL: spvc_ok anchor count = %d" % n); sys.exit(1)
+          s = s.replace(a, b, 1)
+          open(p, 'w').write(s)
+          print("FEARPATCH OK: glsl_for_es.cpp translator errors now always logged")
+
+          # --- Patch 2: gl/shader.cpp - dump failing shader source to MG dir ---
+          p = 'mg/MobileGlues-cpp/gl/shader.cpp'
+          s = open(p).read()
+
+          if 'FEARRENDER-DUMP' not in s:
+              a = '#include <cctype>'
+              if a not in s:
+                  print("FEARPATCH FAIL: cctype include anchor"); sys.exit(1)
+              s = s.replace(a, a + '\n#include <cstdio>', 1)
+              a = '#include "../config/settings.h"'
+              if a not in s:
+                  print("FEARPATCH FAIL: settings include anchor"); sys.exit(1)
+              s = s.replace(a, a + '\n#include "../config/config.h"', 1)
+
+              old = '''    GLES.glGetShaderiv(shader, pname, params);
+    if (global_settings.ignore_error >= IgnoreErrorLevel::Partial && pname == GL_COMPILE_STATUS && !*params) {'''
+              new = '''    GLES.glGetShaderiv(shader, pname, params);
+    if (pname == GL_COMPILE_STATUS && !*params) { /* FEARRENDER-DUMP */
+        GLchar fearInfoLog[512];
+        GLES.glGetShaderInfoLog(shader, 512, nullptr, fearInfoLog);
+        LOG_W_FORCE("[FearRender] Shader %d compile FAILED: %s", shader, fearInfoLog)
+        FILE* fearDump = fopen((std::string(mg_directory_path ? mg_directory_path : "/sdcard/MG") + "/failed_shader_dump.glsl").c_str(), "a");
+        if (fearDump) {
+            fprintf(fearDump, "==== SHADER %d COMPILE FAILED ====\nInfo log: %s\n---- SOURCE PASSED TO DRIVER ----\n%s\n\n", shader, fearInfoLog, shaderInfo.converted.c_str());
+            fclose(fearDump);
+        }
+    }
+    if (global_settings.ignore_error >= IgnoreErrorLevel::Partial && pname == GL_COMPILE_STATUS && !*params) {'''
+              n = s.count(old)
+              if n != 1:
+                  print("FEARPATCH FAIL: glGetShaderiv anchor count = %d" % n); sys.exit(1)
+              s = s.replace(old, new, 1)
+              open(p, 'w').write(s)
+              print("FEARPATCH OK: shader.cpp failing-shader dump added")
+          else:
+              print("FEARPATCH SKIP: shader.cpp already patched")
+          PYEOF
+
       - name: Build libmobileglues.so
         run: |
           cmake -S mg/MobileGlues-cpp -B mg-build -G Ninja \
@@ -56,7 +130,7 @@ jobs:
           $PWD/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip mg-build/libmobileglues.so
           ls -la mg-build/libmobileglues.so
 
-      - name: Wire launcher (JREUtils + headings + GameRunner + Sodium bypass)
+      - name: Wire launcher (JREUtils + headings + GameRunner + Sodium bypass + MG config)
         run: |
           python3 << 'PYEOF'
           import sys
@@ -96,7 +170,6 @@ jobs:
               print("FEARWIRE OK: JREUtils.java wired (fear_render case x2)")
 
           # --- JREUtils.java: Sodium bypass (POJAV_RENDERER must stay unset) ---
-          # Sodium PostLaunchChecks: System.getenv("POJAV_RENDERER") != null -> hard fail.
           s = open(p).read()
           if '!"fear_render".equals(renderer)) {' in s:
               print("FEARWIRE SKIP: POJAV_RENDERER gate already patched")
@@ -115,6 +188,40 @@ jobs:
               s = s.replace(old2, new2, 1)
               open(p, 'w').write(s)
               print("FEARWIRE OK: Sodium bypass wired (no POJAV_RENDERER + scrub for fear_render)")
+
+          # --- JREUtils.java: MobileGlues config dir + shader-friendly defaults ---
+          s = open(p).read()
+          if 'MG_DIR_PATH' in s:
+              print("FEARWIRE SKIP: MobileGlues config already wired")
+          else:
+              old3 = r'''      envMap.put("FEAR_RENDERER", renderer);
+      envMap.put("vblank_mode", "0");
+      break;'''
+              new3 = r'''      envMap.put("FEAR_RENDERER", renderer);
+      envMap.put("vblank_mode", "0");
+      // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
+      try {
+          java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
+          java.io.File mgCfg = new java.io.File(mgDir, "config.json");
+          if (!mgCfg.exists()) {
+              //noinspection ResultOfMethodCallIgnored
+              mgDir.mkdirs();
+              java.io.FileWriter fw = new java.io.FileWriter(mgCfg);
+              fw.write("{\"enableNoError\":2,\"enableExtComputeShader\":1,\"enableExtTimerQuery\":1,\"enableExtDirectStateAccess\":1}");
+              fw.close();
+          }
+          envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());
+          Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());
+      } catch (Throwable t) {
+          Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
+      }
+      break;'''
+              n3 = s.count(old3)
+              if n3 != 1:
+                  print("FEARWIRE FAIL: fear_render env-case anchor count = %d" % n3); sys.exit(1)
+              s = s.replace(old3, new3, 1)
+              open(p, 'w').write(s)
+              print("FEARWIRE OK: MobileGlues config (MG_DIR_PATH + defaults) wired")
 
           # --- headings_array.xml (idempotent) ---
           p2 = 'app_pojavlauncher/src/main/res/values/headings_array.xml'
@@ -160,7 +267,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No change to push"
           else
-            git commit -m "FearRender: Sodium bypass (scrub POJAV_RENDERER like zink) + wiring"
+            git commit -m "FearRender: MobileGlues shader config (MG_DIR_PATH + ignore-error/compute) + shader-fail diagnostics"
             git push
             echo "PUSHED FearRender"
           fi
