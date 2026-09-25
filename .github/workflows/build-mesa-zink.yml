@@ -69,13 +69,14 @@ jobs:
             || git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
           git clone --depth 1 --branch "${MESA_TAG}" https://gitlab.freedesktop.org/mesa/mesa.git \
             || git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git
-          # Prefer versioned build-fix branch if present
-          git clone --depth 1 --branch "${MESA_TAG#mesa-}" https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
-            || git clone --depth 1 --branch master https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix \
-            || true
-          if [ -d mesa-build-fix ]; then
-            echo "Applying mesa-build-fix..."
+          # Prefer versioned build-fix branch if present. NEVER fall back to
+          # master for a different Mesa version - the overlay is version-matched
+          # (e.g. master's include/ breaks mesa-26.x: 'Include dir D3D9 does not exist').
+          if git clone --depth 1 --branch "${MESA_TAG#mesa-}" https://github.com/Vera-Firefly/mesa-build-fix.git mesa-build-fix 2>/dev/null; then
+            echo "Applying versioned mesa-build-fix (${MESA_TAG#mesa-})..."
             cp -rf mesa-build-fix/* mesa/ || true
+          else
+            echo "No versioned mesa-build-fix branch for ${MESA_TAG#mesa-} - building WITHOUT the overlay"
           fi
 
       - name: Apply FearLauncher Mali-blob quirk toggles (runtime)
