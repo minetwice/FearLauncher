@@ -56,23 +56,23 @@ jobs:
           $PWD/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip mg-build/libmobileglues.so
           ls -la mg-build/libmobileglues.so
 
-      - name: Wire launcher (JREUtils + headings + GameRunner LWJGL libname)
+      - name: Wire launcher (JREUtils + headings + GameRunner + Sodium bypass)
         run: |
           python3 << 'PYEOF'
           import sys
 
-          # --- JREUtils.java ---
+          # --- JREUtils.java: renderer env + lib cases (idempotent) ---
           p = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
           s = open(p).read()
 
           if 'case "fear_render":' in s:
-              print("FEARWIRE SKIP: JREUtils already wired")
+              print("FEARWIRE SKIP: JREUtils cases already wired")
           else:
               env_case = '''            case "fear_render":
-                  Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
-                  envMap.put("FEAR_RENDERER", renderer);
-                  envMap.put("vblank_mode", "0");
-                  break;
+                    Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
+                    envMap.put("FEAR_RENDERER", renderer);
+                    envMap.put("vblank_mode", "0");
+                    break;
           '''
               anchor1 = '            case "panvk_zink":'
               i = s.find(anchor1)
@@ -81,11 +81,11 @@ jobs:
               s = s[:i] + env_case + s[i:]
 
               lib_case = '''            case "fear_render":
-                  Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
-                  renderLibrary = "libFearRender.so";
-                  useGles = true;
-                  glesVersion = 3;
-                  break;
+                    Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
+                    renderLibrary = "libFearRender.so";
+                    useGles = true;
+                    glesVersion = 3;
+                    break;
           '''
               anchor2 = '            case "opengles3_ltw":'
               i = s.find(anchor2)
@@ -95,7 +95,28 @@ jobs:
               open(p, 'w').write(s)
               print("FEARWIRE OK: JREUtils.java wired (fear_render case x2)")
 
-          # --- headings_array.xml ---
+          # --- JREUtils.java: Sodium bypass (POJAV_RENDERER must stay unset) ---
+          # Sodium PostLaunchChecks: System.getenv("POJAV_RENDERER") != null -> hard fail.
+          s = open(p).read()
+          if '!"fear_render".equals(renderer)) {' in s:
+              print("FEARWIRE SKIP: POJAV_RENDERER gate already patched")
+          else:
+              old1 = '} else {\n            envMap.put("POJAV_RENDERER", renderer);\n        }'
+              new1 = '} else if (!"fear_render".equals(renderer)) {\n            envMap.put("POJAV_RENDERER", renderer);\n        }'
+              n = s.count(old1)
+              if n != 1:
+                  print("FEARWIRE FAIL: POJAV_RENDERER set-anchor count = %d" % n); sys.exit(1)
+              s = s.replace(old1, new1, 1)
+              old2 = 'if (isZink) {\n            scrubPojavDetectorEnv();\n        }'
+              new2 = 'if (isZink || "fear_render".equals(renderer)) {\n            scrubPojavDetectorEnv();\n        }'
+              n2 = s.count(old2)
+              if n2 != 1:
+                  print("FEARWIRE FAIL: scrub-anchor count = %d" % n2); sys.exit(1)
+              s = s.replace(old2, new2, 1)
+              open(p, 'w').write(s)
+              print("FEARWIRE OK: Sodium bypass wired (no POJAV_RENDERER + scrub for fear_render)")
+
+          # --- headings_array.xml (idempotent) ---
           p2 = 'app_pojavlauncher/src/main/res/values/headings_array.xml'
           s2 = open(p2).read()
           if 'fear_render' in s2:
@@ -112,7 +133,7 @@ jobs:
               open(p2, 'w').write(s2)
               print("FEARWIRE OK: headings_array.xml wired")
 
-          # --- GameRunner.java (LWJGL GL libname) ---
+          # --- GameRunner.java (LWJGL GL libname, idempotent) ---
           p3 = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java'
           s3 = open(p3).read()
           old = '? "libNG-GL4ES.so" : "libGL.so"'
@@ -139,7 +160,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No change to push"
           else
-            git commit -m "FearRender: LWJGL libname fix + wiring (idempotent run)"
+            git commit -m "FearRender: Sodium bypass (scrub POJAV_RENDERER like zink) + wiring"
             git push
             echo "PUSHED FearRender"
           fi
