@@ -4,6 +4,10 @@
 Patches JREUtils.java, headings_array.xml and GameRunner.java for the
 fear_render renderer. Safe to re-run: every block skips when already applied.
 
+Also retires the legacy zink MC17 workarounds (MC18): Mesa 26.2 zink is
+expected to be clean on non-Adreno system Vulkan, so mipmapLevels=0 and
+ZINK_DEBUG=noreorder,sync are removed (they cost sharpness and FPS).
+
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
 import sys
@@ -17,7 +21,7 @@ def fail(msg):
 CASE_LINE = '            case "fear_render":\n'
 ENV_CASE = (
     CASE_LINE +
-    '                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");\n'
+    '                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno):");\n'
     '                envMap.put("FEAR_RENDERER", renderer);\n'
     '                envMap.put("vblank_mode", "0");\n'
     '                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults\n'
@@ -28,7 +32,7 @@ ENV_CASE = (
     '                        //noinspection ResultOfMethodCallIgnored\n'
     '                        mgDir.mkdirs();\n'
     '                        java.io.FileWriter fw = new java.io.FileWriter(mgCfg);\n'
-    '                        fw.write("{\\"enableNoError\\":2,\\"enableExtComputeShader\\":1,\\"enableExtTimerQuery\\":1,\\"enableExtDirectStateAccess\\":1}");\n'
+    '                        fw.write("{\\\"enableNoError\\\":2,\\\"enableExtComputeShader\\\":1,\\\"enableExtTimerQuery\\\":1,\\\"enableExtDirectStateAccess\\\":1}");\n'
     '                        fw.close();\n'
     '                    }\n'
     '                    envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());\n'
@@ -41,7 +45,7 @@ ENV_CASE = (
 
 # Old committed variant of the case body (6-space indentation, no MG config).
 OLD_BODY = (
-    '      Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");\n'
+    '      Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno):");\n'
     '      envMap.put("FEAR_RENDERER", renderer);\n'
     '      envMap.put("vblank_mode", "0");\n'
     '      break;\n'
@@ -78,7 +82,7 @@ else:
 if 'renderLibrary = "libFearRender.so"' not in s:
     lib_case = (
         '            case "fear_render":\n'
-        '                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");\n'
+        '                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES):");\n'
         '                renderLibrary = "libFearRender.so";\n'
         '                useGles = true;\n'
         '                glesVersion = 3;\n'
@@ -147,5 +151,85 @@ else:
     s3 = s3.replace(old, '? "libNG-GL4ES.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"', 1)
     open(P3, 'w').write(s3)
     print("FEARWIRE OK: GameRunner libname patched (fear_render -> libFearRender.so)")
+
+# ------------------------------------------- MC18: retire zink MC17 workarounds
+# Mesa 26.2 zink is expected to be clean on non-Adreno system Vulkan; the old
+# mipmapLevels=0 + ZINK_DEBUG=noreorder,sync workaround made textures blurry
+# and cost FPS. Idempotent via the MC18 marker.
+s = open(P).read()
+if 'MC18: Mesa 26.2 zink' in s:
+    print("FEARWIRE SKIP: MC18 zink workaround retirement (JREUtils) done")
+else:
+    old = (
+        '                // MC16: block-glitch fix. On Mali (or any non-Adreno GPU) Zink runs on the\n'
+        '                // proprietary system Vulkan driver, which is non-conformant for Zink\n'
+        "                // (missing fillModeNonSolid/shaderClipDistance/logicOp) and mishandles\n"
+        "                // Zink's out-of-order command submission -> flickering/corrupted chunks.\n"
+        '                // Force conservative, in-order submission.\n'
+        '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
+        '                    // MC17: noreorder + sync = fully in-order, synchronized submission.\n'
+        '                    // Costs FPS but eliminates block-texture glitching on Mali.\n'
+        '                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
+        '                    envMap.put("GALLIUM_THREAD", "0");\n'
+        '                    envMap.put("mesa_glthread", "false");\n'
+        '                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 ultimate fix active: ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");\n'
+        '                } else {\n'
+        '                    envMap.put("mesa_glthread", "false");\n'
+        '                }\n'
+        '                break;'
+    )
+    new = (
+        '                // MC18: Mesa 26.2 zink is expected to handle the non-conformant system\n'
+        '                // Vulkan driver natively. The old MC17 in-order/sync workaround has been\n'
+        '                // retired; if artifacts return on non-Adreno GPUs, re-enable per-test with\n'
+        '                // ZINK_DEBUG=noreorder,sync from a custom env var.\n'
+        '                envMap.put("mesa_glthread", "false");\n'
+        '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
+        '                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - Mesa 26.2 zink, legacy MC17 workaround retired");\n'
+        '                }\n'
+        '                break;'
+    )
+    n = s.count(old)
+    if n != 1:
+        fail("MC18 JREUtils anchor count = %d" % n)
+    s = s.replace(old, new, 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: MC18 zink workaround retired (JREUtils)")
+
+s3 = open(P3).read()
+if 'MC18: turnip_zink on Mali' in s3:
+    print("FEARWIRE SKIP: MC18 zink workaround retirement (GameRunner) done")
+else:
+    old = (
+        '        // MC17: Zink on Mali / proprietary system Vulkan - ultimate glitch fix.\n'
+        '        // Zink generates mipmaps on an async compute queue which corrupts terrain\n'
+        '        // texture data on ARM proprietary drivers, making block textures appear to\n'
+        '        // slide/move rapidly. Mipmaps are disabled at launch to keep the terrain\n'
+        '        // clean (ZINK_DEBUG=..,sync is set in JREUtils for the remaining races).\n'
+        '        if ((rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink"))\n'
+        '                && !GLInfoUtils.getGlInfo().isAdreno()) {\n'
+        '            try {\n'
+        '                MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());\n'
+        '                MCOptionUtils.set("mipmapLevels", "0");\n'
+        '                MCOptionUtils.save();\n'
+        '                try { net.kdt.pojavlaunch.Logger.appendToLog("[TurnipZink] MC17: mipmapLevels=0 + full-sync zink (Mali block texture glitch fix)"); } catch (Throwable ignored) {}\n'
+        '            } catch (Throwable t2) {\n'
+        '                Log.w("GameRunner", "MC17 mipmap tweak failed", t2);\n'
+        '            }\n'
+        '        }\n'
+    )
+    new = (
+        '        // MC18: turnip_zink on Mali / proprietary system Vulkan - legacy workaround retired.\n'
+        '        // The MC17 mipmapLevels=0 force (async-compute mipmap corruption on ARM\n'
+        '        // proprietary Vulkan) has been retired together with the ZINK_DEBUG sync\n'
+        '        // workaround. Mesa 26.2 zink is expected to be clean; if the block-texture\n'
+        '        // sliding ever returns, re-enable via options.txt.\n'
+    )
+    n = s3.count(old)
+    if n != 1:
+        fail("MC18 GameRunner anchor count = %d" % n)
+    s3 = s3.replace(old, new, 1)
+    open(P3, 'w').write(s3)
+    print("FEARWIRE OK: MC18 mipmap force retired (GameRunner)")
 
 print("FEARWIRE DONE")
