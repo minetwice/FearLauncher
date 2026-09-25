@@ -37,8 +37,8 @@ Patches applied to the MobileGlues source tree before building:
 6. gl/texture.cpp (FEARRENDER-R16UI) - GLES image format qualifiers only allow
    r32ui/r8ui for integer images (Mali: S0059 'Expected layout qualifier
    identifier, got r16ui'). Rewrite R16UI texture storage to R32UI in the
-   central internal_convert hook so the storage matches the r32ui shader
-   declarations produced by patch 5.
+   central internal_convert hook (existing GL_R16UI case) so the storage
+   matches the r32ui shader declarations produced by patch 5.
 
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
@@ -357,20 +357,25 @@ s = open(p).read()
 if 'FEARRENDER-R16UI' in s:
     print("FEARPATCH SKIP: texture.cpp R16UI rewrite already present")
 else:
-    a = '    switch (*internal_format) {\n    case GL_DEPTH_COMPONENT16:'
+    a = (
+        '    case GL_R16UI:\n'
+        '        if (format) *format = GL_RED_INTEGER;\n'
+        '        if (type) *type = GL_UNSIGNED_SHORT;\n'
+        '        break;'
+    )
     n = s.count(a)
     if n != 1:
-        fail("internal_convert anchor count = %d" % n)
+        fail("internal_convert R16UI case anchor count = %d" % n)
     new_case = (
-        '    switch (*internal_format) {\n'
         '    case GL_R16UI: /* FEARRENDER-R16UI: GLES integer image formats are r32ui/r8ui only */\n'
         '        // GLES has no r16ui image format qualifier. FearRender rewrites shaderpack\n'
         '        // image declarations (e.g. Complementary voxel_img) from r16ui to r32ui,\n'
-        '        // so the texture storage is rewritten to match.\n'
+        '        // so the texture storage is rewritten to match (uploads arrive as\n'
+        '        // UNSIGNED_INT per the pack declaration).\n'
         '        *internal_format = GL_R32UI;\n'
+        '        if (format) *format = GL_RED_INTEGER;\n'
         '        if (type) *type = GL_UNSIGNED_INT;\n'
-        '        break;\n'
-        '    case GL_DEPTH_COMPONENT16:'
+        '        break;'
     )
     s = s.replace(a, new_case, 1)
     open(p, 'w').write(s)
