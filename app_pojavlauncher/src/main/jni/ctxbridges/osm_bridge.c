@@ -1,17 +1,17 @@
 //
-// FearLauncher OSMesa bridge — direct lock / MakeCurrent / unlock present path.
+// FearLauncher OSMesa bridge — persistent CPU frontbuffer + ANativeWindow blit.
 //
-// Root cause of Panfork black title screen (Mega-checkpoint):
-// The previous bridge allocated a separate CPU color_buffer, rendered into it,
-// then memcpy'd into ANativeWindow. With Panfrost/OSMesa (hardware Gallium path)
-// that user buffer often stayed all zeros (audio + input still worked).
+// Why the pure "lock → MakeCurrent(window bits) → unlock" path failed on Panfork:
+//   - make_current bound a 1x1 dummy buffer for the whole load/title phase
+//   - after unlockAndPost, window bits are invalid; GL context went missing
+//     (log: "Cannot query extension without a current OpenGL context")
+//   - OSMDIAG center/tl/br stayed 0x0; unlockAndPost then lock FAILED
 //
-// Fix (same pattern as ZalithLauncher / classic Pojav OSMesa):
-//   1) ANativeWindow_lock  → get bits + stride
-//   2) OSMesaMakeCurrent(ctx, bits, ..., width, height)
-//   3) OSMesaPixelStore(ROW_LENGTH, stride) + Y_UP=0
-//   4) glFinish  (flush last frame into the locked buffer)
-//   5) ANativeWindow_unlockAndPost
+// This path:
+//   1) Allocate a page-aligned full-size CPU color_buffer as soon as the surface exists
+//   2) Always OSMesaMakeCurrent(color_buffer) so context stays valid between frames
+//   3) On swap: glFinish + glReadPixels (force GPU→CPU) → lock window → memcpy → unlock
+//   4) Re-bind color_buffer after present
 //
 #include <malloc.h>
 #include <string.h>
@@ -27,38 +27,98 @@ void setNativeWindowSwapInterval(struct ANativeWindow* nativeWindow, int swapInt
 static const char* g_LogTag = "OSMBridge";
 static __thread osm_render_window_t* currentBundle = NULL;
 
-/* Tiny buffer when there is nowhere to present yet */
-static char g_no_render_buffer[4];
 static unsigned g_diag_swaps = 0;
+static void* g_pReadPixels = NULL;
+static void* g_pGetError = NULL;
+static int g_readback_flipped = 1; /* GL is bottom-up; Android buffer is top-down */
 
-static void osm_set_dummy_buffer(ANativeWindow_Buffer* buffer) {
-    buffer->bits = g_no_render_buffer;
-    buffer->width = 1;
-    buffer->height = 1;
-    buffer->stride = 1;
-    buffer->format = WINDOW_FORMAT_RGBA_8888;
+static void osm_resolve_gl_syms(void) {
+    void* h = get_mesa_dl_handle();
+    if (h == NULL) return;
+    if (g_pReadPixels == NULL) {
+        g_pReadPixels = dlsym(h, "glReadPixels");
+        fprintf(stderr, "OSMDIAG: glReadPixels = %p\n", g_pReadPixels);
+    }
+    if (g_pGetError == NULL)
+        g_pGetError = dlsym(h, "glGetError");
 }
 
-/** Bind OSMesa to the current ANativeWindow_Buffer (or dummy). */
-static void osm_apply_current(void) {
-    if (currentBundle == NULL || currentBundle->context == NULL || OSMesaMakeCurrent_p == NULL)
-        return;
+/** Page-aligned, 64-pixel row padding for Panfrost tiling friendliness. */
+static int osm_ensure_color_buffer(osm_render_window_t* bundle, int width, int height) {
+    if (bundle == NULL || width <= 0 || height <= 0) return -1;
 
-    ANativeWindow_Buffer* buf = &currentBundle->buffer;
-    if (buf->bits == NULL || buf->width <= 0 || buf->height <= 0) {
-        osm_set_dummy_buffer(buf);
+    /* Round row to multiple of 16 pixels (64 bytes) for Mali/Panfrost */
+    int row_pixels = (width + 15) & ~15;
+
+    if (bundle->color_buffer != NULL
+        && bundle->color_width == width
+        && bundle->color_height == height
+        && bundle->color_row_pixels == row_pixels) {
+        return 0;
     }
 
-    OSMesaMakeCurrent_p(currentBundle->context, buf->bits, GL_UNSIGNED_BYTE,
-                        buf->width, buf->height);
+    if (bundle->color_buffer != NULL) {
+        free(bundle->color_buffer);
+        bundle->color_buffer = NULL;
+    }
+
+    size_t bytes = (size_t)row_pixels * (size_t)height * 4u;
+    void* mem = NULL;
+#if defined(_POSIX_C_SOURCE) || defined(__ANDROID__)
+    if (posix_memalign(&mem, 4096, bytes) != 0) mem = NULL;
+#else
+    mem = malloc(bytes);
+#endif
+    if (mem == NULL) {
+        mem = malloc(bytes);
+    }
+    if (mem == NULL) {
+        bundle->color_width = 0;
+        bundle->color_height = 0;
+        bundle->color_row_pixels = 0;
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag,
+            "malloc color buffer %dx%d (row=%d) failed", width, height, row_pixels);
+        return -1;
+    }
+    memset(mem, 0, bytes);
+    bundle->color_buffer = mem;
+    bundle->color_width = width;
+    bundle->color_height = height;
+    bundle->color_row_pixels = row_pixels;
+    __android_log_print(ANDROID_LOG_INFO, g_LogTag,
+        "Allocated color buffer %dx%d row=%d (%zu bytes) at %p",
+        width, height, row_pixels, bytes, mem);
+    fprintf(stderr, "OSMDIAG: color_buffer %dx%d row=%d ptr=%p\n",
+            width, height, row_pixels, mem);
+    return 0;
+}
+
+static int osm_bind_color(osm_render_window_t* bundle) {
+    if (bundle == NULL || bundle->context == NULL || OSMesaMakeCurrent_p == NULL)
+        return -1;
+    if (bundle->color_buffer == NULL || bundle->color_width <= 0 || bundle->color_height <= 0)
+        return -1;
+
+    GLboolean ok = OSMesaMakeCurrent_p(
+        bundle->context,
+        bundle->color_buffer,
+        GL_UNSIGNED_BYTE,
+        bundle->color_width,
+        bundle->color_height);
 
     if (OSMesaPixelStore_p) {
-        /* ROW_LENGTH is in *pixels*; match the locked buffer's stride */
-        int row_len = buf->stride > 0 ? buf->stride : buf->width;
-        OSMesaPixelStore_p(OSMESA_ROW_LENGTH, row_len);
-        OSMesaPixelStore_p(OSMESA_Y_UP, 0);
+        OSMesaPixelStore_p(OSMESA_ROW_LENGTH, bundle->color_row_pixels);
+        OSMesaPixelStore_p(OSMESA_Y_UP, 0); /* top-down to match Android */
     }
-    currentBundle->last_stride = buf->stride;
+    bundle->last_stride = bundle->color_row_pixels;
+
+    if (!ok) {
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "OSMesaMakeCurrent FAILED");
+        fprintf(stderr, "OSMDIAG: OSMesaMakeCurrent FAILED %dx%d\n",
+                bundle->color_width, bundle->color_height);
+        return -1;
+    }
+    return 0;
 }
 
 static void osm_diag_sample(const char* where) {
@@ -68,21 +128,90 @@ static void osm_diag_sample(const char* where) {
         return;
     }
     unsigned long c = 0, tl = 0, br = 0;
-    ANativeWindow_Buffer* buf = &b->buffer;
-    if (buf->bits != NULL && buf->width > 1 && buf->height > 1 && buf->stride > 0) {
-        const uint32_t* px = (const uint32_t*) buf->bits;
-        int w = buf->width;
-        int h = buf->height;
-        int s = buf->stride;
+    if (b->color_buffer != NULL && b->color_width > 1 && b->color_height > 1) {
+        const uint32_t* px = (const uint32_t*) b->color_buffer;
+        int w = b->color_width;
+        int h = b->color_height;
+        int s = b->color_row_pixels > 0 ? b->color_row_pixels : w;
         c  = px[(size_t)(h / 2) * (size_t)s + (size_t)(w / 2)];
         tl = px[0];
         br = px[(size_t)(h - 1) * (size_t)s + (size_t)(w - 1)];
     }
-    fprintf(stderr, "OSMDIAG[%s]: bits=%p %dx%d stride=%d surf=%p win=%p disable=%d state=%d "
+    fprintf(stderr, "OSMDIAG[%s]: buf=%p %dx%d row=%d surf=%p disable=%d state=%d "
             "center=0x%08lx tl=0x%08lx br=0x%08lx\n",
-            where, buf->bits, buf->width, buf->height, buf->stride,
-            b->nativeSurface, bridge_environ.pojavWindow,
-            (int)b->disable_rendering, (int)b->state, c, tl, br);
+            where, b->color_buffer, b->color_width, b->color_height, b->color_row_pixels,
+            b->nativeSurface, (int)b->disable_rendering, (int)b->state, c, tl, br);
+}
+
+static void osm_force_readback(osm_render_window_t* b) {
+    void (*pReadPixels)(int, int, int, int, unsigned, unsigned, void*);
+    if (b == NULL || b->color_buffer == NULL) return;
+    osm_resolve_gl_syms();
+    if (g_pReadPixels == NULL) return;
+    memcpy(&pReadPixels, &g_pReadPixels, sizeof(g_pReadPixels));
+    /* GL_RGBA = 0x1908, GL_UNSIGNED_BYTE = 0x1401 */
+    pReadPixels(0, 0, b->color_width, b->color_height, 0x1908u, 0x1401u, b->color_buffer);
+    g_readback_flipped = 1; /* glReadPixels is bottom-up */
+}
+
+static void osm_blit_to_native(osm_render_window_t* bundle) {
+    if (bundle == NULL || bundle->nativeSurface == NULL || bundle->color_buffer == NULL)
+        return;
+    if (bundle->disable_rendering) return;
+
+    ANativeWindow_Buffer nb;
+    memset(&nb, 0, sizeof(nb));
+    if (ANativeWindow_lock(bundle->nativeSurface, &nb, NULL) != 0) {
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "ANativeWindow_lock failed");
+        fprintf(stderr, "OSMDIAG: ANativeWindow_lock FAILED\n");
+        return;
+    }
+
+    if ((g_diag_swaps % 120) == 0)
+        fprintf(stderr, "OSMDIAG: blit locked dst=%dx%d stride=%d src=%dx%d flipped=%d\n",
+                nb.width, nb.height, nb.stride,
+                bundle->color_width, bundle->color_height, g_readback_flipped);
+
+    const int src_w = bundle->color_width;
+    const int src_h = bundle->color_height;
+    const int src_row = bundle->color_row_pixels > 0 ? bundle->color_row_pixels : src_w;
+    const int dst_w = nb.width;
+    const int dst_h = nb.height;
+    const int copy_w = src_w < dst_w ? src_w : dst_w;
+    const int copy_h = src_h < dst_h ? src_h : dst_h;
+    const uint8_t* src = (const uint8_t*) bundle->color_buffer;
+    uint8_t* dst = (uint8_t*) nb.bits;
+    const int src_stride_bytes = src_row * 4;
+    const int dst_stride_bytes = nb.stride * 4;
+
+    if (dst != NULL && copy_w > 0 && copy_h > 0) {
+        for (int y = 0; y < copy_h; y++) {
+            int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+            memcpy(dst + (size_t)y * dst_stride_bytes,
+                   src + (size_t)sy * src_stride_bytes,
+                   (size_t)copy_w * 4u);
+        }
+    }
+
+    if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "unlockAndPost failed");
+        fprintf(stderr, "OSMDIAG: unlockAndPost FAILED\n");
+    }
+}
+
+static int osm_resolve_size(int* out_w, int* out_h) {
+    int w = 0, h = 0;
+    if (bridge_environ.pojavWindow != NULL) {
+        w = ANativeWindow_getWidth(bridge_environ.pojavWindow);
+        h = ANativeWindow_getHeight(bridge_environ.pojavWindow);
+    }
+    if (w <= 0) w = bridge_environ.savedWidth;
+    if (h <= 0) h = bridge_environ.savedHeight;
+    if (w <= 0) w = 1280;
+    if (h <= 0) h = 720;
+    *out_w = w;
+    *out_h = h;
+    return 0;
 }
 
 bool osm_init() {
@@ -91,7 +220,8 @@ bool osm_init() {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "OSMesa symbols not loaded");
         return false;
     }
-    __android_log_print(ANDROID_LOG_INFO, g_LogTag, "OSMesa bridge init OK (direct ANativeWindow path)");
+    __android_log_print(ANDROID_LOG_INFO, g_LogTag,
+        "OSMesa bridge init OK (persistent CPU frontbuffer + blit)");
     return true;
 }
 
@@ -118,7 +248,6 @@ osm_render_window_t* osm_init_context(osm_render_window_t* share) {
     __android_log_print(ANDROID_LOG_INFO, g_LogTag, "OSMesaCreateContext OK ctx=%p", context);
     fprintf(stderr, "I/OSMBridge: OSMesaCreateContext OK ctx=%p\n", context);
     render_window->context = context;
-    osm_set_dummy_buffer(&render_window->buffer);
     return render_window;
 }
 
@@ -137,22 +266,29 @@ void osm_swap_surfaces(osm_render_window_t* bundle) {
         bundle->nativeSurface = bundle->newNativeSurface;
         bundle->newNativeSurface = NULL;
         ANativeWindow_acquire(bundle->nativeSurface);
-        ANativeWindow_setBuffersGeometry(bundle->nativeSurface, 0, 0, WINDOW_FORMAT_RGBA_8888);
+        /* RGBX matches Zalith; some devices reject RGBA for lock */
+        ANativeWindow_setBuffersGeometry(bundle->nativeSurface, 0, 0, WINDOW_FORMAT_RGBX_8888);
         bundle->disable_rendering = false;
 
         int w = ANativeWindow_getWidth(bundle->nativeSurface);
         int h = ANativeWindow_getHeight(bundle->nativeSurface);
         if (w > 0) bridge_environ.savedWidth = w;
         if (h > 0) bridge_environ.savedHeight = h;
+        if (w <= 0 || h <= 0) osm_resolve_size(&w, &h);
+
+        if (osm_ensure_color_buffer(bundle, w, h) == 0)
+            osm_bind_color(bundle);
         return;
     }
 
-    __android_log_print(ANDROID_LOG_WARN, g_LogTag, "No native surface — dummy framebuffer");
-    fprintf(stderr, "OSMDIAG: no native surface (pojavWindow=%p) — rendering disabled\n",
-            bridge_environ.pojavWindow);
+    __android_log_print(ANDROID_LOG_WARN, g_LogTag, "No native surface — color buffer only");
+    fprintf(stderr, "OSMDIAG: no native surface (pojavWindow=%p)\n", bridge_environ.pojavWindow);
     bundle->nativeSurface = NULL;
     bundle->disable_rendering = true;
-    osm_set_dummy_buffer(&bundle->buffer);
+    int w, h;
+    osm_resolve_size(&w, &h);
+    if (osm_ensure_color_buffer(bundle, w, h) == 0)
+        osm_bind_color(bundle);
 }
 
 void osm_release_window() {
@@ -163,7 +299,6 @@ void osm_release_window() {
         currentBundle->nativeSurface = NULL;
     }
     currentBundle->disable_rendering = true;
-    osm_set_dummy_buffer(&currentBundle->buffer);
 }
 
 void osm_make_current(osm_render_window_t* bundle) {
@@ -189,8 +324,14 @@ void osm_make_current(osm_render_window_t* bundle) {
             osm_swap_surfaces(bundle);
     }
 
-    /* Bind whatever buffer we currently have (dummy until first successful lock in swap). */
-    osm_apply_current();
+    /* Ensure full-size buffer even if surface attach path did not run yet */
+    if (bundle->color_buffer == NULL) {
+        int w, h;
+        osm_resolve_size(&w, &h);
+        osm_ensure_color_buffer(bundle, w, h);
+    }
+
+    osm_bind_color(bundle);
 
     if (g_diag_swaps < 3)
         osm_diag_sample("make_current");
@@ -214,47 +355,38 @@ void osm_swap_buffers() {
         osm_swap_surfaces(currentBundle);
     }
 
-    /*
-     * Zalith-compatible present:
-     *   lock → MakeCurrent(bits, stride) → glFinish → unlockAndPost
-     * Game draw calls between swaps are flushed on the next glFinish into the
-     * newly locked buffer.
-     */
-    if (currentBundle->nativeSurface != NULL && !currentBundle->disable_rendering) {
-        ANativeWindow_Buffer nb;
-        memset(&nb, 0, sizeof(nb));
-        if (ANativeWindow_lock(currentBundle->nativeSurface, &nb, NULL) != 0) {
-            __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "ANativeWindow_lock failed");
-            fprintf(stderr, "OSMDIAG: ANativeWindow_lock FAILED\n");
-            /* Surface likely destroyed (pause/background). Disable until osm_setup_window. */
-            currentBundle->disable_rendering = true;
-            osm_set_dummy_buffer(&currentBundle->buffer);
-            osm_apply_current();
-            if (glFinish_p) glFinish_p();
-            g_diag_swaps++;
-            return;
-        }
-        currentBundle->buffer = nb;
-        if ((g_diag_swaps % 120) == 0)
-            fprintf(stderr, "OSMDIAG: locked dst=%dx%d stride=%d\n",
-                    nb.width, nb.height, nb.stride);
-    } else {
-        osm_set_dummy_buffer(&currentBundle->buffer);
+    /* Keep context on stable CPU buffer for the whole frame */
+    if (currentBundle->color_buffer == NULL) {
+        int w, h;
+        osm_resolve_size(&w, &h);
+        osm_ensure_color_buffer(currentBundle, w, h);
     }
-
-    osm_apply_current();
+    osm_bind_color(currentBundle);
 
     if (glFinish_p) glFinish_p();
 
-    if (g_diag_swaps < 2 || (g_diag_swaps % 500) == 0)
+    /* Force GPU → CPU if the frontbuffer mapping stayed empty (Panfrost HW path) */
+    {
+        const uint32_t* px = (const uint32_t*) currentBundle->color_buffer;
+        int s = currentBundle->color_row_pixels > 0 ? currentBundle->color_row_pixels
+                                                    : currentBundle->color_width;
+        uint32_t sample = 0;
+        if (px != NULL && currentBundle->color_width > 0 && currentBundle->color_height > 0)
+            sample = px[(size_t)(currentBundle->color_height / 2) * (size_t)s
+                        + (size_t)(currentBundle->color_width / 2)];
+        if (sample == 0)
+            osm_force_readback(currentBundle);
+        else
+            g_readback_flipped = 0; /* direct frontbuffer write, Y_UP=0 already top-down */
+    }
+
+    if (g_diag_swaps < 3 || (g_diag_swaps % 300) == 0)
         osm_diag_sample("swap");
 
-    if (currentBundle->nativeSurface != NULL && !currentBundle->disable_rendering) {
-        if (ANativeWindow_unlockAndPost(currentBundle->nativeSurface) != 0) {
-            __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "unlockAndPost failed");
-            fprintf(stderr, "OSMDIAG: unlockAndPost FAILED\n");
-        }
-    }
+    osm_blit_to_native(currentBundle);
+
+    /* Critical: re-bind CPU buffer so the next frame has a current context */
+    osm_bind_color(currentBundle);
 
     g_diag_swaps++;
 }
@@ -266,7 +398,6 @@ void osm_setup_window() {
             bridge_environ.pojavWindow);
         bridge_environ.mainWindowBundle->state = STATE_RENDERER_NEW_WINDOW;
         bridge_environ.mainWindowBundle->newNativeSurface = bridge_environ.pojavWindow;
-        /* Re-enable rendering if we previously disabled after a lock failure */
         {
             osm_render_window_t* b = (osm_render_window_t*) bridge_environ.mainWindowBundle;
             b->disable_rendering = false;
