@@ -9,9 +9,9 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 # OSMesaCreateContextAttribs (null pipe_screen -> SIGSEGV).
 # The funnymdzz fork ships a kbase/CSF pan_kmod backend (leegao/mesa-funnymdzz,
 # validated on Mali-G720 kbase/CSF by wonderkast02/panvk-g720-kbase-csf), so we
-# build from it with -Dpanfrost-kmds=kbase.
-#
-# Same export fixes as the MC19/MC21 build:
+# build from it with -Dpanfrost-kmds=kbase,panthor following the fork's own
+# CI recipe (llvm-20, libclc-20, anon_file memfd patch, tools=panfrost host
+# build) plus our app-namespace export fixes:
 #   1. --default-library=static links the libdrm subproject in.
 #   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link.
 #   3. rewritten vulkan-android.sym also exports the vk_icd* entrypoints.
@@ -59,39 +59,47 @@ jobs:
           echo "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install Build Dependencies & Upgrade Meson
+      - name: Patch anon_file.c for memfd_create (SDK 30+)
+        run: |
+          cd mesa
+          sed -i 's/#if defined(HAVE_MEMFD_CREATE) && !defined __TERMUX__/#if defined(HAVE_MEMFD_CREATE)/' src/util/anon_file.c
+          grep -n "memfd" src/util/anon_file.c | head -3
+
+      - name: Install Build Dependencies (LLVM 20 like the fork's CI)
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake bison flex python3-mako pkg-config libdrm-dev python3-pip \
-            llvm-dev clang libclang-dev spirv-tools spirv-headers libllvmspirvlib-18-dev llvm-spirv-18 \
-            libexpat1-dev zlib1g-dev libzstd-dev
+          sudo apt-get install -y build-essential llvm-20-dev libclang-20-dev libclc-20-dev \
+            libllvmspirvlib-20-dev libelf-dev spirv-tools bison flex libdrm-dev pkg-config \
+            cmake python3-mako python3-pip
           pip3 install --user "meson>=1.4.0" ninja packaging pyyaml
           meson --version
           cat mesa/VERSION || true
 
-      - name: Build Host Tools (mesa-clc & precomp-compiler)
+      - name: Build Host Tools (mesa-clc, vtn-bindgen2, panfrost_compile)
         run: |
           cd mesa
           meson setup build-host \
-            -Dgallium-drivers=zink \
-            -Dvulkan-drivers= \
-            -Degl=disabled -Dgles1=disabled -Dgles2=disabled -Dglx=disabled \
-            -Dopengl=true -Dgbm=disabled -Dplatforms= \
+            -Dplatforms=[] \
+            -Dgallium-drivers=[] \
+            -Dvulkan-drivers=[] \
             -Dtools=panfrost \
-            -Dmesa-clc=enabled -Dinstall-mesa-clc=true \
-            -Dprecomp-compiler=enabled -Dinstall-precomp-compiler=true \
+            -Dprecomp-compiler=enabled \
+            -Dinstall-precomp-compiler=true \
             -Dllvm=enabled \
-            --prefix=/tmp/host-tools
-          meson compile -C build-host
-          meson install -C build-host
-          echo "/tmp/host-tools/bin" >> $GITHUB_PATH
+            -Dmesa-clc=enabled -Dinstall-mesa-clc=true
+          ninja -C build-host src/compiler/clc/mesa_clc src/compiler/spirv/vtn_bindgen2 src/panfrost/clc/panfrost_compile
+          ln -sf "build-host/src/compiler/clc/mesa_clc" "build-host/src/compiler/clc/mesa-clc"
+          ln -sf "build-host/src/compiler/spirv/vtn_bindgen2" "build-host/src/compiler/spirv/vtn-bindgen2"
+          echo "$GITHUB_WORKSPACE/mesa/build-host/src/compiler/clc" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/mesa/build-host/src/compiler/spirv" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/mesa/build-host/src/panfrost/clc" >> $GITHUB_PATH
 
       - name: Create Android Cross File
         run: |
           printf '%s\n' \
             '[binaries]' \
-            "c = 'aarch64-linux-android26-clang'" \
-            "cpp = 'aarch64-linux-android26-clang++'" \
+            "c = 'aarch64-linux-android30-clang'" \
+            "cpp = 'aarch64-linux-android30-clang++'" \
             "ar = 'llvm-ar'" \
             "strip = 'llvm-strip'" \
             "pkg-config = 'pkg-config'" \
@@ -140,7 +148,7 @@ jobs:
               return -2;
           }
           EOF
-          aarch64-linux-android26-clang -c hwstub.c -o "$GITHUB_WORKSPACE/hwstub.o"
+          aarch64-linux-android30-clang -c hwstub.c -o "$GITHUB_WORKSPACE/hwstub.o"
           ls -la "$GITHUB_WORKSPACE/hwstub.o"
 
       - name: Configure Meson for Android ARM64 (kbase kernel backend!)
@@ -150,23 +158,30 @@ jobs:
           meson setup build-android \
             --cross-file ../android-aarch64.txt \
             --default-library=static \
-            -Dplatforms=android \
+            -Dbuildtype=release \
+            -Dplatforms=android,x11 \
             -Dandroid-stub=true \
-            -Dplatform-sdk-version=26 \
-            -Dvulkan-drivers=panfrost \
-            -Dgallium-drivers=zink \
-            -Dpanfrost-kmds=kbase \
-            -Degl=disabled -Dgles1=disabled -Dgles2=disabled -Dglx=disabled \
-            -Dopengl=true -Dgbm=disabled \
+            -Dandroid-libbacktrace=disabled \
+            -Dplatform-sdk-version=30 \
+            -Dglx=disabled \
+            -Dgbm=disabled \
+            -Degl=disabled \
+            -Dopengl=false \
+            -Dgles1=disabled \
+            -Dgles2=disabled \
+            -Dglvnd=disabled \
+            -Dvalgrind=disabled \
+            -Dgallium-drivers= \
+            -Dshared-glapi=disabled \
             -Dzstd=disabled \
             -Dallow-fallback-for=libdrm \
             -Dmesa-clc=system \
             -Dprecomp-compiler=system \
+            -Dvulkan-drivers=panfrost \
             -Dllvm=disabled \
-            -Dgallium-rusticl=false \
-            -Dmicrosoft-clc=disabled \
-            -Dbuildtype=release
-          grep -n "panfrost-kmds" build-android/meson-info/intro-buildoptions.json | head -3 || true
+            -Dpanfrost-kmds=kbase,panthor
+          echo "--- kmds option check:"
+          grep -o '"panfrost-kmds"[^}]*}' build-android/meson-info/intro-buildoptions.json | head -c 300 || true
 
       - name: Force ICD exports into the final link (surgical build.ninja patch)
         run: |
@@ -209,8 +224,7 @@ jobs:
         run: |
           cd mesa/build-android/src/panfrost/vulkan
           ls -la libvulkan_panfrost.so
-          echo "--- kbase backend compiled in (static lib):"
-          llvm-nm ../lib/libpankmod_lib.a 2>/dev/null | grep -i kbase | head -5 || echo "(check kmod objects)"
+          echo "--- kbase backend objects:"
           find ../../ -name "kbase_kmod*.o" 2>/dev/null | head -5
           echo "--- defined vk_icd symbols:"
           llvm-nm -D --defined-only libvulkan_panfrost.so | grep vk_icd || true
@@ -246,7 +260,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver (funnymdzz 26.3-devel, Android kbase/CSF - Mali ke liye asli open-source Vulkan)"
+            git commit -m "feat: MC22 - PanVK kbase driver (funnymdzz 26.3-devel + kbase/CSF, Android ke liye asli open-source Mali Vulkan)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
