@@ -1,7 +1,8 @@
 //
-// FearLauncher OSMesa bridge — direct ANativeWindow present (Zalith-style).
-// OSMesa renders into the locked ANativeWindow buffer (correct stride/ROW_LENGTH).
-// Fixes Panfork black title screen where a separate CPU buffer stayed all-zero.
+// FearLauncher OSMesa bridge — persistent CPU frontbuffer + blit to ANativeWindow.
+// Always keep OSMesaMakeCurrent on a stable full-size CPU buffer so the GL
+// context never becomes "no current context" between frames. Present copies
+// into the locked ANativeWindow (handles stride + optional Y flip).
 //
 #include <android/native_window.h>
 #include <stdbool.h>
@@ -13,10 +14,15 @@ typedef struct {
     char       state;
     struct ANativeWindow *nativeSurface;
     struct ANativeWindow *newNativeSurface;
-    ANativeWindow_Buffer buffer;
+    ANativeWindow_Buffer buffer; /* last locked window buffer (present only) */
     int32_t last_stride;
     bool disable_rendering;
     OSMesaContext context;
+    /* Stable CPU frontbuffer — OSMesa always renders here */
+    void* color_buffer;
+    int color_width;
+    int color_height;
+    int color_row_pixels; /* ROW_LENGTH in pixels (may include padding) */
 } osm_render_window_t;
 
 bool osm_init();
