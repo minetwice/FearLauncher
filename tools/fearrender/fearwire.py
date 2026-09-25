@@ -4,9 +4,10 @@
 Patches JREUtils.java, headings_array.xml and GameRunner.java for the
 fear_render renderer. Safe to re-run: every block skips when already applied.
 
-Also retires the legacy zink MC17 workarounds (MC18): Mesa 26.2 zink is
-expected to be clean on non-Adreno system Vulkan, so mipmapLevels=0 and
-ZINK_DEBUG=noreorder,sync are removed (they cost sharpness and FPS).
+MC19: restores the zink MC17 workarounds (mipmapLevels=0 + ZINK_DEBUG sync)
+after Mesa 25.2.1 crashed at context creation on non-Adreno system Vulkan.
+MC20: removes the dead renderers (Panfork, old Zink (Vulkan), LTW) from
+the renderer menu.
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
@@ -152,33 +153,15 @@ else:
     open(P3, 'w').write(s3)
     print("FEARWIRE OK: GameRunner libname patched (fear_render -> libFearRender.so)")
 
-# ------------------------------------------- MC18: retire zink MC17 workarounds
-# Mesa 26.2 zink is expected to be clean on non-Adreno system Vulkan; the old
-# mipmapLevels=0 + ZINK_DEBUG=noreorder,sync workaround made textures blurry
-# and cost FPS. Idempotent via the MC18 marker.
+# ------------------------------------------- MC18/MC19: zink workaround state
+# MC19 (current): Mesa 25.2.1 zink crashed at OSMesaCreateContextAttribs on
+# non-Adreno system Vulkan (SIGSEGV at window creation), so the MC17
+# workarounds are RESTORED on top of Mesa 25.1.4 (proven working).
 s = open(P).read()
-if 'MC18: Mesa 26.2 zink' in s:
-    print("FEARWIRE SKIP: MC18 zink workaround retirement (JREUtils) done")
+if 'MC19: restored MC17' in s:
+    print("FEARWIRE SKIP: MC19 zink workaround restore (JREUtils) done")
 else:
     old = (
-        '                // MC16: block-glitch fix. On Mali (or any non-Adreno GPU) Zink runs on the\n'
-        '                // proprietary system Vulkan driver, which is non-conformant for Zink\n'
-        "                // (missing fillModeNonSolid/shaderClipDistance/logicOp) and mishandles\n"
-        "                // Zink's out-of-order command submission -> flickering/corrupted chunks.\n"
-        '                // Force conservative, in-order submission.\n'
-        '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
-        '                    // MC17: noreorder + sync = fully in-order, synchronized submission.\n'
-        '                    // Costs FPS but eliminates block-texture glitching on Mali.\n'
-        '                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
-        '                    envMap.put("GALLIUM_THREAD", "0");\n'
-        '                    envMap.put("mesa_glthread", "false");\n'
-        '                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 ultimate fix active: ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");\n'
-        '                } else {\n'
-        '                    envMap.put("mesa_glthread", "false");\n'
-        '                }\n'
-        '                break;'
-    )
-    new = (
         '                // MC18: Mesa 26.2 zink is expected to handle the non-conformant system\n'
         '                // Vulkan driver natively. The old MC17 in-order/sync workaround has been\n'
         '                // retired; if artifacts return on non-Adreno GPUs, re-enable per-test with\n'
@@ -189,47 +172,85 @@ else:
         '                }\n'
         '                break;'
     )
+    new = (
+        '                // MC19: restored MC17 - Mesa 25.2.1 zink crashed at context creation\n'
+        '                // (SIGSEGV in OSMesaCreateContextAttribs) on non-Adreno system Vulkan.\n'
+        '                // Back on Mesa 25.1.4 with the proven in-order/sync workaround.\n'
+        '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
+        '                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
+        '                    envMap.put("GALLIUM_THREAD", "0");\n'
+        '                    envMap.put("mesa_glthread", "false");\n'
+        '                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 fix (Mesa 25.1.4): ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");\n'
+        '                } else {\n'
+        '                    envMap.put("mesa_glthread", "false");\n'
+        '                }\n'
+        '                break;'
+    )
     n = s.count(old)
     if n != 1:
-        fail("MC18 JREUtils anchor count = %d" % n)
+        fail("MC19 JREUtils anchor count = %d" % n)
     s = s.replace(old, new, 1)
     open(P, 'w').write(s)
-    print("FEARWIRE OK: MC18 zink workaround retired (JREUtils)")
+    print("FEARWIRE OK: MC19 zink workaround restored (JREUtils)")
 
 s3 = open(P3).read()
-if 'MC18: turnip_zink on Mali' in s3:
-    print("FEARWIRE SKIP: MC18 zink workaround retirement (GameRunner) done")
+if 'MC19: restored MC17' in s3:
+    print("FEARWIRE SKIP: MC19 zink workaround restore (GameRunner) done")
 else:
     old = (
-        '        // MC17: Zink on Mali / proprietary system Vulkan - ultimate glitch fix.\n'
-        '        // Zink generates mipmaps on an async compute queue which corrupts terrain\n'
-        '        // texture data on ARM proprietary drivers, making block textures appear to\n'
-        '        // slide/move rapidly. Mipmaps are disabled at launch to keep the terrain\n'
-        '        // clean (ZINK_DEBUG=..,sync is set in JREUtils for the remaining races).\n'
-        '        if ((rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink"))\n'
-        '                && !GLInfoUtils.getGlInfo().isAdreno()) {\n'
-        '            try {\n'
-        '                MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());\n'
-        '                MCOptionUtils.set("mipmapLevels", "0");\n'
-        '                MCOptionUtils.save();\n'
-        '                try { net.kdt.pojavlaunch.Logger.appendToLog("[TurnipZink] MC17: mipmapLevels=0 + full-sync zink (Mali block texture glitch fix)"); } catch (Throwable ignored) {}\n'
-        '            } catch (Throwable t2) {\n'
-        '                Log.w("GameRunner", "MC17 mipmap tweak failed", t2);\n'
-        '            }\n'
-        '        }\n'
-    )
-    new = (
         '        // MC18: turnip_zink on Mali / proprietary system Vulkan - legacy workaround retired.\n'
         '        // The MC17 mipmapLevels=0 force (async-compute mipmap corruption on ARM\n'
         '        // proprietary Vulkan) has been retired together with the ZINK_DEBUG sync\n'
         '        // workaround. Mesa 26.2 zink is expected to be clean; if the block-texture\n'
         '        // sliding ever returns, re-enable via options.txt.\n'
     )
+    new = (
+        '        // MC19: restored MC17 - block-texture glitch fix for zink on ARM\n'
+        '        // proprietary Vulkan (async-compute mipmap corruption).\n'
+        '        if ((rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink"))\n'
+        '                && !GLInfoUtils.getGlInfo().isAdreno()) {\n'
+        '            try {\n'
+        '                MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());\n'
+        '                MCOptionUtils.set("mipmapLevels", "0");\n'
+        '                MCOptionUtils.save();\n'
+        '                try { net.kdt.pojavlaunch.Logger.appendToLog("[TurnipZink] MC19: mipmapLevels=0 + full-sync zink (Mali block texture glitch fix, restored)"); } catch (Throwable ignored) {}\n'
+        '            } catch (Throwable t2) {\n'
+        '                Log.w("GameRunner", "MC19 mipmap tweak failed", t2);\n'
+        '            }\n'
+        '        }\n'
+    )
     n = s3.count(old)
     if n != 1:
-        fail("MC18 GameRunner anchor count = %d" % n)
+        fail("MC19 GameRunner anchor count = %d" % n)
     s3 = s3.replace(old, new, 1)
     open(P3, 'w').write(s3)
-    print("FEARWIRE OK: MC18 mipmap force retired (GameRunner)")
+    print("FEARWIRE OK: MC19 mipmap force restored (GameRunner)")
+
+# ------------------------------------------- MC20: remove dead renderers
+# Clean up the renderer menu: drop the 3 legacy/unused entries (Panfork,
+# old Zink (Vulkan), LTW). Keep: Turnip Zink, PanVK Zink, FearRender,
+# Krypton, gl4es. Idempotent via absence of 'panfork' in the menu.
+P4 = 'app_pojavlauncher/src/main/res/values/headings_array.xml'
+s4 = open(P4).read()
+if '<item>panfork</item>' not in s4:
+    print("FEARWIRE SKIP: MC20 dead renderers already removed")
+else:
+    drop = [
+        '        <item>Panfork (GL — open-source Panfrost on kbase)</item>\n',
+        '        <item>@string/mcl_setting_renderer_vulkan_zink</item>\n',
+        '        <item>@string/mcl_setting_renderer_ltw</item>\n',
+        '        <item>panfork</item> <!-- MC20 Panfork: open-source Panfrost GL directly on the kbase kernel driver, via OSMesa -->\n',
+        '        <item>vulkan_zink</item> <!-- zink with OpenGL -->\n',
+        '        <item>opengles3_ltw</item> <!-- GL Core on GLES wrapper with GL3/4 -->\n',
+    ]
+    for d in drop:
+        if d in s4:
+            s4 = s4.replace(d, '', 1)
+        else:
+            fail("MC20 headings line not found: %r" % d[:60])
+    if '<item>panfork</item>' in s4 or 'renderer_ltw' in s4 or '<item>vulkan_zink</item>' in s4:
+        fail("MC20 removal incomplete - leftovers remain")
+    open(P4, 'w').write(s4)
+    print("FEARWIRE OK: MC20 removed Panfork + old Zink + LTW from renderer menu")
 
 print("FEARWIRE DONE")
