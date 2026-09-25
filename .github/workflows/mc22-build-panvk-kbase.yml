@@ -159,7 +159,7 @@ jobs:
             --cross-file ../android-aarch64.txt \
             --default-library=static \
             -Dbuildtype=release \
-            -Dplatforms=android,x11 \
+            -Dplatforms=android \
             -Dandroid-stub=true \
             -Dandroid-libbacktrace=disabled \
             -Dplatform-sdk-version=30 \
