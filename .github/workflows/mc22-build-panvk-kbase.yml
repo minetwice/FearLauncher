@@ -17,6 +17,9 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 #   3. rewritten vulkan-android.sym also exports the vk_icd* entrypoints.
 #   4. needed shims .so (gralloctypes etc.) auto-shipped into jniLibs.
 #   5. hard verification gate on vk_icd* exports.
+# NOTE: the NDK bin dir is deliberately NOT added to global PATH - its
+# llvm-config (LLVM 21) breaks the host LLVM-20 build. NDK tools are exported
+# per-step instead.
 on:
   push:
     branches: [ Mega-checkpoint ]
@@ -51,7 +54,6 @@ jobs:
       - name: Point at the preinstalled NDK (fork CI uses NDK_LATEST)
         run: |
           echo "ANDROID_NDK_LATEST_HOME=$ANDROID_NDK_LATEST_HOME"
-          echo "$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Patch anon_file.c for memfd_create (SDK 30+)
@@ -132,16 +134,17 @@ jobs:
               return -2;
           }
           EOF
+          export PATH="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
           aarch64-linux-android30-clang -c hwstub.c -o "$GITHUB_WORKSPACE/hwstub.o"
           ls -la "$GITHUB_WORKSPACE/hwstub.o"
 
       - name: Configure Meson for Android ARM64 (kbase kernel backend!)
         run: |
           cd mesa
+          export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"
           export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
           # Drop shims/libdrm.pc so libdrm falls back to the static subproject.
           rm -f shims/libdrm.pc
-          export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"
           meson setup build-android \
             --cross-file ../android-aarch64.txt \
             --default-library=static \
@@ -209,6 +212,7 @@ jobs:
 
       - name: Verify PanVK exports (hard gate)
         run: |
+          export PATH="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
           cd mesa/build-android/src/panfrost/vulkan
           ls -la libvulkan_panfrost.so
           echo "--- kbase backend objects:"
@@ -233,6 +237,7 @@ jobs:
 
       - name: Commit driver into jniLibs
         run: |
+          export PATH="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
           cd mesa/build-android/src/panfrost/vulkan
           llvm-strip --strip-debug libvulkan_panfrost.so
           ls -la libvulkan_panfrost.so
