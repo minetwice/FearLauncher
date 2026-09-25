@@ -1,0 +1,136 @@
+name: Build FearRender (GL on GLES, arm64)
+
+# FearRender = self-compiled GL-on-GLES renderer built from the open-source
+# MobileGlues core (LGPL-2.1, github.com/MobileGL-Dev/MobileGlues).
+# Runs Minecraft (Sodium/Iris capable) on the system OpenGL ES driver,
+# which works on both Mali and Adreno GPUs.
+# This workflow: builds libFearRender.so, wires the launcher (JREUtils + headings),
+# and pushes everything to this branch.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: fearrender-build
+  cancel-in-progress: true
+
+jobs:
+  build-aarch64:
+    name: FearRender arm64 + wiring
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake unzip curl git
+
+      - name: Download NDK
+        run: |
+          curl -L "https://dl.google.com/android/repository/android-ndk-r27c-linux.zip" -o ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+
+      - name: Clone MobileGlues (pinned)
+        run: |
+          git clone --filter=blob:none https://github.com/MobileGL-Dev/MobileGlues.git mg
+          cd mg
+          git checkout 97558a69157b033b890958b1e49258c5b51a80c6
+          git submodule update --init --depth 1 \
+            MobileGlues-cpp/3rdparty/xxhash \
+            MobileGlues-cpp/3rdparty/glslang \
+            MobileGlues-cpp/3rdparty/SPIRV-Cross \
+            MobileGlues-cpp/include/ska
+
+      - name: Build libmobileglues.so
+        run: |
+          cmake -S mg/MobileGlues-cpp -B mg-build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/android-ndk-r27c/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-24 \
+            -DANDROID_STL=c++_static \
+            -DCMAKE_BUILD_TYPE=Release
+          ninja -C mg-build
+          ls -la mg-build/libmobileglues.so
+          $PWD/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip mg-build/libmobileglues.so
+          ls -la mg-build/libmobileglues.so
+
+      - name: Wire launcher (JREUtils + headings_array)
+        run: |
+          python3 << 'PYEOF'
+          import sys
+
+          # --- JREUtils.java ---
+          p = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
+          s = open(p).read()
+
+          env_case = '''            case "fear_render":
+                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
+                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("vblank_mode", "0");
+                break;
+'''
+          anchor1 = '            case "panvk_zink":'
+          i = s.find(anchor1)
+          if i < 0:
+              print("FEARWIRE FAIL: panvk_zink anchor not found"); sys.exit(1)
+          s = s[:i] + env_case + s[i:]
+
+          lib_case = '''            case "fear_render":
+                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
+                renderLibrary = "libFearRender.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
+'''
+          anchor2 = '            case "opengles3_ltw":'
+          i = s.find(anchor2)
+          if i < 0:
+              print("FEARWIRE FAIL: opengles3_ltw anchor not found"); sys.exit(1)
+          s = s[:i] + lib_case + s[i:]
+
+          open(p, 'w').write(s)
+          print("FEARWIRE OK: JREUtils.java wired (fear_render case x2)")
+
+          # --- headings_array.xml ---
+          p2 = 'app_pojavlauncher/src/main/res/values/headings_array.xml'
+          s2 = open(p2).read()
+          a1 = '        <item>Panfork (GL — open-source Panfrost on kbase)</item>'
+          if a1 not in s2:
+              print("FEARWIRE FAIL: headings renderer item anchor"); sys.exit(1)
+          s2 = s2.replace(a1, a1 + '\n        <item>FearRender (GL on GLES — universal Mali/Adreno)</item>', 1)
+          a2 = '<item>panfork</item> <!-- MC20 Panfork: open-source Panfrost GL directly on the kbase kernel driver, via OSMesa -->'
+          if a2 not in s2:
+              print("FEARWIRE FAIL: headings renderer_values anchor"); sys.exit(1)
+          s2 = s2.replace(a2, a2 + '\n        <item>fear_render</item> <!-- FearRender: GL on host GLES via MobileGlues core -->', 1)
+          open(p2, 'w').write(s2)
+          print("FEARWIRE OK: headings_array.xml wired")
+          PYEOF
+
+      - name: Commit + push (libFearRender.so + wiring)
+        run: |
+          cp mg-build/libmobileglues.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so \
+                  app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java \
+                  app_pojavlauncher/src/main/res/values/headings_array.xml
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git commit -m "FearRender: add GL-on-GLES renderer (MobileGlues core) + launcher wiring"
+            git push
+            echo "PUSHED FearRender"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fearrender-arm64
+          path: app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so
+          if-no-files-found: error
+          retention-days: 30
