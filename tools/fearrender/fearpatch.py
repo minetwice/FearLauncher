@@ -28,10 +28,17 @@ Patches applied to the MobileGlues source tree before building:
    carry a format layout qualifier and a readonly/writeonly memory qualifier.
    Desktop GLSL (and the SPIR-V from glslang) has neither, so the generated
    ESSL fails with S0001 on Mali. Repair image uniform declarations after
-   translation: add the pack-declared formats (voxel_img=r16ui,
-   floodfill_img/_copy=rgba16f, from Complementary's shaders.properties),
+   translation: add the pack-declared formats (voxel_img=r32ui (GLES has no
+   r16ui image qualifier, and the texture storage is rewritten to R32UI to
+   match), floodfill_img/_copy=rgba16f, from Complementary's shaders.properties),
    fall back to r32ui for uimage*/rgba16f otherwise, and derive
    readonly/writeonly from imageLoad/imageStore usage in the same shader.
+
+6. gl/texture.cpp (FEARRENDER-R16UI) - GLES image format qualifiers only allow
+   r32ui/r8ui for integer images (Mali: S0059 'Expected layout qualifier
+   identifier, got r16ui'). Rewrite R16UI texture storage to R32UI in the
+   central internal_convert hook so the storage matches the r32ui shader
+   declarations produced by patch 5.
 
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
@@ -147,7 +154,7 @@ static bool fear_has_word(const std::string& s, const std::string& w) {
 // image uniform declarations after translation.
 static std::string fear_image_format_for(const std::string& name, const std::string& type) {
     // Formats declared by the shader packs (Complementary shaders.properties).
-    if (name == "voxel_img") return "r16ui";
+    if (name == "voxel_img") return "r32ui";
     if (name == "floodfill_img" || name == "floodfill_img_copy") return "rgba16f";
     if (type.rfind("uimage", 0) == 0) return "r32ui";
     return "rgba16f";
@@ -337,5 +344,36 @@ else:
     s = s.replace(old, new, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: shader.cpp failing-shader dump added")
+
+# ------------------------------------------- texture.cpp R16UI->R32UI rewrite
+# GLES integer image format qualifiers are only r32ui / r8ui; r16ui does not
+# exist (Mali: S0059 'Expected layout qualifier identifier, got r16ui'). The
+# shader side rewrites voxel_img declarations to r32ui (see above), so the
+# texture storage must be rewritten to match. internal_convert is the central
+# internalformat hook used by glTexImage* and glTexStorage3D (the DSA wrapper
+# routes through it as well).
+p = os.path.join(root, 'gl/texture.cpp')
+s = open(p).read()
+if 'FEARRENDER-R16UI' in s:
+    print("FEARPATCH SKIP: texture.cpp R16UI rewrite already present")
+else:
+    a = '    switch (*internal_format) {\n    case GL_DEPTH_COMPONENT16:'
+    n = s.count(a)
+    if n != 1:
+        fail("internal_convert anchor count = %d" % n)
+    new_case = (
+        '    switch (*internal_format) {\n'
+        '    case GL_R16UI: /* FEARRENDER-R16UI: GLES integer image formats are r32ui/r8ui only */\n'
+        '        // GLES has no r16ui image format qualifier. FearRender rewrites shaderpack\n'
+        '        // image declarations (e.g. Complementary voxel_img) from r16ui to r32ui,\n'
+        '        // so the texture storage is rewritten to match.\n'
+        '        *internal_format = GL_R32UI;\n'
+        '        if (type) *type = GL_UNSIGNED_INT;\n'
+        '        break;\n'
+        '    case GL_DEPTH_COMPONENT16:'
+    )
+    s = s.replace(a, new_case, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: texture.cpp R16UI->R32UI rewrite added")
 
 print("FEARPATCH DONE")
