@@ -138,10 +138,26 @@ public class JREUtils {
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
             case "fear_render":
-      Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
-      envMap.put("FEAR_RENDERER", renderer);
-      envMap.put("vblank_mode", "0");
-      break;
+                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
+                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("vblank_mode", "0");
+                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
+                try {
+                    java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
+                    java.io.File mgCfg = new java.io.File(mgDir, "config.json");
+                    if (!mgCfg.exists()) {
+                        //noinspection ResultOfMethodCallIgnored
+                        mgDir.mkdirs();
+                        java.io.FileWriter fw = new java.io.FileWriter(mgCfg);
+                        fw.write("{\"enableNoError\":2,\"enableExtComputeShader\":1,\"enableExtTimerQuery\":1,\"enableExtDirectStateAccess\":1}");
+                        fw.close();
+                    }
+                    envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());
+                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());
+                } catch (Throwable t) {
+                    Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
+                }
+                break;
             case "panvk_zink":
                 // MC19: Zink on the open-source PanVK (Panfrost) driver.
                 // Clean path - no proprietary-driver workarounds needed.
