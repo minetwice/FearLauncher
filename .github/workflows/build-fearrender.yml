@@ -1,8 +1,9 @@
 name: Build FearRender (GL on GLES, arm64)
 
 # FearRender = self-compiled GL-on-GLES renderer built from the open-source
-# MobileGlues core (LGPL-2.1, github.com/MobileGL-Dev/MobileGlues).
-# Idempotent: safe to re-run (skips wiring that is already present).
+# MobileGlues core (LGPL-2.1, github.com/MobileGL-Dev/MobileGlues), patched
+# via tools/fearrender/fearpatch.py and wired into the launcher via
+# tools/fearrender/fearwire.py (both idempotent). Safe to re-run.
 on:
   workflow_dispatch:
 
@@ -43,79 +44,8 @@ jobs:
             MobileGlues-cpp/3rdparty/SPIRV-Cross \
             MobileGlues-cpp/include/ska
 
-      - name: FEARPATCH (MobileGlues source, applied per-run on the fresh clone)
-        run: |
-          python3 << 'PYEOF'
-          import sys
-
-          # --- Patch 1: glsl_for_es.cpp - make translator errors ALWAYS visible ---
-          # Default build hides glslang/SPIRV-Cross errors behind debug-only LOG_E/LOG_D.
-          # When translation fails, the ORIGINAL desktop GLSL is passed to the GLES
-          # driver, which then fails with a confusing error like 'L0001: Expected
-          # identifier, found uniform'. Surface the real cause in the log.
-          p = 'mg/MobileGlues-cpp/gl/glsl/glsl_for_es.cpp'
-          s = open(p).read()
-
-          a = 'LOG_D("GLSL Compiling ERROR: \\n%s", shader.getInfoLog())'
-          b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:\\n%s", shader.getInfoLog())'
-          n = s.count(a)
-          if n != 1:
-              print("FEARPATCH FAIL: glslang compile-error anchor count = %d" % n); sys.exit(1)
-          s = s.replace(a, b, 1)
-
-          a = 'LOG_D("Shader Linking ERROR: %s", program.getInfoLog())'
-          b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV LINK ERROR: %s", program.getInfoLog())'
-          n = s.count(a)
-          if n != 1:
-              print("FEARPATCH FAIL: glslang link-error anchor count = %d" % n); sys.exit(1)
-          s = s.replace(a, b, 1)
-
-          a = 'LOG_E("Error: %s failed in spirv-cross: %s", what, spvc_context_get_last_error_string(context))'
-          b = 'LOG_W_FORCE("[FearRender] SPIRV-Cross ERROR: %s failed: %s", what, spvc_context_get_last_error_string(context))'
-          n = s.count(a)
-          if n != 1:
-              print("FEARPATCH FAIL: spvc_ok anchor count = %d" % n); sys.exit(1)
-          s = s.replace(a, b, 1)
-          open(p, 'w').write(s)
-          print("FEARPATCH OK: glsl_for_es.cpp translator errors now always logged")
-
-          # --- Patch 2: gl/shader.cpp - dump failing shader source to MG dir ---
-          p = 'mg/MobileGlues-cpp/gl/shader.cpp'
-          s = open(p).read()
-
-          if 'FEARRENDER-DUMP' not in s:
-              a = '#include <cctype>'
-              if a not in s:
-                  print("FEARPATCH FAIL: cctype include anchor"); sys.exit(1)
-              s = s.replace(a, a + '\n#include <cstdio>', 1)
-              a = '#include "../config/settings.h"'
-              if a not in s:
-                  print("FEARPATCH FAIL: settings include anchor"); sys.exit(1)
-              s = s.replace(a, a + '\n#include "../config/config.h"', 1)
-
-              old = '''    GLES.glGetShaderiv(shader, pname, params);
-    if (global_settings.ignore_error >= IgnoreErrorLevel::Partial && pname == GL_COMPILE_STATUS && !*params) {'''
-              new = '''    GLES.glGetShaderiv(shader, pname, params);
-    if (pname == GL_COMPILE_STATUS && !*params) { /* FEARRENDER-DUMP */
-        GLchar fearInfoLog[512];
-        GLES.glGetShaderInfoLog(shader, 512, nullptr, fearInfoLog);
-        LOG_W_FORCE("[FearRender] Shader %d compile FAILED: %s", shader, fearInfoLog)
-        FILE* fearDump = fopen((std::string(mg_directory_path ? mg_directory_path : "/sdcard/MG") + "/failed_shader_dump.glsl").c_str(), "a");
-        if (fearDump) {
-            fprintf(fearDump, "==== SHADER %d COMPILE FAILED ====\nInfo log: %s\n---- SOURCE PASSED TO DRIVER ----\n%s\n\n", shader, fearInfoLog, shaderInfo.converted.c_str());
-            fclose(fearDump);
-        }
-    }
-    if (global_settings.ignore_error >= IgnoreErrorLevel::Partial && pname == GL_COMPILE_STATUS && !*params) {'''
-              n = s.count(old)
-              if n != 1:
-                  print("FEARPATCH FAIL: glGetShaderiv anchor count = %d" % n); sys.exit(1)
-              s = s.replace(old, new, 1)
-              open(p, 'w').write(s)
-              print("FEARPATCH OK: shader.cpp failing-shader dump added")
-          else:
-              print("FEARPATCH SKIP: shader.cpp already patched")
-          PYEOF
+      - name: 'FEARPATCH (MobileGlues source - shader-fail diagnostics)'
+        run: python3 tools/fearrender/fearpatch.py mg/MobileGlues-cpp
 
       - name: Build libmobileglues.so
         run: |
@@ -130,130 +60,8 @@ jobs:
           $PWD/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip mg-build/libmobileglues.so
           ls -la mg-build/libmobileglues.so
 
-      - name: Wire launcher (JREUtils + headings + GameRunner + Sodium bypass + MG config)
-        run: |
-          python3 << 'PYEOF'
-          import sys
-
-          # --- JREUtils.java: renderer env + lib cases (idempotent) ---
-          p = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
-          s = open(p).read()
-
-          if 'case "fear_render":' in s:
-              print("FEARWIRE SKIP: JREUtils cases already wired")
-          else:
-              env_case = '''            case "fear_render":
-                    Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
-                    envMap.put("FEAR_RENDERER", renderer);
-                    envMap.put("vblank_mode", "0");
-                    break;
-          '''
-              anchor1 = '            case "panvk_zink":'
-              i = s.find(anchor1)
-              if i < 0:
-                  print("FEARWIRE FAIL: panvk_zink anchor not found"); sys.exit(1)
-              s = s[:i] + env_case + s[i:]
-
-              lib_case = '''            case "fear_render":
-                    Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
-                    renderLibrary = "libFearRender.so";
-                    useGles = true;
-                    glesVersion = 3;
-                    break;
-          '''
-              anchor2 = '            case "opengles3_ltw":'
-              i = s.find(anchor2)
-              if i < 0:
-                  print("FEARWIRE FAIL: opengles3_ltw anchor not found"); sys.exit(1)
-              s = s[:i] + lib_case + s[i:]
-              open(p, 'w').write(s)
-              print("FEARWIRE OK: JREUtils.java wired (fear_render case x2)")
-
-          # --- JREUtils.java: Sodium bypass (POJAV_RENDERER must stay unset) ---
-          s = open(p).read()
-          if '!"fear_render".equals(renderer)) {' in s:
-              print("FEARWIRE SKIP: POJAV_RENDERER gate already patched")
-          else:
-              old1 = '} else {\n            envMap.put("POJAV_RENDERER", renderer);\n        }'
-              new1 = '} else if (!"fear_render".equals(renderer)) {\n            envMap.put("POJAV_RENDERER", renderer);\n        }'
-              n = s.count(old1)
-              if n != 1:
-                  print("FEARWIRE FAIL: POJAV_RENDERER set-anchor count = %d" % n); sys.exit(1)
-              s = s.replace(old1, new1, 1)
-              old2 = 'if (isZink) {\n            scrubPojavDetectorEnv();\n        }'
-              new2 = 'if (isZink || "fear_render".equals(renderer)) {\n            scrubPojavDetectorEnv();\n        }'
-              n2 = s.count(old2)
-              if n2 != 1:
-                  print("FEARWIRE FAIL: scrub-anchor count = %d" % n2); sys.exit(1)
-              s = s.replace(old2, new2, 1)
-              open(p, 'w').write(s)
-              print("FEARWIRE OK: Sodium bypass wired (no POJAV_RENDERER + scrub for fear_render)")
-
-          # --- JREUtils.java: MobileGlues config dir + shader-friendly defaults ---
-          s = open(p).read()
-          if 'MG_DIR_PATH' in s:
-              print("FEARWIRE SKIP: MobileGlues config already wired")
-          else:
-              old3 = r'''      envMap.put("FEAR_RENDERER", renderer);
-      envMap.put("vblank_mode", "0");
-      break;'''
-              new3 = r'''      envMap.put("FEAR_RENDERER", renderer);
-      envMap.put("vblank_mode", "0");
-      // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
-      try {
-          java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
-          java.io.File mgCfg = new java.io.File(mgDir, "config.json");
-          if (!mgCfg.exists()) {
-              //noinspection ResultOfMethodCallIgnored
-              mgDir.mkdirs();
-              java.io.FileWriter fw = new java.io.FileWriter(mgCfg);
-              fw.write("{\"enableNoError\":2,\"enableExtComputeShader\":1,\"enableExtTimerQuery\":1,\"enableExtDirectStateAccess\":1}");
-              fw.close();
-          }
-          envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());
-          Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());
-      } catch (Throwable t) {
-          Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
-      }
-      break;'''
-              n3 = s.count(old3)
-              if n3 != 1:
-                  print("FEARWIRE FAIL: fear_render env-case anchor count = %d" % n3); sys.exit(1)
-              s = s.replace(old3, new3, 1)
-              open(p, 'w').write(s)
-              print("FEARWIRE OK: MobileGlues config (MG_DIR_PATH + defaults) wired")
-
-          # --- headings_array.xml (idempotent) ---
-          p2 = 'app_pojavlauncher/src/main/res/values/headings_array.xml'
-          s2 = open(p2).read()
-          if 'fear_render' in s2:
-              print("FEARWIRE SKIP: headings already wired")
-          else:
-              a1 = '        <item>Panfork (GL — open-source Panfrost on kbase)</item>'
-              if a1 not in s2:
-                  print("FEARWIRE FAIL: headings renderer item anchor"); sys.exit(1)
-              s2 = s2.replace(a1, a1 + '\n        <item>FearRender (GL on GLES — universal Mali/Adreno)</item>', 1)
-              a2 = '<item>panfork</item> <!-- MC20 Panfork: open-source Panfrost GL directly on the kbase kernel driver, via OSMesa -->'
-              if a2 not in s2:
-                  print("FEARWIRE FAIL: headings renderer_values anchor"); sys.exit(1)
-              s2 = s2.replace(a2, a2 + '\n        <item>fear_render</item> <!-- FearRender: GL on host GLES via MobileGlues core -->', 1)
-              open(p2, 'w').write(s2)
-              print("FEARWIRE OK: headings_array.xml wired")
-
-          # --- GameRunner.java (LWJGL GL libname, idempotent) ---
-          p3 = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java'
-          s3 = open(p3).read()
-          old = '? "libNG-GL4ES.so" : "libGL.so"'
-          new = '? "libNG-GL4ES.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"'
-          if 'rendererName.equals("fear_render") ? "libFearRender.so"' in s3:
-              print("FEARWIRE SKIP: GameRunner libname already patched")
-          else:
-              n = s3.count(old)
-              if n != 1:
-                  print("FEARWIRE FAIL: GameRunner anchor count = %d" % n); sys.exit(1)
-              open(p3, 'w').write(s3.replace(old, new, 1))
-              print("FEARWIRE OK: GameRunner libname patched (fear_render -> libFearRender.so)")
-          PYEOF
+      - name: 'FEARWIRE (launcher wiring - MG config + Sodium bypass + libname)'
+        run: python3 tools/fearrender/fearwire.py
 
       - name: Commit + push (libFearRender.so + wiring)
         run: |
@@ -263,7 +71,8 @@ jobs:
           git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so \
                   app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java \
                   app_pojavlauncher/src/main/res/values/headings_array.xml \
-                  app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java
+                  app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java \
+                  tools/fearrender/
           if git diff --cached --quiet; then
             echo "No change to push"
           else
