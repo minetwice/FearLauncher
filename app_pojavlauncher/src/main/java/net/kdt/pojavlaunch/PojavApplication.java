@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import net.kdt.pojavlaunch.gpu.KryptonWrapperManager;
+import net.kdt.pojavlaunch.gpu.PanforkManager;
 import net.kdt.pojavlaunch.gpu.TurnipZinkManager;
 import net.kdt.pojavlaunch.lifecycle.ContextExecutor;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -68,6 +69,7 @@ public class PojavApplication extends Application {
 		ContextExecutor.setApplication(this);
 		TurnipZinkManager.initialize();
 		KryptonWrapperManager.initialize();
+		PanforkManager.initialize();
 		if(!BuildConfig.BUILD_TYPE.equals("gplay")) installFatalErrorHandler();
 		
 		try {
