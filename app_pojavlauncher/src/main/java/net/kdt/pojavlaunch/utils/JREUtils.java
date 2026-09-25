@@ -223,7 +223,7 @@ public class JREUtils {
             envMap.put("LIB_MESA_NAME", "panfork".equals(renderer) ? "libOSMesa_panfork.so" : "libOSMesa_8.so");
             // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
             // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
-        } else {
+        } else if (!"fear_render".equals(renderer)) {
             envMap.put("POJAV_RENDERER", renderer);
         }
 
@@ -251,7 +251,7 @@ public class JREUtils {
         }
 
         // Sodium System.getenv("POJAV_RENDERER") — scrub Java + libc
-        if (isZink) {
+        if (isZink || "fear_render".equals(renderer)) {
             scrubPojavDetectorEnv();
         }
     }
