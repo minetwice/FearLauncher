@@ -11,12 +11,12 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 # validated on Mali-G720 kbase/CSF by wonderkast02/panvk-g720-kbase-csf), so we
 # build from it with -Dpanfrost-kmds=kbase,panthor following the fork's own
 # CI recipe (llvm-20, libclc-20, anon_file memfd patch, tools=panfrost host
-# build) plus our app-namespace export fixes:
+# build, shims pkg-config env) plus our app-namespace export fixes:
 #   1. --default-library=static links the libdrm subproject in.
 #   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link.
 #   3. rewritten vulkan-android.sym also exports the vk_icd* entrypoints.
-#   4. libhardware stubbed out; libstdc++ linked statically.
-#   5. hard verification gate on vk_icd* exports and DT_NEEDED.
+#   4. needed shims .so (gralloctypes etc.) auto-shipped into jniLibs.
+#   5. hard verification gate on vk_icd* exports.
 on:
   push:
     branches: [ Mega-checkpoint ]
@@ -104,9 +104,6 @@ jobs:
             "strip = 'llvm-strip'" \
             "pkg-config = 'pkg-config'" \
             '' \
-            '[properties]' \
-            "pkg_config_libdir = '/disable/non/android/system/pc/files'" \
-            '' \
             '[host_machine]' \
             "system = 'android'" \
             "cpu_family = 'aarch64'" \
@@ -155,6 +152,12 @@ jobs:
         run: |
           cd mesa
           export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$HOME/.local/bin:$PATH
+          # Fork CI approach: fake pkg-config env for Android deps (gralloctypes etc).
+          # Drop shims/libdrm.pc so libdrm falls back to the static subproject.
+          rm -f shims/libdrm.pc
+          export PKG_CONFIG_LIBDIR="$GITHUB_WORKSPACE/mesa/shims"
+          echo "PKG_CONFIG_LIBDIR=$PKG_CONFIG_LIBDIR"
+          ls shims/*.pc | head -20
           meson setup build-android \
             --cross-file ../android-aarch64.txt \
             --default-library=static \
@@ -232,18 +235,17 @@ jobs:
             echo "FATAL: vk_icdGetInstanceProcAddr is NOT exported - build unusable"
             exit 1
           fi
-          echo "--- undefined external deps (should be libc/libm/libdl/liblog only):"
+          echo "--- undefined external deps:"
           llvm-nm -D --undefined-only libvulkan_panfrost.so | awk '{print $NF}' | sed 's/@.*//' | sort -u | head -40 || true
           echo "--- DT_NEEDED entries:"
           llvm-readelf -d libvulkan_panfrost.so | grep NEEDED || true
-          if llvm-readelf -d libvulkan_panfrost.so | grep -q 'libhardware.so'; then
-            echo "FATAL: still linked against libhardware.so - not loadable in the app namespace"
-            exit 1
-          fi
-          if llvm-readelf -d libvulkan_panfrost.so | grep -q 'libc++_shared.so'; then
-            echo "FATAL: still linked against libc++_shared.so - not shipped in the APK"
-            exit 1
-          fi
+          echo "--- ship needed shims libs into jniLibs (fork's Android prebuilts):"
+          for lib in $(llvm-readelf -d libvulkan_panfrost.so | grep NEEDED | sed 's/.*\[\(.*\)\].*/\1/'); do
+            if [ -f "$GITHUB_WORKSPACE/mesa/shims/$lib" ] && [ ! -f "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib" ]; then
+              cp -v "$GITHUB_WORKSPACE/mesa/shims/$lib" "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib"
+            fi
+          done
+          ls -la "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/" | grep -i "gralloc\|cutils\|hidl\|hardware" || true
 
       - name: Commit driver into jniLibs
         run: |
@@ -255,7 +257,7 @@ jobs:
           ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
-          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/
           if git diff --cached --quiet; then
             echo "Driver unchanged, nothing to commit"
           else
