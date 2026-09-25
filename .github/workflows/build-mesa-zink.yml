@@ -94,7 +94,7 @@ jobs:
                   print("FEARPATCH FAIL: pattern not found in %s: %s" % (path, pat[:80]))
                   print("=== FEARPATCH CONTEXT DUMP for %s ===" % path)
                   for i, l in enumerate(s.splitlines()):
-                      if "coherent" in l or "bindless_texture" in l or "texture_transfer_mode" in l:
+                      if "coherent" in l or "bindless_texture" in l or "texture_transfer_mode" in l or "max_slab_entry_size" in l or "bo->reads.u" in l:
                           print("%d: %s" % (i+1, l))
                   sys.exit(1)
               open(path, 'w').write(new)
@@ -103,8 +103,7 @@ jobs:
           # 1) ZINK_MALI_NOCOHERENT=1 -> always vkFlush/vkInvalidate mapped memory
           edit('mesa/src/gallium/drivers/zink/zink_resource.c',
                r'obj->coherent = screen->info\.mem_props\.memoryTypes\[obj->bo->base(\.base)?\.placement\]\.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;',
-               'obj->coherent = !debug_get_bool_option("ZINK_MALI_NOCOHERENT", false) &&\n'
-               '      (screen->info.mem_props.memoryTypes[obj->bo->base.base.placement].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);')
+               'obj->coherent = !debug_get_bool_option("ZINK_MALI_NOCOHERENT", false) &&\n      (screen->info.mem_props.memoryTypes[obj->bo->base.base.placement].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);')
 
           # 2) ZINK_MALI_NOBINDLESS=1 -> disable bindless / descriptor-indexing caps
           edit('mesa/src/gallium/drivers/zink/zink_screen.c',
@@ -115,7 +114,18 @@ jobs:
           edit('mesa/src/gallium/drivers/zink/zink_screen.c',
                r'enum pipe_texture_transfer_mode mode = PIPE_TEXTURE_TRANSFER_BLIT;\n      if \(!screen->is_cpu &&',
                'enum pipe_texture_transfer_mode mode = PIPE_TEXTURE_TRANSFER_BLIT;\n      if (!debug_get_bool_option("ZINK_MALI_NOCOMPUTEUPLOAD", false) &&\n          !screen->is_cpu &&')
-          print("FEARPATCH: all 3 quirk toggles applied")
+
+          # 4) ZINK_MALI_NOSLAB=1 -> never sub-allocate buffers from slabs
+          edit('mesa/src/gallium/drivers/zink/zink_bo.c',
+               r'if \(!\(flags & \(ZINK_ALLOC_NO_SUBALLOC \| ZINK_ALLOC_SPARSE\)\)\s*&&\s*size <= max_slab_entry_size\) \{',
+               'if (!(flags & (ZINK_ALLOC_NO_SUBALLOC | ZINK_ALLOC_SPARSE)) &&\n       size <= max_slab_entry_size && !getenv("ZINK_MALI_NOSLAB")) {')
+
+          # 5) ZINK_MALI_NOREUSE=1 -> never reclaim/reuse buffers (fresh memory every time)
+          edit('mesa/src/gallium/drivers/zink/zink_bo.c',
+               r'return zink_screen_usage_check_completion\(screen, bo->reads\.u\) && zink_screen_usage_check_completion\(screen, bo->writes\.u\);',
+               'if (getenv("ZINK_MALI_NOREUSE"))\n      return false;\n   return zink_screen_usage_check_completion(screen, bo->reads.u) && zink_screen_usage_check_completion(screen, bo->writes.u);')
+
+          print("FEARPATCH: all 5 quirk toggles applied")
           PYEOF
 
       - name: Write meson cross-files
