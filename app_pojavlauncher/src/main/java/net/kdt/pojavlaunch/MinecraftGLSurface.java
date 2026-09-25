@@ -1,7 +1,6 @@
 package net.kdt.pojavlaunch;
 
 import static net.kdt.pojavlaunch.MainActivity.touchCharInput;
-import static net.kdt.pojavlaunch.utils.MCOptionUtils.getMcScale;
 import static net.kdt.pojavlaunch.CallbackBridge.sendMouseButton;
 import static net.kdt.pojavlaunch.CallbackBridge.windowHeight;
 import static net.kdt.pojavlaunch.CallbackBridge.windowWidth;
@@ -29,6 +28,9 @@ import net.kdt.pojavlaunch.customcontrols.mouse.AndroidPointerCapture;
 import net.kdt.pojavlaunch.customcontrols.mouse.InGUIEventProcessor;
 import net.kdt.pojavlaunch.customcontrols.mouse.InGameEventProcessor;
 import net.kdt.pojavlaunch.customcontrols.mouse.TouchEventProcessor;
+import net.kdt.pojavlaunch.gpu.PanforkGLSurface;
+import net.kdt.pojavlaunch.gpu.PanforkManager;
+import net.kdt.pojavlaunch.gpu.PanforkRendererWrapper;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.render.SurfaceProvider;
 import net.kdt.pojavlaunch.render.SurfaceViewSurfaceProvider;
@@ -349,13 +351,35 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
 
     @Override
     public void onSurfaceAvailable(Surface surface) {
-        GLFW.nativeSurfaceCreated(surface);
-        // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
-        try {
-            net.kdt.pojavlaunch.utils.JREUtils.setupBridgeWindow(surface);
-        } catch (Throwable t) {
-            android.util.Log.w("MinecraftGLSurface", "Bridge window setup failed", t);
+        // Initialize Panfork renderer with fallback support
+        PanforkRendererWrapper.initializeRenderer();
+        
+        // Check if Panfork is enabled and initialized
+        if (PanforkRendererWrapper.isPanforkEnabled() && !PanforkGLSurface.isPanforkInitialized()) {
+            Log.i("MinecraftGLSurface", "Attempting to initialize Panfork renderer");
+            boolean panforkSuccess = PanforkGLSurface.initializePanfork(surface);
+            
+            if (!panforkSuccess) {
+                Log.w("MinecraftGLSurface", "Panfork initialization failed, falling back to Zink");
+                PanforkRendererWrapper.forceFallbackToZink();
+            }
         }
+        
+        // Use the appropriate renderer based on initialization
+        if (PanforkRendererWrapper.isPanforkEnabled() && PanforkGLSurface.isPanforkInitialized()) {
+            Log.i("MinecraftGLSurface", "Using Panfork renderer");
+            // Panfork surface creation is handled in PanforkGLSurface.initializePanfork
+        } else {
+            Log.i("MinecraftGLSurface", "Using fallback renderer: " + PanforkRendererWrapper.getRendererName());
+            GLFW.nativeSurfaceCreated(surface);
+            // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
+            try {
+                net.kdt.pojavlaunch.utils.JREUtils.setupBridgeWindow(surface);
+            } catch (Throwable t) {
+                android.util.Log.w("MinecraftGLSurface", "Bridge window setup failed", t);
+            }
+        }
+        
         if(mRefreshOnly) return;
         realStart();
         mRefreshOnly = true;
@@ -369,6 +393,8 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
     @Override
     public void onSurfaceDestroyed() {
         GLFW.nativeSurfaceDestroyed();
+        // Reset Panfork state when surface is destroyed
+        PanforkGLSurface.resetPanforkState();
     }
 
     @Override
