@@ -150,6 +150,14 @@ jobs:
       - name: Build Mesa (OSMesa + Zink) — Vera flags
         run: |
           cd mesa
+          # Mesa >= 25.1 (without the Vera overlay) removed the classic -Dosmesa
+          # option; OSMesa is a gallium driver there. Detect which form to use.
+          if grep -q "option('osmesa'" meson.options 2>/dev/null; then
+            OSMESA_FLAGS="-Dosmesa=true -Dgallium-drivers=zink,freedreno"
+          else
+            OSMESA_FLAGS="-Dgallium-drivers=zink,freedreno,osmesa"
+          fi
+          echo "OSMESA_FLAGS=$OSMESA_FLAGS"
           # Exact pattern from Vera-Firefly/android-mesa-build (fixes driParseConfigFiles link)
           meson setup build-android \
             --prefix=/tmp/mesa \
@@ -165,11 +173,10 @@ jobs:
             -Dglx=disabled \
             -Dllvm=disabled \
             -Dopengl=true \
-            -Dosmesa=true \
             -Dvulkan-drivers= \
             -Dtools=drm-shim \
-            -Dgallium-drivers=zink,freedreno \
             -Dfreedreno-kmds=kgsl,msm \
+            $OSMESA_FLAGS \
             -Dbuildtype=release
           ninja -C build-android -j"$(nproc)" install
 
