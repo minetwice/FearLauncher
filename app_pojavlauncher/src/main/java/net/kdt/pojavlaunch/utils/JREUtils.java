@@ -181,13 +181,16 @@ public class JREUtils {
                 envMap.put("vblank_mode", "0");
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
-                // MC18: Mesa 26.2 zink is expected to handle the non-conformant system
-                // Vulkan driver natively. The old MC17 in-order/sync workaround has been
-                // retired; if artifacts return on non-Adreno GPUs, re-enable per-test with
-                // ZINK_DEBUG=noreorder,sync from a custom env var.
-                envMap.put("mesa_glthread", "false");
+                // MC19: restored MC17 - Mesa 25.2.1 zink crashed at context creation
+                // (SIGSEGV in OSMesaCreateContextAttribs) on non-Adreno system Vulkan.
+                // Back on Mesa 25.1.4 with the proven in-order/sync workaround.
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - Mesa 26.2 zink, legacy MC17 workaround retired");
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                    Logger.appendToLog("[TurnipZink] System Vulkan (Mali/proprietary) detected - MC17 fix (Mesa 25.1.4): ZINK_DEBUG=noreorder,sync, GALLIUM_THREAD=0, mesa_glthread=false, mipmapLevels=0");
+                } else {
+                    envMap.put("mesa_glthread", "false");
                 }
                 break;
         }
