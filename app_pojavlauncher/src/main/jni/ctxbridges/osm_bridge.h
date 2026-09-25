@@ -1,5 +1,7 @@
 //
-// Ported from ZalithLauncher (ctxbridges/osm_bridge.h)
+// FearLauncher OSMesa bridge — direct ANativeWindow present (Zalith-style).
+// OSMesa renders into the locked ANativeWindow buffer (correct stride/ROW_LENGTH).
+// Fixes Panfork black title screen where a separate CPU buffer stayed all-zero.
 //
 #include <android/native_window.h>
 #include <stdbool.h>
@@ -15,10 +17,6 @@ typedef struct {
     int32_t last_stride;
     bool disable_rendering;
     OSMesaContext context;
-    /* Persistent CPU color buffer — OSMesa always renders here, then we blit to ANativeWindow */
-    void* color_buffer;
-    int color_width;
-    int color_height;
 } osm_render_window_t;
 
 bool osm_init();
@@ -28,5 +26,6 @@ void osm_make_current(osm_render_window_t* bundle);
 void osm_swap_buffers();
 void osm_setup_window();
 void osm_swap_interval(int swapInterval);
+void osm_release_window();
 
 #endif //FEARLAUNCHER_OSM_BRIDGE_H
