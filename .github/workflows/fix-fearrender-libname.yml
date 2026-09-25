@@ -1,0 +1,44 @@
+name: Fix FearRender LWJGL libname
+
+# One-off patch: LWJGL must load libFearRender.so as the GL library for the
+# fear_render renderer (default branch passed libGL.so which does not exist
+# on Android -> UnsatisfiedLinkError at GL.create).
+on:
+  workflow_dispatch:
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch GameRunner.java
+        run: |
+          python3 << 'PYEOF'
+          import sys
+          p = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java'
+          s = open(p).read()
+          old = '? "libNG-GL4ES.so" : "libGL.so"'
+          new = '? "libNG-GL4ES.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"'
+          n = s.count(old)
+          if n != 1:
+              print("LIBNAME PATCH FAIL: anchor count = %d" % n)
+              sys.exit(1)
+          open(p, 'w').write(s.replace(old, new, 1))
+          print("LIBNAME PATCH OK: fear_render -> libFearRender.so")
+          PYEOF
+
+      - name: Commit + push
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git commit -m "FearRender: point LWJGL GL libname at libFearRender.so (fix UnsatisfiedLinkError)"
+            git push
+            echo "PUSHED"
+          fi
