@@ -137,6 +137,11 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
+            case "fear_render":
+      Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno)...");
+      envMap.put("FEAR_RENDERER", renderer);
+      envMap.put("vblank_mode", "0");
+      break;
             case "panvk_zink":
                 // MC19: Zink on the open-source PanVK (Panfrost) driver.
                 // Clean path - no proprietary-driver workarounds needed.
@@ -355,6 +360,12 @@ public class JREUtils {
                 glesVersion = 3;
                 if(preloadVk) preloadVulkan();
                 break;
+            case "fear_render":
+      Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
+      renderLibrary = "libFearRender.so";
+      useGles = true;
+      glesVersion = 3;
+      break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
                 useGles = true;
