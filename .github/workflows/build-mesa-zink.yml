@@ -18,7 +18,7 @@ on:
       mesa_tag:
         description: 'Mesa git tag/branch'
         required: false
-        default: 'mesa-25.1.4'
+        default: 'mesa-25.2.1'
         type: string
 
 concurrency:
@@ -54,7 +54,7 @@ jobs:
           echo "SDK_VER=29" >> $GITHUB_ENV
           echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
           TAG="${{ github.event.inputs.mesa_tag }}"
-          if [ -z "$TAG" ]; then TAG="mesa-25.1.4"; fi
+          if [ -z "$TAG" ]; then TAG="mesa-25.2.1"; fi
           echo "MESA_TAG=$TAG" >> $GITHUB_ENV
 
       - name: Download NDK
@@ -150,12 +150,14 @@ jobs:
       - name: Build Mesa (OSMesa + Zink) — Vera flags
         run: |
           cd mesa
-          # Mesa >= 25.1 (without the Vera overlay) removed the classic -Dosmesa
-          # option; OSMesa is a gallium driver there. Detect which form to use.
-          if grep -q "option('osmesa'" meson.options 2>/dev/null; then
+          # The classic -Dosmesa option only exists while the (version-matched
+          # Vera overlay) meson.build still reads it. Mesa 26.x removed OSMesa
+          # entirely; there the build must fail loudly (no fallback form exists).
+          if grep -q "get_option('osmesa')" meson.build 2>/dev/null; then
             OSMESA_FLAGS="-Dosmesa=true -Dgallium-drivers=zink,freedreno"
           else
-            OSMESA_FLAGS="-Dgallium-drivers=zink,freedreno,osmesa"
+            echo "ERROR: this Mesa version has no OSMesa target - use mesa-25.2.1 or older"
+            exit 1
           fi
           echo "OSMESA_FLAGS=$OSMESA_FLAGS"
           # Exact pattern from Vera-Firefly/android-mesa-build (fixes driParseConfigFiles link)
