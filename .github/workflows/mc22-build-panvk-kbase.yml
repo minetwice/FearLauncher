@@ -1,17 +1,20 @@
 name: MC22 Build PanVK-Kbase driver (arm64)
 
-# Builds libvulkan_panfrost.so from the funnymdzz Mesa fork (26.3.0-devel)
-# with the KBASE kernel backend enabled, and commits it into jniLibs.
+# Builds libvulkan_panfrost.so from wonderkast02's g720-development Mesa fork
+# (26.3.0-devel, kbase/CSF backend + sync rework + register-count fix) and
+# commits it into jniLibs.
 #
 # Why: vanilla Mesa PanVK only talks to the mainline `panthor` kernel driver,
 # which does not exist on Android - Android Mali kernels expose `kbase`.
 # That made every previous PanVK build enumerate 0 GPUs and crash zink at
 # OSMesaCreateContextAttribs (null pipe_screen -> SIGSEGV).
-# The funnymdzz fork ships a kbase/CSF pan_kmod backend (leegao/mesa-funnymdzz,
-# validated on Mali-G720 kbase/CSF by wonderkast02/panvk-g720-kbase-csf), so we
-# build from it with -Dpanfrost-kmds=kbase,panthor following the fork's own
-# CI recipe (llvm-20, libclc-20, anon_file memfd patch, tools=panfrost host
-# build, android.toml cross file + shims) plus our app-namespace fixes:
+#
+# Sources: leegao/mesa-funnymdzz (base kbase/CSF port) and
+# wonderkast02/panvk-g720-kbase-csf (g720-development branch: G720 register
+# count fix - hardcoded cs_reg_count=96 faults non-G720 GPUs like the G615,
+# plus a KCPU-queue sync-export rework relevant to the atlas-stage hang).
+#
+# App-namespace export fixes layered on top:
 #   1. --default-library=static links the libdrm subproject in.
 #   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link.
 #   3. rewritten vulkan-android.sym also exports the vk_icd* entrypoints.
@@ -23,9 +26,6 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 #   6. hard verification gate on vk_icd* exports.
 #   7. The stub libui.so is FORCE-copied over jniLibs (a stale real libui.so
 #      from an older build must never survive - it breaks dlopen).
-#   8. wonderkast02's CSF register-count fix: the fork hardcodes cs_reg_count
-#      = 96 which faults on non-G720 GPUs (G615!) once register pressure
-#      rises - read the real count from the hardware instead.
 # NOTE: the NDK bin dir is deliberately NOT added to global PATH - its
 # llvm-config (LLVM 21) breaks the host LLVM-20 build. NDK tools are exported
 # per-step instead.
@@ -56,8 +56,8 @@ jobs:
       - name: Checkout bleeding-edge Mesa fork (kbase/CSF support)
         uses: actions/checkout@v4
         with:
-          repository: leegao/mesa-funnymdzz
-          ref: ci
+          repository: wonderkast02/panvk-g720-kbase-csf
+          ref: g720-development
           path: mesa
 
       - name: Point at the preinstalled NDK (fork CI uses NDK_LATEST)
@@ -65,64 +65,16 @@ jobs:
           echo "ANDROID_NDK_LATEST_HOME=$ANDROID_NDK_LATEST_HOME"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Sanity check branch has CSF register fix
+        run: |
+          grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
+          grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
+
       - name: Patch anon_file.c for memfd_create (SDK 30+)
         run: |
           cd mesa
           sed -i 's/#if defined(HAVE_MEMFD_CREATE) && !defined __TERMUX__/#if defined(HAVE_MEMFD_CREATE)/' src/util/anon_file.c
           grep -n "memfd" src/util/anon_file.c | head -3
-
-      - name: Patch CSF register count (hardcoded 96 faults non-G720 GPUs like G615)
-        run: |
-          cd mesa
-          cat > /tmp/regcount.patch << 'EOF'
-          From a6799dbeb02ff1c3677f491767fd35929994e58c Mon Sep 17 00:00:00 2001
-          From: wonderkast02 (G720 CS register count fix)
-          Subject: [PATCH] panvk/kbase: use CSF-reported register count
-
-          The kbase backend hardcoded cs_reg_count = 96. G615 (Valhall v11)
-          reports a different WORK_REGS value, so the CS builder allocated
-          registers the hardware does not have -> GPU fault -> freeze once
-          shader register pressure rises (texture atlas stage).
-          ---
-           src/panfrost/lib/kmod/kbase_kmod.c           | 4 +++-
-           src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | 2 ++
-           2 files changed, 5 insertions(+), 1 deletion(-)
-
-          diff --git a/src/panfrost/lib/kmod/kbase_kmod.c b/src/panfrost/lib/kmod/kbase_kmod.c
-          index 2caa459..2be7f6f 100644
-          --- a/src/panfrost/lib/kmod/kbase_kmod.c
-          +++ b/src/panfrost/lib/kmod/kbase_kmod.c
-          @@ -455,7 +455,9 @@ kbase_query_csif_info(int fd, struct drm_panthor_csif_info *csif)
-             *csif = (struct drm_panthor_csif_info){
-                .csg_slot_count = group_num,
-                .cs_slot_count = groups[0].stream_num,
-          -      .cs_reg_count = 96,
-          +      /* Same encoding used by panthor:
-          +       * bits [7:0] contain WORK_REGS - 1. */
-          +      .cs_reg_count = (stream_features & 0xff) + 1,
-                .scoreboard_slot_count =
-                   (scoreboard_slot_count - 1) < 16 ? scoreboard_slot_count : 8,
-                /* Number of CS registers the FW may clobber; matches panthor's
-          diff --git a/src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c b/src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
-          index ca0392d..40f7ac7 100644
-          --- a/src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
-          +++ b/src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
-          @@ -494,6 +494,8 @@ kbase_subqueue_emit_job(struct panvk_gpu_queue *queue, uint32_t subqueue,
-             };
-             struct cs_builder_conf conf = {
-                .nr_registers = csif_info->cs_reg_count,
-          +      .nr_kernel_registers =
-          +         MAX2(csif_info->unpreserved_cs_reg_count, 4),
-                .ls_sb_slot = SB_ID(LS),
-             };
-             struct cs_builder b;
-          --
-          2.53.0
-          EOF
-          git apply /tmp/regcount.patch && echo "regcount patch APPLIED" || (echo "git apply failed, trying fuzz"; patch -p1 --fuzz=3 < /tmp/regcount.patch)
-          echo "--- verify:"
-          grep -n "cs_reg_count" src/panfrost/lib/kmod/kbase_kmod.c | head -2
-          grep -n "nr_kernel_registers" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -3
 
       - name: Install Build Dependencies (LLVM 20 like the fork's CI)
         run: |
@@ -367,7 +319,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v4 (G615 CSF register count fix - GPU fault freeze solved)"
+            git commit -m "feat: MC22 - PanVK kbase driver v5 (wonderkast g720-development: sync rework + regcount)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
