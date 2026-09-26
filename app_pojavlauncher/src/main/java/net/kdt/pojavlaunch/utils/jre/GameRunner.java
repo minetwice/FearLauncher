@@ -279,7 +279,7 @@ public class GameRunner {
                                 dumps++;
                                 net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] Game log quiet for 25s - requesting JVM thread dump #" + dumps);
                                 try {
-                                    Runtime.getRuntime().exec(new String[]{"kill", "-3", String.valueOf(android.os.Process.myPid())});
+                                    java.lang.Runtime.getRuntime().exec(new String[]{"kill", "-3", String.valueOf(android.os.Process.myPid())});
                                 } catch (Throwable tKill) {
                                     try { android.os.Process.sendSignal(android.os.Process.myPid(), 3); } catch (Throwable ignored) {}
                                 }
