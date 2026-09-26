@@ -70,7 +70,7 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
-      - name: Add GPU-state watchdog + tracer + per-shader compile logs (MC21d)
+      - name: Add watchdog + tracer + per-shader logs + stall thread dump (MC21e)
         run: |
           cd mesa
           python3 - << 'WD'
@@ -85,15 +85,156 @@ jobs:
           wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
           #include <pthread.h>
           #include <unistd.h>
+          #include <fcntl.h>
+          #include <string.h>
+          #include <stdlib.h>
+          #include <sys/syscall.h>
 
-          /* Watchdog: dumps per-subqueue GPU state + last driver entry every 5s. */
+          /* MC21e: raw-syscall output helpers - at the freeze ALL threads appear to
+           * stall at once (logcat capture, the Java watchdog and mesa_logi all die
+           * in the same instant), which points to a spin loop holding a global lock
+           * such as malloc. Everything the watchdog prints therefore goes through
+           * raw write(2), which cannot block on malloc. */
+          static void
+          panvk_wd_raw_write(const char *buf, int n)
+          {
+             syscall(SYS_write, 2, buf, (size_t)n);
+             syscall(SYS_write, 1, buf, (size_t)n);
+          }
+
+          static int
+          panvk_wd_read_file(const char *path, char *buf, size_t bufsz)
+          {
+             long fd = syscall(SYS_openat, AT_FDCWD, path, O_RDONLY, 0);
+             if (fd < 0)
+                return -1;
+             long n = syscall(SYS_read, fd, buf, bufsz - 1);
+             syscall(SYS_close, fd);
+             if (n <= 0)
+                return -1;
+             buf[n] = 0;
+             return (int)n;
+          }
+
+          #define PANVK_WD_MAX_TIDS 384
+          struct panvk_wd_tid {
+             int tid;
+             unsigned long long cpu;
+          };
+          static struct panvk_wd_tid panvk_wd_prev[PANVK_WD_MAX_TIDS];
+
+          /* MC21e: dump every thread of the process: state, CPU consumed in the
+           * last 5s cycle, and the syscall it is blocked in. The stuck render
+           * thread shows up as state=R with cpu ~= 5s/5s (userspace spin) or as
+           * state=D/S with a syscall number. */
+          static void
+          panvk_wd_dump_threads(const char *reason)
+          {
+             char buf[1024];
+             int n = snprintf(buf, sizeof(buf), "kbase: wd2 %s\n", reason);
+             if (n > 0)
+                panvk_wd_raw_write(buf, n);
+
+             struct wd_dirent_min { unsigned long long d_ino; long long d_off; unsigned short d_reclen; unsigned char d_type; char d_name[16]; };
+             long dfd = syscall(SYS_openat, AT_FDCWD, "/proc/self/task", O_RDONLY | O_DIRECTORY, 0);
+             if (dfd < 0)
+                return;
+             char dbuf[2048];
+             for (;;) {
+                long r = syscall(SYS_getdents64, dfd, dbuf, sizeof(dbuf));
+                if (r <= 0)
+                   break;
+                for (long off = 0; off < r; ) {
+                   struct wd_dirent_min *d = (struct wd_dirent_min *)(dbuf + off);
+                   off += d->d_reclen;
+                   int tid = atoi(d->d_name);
+                   if (tid <= 0)
+                      continue;
+                   char path[96], sbuf[1200];
+                   snprintf(path, sizeof(path), "/proc/self/task/%d/stat", tid);
+                   if (panvk_wd_read_file(path, sbuf, sizeof(sbuf)) <= 0)
+                      continue;
+                   char *close_paren = strrchr(sbuf, ')');
+                   if (!close_paren)
+                      continue;
+                   char comm[24];
+                   int ci = 0;
+                   char *cs = strchr(sbuf, '(');
+                   if (cs && cs < close_paren) {
+                      for (char *p = cs + 1; p < close_paren && ci < 22; p++)
+                         comm[ci++] = *p;
+                   }
+                   comm[ci] = 0;
+                   char state = close_paren[2];
+                   /* skip state + fields 4..13 (ppid .. cmajflt), then utime stime */
+                   char *q = close_paren + 3;
+                   while (*q == ' ')
+                      q++;
+                   for (int k = 0; k < 10; k++) {
+                     while (*q && *q != ' ')
+                        q++;
+                     while (*q == ' ')
+                        q++;
+                  }
+                  unsigned long long ut = strtoull(q, &q, 10);
+                  while (*q == ' ')
+                     q++;
+                  unsigned long long st = strtoull(q, &q, 10);
+                  unsigned long long cpu = ut + st;
+
+                  struct panvk_wd_tid *slot = NULL;
+                  for (int i = 0; i < PANVK_WD_MAX_TIDS; i++) {
+                     if (panvk_wd_prev[i].tid == tid) {
+                        slot = &panvk_wd_prev[i];
+                        break;
+                     }
+                     if (!slot && panvk_wd_prev[i].tid == 0)
+                        slot = &panvk_wd_prev[i];
+                  }
+                  unsigned long long d = 0;
+                  if (slot) {
+                     d = (slot->tid == 0) ? 0 : (cpu - slot->cpu);
+                     slot->tid = tid;
+                     slot->cpu = cpu;
+                  }
+
+                  char sysc[48];
+                  sysc[0] = 0;
+                  if (state == 'S' || state == 'D' || state == 't') {
+                     snprintf(path, sizeof(path), "/proc/self/task/%d/syscall", tid);
+                     if (panvk_wd_read_file(path, sbuf, sizeof(sbuf)) > 0) {
+                        int si = 0;
+                        for (char *p = sbuf; *p && *p != '\n' && si < 40; p++)
+                           sysc[si++] = *p;
+                        sysc[si] = 0;
+                     }
+                  }
+
+                  n = snprintf(buf, sizeof(buf),
+                               "kbase: wd2 tid=%d comm=%s state=%c cpu=%llu.%02llus/5s%s%s\n",
+                               tid, comm, state, d / 100, d % 100,
+                               sysc[0] ? " syscall=" : "", sysc);
+                  if (n > 0)
+                     panvk_wd_raw_write(buf, n);
+               }
+            }
+            syscall(SYS_close, dfd);
+          }
+
+          /* Watchdog: dumps per-subqueue GPU state + last driver entry every 5s.
+           * MC21e: output via raw write(2). After 2 cycles (10s) with no submits,
+           * no seqno progress and no driver entry at all, dump every thread. */
           static void *
           panvk_kbase_watchdog_thread(void *data)
           {
              struct panvk_gpu_queue *queue = data;
+             uint64_t last_activity = 0;
+             int stall = 0;
+             char buf[512];
              pthread_setname_np(pthread_self(), "panvk-wd");
              for (;;) {
                 sleep(5);
+                uint64_t activity = panvk_mc21c_ms;
                 for (uint32_t i = 0; i < PANVK_SUBQUEUE_COUNT; i++) {
                    struct panvk_subqueue *subq = &queue->subqueues[i];
                    if (!subq->kbase.user_io)
@@ -104,16 +245,28 @@ jobs:
                    uint64_t extract = *(volatile uint64_t *)(output_page + CS_USER_IO_OUTPUT_CS_EXTRACT);
                    uint32_t active = *(volatile uint32_t *)(output_page + CS_USER_IO_OUTPUT_CS_ACTIVE);
                    volatile struct panvk_cs_sync64 *cell = kbase_subqueue_seqno_cell(queue, i);
-                   mesa_logi("kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x",
-                             i, insert, extract, active, cell->seqno, cell->error);
+                   int n = snprintf(buf, sizeof(buf),
+                                    "kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x\n",
+                                    i, insert, extract, active, cell->seqno, cell->error);
+                   if (n > 0)
+                      panvk_wd_raw_write(buf, n);
+                   activity += insert + extract + cell->seqno + active;
                 }
-                if (panvk_mc21c_op) {
-                   const char *opname =
-                      panvk_mc21c_op == 1 ? "gpu_queue_submit" :
-                      panvk_mc21c_op == 2 ? "subqueue_wait_seqno" :
-                      panvk_mc21c_op == 3 ? "compile_shaders" : "unknown";
-                   int64_t age_ms = (int64_t)(os_time_get_nano() / 1000000ll) - panvk_mc21c_ms;
-                   mesa_logi("kbase: wd last_entry=%s age_ms=%" PRId64, opname, age_ms);
+                const char *opname = panvk_mc21c_op == 1 ? "gpu_queue_submit" :
+                                     panvk_mc21c_op == 2 ? "subqueue_wait_seqno" :
+                                     panvk_mc21c_op == 3 ? "compile_shaders" : "none";
+                int64_t age_ms = (int64_t)(os_time_get_nano() / 1000000ll) - panvk_mc21c_ms;
+                int n = snprintf(buf, sizeof(buf), "kbase: wd last_entry=%s age_ms=%" PRId64 "\n",
+                                 opname, age_ms);
+                if (n > 0)
+                   panvk_wd_raw_write(buf, n);
+                if (activity != last_activity) {
+                   last_activity = activity;
+                   stall = 0;
+                } else {
+                   stall++;
+                   if (stall >= 2)
+                      panvk_wd_dump_threads("STALL: 10s with no GPU submits, no seqno progress, no driver entry");
                 }
              }
              return NULL;
@@ -145,7 +298,7 @@ jobs:
              if (uses_kbase) {
                 pthread_t wd_thread;
                 if (pthread_create(&wd_thread, NULL, panvk_kbase_watchdog_thread, queue) == 0)
-                   mesa_logi("kbase: GPU-state watchdog thread started (5s dumps + last_entry tracer)");
+                   mesa_logi("kbase: GPU-state watchdog thread started (MC21e raw-output + stall thread dump)");
              }
           #endif
 
@@ -169,11 +322,11 @@ jobs:
           per = '      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,\n                                    noperspective_varyings_ptr, pAllocator,\n                                    &shaders_out[i]);'
           assert per in t, "per-shader anchor missing"
           per_new = '''      mesa_logi("kbase: compiling shader %d/%u stage=%u name=%s", i + 1, shader_count,
-                          infos[i].stage, infos[i].nir->info.name[0] ? infos[i].nir->info.name : "?");
-                result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,
-                                              noperspective_varyings_ptr, pAllocator,
-                                              &shaders_out[i]);
-                mesa_logi("kbase: compiled shader %d/%u result=%d", i + 1, shader_count, (int)result);'''
+                infos[i].stage, infos[i].nir->info.name[0] ? infos[i].nir->info.name : "?");
+      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,
+                                    noperspective_varyings_ptr, pAllocator,
+                                    &shaders_out[i]);
+      mesa_logi("kbase: compiled shader %d/%u result=%d", i + 1, shader_count, (int)result);'''
           t = t.replace(per, per_new, 1)
           open('src/panfrost/vulkan/panvk_vX_shader.c', 'w').write(t)
           print("shader.c patched (compile_shaders tracer)")
@@ -181,6 +334,7 @@ jobs:
           echo "--- tracer markers:"
           grep -n "panvk_mc21c_op" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -10
           grep -n "kbase: compiling shader" src/panfrost/vulkan/panvk_vX_shader.c | head -3
+          grep -c "panvk_wd_raw_write" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
 
       - name: Patch anon_file.c for memfd_create (SDK 30+)
         run: |
@@ -431,7 +585,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v7d (+ MC21d per-shader compile logs: identifies the frozen shader)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7e (+ MC21e raw-syscall watchdog: stall detection + full thread dump)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
