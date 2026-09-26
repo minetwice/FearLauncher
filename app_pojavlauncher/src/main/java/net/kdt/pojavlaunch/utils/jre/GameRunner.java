@@ -252,7 +252,7 @@ public class GameRunner {
             // the Render thread is blocked in). Also dump ART launcher
             // thread states (explains the auto-close). Panvk_zink only.
             if (rendererName.equals("panvk_zink")) {
-                final File mc21bLogFile = new File(instance.getGameDirectory(), "latestlog");
+                final File mc21bLogFile = new File(Tools.DIR_GAME_HOME, "latestlog.txt");
                 Thread mc21bWatchdog = new Thread(() -> {
                     final long start = System.currentTimeMillis();
                     long lastOffset = -1;
@@ -303,7 +303,7 @@ public class GameRunner {
                 }, "MC21b-FreezeWatchdog");
                 mc21bWatchdog.setDaemon(true);
                 mc21bWatchdog.start();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v2 (8s log silence -> JVM+ART dump, beats the ~15s Android kill)"); } catch (Throwable ignored) {}
+                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v3 (watches latestlog.txt in DIR_GAME_HOME, 8s silence -> JVM+ART dump)"); } catch (Throwable ignored) {}
             }
         }
 
