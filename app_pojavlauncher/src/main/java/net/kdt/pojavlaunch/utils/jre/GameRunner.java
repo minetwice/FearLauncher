@@ -241,6 +241,58 @@ public class GameRunner {
                     Log.w("GameRunner", "MC20b iris tweak failed", t3);
                 }
             }
+
+            // MC21b: freeze diagnosis - the panvk freeze leaves the GPU
+            // fully idle (kbase watchdog: ins==ext, act=0, no CS error),
+            // so the render thread is stuck in userspace native code.
+            // Watch the game log: when the game itself goes quiet for 25s,
+            // SIGQUIT ourselves so the embedded JVM prints a full Java
+            // thread dump into the log (exact frame the Render thread is
+            // blocked in). Three dumps max, panvk_zink sessions only.
+            if (rendererName.equals("panvk_zink")) {
+                final File mc21bLogFile = new File(instance.getGameDirectory(), "latestlog");
+                Thread mc21bWatchdog = new Thread(() -> {
+                    final long start = System.currentTimeMillis();
+                    long lastOffset = -1;
+                    long lastProgress = System.currentTimeMillis();
+                    int dumps = 0;
+                    while (dumps < 3) {
+                        try { Thread.sleep(5000); } catch (InterruptedException e) { return; }
+                        try {
+                            if (!mc21bLogFile.exists() || System.currentTimeMillis() - start < 45000) continue;
+                            long lastGameOffset = 0;
+                            java.io.RandomAccessFile raf = new java.io.RandomAccessFile(mc21bLogFile, "r");
+                            try {
+                                String line;
+                                while ((line = raf.readLine()) != null) {
+                                    if (line.contains("[MESA-PANVK]") || line.contains("[MC21b]")) continue;
+                                    lastGameOffset = raf.getFilePointer();
+                                }
+                            } finally {
+                                raf.close();
+                            }
+                            if (lastGameOffset != lastOffset) {
+                                lastOffset = lastGameOffset;
+                                lastProgress = System.currentTimeMillis();
+                            } else if (System.currentTimeMillis() - lastProgress > 25000) {
+                                lastProgress = System.currentTimeMillis();
+                                dumps++;
+                                net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] Game log quiet for 25s - requesting JVM thread dump #" + dumps);
+                                try {
+                                    Runtime.getRuntime().exec(new String[]{"kill", "-3", String.valueOf(android.os.Process.myPid())});
+                                } catch (Throwable tKill) {
+                                    try { android.os.Process.sendSignal(android.os.Process.myPid(), 3); } catch (Throwable ignored) {}
+                                }
+                            }
+                        } catch (Throwable tWatch) {
+                            try { net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] watchdog error: " + tWatch); } catch (Throwable ignored) {}
+                        }
+                    }
+                }, "MC21b-FreezeWatchdog");
+                mc21bWatchdog.setDaemon(true);
+                mc21bWatchdog.start();
+                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed (JVM thread dump on 25s log silence)"); } catch (Throwable ignored) {}
+            }
         }
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
