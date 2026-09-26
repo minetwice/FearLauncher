@@ -79,7 +79,7 @@ jobs:
           # MC21c: tracer globals must be defined BEFORE first use (line ~769)
           inc0 = '#include "util/os_time.h"'
           assert inc0 in s, "os_time include anchor missing"
-          s = s.replace(inc0, inc0 + '\n\n/* MC21c: last-driver-entry tracer (watchdog prints it every 5s). */\nvolatile uint64_t panvk_mc21c_op = 0;\nvolatile int64_t panvk_mc21c_ms = 0;\n', 1)
+          s = s.replace(inc0, inc0 + '\n\n/* MC21c: last-driver-entry tracer (watchdog prints it every 5s). */\n__attribute__((weak)) volatile uint64_t panvk_mc21c_op = 0;\n__attribute__((weak)) volatile int64_t panvk_mc21c_ms = 0;\n', 1)
 
           anchor1 = "VkResult\npanvk_per_arch(create_gpu_queue)(struct panvk_device *dev,"
           wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
@@ -419,7 +419,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v7b (+ MC21c tracer: globals defined at top, fixes use-before-decl)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7c (+ MC21c tracer: weak symbols, per-arch link fix)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
