@@ -131,7 +131,7 @@ jobs:
           panvk_wd_dump_threads(const char *reason)
           {
              char buf[1024];
-             int n = snprintf(buf, sizeof(buf), "kbase: wd2 %s\n", reason);
+             int n = snprintf(buf, sizeof(buf), "kbase: wd2 %s\\n", reason);
              if (n > 0)
                 panvk_wd_raw_write(buf, n);
 
@@ -191,9 +191,9 @@ jobs:
                      if (!slot && panvk_wd_prev[i].tid == 0)
                         slot = &panvk_wd_prev[i];
                   }
-                  unsigned long long d = 0;
+                  unsigned long long dc = 0;
                   if (slot) {
-                     d = (slot->tid == 0) ? 0 : (cpu - slot->cpu);
+                     dc = (slot->tid == 0) ? 0 : (cpu - slot->cpu);
                      slot->tid = tid;
                      slot->cpu = cpu;
                   }
@@ -204,15 +204,15 @@ jobs:
                      snprintf(path, sizeof(path), "/proc/self/task/%d/syscall", tid);
                      if (panvk_wd_read_file(path, sbuf, sizeof(sbuf)) > 0) {
                         int si = 0;
-                        for (char *p = sbuf; *p && *p != '\n' && si < 40; p++)
+                        for (char *p = sbuf; *p && *p != 10 && si < 40; p++)
                            sysc[si++] = *p;
                         sysc[si] = 0;
                      }
                   }
 
                   n = snprintf(buf, sizeof(buf),
-                               "kbase: wd2 tid=%d comm=%s state=%c cpu=%llu.%02llus/5s%s%s\n",
-                               tid, comm, state, d / 100, d % 100,
+                               "kbase: wd2 tid=%d comm=%s state=%c cpu=%llu.%02llus/5s%s%s\\n",
+                               tid, comm, state, dc / 100, dc % 100,
                                sysc[0] ? " syscall=" : "", sysc);
                   if (n > 0)
                      panvk_wd_raw_write(buf, n);
@@ -246,7 +246,7 @@ jobs:
                    uint32_t active = *(volatile uint32_t *)(output_page + CS_USER_IO_OUTPUT_CS_ACTIVE);
                    volatile struct panvk_cs_sync64 *cell = kbase_subqueue_seqno_cell(queue, i);
                    int n = snprintf(buf, sizeof(buf),
-                                    "kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x\n",
+                                    "kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x\\n",
                                     i, insert, extract, active, cell->seqno, cell->error);
                    if (n > 0)
                       panvk_wd_raw_write(buf, n);
@@ -256,7 +256,7 @@ jobs:
                                      panvk_mc21c_op == 2 ? "subqueue_wait_seqno" :
                                      panvk_mc21c_op == 3 ? "compile_shaders" : "none";
                 int64_t age_ms = (int64_t)(os_time_get_nano() / 1000000ll) - panvk_mc21c_ms;
-                int n = snprintf(buf, sizeof(buf), "kbase: wd last_entry=%s age_ms=%" PRId64 "\n",
+                int n = snprintf(buf, sizeof(buf), "kbase: wd last_entry=%s age_ms=%" PRId64 "\\n",
                                  opname, age_ms);
                 if (n > 0)
                    panvk_wd_raw_write(buf, n);
