@@ -89,17 +89,28 @@ jobs:
           #include <string.h>
           #include <stdlib.h>
           #include <sys/syscall.h>
+          #include <signal.h>
 
           /* MC21e: raw-syscall output helpers - at the freeze ALL threads appear to
            * stall at once (logcat capture, the Java watchdog and mesa_logi all die
            * in the same instant), which points to a spin loop holding a global lock
            * such as malloc. Everything the watchdog prints therefore goes through
            * raw write(2), which cannot block on malloc. */
+          #define PANVK_WD_DUMP_PATH "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+
+          /* MC21f: everything is ALSO appended to a file - the stdout pipe reader
+           * dies ~1s after the freeze, so anything printed later would be lost. */
           static void
           panvk_wd_raw_write(const char *buf, int n)
           {
              syscall(SYS_write, 2, buf, (size_t)n);
              syscall(SYS_write, 1, buf, (size_t)n);
+             long fd = syscall(SYS_openat, AT_FDCWD, PANVK_WD_DUMP_PATH,
+                              O_WRONLY | O_CREAT | O_APPEND, 0644);
+             if (fd >= 0) {
+                syscall(SYS_write, fd, buf, (size_t)n);
+                syscall(SYS_close, fd);
+             }
           }
 
           static int
@@ -222,8 +233,8 @@ jobs:
           }
 
           /* Watchdog: dumps per-subqueue GPU state + last driver entry every 5s.
-           * MC21e: output via raw write(2). After 2 cycles (10s) with no submits,
-           * no seqno progress and no driver entry at all, dump every thread. */
+           * MC21e: output via raw write(2) + a file that survives the freeze.
+           * MC21f: dump every thread after ONE quiet cycle (5s). */
           static void *
           panvk_kbase_watchdog_thread(void *data)
           {
@@ -232,6 +243,7 @@ jobs:
              int stall = 0;
              char buf[512];
              pthread_setname_np(pthread_self(), "panvk-wd");
+             signal(SIGPIPE, SIG_IGN);
              for (;;) {
                 sleep(5);
                 uint64_t activity = panvk_mc21c_ms;
@@ -265,8 +277,8 @@ jobs:
                    stall = 0;
                 } else {
                    stall++;
-                   if (stall >= 2)
-                      panvk_wd_dump_threads("STALL: 10s with no GPU submits, no seqno progress, no driver entry");
+                   if (stall >= 1)
+                      panvk_wd_dump_threads("STALL: no GPU submits, no seqno progress, no driver entry since last cycle");
                 }
              }
              return NULL;
@@ -298,7 +310,7 @@ jobs:
              if (uses_kbase) {
                 pthread_t wd_thread;
                 if (pthread_create(&wd_thread, NULL, panvk_kbase_watchdog_thread, queue) == 0)
-                   mesa_logi("kbase: GPU-state watchdog thread started (MC21e raw-output + stall thread dump)");
+                   mesa_logi("kbase: GPU-state watchdog thread started (MC21f: file-persisted thread dump)");
              }
           #endif
 
@@ -580,7 +592,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v7e (+ MC21e raw-syscall watchdog: stall detection + full thread dump)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7f (+ MC21f file-persisted watchdog: dump survives process death)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
