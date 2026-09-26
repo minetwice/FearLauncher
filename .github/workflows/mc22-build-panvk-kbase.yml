@@ -21,6 +21,8 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 #      u_gralloc treats gralloc4/5 as unsupported; OSMesa never uses WSI.
 #   5. -static-libstdc++ removes the libc++.so DT_NEEDED.
 #   6. hard verification gate on vk_icd* exports.
+#   7. The stub libui.so is FORCE-copied over jniLibs (a stale real libui.so
+#      from an older build must never survive - it breaks dlopen).
 # NOTE: the NDK bin dir is deliberately NOT added to global PATH - its
 # llvm-config (LLVM 21) breaks the host LLVM-20 build. NDK tools are exported
 # per-step instead.
@@ -293,12 +295,15 @@ jobs:
           cp -v libvulkan_panfrost.so "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so"
           cd "$GITHUB_WORKSPACE"
           ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
-          # Drop stale real shims copies (HIDL-laden / redundant); keep the stub libui.so.
+          # Drop stale real shims copies (HIDL-laden / redundant).
           rm -f app_pojavlauncher/src/main/jniLibs/arm64-v8a/libsync.so \
                 app_pojavlauncher/src/main/jniLibs/arm64-v8a/liblog.so \
                 app_pojavlauncher/src/main/jniLibs/arm64-v8a/libnativewindow.so \
                 app_pojavlauncher/src/main/jniLibs/arm64-v8a/libc++.so
-          ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/ | grep -i "ui.so\|panfrost" || true
+          # FORCE the stub over any stale REAL libui.so left by older builds
+          # (the verify-step copy is skipped when a file already exists).
+          cp -f mesa/shims/libui.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libui.so
+          ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/libui.so
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
           git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/
@@ -306,7 +311,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v2 (stub libui: no HIDL dlopen fail, static libc++)"
+            git commit -m "feat: MC22 - PanVK kbase driver v3 (force stub libui.so over stale real copy)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
