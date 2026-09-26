@@ -144,7 +144,7 @@ public class JREUtils {
                 // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
                 try {
                     java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
-                    javanio.File mgCfg = new java.io.File(mgDir, "config.json");
+                    java.io.File mgCfg = new java.io.File(mgDir, "config.json");
                     if (!mgCfg.exists()) {
                         //noinspection ResultOfMethodCallIgnored
                         mgDir.mkdirs();
@@ -228,11 +228,11 @@ public class JREUtils {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
-		File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
-		if (!modRuntimeDir.exists()) {
-    		modRuntimeDir.mkdirs();
-		}
-		envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
+        File modRuntimeDir = new File(Tools.DIR_CACHE, "app_runtime_mod");
+        if (!modRuntimeDir.exists()) {
+            modRuntimeDir.mkdirs();
+        }
+        envMap.put("MOD_ANDROID_RUNTIME", modRuntimeDir.getAbsolutePath());
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
@@ -328,7 +328,7 @@ public class JREUtils {
 
         if (renderer != null && renderer.startsWith("plugin:")) {
             String appId = renderer.substring("plugin:".length());
-            Logger.appendToLog("[CustomRenderer] Loading plugin:"  + appId);
+            Logger.appendToLog("[CustomRenderer] Loading plugin: " + appId);
             Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
             LibraryPlugin plugin = (context != null) ? LibraryPlugin.discoverPlugin(context, appId) : null;
             if (plugin != null) {
@@ -344,16 +344,16 @@ public class JREUtils {
                                 chosenSo = candidate;
                                 break;
                             }
-                       }
+                        }
                         renderLibrary = chosenSo.getAbsolutePath();
                         useGles = true;
                         glesVersion = 3;
                         if (configureRenderspec(renderLibrary, true, useGles, glesVersion)) {
-                          return renderLibrary;
+                            return renderLibrary;
                         }
                     }
                 }
-           }
+            }
             Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to GL4ES");
             renderer = "opengles2";
         }
@@ -381,11 +381,11 @@ public class JREUtils {
                 if(preloadVk) preloadVulkan();
                 break;
             case "fear_render":
-        Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
-    renderLibrary = "libFearRender.so";
-    useGles = true;
-  glesVersion = 3;
-  break;
+                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
+                renderLibrary = "libFearRender.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
                 useGles = true;
@@ -401,7 +401,7 @@ public class JREUtils {
                 break;
         }
 
-       if (!configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion)) {
+        if (!configureRenderspec(renderLibrary, bypassNamespace, useGles, glesVersion)) {
             Log.e("RENDER_LIBRARY","Failed to load renderer " + renderLibrary );
             return null;
         }
