@@ -70,7 +70,7 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
-      - name: Add GPU-state watchdog thread (freeze diagnosis)
+      - name: Add GPU-state watchdog + last-entry tracer (MC21c freeze diagnosis)
         run: |
           cd mesa
           python3 - << 'WD'
@@ -81,14 +81,13 @@ jobs:
           #include <pthread.h>
           #include <unistd.h>
 
-          /* MC21: freeze diagnosis - background thread dumps per-subqueue GPU state
-           * every 5s. The atlas-stage freeze blocks the render thread inside a kernel
-           * wait with no userspace watchdog firing; this thread survives it and its
-           * output lands in the app log (launcher greps Mesa lines from logcat).
-           * ext<ins + act=1 -> GPU stuck executing a job (fault/hang)
-           * ext==ins act=0 seq stalled -> completion write lost (sync bug)
-           * output stops entirely -> whole process blocked
-           */
+          /* MC21c: last-driver-entry tracer. The freeze leaves the GPU idle with no
+           * userspace watchdog firing; the render thread is stuck somewhere. These
+           * globals record the most recently entered instrumented driver entry. */
+          volatile uint64_t panvk_mc21c_op = 0;
+          volatile int64_t panvk_mc21c_ms = 0;
+
+          /* Watchdog: dumps per-subqueue GPU state + last driver entry every 5s. */
           static void *
           panvk_kbase_watchdog_thread(void *data)
           {
@@ -109,6 +108,14 @@ jobs:
                    mesa_logi("kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x",
                              i, insert, extract, active, cell->seqno, cell->error);
                 }
+                if (panvk_mc21c_op) {
+                   const char *opname =
+                      panvk_mc21c_op == 1 ? "gpu_queue_submit" :
+                      panvk_mc21c_op == 2 ? "subqueue_wait_seqno" :
+                      panvk_mc21c_op == 3 ? "compile_shaders" : "unknown";
+                   int64_t age_ms = (int64_t)(os_time_get_nano() / 1000000ll) - panvk_mc21c_ms;
+                   mesa_logi("kbase: wd last_entry=%s age_ms=%" PRId64, opname, age_ms);
+                }
              }
              return NULL;
           }
@@ -117,6 +124,14 @@ jobs:
           """
           assert anchor1 in s, "anchor1 missing"
           s = s.replace(anchor1, wd_fn + anchor1, 1)
+
+          a = "panvk_per_arch(gpu_queue_submit)(struct vk_queue *vk_queue, struct vk_queue_submit *vk_submit)\n{\n   PAN_TRACE_FUNC(PAN_TRACE_VK_CSF);"
+          assert a in s, "submit anchor missing"
+          s = s.replace(a, a + "\n   panvk_mc21c_op = 1; panvk_mc21c_ms = (int64_t)(os_time_get_nano() / 1000000ll);", 1)
+
+          a = "kbase_subqueue_wait_seqno(struct panvk_gpu_queue *queue, uint32_t subqueue,\n                          uint64_t target_seqno, uint32_t rekick_mask,\n                          bool allow_ring_drain, uint64_t abs_timeout_ns)\n{\n   struct panvk_device *dev = to_panvk_device(queue->vk.base.device);"
+          assert a in s, "wait anchor missing"
+          s = s.replace(a, a + "\n   panvk_mc21c_op = 2; panvk_mc21c_ms = (int64_t)(os_time_get_nano() / 1000000ll);", 1)
 
           anchor2 = """   result = init_queue(queue);
              if (result != VK_SUCCESS)
@@ -131,7 +146,7 @@ jobs:
              if (uses_kbase) {
                 pthread_t wd_thread;
                 if (pthread_create(&wd_thread, NULL, panvk_kbase_watchdog_thread, queue) == 0)
-                   mesa_logi("kbase: GPU-state watchdog thread started (5s dumps)");
+                   mesa_logi("kbase: GPU-state watchdog thread started (5s dumps + last_entry tracer)");
              }
           #endif
 
@@ -139,9 +154,22 @@ jobs:
           assert anchor2 in s, "anchor2 missing"
           s = s.replace(anchor2, repl2, 1)
           open('src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c', 'w').write(s)
-          print("watchdog patch applied")
+          print("gpu_queue.c patched (watchdog + tracer)")
+
+          t = open('src/panfrost/vulkan/panvk_vX_shader.c').read()
+          inc = '#include "vk_pipeline.h"'
+          assert inc in t, "shader include anchor missing"
+          t = t.replace(inc, inc + '\n#include "util/os_time.h"\n\n/* MC21c: entry tracer defined in panvk_vX_gpu_queue.c */\nextern volatile uint64_t panvk_mc21c_op;\nextern volatile int64_t panvk_mc21c_ms;\n', 1)
+
+          cs = 'panvk_compile_shaders(struct vk_device *vk_dev, uint32_t shader_count,\n                      struct vk_shader_compile_info *infos,\n                      const struct vk_graphics_pipeline_state *state,\n                      const struct vk_features *enabled_features,\n                      const VkAllocationCallbacks *pAllocator,\n                      struct vk_shader **shaders_out)\n{\n   panvk_per_arch(compiler_lock)();'
+          assert cs in t, "compile_shaders anchor missing"
+          t = t.replace(cs, cs.replace('{\n   panvk_per_arch(compiler_lock)();', '{\n   panvk_mc21c_op = 3; panvk_mc21c_ms = (int64_t)(os_time_get_nano() / 1000000ll);\n   panvk_per_arch(compiler_lock)();'), 1)
+          open('src/panfrost/vulkan/panvk_vX_shader.c', 'w').write(t)
+          print("shader.c patched (compile_shaders tracer)")
           WD
-          grep -n "panvk_kbase_watchdog_thread" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -3
+          echo "--- tracer markers:"
+          grep -n "panvk_mc21c_op" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -8
+          grep -n "panvk_mc21c_op" src/panfrost/vulkan/panvk_vX_shader.c | head -4
 
       - name: Patch anon_file.c for memfd_create (SDK 30+)
         run: |
@@ -392,7 +420,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v6 (+ MC21 GPU-state watchdog thread for freeze diagnosis)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7 (+ MC21c last-entry tracer: submit/wait/compile_shaders)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
