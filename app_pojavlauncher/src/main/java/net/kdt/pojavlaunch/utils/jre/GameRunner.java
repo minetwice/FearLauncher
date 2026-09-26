@@ -245,10 +245,12 @@ public class GameRunner {
             // MC21b: freeze diagnosis - the panvk freeze leaves the GPU
             // fully idle (kbase watchdog: ins==ext, act=0, no CS error),
             // so the render thread is stuck in userspace native code.
-            // Watch the game log: when the game itself goes quiet for 25s,
-            // SIGQUIT ourselves so the embedded JVM prints a full Java
-            // thread dump into the log (exact frame the Render thread is
-            // blocked in). Three dumps max, panvk_zink sessions only.
+            // Android kills the frozen app ~15s after the freeze, so the
+            // dump must fire FAST: watch the game log, and after 8s of
+            // game-log silence SIGQUIT ourselves so the embedded JVM
+            // prints a full Java thread dump into the log (exact frame
+            // the Render thread is blocked in). Also dump ART launcher
+            // thread states (explains the auto-close). Panvk_zink only.
             if (rendererName.equals("panvk_zink")) {
                 final File mc21bLogFile = new File(instance.getGameDirectory(), "latestlog");
                 Thread mc21bWatchdog = new Thread(() -> {
@@ -256,10 +258,10 @@ public class GameRunner {
                     long lastOffset = -1;
                     long lastProgress = System.currentTimeMillis();
                     int dumps = 0;
-                    while (dumps < 3) {
-                        try { Thread.sleep(5000); } catch (InterruptedException e) { return; }
+                    while (dumps < 5) {
+                        try { Thread.sleep(3000); } catch (InterruptedException e) { return; }
                         try {
-                            if (!mc21bLogFile.exists() || System.currentTimeMillis() - start < 45000) continue;
+                            if (!mc21bLogFile.exists() || System.currentTimeMillis() - start < 20000) continue;
                             long lastGameOffset = 0;
                             java.io.RandomAccessFile raf = new java.io.RandomAccessFile(mc21bLogFile, "r");
                             try {
@@ -274,10 +276,20 @@ public class GameRunner {
                             if (lastGameOffset != lastOffset) {
                                 lastOffset = lastGameOffset;
                                 lastProgress = System.currentTimeMillis();
-                            } else if (System.currentTimeMillis() - lastProgress > 25000) {
+                            } else if (System.currentTimeMillis() - lastProgress > 8000) {
                                 lastProgress = System.currentTimeMillis();
                                 dumps++;
-                                net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] Game log quiet for 25s - requesting JVM thread dump #" + dumps);
+                                net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] Game log quiet for 8s - requesting JVM thread dump #" + dumps);
+                                StringBuilder artDump = new StringBuilder("[MC21b] ART (launcher) thread states:");
+                                for (Map.Entry<Thread, StackTraceElement[]> en : Thread.getAllStackTraces().entrySet()) {
+                                    Thread t = en.getKey();
+                                    artDump.append("\n[MC21b] ").append(t.getName()).append(" (").append(t.getState()).append(")");
+                                    StackTraceElement[] st = en.getValue();
+                                    for (int i = 0; i < Math.min(st.length, 6); i++) {
+                                        artDump.append("\n[MC21b]     at ").append(st[i]);
+                                    }
+                                }
+                                try { net.kdt.pojavlaunch.Logger.appendToLog(artDump.toString()); } catch (Throwable ignored) {}
                                 try {
                                     java.lang.Runtime.getRuntime().exec(new String[]{"kill", "-3", String.valueOf(android.os.Process.myPid())});
                                 } catch (Throwable tKill) {
@@ -291,7 +303,7 @@ public class GameRunner {
                 }, "MC21b-FreezeWatchdog");
                 mc21bWatchdog.setDaemon(true);
                 mc21bWatchdog.start();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed (JVM thread dump on 25s log silence)"); } catch (Throwable ignored) {}
+                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v2 (8s log silence -> JVM+ART dump, beats the ~15s Android kill)"); } catch (Throwable ignored) {}
             }
         }
 
