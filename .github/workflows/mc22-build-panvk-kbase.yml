@@ -11,12 +11,16 @@ name: MC22 Build PanVK-Kbase driver (arm64)
 # validated on Mali-G720 kbase/CSF by wonderkast02/panvk-g720-kbase-csf), so we
 # build from it with -Dpanfrost-kmds=kbase,panthor following the fork's own
 # CI recipe (llvm-20, libclc-20, anon_file memfd patch, tools=panfrost host
-# build, android.toml cross file + shims) plus our app-namespace export fixes:
+# build, android.toml cross file + shims) plus our app-namespace fixes:
 #   1. --default-library=static links the libdrm subproject in.
 #   2. surgical build.ninja patch adds -Wl,-u,vk_icd* to the final .so link.
 #   3. rewritten vulkan-android.sym also exports the vk_icd* entrypoints.
-#   4. needed shims .so (gralloctypes etc.) auto-shipped into jniLibs.
-#   5. hard verification gate on vk_icd* exports.
+#   4. STUB libui.so replaces the real one (real libui needs HIDL libs like
+#      android.hardware.graphics.allocator@2.0.so which the app namespace
+#      cannot load -> dlopen of the whole driver fails). Stubs return -1 so
+#      u_gralloc treats gralloc4/5 as unsupported; OSMesa never uses WSI.
+#   5. -static-libstdc++ removes the libc++.so DT_NEEDED.
+#   6. hard verification gate on vk_icd* exports.
 # NOTE: the NDK bin dir is deliberately NOT added to global PATH - its
 # llvm-config (LLVM 21) breaks the host LLVM-20 build. NDK tools are exported
 # per-step instead.
@@ -138,6 +142,51 @@ jobs:
           aarch64-linux-android30-clang -c hwstub.c -o "$GITHUB_WORKSPACE/hwstub.o"
           ls -la "$GITHUB_WORKSPACE/hwstub.o"
 
+      - name: Create libui stub (real libui.so needs HIDL libs the app namespace cannot load)
+        run: |
+          cat > uistub.S << 'EOF'
+          .text
+          .globl _ZN7android19GraphicBufferMapper12getDataspaceEPK13native_handlePNS_8hardware8graphics6common4V1_29DataspaceE
+          _ZN7android19GraphicBufferMapper12getDataspaceEPK13native_handlePNS_8hardware8graphics6common4V1_29DataspaceE:
+              mov x0, #-1
+              ret
+          .globl _ZN7android19GraphicBufferMapper15getChromaSitingEPK13native_handlePN4aidl7android8hardware8graphics6common12ChromaSitingE
+          _ZN7android19GraphicBufferMapper15getChromaSitingEPK13native_handlePN4aidl7android8hardware8graphics6common12ChromaSitingE:
+              mov x0, #-1
+              ret
+          .globl _ZN7android19GraphicBufferMapper15getPlaneLayoutsEPK13native_handlePNSt3__16vectorIN4aidl7android8hardware8graphics6common11PlaneLayoutENS4_9allocatorISB_EEEE
+          _ZN7android19GraphicBufferMapper15getPlaneLayoutsEPK13native_handlePNSt3__16vectorIN4aidl7android8hardware8graphics6common11PlaneLayoutENS4_9allocatorISB_EEEE:
+              mov x0, #-1
+              ret
+          .globl _ZN7android19GraphicBufferMapper20getPixelFormatFourCCEPK13native_handlePj
+          _ZN7android19GraphicBufferMapper20getPixelFormatFourCCEPK13native_handlePj:
+              mov x0, #-1
+              ret
+          .globl _ZN7android19GraphicBufferMapper22getPixelFormatModifierEPK13native_handlePm
+          _ZN7android19GraphicBufferMapper22getPixelFormatModifierEPK13native_handlePm:
+              mov x0, #-1
+              ret
+          .globl _ZN7android19GraphicBufferMapperC1Ev
+          _ZN7android19GraphicBufferMapperC1Ev:
+              ret
+          .data
+          .balign 8
+          .globl _ZN7android9SingletonINS_19GraphicBufferMapperEE9sInstanceE
+          _ZN7android9SingletonINS_19GraphicBufferMapperEE9sInstanceE:
+              .zero 8
+          .globl _ZN7android9SingletonINS_19GraphicBufferMapperEE5sLockE
+          _ZN7android9SingletonINS_19GraphicBufferMapperEE5sLockE:
+              .zero 64
+          EOF
+          export PATH="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
+          aarch64-linux-android30-clang -shared -nostdlib -o uistub.so uistub.S -Wl,-soname,libui.so
+          ls -la uistub.so
+          # Swap the real shims/libui.so (HIDL deps -> dlopen fails in app namespace)
+          # for our stub BEFORE configure+link. u_gralloc sees gralloc4/5 as
+          # unsupported (stubs return -1) and falls back - OSMesa path never
+          # uses Android WSI anyway.
+          cp -v uistub.so mesa/shims/libui.so
+
       - name: Configure Meson for Android ARM64 (kbase kernel backend!)
         run: |
           cd mesa
@@ -181,7 +230,7 @@ jobs:
           import re
           p = 'build.ninja'
           t = open(p).read()
-          flags = ' ' + os.environ['GITHUB_WORKSPACE'] + '/hwstub.o -Wl,--undefined-version -Wl,-u,vk_icdGetInstanceProcAddr -Wl,-u,vk_icdNegotiateLoaderICDInterfaceVersion -Wl,-u,vk_icdEnumerateInstanceExtensionProperties -Wl,-u,vk_icdEnumerateInstanceLayerProperties'
+          flags = ' ' + os.environ['GITHUB_WORKSPACE'] + '/hwstub.o -static-libstdc++ -Wl,--undefined-version -Wl,-u,vk_icdGetInstanceProcAddr -Wl,-u,vk_icdNegotiateLoaderICDInterfaceVersion -Wl,-u,vk_icdEnumerateInstanceExtensionProperties -Wl,-u,vk_icdEnumerateInstanceLayerProperties'
           idx = None
           for m in re.finditer(r'^build[^\n]*$', t, re.M):
               line = m.group(0)
@@ -227,13 +276,13 @@ jobs:
           llvm-nm -D --undefined-only libvulkan_panfrost.so | awk '{print $NF}' | sed 's/@.*//' | sort -u | head -40 || true
           echo "--- DT_NEEDED entries:"
           llvm-readelf -d libvulkan_panfrost.so | grep NEEDED || true
-          echo "--- ship needed shims libs into jniLibs (fork's Android prebuilts):"
+          echo "--- ship needed shims libs into jniLibs (stub libui + anything else missing):"
           for lib in $(llvm-readelf -d libvulkan_panfrost.so | grep NEEDED | sed 's/.*\[\(.*\)\].*/\1/'); do
             if [ -f "$GITHUB_WORKSPACE/mesa/shims/$lib" ] && [ ! -f "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib" ]; then
               cp -v "$GITHUB_WORKSPACE/mesa/shims/$lib" "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib"
             fi
           done
-          ls -la "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/" | grep -i "gralloc\|cutils\|hidl\|hardware" || true
+          ls -la "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/" | grep -i "ui.so\|panfrost" || true
 
       - name: Commit driver into jniLibs
         run: |
@@ -244,6 +293,12 @@ jobs:
           cp -v libvulkan_panfrost.so "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so"
           cd "$GITHUB_WORKSPACE"
           ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/libvulkan_panfrost.so
+          # Drop stale real shims copies (HIDL-laden / redundant); keep the stub libui.so.
+          rm -f app_pojavlauncher/src/main/jniLibs/arm64-v8a/libsync.so \
+                app_pojavlauncher/src/main/jniLibs/arm64-v8a/liblog.so \
+                app_pojavlauncher/src/main/jniLibs/arm64-v8a/libnativewindow.so \
+                app_pojavlauncher/src/main/jniLibs/arm64-v8a/libc++.so
+          ls -la app_pojavlauncher/src/main/jniLibs/arm64-v8a/ | grep -i "ui.so\|panfrost" || true
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
           git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/
@@ -251,7 +306,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver (funnymdzz 26.3-devel + kbase/CSF, Android ke liye asli open-source Mali Vulkan)"
+            git commit -m "feat: MC22 - PanVK kbase driver v2 (stub libui: no HIDL dlopen fail, static libc++)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
