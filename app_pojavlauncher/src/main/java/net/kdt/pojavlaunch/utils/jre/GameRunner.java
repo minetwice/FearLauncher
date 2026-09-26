@@ -235,7 +235,7 @@ public class GameRunner {
                             props = (props.isEmpty() ? "" : props + "\n") + "enableShaders=false\n";
                         }
                         Tools.write(irisProps, props);
-                        Logger.appendToLog("[PanVK] MC20b: Iris shaderpack disabled for PanVK (isolation test - freeze at Iris shader compile)");
+                        net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC20b: Iris shaderpack disabled for PanVK (isolation test - freeze at Iris shader compile)");
                     }
                 } catch (Throwable t3) {
                     Log.w("GameRunner", "MC20b iris tweak failed", t3);
