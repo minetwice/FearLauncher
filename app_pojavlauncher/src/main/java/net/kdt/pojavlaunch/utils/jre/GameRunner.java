@@ -251,6 +251,8 @@ public class GameRunner {
             // prints a full Java thread dump into the log (exact frame
             // the Render thread is blocked in). Also dump ART launcher
             // thread states (explains the auto-close). Panvk_zink only.
+            // MC21c: dump budget raised to 200 - MC startup has legit 10s+
+            // log gaps that must not exhaust the budget before the freeze.
             if (rendererName.equals("panvk_zink")) {
                 final File mc21bLogFile = new File(Tools.DIR_GAME_HOME, "latestlog.txt");
                 Thread mc21bWatchdog = new Thread(() -> {
@@ -258,7 +260,7 @@ public class GameRunner {
                     long lastOffset = -1;
                     long lastProgress = System.currentTimeMillis();
                     int dumps = 0;
-                    while (dumps < 5) {
+                    while (dumps < 200) {
                         try { Thread.sleep(3000); } catch (InterruptedException e) { return; }
                         try {
                             if (!mc21bLogFile.exists() || System.currentTimeMillis() - start < 20000) continue;
@@ -303,7 +305,7 @@ public class GameRunner {
                 }, "MC21b-FreezeWatchdog");
                 mc21bWatchdog.setDaemon(true);
                 mc21bWatchdog.start();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v3 (watches latestlog.txt in DIR_GAME_HOME, 8s silence -> JVM+ART dump)"); } catch (Throwable ignored) {}
+                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v4 (200 dumps budget, 8s silence -> JVM+ART dump)"); } catch (Throwable ignored) {}
             }
         }
 
