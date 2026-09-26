@@ -76,16 +76,15 @@ jobs:
           python3 - << 'WD'
           s = open('src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c').read()
 
+          # MC21c: tracer globals must be defined BEFORE first use (line ~769)
+          inc0 = '#include "util/os_time.h"'
+          assert inc0 in s, "os_time include anchor missing"
+          s = s.replace(inc0, inc0 + '\n\n/* MC21c: last-driver-entry tracer (watchdog prints it every 5s). */\nvolatile uint64_t panvk_mc21c_op = 0;\nvolatile int64_t panvk_mc21c_ms = 0;\n', 1)
+
           anchor1 = "VkResult\npanvk_per_arch(create_gpu_queue)(struct panvk_device *dev,"
           wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
           #include <pthread.h>
           #include <unistd.h>
-
-          /* MC21c: last-driver-entry tracer. The freeze leaves the GPU idle with no
-           * userspace watchdog firing; the render thread is stuck somewhere. These
-           * globals record the most recently entered instrumented driver entry. */
-          volatile uint64_t panvk_mc21c_op = 0;
-          volatile int64_t panvk_mc21c_ms = 0;
 
           /* Watchdog: dumps per-subqueue GPU state + last driver entry every 5s. */
           static void *
@@ -168,7 +167,7 @@ jobs:
           print("shader.c patched (compile_shaders tracer)")
           WD
           echo "--- tracer markers:"
-          grep -n "panvk_mc21c_op" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -8
+          grep -n "panvk_mc21c_op" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -10
           grep -n "panvk_mc21c_op" src/panfrost/vulkan/panvk_vX_shader.c | head -4
 
       - name: Patch anon_file.c for memfd_create (SDK 30+)
@@ -420,7 +419,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v7 (+ MC21c last-entry tracer: submit/wait/compile_shaders)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7b (+ MC21c tracer: globals defined at top, fixes use-before-decl)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
