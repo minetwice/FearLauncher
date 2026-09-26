@@ -321,12 +321,7 @@ jobs:
           # without a matching "compiled" line = the frozen shader.
           per = '      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,\n                                    noperspective_varyings_ptr, pAllocator,\n                                    &shaders_out[i]);'
           assert per in t, "per-shader anchor missing"
-          per_new = '''      mesa_logi("kbase: compiling shader %d/%u stage=%u name=%s", i + 1, shader_count,
-                infos[i].stage, infos[i].nir->info.name[0] ? infos[i].nir->info.name : "?");
-      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,
-                                    noperspective_varyings_ptr, pAllocator,
-                                    &shaders_out[i]);
-      mesa_logi("kbase: compiled shader %d/%u result=%d", i + 1, shader_count, (int)result);'''
+          per_new = '      mesa_logi("kbase: compiling shader %d/%u stage=%u name=%s", i + 1, shader_count,\n                infos[i].stage, infos[i].nir->info.name[0] ? infos[i].nir->info.name : "?";\n      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,\n                                    noperspective_varyings_ptr, pAllocator,\n                                    &shaders_out[i]);\n      mesa_logi("kbase: compiled shader %d/%u result=%d", i + 1, shader_count, (int)result);'
           t = t.replace(per, per_new, 1)
           open('src/panfrost/vulkan/panvk_vX_shader.c', 'w').write(t)
           print("shader.c patched (compile_shaders tracer)")
