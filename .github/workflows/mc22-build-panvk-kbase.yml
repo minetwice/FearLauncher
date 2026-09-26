@@ -70,6 +70,79 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
+      - name: Add GPU-state watchdog thread (freeze diagnosis)
+        run: |
+          cd mesa
+          python3 - << 'WD'
+          s = open('src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c').read()
+
+          anchor1 = "VkResult\npanvk_per_arch(create_gpu_queue)(struct panvk_device *dev,"
+          wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
+          #include <pthread.h>
+          #include <unistd.h>
+
+          /* MC21: freeze diagnosis - background thread dumps per-subqueue GPU state
+           * every 5s. The atlas-stage freeze blocks the render thread inside a kernel
+           * wait with no userspace watchdog firing; this thread survives it and its
+           * output lands in the app log (launcher greps Mesa lines from logcat).
+           * ext<ins + act=1 -> GPU stuck executing a job (fault/hang)
+           * ext==ins act=0 seq stalled -> completion write lost (sync bug)
+           * output stops entirely -> whole process blocked
+           */
+          static void *
+          panvk_kbase_watchdog_thread(void *data)
+          {
+             struct panvk_gpu_queue *queue = data;
+             pthread_setname_np(pthread_self(), "panvk-wd");
+             for (;;) {
+                sleep(5);
+                for (uint32_t i = 0; i < PANVK_SUBQUEUE_COUNT; i++) {
+                   struct panvk_subqueue *subq = &queue->subqueues[i];
+                   if (!subq->kbase.user_io)
+                      continue;
+                   const uint8_t *input_page = (const uint8_t *)subq->kbase.user_io + 4096;
+                   const uint8_t *output_page = (const uint8_t *)subq->kbase.user_io + 8192;
+                   uint64_t insert = *(volatile uint64_t *)(input_page + CS_USER_IO_INPUT_CS_INSERT);
+                   uint64_t extract = *(volatile uint64_t *)(output_page + CS_USER_IO_OUTPUT_CS_EXTRACT);
+                   uint32_t active = *(volatile uint32_t *)(output_page + CS_USER_IO_OUTPUT_CS_ACTIVE);
+                   volatile struct panvk_cs_sync64 *cell = kbase_subqueue_seqno_cell(queue, i);
+                   mesa_logi("kbase: wd subq=%u ins=%" PRIu64 " ext=%" PRIu64 " act=%u seq=%" PRIu64 " err=0x%x",
+                             i, insert, extract, active, cell->seqno, cell->error);
+                }
+             }
+             return NULL;
+          }
+          #endif
+
+          """
+          assert anchor1 in s, "anchor1 missing"
+          s = s.replace(anchor1, wd_fn + anchor1, 1)
+
+          anchor2 = """   result = init_queue(queue);
+             if (result != VK_SUCCESS)
+                goto err_cleanup_created;
+
+             queue->vk.driver_submit = panvk_per_arch(gpu_queue_submit);"""
+          repl2 = """   result = init_queue(queue);
+             if (result != VK_SUCCESS)
+                goto err_cleanup_created;
+
+          #ifdef HAVE_PAN_KMOD_KBASE
+             if (uses_kbase) {
+                pthread_t wd_thread;
+                if (pthread_create(&wd_thread, NULL, panvk_kbase_watchdog_thread, queue) == 0)
+                   mesa_logi("kbase: GPU-state watchdog thread started (5s dumps)");
+             }
+          #endif
+
+             queue->vk.driver_submit = panvk_per_arch(gpu_queue_submit);"""
+          assert anchor2 in s, "anchor2 missing"
+          s = s.replace(anchor2, repl2, 1)
+          open('src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c', 'w').write(s)
+          print("watchdog patch applied")
+          WD
+          grep -n "panvk_kbase_watchdog_thread" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -3
+
       - name: Patch anon_file.c for memfd_create (SDK 30+)
         run: |
           cd mesa
@@ -319,7 +392,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v5 (wonderkast g720-development: sync rework + regcount)"
+            git commit -m "feat: MC22 - PanVK kbase driver v6 (+ MC21 GPU-state watchdog thread for freeze diagnosis)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
