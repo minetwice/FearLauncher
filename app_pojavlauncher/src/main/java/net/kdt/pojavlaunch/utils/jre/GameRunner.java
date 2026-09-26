@@ -218,6 +218,29 @@ public class GameRunner {
             } catch (Throwable t2) {
                 Log.w("GameRunner", "MC19 mipmap tweak failed", t2);
             }
+            // MC20b: PanVK isolation test - freeze happens exactly at Iris
+            // post-reload shader compilation. Disable the shaderpack for panvk
+            // launches so the title screen renders through the internal
+            // pipeline. Only affects panvk_zink sessions.
+            if (rendererName.equals("panvk_zink")) {
+                try {
+                    File configDir = new File(instance.getGameDirectory(), "config");
+                    if (FileUtils.ensureDirectorySilently(configDir)) {
+                        File irisProps = new File(configDir, "iris.properties");
+                        String props = "";
+                        if (irisProps.exists()) { props = Tools.read(irisProps.getAbsolutePath()); }
+                        if (props.contains("enableShaders=true")) {
+                            props = props.replace("enableShaders=true", "enableShaders=false");
+                        } else if (!props.contains("enableShaders=")) {
+                            props = (props.isEmpty() ? "" : props + "\n") + "enableShaders=false\n";
+                        }
+                        Tools.write(irisProps, props);
+                        Logger.appendToLog("[PanVK] MC20b: Iris shaderpack disabled for PanVK (isolation test - freeze at Iris shader compile)");
+                    }
+                } catch (Throwable t3) {
+                    Log.w("GameRunner", "MC20b iris tweak failed", t3);
+                }
+            }
         }
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
