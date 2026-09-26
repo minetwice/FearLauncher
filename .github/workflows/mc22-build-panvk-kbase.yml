@@ -70,7 +70,7 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
-      - name: Add GPU-state watchdog + last-entry tracer (MC21c freeze diagnosis)
+      - name: Add GPU-state watchdog + tracer + per-shader compile logs (MC21d)
         run: |
           cd mesa
           python3 - << 'WD'
@@ -163,12 +163,24 @@ jobs:
           cs = 'panvk_compile_shaders(struct vk_device *vk_dev, uint32_t shader_count,\n                      struct vk_shader_compile_info *infos,\n                      const struct vk_graphics_pipeline_state *state,\n                      const struct vk_features *enabled_features,\n                      const VkAllocationCallbacks *pAllocator,\n                      struct vk_shader **shaders_out)\n{\n   panvk_per_arch(compiler_lock)();'
           assert cs in t, "compile_shaders anchor missing"
           t = t.replace(cs, cs.replace('{\n   panvk_per_arch(compiler_lock)();', '{\n   panvk_mc21c_op = 3; panvk_mc21c_ms = (int64_t)(os_time_get_nano() / 1000000ll);\n   panvk_per_arch(compiler_lock)();'), 1)
+
+          # MC21d: per-shader entry/exit logs - the last "compiling" line
+          # without a matching "compiled" line = the frozen shader.
+          per = '      result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,\n                                    noperspective_varyings_ptr, pAllocator,\n                                    &shaders_out[i]);'
+          assert per in t, "per-shader anchor missing"
+          per_new = '''      mesa_logi("kbase: compiling shader %d/%u stage=%u name=%s", i + 1, shader_count,
+                          infos[i].stage, infos[i].nir->info.name[0] ? infos[i].nir->info.name : "?");
+                result = panvk_compile_shader(dev, &infos[i], state, vs_varying_layout,
+                                              noperspective_varyings_ptr, pAllocator,
+                                              &shaders_out[i]);
+                mesa_logi("kbase: compiled shader %d/%u result=%d", i + 1, shader_count, (int)result);'''
+          t = t.replace(per, per_new, 1)
           open('src/panfrost/vulkan/panvk_vX_shader.c', 'w').write(t)
           print("shader.c patched (compile_shaders tracer)")
           WD
           echo "--- tracer markers:"
           grep -n "panvk_mc21c_op" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c | head -10
-          grep -n "panvk_mc21c_op" src/panfrost/vulkan/panvk_vX_shader.c | head -4
+          grep -n "kbase: compiling shader" src/panfrost/vulkan/panvk_vX_shader.c | head -3
 
       - name: Patch anon_file.c for memfd_create (SDK 30+)
         run: |
@@ -419,7 +431,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC22 - PanVK kbase driver v7c (+ MC21c tracer: weak symbols, per-arch link fix)"
+            git commit -m "feat: MC22 - PanVK kbase driver v7d (+ MC21d per-shader compile logs: identifies the frozen shader)"
             git push
             echo "MC22: PanVK kbase driver committed"
           fi
