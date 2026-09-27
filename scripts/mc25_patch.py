@@ -7,16 +7,20 @@ whelp = """#include <stdarg.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/syscall.h>
+#include <time.h>
 #include <poll.h>
 
 /* MC25: never block on the stdout pipe - if the Java log reader ever
  * stalls, a full pipe would hang every printing thread (part of the
- * original freeze). Check writability first, drop if full. */
+ * original freeze). Check writability first, drop if full.
+ * NOTE: aarch64 has no poll() syscall - ppoll() with a zero timeout
+ * is the portable form. */
 static int
 panvk_mc25_fd_ok(int fd)
 {
    struct pollfd p = { fd, POLLOUT, 0 };
-   return syscall(SYS_poll, &p, 1, 0) == 1 && (p.revents & POLLOUT);
+   struct timespec z = { 0, 0 };
+   return syscall(SYS_ppoll, &p, 1, &z, NULL, 8) == 1 && (p.revents & POLLOUT);
 }
 
 /* MC23: raw-syscall file logger - survives the freeze (the stdout pipe
