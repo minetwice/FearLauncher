@@ -1,18 +1,21 @@
-name: MC26 Build PanVK-Kbase driver (arm64)
+name: MC27 Build PanVK-Kbase driver (arm64)
 
-# MC26 (driver v11) - black-box diagnostics. v10's log showed the
-# process going totally silent at the freeze: no STALL dump, no further
-# watchdog cycles - either the process DIED (lmkd SIGKILL / crash) or
-# the watchdog's own per-line openat()+write() on the FUSE-backed dump
-# file stalled. Driver v11 therefore:
-#   - dump files opened ONCE at library load, O_NONBLOCK (an openat
-#     stalls as hard as a write on a wedged storage path)
-#   - first stall forks a RECORDER child that survives the parent's
-#     death and dumps the parent's threads (state/syscall/wchan) every
-#     2s for 30s - definitively answers killed-vs-wedged + shows where
-#     the render thread is stuck
+# MC27 (driver v12) - wedge-proof diagnostics. v11 proved the process
+# STAYS ALIVE at the freeze (RECORDER: 7 rounds parent=alive) but both
+# the parent watchdog and the forked recorder stopped writing at the
+# same instant: a system-wide wedge where even O_NONBLOCK regular-file
+# writes block (f2fs ignores the flag; balance_dirty_pages throttles
+# under the atlas-phase memory pressure - MemAvailable was seen
+# dropping 1092->222 MB in ~15s right into the freeze).
+# Driver v12 therefore:
+#   - every line timestamped (IST) so dumps align with the game log
+#   - watchdog writes ONLY to guarded pipes + a 256KB in-memory ring;
+#     a dedicated writer thread does all file I/O (if it blocks, the
+#     ring drops the OLDEST data and the watchdog keeps running)
+#   - RECORDER child: 60s, pipes+ring only while the parent is alive,
+#     flushes its buffered ring to the files AFTER the parent dies
 # All previous rounds kept: MC23 wait polling, MC24 dump paths, MC25
-# pipe guards + meminfo + wchan.
+# pipe guards + meminfo + wchan, MC26 recorder + pre-opened fds.
 on:
   push:
     branches: [ Mega-checkpoint ]
@@ -54,15 +57,14 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
-      - name: Apply MC21f watchdog + MC23 polling + MC26 recorder (driver v11)
+      - name: Apply MC21f watchdog + MC23 polling + MC27 wedge-proof pipeline (driver v12)
         run: |
           cd mesa
-          python3 ../scripts/mc26_patch.py
-          echo "--- MC23/MC24/MC25/MC26 markers (counts):"
+          python3 ../scripts/mc27_patch.py
+          echo "--- MC23/MC24/MC25/MC26/MC27 markers (counts):"
           grep -c "panvk_mc23_flog" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "usleep(1000)" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "PANVK_WD_DUMP_EXT" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
-          grep -c "wd dump fds" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "sleep(3)" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "panvk_mc25_fd_ok" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "MemAvailable" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
@@ -70,7 +72,10 @@ jobs:
           grep -c "RECORDER" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "fork()" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "O_NONBLOCK" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
-          grep -c "dump_threads_from" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "panvk_mc27_qwriter" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "panvk_mc27_stamp" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "panvk_mc27_qflush" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "round < 30" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           echo "--- cqs64/wait_event call count (must be 0):"
           grep -c "kbase_kmod_csf_wait_cqs64\|kbase_kmod_csf_wait_event" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c || true
           echo "--- tracer markers:"
@@ -326,7 +331,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC26 - PanVK kbase driver v11 (black-box RECORDER child + pre-opened non-blocking dump fds)"
+            git commit -m "feat: MC27 - PanVK kbase driver v12 (wedge-proof output: timestamps, ring+writer thread, 60s recorder)"
             git push
-            echo "MC26: new libvulkan_panfrost.so committed"
+            echo "MC27: new libvulkan_panfrost.so committed"
           fi
