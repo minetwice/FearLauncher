@@ -1,20 +1,18 @@
-name: MC23 Build PanVK-Kbase driver (arm64)
+name: MC24 Build PanVK-Kbase driver (arm64)
 
-# MC23 (driver v8): the atlas-phase freeze lives inside
-# kbase_subqueue_wait_seqno. Its loop blocks in TWO kernel ioctls
-# (kbase_kmod_csf_wait_cqs64 / kbase_kmod_csf_wait_event); if either
-# ignores its 20ms timeout the loop's own 10s watchdog can never fire,
-# which matches the observed freeze exactly (GPU idle, all work done,
-# render thread never returns, all process output dead).
-#   - Both kernel waits replaced with 1ms userspace usleep polling of the
-#     mapped seqno cell (the MC21f watchdog proved userspace reads see
-#     seqno progress fine).
-#   - re-kick ioctl wrapped with KICK-ENTER/KITCH-EXIT file markers;
-#     WAIT-SLOW / POLL / TIMEOUT / WAIT-DONE state appended to the
-#     on-disk dump (panvk_wd_dump.txt) so the next freeze is diagnosable
-#     even with stdout dead.
-# Everything else identical to MC22 (see that file for the full history:
-# app-namespace fixes, ICD exports, libui stub, MC21f file watchdog).
+# MC24 (driver v9): the freeze persists with MC23's userspace polling
+# (latestlog-44: WAIT-SLOW/WAIT-DONE complete fine, then the render thread
+# freezes somewhere UNTRACKED and all output dies ~1s later; the dump file
+# went missing because /data/data needs root).
+#   - Dump files now written to BOTH the private app dir AND the SHARED
+#     external dir (next to latestlog.txt): /storage/emulated/0/Android/
+#     data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt
+#   - Watchdog cycles 5s -> 3s so the STALL thread dump lands BEFORE the
+#     ANR kill (~5s).
+#   - Startup self-test reports in latestlog whether both dump files are
+#     creatable (negative fd = -errno).
+# All MC23 changes kept: wait_seqno kernel CQS waits replaced by 1ms
+# userspace polling + freeze markers. MC21f: file-persisted watchdog.
 on:
   push:
     branches: [ Mega-checkpoint ]
@@ -56,13 +54,16 @@ jobs:
           grep -n "stream_features & 0xff" mesa/src/panfrost/lib/kmod/kbase_kmod.c | head -2
           grep -c "kbase_sync_export" mesa/src/panfrost/lib/kmod/kbase_kmod.c
 
-      - name: Apply MC21f watchdog + MC23 wait-polling (driver v8)
+      - name: Apply MC21f watchdog + MC23 polling + MC24 dump fixes (driver v9)
         run: |
           cd mesa
-          python3 ../scripts/mc23_patch.py
-          echo "--- MC23 markers (flog / usleep counts):"
+          python3 ../scripts/mc24_patch.py
+          echo "--- MC23/MC24 markers (flog / usleep / ext / self-test counts):"
           grep -c "panvk_mc23_flog" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           grep -c "usleep(1000)" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "PANVK_WD_DUMP_EXT" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "wd dump self-test" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
+          grep -c "sleep(3)" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c
           echo "--- cqs64/wait_event call count (must be 0):"
           grep -c "kbase_kmod_csf_wait_cqs64\|kbase_kmod_csf_wait_event" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c || true
           echo "--- tracer markers:"
@@ -318,7 +319,7 @@ jobs:
             echo "Driver unchanged, nothing to commit"
           else
             git pull --rebase || true
-            git commit -m "feat: MC23 - PanVK kbase driver v8 (wait_seqno userspace polling: kernel CQS waits removed + freeze-proof file markers)"
+            git commit -m "feat: MC24 - PanVK kbase driver v9 (dump file to shared storage + 3s watchdog + self-test; MC23 polling kept)"
             git push
-            echo "MC23: new libvulkan_panfrost.so committed"
+            echo "MC24: new libvulkan_panfrost.so committed"
           fi
