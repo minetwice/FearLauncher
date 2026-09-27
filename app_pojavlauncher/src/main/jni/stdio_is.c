@@ -23,12 +23,19 @@
 // the kernel for a very long time (D state). That wedges the whole game:
 // the pipe reader blocks -> the stdout pipe (64KB) fills -> the render
 // thread's next printf blocks -> GPU goes idle, screen freezes, ANR.
-// This is exactly the observed freeze (panvk_wd_dump Thread-2 state=D).
 //
 // Fix: game threads only ever append to a bounded in-memory ring (mutex +
 // two memcpy, no I/O). ONE writer thread drains the ring to the file and
 // calls fdatasync at most once per 3 seconds. If storage stalls, log
 // lines are DROPPED (counted) instead of the game hanging.
+//
+// MC27: the pipe reader must NEVER block - it is the only thing keeping
+// the stdout pipe drained. The old code called back into the JVM
+// (onEventLogged) for every line; under the atlas-phase memory pressure
+// the JVM stalls at GC/safepoints and this thread would block inside
+// CallVoidMethod, filling the 64KB pipe and hanging EVERY printing thread
+// (game + our driver watchdog). Log lines are queued to the ring only;
+// the in-app log view loses stdout lines, latestlog.txt keeps everything.
 
 static volatile jobject exitTrap_ctx;
 static volatile jclass exitTrap_exitClass;
@@ -144,16 +151,9 @@ static void *logger_thread(void *param) {
     ssize_t rsize;
     char buf[2050];
     while ((rsize = read(pfd[0], buf, sizeof(buf) - 1)) > 0) {
-        bool shouldRecordString = recordBuffer(buf, rsize); //queued for latestlog
-        if (buf[rsize - 1] == '\n') {
-            rsize = rsize - 1; //truncate
-        }
-        buf[rsize] = 0x00;
-        if (shouldRecordString && logListener != NULL) {
-            writeString = (*env)->NewStringUTF(env, buf); //send to app without newline
-            (*env)->CallVoidMethod(env, logListener, logger_onEventLogged, writeString);
-            (*env)->DeleteLocalRef(env, writeString);
-        }
+        /* MC27: queue only - see the comment block at the top. */
+        (void) writeString;
+        recordBuffer(buf, rsize); //queued for latestlog
     }
     (*dvm)->DetachCurrentThread(dvm);
     return NULL;
