@@ -96,6 +96,22 @@ else:
     print("FEARWIRE OK: fear_vulkan env case inserted")
     s = open(P).read()
 
+# ---- FV1: ZINK_DESCRIPTORS=lazy on Mali (world-texture glitch fix) ----
+if '"ZINK_DESCRIPTORS"' not in s:
+    anchor = '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");'
+    n = s.count(anchor)
+    if n != 1:
+        fail("fear_vulkan Mali-branch anchor count = %d" % n)
+    ins = ('                    // FV1: world-texture glitch fix - lazy descriptor updates on Mali/system Vulkan\n'
+           '                    // (zink template-descriptor reuse glitched world textures on Mali proprietary driver)\n'
+           '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n')
+    s = s.replace(anchor, ins + anchor, 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: FV1 ZINK_DESCRIPTORS=lazy wired into fear_vulkan Mali branch")
+    s = open(P).read()
+else:
+    print("FEARWIRE SKIP: FV1 ZINK_DESCRIPTORS already wired")
+
 # ---- loadGraphicsLibrary cases ----
 if 'renderLibrary = "libFearRender.so"' not in s:
     lib_case = (
