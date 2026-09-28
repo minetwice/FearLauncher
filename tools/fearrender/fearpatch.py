@@ -72,6 +72,11 @@ Patches applied to the MobileGlues source tree before building:
     Complementary colortex1, RGBA8_SNORM, R8/RG8/RGBA16_SNORM) always rewrite
     to a renderable target. Makes shader packs run on every GPU.
 
+12. FV8 config/settings.cpp (FEARRENDER-FV8) - FEAR_FSR env override: the
+    launcher profile's custom env switches FSR1 per launch (0 off, 1..4 =
+    UltraQuality..Performance), winning over config.json, so fps-vs-sharpness
+    needs no rebuild or MG file editing.
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -1144,5 +1149,34 @@ static GLenum fear_hdr_target() {
 
     open(p, 'w').write(s)
     print("FEARPATCH OK: texture.cpp FV7 universal renderability added (probe + 14 format rewrites)")
+
+# ------------------------------------------ FV8: FEAR_FSR runtime override
+# Per-launch FSR quality switch: the launcher profile's custom env can set
+# FEAR_FSR (0=off/full res, 1=UltraQuality, 2=Quality, 3=Balanced,
+# 4=Performance/half res) and it wins over the config.json value, so the user
+# can trade sharpness for fps (or the reverse) without rebuilding anything.
+p = os.path.join(root, 'config/settings.cpp')
+s = open(p).read()
+if 'FEARRENDER-FV8' in s:
+    print("FEARPATCH SKIP: settings.cpp FEAR_FSR override already present")
+else:
+    a = '    global_settings.fsr1_setting = fsr1Setting;'
+    n = s.count(a)
+    if n != 1:
+        fail("settings.cpp fsr1 apply anchor count = %d" % n)
+    new = a + '''
+    /* FEARRENDER-FV8: per-launch FSR override via custom env in the launcher
+     * profile - FEAR_FSR=0 off (full native res), 1 UltraQuality, 2 Quality,
+     * 3 Balanced, 4 Performance (half-res render, max fps). The env wins over
+     * the config.json value so the user can switch without editing MG files. */
+    const int fear_fsr_env = ReturnEnvVarIntDef("FEAR_FSR", -1);
+    if (fear_fsr_env >= 0 && fear_fsr_env < static_cast<int>(FSR1_Quality_Preset::MaxValue)) {
+        global_settings.fsr1_setting = static_cast<FSR1_Quality_Preset>(fear_fsr_env);
+        LOG_W_FORCE("FEAR-DOCTOR: FEAR_FSR=%d env override applied (config value skipped)", fear_fsr_env);
+    }
+'''
+    s = s.replace(a, new, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: settings.cpp FEAR_FSR env override added")
 
 print("FEARPATCH DONE")

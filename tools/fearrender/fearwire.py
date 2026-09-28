@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FEARWIRE v8: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
+"""FEARWIRE v9: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
 
 Renderer lineup (user decision): Turnip Zink, FearRender, LTW (hidden until
 libltw.so is bundled), Holy GL4ES. FearVulkan was removed after the zink-on-
@@ -9,6 +9,12 @@ Safe to re-run: every block skips when already applied.
 v8: config.json is built with org.json so missing keys (fsr1Setting,
 maxGlslCacheSize) merge into an existing file; GameRunner gets the options.txt
 FPS unlock (maxFps=260 + vsync off) for fear_render.
+
+v9 (FEAR-TURBO): GameRunner additionally caps biomeBlendRadius at 1 and
+simulationDistance at 6 for fear_render (per-chunk entity ticking is the
+dominant stutter source on heavy modpacks - the multi-second worst-frame
+spikes in FEAR-PERF logs), with a migration path for the committed v8 block.
+Per-launch FSR switching lives in the renderer (FEAR_FSR env, fearpatch FV8).
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
@@ -109,7 +115,7 @@ else:
 if 'renderLibrary = "libFearRender.so"' not in s:
     lib_case = (
         '            case "fear_render":\n'
-        '                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");\n'
+        '                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES):");\n'
         '                renderLibrary = "libFearRender.so";\n'
         '                useGles = true;\n'
         '                glesVersion = 3;\n'
@@ -185,14 +191,15 @@ else:
 # For fear_render, bump to Unlimited (260) + vsync off right before launch.
 # Never fights a deliberate low setting (30) - only the defaults (60/120/absent).
 s3 = open(P3).read()
-if 'FEAR-FPSUNLOCK' in s3:
-    print("FEARWIRE SKIP: GameRunner fps unlock already wired")
+if 'FEAR-TURBO' in s3:
+    print("FEARWIRE SKIP: GameRunner fps unlock + FEAR-TURBO already wired")
 else:
-    old_import = 'import net.kdt.pojavlaunch.multirt.MultiRTUtils;'
-    n = s3.count(old_import)
-    if n != 1:
-        fail("GameRunner MultiRTUtils import anchor count = %d" % n)
-    s3 = s3.replace(old_import, old_import + '\nimport net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK', 1)
+    if 'import net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK' not in s3:
+        old_import = 'import net.kdt.pojavlaunch.multirt.MultiRTUtils;'
+        n = s3.count(old_import)
+        if n != 1:
+            fail("GameRunner MultiRTUtils import anchor count = %d" % n)
+        s3 = s3.replace(old_import, old_import + '\nimport net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK', 1)
 
     anchor_gr = '''        File gamedir = instance.getGameDirectory();
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
@@ -200,7 +207,43 @@ else:
     n = s3.count(anchor_gr)
     if n != 1:
         fail("GameRunner gamedir anchor count = %d" % n)
-    fps_block = anchor_gr + '''
+    turbo_body = '''
+        // [FearRender] FEAR-FPSUNLOCK + FEAR-TURBO: vanilla defaults cap the game
+        // at maxFps=60 with vsync on - bump to Unlimited (260) + vsync off (the
+        // renderer also forces EGL swap interval 0); never fights a deliberate
+        // low setting like 30. FEAR-TURBO then trims hidden CPU costs that never
+        // pay off visually on heavy modpacks: biome blending above 1 and
+        // simulation distance above 6 (per-chunk entity ticking is the main
+        // stutter source - see the multi-second worst-frame spikes in FEAR-PERF
+        // logs). Values are only lowered, never raised, and only for
+        // fear_render.
+        if (rendererName.equals("fear_render")) {
+            try {
+                MCOptionUtils.load(gamedir.getAbsolutePath());
+                String maxFps = MCOptionUtils.get("maxFps");
+                boolean fearChanged = false;
+                if (maxFps == null || "60".equals(maxFps) || "120".equals(maxFps)) {
+                    MCOptionUtils.set("maxFps", "260");
+                    MCOptionUtils.set("vsync", "false");
+                    fearChanged = true;
+                }
+                String fearBiome = MCOptionUtils.get("biomeBlendRadius");
+                if (fearBiome == null || Integer.parseInt(fearBiome.trim()) > 1) {
+                    MCOptionUtils.set("biomeBlendRadius", "1");
+                    fearChanged = true;
+                }
+                String fearSim = MCOptionUtils.get("simulationDistance");
+                if (fearSim == null || Integer.parseInt(fearSim.trim()) > 6) {
+                    MCOptionUtils.set("simulationDistance", "6");
+                    fearChanged = true;
+                }
+                if (fearChanged) MCOptionUtils.save();
+            } catch (Throwable t) {
+                Log.w("FearRender", "Could not apply fps unlock / FEAR-TURBO in options.txt", t);
+            }
+        }
+'''
+    fps_block_old = anchor_gr + '''
         // [FearRender] FEAR-FPSUNLOCK: vanilla defaults cap the game at maxFps=60
         // with vsync on. Bump to Unlimited (260) and disable vsync so the frame
         // rate is bounded only by the GPU (the renderer also forces EGL swap
@@ -219,9 +262,16 @@ else:
             }
         }
 '''
-    s3 = s3.replace(anchor_gr, fps_block, 1)
-    open(P3, 'w').write(s3)
-    print("FEARWIRE OK: GameRunner options.txt fps unlock wired (fear_render)")
+    turbo_block = anchor_gr + turbo_body
+    if s3.count(fps_block_old) == 1:
+        # migration: a previous CI run committed the v8 block into the repo
+        s3 = s3.replace(fps_block_old, turbo_block, 1)
+        open(P3, 'w').write(s3)
+        print("FEARWIRE OK: GameRunner FEAR-TURBO upgraded from the committed v8 block")
+    else:
+        s3 = s3.replace(anchor_gr, turbo_block, 1)
+        open(P3, 'w').write(s3)
+        print("FEARWIRE OK: GameRunner options.txt fps unlock + FEAR-TURBO wired (fear_render)")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
