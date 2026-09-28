@@ -158,6 +158,9 @@ public class JREUtils {
                     envMap.put("ZINK_DEBUG", "noreorder,sync");
                     envMap.put("GALLIUM_THREAD", "0");
                     envMap.put("mesa_glthread", "false");
+                    // FV1: world-texture glitch fix - lazy descriptor updates on Mali/system Vulkan
+                    // (zink template-descriptor reuse glitched world textures on Mali proprietary driver)
+                    envMap.put("ZINK_DESCRIPTORS", "lazy");
                     Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");
                 } else {
                     envMap.put("mesa_glthread", "false");
