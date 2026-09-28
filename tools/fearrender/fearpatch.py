@@ -64,6 +64,14 @@ Patches applied to the MobileGlues source tree before building:
     and framebuffer status names with fix hints. One latestlog answers
     "what broke and how to fix it".
 
+11. FV7 gl/texture.cpp (FEARRENDER-FV7 universal renderability) - probe each
+    conditional format ONCE at runtime with a throwaway FBO and rewrite
+    non-renderable requests to the nearest renderable one: R11F_G11F_B10F /
+    RGBA16F / R16F / RG16F / RGBA32F fall back through the float chain to
+    RGBA8 when EXT_color_buffer_float is missing; SNORM formats (RGB8_SNORM =
+    Complementary colortex1, RGBA8_SNORM, R8/RG8/RGBA16_SNORM) always rewrite
+    to a renderable target. Makes shader packs run on every GPU.
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -800,5 +808,341 @@ else:
     s = s.replace(a, hints, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: framebuffer.cpp FEAR-DOCTOR status hints added")
+
+# ------------------------------------------ FV7: universal renderability (FEAR-DOCTOR)
+# ComplementaryReimagined r5.8.1 colortex formats (from pipelineSettings.glsl):
+# colortex0=R11F_G11F_B10F, colortex1=RGB8_SNORM, colortex2=RGB16F. The failing
+# FBO in latestlog-54 attached exactly draw buffers [0,1,2]: R11F needs
+# EXT_color_buffer_float (missing on some Mali builds), SNORM is NEVER
+# color-renderable in GLES, and every float rewrite also depends on
+# EXT_color_buffer_float. So: probe each format ONCE at runtime with a
+# throwaway FBO (state saved/restored so the app never notices) and rewrite
+# non-renderable requests to the nearest renderable format. This makes shader
+# packs run on any GPU, with or without the float extensions.
+p = os.path.join(root, 'gl/texture.cpp')
+s = open(p).read()
+if 'FEARRENDER-FV7' in s:
+    print("FEARPATCH SKIP: texture.cpp FV7 universal renderability already present")
+else:
+    a = '#include <cmath>'
+    n = s.count(a)
+    if n != 1:
+        fail("texture.cpp cmath include anchor count = %d" % n)
+    helpers = a + '''
+
+// ---------------------- FEAR-DOCTOR (FV7): universal renderability ----------------------
+// GLES drivers pick and choose which formats can be rendered to: SNORM is never
+// color-renderable, float formats need EXT_color_buffer_float (missing on some
+// Mali builds, e.g. the G615 r44 in latestlog-54). Probe each candidate once
+// with a throwaway FBO and remember the verdict, then rewrite non-renderable
+// requests to the nearest renderable format. GL state is saved/restored.
+static int fear_probe_verdict(GLenum internal) {
+    static GLenum fear_keys[24];
+    static int fear_vals[24];
+    static int fear_n = 0;
+    for (int i = 0; i < fear_n; ++i) {
+        if (fear_keys[i] == internal) return fear_vals[i];
+    }
+    GLenum probe_format = GL_RGBA;
+    GLenum probe_type = GL_HALF_FLOAT;
+    if (internal == GL_R11F_G11F_B10F) { probe_format = GL_RGB; probe_type = GL_UNSIGNED_INT_10F_11F_11F_REV; }
+    else if (internal == GL_RGBA32F) { probe_type = GL_FLOAT; }
+    else if (internal == GL_R16F) { probe_format = GL_RED; }
+    else if (internal == GL_RG16F) { probe_format = GL_RG; }
+    GLint fear_save_fbo = 0, fear_save_tex = 0;
+    GLES.glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fear_save_fbo);
+    GLES.glGetIntegerv(GL_TEXTURE_BINDING_2D, &fear_save_tex);
+    GLuint fear_tex = 0, fear_fbo = 0;
+    GLES.glGenTextures(1, &fear_tex);
+    GLES.glBindTexture(GL_TEXTURE_2D, fear_tex);
+    GLES.glTexImage2D(GL_TEXTURE_2D, 0, (GLint)internal, 4, 4, 0, probe_format, probe_type, nullptr);
+    GLES.glGenFramebuffers(1, &fear_fbo);
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, fear_fbo);
+    GLES.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fear_tex, 0);
+    const int fear_ok = (GLES.glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+    GLES.glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)fear_save_fbo);
+    GLES.glBindTexture(GL_TEXTURE_2D, (GLuint)fear_save_tex);
+    GLES.glDeleteFramebuffers(1, &fear_fbo);
+    GLES.glDeleteTextures(1, &fear_tex);
+    LOG_W_FORCE("FEAR-DOCTOR: FV7 probe 0x%x renderable: %s", (unsigned)internal,
+                fear_ok ? "yes" : "NO (shaderpack formats using it will be rewritten)");
+    if (fear_n < 24) { fear_keys[fear_n] = internal; fear_vals[fear_n] = fear_ok; ++fear_n; }
+    return fear_ok;
+}
+
+// The HDR fallback: RGBA16F when floats are renderable, RGBA8 otherwise.
+static GLenum fear_hdr_target() {
+    static GLenum fear_hdr = 0;
+    if (fear_hdr == 0) {
+        fear_hdr = fear_probe_verdict(GL_RGBA16F) ? GL_RGBA16F : GL_RGBA8;
+    }
+    return fear_hdr;
+}
+// -------------------- end FEAR-DOCTOR (FV7) helpers --------------------
+'''
+    s = s.replace(a, helpers, 1)
+
+    # ---- R11F_G11F_B10F (Complementary colortex0) ----
+    a = """    case GL_R11F_G11F_B10F:
+        if (type) *type = GL_UNSIGNED_INT_10F_11F_11F_REV;
+        if (format) *format = GL_RGB;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("R11F case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_R11F_G11F_B10F: /* FEARRENDER-FV7: renderable only with EXT_color_buffer_float */
+        if (type) *type = GL_UNSIGNED_INT_10F_11F_11F_REV;
+        if (format) *format = GL_RGB;
+        if (!fear_probe_verdict(GL_R11F_G11F_B10F)) {
+            *internal_format = fear_hdr_target();
+            if (format) *format = GL_RGBA;
+            if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        }
+        break;
+""", 1)
+
+    # ---- RGBA16F itself (fallback target of many FV4 rewrites) ----
+    a = """    case GL_RGBA16F:
+        if (type) *type = GL_HALF_FLOAT;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGBA16F case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGBA16F:
+        if (type) *type = GL_HALF_FLOAT;
+        if (!fear_probe_verdict(GL_RGBA16F)) { /* FEARRENDER-FV7 */
+            *internal_format = GL_RGBA8;
+            if (type) *type = GL_UNSIGNED_BYTE;
+        }
+        break;
+""", 1)
+
+    # ---- R16F / RG16F (single-channel float targets) ----
+    a = """    case GL_R16F:
+        if (format) *format = GL_RED;
+        if (type) *type = GL_HALF_FLOAT;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("R16F case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_R16F:
+        if (format) *format = GL_RED;
+        if (type) *type = GL_HALF_FLOAT;
+        if (!fear_probe_verdict(GL_R16F)) { /* FEARRENDER-FV7 */
+            *internal_format = GL_R8;
+            if (type) *type = GL_UNSIGNED_BYTE;
+        }
+        break;
+""", 1)
+
+    a = """    case GL_RG16F:
+        if (format) *format = GL_RG;
+        if (type) *type = GL_HALF_FLOAT;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RG16F case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RG16F:
+        if (format) *format = GL_RG;
+        if (type) *type = GL_HALF_FLOAT;
+        if (!fear_probe_verdict(GL_RG16F)) { /* FEARRENDER-FV7 */
+            *internal_format = GL_RG8;
+            if (type) *type = GL_UNSIGNED_BYTE;
+        }
+        break;
+""", 1)
+
+    # ---- RGBA32F (FV4 split it from RGB32F) ----
+    a = """    case GL_RGBA32F:
+        if (type) *type = GL_FLOAT;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGBA32F case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGBA32F:
+        if (type) *type = GL_FLOAT;
+        if (!fear_probe_verdict(GL_RGBA32F)) { /* FEARRENDER-FV7 */
+            *internal_format = fear_hdr_target();
+            if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        }
+        break;
+""", 1)
+
+    # ---- upgrade the FV4 unconditional rewrites to probe-based ones ----
+    a = """        *internal_format = GL_RGBA32F;
+        if (type) *type = GL_FLOAT;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGB32F rewrite anchor count = %d" % n)
+    s = s.replace(a, """        *internal_format = fear_probe_verdict(GL_RGBA32F) ? GL_RGBA32F : fear_hdr_target();
+        if (type) *type = (*internal_format == GL_RGBA32F || *internal_format == GL_RGBA16F) ? GL_FLOAT : GL_UNSIGNED_BYTE;
+        break;
+""", 1)
+
+    a = """    case GL_RGBA16: { /* FEARRENDER-RENDERABLE: RGBA16 is not color-renderable on GLES (EXT_texture_norm16 adds the texture format only); rewrite to RGBA16F so shaderpack colortex targets stay attachable */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_FLOAT;
+        break;
+    }
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGBA16 FV4 rewrite anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGBA16: { /* FEARRENDER-RENDERABLE + FV7: not color-renderable on GLES; nearest renderable target (probed at runtime) */
+        *internal_format = fear_hdr_target();
+        if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        break;
+    }
+""", 1)
+
+    a = """    case GL_RGB16: { /* FEARRENDER-RENDERABLE: RGB16 not renderable on GLES; RGBA16F is (EXT_color_buffer_float) */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RGB;
+        break;
+    }
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGB16 FV4 rewrite anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGB16: { /* FEARRENDER-RENDERABLE + FV7 */
+        *internal_format = fear_hdr_target();
+        if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        if (format) *format = GL_RGB;
+        break;
+    }
+""", 1)
+
+    a = """    case GL_RG16: { /* FEARRENDER-RENDERABLE: RG16 not renderable on GLES; RG16F is */
+        *internal_format = GL_RG16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RG;
+        break;
+    }
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RG16 FV4 rewrite anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RG16: { /* FEARRENDER-RENDERABLE + FV7 */
+        *internal_format = fear_probe_verdict(GL_RG16F) ? GL_RG16F : GL_RG8;
+        if (type) *type = (*internal_format == GL_RG16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        if (format) *format = GL_RG;
+        break;
+    }
+""", 1)
+
+    a = """    case GL_R16: { /* FEARRENDER-RENDERABLE: R16 not renderable on GLES; R16F is */
+        *internal_format = GL_R16F;
+        if (type) *type = GL_FLOAT;
+        if (format) *format = GL_RED;
+        break;
+    }
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("R16 FV4 rewrite anchor count = %d" % n)
+    s = s.replace(a, """    case GL_R16: { /* FEARRENDER-RENDERABLE + FV7 */
+        *internal_format = fear_probe_verdict(GL_R16F) ? GL_R16F : GL_R8;
+        if (type) *type = (*internal_format == GL_R16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        if (format) *format = GL_RED;
+        break;
+    }
+""", 1)
+
+    a = """    case GL_RGB16F: /* FEARRENDER-RENDERABLE: RGB16F renderability is driver-dependent; RGBA16F is guaranteed */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RGB;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGB16F FV4 rewrite anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGB16F: /* FEARRENDER-RENDERABLE + FV7: RGB16F is not renderable in core GLES; nearest probed target */
+        *internal_format = fear_hdr_target();
+        if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        if (format) *format = GL_RGB;
+        break;
+""", 1)
+
+    # ---- SNORM formats: never color-renderable in GLES, rewrite to UNORM/float ----
+    a = """    case GL_R8_SNORM:
+        if (format) *format = GL_RED;
+        if (type) *type = GL_BYTE;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("R8_SNORM case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_R8_SNORM: /* FEARRENDER-FV7: SNORM is never color-renderable in GLES */
+        *internal_format = GL_R8;
+        if (format) *format = GL_RED;
+        if (type) *type = GL_UNSIGNED_BYTE;
+        break;
+""", 1)
+
+    a = """    case GL_RG8_SNORM:
+        if (format) *format = GL_RG;
+        if (type) *type = GL_BYTE;
+        break;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RG8_SNORM case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RG8_SNORM: /* FEARRENDER-FV7: SNORM is never color-renderable in GLES */
+        *internal_format = GL_RG8;
+        if (format) *format = GL_RG;
+        if (type) *type = GL_UNSIGNED_BYTE;
+        break;
+""", 1)
+
+    a = """    case GL_RGBA8_SNORM:
+        if (format) *format = GL_RGBA;
+        if (type) *type = GL_BYTE;
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGBA8_SNORM case anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGBA8_SNORM: /* FEARRENDER-FV7: SNORM is never color-renderable in GLES; float target keeps negative values */
+        *internal_format = fear_hdr_target();
+        if (format) *format = GL_RGBA;
+        if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+""", 1)
+
+    # ---- NEW: RGB8_SNORM had no case at all (Complementary colortex1!) ----
+    a = "    case GL_R8_SNORM:"
+    n = s.count(a)
+    if n != 1:
+        fail("R8_SNORM insert anchor count = %d" % n)
+    s = s.replace(a, """    case GL_RGB8_SNORM: /* FEARRENDER-FV7: Complementary colortex1; SNORM never renderable in GLES */
+        *internal_format = fear_hdr_target();
+        if (format) *format = GL_RGB;
+        if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        break;
+    case GL_R8_SNORM:""", 1)
+
+    # ---- RGBA16_SNORM in the default block ----
+    a = """        } else if (*internal_format == GL_RGBA16_SNORM) {
+            if (type && *type != GL_SHORT) *type = GL_SHORT;
+        }
+"""
+    n = s.count(a)
+    if n != 1:
+        fail("RGBA16_SNORM default anchor count = %d" % n)
+    s = s.replace(a, """        } else if (*internal_format == GL_RGBA16_SNORM) { /* FEARRENDER-FV7 */
+            *internal_format = fear_hdr_target();
+            if (type) *type = (*internal_format == GL_RGBA16F) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
+        }
+""", 1)
+
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: texture.cpp FV7 universal renderability added (probe + 14 format rewrites)")
 
 print("FEARPATCH DONE")
