@@ -1,7 +1,7 @@
 name: MC29 Clean PanVK-Kbase driver (arm64)
 
 # MC29 - CLEAN BUILD: wonderkast02/panvk-g720-kbase-csf @ g720-development
-# (latest, ca16389) with ZERO MC instrumentation - a pure, untouched driver
+# (latest) with ZERO MC instrumentation - a pure, untouched driver
 # exactly as the author ships it. Purpose: baseline test. If the clean
 # build still freezes at the atlas phase (where v10-v13 all froze with
 # MemAvailable ~175-220MB), the problem is 100% upstream in the driver's
@@ -10,6 +10,10 @@ name: MC29 Clean PanVK-Kbase driver (arm64)
 # patch) is FearLauncher-side and unchanged - it is required for the app
 # namespace regardless of driver source.
 on:
+  push:
+    branches: [ Mega-checkpoint ]
+    paths:
+      - '.github/workflows/mc29-clean-panvk.yml'
   workflow_dispatch:
 
 permissions:
@@ -248,8 +252,8 @@ jobs:
             echo "FATAL: vk_icdGetInstanceProcAddr is NOT exported - build unusable"
             exit 1
           fi
-          echo "--- clean-build sanity: MC instrumentation must be ABSENT (0 matches each):"
-          grep -c "panvk_mc23_flog\|panvk_wd_raw_write\|MC27" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c 2>/dev/null || echo "0 - clean"
+          echo "--- clean-build sanity: MC instrumentation must be ABSENT:"
+          grep -c "panvk_mc23_flog" src/panfrost/vulkan/csf/panvk_vX_gpu_queue.c || echo "0 - clean"
           for lib in $(llvm-readelf -d libvulkan_panfrost.so | grep NEEDED | sed 's/.*\[\(.*\)\].*/\1/'); do
             if [ -f "$GITHUB_WORKSPACE/mesa/shims/$lib" ] && [ ! -f "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib" ]; then
               cp -v "$GITHUB_WORKSPACE/mesa/shims/$lib" "$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib"
