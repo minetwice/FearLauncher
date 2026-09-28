@@ -32,7 +32,7 @@ static bool is_zink_renderer() {
     const char* gallium = getenv("GALLIUM_DRIVER");
     const char* renderer = getenv("POJAV_RENDERER");
     bool z = false;
-    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0 || strcmp(fear, "panvk_zink") == 0 || strcmp(fear, "panfork") == 0))
+    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0))
         z = true;
     else if (gallium && strcmp(gallium, "zink") == 0)
         z = true;
@@ -48,30 +48,11 @@ static void hide_pojav_from_sodium(void) {
     printf("LWJGL hook v2.12: unset POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)\n");
 }
 
-/* MC20: Panfork = Gallium panfrost on the ARM kbase kernel driver, via OSMesa.
-   No Vulkan loader is needed at all. GL 3.3 unlocked via PAN_MESA_DEBUG=gl3,
-   AFBC off (Minecraft block-texture glitches on Mali). */
+/* Legacy panfork detection - kept for the blit CPU fallback below; can never
+   trigger anymore since the panfork renderer was removed (always returns false). */
 static bool is_panfork_renderer(void) {
     const char* fear = getenv("FEAR_RENDERER");
     return fear && strcmp(fear, "panfork") == 0;
-}
-
-static void force_panfork_env(void) {
-    setenv("GALLIUM_DRIVER", "panfrost", 1);
-    setenv("MESA_LOADER_DRIVER_OVERRIDE", "panfrost", 1);
-    setenv("PAN_MESA_DEBUG", "gl3,noafbc", 1);
-    setenv("mesa_glthread", "false", 1);
-    unsetenv("LIBGL_ES");
-    const char* cache = getenv("MESA_GLSL_CACHE_DIR");
-    if (cache && cache[0]) {
-        setenv("MESA_SHADER_CACHE_DIR", cache, 1);
-        setenv("XDG_CACHE_HOME", cache, 0);
-        setenv("XDG_CONFIG_HOME", cache, 0);
-    }
-    if (!getenv("HOME") || !getenv("HOME")[0]) {
-        setenv("HOME", cache && cache[0] ? cache : "/data/local/tmp", 1);
-    }
-    printf("LWJGL hook v2.12: PANFORK env active (GALLIUM_DRIVER=panfrost, PAN_MESA_DEBUG=gl3,noafbc)\n");
 }
 
 JNIEXPORT void JNICALL
@@ -192,15 +173,9 @@ static void* hooked_glfwSetCallback_impl(void* window, void* callback) {
 
 static int hooked_glfwInit_impl(void) {
     if (!g_glfw_initialized) {
-        if (is_panfork_renderer()) {
-            force_panfork_env();
-            /* Same OSMesa present path as zink; no Vulkan driver is loaded. */
-            bridge_environ.config_renderer = RENDERER_VK_ZINK;
-        } else {
-            force_zink_env();
-            bridge_environ.config_renderer = RENDERER_VK_ZINK;
-            ensure_vulkan_ptr();
-        }
+        force_zink_env();
+        bridge_environ.config_renderer = RENDERER_VK_ZINK;
+        ensure_vulkan_ptr();
         load_libglfw();
         /* Also init real libglfw so input queue/surfaceOwner path works */
         int (*real_init)(void) = (int (*)(void)) glfw_real("glfwInit");
@@ -398,8 +373,9 @@ static void hooked_glfwDestroyWindow_impl(void* window) {
     if (g_current_window == window) g_current_window = NULL;
 }
 
-/* ---- MC20 panfork: blit CPU fallback (GL blit broken on Valhall v11).
-   v2.7: glBlitNamedFramebuffer (DSA, MC 1.21.6+ present path) + request logging. ---- */
+/* ---- legacy panfork blit CPU fallback (GL blit broken on Valhall v11).
+   v2.7: glBlitNamedFramebuffer (DSA, MC 1.21.6+ present path) + request logging.
+   Unreachable now that the panfork renderer is gone; kept for reference. ---- */
 static void* g_blit_real = NULL;
 static unsigned char* g_blit_buf = NULL;
 static size_t g_blit_buf_size = 0;
