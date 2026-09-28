@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""FEARWIRE v6: FearRender + FearVulkan launcher wiring (idempotent).
+"""FEARWIRE v7: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
 
-Wires BOTH custom renderers into the launcher:
-  - fear_render  : GL on host GLES via MobileGlues (libFearRender.so)
-  - fear_vulkan  : GL on Vulkan via our own Mesa/Zink build (libFearVulkan.so)
-                   Mali: system ARM Vulkan driver; Adreno: Turnip via loader.
+Renderer lineup (user decision): Turnip Zink, FearRender, LTW (hidden until
+libltw.so is bundled), Holy GL4ES. FearVulkan was removed after the zink-on-
+Mali crash investigation; its history lives in git (build-fearvulkan.yml).
 Safe to re-run: every block skips when already applied.
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
@@ -59,99 +58,7 @@ else:
     print("FEARWIRE OK: fear_render env case inserted (incl. MobileGlues config)")
     s = open(P).read()
 
-# ---- fear_vulkan env case (our Mesa/Zink on Vulkan) ----
-VULKAN_CASE_LINE = '            case "fear_vulkan":\n'
-VULKAN_CASE = (
-    VULKAN_CASE_LINE +
-    '                Logger.appendToLog("[FearVulkan] Initializing FearVulkan renderer (GL 4.6 on Vulkan - our custom Mesa/Zink build):");\n'
-    '                envMap.put("GALLIUM_DRIVER", "zink");\n'
-    '                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");\n'
-    '                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");\n'
-    '                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");\n'
-    '                envMap.put("vblank_mode", "0");\n'
-    '                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");\n'
-    '                envMap.put("FEAR_RENDERER", renderer);\n'
-    '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
-    '                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together\n'
-    '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
-    '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");\n'
-    '                    envMap.put("GALLIUM_THREAD", "0");\n'
-    '                    envMap.put("mesa_glthread", "false");\n'
-    '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");\n'
-    '                } else {\n'
-    '                    // Adreno+Turnip: lighter shield (Turnip driver is well-tested with zink)\n'
-    '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
-    '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact");\n'
-    '                    envMap.put("mesa_glthread", "false");\n'
-    '                }\n'
-    '                break;\n'
-)
-
-if '[FearVulkan] Initializing' in s:
-    print("FEARWIRE SKIP: fear_vulkan env case wired")
-else:
-    if 'case "fear_vulkan":' in s:
-        fail('fear_vulkan case exists but body not recognized')
-    anchor = '            case "turnip_zink":'
-    i = s.find(anchor)
-    if i < 0:
-        fail("turnip_zink anchor not found (fear_vulkan env)")
-    s = s[:i] + VULKAN_CASE + s[i:]
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: fear_vulkan env case inserted")
-    s = open(P).read()
-
-# ---- FV2 (A/B test): revert FV1 lazy descriptors so fear_vulkan matches
-# ---- turnip_zink EXACTLY (same lib bytes + same env). If it still crashes,
-# ---- the problem is NOT in our renderer at all. ----
-FV1_CODE = ('                    // FV1: world-texture glitch fix - lazy descriptor updates on Mali/system Vulkan\n'
-            '                    // (zink template-descriptor reuse glitched world textures on Mali proprietary driver)\n'
-            '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n')
-if FV1_CODE in s:
-    s = s.replace(FV1_CODE, '', 1)
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: FV2 - FV1 ZINK_DESCRIPTORS=lazy REMOVED (A/B: fear_vulkan == turnip_zink)")
-    s = open(P).read()
-elif '"ZINK_DESCRIPTORS"' in s and 'noreorder,sync,compact,norp,flushsync,noshobj,nobgc' not in s:
-    fail("ZINK_DESCRIPTORS present but not in expected FV1/shield form")
-else:
-    print("FEARWIRE SKIP: FV2 already applied (no ZINK_DESCRIPTORS in JREUtils)")
-
-# ---- FV3 SHIELD: arm the full researched zink-on-Mali fix battery.
-# P01 ZINK_DESCRIPTORS=lazy   - avoid descriptor-buffer(db)/caching corruption
-#     (25.1 auto mode may pick db; ARM proprietary db = texture corruption)
-# P02 noreorder               - no GL command-stream reordering
-# P03 sync                    - full sync barrier before every draw
-# P04 compact                 - max 4 descriptor sets (descriptor glitch fix)
-# P05 norp                    - disable renderpass tracking/optimizations
-# P06 flushsync               - synchronous flushes/presents (swap crash guard)
-# P07 noshobj                 - disable EXT_shader_object
-# P08 nobgc                   - no async pipeline compiles (race guard)
-# P09 GALLIUM_THREAD=0        - no gallium worker thread
-# P10 mesa_glthread=false     - no GL threading
-# (P11-P25 live in the lib build: MC18 patches + driconf + bridge + env below)
-FV3_SHIELD = ('                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together\n'
-              '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
-              '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");\n')
-if 'noreorder,sync,compact,norp,flushsync,noshobj,nobgc' not in s:
-    anchor = ('                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
-              '                    envMap.put("GALLIUM_THREAD", "0");\n'
-              '                    envMap.put("mesa_glthread", "false");\n'
-              '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");\n')
-    n = s.count(anchor)
-    if n != 1:
-        fail("FV3 shield anchor count = %d" % n)
-    s = s.replace(anchor, FV3_SHIELD +
-                  '                    envMap.put("GALLIUM_THREAD", "0");\n'
-                  '                    envMap.put("mesa_glthread", "false");\n'
-                  '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");\n', 1)
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: FV3 SHIELD armed on fear_vulkan Mali branch")
-    s = open(P).read()
-else:
-    print("FEARWIRE SKIP: FV3 SHIELD already armed")
-
-# ---- loadGraphicsLibrary cases ----
+# ---- loadGraphicsLibrary case ----
 if 'renderLibrary = "libFearRender.so"' not in s:
     lib_case = (
         '            case "fear_render":\n'
@@ -172,68 +79,7 @@ if 'renderLibrary = "libFearRender.so"' not in s:
 else:
     print("FEARWIRE SKIP: JREUtils fear_render loadGraphicsLibrary case already wired")
 
-if 'renderer.equals("fear_vulkan") ? "libFearVulkan.so"' not in s:
-    vulk_lib_case = (
-        '            case "fear_vulkan":\n'
-        '            case "turnip_zink":\n'
-        '            case "vulkan_zink":\n'
-        '                if (renderer.equals("fear_vulkan")) {\n'
-        '                    Logger.appendToLog("[FearVulkan] Loading FearVulkan OSMesa (libFearVulkan.so - our Mesa/Zink build)...");\n'
-        '                } else {\n'
-        '                    Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");\n'
-        '                }\n'
-        '                renderLibrary = renderer.equals("fear_vulkan") ? "libFearVulkan.so" : "libOSMesa_8.so";\n'
-        '                useGles = false;\n'
-        '                bypassNamespace = true;\n'
-        '                glesVersion = 3;\n'
-        '                if(preloadVk) preloadVulkan();\n'
-        '                break;\n'
-    )
-    anchor = ('            case "turnip_zink":\n'
-              '            case "vulkan_zink":\n'
-              '                Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");\n'
-              '                renderLibrary = "libOSMesa_8.so";\n'
-              '                useGles = false;\n'
-              '                bypassNamespace = true;\n'
-              '                glesVersion = 3;\n'
-              '                if(preloadVk) preloadVulkan();\n'
-              '                break;\n')
-    n = s.count(anchor)
-    if n != 1:
-        fail("turnip_zink load-case anchor count = %d" % n)
-    s = s.replace(anchor, vulk_lib_case, 1)
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: JREUtils.java wired (fear_vulkan loadGraphicsLibrary case)")
-    s = open(P).read()
-else:
-    print("FEARWIRE SKIP: JREUtils fear_vulkan loadGraphicsLibrary case already wired")
-
-# ---- isZink must include fear_vulkan ----
-old = 'boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);'
-if old in s:
-    s = s.replace(old, 'boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "fear_vulkan".equals(renderer);', 1)
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: isZink includes fear_vulkan")
-    s = open(P).read()
-elif '"fear_vulkan".equals(renderer);' in s:
-    print("FEARWIRE SKIP: isZink already includes fear_vulkan")
-else:
-    fail("isZink line not found")
-
-# ---- LIB_MESA_NAME must point at libFearVulkan.so for fear_vulkan ----
-old = 'envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");'
-if old in s:
-    s = s.replace(old, 'envMap.put("LIB_MESA_NAME", "fear_vulkan".equals(renderer) ? "libFearVulkan.so" : "libOSMesa_8.so");', 1)
-    open(P, 'w').write(s)
-    print("FEARWIRE OK: LIB_MESA_NAME wired for fear_vulkan")
-    s = open(P).read()
-elif 'libFearVulkan.so" : "libOSMesa_8.so"' in s:
-    print("FEARWIRE SKIP: LIB_MESA_NAME already wired")
-else:
-    fail("LIB_MESA_NAME line not found")
-
 # ------------------------------------------------- JREUtils: Sodium bypass
-s = open(P).read()
 sodium_done = ('if (!"fear_render".equals(renderer)) envMap.put("POJAV_RENDERER", renderer);' in s
                or '} else if (!"fear_render".equals(renderer)) {' in s
                or 'isZink || "fear_render".equals(renderer)' in s)
@@ -271,20 +117,6 @@ if 'fear_render' not in s2:
 else:
     print("FEARWIRE SKIP: headings fear_render already wired")
 
-s2 = open(P2).read()
-if 'fear_vulkan' not in s2:
-    a1 = '        <item>FearRender (GL on GLES — universal Mali/Adreno, shaders)</item>'
-    if a1 not in s2:
-        fail("headings FearRender item anchor (fear_vulkan)")
-    s2 = s2.replace(a1, a1 + '\n        <item>FearVulkan (GL 4.6 on Vulkan — our custom Zink build)</item>', 1)
-    a2 = '        <item>fear_render</item> <!-- FearRender: GL on host GLES via MobileGlues core -->'
-    if a2 not in s2:
-        fail("headings fear_render value anchor (fear_vulkan)")
-    s2 = s2.replace(a2, a2 + '\n        <item>fear_vulkan</item> <!-- FearVulkan: our Mesa/Zink build over system Vulkan/Turnip -->', 1)
-    open(P2, 'w').write(s2)
-    print("FEARWIRE OK: headings_array.xml wired (fear_vulkan)")
-else:
-    print("FEARWIRE SKIP: headings fear_vulkan already wired")
 
 # ------------------------------------------------- GameRunner: LWJGL libname
 P3 = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java'
@@ -297,20 +129,83 @@ if 'rendererName.equals("fear_render") ? "libFearRender.so"' not in s3:
     s3 = s3.replace(old, '? "libmh_drive_vulkan_mesa.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"', 1)
     open(P3, 'w').write(s3)
     print("FEARWIRE OK: GameRunner libname patched (fear_render -> libFearRender.so)")
-    s3 = open(P3).read()
 else:
     print("FEARWIRE SKIP: GameRunner fear_render libname already patched")
 
-# fear_vulkan uses the Vulkan-present GL wrapper (same as turnip_zink)
-old = '(rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so"'
-n = s3.count(old)
-if n == 1 and 'rendererName.equals("fear_vulkan") ? "libmh_drive_vulkan_mesa.so"' not in s3:
-    s3 = s3.replace(old, '(rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("fear_vulkan") ? "libmh_drive_vulkan_mesa.so"', 1)
+
+# ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
+if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
+    start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
+    assert start > 0
+    brk = s.find('                break;\n', start)
+    assert brk > start
+    s = s[:start] + s[brk + len('                break;\n'):]
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: fear_vulkan env case removed")
+    s = open(P).read()
+old_load = '''            case "fear_vulkan":
+            case "turnip_zink":
+            case "vulkan_zink":
+                if (renderer.equals("fear_vulkan")) {
+                    Logger.appendToLog("[FearVulkan] Loading FearVulkan OSMesa (libFearVulkan.so - our Mesa/Zink build)...");
+                } else {
+                    Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
+                }
+                renderLibrary = renderer.equals("fear_vulkan") ? "libFearVulkan.so" : "libOSMesa_8.so";
+'''
+new_load = '''            case "turnip_zink":
+            case "vulkan_zink":
+                Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
+                renderLibrary = "libOSMesa_8.so";
+'''
+if old_load in s:
+    s = s.replace(old_load, new_load, 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: turnip_zink load case restored (fear_vulkan removed)")
+    s = open(P).read()
+old = 'boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "fear_vulkan".equals(renderer);'
+if old in s:
+    s = s.replace(old, 'boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);', 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: isZink fear_vulkan removed")
+    s = open(P).read()
+old = 'envMap.put("LIB_MESA_NAME", "fear_vulkan".equals(renderer) ? "libFearVulkan.so" : "libOSMesa_8.so");'
+if old in s:
+    s = s.replace(old, 'envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");', 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: LIB_MESA_NAME restored to libOSMesa_8.so")
+    s = open(P).read()
+
+# ---- GameRunner: remove fear_vulkan from ternary ----
+s3 = open(P3).read()
+old = '(rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("fear_vulkan") ? "libmh_drive_vulkan_mesa.so"'
+if old in s3:
+    s3 = s3.replace(old, '(rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so"', 1)
     open(P3, 'w').write(s3)
-    print("FEARWIRE OK: GameRunner libname patched (fear_vulkan -> libmh_drive_vulkan_mesa.so)")
-elif 'rendererName.equals("fear_vulkan") ? "libmh_drive_vulkan_mesa.so"' in s3 or 'rendererName.equals("fear_vulkan") ?' in s3:
-    print("FEARWIRE SKIP: GameRunner fear_vulkan libname already patched")
+    print("FEARWIRE OK: GameRunner fear_vulkan removed")
 else:
-    fail("GameRunner fear_vulkan anchor not found")
+    print("FEARWIRE SKIP: GameRunner fear_vulkan already removed")
+
+# ---- headings: remove FearVulkan entries ----
+import re as _re
+s2 = open(P2).read()
+if 'fear_vulkan' in s2:
+    s2 = _re.sub(r'\n        <item>FearVulkan \(GL 4\.6 on Vulkan — our custom Zink build\)</item>', '', s2)
+    s2 = _re.sub(r'\n        <item>fear_vulkan</item> <!-- FearVulkan: our Mesa/Zink build over system Vulkan/Turnip -->', '', s2)
+    open(P2, 'w').write(s2)
+    print("FEARWIRE OK: headings FearVulkan removed")
+else:
+    print("FEARWIRE SKIP: headings FearVulkan already removed")
+
+# ---- final sanity: no fear_vulkan leftovers anywhere ----
+sj = open(P).read()
+if 'fear_vulkan' in sj:
+    fail("fear_vulkan still referenced in JREUtils after removal")
+sg = open(P3).read()
+if 'fear_vulkan' in sg:
+    fail("fear_vulkan still referenced in GameRunner after removal")
+sh = open(P2).read()
+if 'fear_vulkan' in sh:
+    fail("fear_vulkan still referenced in headings after removal")
 
 print("FEARWIRE DONE")
