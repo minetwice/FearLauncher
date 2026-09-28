@@ -145,26 +145,6 @@ public class JREUtils {
                     Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
                 }
                 break;
-            case "fear_vulkan":
-                Logger.appendToLog("[FearVulkan] Initializing FearVulkan renderer (GL 4.6 on Vulkan - our custom Mesa/Zink build):");
-                envMap.put("GALLIUM_DRIVER", "zink");
-                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
-                envMap.put("vblank_mode", "0");
-                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
-                envMap.put("FEAR_RENDERER", renderer);
-                if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together
-                    envMap.put("ZINK_DESCRIPTORS", "lazy");
-                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");
-                    envMap.put("GALLIUM_THREAD", "0");
-                    envMap.put("mesa_glthread", "false");
-                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");
-                } else {
-                    envMap.put("mesa_glthread", "false");
-                }
-                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
@@ -201,7 +181,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "fear_vulkan".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -226,7 +206,7 @@ public class JREUtils {
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
-            envMap.put("LIB_MESA_NAME", "fear_vulkan".equals(renderer) ? "libFearVulkan.so" : "libOSMesa_8.so");
+            envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
             // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
             // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
@@ -346,15 +326,10 @@ public class JREUtils {
 
 
         switch (renderer){
-            case "fear_vulkan":
             case "turnip_zink":
             case "vulkan_zink":
-                if (renderer.equals("fear_vulkan")) {
-                    Logger.appendToLog("[FearVulkan] Loading FearVulkan OSMesa (libFearVulkan.so - our Mesa/Zink build)...");
-                } else {
-                    Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
-                }
-                renderLibrary = renderer.equals("fear_vulkan") ? "libFearVulkan.so" : "libOSMesa_8.so";
+                Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
+                renderLibrary = "libOSMesa_8.so";
                 useGles = false;
                 bypassNamespace = true;
                 glesVersion = 3;
