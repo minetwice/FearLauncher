@@ -40,6 +40,19 @@ Patches applied to the MobileGlues source tree before building:
    central internal_convert hook (existing GL_R16UI case) so the storage
    matches the r32ui shader declarations produced by patch 5.
 
+7. FV4 gl/texture.cpp (FEARRENDER-RENDERABLE) - Complementary-class packs
+   declare colortex formats RGBA16/RGB16/RG16/R16/RGB16F/RGB32F. GLES does
+   NOT consider them color-renderable (norm16 adds the texture format only;
+   RGB16F/RGB32F are not in the EXT_color_buffer_float list), so Iris's
+   3-attachment color FBO failed with GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+   (36054) - the Complementary failure in latestlog-51. Rewrite all of them
+   to float formats that ARE renderable on Mali via EXT_color_buffer_float
+   (RGBA16F/RG16F/R16F/RGBA32F).
+
+8. FV4 gl/framebuffer.cpp (FEARRENDER-FBODIAG) - when an FBO still reports
+   incomplete, dump every color attachment so the next latestlog names the
+   exact offending colortex target instead of a bare status code.
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -57,8 +70,8 @@ if not os.path.isdir(os.path.join(root, 'gl')):
 p = os.path.join(root, 'gl/glsl/glsl_for_es.cpp')
 s = open(p).read()
 
-a = 'LOG_D("GLSL Compiling ERROR: \\n%s", shader.getInfoLog())'
-b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:\\n%s", shader.getInfoLog())'
+a = 'LOG_D("GLSL Compiling ERROR: \\\n%s", shader.getInfoLog())'
+b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:\\\n%s", shader.getInfoLog())'
 if a in s:
     s = s.replace(a, b, 1)
     print("FEARPATCH OK: glslang compile errors now always logged")
@@ -111,8 +124,7 @@ else:
     if s.count(anchor) != 1:
         fail("GLSLtoGLSLES_2 anchor not found")
 
-    helpers = r'''
-// ------------------------- FearRender shader-compat helpers -------------------------
+    helpers = r'''// ------------------------- FearRender shader-compat helpers -------------------------
 // FEARRENDER-NOPERSPECTIVE: GLES has no noperspective interpolation; SPIRV-Cross
 // would emit GL_NV_shader_noperspective_interpolation for it, which Mali rejects.
 // Demote the qualifier to the default (smooth) interpolation before glslang runs.
@@ -380,5 +392,170 @@ else:
     s = s.replace(a, new_case, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: texture.cpp R16UI->R32UI rewrite added")
+
+
+# -------------------------------------- FV4: color-renderable format rewrites
+# Complementary-class shaderpacks declare colortex formats like RGBA16, RGB16,
+# RG16, R16, RGB16F, RGB32F. Desktop GL renders into all of them; GLES does
+# NOT: norm16 (EXT_texture_norm16) only adds the *texture* format RGBA16 (it is
+# still not color-renderable), RGB16F/RGB32F are not in the EXT_color_buffer_float
+# renderable list. The result was GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT (36054)
+# the moment Iris attached 3 colortex targets - exactly the Complementary
+# failure in latestlog-51. Rewrite every one of them to a float format that IS
+# renderable on Mali (RGBA16F/RG16F/R16F/RGBA32F via EXT_color_buffer_float).
+p = os.path.join(root, 'gl/texture.cpp')
+s = open(p).read()
+if 'FEARRENDER-RENDERABLE' in s:
+    print("FEARPATCH SKIP: texture.cpp renderable rewrites already present")
+else:
+    pairs = []
+    def fv4_pair(old, new):
+        pairs.append((old, new))
+    fv4_pair(
+"""    case GL_RGBA16: {
+        if (g_gles_caps.GL_EXT_texture_norm16) {
+            if (type) *type = GL_UNSIGNED_SHORT;
+        } else {
+            *internal_format = GL_RGBA16F;
+            if (type) *type = GL_FLOAT;
+        }
+        break;
+    }
+""",
+"""    case GL_RGBA16: { /* FEARRENDER-RENDERABLE: RGBA16 is not color-renderable on GLES (EXT_texture_norm16 adds the texture format only); rewrite to RGBA16F so shaderpack colortex targets stay attachable */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_FLOAT;
+        break;
+    }
+""")
+    fv4_pair(
+"""    case GL_RGB16: {
+        if (g_gles_caps.GL_EXT_texture_norm16) {
+            if (type) *type = GL_UNSIGNED_SHORT;
+        } else {
+            *internal_format = GL_RGB16F;
+            if (type) *type = GL_HALF_FLOAT;
+        }
+        if (format) *format = GL_RGB;
+        break;
+    }
+""",
+"""    case GL_RGB16: { /* FEARRENDER-RENDERABLE: RGB16 not renderable on GLES; RGBA16F is (EXT_color_buffer_float) */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RGB;
+        break;
+    }
+""")
+    fv4_pair(
+"""    case GL_RG16: {
+        if (g_gles_caps.GL_EXT_texture_norm16) {
+            if (type) *type = GL_UNSIGNED_SHORT;
+        } else {
+            *internal_format = GL_RG16F;
+            if (type) *type = GL_HALF_FLOAT;
+        }
+        if (format) *format = GL_RG;
+        break;
+    }
+""",
+"""    case GL_RG16: { /* FEARRENDER-RENDERABLE: RG16 not renderable on GLES; RG16F is */
+        *internal_format = GL_RG16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RG;
+        break;
+    }
+""")
+    fv4_pair(
+"""    case GL_R16: {
+        if (g_gles_caps.GL_EXT_texture_norm16) {
+            if (type) *type = GL_UNSIGNED_SHORT;
+        } else {
+            *internal_format = GL_R16F;
+            if (type) *type = GL_FLOAT;
+        }
+        if (format) *format = GL_RED;
+        break;
+    }
+""",
+"""    case GL_R16: { /* FEARRENDER-RENDERABLE: R16 not renderable on GLES; R16F is */
+        *internal_format = GL_R16F;
+        if (type) *type = GL_FLOAT;
+        if (format) *format = GL_RED;
+        break;
+    }
+""")
+    fv4_pair(
+"""    case GL_RGB16F:
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RGB;
+        break;
+""",
+"""    case GL_RGB16F: /* FEARRENDER-RENDERABLE: RGB16F renderability is driver-dependent; RGBA16F is guaranteed */
+        *internal_format = GL_RGBA16F;
+        if (type) *type = GL_HALF_FLOAT;
+        if (format) *format = GL_RGB;
+        break;
+""")
+    fv4_pair(
+"""    case GL_RGBA32F:
+    case GL_RGB32F:
+        if (type) *type = GL_FLOAT;
+        break;
+""",
+"""    case GL_RGBA32F:
+        if (type) *type = GL_FLOAT;
+        break;
+    case GL_RGB32F: /* FEARRENDER-RENDERABLE: RGB32F not renderable on GLES; RGBA32F is */
+        *internal_format = GL_RGBA32F;
+        if (type) *type = GL_FLOAT;
+        break;
+""")
+    for old, new in pairs:
+        n = s.count(old)
+        if n != 1:
+            fail("FV4 renderable anchor count = %d for %s" % (n, old.strip().splitlines()[0]))
+        s = s.replace(old, new, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: texture.cpp FV4 renderable format rewrites added (6 formats)")
+
+# -------------------------------------- FV4: framebuffer completeness diagnostics
+# When an FBO still reports incomplete, dump every color attachment we know
+# about so the next latestlog tells us WHICH colortex/format is the offender.
+p = os.path.join(root, 'gl/framebuffer.cpp')
+s = open(p).read()
+if 'FEARRENDER-FBODIAG' in s:
+    print("FEARPATCH SKIP: framebuffer.cpp FBODIAG already present")
+else:
+    anchor = """GLenum glCheckFramebufferStatus(GLenum target) {
+    GLenum status = GLES.glCheckFramebufferStatus(target);
+"""
+    n = s.count(anchor)
+    if n != 1:
+        fail("glCheckFramebufferStatus anchor count = %d" % n)
+    diag = """GLenum glCheckFramebufferStatus(GLenum target) {
+    GLenum status = GLES.glCheckFramebufferStatus(target);
+    /* FEARRENDER-FBODIAG: dump the attachment layout when incomplete, so the
+     * shaderpack failure in the log names the exact offending target. */
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        GLuint fbo = (target == GL_READ_FRAMEBUFFER) ? current_read_fbo : current_draw_fbo;
+        framebuffer_t* rec = nullptr;
+        {
+            const auto it = framebuffers.find(fbo);
+            if (it != framebuffers.end() && it->second) rec = it->second.get();
+        }
+        LOG_W_FORCE("FEARRENDER-FBODIAG: fbo=%u target=0x%x status=0x%x", fbo, target, status);
+        if (rec) {
+            for (size_t i = 0; i < rec->color_attachments.size(); ++i) {
+                const attachment_t& a = rec->color_attachments[i];
+                if (a.kind == attach_kind_t::None) continue;
+                LOG_W_FORCE("FEARRENDER-FBODIAG: color%zu: kind=%d tex=%u level=%d", i, (int)a.kind, a.texture, a.level);
+            }
+        }
+    }
+"""
+    s = s.replace(anchor, diag, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: framebuffer.cpp FV4 completeness diagnostics added")
 
 print("FEARPATCH DONE")
