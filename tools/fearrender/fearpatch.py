@@ -53,6 +53,11 @@ Patches applied to the MobileGlues source tree before building:
    incomplete, dump every color attachment so the next latestlog names the
    exact offending colortex target instead of a bare status code.
 
+9. FV5 egl/egl.cpp (FEARRENDER-FPSUNLOCK) - force the EGL swap interval to 0
+   so presentation is not pinned to the display's refresh rate (the "60 fps
+   lock"); the frame rate is then bounded only by the GPU. Escape hatch:
+   MG_FORCE_VSYNC=1 in the environment restores vsync.
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -568,5 +573,50 @@ else:
     s = s.replace(anchor, diag, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: framebuffer.cpp FV4 completeness diagnostics added")
+
+# -------------------------------------- FV5: uncapped frame rate (vsync off)
+# The game asks for swap interval 1 (Minecraft's VSync option), which pins
+# presentation to the display's refresh - on a 60Hz surface that is the "60
+# fps lock". Force interval 0 so the frame rate is bounded only by the GPU.
+# Escape hatch: set MG_FORCE_VSYNC=1 in the environment to get vsync back.
+p = os.path.join(root, 'egl/egl.cpp')
+s = open(p).read()
+if 'FEARRENDER-FPSUNLOCK' in s:
+    print("FEARPATCH SKIP: egl.cpp fps unlock already present")
+else:
+    a = '#include <cstdio>'
+    n = s.count(a)
+    if n != 1:
+        fail("egl.cpp cstdio include anchor count = %d" % n)
+    s = s.replace(a, a + '\n#include <cstdlib> /* FEARRENDER-FPSUNLOCK */\n#include <cstring> /* FEARRENDER-FPSUNLOCK */', 1)
+
+    anchor = """    EGL_API EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) {
+        LOG_D("eglSwapInterval, dpy: %p, interval: %d", dpy, interval);
+        LOAD_EGL(eglSwapInterval)
+        return egl_eglSwapInterval(dpy, interval);
+    }
+"""
+    n = s.count(anchor)
+    if n != 1:
+        fail("eglSwapInterval anchor count = %d" % n)
+    new_impl = """    EGL_API EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) {
+        LOG_D("eglSwapInterval, dpy: %p, interval: %d", dpy, interval);
+        LOAD_EGL(eglSwapInterval)
+        /* FEARRENDER-FPSUNLOCK: force interval 0 unless the user asks for
+         * vsync back with MG_FORCE_VSYNC=1. */
+        if (interval != 0) {
+            static int fear_vsync_pref = -1;
+            if (fear_vsync_pref == -1) {
+                const char* e = getenv("MG_FORCE_VSYNC");
+                fear_vsync_pref = (e != NULL && strcmp(e, "1") == 0) ? 1 : 0;
+            }
+            if (!fear_vsync_pref) interval = 0;
+        }
+        return egl_eglSwapInterval(dpy, interval);
+    }
+"""
+    s = s.replace(anchor, new_impl, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: egl.cpp FV5 fps unlock added (vsync off by default)")
 
 print("FEARPATCH DONE")
