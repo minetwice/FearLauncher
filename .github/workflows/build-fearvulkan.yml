@@ -169,7 +169,7 @@ jobs:
             -Dglx=disabled \
             -Dllvm=disabled \
             -Dopengl=true \
-            -Dosmosa=true \
+            -Dosmesa=true \
             -Dvulkan-drivers= \
             -Dtools=drm-shim \
             -Dgallium-drivers=zink,freedreno \
