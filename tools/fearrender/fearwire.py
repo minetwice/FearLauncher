@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FEARWIRE v3: FearRender + FearVulkan launcher wiring (idempotent).
+"""FEARWIRE v5: FearRender + FearVulkan launcher wiring (idempotent).
 
 Wires BOTH custom renderers into the launcher:
   - fear_render  : GL on host GLES via MobileGlues (libFearRender.so)
@@ -96,21 +96,21 @@ else:
     print("FEARWIRE OK: fear_vulkan env case inserted")
     s = open(P).read()
 
-# ---- FV1: ZINK_DESCRIPTORS=lazy on Mali (world-texture glitch fix) ----
-if '"ZINK_DESCRIPTORS"' not in s:
-    anchor = '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");'
-    n = s.count(anchor)
-    if n != 1:
-        fail("fear_vulkan Mali-branch anchor count = %d" % n)
-    ins = ('                    // FV1: world-texture glitch fix - lazy descriptor updates on Mali/system Vulkan\n'
-           '                    // (zink template-descriptor reuse glitched world textures on Mali proprietary driver)\n'
-           '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n')
-    s = s.replace(anchor, ins + anchor, 1)
+# ---- FV2 (A/B test): revert FV1 lazy descriptors so fear_vulkan matches
+# ---- turnip_zink EXACTLY (same lib bytes + same env). If it still crashes,
+# ---- the problem is NOT in our renderer at all. ----
+FV1_CODE = ('                    // FV1: world-texture glitch fix - lazy descriptor updates on Mali/system Vulkan\n'
+            '                    // (zink template-descriptor reuse glitched world textures on Mali proprietary driver)\n'
+            '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n')
+if FV1_CODE in s:
+    s = s.replace(FV1_CODE, '', 1)
     open(P, 'w').write(s)
-    print("FEARWIRE OK: FV1 ZINK_DESCRIPTORS=lazy wired into fear_vulkan Mali branch")
+    print("FEARWIRE OK: FV2 - FV1 ZINK_DESCRIPTORS=lazy REMOVED (A/B: fear_vulkan == turnip_zink)")
     s = open(P).read()
+elif '"ZINK_DESCRIPTORS"' in s:
+    fail("ZINK_DESCRIPTORS present but not in expected FV1 form")
 else:
-    print("FEARWIRE SKIP: FV1 ZINK_DESCRIPTORS already wired")
+    print("FEARWIRE SKIP: FV2 already applied (no ZINK_DESCRIPTORS in JREUtils)")
 
 # ---- loadGraphicsLibrary cases ----
 if 'renderLibrary = "libFearRender.so"' not in s:
