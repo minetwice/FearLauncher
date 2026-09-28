@@ -124,6 +124,27 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "fear_render":
+                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno):");
+                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("vblank_mode", "0");
+                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
+                try {
+                    java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
+                    java.io.File mgCfg = new java.io.File(mgDir, "config.json");
+                    if (!mgCfg.exists()) {
+                        //noinspection ResultOfMethodCallIgnored
+                        mgDir.mkdirs();
+                        java.io.FileWriter fw = new java.io.FileWriter(mgCfg);
+                        fw.write("{\"enableNoError\":2,\"enableExtComputeShader\":1,\"enableExtTimerQuery\":1,\"enableExtDirectStateAccess\":1}");
+                        fw.close();
+                    }
+                    envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());
+                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());
+                } catch (Throwable t) {
+                    Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
+                }
+                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
@@ -189,7 +210,7 @@ public class JREUtils {
             // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
             // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
-            envMap.put("POJAV_RENDERER", renderer);
+            if (!"fear_render".equals(renderer)) envMap.put("POJAV_RENDERER", renderer);
         }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
@@ -216,7 +237,7 @@ public class JREUtils {
         }
 
         // Sodium System.getenv("POJAV_RENDERER") — scrub Java + libc
-        if (isZink) {
+        if (isZink || "fear_render".equals(renderer)) {
             scrubPojavDetectorEnv();
         }
     }
@@ -313,6 +334,12 @@ public class JREUtils {
                 bypassNamespace = true;
                 glesVersion = 3;
                 if(preloadVk) preloadVulkan();
+                break;
+            case "fear_render":
+                Logger.appendToLog("[FearRender] Loading FearRender (libFearRender.so - MobileGlues core, GL on GLES)...");
+                renderLibrary = "libFearRender.so";
+                useGles = true;
+                glesVersion = 3;
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
