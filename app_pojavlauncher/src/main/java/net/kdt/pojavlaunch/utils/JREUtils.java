@@ -128,19 +128,37 @@ public class JREUtils {
                 Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno):");
                 envMap.put("FEAR_RENDERER", renderer);
                 envMap.put("vblank_mode", "0");
-                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults
+                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults + FSR1
                 try {
                     java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");
                     java.io.File mgCfg = new java.io.File(mgDir, "config.json");
-                    if (!mgCfg.exists()) {
-                        //noinspection ResultOfMethodCallIgnored
-                        mgDir.mkdirs();
+                    //noinspection ResultOfMethodCallIgnored
+                    mgDir.mkdirs();
+                    org.json.JSONObject cfg = new org.json.JSONObject();
+                    if (mgCfg.exists()) {
+                        java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(mgCfg));
+                        StringBuilder sb = new StringBuilder();
+                        String ln;
+                        while ((ln = br.readLine()) != null) sb.append(ln);
+                        br.close();
+                        try { cfg = new org.json.JSONObject(sb.toString()); } catch (Throwable ignored) {}
+                    }
+                    boolean changed = false;
+                    if (!cfg.has("enableNoError")) { cfg.put("enableNoError", 2); changed = true; }
+                    if (!cfg.has("enableExtComputeShader")) { cfg.put("enableExtComputeShader", 1); changed = true; }
+                    if (!cfg.has("enableExtTimerQuery")) { cfg.put("enableExtTimerQuery", 1); changed = true; }
+                    if (!cfg.has("enableExtDirectStateAccess")) { cfg.put("enableExtDirectStateAccess", 1); changed = true; }
+                    // FSR1 UltraQuality: render at ~77% + AMD FidelityFX sharpen upscale -> more FPS, clean crisp image
+                    if (!cfg.has("fsr1Setting")) { cfg.put("fsr1Setting", 1); changed = true; }
+                    // 64MB on-disk shader cache, so translated shaders are not recompiled after eviction
+                    if (!cfg.has("maxGlslCacheSize")) { cfg.put("maxGlslCacheSize", 64); changed = true; }
+                    if (changed || !mgCfg.exists()) {
                         java.io.FileWriter fw = new java.io.FileWriter(mgCfg);
-                        fw.write("{\"enableNoError\":2,\"enableExtComputeShader\":1,\"enableExtTimerQuery\":1,\"enableExtDirectStateAccess\":1}");
+                        fw.write(cfg.toString());
                         fw.close();
                     }
                     envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());
-                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());
+                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath() + (cfg.optInt("fsr1Setting", 0) > 0 ? " [FSR1 UltraQuality: fps boost + sharpen]" : ""));
                 } catch (Throwable t) {
                     Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
                 }

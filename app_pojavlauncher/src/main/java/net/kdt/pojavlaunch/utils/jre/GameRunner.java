@@ -14,6 +14,7 @@ import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.lifecycle.LifecycleAwareAlertDialog;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
+import net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DateUtils;
@@ -127,6 +128,24 @@ public class GameRunner {
         }
         File gamedir = instance.getGameDirectory();
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
+
+        // [FearRender] FEAR-FPSUNLOCK: vanilla defaults cap the game at maxFps=60
+        // with vsync on. Bump to Unlimited (260) and disable vsync so the frame
+        // rate is bounded only by the GPU (the renderer also forces EGL swap
+        // interval 0). Never fights a deliberate low user setting like 30.
+        if (rendererName.equals("fear_render")) {
+            try {
+                MCOptionUtils.load(gamedir.getAbsolutePath());
+                String maxFps = MCOptionUtils.get("maxFps");
+                if (maxFps == null || "60".equals(maxFps) || "120".equals(maxFps)) {
+                    MCOptionUtils.set("maxFps", "260");
+                    MCOptionUtils.set("vsync", "false");
+                    MCOptionUtils.save();
+                }
+            } catch (Throwable t) {
+                Log.w("FearRender", "Could not unlock fps in options.txt", t);
+            }
+        }
 
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
             instance.renderer = rendererName = "opengles2";
