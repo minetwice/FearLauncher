@@ -253,7 +253,11 @@ public class GameRunner {
             // thread states (explains the auto-close). Panvk_zink only.
             // MC21c: dump budget raised to 200 - MC startup has legit 10s+
             // log gaps that must not exhaust the budget before the freeze.
-            if (rendererName.equals("panvk_zink")) {
+            // MC30: MC21b watchdog DISABLED - with the clean (uninstrumented)
+            // PanVK driver there are no watchdog heartbeat lines, so every legit
+            // 8s+ game-log silence (shader compile, resource loading) triggered
+            // a full JVM+ART thread dump = massive log spam. Off for baseline.
+            if (false) {
                 final File mc21bLogFile = new File(Tools.DIR_GAME_HOME, "latestlog.txt");
                 Thread mc21bWatchdog = new Thread(() -> {
                     final long start = System.currentTimeMillis();
@@ -366,7 +370,7 @@ public class GameRunner {
                         while ((read = in.read(buffer)) != -1) { out.write(buffer, 0, read); }
                     }
                     Log.i("LocalSkinServer", "Successfully extracted authlib-injector.jar on-demand from assets.");
-                } catch (Exception e) { Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand from assets.", e); }
+                } catch (Exception e) { Log.e("LocalSkinServer", "Failed to extract authlib-injector.jar on-demand.", e); }
             }
             if (injectorJar.exists()) {
                 try {
