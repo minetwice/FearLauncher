@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FEARWIRE v5: FearRender + FearVulkan launcher wiring (idempotent).
+"""FEARWIRE v6: FearRender + FearVulkan launcher wiring (idempotent).
 
 Wires BOTH custom renderers into the launcher:
   - fear_render  : GL on host GLES via MobileGlues (libFearRender.so)
@@ -72,11 +72,16 @@ VULKAN_CASE = (
     '                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");\n'
     '                envMap.put("FEAR_RENDERER", renderer);\n'
     '                if (!GLInfoUtils.getGlInfo().isAdreno()) {\n'
-    '                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
+    '                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together\n'
+    '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
+    '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");\n'
     '                    envMap.put("GALLIUM_THREAD", "0");\n'
     '                    envMap.put("mesa_glthread", "false");\n'
-    '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");\n'
+    '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");\n'
     '                } else {\n'
+    '                    // Adreno+Turnip: lighter shield (Turnip driver is well-tested with zink)\n'
+    '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
+    '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact");\n'
     '                    envMap.put("mesa_glthread", "false");\n'
     '                }\n'
     '                break;\n'
@@ -107,10 +112,44 @@ if FV1_CODE in s:
     open(P, 'w').write(s)
     print("FEARWIRE OK: FV2 - FV1 ZINK_DESCRIPTORS=lazy REMOVED (A/B: fear_vulkan == turnip_zink)")
     s = open(P).read()
-elif '"ZINK_DESCRIPTORS"' in s:
-    fail("ZINK_DESCRIPTORS present but not in expected FV1 form")
+elif '"ZINK_DESCRIPTORS"' in s and 'noreorder,sync,compact,norp,flushsync,noshobj,nobgc' not in s:
+    fail("ZINK_DESCRIPTORS present but not in expected FV1/shield form")
 else:
     print("FEARWIRE SKIP: FV2 already applied (no ZINK_DESCRIPTORS in JREUtils)")
+
+# ---- FV3 SHIELD: arm the full researched zink-on-Mali fix battery.
+# P01 ZINK_DESCRIPTORS=lazy   - avoid descriptor-buffer(db)/caching corruption
+#     (25.1 auto mode may pick db; ARM proprietary db = texture corruption)
+# P02 noreorder               - no GL command-stream reordering
+# P03 sync                    - full sync barrier before every draw
+# P04 compact                 - max 4 descriptor sets (descriptor glitch fix)
+# P05 norp                    - disable renderpass tracking/optimizations
+# P06 flushsync               - synchronous flushes/presents (swap crash guard)
+# P07 noshobj                 - disable EXT_shader_object
+# P08 nobgc                   - no async pipeline compiles (race guard)
+# P09 GALLIUM_THREAD=0        - no gallium worker thread
+# P10 mesa_glthread=false     - no GL threading
+# (P11-P25 live in the lib build: MC18 patches + driconf + bridge + env below)
+FV3_SHIELD = ('                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together\n'
+              '                    envMap.put("ZINK_DESCRIPTORS", "lazy");\n'
+              '                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");\n')
+if 'noreorder,sync,compact,norp,flushsync,noshobj,nobgc' not in s:
+    anchor = ('                    envMap.put("ZINK_DEBUG", "noreorder,sync");\n'
+              '                    envMap.put("GALLIUM_THREAD", "0");\n'
+              '                    envMap.put("mesa_glthread", "false");\n'
+              '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");\n')
+    n = s.count(anchor)
+    if n != 1:
+        fail("FV3 shield anchor count = %d" % n)
+    s = s.replace(anchor, FV3_SHIELD +
+                  '                    envMap.put("GALLIUM_THREAD", "0");\n'
+                  '                    envMap.put("mesa_glthread", "false");\n'
+                  '                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");\n', 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: FV3 SHIELD armed on fear_vulkan Mali branch")
+    s = open(P).read()
+else:
+    print("FEARWIRE SKIP: FV3 SHIELD already armed")
 
 # ---- loadGraphicsLibrary cases ----
 if 'renderLibrary = "libFearRender.so"' not in s:
