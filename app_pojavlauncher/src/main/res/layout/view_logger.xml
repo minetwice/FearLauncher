@@ -5,7 +5,7 @@
     <View
         android:id="@+id/top_log_view"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="52dp"
         android:background="#555555"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -44,8 +44,8 @@
 
     <ImageButton
         android:id="@+id/log_view_cancel"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:scaleType="centerCrop"
         android:src="@android:drawable/ic_delete"
         app:layout_constraintBottom_toBottomOf="@+id/top_log_view"
