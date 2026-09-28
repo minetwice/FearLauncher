@@ -24,7 +24,12 @@ public class LoggerView extends ConstraintLayout {
     private ToggleButton mLogToggle;
     private DefocusableScrollView mScrollView;
     private TextView mLogTextView;
-
+    // FEAR-LOGCOMPACT: pending log text, flushed to the TextView at most every
+    // 100ms. Appending per line floods the UI thread and the fullScroll() per
+    // line is what made the game stutter while the log was open.
+    private final StringBuilder mPendingLog = new StringBuilder();
+    private boolean mFlushScheduled = false;
+    private static final int FEAR_MAX_LOG_LINES = 1000;
 
     public LoggerView(@NonNull Context context) {
         this(context, null);
@@ -49,7 +54,10 @@ public class LoggerView extends ConstraintLayout {
         inflate(getContext(), R.layout.view_logger, this);
         mLogTextView = findViewById(R.id.content_log_view);
         mLogTextView.setTypeface(Typeface.MONOSPACE);
-        //TODO clamp the max text so it doesn't go oob
+        // FEAR-LOGCOMPACT: small console-style text, takes far less screen space
+        mLogTextView.setTextSize(9.5f);
+        mLogTextView.setLineSpacing(0f, 1f);
+        //TODO clamp the max text so it doesn't go oob (handled by FEAR-LOGCOMPACT below)
         mLogTextView.setMaxLines(Integer.MAX_VALUE);
         mLogTextView.setEllipsize(null);
         mLogTextView.setVisibility(GONE);
@@ -63,6 +71,7 @@ public class LoggerView extends ConstraintLayout {
                         Logger.setLogListener(mLogListener);
                     }else{
                         mLogTextView.setText("");
+                        synchronized (mPendingLog) { mPendingLog.setLength(0); } // FEAR-LOGCOMPACT: drop pending batch
                         Logger.setLogListener(null); // Makes the JNI code be able to skip expensive logger callbacks
                         // NOTE: was tested by rapidly smashing the log on/off button, no sync issues found :)
                     }
@@ -109,7 +118,7 @@ public class LoggerView extends ConstraintLayout {
                                 String resStr = response.toString();
                                 int urlIdx = resStr.indexOf("\"url\":\"");
                                 if (urlIdx != -1) {
-                                    String sharedUrl = resStr.substring(urlIdx + 7, resStr.indexOf("\"", urlIdx + 7));
+                                    final String sharedUrl = resStr.substring(urlIdx + 7, resStr.indexOf("\"", urlIdx + 7));
                                     post(() -> {
                                         android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                                         android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Log Link", sharedUrl);
@@ -149,13 +158,33 @@ public class LoggerView extends ConstraintLayout {
         autoscrollToggle.setChecked(true);
 
         // Listen to logs
+        // FEAR-LOGCOMPACT: buffer incoming lines and flush in one TextView
+        // update every 100ms - one layout pass instead of one per log line -
+        // and cap the buffer at 1000 lines so it can never grow unbounded
+        // (fixes the old "TODO clamp the max text so it doesn't go oob").
         mLogListener = text -> {
             if(mLogTextView.getVisibility() != VISIBLE) return;
-            post(() -> {
-                mLogTextView.append(text + '\n');
+            synchronized (mPendingLog) {
+                mPendingLog.append(text).append('\n');
+            }
+            if(mFlushScheduled) return;
+            mFlushScheduled = true;
+            postDelayed(() -> {
+                mFlushScheduled = false;
+                String chunk;
+                synchronized (mPendingLog) {
+                    chunk = mPendingLog.toString();
+                    mPendingLog.setLength(0);
+                }
+                if (chunk.isEmpty()) return;
+                mLogTextView.append(chunk);
+                int lineCount = mLogTextView.getLineCount();
+                if (lineCount > FEAR_MAX_LOG_LINES + 200 && mLogTextView.getLayout() != null) {
+                    int cut = mLogTextView.getLayout().getLineStart(lineCount - FEAR_MAX_LOG_LINES);
+                    if (cut > 0) mLogTextView.getEditableText().delete(0, cut);
+                }
                 if(mScrollView.isKeepFocusing()) mScrollView.fullScroll(View.FOCUS_DOWN);
-            });
-
+            }, 100);
         };
     }
 
