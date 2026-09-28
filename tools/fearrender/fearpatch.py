@@ -58,6 +58,12 @@ Patches applied to the MobileGlues source tree before building:
    lock"); the frame rate is then bounded only by the GPU. Escape hatch:
    MG_FORCE_VSYNC=1 in the environment restores vsync.
 
+10. FV6 (FEAR-DOCTOR) - protection & diagnostic system: device/caps banner on
+    first frame, 600-frame perf heartbeat (avg/worst ms, low-FPS entity/CPU
+    diagnosis), GL error audit, shader-failure analysis with known-fix hints,
+    and framebuffer status names with fix hints. One latestlog answers
+    "what broke and how to fix it".
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -618,5 +624,181 @@ else:
     s = s.replace(anchor, new_impl, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: egl.cpp FV5 fps unlock added (vsync off by default)")
+
+# ------------------------------------------ FV6: FEAR-DOCTOR protection system
+# One log answers everything: device + caps banner, per-10s frame-rate
+# heartbeat with lag diagnosis, GL error audit, shader-failure analysis with
+# known-fix hints, and framebuffer status names with fix hints. Every line is
+# FEAR- prefixed so the user just sends latestlog.
+p = os.path.join(root, 'egl/egl.cpp')
+s = open(p).read()
+if 'FEAR-DOCTOR' in s:
+    print("FEARPATCH SKIP: egl.cpp FEAR-DOCTOR already present")
+else:
+    a = '#include <cstring> /* FEARRENDER-FPSUNLOCK */'
+    n = s.count(a)
+    if n != 1:
+        fail("egl.cpp cstring include anchor count = %d" % n)
+    s = s.replace(a, a + '\n#include <ctime> /* FEAR-DOCTOR */', 1)
+
+    anchor = """    // ApplyFSR upscales into the surface, the swap presents it, the resolution
+    // check reacts to a surface that has changed size. The three belong together,
+    // and every path that presents a frame has to go through here.
+"""
+    n = s.count(anchor)
+    if n != 1:
+        fail("presentSurface comment anchor count = %d" % n)
+    heartbeat = """    // FEAR-DOCTOR (FV6): protection & diagnostic system. Device/caps banner on
+    // the first presented frame, a 600-frame heartbeat with avg/worst frame
+    // times, a low-FPS diagnosis line, and a periodic GL error audit. All
+    // FEAR- prefixed so one latestlog answers "why is it slow / what broke".
+    static void fear_doctor_heartbeat() {
+        static bool fear_diag_boot = false;
+        if (!fear_diag_boot) {
+            fear_diag_boot = true;
+            const GLubyte* fearR = GLES.glGetString(GL_RENDERER);
+            const GLubyte* fearV = GLES.glGetString(GL_VERSION);
+            const GLubyte* fearVen = GLES.glGetString(GL_VENDOR);
+            LOG_W_FORCE("FEAR-DOCTOR: active (FV6) | device: %s | vendor: %s",
+                        fearR ? (const char*)fearR : "?", fearVen ? (const char*)fearVen : "?");
+            LOG_W_FORCE("FEAR-DOCTOR: GL: %s | caps: norm16=%d rg=%d bufstorage=%d basevertex=%d clipcull=%d",
+                        fearV ? (const char*)fearV : "?",
+                        g_gles_caps.GL_EXT_texture_norm16, g_gles_caps.GL_EXT_texture_rg,
+                        g_gles_caps.GL_EXT_buffer_storage, g_gles_caps.GL_EXT_draw_elements_base_vertex,
+                        g_gles_caps.GL_EXT_clip_cull_distance);
+            LOG_W_FORCE("FEAR-DOCTOR: settings: fsr1=%d ignore_error=%d",
+                        (int)global_settings.fsr1_setting, (int)global_settings.ignore_error);
+        }
+        static unsigned fear_frames = 0;
+        static struct timespec fear_t0, fear_tprev;
+        static double fear_worst_ms = 0.0;
+        struct timespec fear_now;
+        clock_gettime(CLOCK_MONOTONIC, &fear_now);
+        if (fear_frames == 0) {
+            fear_t0 = fear_tprev = fear_now;
+            fear_worst_ms = 0.0;
+        } else {
+            const double fear_dt = (fear_now.tv_sec - fear_tprev.tv_sec) * 1000.0
+                                 + (fear_now.tv_nsec - fear_tprev.tv_nsec) / 1000000.0;
+            if (fear_dt > fear_worst_ms) fear_worst_ms = fear_dt;
+        }
+        fear_tprev = fear_now;
+        ++fear_frames;
+        if (fear_frames >= 600) {
+            const double fear_s = (fear_now.tv_sec - fear_t0.tv_sec)
+                                + (fear_now.tv_nsec - fear_t0.tv_nsec) / 1000000000.0;
+            const double fear_fps = (fear_s > 0.0) ? fear_frames / fear_s : 0.0;
+            const double fear_avg = (fear_s > 0.0) ? 1000.0 * fear_s / fear_frames : 0.0;
+            LOG_W_FORCE("FEAR-PERF: %.1f fps | avg %.1f ms/frame | worst %.1f ms%s",
+                        fear_fps, fear_avg, fear_worst_ms,
+                        fear_fps < 20.0
+                            ? " | LOW FPS: entity/CPU-bound or heavy shaderpack - send this log to the dev"
+                            : "");
+            const GLenum fear_err = GLES.glGetError();
+            if (fear_err != GL_NO_ERROR) {
+                LOG_W_FORCE("FEAR-PERF: GL error at present: 0x%x", fear_err);
+            }
+            fear_frames = 0;
+            fear_worst_ms = 0.0;
+            fear_t0 = fear_now;
+        }
+    }
+
+"""
+    s = s.replace(anchor, heartbeat + anchor, 1)
+
+    anchor = """        LOAD_EGL(eglSwapBuffers)
+        if (global_settings.fsr1_setting == FSR1_Quality_Preset::Disabled) {"""
+    n = s.count(anchor)
+    if n != 1:
+        fail("presentSurface body anchor count = %d" % n)
+    s = s.replace(anchor, """        LOAD_EGL(eglSwapBuffers)
+        fear_doctor_heartbeat(); /* FEAR-DOCTOR */
+        if (global_settings.fsr1_setting == FSR1_Quality_Preset::Disabled) {""", 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: egl.cpp FEAR-DOCTOR heartbeat + device banner added")
+
+# ------------------------------------------ FV6: shader failure analysis
+p = os.path.join(root, 'gl/shader.cpp')
+s = open(p).read()
+if 'FEAR-DOCTOR' in s:
+    print("FEARPATCH SKIP: shader.cpp doctor analysis already present")
+else:
+    a = '#include "../config/config.h"'
+    n = s.count(a)
+    if n != 1:
+        fail("shader.cpp config.h include anchor count = %d" % n)
+    doctor_fn = a + '''
+/* FEAR-DOCTOR (FV6): analyze a shader compile info log and name the class of
+ * failure, with the fix that FearRender already applies for the known ones.
+ * One glance at the latestlog tells the dev what to patch next. */
+static void fear_doctor_analyze(const GLchar* log_) {
+    if (log_ == nullptr) return;
+    const std::string l(log_);
+    bool named = false;
+    if (l.find("S0001") != std::string::npos || l.find("layout qualifier") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: image-uniform layout/format issue (IMG auto-fix covers standard packs; if it persists, the pack uses an unusual image - send failed_shader_dump.glsl)");
+        named = true;
+    }
+    if (l.find("S0059") != std::string::npos || l.find("r16ui") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: integer image format (r16ui-class) - storage is auto-rewritten to r32ui; if it persists the pack declares an unusual image");
+        named = true;
+    }
+    if (l.find("L0001") != std::string::npos && l.find("uniform") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: uniform keyword mangling - the word-boundary guard covers standard cases; if it persists send the dump");
+        named = true;
+    }
+    if (l.find("noperspective") != std::string::npos || l.find("NV_shader_noperspective") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: noperspective interpolation - auto-stripped to smooth; if it persists send the dump");
+        named = true;
+    }
+    if (l.find("extension") != std::string::npos || l.find("not supported") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: unsupported extension/feature requested by the pack - GLES may lack it; send latestlog + dump");
+        named = true;
+    }
+    if (l.find("S0032") != std::string::npos) {
+        LOG_W_FORCE("FEAR-DOCTOR: too many uniforms/constants for one stage - pack is too large for this GPU; send the dump");
+        named = true;
+    }
+    if (!named) {
+        LOG_W_FORCE("FEAR-DOCTOR: unrecognized failure class - send latestlog + MG/failed_shader_dump.glsl to the dev");
+    }
+}
+'''
+    s = s.replace(a, doctor_fn, 1)
+
+    a = '        LOG_W_FORCE("[FearRender] Shader %d compile FAILED: %s", shader, fearInfoLog)'
+    n = s.count(a)
+    if n != 1:
+        fail("shader compile FAILED anchor count = %d" % n)
+    s = s.replace(a, a + '\n        fear_doctor_analyze(fearInfoLog); /* FEAR-DOCTOR */', 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: shader.cpp FEAR-DOCTOR failure analysis added")
+
+# ------------------------------------------ FV6: framebuffer status hints
+p = os.path.join(root, 'gl/framebuffer.cpp')
+s = open(p).read()
+if 'FEAR-DOCTOR' in s:
+    print("FEARPATCH SKIP: framebuffer.cpp doctor hints already present")
+else:
+    a = '        LOG_W_FORCE("FEARRENDER-FBODIAG: fbo=%u target=0x%x status=0x%x", fbo, target, status);'
+    n = s.count(a)
+    if n != 1:
+        fail("FBODIAG status line anchor count = %d" % n)
+    hints = a + '''
+        if (status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            LOG_W_FORCE("FEAR-DOCTOR: INCOMPLETE_ATTACHMENT - a colortex format is not renderable on this GPU (RGBA16/RGB16/RG16/R16/RGB16F/RGB32F are auto-rewritten; this target uses something else) - send this log");
+        } else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+            LOG_W_FORCE("FEAR-DOCTOR: MISSING_ATTACHMENT - the pack asked for a framebuffer with no image attached");
+        } else if (status == GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER) {
+            LOG_W_FORCE("FEAR-DOCTOR: INCOMPLETE_DRAW_BUFFER - a draw buffer has no attachment (MRT slot beyond the GLES limit?)");
+        } else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
+            LOG_W_FORCE("FEAR-DOCTOR: FRAMEBUFFER_UNSUPPORTED - the driver rejected the attachment combination - send this log");
+        } else if (status == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+            LOG_W_FORCE("FEAR-DOCTOR: INCOMPLETE_MULTISAMPLE - sample-count mismatch in the pack's framebuffers");
+        }'''
+    s = s.replace(a, hints, 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: framebuffer.cpp FEAR-DOCTOR status hints added")
 
 print("FEARPATCH DONE")
