@@ -155,10 +155,12 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    // FV3 SHIELD (P01-P10): every researched zink-on-Mali fix, armed together
+                    envMap.put("ZINK_DESCRIPTORS", "lazy");
+                    envMap.put("ZINK_DEBUG", "noreorder,sync,compact,norp,flushsync,noshobj,nobgc");
                     envMap.put("GALLIUM_THREAD", "0");
                     envMap.put("mesa_glthread", "false");
-                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: full-sync zink enabled (proven Mali stability fix)");
+                    Logger.appendToLog("[FearVulkan] Mali/system-Vulkan path: FV3 SHIELD active (lazy+compact+norp+flushsync+noshobj+nobgc+sync+noreorder)");
                 } else {
                     envMap.put("mesa_glthread", "false");
                 }
