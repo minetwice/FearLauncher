@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""FEARWIRE v7: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
+"""FEARWIRE v8: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
 
 Renderer lineup (user decision): Turnip Zink, FearRender, LTW (hidden until
 libltw.so is bundled), Holy GL4ES. FearVulkan was removed after the zink-on-
 Mali crash investigation; its history lives in git (build-fearvulkan.yml).
 Safe to re-run: every block skips when already applied.
+
+v8: config.json is built with org.json so missing keys (fsr1Setting,
+maxGlslCacheSize) merge into an existing file; GameRunner gets the options.txt
+FPS unlock (maxFps=260 + vsync off) for fear_render.
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
@@ -20,32 +24,75 @@ s = open(P).read()
 
 # ---- fear_render env case (MobileGlues / GLES) ----
 CASE_LINE = '            case "fear_render":\n'
+# v8 (FEAR-FSR1): build config.json with org.json so missing keys (fsr1Setting,
+# maxGlslCacheSize) are merged into an existing file instead of being skipped.
 ENV_CASE = (
     CASE_LINE +
     '                Logger.appendToLog("[FearRender] Initializing FearRender renderer (GL on host GLES - universal Mali/Adreno):");\n'
     '                envMap.put("FEAR_RENDERER", renderer);\n'
     '                envMap.put("vblank_mode", "0");\n'
-    '                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults\n'
+    '                // [FearRender] MobileGlues tuning: config dir + shader-friendly defaults + FSR1\n'
     '                try {\n'
     '                    java.io.File mgDir = new java.io.File(Tools.DIR_GAME_HOME, "MG");\n'
     '                    java.io.File mgCfg = new java.io.File(mgDir, "config.json");\n'
-    '                    if (!mgCfg.exists()) {\n'
-    '                        //noinspection ResultOfMethodCallIgnored\n'
-    '                        mgDir.mkdirs();\n'
+    '                    //noinspection ResultOfMethodCallIgnored\n'
+    '                    mgDir.mkdirs();\n'
+    '                    org.json.JSONObject cfg = new org.json.JSONObject();\n'
+    '                    if (mgCfg.exists()) {\n'
+    '                        java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(mgCfg));\n'
+    '                        StringBuilder sb = new StringBuilder();\n'
+    '                        String ln;\n'
+    '                        while ((ln = br.readLine()) != null) sb.append(ln);\n'
+    '                        br.close();\n'
+    '                        try { cfg = new org.json.JSONObject(sb.toString()); } catch (Throwable ignored) {}\n'
+    '                    }\n'
+    '                    boolean changed = false;\n'
+    '                    if (!cfg.has("enableNoError")) { cfg.put("enableNoError", 2); changed = true; }\n'
+    '                    if (!cfg.has("enableExtComputeShader")) { cfg.put("enableExtComputeShader", 1); changed = true; }\n'
+    '                    if (!cfg.has("enableExtTimerQuery")) { cfg.put("enableExtTimerQuery", 1); changed = true; }\n'
+    '                    if (!cfg.has("enableExtDirectStateAccess")) { cfg.put("enableExtDirectStateAccess", 1); changed = true; }\n'
+    '                    // FSR1 UltraQuality: render at ~77% + AMD FidelityFX sharpen upscale -> more FPS, clean crisp image\n'
+    '                    if (!cfg.has("fsr1Setting")) { cfg.put("fsr1Setting", 1); changed = true; }\n'
+    '                    // 64MB on-disk shader cache, so translated shaders are not recompiled after eviction\n'
+    '                    if (!cfg.has("maxGlslCacheSize")) { cfg.put("maxGlslCacheSize", 64); changed = true; }\n'
+    '                    if (changed || !mgCfg.exists()) {\n'
     '                        java.io.FileWriter fw = new java.io.FileWriter(mgCfg);\n'
-    '                        fw.write("{\\\"enableNoError\\\":2,\\\"enableExtComputeShader\\\":1,\\\"enableExtTimerQuery\\\":1,\\\"enableExtDirectStateAccess\\\":1}");\n'
+    '                        fw.write(cfg.toString());\n'
     '                        fw.close();\n'
     '                    }\n'
     '                    envMap.put("MG_DIR_PATH", mgDir.getAbsolutePath());\n'
-    '                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath());\n'
+    '                    Logger.appendToLog("[FearRender] MobileGlues config dir: " + mgDir.getAbsolutePath() + (cfg.optInt("fsr1Setting", 0) > 0 ? " [FSR1 UltraQuality: fps boost + sharpen]" : ""));\n'
     '                } catch (Throwable t) {\n'
     '                    Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);\n'
     '                }\n'
     '                break;\n'
 )
 
-if 'MG_DIR_PATH' in s:
-    print("FEARWIRE SKIP: fear_render env case fully wired (incl. MobileGlues config)")
+# ---- v8 (FEAR-FSR1-MIGRATE): replace the old fixed-JSON config block with the
+# ---- org.json merge version (adds fsr1Setting + maxGlslCacheSize upgrades).
+# ---- Boundary-based replacement: the old block's only fragile line was the
+# ---- raw JSON write; locating it by markers keeps this file transmission-safe.
+NEW_CFG_BODY = ENV_CASE[ENV_CASE.index('                // [FearRender] MobileGlues tuning'):]
+NEW_CFG_BODY = NEW_CFG_BODY[:NEW_CFG_BODY.index('                break;\n')]
+if 'org.json.JSONObject cfg' in s:
+    print("FEARWIRE SKIP: JREUtils config block already migrated (org.json)")
+elif 'MG_DIR_PATH' not in s:
+    print("FEARWIRE INFO: fresh install, insert path will carry the v8 block")
+else:
+    i0 = s.find('                // [FearRender] MobileGlues tuning')
+    i1 = s.find('                }\n', s.find('config setup failed', i0))
+    if i0 > 0 and i1 > i0:
+        s = s[:i0] + NEW_CFG_BODY + s[i1 + len('                }\n'):]
+        open(P, 'w').write(s)
+        print("FEARWIRE OK: JREUtils config block migrated to org.json merge (FSR1 + shader cache)")
+        s = open(P).read()
+    else:
+        fail("JREUtils has MG_DIR_PATH but the old config block was not found by markers")
+
+if 'MG_DIR_PATH' in s and 'org.json.JSONObject cfg' in s:
+    print("FEARWIRE SKIP: fear_render env case fully wired (incl. MobileGlues config + FSR1)")
+elif 'MG_DIR_PATH' in s:
+    pass  # migrated above, message already printed
 else:
     if 'case "fear_render":' in s:
         fail('fear_render case exists but without MG_DIR_PATH and body not recognized')
@@ -132,6 +179,49 @@ if 'rendererName.equals("fear_render") ? "libFearRender.so"' not in s3:
 else:
     print("FEARWIRE SKIP: GameRunner fear_render libname already patched")
 
+
+# ------------------------------------------------- GameRunner: options.txt fps unlock
+# Vanilla Minecraft defaults to maxFps=60 with vsync on - the "60 fps lock".
+# For fear_render, bump to Unlimited (260) + vsync off right before launch.
+# Never fights a deliberate low setting (30) - only the defaults (60/120/absent).
+s3 = open(P3).read()
+if 'FEAR-FPSUNLOCK' in s3:
+    print("FEARWIRE SKIP: GameRunner fps unlock already wired")
+else:
+    old_import = 'import net.kdt.pojavlaunch.multirt.MultiRTUtils;'
+    n = s3.count(old_import)
+    if n != 1:
+        fail("GameRunner MultiRTUtils import anchor count = %d" % n)
+    s3 = s3.replace(old_import, old_import + '\nimport net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK', 1)
+
+    anchor_gr = '''        File gamedir = instance.getGameDirectory();
+        JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
+'''
+    n = s3.count(anchor_gr)
+    if n != 1:
+        fail("GameRunner gamedir anchor count = %d" % n)
+    fps_block = anchor_gr + '''
+        // [FearRender] FEAR-FPSUNLOCK: vanilla defaults cap the game at maxFps=60
+        // with vsync on. Bump to Unlimited (260) and disable vsync so the frame
+        // rate is bounded only by the GPU (the renderer also forces EGL swap
+        // interval 0). Never fights a deliberate low user setting like 30.
+        if (rendererName.equals("fear_render")) {
+            try {
+                MCOptionUtils.load(gamedir.getAbsolutePath());
+                String maxFps = MCOptionUtils.get("maxFps");
+                if (maxFps == null || "60".equals(maxFps) || "120".equals(maxFps)) {
+                    MCOptionUtils.set("maxFps", "260");
+                    MCOptionUtils.set("vsync", "false");
+                    MCOptionUtils.save();
+                }
+            } catch (Throwable t) {
+                Log.w("FearRender", "Could not unlock fps in options.txt", t);
+            }
+        }
+'''
+    s3 = s3.replace(anchor_gr, fps_block, 1)
+    open(P3, 'w').write(s3)
+    print("FEARWIRE OK: GameRunner options.txt fps unlock wired (fear_render)")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
