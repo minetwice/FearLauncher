@@ -206,113 +206,6 @@ public class GameRunner {
         JREUtils.setEnviroimentForGame(activity, rendererName);
         JREUtils.chdir(instance.getGameDirectory().getAbsolutePath());
 
-        // MC19: restored MC17 - block-texture glitch fix for zink on ARM
-        // proprietary Vulkan (async-compute mipmap corruption).
-        if ((rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("panvk_zink"))
-                && !GLInfoUtils.getGlInfo().isAdreno()) {
-            try {
-                MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());
-                MCOptionUtils.set("mipmapLevels", "0");
-                MCOptionUtils.save();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[TurnipZink] MC19: mipmapLevels=0 + full-sync zink (Mali block texture glitch fix, restored)"); } catch (Throwable ignored) {}
-            } catch (Throwable t2) {
-                Log.w("GameRunner", "MC19 mipmap tweak failed", t2);
-            }
-            // MC20b: PanVK isolation test - freeze happens exactly at Iris
-            // post-reload shader compilation. Disable the shaderpack for panvk
-            // launches so the title screen renders through the internal
-            // pipeline. Only affects panvk_zink sessions.
-            if (rendererName.equals("panvk_zink")) {
-                try {
-                    File configDir = new File(instance.getGameDirectory(), "config");
-                    if (FileUtils.ensureDirectorySilently(configDir)) {
-                        File irisProps = new File(configDir, "iris.properties");
-                        String props = "";
-                        if (irisProps.exists()) { props = Tools.read(irisProps.getAbsolutePath()); }
-                        if (props.contains("enableShaders=true")) {
-                            props = props.replace("enableShaders=true", "enableShaders=false");
-                        } else if (!props.contains("enableShaders=")) {
-                            props = (props.isEmpty() ? "" : props + "\n") + "enableShaders=false\n";
-                        }
-                        Tools.write(irisProps, props);
-                        net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC20b: Iris shaderpack disabled for PanVK (isolation test - freeze at Iris shader compile)");
-                    }
-                } catch (Throwable t3) {
-                    Log.w("GameRunner", "MC20b iris tweak failed", t3);
-                }
-            }
-
-            // MC21b: freeze diagnosis - the panvk freeze leaves the GPU
-            // fully idle (kbase watchdog: ins==ext, act=0, no CS error),
-            // so the render thread is stuck in userspace native code.
-            // Android kills the frozen app ~15s after the freeze, so the
-            // dump must fire FAST: watch the game log, and after 8s of
-            // game-log silence SIGQUIT ourselves so the embedded JVM
-            // prints a full Java thread dump into the log (exact frame
-            // the Render thread is blocked in). Also dump ART launcher
-            // thread states (explains the auto-close). Panvk_zink only.
-            // MC21c: dump budget raised to 200 - MC startup has legit 10s+
-            // log gaps that must not exhaust the budget before the freeze.
-            // MC30: MC21b watchdog DISABLED - with the clean (uninstrumented)
-            // PanVK driver there are no watchdog heartbeat lines, so every legit
-            // 8s+ game-log silence (shader compile, resource loading) triggered
-            // a full JVM+ART thread dump = massive log spam. Off for baseline.
-            if (false) {
-                final File mc21bLogFile = new File(Tools.DIR_GAME_HOME, "latestlog.txt");
-                Thread mc21bWatchdog = new Thread(() -> {
-                    final long start = System.currentTimeMillis();
-                    long lastOffset = -1;
-                    long lastProgress = System.currentTimeMillis();
-                    int dumps = 0;
-                    while (dumps < 200) {
-                        try { Thread.sleep(3000); } catch (InterruptedException e) { return; }
-                        try {
-                            if (!mc21bLogFile.exists() || System.currentTimeMillis() - start < 20000) continue;
-                            long lastGameOffset = 0;
-                            java.io.RandomAccessFile raf = new java.io.RandomAccessFile(mc21bLogFile, "r");
-                            try {
-                                String line;
-                                while ((line = raf.readLine()) != null) {
-                                    if (line.contains("[MESA-PANVK]") || line.contains("[MC21b]")) continue;
-                                    lastGameOffset = raf.getFilePointer();
-                                }
-                            } finally {
-                                raf.close();
-                            }
-                            if (lastGameOffset != lastOffset) {
-                                lastOffset = lastGameOffset;
-                                lastProgress = System.currentTimeMillis();
-                            } else if (System.currentTimeMillis() - lastProgress > 8000) {
-                                lastProgress = System.currentTimeMillis();
-                                dumps++;
-                                net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] Game log quiet for 8s - requesting JVM thread dump #" + dumps);
-                                StringBuilder artDump = new StringBuilder("[MC21b] ART (launcher) thread states:");
-                                for (Map.Entry<Thread, StackTraceElement[]> en : Thread.getAllStackTraces().entrySet()) {
-                                    Thread t = en.getKey();
-                                    artDump.append("\n[MC21b] ").append(t.getName()).append(" (").append(t.getState()).append(")");
-                                    StackTraceElement[] st = en.getValue();
-                                    for (int i = 0; i < Math.min(st.length, 6); i++) {
-                                        artDump.append("\n[MC21b]     at ").append(st[i]);
-                                    }
-                                }
-                                try { net.kdt.pojavlaunch.Logger.appendToLog(artDump.toString()); } catch (Throwable ignored) {}
-                                try {
-                                    java.lang.Runtime.getRuntime().exec(new String[]{"kill", "-3", String.valueOf(android.os.Process.myPid())});
-                                } catch (Throwable tKill) {
-                                    try { android.os.Process.sendSignal(android.os.Process.myPid(), 3); } catch (Throwable ignored) {}
-                                }
-                            }
-                        } catch (Throwable tWatch) {
-                            try { net.kdt.pojavlaunch.Logger.appendToLog("[MC21b] watchdog error: " + tWatch); } catch (Throwable ignored) {}
-                        }
-                    }
-                }, "MC21b-FreezeWatchdog");
-                mc21bWatchdog.setDaemon(true);
-                mc21bWatchdog.start();
-                try { net.kdt.pojavlaunch.Logger.appendToLog("[PanVK] MC21b: freeze watchdog armed v4 (200 dumps budget, 8s silence -> JVM+ART dump)"); } catch (Throwable ignored) {}
-            }
-        }
-
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         if(rendererLibrary == null) {
             Log.i("GameRunner", "Falling back to GL4ES 1.1.4");
@@ -323,7 +216,7 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("krypton_wrapper") ? "libNG-GL4ES.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"));
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
