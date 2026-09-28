@@ -67,18 +67,28 @@ if not os.path.isdir(os.path.join(root, 'gl')):
     fail("MobileGlues-cpp dir not found: %s" % root)
 
 # ------------------------------------------------- glsl_for_es.cpp logging
+# The anchor line contains a C string escape (backslash-n) before %s; building
+# it dynamically instead of as a literal keeps this file free of fragile
+# escape sequences (a doubled backslash slipped through a manual push once and
+# broke the whole patch run).
 p = os.path.join(root, 'gl/glsl/glsl_for_es.cpp')
 s = open(p).read()
 
-a = 'LOG_D("GLSL Compiling ERROR: \\\n%s", shader.getInfoLog())'
-b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:\\\n%s", shader.getInfoLog())'
-if a in s:
-    s = s.replace(a, b, 1)
-    print("FEARPATCH OK: glslang compile errors now always logged")
-elif b in s:
+if '[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR:' in s:
     print("FEARPATCH SKIP: glslang compile errors already upgraded")
 else:
-    fail("glslang compile-error anchor not found")
+    idx = s.find('GLSL Compiling ERROR')
+    if idx < 0:
+        fail("glslang compile-error anchor not found")
+    start = s.rfind('LOG_D(', 0, idx)
+    end = s.find('shader.getInfoLog())', idx)
+    if start < 0 or end < 0:
+        fail("glslang compile-error anchor not found")
+    end += len('shader.getInfoLog())')
+    a = s[start:end]
+    b = a.replace('LOG_D("GLSL Compiling ERROR: ', 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV COMPILE ERROR: ')
+    s = s.replace(a, b, 1)
+    print("FEARPATCH OK: glslang compile errors now always logged")
 
 a = 'LOG_D("Shader Linking ERROR: %s", program.getInfoLog())'
 b = 'LOG_W_FORCE("[FearRender] GLSL(glslang)->SPIRV LINK ERROR: %s", program.getInfoLog())'
@@ -124,7 +134,8 @@ else:
     if s.count(anchor) != 1:
         fail("GLSLtoGLSLES_2 anchor not found")
 
-    helpers = r'''// ------------------------- FearRender shader-compat helpers -------------------------
+    helpers = r'''
+// ------------------------- FearRender shader-compat helpers -------------------------
 // FEARRENDER-NOPERSPECTIVE: GLES has no noperspective interpolation; SPIRV-Cross
 // would emit GL_NV_shader_noperspective_interpolation for it, which Mali rejects.
 // Demote the qualifier to the default (smooth) interpolation before glslang runs.
