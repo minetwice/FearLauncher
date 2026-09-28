@@ -129,21 +129,38 @@ public class GameRunner {
         File gamedir = instance.getGameDirectory();
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
-        // [FearRender] FEAR-FPSUNLOCK: vanilla defaults cap the game at maxFps=60
-        // with vsync on. Bump to Unlimited (260) and disable vsync so the frame
-        // rate is bounded only by the GPU (the renderer also forces EGL swap
-        // interval 0). Never fights a deliberate low user setting like 30.
+        // [FearRender] FEAR-FPSUNLOCK + FEAR-TURBO: vanilla defaults cap the game
+        // at maxFps=60 with vsync on - bump to Unlimited (260) + vsync off (the
+        // renderer also forces EGL swap interval 0); never fights a deliberate
+        // low setting like 30. FEAR-TURBO then trims hidden CPU costs that never
+        // pay off visually on heavy modpacks: biome blending above 1 and
+        // simulation distance above 6 (per-chunk entity ticking is the main
+        // stutter source - see the multi-second worst-frame spikes in FEAR-PERF
+        // logs). Values are only lowered, never raised, and only for
+        // fear_render.
         if (rendererName.equals("fear_render")) {
             try {
                 MCOptionUtils.load(gamedir.getAbsolutePath());
                 String maxFps = MCOptionUtils.get("maxFps");
+                boolean fearChanged = false;
                 if (maxFps == null || "60".equals(maxFps) || "120".equals(maxFps)) {
                     MCOptionUtils.set("maxFps", "260");
                     MCOptionUtils.set("vsync", "false");
-                    MCOptionUtils.save();
+                    fearChanged = true;
                 }
+                String fearBiome = MCOptionUtils.get("biomeBlendRadius");
+                if (fearBiome == null || Integer.parseInt(fearBiome.trim()) > 1) {
+                    MCOptionUtils.set("biomeBlendRadius", "1");
+                    fearChanged = true;
+                }
+                String fearSim = MCOptionUtils.get("simulationDistance");
+                if (fearSim == null || Integer.parseInt(fearSim.trim()) > 6) {
+                    MCOptionUtils.set("simulationDistance", "6");
+                    fearChanged = true;
+                }
+                if (fearChanged) MCOptionUtils.save();
             } catch (Throwable t) {
-                Log.w("FearRender", "Could not unlock fps in options.txt", t);
+                Log.w("FearRender", "Could not apply fps unlock / FEAR-TURBO in options.txt", t);
             }
         }
 
