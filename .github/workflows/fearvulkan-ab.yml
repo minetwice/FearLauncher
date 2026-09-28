@@ -1,0 +1,66 @@
+name: FearVulkan A/B (reference lib)
+
+# FV2 A/B experiment: make libFearVulkan.so byte-identical to the proven
+# libOSMesa_8.so and remove the FV1 lazy-descriptor env, so that the
+# fear_vulkan renderer matches turnip_zink EXACTLY (same lib bytes, same env,
+# only the .so filename differs).
+#   - If fear_vulkan is then stable  -> our fresh Mesa build was subtly bad;
+#     keep the known-good bytes as the FearVulkan base and iterate from there.
+#   - If fear_vulkan still crashes  -> the problem is not in our renderer at
+#     all (shared zink path / driver / instance state) - investigate that.
+# Also runs fearwire.py (v5) which removes FV1 before committing.
+on:
+  push:
+    branches:
+      - Mega-checkpoint
+    paths:
+      - '.github/workflows/fearvulkan-ab.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: fearvulkan-ab
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  ab-copy:
+    name: Copy known-good lib + rewire
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Copy libOSMesa_8.so as libFearVulkan.so (byte-identical)
+        run: |
+          SRC=app_pojavlauncher/src/main/jniLibs/arm64-v8a/libOSMesa_8.so
+          DST=app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearVulkan.so
+          [ -f "$SRC" ] || { echo "libOSMesa_8.so missing"; exit 1; }
+          cp -v "$SRC" "$DST"
+          ls -la "$DST"
+          md5sum "$SRC" "$DST"
+
+      - name: FEARWIRE v5 (remove FV1 lazy - match turnip_zink env)
+        run: python3 tools/fearrender/fearwire.py
+
+      - name: Commit
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearVulkan.so \
+                  app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java \
+                  app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java \
+                  app_pojavlauncher/src/main/res/values/headings_array.xml \
+                  tools/fearrender/
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git pull --rebase || true
+            git commit -m "FV2 A/B: libFearVulkan.so = byte-identical known-good libOSMesa_8.so; FV1 lazy removed (fear_vulkan == turnip_zink exactly)"
+            git push
+            echo "PUSHED FV2 A/B"
+          fi
