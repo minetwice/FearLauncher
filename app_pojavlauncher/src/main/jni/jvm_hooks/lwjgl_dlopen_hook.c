@@ -63,6 +63,14 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     bridge_environ.savedHeight = ANativeWindow_getHeight(bridge_environ.pojavWindow);
     LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
          bridge_environ.savedWidth, bridge_environ.savedHeight);
+    {
+        /* FEARWIRE-HOLYZINK-ROTATE6: unconditional marker - proves which
+           build is running and whether the renderer env is visible here. */
+        const char* fearRendererDbg = getenv("FEAR_RENDERER");
+        printf("FEARWIRE v10.9: setupBridgeWindow FEAR_RENDERER=%s surface=%dx%d\n",
+               fearRendererDbg ? fearRendererDbg : "(null)",
+               bridge_environ.savedWidth, bridge_environ.savedHeight);
+    }
     /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
        so the prebuilt libglfw.so reports a sane landscape monitor to the game */
     /* FEARWIRE-HOLYZINK-ROTATE3: the compositor shows this window's buffers
@@ -73,35 +81,14 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
         const char* fearRenderer = getenv("FEAR_RENDERER");
         if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
             && bridge_environ.savedHeight > 0 && bridge_environ.savedWidth > 0) {
-            int (*setGeometry)(void*, int, int, int) =
-                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
-            int (*getFormat)(void*) =
-                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
-            /* FEARWIRE-HOLYZINK-ROTATE4: RTLD_DEFAULT cannot see the platform
-               libnativewindow.so from this isolated namespace - dlopen it. */
-            void* fearNatWin = NULL;
-            if (setGeometry == NULL || getFormat == NULL) {
-                fearNatWin = dlopen("libnativewindow.so", RTLD_NOW);
-                if (fearNatWin == NULL) fearNatWin = dlopen("libandroid.so", RTLD_NOW);
-                if (fearNatWin != NULL) {
-                    if (setGeometry == NULL)
-                        setGeometry = (int (*)(void*, int, int, int)) dlsym(fearNatWin, "ANativeWindow_setBuffersGeometry");
-                    if (getFormat == NULL)
-                        getFormat = (int (*)(void*)) dlsym(fearNatWin, "ANativeWindow_getFormat");
-                }
-                printf("FEARWIRE-ROTATE4: RTLD_DEFAULT missed, dlopen handle=%p setGeometry=%p getFormat=%p\n",
-                       fearNatWin, (void*) setGeometry, (void*) getFormat);
-            }
-            if (setGeometry != NULL && getFormat != NULL) {
-                setGeometry(bridge_environ.pojavWindow,
+            /* FEARWIRE-HOLYZINK-ROTATE6: these are NDK-public functions and
+               pojavexec links libnativewindow directly - no dlsym needed. */
+            ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
                             bridge_environ.savedHeight, /* portrait width */
                             bridge_environ.savedWidth,  /* portrait height */
-                            getFormat(bridge_environ.pojavWindow));
-                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED\n",
-                       bridge_environ.savedHeight, bridge_environ.savedWidth);
-            } else {
-                printf("FEARWIRE-ROTATE3: FAILED to resolve ANativeWindow symbols, geometry NOT swapped!\n");
-            }
+                            ANativeWindow_getFormat(bridge_environ.pojavWindow));
+            printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED (direct NDK call)\n",
+                   bridge_environ.savedHeight, bridge_environ.savedWidth);
             pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
         } else {
             pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
