@@ -63,6 +63,9 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     bridge_environ.savedHeight = ANativeWindow_getHeight(bridge_environ.pojavWindow);
     LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
          bridge_environ.savedWidth, bridge_environ.savedHeight);
+    /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
+       so the prebuilt libglfw.so reports a sane landscape monitor to the game */
+    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
     if (osmesa_is_loaded()) osm_setup_window();
 }
 

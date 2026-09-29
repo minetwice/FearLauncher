@@ -77,3 +77,13 @@ const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
 }
 
 
+/* FEARWIRE-DISPSPEC: publish the display size the prebuilt libglfw.so reports
+   as the monitor video mode (see pojavexec.h). */
+void pojavexec_setDisplayParams(int width, int height, float hz) {
+    renderspec.disp_width = width;
+    renderspec.disp_height = height;
+    renderspec.disp_hz = hz;
+    printf("Renderspec display params: %dx%d@%g\n", width, height, hz);
+}
+
+
