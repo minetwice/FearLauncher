@@ -648,6 +648,160 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 else:
     print("FEARWIRE SKIP: awt_bridge.c rotation intercept already present")
 
+# ---- HOLYZINK-ROTATE3 (Pojav-classic): the transform intercepts (v10.4/10.5)
+# ---- never fire - nothing calls ANativeWindow_setBuffersTransform. The real
+# ---- mechanism: the compositor displays this window's buffers ROTATED (the
+# ---- landscape-locked activity on a portrait-native display). zink renders
+# ---- straight into the buffers, so the game shows sideways. Fix: give the
+# ---- window PORTRAIT buffer geometry (identity/native orientation), make MC
+# ---- render portrait (swapped override dims + swapped monitor mode), and let
+# ---- the compositor rotate it back upright. Touch input is remapped in
+# ---- dnbglfw GLFW (screen landscape -> MC portrait space).
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE3' not in sl:
+    old = '''    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);'''
+    if sl.count(old) != 1:
+        fail("setDisplayParams anchor count = %d" % sl.count(old))
+    new = '''    /* FEARWIRE-HOLYZINK-ROTATE3: the compositor shows this window's buffers
+       rotated 90 (landscape-locked activity on a portrait-native display).
+       zink renders straight into the buffers, so force PORTRAIT geometry:
+       MC renders portrait, Android rotates it upright. */
+    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && bridge_environ.savedHeight > 0 && bridge_environ.savedWidth > 0) {
+            int (*setGeometry)(void*, int, int, int) =
+                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+            int (*getFormat)(void*) =
+                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
+            if (setGeometry != NULL && getFormat != NULL) {
+                setGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
+            pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+        } else {
+            pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+        }
+    }'''
+    sl = sl.replace(old, new, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: setupBridgeWindow forces portrait geometry + monitor for holy")
+else:
+    print("FEARWIRE SKIP: portrait geometry already forced")
+
+PA = 'app_pojavlauncher/src/main/jni/awt_bridge.c'
+sa = open(PA).read()
+if 'ROTATE3-guard' not in sa:
+    old_fn = '''jint JNI_OnLoad(JavaVM* vm, void* reserved) {'''
+    if sa.count(old_fn) != 1:
+        fail("awt_bridge JNI_OnLoad anchor count = %d" % sa.count(old_fn))
+    new_fn = '''/* FEARWIRE-HOLYZINK-ROTATE3-guard: mojo's glfw resets the buffer geometry to
+   the app-landscape default with (0,0); keep the portrait geometry we forced. */
+static int (*real_holy_setBuffersGeometry_p)(void*, int, int, int);
+static int (*real_holy_getWinWidth_p)(void*);
+static int (*real_holy_getWinHeight_p)(void*);
+static int hooked_holy_setBuffersGeometry_impl(void* window, int width, int height, int format) {
+    const char* fearRenderer = getenv("FEAR_RENDERER");
+    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+        && width == 0 && height == 0 && window != NULL) {
+        if (real_holy_getWinWidth_p == NULL) {
+            real_holy_getWinWidth_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getWidth");
+            real_holy_getWinHeight_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getHeight");
+        }
+        if (real_holy_getWinWidth_p != NULL && real_holy_getWinHeight_p != NULL) {
+            width = real_holy_getWinWidth_p(window);
+            height = real_holy_getWinHeight_p(window);
+            printf("FEARWIRE-ROTATE3: kept geometry reset -> %dx%d\\n", width, height);
+        }
+    }
+    if (real_holy_setBuffersGeometry_p == NULL)
+        real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+    if (real_holy_setBuffersGeometry_p == NULL) return -1;
+    return real_holy_setBuffersGeometry_p(window, width, height, format);
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {'''
+    sa = sa.replace(old_fn, new_fn, 1)
+    old_reg = '''    bytehook_hook_all(NULL, "ANativeWindow_setBuffersTransform",
+                      (void*) hooked_holy_setBuffersTransform_impl, NULL, NULL);'''
+    if sa.count(old_reg) != 1:
+        fail("awt_bridge bytehook register anchor count = %d" % sa.count(old_reg))
+    new_reg = old_reg + '''
+    bytehook_hook_all(NULL, "ANativeWindow_setBuffersGeometry",
+                      (void*) hooked_holy_setBuffersGeometry_impl, NULL, NULL); /* ROTATE3-guard */'''
+    sa = sa.replace(old_reg, new_reg, 1)
+    open(PA, 'w').write(sa)
+    print("FEARWIRE OK: awt_bridge guards geometry resets (ROTATE3)")
+else:
+    print("FEARWIRE SKIP: geometry reset guard already present")
+
+PG = 'dnbglfw/src/main/java/git/artdeell/dnbootstrap/glfw/GLFW.java'
+sg = open(PG).read()
+if 'FEARWIRE-HOLYZINK-ROTATE3' not in sg:
+    old_flag = '''    public static double cursorX = 0.5, cursorY = 0.5;'''
+    if sg.count(old_flag) != 1:
+        fail("GLFW.java cursorX anchor count = %d" % sg.count(old_flag))
+    sg = sg.replace(old_flag, old_flag + '''
+    /* FEARWIRE-HOLYZINK-ROTATE3: true when the game renders portrait while the
+       screen is landscape (holy zink) - touch coords are remapped at the final
+       native call so every input path funnels through one transform. */
+    public static boolean holyRotate = false;''', 1)
+    old_send = '''        sendMousePosition0(cursorX, cursorY);
+    }'''
+    if sg.count(old_send) != 1:
+        fail("GLFW.java sendMousePosition0 anchor count = %d" % sg.count(old_send))
+    new_send = '''        /* FEARWIRE-HOLYZINK-ROTATE3: MC's window is portrait, the screen is
+           landscape - map screen coords into the game's portrait space. */
+        double sendX = cursorX, sendY = cursorY;
+        if (holyRotate) { sendX = cursorY; sendY = 1 - cursorX; }
+        sendMousePosition0(sendX, sendY);
+    }'''
+    sg = sg.replace(old_send, new_send, 1)
+    old_recv = '''    private static void receiveCursorPos(double x, double y) {
+        cursorX = x;
+        cursorY = y;'''
+    if sg.count(old_recv) != 1:
+        fail("GLFW.java receiveCursorPos anchor count = %d" % sg.count(old_recv))
+    new_recv = '''    private static void receiveCursorPos(double x, double y) {
+        if (holyRotate) { double t = x; x = 1 - y; y = t; } /* FEARWIRE-HOLYZINK-ROTATE3: MC portrait -> screen */
+        cursorX = x;
+        cursorY = y;'''
+    sg = sg.replace(old_recv, new_recv, 1)
+    open(PG, 'w').write(sg)
+    print("FEARWIRE OK: dnbglfw GLFW input remap for holy")
+else:
+    print("FEARWIRE SKIP: GLFW input remap already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-ROTATE3' not in sj:
+    old_opt = '''        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth));
+        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));'''
+    if sj.count(old_opt) != 1:
+        fail("MinecraftGLSurface override anchor count = %d" % sj.count(old_opt))
+    new_opt = '''        /* FEARWIRE-HOLYZINK-ROTATE3: holy zink renders portrait (the compositor
+           rotates it upright), so give MC swapped dims and enable the dnbglfw
+           input remap. */
+        boolean holyZink = false;
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            holyZink = sel != null && "holy_zink_kopper".equals(sel.renderer);
+        } catch (Throwable ignored) {}
+        GLFW.holyRotate = holyZink;
+        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth));
+        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));'''
+    sj = sj.replace(old_opt, new_opt, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface swaps override dims for holy")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface override swap already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
