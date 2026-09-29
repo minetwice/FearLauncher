@@ -163,6 +163,15 @@ public class JREUtils {
                     Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
                 }
                 break;
+            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Initializing Zink Kopper renderer (Mesa EGL + Zink over the system Vulkan driver)...");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("vblank_mode", "0");
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
@@ -228,7 +237,7 @@ public class JREUtils {
             // Do NOT set POJAV_RENDERER — Sodium treats it as hard fail.
             // Hooks detect Zink via GALLIUM_DRIVER=zink / FEAR_RENDERER.
         } else {
-            if (!"fear_render".equals(renderer)) envMap.put("POJAV_RENDERER", renderer);
+            if (!"fear_render".equals(renderer) && !"holy_zink_kopper".equals(renderer)) envMap.put("POJAV_RENDERER", renderer); /* FEARWIRE-HOLYZINK */
         }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
@@ -255,7 +264,7 @@ public class JREUtils {
         }
 
         // Sodium System.getenv("POJAV_RENDERER") — scrub Java + libc
-        if (isZink || "fear_render".equals(renderer)) {
+        if (isZink || "fear_render".equals(renderer) || "holy_zink_kopper".equals(renderer)) { /* FEARWIRE-HOLYZINK */
             scrubPojavDetectorEnv();
         }
     }
@@ -344,6 +353,13 @@ public class JREUtils {
 
 
         switch (renderer){
+            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
+                renderLibrary = "libEGL_mesa.so";
+                useGles = true;
+                bypassNamespace = false;
+                glesVersion = 3;
+                break;
             case "turnip_zink":
             case "vulkan_zink":
                 Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");

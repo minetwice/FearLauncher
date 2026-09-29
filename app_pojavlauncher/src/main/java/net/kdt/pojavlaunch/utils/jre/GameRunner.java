@@ -252,7 +252,7 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"));
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("holy_zink_kopper") ? "libglxshim.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so")); /* FEARWIRE-HOLYZINK */
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
