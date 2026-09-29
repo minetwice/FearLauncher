@@ -324,7 +324,7 @@ if 'FEARWIRE-HOLYZINK' not in open(P).read():
     holy_load = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
                 Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
                 renderLibrary = "libEGL_mesa.so";
-                useGles = true;
+                useGles = false; /* FEARWIRE-HOLYZINK-DESKTOP: force_gles_context made GLFW force a GLES context -> MC died on error 1282; with false GLFW honors MC's desktop GL request */
                 bypassNamespace = false;
                 glesVersion = 3;
                 break;
@@ -395,6 +395,30 @@ if 'POJAVEXEC_EGL' not in s:
     print("FEARWIRE OK: holy zink POJAVEXEC_EGL added (glxshim EGL lib env var)")
 else:
     print("FEARWIRE SKIP: holy zink POJAVEXEC_EGL already set")
+
+# ---- HOLYZINK-DESKTOP fix: the GLES-forced context was the killer. With
+# ---- force_gles_context=1 mojo's GLFW (android_window.c android_reconfigure_context)
+# ---- rewrites the requested context to GLES 3 -> zink served "OpenGL ES 3.2"
+# ---- and MC died: GL_INVALID_ENUM (GL_TEXTURE_CUBE_MAP_SEAMLESS /
+# ---- GL_PROGRAM_POINT_SIZE are desktop-only) then fatal 1282 on
+# ---- glTexImage2D(DEPTH_COMPONENT32, GL_FLOAT). With useGles=false GLFW keeps
+# ---- MC's desktop GL 3.2 core request -> zink desktop GL over system Vulkan.
+s = open(P).read()
+if 'FEARWIRE-HOLYZINK-DESKTOP' not in s:
+    old_case = '''                renderLibrary = "libEGL_mesa.so";
+                useGles = true;
+                bypassNamespace = false;
+'''
+    if s.count(old_case) != 1:
+        fail("holy zink load case for DESKTOP migration not found (count = %d)" % s.count(old_case))
+    s = s.replace(old_case, '''                renderLibrary = "libEGL_mesa.so";
+                useGles = false; /* FEARWIRE-HOLYZINK-DESKTOP: GLFW honors MC's desktop GL request; zink serves GL 4.6 over system Vulkan */
+                bypassNamespace = false;
+''', 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: holy zink useGles=false (desktop GL context, not GLES)")
+else:
+    print("FEARWIRE SKIP: holy zink useGles already false")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
