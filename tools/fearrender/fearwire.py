@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FEARWIRE v9: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
+"""FEARWIRE v10: FearRender (MobileGlues / GL-on-GLES) launcher wiring.
 
 Renderer lineup (user decision): Turnip Zink, FearRender, LTW (hidden until
 libltw.so is bundled), Holy GL4ES. FearVulkan was removed after the zink-on-
@@ -15,6 +15,12 @@ simulationDistance at 6 for fear_render (per-chunk entity ticking is the
 dominant stutter source on heavy modpacks - the multi-second worst-frame
 spikes in FEAR-PERF logs), with a migration path for the committed v8 block.
 Per-launch FSR switching lives in the renderer (FEAR_FSR env, fearpatch FV8).
+
+v10 (FEARWIRE-HOLYZINK): Holy Zink (Kopper) renderer added - Mesa Zink +
+Kopper (the AngelAuraMC build vendored from GoyDevv/IronizedZink, downloaded
+by build-fearrender.yml) over the SYSTEM Vulkan driver: real desktop GL 4.6
+for Iris/Sodium + shader packs, no translation layer, no turnip/panvk. The
+bridge presents through libEGL_mesa.so and LWJGL loads libglxshim.so.
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
@@ -272,6 +278,99 @@ else:
         s3 = s3.replace(anchor_gr, turbo_block, 1)
         open(P3, 'w').write(s3)
         print("FEARWIRE OK: GameRunner options.txt fps unlock + FEAR-TURBO wired (fear_render)")
+
+
+# ------------------------------------------------- Holy Zink (Kopper) renderer
+# Mesa Zink + Kopper (the AngelAuraMC mesa_zink_kopper build, vendored from
+# GoyDevv/IronizedZink at the pinned commit) over the SYSTEM Vulkan driver.
+# This is the Zalith/FCL-style zink: real desktop OpenGL 4.6 (GLSL 460), so
+# Iris/Sodium + shader packs run natively, with NO translation layer and NO
+# bundled turnip (Adreno-only) or panvk (the Mali watchdog hangs) - the phone's
+# own Vulkan driver does the work. The bridge presents through Mesa's EGL
+# (libEGL_mesa.so, like the FCL plugin contract name:gl:EGL), and LWJGL loads
+# libglxshim.so as the GL library.
+if 'FEARWIRE-HOLYZINK' not in open(P).read():
+    # ---- JREUtils: env case (before the turnip_zink one) ----
+    a = '''            case "turnip_zink":
+            case "vulkan_zink":
+                Logger.appendToLog("[TurnipZink] Initializing Zink renderer (OSMesa + Mesa Zink)...");
+'''
+    n = s.count(a)
+    if n != 1:
+        fail("JREUtils turnip_zink env case anchor count = %d" % n)
+    holy_env = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Initializing Zink Kopper renderer (Mesa EGL + Zink over the system Vulkan driver)...");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("vblank_mode", "0");
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
+'''
+    s = s.replace(a, holy_env + a, 1)
+
+    # ---- JREUtils: loadGraphicsLibrary case ----
+    a = '''            case "turnip_zink":
+            case "vulkan_zink":
+                Logger.appendToLog("[TurnipZink] Loading real Mesa OSMesa (libOSMesa_8.so)...");
+'''
+    n = s.count(a)
+    if n != 1:
+        fail("JREUtils turnip_zink load case anchor count = %d" % n)
+    holy_load = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
+                renderLibrary = "libEGL_mesa.so";
+                useGles = true;
+                bypassNamespace = false;
+                glesVersion = 3;
+                break;
+'''
+    s = s.replace(a, holy_load + a, 1)
+
+    # ---- JREUtils: POJAV_RENDERER gate (Sodium hard-fails on zink ids) ----
+    a = '''        if (!"fear_render".equals(renderer)) envMap.put("POJAV_RENDERER", renderer);'''
+    if s.count(a) == 1:
+        s = s.replace(a, '''        if (!"fear_render".equals(renderer) && !"holy_zink_kopper".equals(renderer)) envMap.put("POJAV_RENDERER", renderer); /* FEARWIRE-HOLYZINK */''', 1)
+    else:
+        fail("POJAV_RENDERER gate anchor count = %d" % s.count(a))
+
+    # ---- JREUtils: scrub Pojav detector env for holy zink too ----
+    a = '''        if (isZink || "fear_render".equals(renderer)) {
+            scrubPojavDetectorEnv();
+        }'''
+    n = s.count(a)
+    if n != 1:
+        fail("scrub anchor count = %d" % n)
+    s = s.replace(a, '''        if (isZink || "fear_render".equals(renderer) || "holy_zink_kopper".equals(renderer)) { /* FEARWIRE-HOLYZINK */
+            scrubPojavDetectorEnv();
+        }''', 1)
+    open(P, 'w').write(s)
+
+    # ---- GameRunner: LWJGL GL libname ----
+    if 'libglxshim.so' in s3:
+        print("FEARWIRE SKIP: GameRunner holy zink libname already patched")
+    else:
+        a = '''javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so"));'''
+        n = s3.count(a)
+        if n != 1:
+            fail("GameRunner libname ternary anchor count = %d" % n)
+        s3 = s3.replace(a, '''javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("holy_zink_kopper") ? "libglxshim.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so")); /* FEARWIRE-HOLYZINK */''', 1)
+        open(P3, 'w').write(s3)
+
+    # ---- headings ----
+    a1 = '        <item>Turnip Zink (Vulkan — best for Mali/Adreno)</item>'
+    a2 = '        <item>turnip_zink</item> <!-- Turnip Zink: OSMesa-based Zink (GL→Vulkan via Mesa) -->'
+    if 'holy_zink_kopper' not in s2:
+        if a1 not in s2 or a2 not in s2:
+            fail("headings holy-zink anchors not found")
+        s2 = s2.replace(a1, a1 + '\n        <item>Holy Zink (Kopper — GL 4.6 over system Vulkan, shaders)</item>', 1)
+        s2 = s2.replace(a2, a2 + '\n        <item>holy_zink_kopper</item> <!-- HolyZink: Mesa Zink+Kopper (AngelAuraMC build) over the system Vulkan driver -->', 1)
+        open(P2, 'w').write(s2)
+
+    print("FEARWIRE OK: Holy Zink (Kopper) wired (env + EGL bridge + libglxshim + headings)")
+else:
+    print("FEARWIRE SKIP: Holy Zink (Kopper) already wired")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:

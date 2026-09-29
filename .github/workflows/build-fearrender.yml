@@ -63,12 +63,22 @@ jobs:
       - name: 'FEARWIRE (launcher wiring - MG config + Sodium bypass + libname)'
         run: python3 tools/fearrender/fearwire.py
 
+      - name: 'HOLYZINK: download Mesa Zink+Kopper libraries (AngelAuraMC build via IronizedZink)'
+        run: |
+          mkdir -p app_pojavlauncher/src/main/jniLibs/arm64-v8a
+          base="https://raw.githubusercontent.com/GoyDevv/IronizedZink/88f7c2028defe513fd05f591e42a2253e842e4fe/app/src/main/jniLibs/arm64-v8a"
+          for lib in libEGL_mesa.so libcutils.so libglapi.so libglxshim.so libzink_dri.so; do
+            curl -L --fail --retry 3 "$base/$lib" -o "app_pojavlauncher/src/main/jniLibs/arm64-v8a/$lib"
+          done
+          echo "--- sha256 (expected: 8fa8b211.. EGL / 4e790174.. glapi / de28da7d.. glxshim / 585fbd02.. zink_dri / 04258bb1.. cutils) ---"
+          sha256sum app_pojavlauncher/src/main/jniLibs/arm64-v8a/*.so | grep -E "EGL_mesa|glapi|glxshim|zink_dri|cutils" || true
+
       - name: Commit + push (libFearRender.so + wiring)
         run: |
           cp mg-build/libmobileglues.so app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so
           git config user.name "Twicefear"
           git config user.email "ytd82774@gmail.com"
-          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/libFearRender.so \
+          git add app_pojavlauncher/src/main/jniLibs/arm64-v8a/ \
                   app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java \
                   app_pojavlauncher/src/main/res/values/headings_array.xml \
                   app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java \
