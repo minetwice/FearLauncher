@@ -357,7 +357,7 @@ public class JREUtils {
             case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
                 Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
                 renderLibrary = "libEGL_mesa.so";
-                useGles = true;
+                useGles = false; /* FEARWIRE-HOLYZINK-DESKTOP: GLFW honors MC's desktop GL request; zink serves GL 4.6 over system Vulkan */
                 bypassNamespace = false;
                 glesVersion = 3;
                 break;
