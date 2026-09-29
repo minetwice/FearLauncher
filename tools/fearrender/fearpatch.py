@@ -77,6 +77,14 @@ Patches applied to the MobileGlues source tree before building:
     UltraQuality..Performance), winning over config.json, so fps-vs-sharpness
     needs no rebuild or MG file editing.
 
+13. FV9 FSR1.cpp + egl/egl.cpp (FEAR-AUTOBALANCE) - adaptive resolution
+    governor: steps FSR1 quality one preset at a time (fps < 40 -> sharper
+    preset down toward Performance; fps > 57 -> back up toward UltraQuality),
+    with a confirmation heartbeat and cooldown so loading spikes never
+    trigger it. Preset changes re-run the FSR resize path live and log the
+    actual render/upscale geometry. Kill switches: FEAR_AUTOBALANCE=0, or a
+    pinned FEAR_FSR preset.
+
 Usage: python3 tools/fearrender/fearpatch.py [mobileglues-cpp-dir]
 """
 import os
@@ -1178,5 +1186,118 @@ else:
     s = s.replace(a, new, 1)
     open(p, 'w').write(s)
     print("FEARPATCH OK: settings.cpp FEAR_FSR env override added")
+
+# ------------------------------------------ FV9: FEAR-AUTOBALANCE adaptive resolution
+# The performance system: keep the frame pace near the display's rhythm by
+# stepping FSR1 quality down when fps sags and back up when there is headroom.
+# One step at a time, a 3-heartbeat cooldown, and a confirmation heartbeat, so
+# chunk-loading spikes never trigger it. Disabled by FEAR_AUTOBALANCE=0 or by
+# pinning a preset with FEAR_FSR (FV8). Part A (FSR1.cpp) makes a preset change
+# re-run the same resize path a surface-size change uses, and logs the actual
+# render/upscale geometry; part B (egl.cpp) is the controller in the heartbeat.
+p = os.path.join(root, 'gl/FSR1/FSR1.cpp')
+s = open(p).read()
+if 'FEARRENDER-FV9' in s:
+    print("FEARPATCH SKIP: FSR1.cpp FV9 auto-recalc already present")
+else:
+    a = '    bool g_resolutionChanged = false;'
+    n = s.count(a)
+    if n != 1:
+        fail("FSR1.cpp g_resolutionChanged anchor count = %d" % n)
+    s = s.replace(a, a + '''
+    FSR1_Quality_Preset g_appliedPreset = static_cast<FSR1_Quality_Preset>(-1); /* FEARRENDER-FV9 */''', 1)
+
+    a = '''    if (FSR1_Context::g_resolutionChanged) {
+        FSR1_Context::g_resolutionChanged = false;
+        GLsizei width = FSR1_Context::g_pendingWidth;
+        GLsizei height = FSR1_Context::g_pendingHeight;
+        FSR1_Context::g_renderWidth = width;
+        FSR1_Context::g_renderHeight = height;
+
+        CalculateTargetResolution(global_settings.fsr1_setting, width, height,
+                                  reinterpret_cast<int*>(&FSR1_Context::g_targetWidth),
+                                  reinterpret_cast<int*>(&FSR1_Context::g_targetHeight));
+        RecreateFSRFBO();
+    }
+'''
+    n = s.count(a)
+    if n != 1:
+        fail("FSR1.cpp recalc block anchor count = %d" % n)
+    s = s.replace(a, '''    if (FSR1_Context::g_resolutionChanged ||
+        (FSR1_Context::g_appliedPreset != global_settings.fsr1_setting &&
+         FSR1_Context::g_renderWidth > 0)) { /* FEARRENDER-FV9: preset changes re-run the resize path */
+        FSR1_Context::g_resolutionChanged = false;
+        GLsizei width = FSR1_Context::g_pendingWidth;
+        GLsizei height = FSR1_Context::g_pendingHeight;
+        FSR1_Context::g_renderWidth = width;
+        FSR1_Context::g_renderHeight = height;
+
+        CalculateTargetResolution(global_settings.fsr1_setting, width, height,
+                                  reinterpret_cast<int*>(&FSR1_Context::g_targetWidth),
+                                  reinterpret_cast<int*>(&FSR1_Context::g_targetHeight));
+        FSR1_Context::g_appliedPreset = global_settings.fsr1_setting;
+        RecreateFSRFBO();
+        LOG_W_FORCE("FEAR-AUTOBALANCE: FSR preset %d applied | render %dx%d -> upscale %dx%d",
+                    (int)FSR1_Context::g_appliedPreset,
+                    (int)FSR1_Context::g_renderWidth, (int)FSR1_Context::g_renderHeight,
+                    (int)FSR1_Context::g_targetWidth, (int)FSR1_Context::g_targetHeight);
+    }
+''', 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: FSR1.cpp FV9 preset-change recalc + geometry logging added")
+
+# ---------------- FV9 part B: the controller, inside the FV6 heartbeat
+p = os.path.join(root, 'egl/egl.cpp')
+s = open(p).read()
+if 'FEAR-AUTOBALANCE' in s:
+    print("FEARPATCH SKIP: egl.cpp FV9 autobalance controller already present")
+else:
+    a = '''            const GLenum fear_err = GLES.glGetError();
+            if (fear_err != GL_NO_ERROR) {
+                LOG_W_FORCE("FEAR-PERF: GL error at present: 0x%x", fear_err);
+            }
+'''
+    n = s.count(a)
+    if n != 1:
+        fail("egl.cpp heartbeat GL-error anchor count = %d" % n)
+    s = s.replace(a, a + '''
+            // FEAR-AUTOBALANCE (FV9): adaptive resolution governor. Keep the
+            // frame pace near the display by stepping FSR1 quality one preset
+            // at a time - down when fps sags, back up when there is headroom.
+            // A confirmation heartbeat plus a 3-heartbeat cooldown keep chunk
+            // loading spikes from triggering it. Kill switches: FEAR_AUTOBALANCE=0,
+            // or pinning a preset with FEAR_FSR (which wins over this).
+            {
+                static int fear_ab_cooldown = 0;
+                static int fear_ab_last_dir = 0;
+                if (fear_ab_cooldown > 0) --fear_ab_cooldown;
+                const char* fear_ab_kill = getenv("FEAR_AUTOBALANCE");
+                const bool fear_ab_off = (fear_ab_kill != nullptr && strcmp(fear_ab_kill, "0") == 0);
+                const bool fear_ab_pinned = (getenv("FEAR_FSR") != nullptr);
+                const int fear_cur = static_cast<int>(global_settings.fsr1_setting);
+                if (!fear_ab_off && !fear_ab_pinned && fear_cur >= 1) {
+                    int fear_want = 0;
+                    if (fear_fps < 40.0 && fear_cur < 4) fear_want = 1;   // more fps
+                    else if (fear_fps > 57.0 && fear_cur > 1) fear_want = -1; // more sharpness
+                    if (fear_want != 0 && fear_want == fear_ab_last_dir && fear_ab_cooldown == 0) {
+                        const int fear_next = fear_cur + fear_want;
+                        global_settings.fsr1_setting = static_cast<FSR1_Quality_Preset>(fear_next);
+                        fear_ab_cooldown = 3;
+                        fear_ab_last_dir = 0;
+                        LOG_W_FORCE("FEAR-AUTOBALANCE: fps %.1f -> switching FSR preset to %d (%s)",
+                                    fear_fps, fear_next,
+                                    fear_next == 1 ? "UltraQuality" :
+                                    fear_next == 2 ? "Quality" :
+                                    fear_next == 3 ? "Balanced" : "Performance");
+                    } else if (fear_want != 0) {
+                        fear_ab_last_dir = fear_want; // first sighting: confirm on the next heartbeat
+                    } else {
+                        fear_ab_last_dir = 0;
+                    }
+                }
+            }
+''', 1)
+    open(p, 'w').write(s)
+    print("FEARPATCH OK: egl.cpp FV9 FEAR-AUTOBALANCE controller added")
 
 print("FEARPATCH DONE")
