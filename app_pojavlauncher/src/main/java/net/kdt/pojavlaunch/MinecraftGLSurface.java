@@ -365,6 +365,16 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
 
     @Override
     public void onSurfaceAvailable(Surface surface) {
+        /* FEARWIRE-HOLYZINK-ROTATE5: publish the selected renderer into the
+           process env BEFORE the native surface setup - setupRendererEnv's
+           envMap is applied later (at game launch), so every env-gated native
+           rotation fix silently skipped during window setup. */
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty())
+                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
+        } catch (Throwable ignored) {}
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {
