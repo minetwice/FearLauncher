@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <dlfcn.h>
 #include "native_hooks.h"
+#include <stdlib.h>
+#include <stdint.h> /* FEARWIRE-HOLYZINK-ROTATE2 */
 
 static JavaVM* dalvikJavaVMPtr;
 
@@ -37,7 +39,29 @@ jfieldID field_y;
 
 typedef void (*install_global_egl_hook_fn)(bytehook_hook_all_t);
 
+/* FEARWIRE-HOLYZINK-ROTATE2: rewrite 90/270 buffer transforms to identity
+   (ROT_90=0x10, ROT_270=0x30 - both match & 0x10) so zink's unrotated
+   landscape output is displayed upright instead of sideways. */
+static int32_t (*real_holy_setBuffersTransform_p)(void*, int32_t);
+static int32_t hooked_holy_setBuffersTransform_impl(void* window, int32_t transform) {
+    const char* fearRenderer = getenv("FEAR_RENDERER");
+    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0 && (transform & 0x10)) {
+        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\n", transform);
+        transform = 0;
+    }
+    if (real_holy_setBuffersTransform_p == NULL)
+        real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+    if (real_holy_setBuffersTransform_p == NULL) return 0;
+    return real_holy_setBuffersTransform_p(window, transform);
+}
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    /* FEARWIRE-HOLYZINK-ROTATE2: install the transform intercept directly via
+       bytehook - libpojavexec_awt always loads and links it, unlike the
+       exithook/linkerhook chain which is dead in this fork's game process. */
+    bytehook_hook_all(NULL, "ANativeWindow_setBuffersTransform",
+                      (void*) hooked_holy_setBuffersTransform_impl, NULL, NULL);
+
     // Install global EGL hook first - get bytehook_hook_all from exithook
     void* exithook_handle = dlopen("libexithook.so", RTLD_LAZY);
     if(exithook_handle) {
