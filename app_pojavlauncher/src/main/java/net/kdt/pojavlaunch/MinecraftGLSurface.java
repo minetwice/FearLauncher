@@ -310,7 +310,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         refreshSize(true);
 
         //Load Minecraft options:
-        MCOptionUtils.set("fullscreen", "off");
+        MCOptionUtils.set("fullscreen", "false"); /* FEARWIRE: "off" is not a boolean MC parses (error in latestlog) */
         MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth));
         MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
         MCOptionUtils.save();

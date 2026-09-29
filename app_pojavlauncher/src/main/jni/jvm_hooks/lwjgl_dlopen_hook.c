@@ -66,6 +66,20 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
        so the prebuilt libglfw.so reports a sane landscape monitor to the game */
     pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the
+       game starts (belt+braces with the linkerhook intercept) - zink renders
+       unrotated landscape, so any pending 90-degree transform shows it sideways */
+    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0) {
+            int32_t (*setTransform)(void*, int32_t) =
+                (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+            if (setTransform != NULL) {
+                setTransform(bridge_environ.pojavWindow, 0);
+                printf("FEARWIRE-ROTATE: cleared ANativeWindow buffer transform\n");
+            }
+        }
+    }
     if (osmesa_is_loaded()) osm_setup_window();
 }
 

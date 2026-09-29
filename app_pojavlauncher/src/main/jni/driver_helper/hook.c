@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <bytehook.h>
 #include "native_hooks.h"
+#include <stdlib.h>
+#include <dlfcn.h>
+#include <stdint.h> /* FEARWIRE-HOLYZINK-ROTATE */
 // Silence the warnings about using reserved identifiers (we need to link to these to not pollute the global symtab)
 //NOLINTBEGIN
 static void* (*android_dlopen_ext_p)(const char* filename,
@@ -19,9 +22,30 @@ static void* ready_handle;
 // External hook from lwjgl_dlopen_hook.c
 void* eglGetProcAddress_hook(const char* procname);
 
+/* FEARWIRE-HOLYZINK-ROTATE: rewrite 90/270 buffer transforms to identity
+   (ROT_90=0x10, ROT_270=0x30 - both match & 0x10) for holy_zink_kopper so
+   zink's unrotated landscape output is displayed upright. */
+static int32_t (*real_setBuffersTransform_p)(void*, int32_t);
+static int32_t holy_rotate_fix_active(void) {
+    const char* fear = getenv("FEAR_RENDERER");
+    return fear && strcmp(fear, "holy_zink_kopper") == 0;
+}
+static int32_t hooked_setBuffersTransform_impl(void* window, int32_t transform) {
+    if (holy_rotate_fix_active() && (transform & 0x10)) {
+        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\n", transform);
+        transform = 0;
+    }
+    if (real_setBuffersTransform_p == NULL)
+        real_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+    if (real_setBuffersTransform_p == NULL) return 0;
+    return real_setBuffersTransform_p(window, transform);
+}
+
 void install_global_egl_hook(bytehook_hook_all_t bytehook_hook_all_p) {
     // Forcefully hook eglGetProcAddress in native GL libraries using bytehook
     bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    // FEARWIRE-HOLYZINK-ROTATE: stop the WSI from rotating zink's output sideways
+    bytehook_hook_all_p(NULL, "ANativeWindow_setBuffersTransform", (void*)hooked_setBuffersTransform_impl, NULL, NULL);
 }
 
 static const char *sphal_namespaces[3] = {
