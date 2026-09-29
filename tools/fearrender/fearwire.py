@@ -21,6 +21,8 @@ Kopper (the AngelAuraMC build vendored from GoyDevv/IronizedZink, downloaded
 by build-fearrender.yml) over the SYSTEM Vulkan driver: real desktop GL 4.6
 for Iris/Sodium + shader packs, no translation layer, no turnip/panvk. The
 bridge presents through libEGL_mesa.so and LWJGL loads libglxshim.so.
+v10.1: POJAVEXEC_EGL=libEGL_mesa.so - glxshim locates the EGL library
+through that env var (the "EGL lib envvar not found" crash in latestlog-55).
 
 Usage: python3 tools/fearrender/fearwire.py   (from the repo root)
 """
@@ -305,6 +307,7 @@ if 'FEARWIRE-HOLYZINK' not in open(P).read():
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("vblank_mode", "0");
+                envMap.put("POJAVEXEC_EGL", "libEGL_mesa.so"); /* glxshim finds the EGL lib through this env var (FCL plugin contract) */
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
 '''
@@ -371,6 +374,27 @@ if 'FEARWIRE-HOLYZINK' not in open(P).read():
     print("FEARWIRE OK: Holy Zink (Kopper) wired (env + EGL bridge + libglxshim + headings)")
 else:
     print("FEARWIRE SKIP: Holy Zink (Kopper) already wired")
+
+# ---- HOLYZINK-EGL fix: glxshim locates the EGL library through POJAVEXEC_EGL
+# ---- ("GLXShim: context init failed: EGL lib envvar not found!" in
+# ---- latestlog-55). FCL's plugin contract sets it; our launcher never did.
+s = open(P).read()
+if 'POJAVEXEC_EGL' not in s:
+    old_case = '''                envMap.put("vblank_mode", "0");
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
+'''
+    if s.count(old_case) != 1:
+        fail("holy zink env case for POJAVEXEC_EGL migration not found (count = %d)" % s.count(old_case))
+    s = s.replace(old_case, '''                envMap.put("vblank_mode", "0");
+                envMap.put("POJAVEXEC_EGL", "libEGL_mesa.so"); /* FEARWIRE-HOLYZINK-EGL: glxshim finds the EGL lib through this env var */
+                envMap.put("FEAR_RENDERER", renderer);
+                break;
+''', 1)
+    open(P, 'w').write(s)
+    print("FEARWIRE OK: holy zink POJAVEXEC_EGL added (glxshim EGL lib env var)")
+else:
+    print("FEARWIRE SKIP: holy zink POJAVEXEC_EGL already set")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
