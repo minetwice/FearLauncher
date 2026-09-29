@@ -812,7 +812,7 @@ else:
 # ---- Android's Display.getRotation() in Java instead of hardcoding 90.
 PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
 sl = open(PL).read()
-if 'FEARWIRE-HOLYZINK-ROTATE4' not in sl:
+if 'FEARWIRE-HOLYZINK-ROTATE4' not in sl and 'FEARWIRE-HOLYZINK-ROTATE6' not in sl:
     old = '''            int (*setGeometry)(void*, int, int, int) =
                 (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
             int (*getFormat)(void*) =
@@ -1017,6 +1017,106 @@ if 'FEARWIRE-HOLYZINK-ROTATE5' not in sj:
     print("FEARWIRE OK: MinecraftGLSurface sets FEAR_RENDERER before surface setup")
 else:
     print("FEARWIRE SKIP: MinecraftGLSurface ROTATE5 already present")
+
+# ---- HOLYZINK-ROTATE6 (v10.9): log-62 still shows the landscape else-branch
+# ---- and zero FEARWIRE prints even though v10.8 sets FEAR_RENDERER from Java
+# ---- before the native call. Two possibilities remain: the user tested a
+# ---- stale APK artifact, or the env/instance read silently failed. This pass
+# ---- (a) prints an unconditional BUILD MARKER from native (setupBridgeWindow
+# ---- entry: FEAR_RENDERER value + surface size) and from Java
+# ---- (onSurfaceAvailable: what was set / what failed), so ONE log resolves
+# ---- everything, and (b) drops the namespace-blind dlsym dance entirely -
+# ---- ANativeWindow_setBuffersGeometry/getFormat are NDK-public and pojavexec
+# ---- already links libnativewindow, so call them directly.
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE6' not in sl:
+    old_marker = '''    LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
+         bridge_environ.savedWidth, bridge_environ.savedHeight);'''
+    if sl.count(old_marker) != 1:
+        fail("ROTATE6 LOGI anchor count = %d" % sl.count(old_marker))
+    new_marker = '''    LOGI("Bridge window set: %p (%dx%d)", bridge_environ.pojavWindow,
+         bridge_environ.savedWidth, bridge_environ.savedHeight);
+    {
+        /* FEARWIRE-HOLYZINK-ROTATE6: unconditional marker - proves which
+           build is running and whether the renderer env is visible here. */
+        const char* fearRendererDbg = getenv("FEAR_RENDERER");
+        printf("FEARWIRE v10.9: setupBridgeWindow FEAR_RENDERER=%s surface=%dx%d\\n",
+               fearRendererDbg ? fearRendererDbg : "(null)",
+               bridge_environ.savedWidth, bridge_environ.savedHeight);
+    }'''
+    sl = sl.replace(old_marker, new_marker, 1)
+    old_geom = '''            int (*setGeometry)(void*, int, int, int) =
+                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+            int (*getFormat)(void*) =
+                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
+            /* FEARWIRE-HOLYZINK-ROTATE4: RTLD_DEFAULT cannot see the platform
+               libnativewindow.so from this isolated namespace - dlopen it. */
+            void* fearNatWin = NULL;
+            if (setGeometry == NULL || getFormat == NULL) {
+                fearNatWin = dlopen("libnativewindow.so", RTLD_NOW);
+                if (fearNatWin == NULL) fearNatWin = dlopen("libandroid.so", RTLD_NOW);
+                if (fearNatWin != NULL) {
+                    if (setGeometry == NULL)
+                        setGeometry = (int (*)(void*, int, int, int)) dlsym(fearNatWin, "ANativeWindow_setBuffersGeometry");
+                    if (getFormat == NULL)
+                        getFormat = (int (*)(void*)) dlsym(fearNatWin, "ANativeWindow_getFormat");
+                }
+                printf("FEARWIRE-ROTATE4: RTLD_DEFAULT missed, dlopen handle=%p setGeometry=%p getFormat=%p\\n",
+                       fearNatWin, (void*) setGeometry, (void*) getFormat);
+            }
+            if (setGeometry != NULL && getFormat != NULL) {
+                setGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            } else {
+                printf("FEARWIRE-ROTATE3: FAILED to resolve ANativeWindow symbols, geometry NOT swapped!\\n");
+            }'''
+    if sl.count(old_geom) != 1:
+        fail("ROTATE6 geometry anchor count = %d" % sl.count(old_geom))
+    new_geom = '''            /* FEARWIRE-HOLYZINK-ROTATE6: these are NDK-public functions and
+               pojavexec links libnativewindow directly - no dlsym needed. */
+            ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            ANativeWindow_getFormat(bridge_environ.pojavWindow));
+            printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED (direct NDK call)\\n",
+                   bridge_environ.savedHeight, bridge_environ.savedWidth);'''
+    sl = sl.replace(old_geom, new_geom, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: lwjgl ROTATE6 marker + direct NDK geometry call")
+else:
+    print("FEARWIRE SKIP: lwjgl ROTATE6 already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE v10.9: onSurfaceAvailable' not in sj:
+    old_env = '''        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty())
+                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
+        } catch (Throwable ignored) {}'''
+    if sj.count(old_env) != 1:
+        fail("ROTATE6 Java anchor count = %d" % sj.count(old_env))
+    new_env = '''        String fearRenderer5 = "(unset)";
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty()) {
+                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
+                fearRenderer5 = sel.renderer;
+            }
+        } catch (Throwable t) { fearRenderer5 = "ERR " + t; }
+        System.out.println("FEARWIRE v10.9: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);'''
+    sj = sj.replace(old_env, new_env, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface ROTATE6 Java marker with feedback")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface ROTATE6 already present")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
