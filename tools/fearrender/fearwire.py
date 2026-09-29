@@ -494,6 +494,106 @@ if 'FEARWIRE-DISPSPEC' not in sl:
 else:
     print("FEARWIRE SKIP: setupBridgeWindow already publishes display params")
 
+# ---- HOLYZINK-ROTATE fix: the game rendered 90 degrees sideways (screenshot
+# ---- 20260929-165242, latestlog-58/59): zink does not apply the Android
+# ---- surface pre-rotation, so the 90/270 buffer transform the Vulkan WSI puts
+# ---- on the window makes the whole game appear rotated in a portrait strip.
+# ---- Fix: intercept ANativeWindow_setBuffersTransform (bytehook, holy only)
+# ---- and rewrite 90/270 to identity; also pre-clear the transform on the
+# ---- bridge window. Belt and braces, guarded to holy_zink_kopper.
+PH = 'app_pojavlauncher/src/main/jni/driver_helper/hook.c'
+sh = open(PH).read()
+if 'FEARWIRE-HOLYZINK-ROTATE' not in sh:
+    old_inc = '''#include <android/dlext.h>
+#include <string.h>
+#include <stdio.h>
+#include <bytehook.h>
+#include "native_hooks.h"'''
+    if sh.count(old_inc) != 1:
+        fail("hook.c include anchor count = %d" % sh.count(old_inc))
+    sh = sh.replace(old_inc, old_inc + '''
+#include <stdlib.h>
+#include <dlfcn.h>
+#include <stdint.h> /* FEARWIRE-HOLYZINK-ROTATE */''', 1)
+    old_fn = '''void install_global_egl_hook(bytehook_hook_all_t bytehook_hook_all_p) {
+    // Forcefully hook eglGetProcAddress in native GL libraries using bytehook
+    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+}'''
+    if sh.count(old_fn) != 1:
+        fail("hook.c install_global_egl_hook anchor count = %d" % sh.count(old_fn))
+    new_fn = '''/* FEARWIRE-HOLYZINK-ROTATE: rewrite 90/270 buffer transforms to identity
+   (ROT_90=0x10, ROT_270=0x30 - both match & 0x10) for holy_zink_kopper so
+   zink's unrotated landscape output is displayed upright. */
+static int32_t (*real_setBuffersTransform_p)(void*, int32_t);
+static int32_t holy_rotate_fix_active(void) {
+    const char* fear = getenv("FEAR_RENDERER");
+    return fear && strcmp(fear, "holy_zink_kopper") == 0;
+}
+static int32_t hooked_setBuffersTransform_impl(void* window, int32_t transform) {
+    if (holy_rotate_fix_active() && (transform & 0x10)) {
+        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\\n", transform);
+        transform = 0;
+    }
+    if (real_setBuffersTransform_p == NULL)
+        real_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+    if (real_setBuffersTransform_p == NULL) return 0;
+    return real_setBuffersTransform_p(window, transform);
+}
+
+void install_global_egl_hook(bytehook_hook_all_t bytehook_hook_all_p) {
+    // Forcefully hook eglGetProcAddress in native GL libraries using bytehook
+    bytehook_hook_all_p(NULL, "eglGetProcAddress", (void*)eglGetProcAddress_hook, NULL, NULL);
+    // FEARWIRE-HOLYZINK-ROTATE: stop the WSI from rotating zink's output sideways
+    bytehook_hook_all_p(NULL, "ANativeWindow_setBuffersTransform", (void*)hooked_setBuffersTransform_impl, NULL, NULL);
+}'''
+    sh = sh.replace(old_fn, new_fn, 1)
+    open(PH, 'w').write(sh)
+    print("FEARWIRE OK: hook.c rotation transform intercept added")
+else:
+    print("FEARWIRE SKIP: hook.c rotation intercept already present")
+
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE' not in sl:
+    old_b = '''    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    if (osmesa_is_loaded()) osm_setup_window();'''
+    if sl.count(old_b) != 1:
+        fail("setupBridgeWindow anchor count = %d" % sl.count(old_b))
+    new_b = '''    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the
+       game starts (belt+braces with the linkerhook intercept) - zink renders
+       unrotated landscape, so any pending 90-degree transform shows it sideways */
+    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0) {
+            int32_t (*setTransform)(void*, int32_t) =
+                (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+            if (setTransform != NULL) {
+                setTransform(bridge_environ.pojavWindow, 0);
+                printf("FEARWIRE-ROTATE: cleared ANativeWindow buffer transform\\n");
+            }
+        }
+    }
+    if (osmesa_is_loaded()) osm_setup_window();'''
+    sl = sl.replace(old_b, new_b, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: setupBridgeWindow clears buffer transform for holy")
+else:
+    print("FEARWIRE SKIP: setupBridgeWindow rotation clear already present")
+
+# ---- fix the "off" fullscreen value MC cannot parse (parse error every launch)
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'MCOptionUtils.set("fullscreen", "off");' in sj:
+    sj = sj.replace('MCOptionUtils.set("fullscreen", "off");',
+                    'MCOptionUtils.set("fullscreen", "false"); /* FEARWIRE: "off" is not a boolean MC parses (error in latestlog) */', 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: fullscreen option written as false (was unparseable \"off\")")
+elif 'FEARWIRE: "off" is not a boolean' in sj:
+    print("FEARWIRE SKIP: fullscreen false already written")
+else:
+    print("FEARWIRE INFO: fullscreen set line not found (already changed upstream)")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
