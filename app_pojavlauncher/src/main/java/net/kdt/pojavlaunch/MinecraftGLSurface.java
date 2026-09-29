@@ -311,8 +311,18 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
 
         //Load Minecraft options:
         MCOptionUtils.set("fullscreen", "false"); /* FEARWIRE: "off" is not a boolean MC parses (error in latestlog) */
-        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth));
-        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
+        /* FEARWIRE-HOLYZINK-ROTATE3: holy zink renders portrait (the compositor
+           rotates it upright), so give MC swapped dims and enable the dnbglfw
+           input remap. */
+        boolean holyZink = false;
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            holyZink = sel != null && "holy_zink_kopper".equals(sel.renderer);
+        } catch (Throwable ignored) {}
+        GLFW.holyRotate = holyZink;
+        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth));
+        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));
         MCOptionUtils.save();
         getMcScale();
 

@@ -55,12 +55,39 @@ static int32_t hooked_holy_setBuffersTransform_impl(void* window, int32_t transf
     return real_holy_setBuffersTransform_p(window, transform);
 }
 
+/* FEARWIRE-HOLYZINK-ROTATE3-guard: mojo's glfw resets the buffer geometry to
+   the app-landscape default with (0,0); keep the portrait geometry we forced. */
+static int (*real_holy_setBuffersGeometry_p)(void*, int, int, int);
+static int (*real_holy_getWinWidth_p)(void*);
+static int (*real_holy_getWinHeight_p)(void*);
+static int hooked_holy_setBuffersGeometry_impl(void* window, int width, int height, int format) {
+    const char* fearRenderer = getenv("FEAR_RENDERER");
+    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+        && width == 0 && height == 0 && window != NULL) {
+        if (real_holy_getWinWidth_p == NULL) {
+            real_holy_getWinWidth_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getWidth");
+            real_holy_getWinHeight_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getHeight");
+        }
+        if (real_holy_getWinWidth_p != NULL && real_holy_getWinHeight_p != NULL) {
+            width = real_holy_getWinWidth_p(window);
+            height = real_holy_getWinHeight_p(window);
+            printf("FEARWIRE-ROTATE3: kept geometry reset -> %dx%d\n", width, height);
+        }
+    }
+    if (real_holy_setBuffersGeometry_p == NULL)
+        real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+    if (real_holy_setBuffersGeometry_p == NULL) return -1;
+    return real_holy_setBuffersGeometry_p(window, width, height, format);
+}
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     /* FEARWIRE-HOLYZINK-ROTATE2: install the transform intercept directly via
        bytehook - libpojavexec_awt always loads and links it, unlike the
        exithook/linkerhook chain which is dead in this fork's game process. */
     bytehook_hook_all(NULL, "ANativeWindow_setBuffersTransform",
                       (void*) hooked_holy_setBuffersTransform_impl, NULL, NULL);
+    bytehook_hook_all(NULL, "ANativeWindow_setBuffersGeometry",
+                      (void*) hooked_holy_setBuffersGeometry_impl, NULL, NULL); /* ROTATE3-guard */
 
     // Install global EGL hook first - get bytehook_hook_all from exithook
     void* exithook_handle = dlopen("libexithook.so", RTLD_LAZY);

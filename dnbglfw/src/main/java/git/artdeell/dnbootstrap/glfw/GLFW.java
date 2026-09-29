@@ -22,6 +22,10 @@ public class GLFW {
     private static boolean grabbing = false;
     private static GLFWCursor cursor;
     public static double cursorX = 0.5, cursorY = 0.5;
+    /* FEARWIRE-HOLYZINK-ROTATE3: true when the game renders portrait while the
+       screen is landscape (holy zink) - touch coords are remapped at the final
+       native call so every input path funnels through one transform. */
+    public static boolean holyRotate = false;
     public static ByteBuffer gamepadButtonBuffer;
     public static FloatBuffer gamepadAxisBuffer;
 
@@ -64,7 +68,11 @@ public class GLFW {
         }
         CursorImplementor cursor = Utils.getWeakReference(GLFW.cursorImpl);
         if(cursor != null) cursor.onCursorPosition();
-        sendMousePosition0(cursorX, cursorY);
+        /* FEARWIRE-HOLYZINK-ROTATE3: MC's window is portrait, the screen is
+           landscape - map screen coords into the game's portrait space. */
+        double sendX = cursorX, sendY = cursorY;
+        if (holyRotate) { sendX = cursorY; sendY = 1 - cursorX; }
+        sendMousePosition0(sendX, sendY);
     }
 
     @SuppressWarnings("unused") // Used from native
@@ -83,6 +91,7 @@ public class GLFW {
 
     @SuppressWarnings("unused") // Used from native
     private static void receiveCursorPos(double x, double y) {
+        if (holyRotate) { double t = x; x = 1 - y; y = t; } /* FEARWIRE-HOLYZINK-ROTATE3: MC portrait -> screen */
         cursorX = x;
         cursorY = y;
         CursorImplementor cursor = Utils.getWeakReference(GLFW.cursorImpl);

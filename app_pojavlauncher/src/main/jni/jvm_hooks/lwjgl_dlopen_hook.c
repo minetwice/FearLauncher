@@ -65,7 +65,31 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
          bridge_environ.savedWidth, bridge_environ.savedHeight);
     /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
        so the prebuilt libglfw.so reports a sane landscape monitor to the game */
-    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    /* FEARWIRE-HOLYZINK-ROTATE3: the compositor shows this window's buffers
+       rotated 90 (landscape-locked activity on a portrait-native display).
+       zink renders straight into the buffers, so force PORTRAIT geometry:
+       MC renders portrait, Android rotates it upright. */
+    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && bridge_environ.savedHeight > 0 && bridge_environ.savedWidth > 0) {
+            int (*setGeometry)(void*, int, int, int) =
+                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+            int (*getFormat)(void*) =
+                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
+            if (setGeometry != NULL && getFormat != NULL) {
+                setGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
+            pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+        } else {
+            pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+        }
+    }
     /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the
        game starts (belt+braces with the linkerhook intercept) - zink renders
        unrotated landscape, so any pending 90-degree transform shows it sideways */
