@@ -85,6 +85,7 @@ jobs:
                   app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c \
                   app_pojavlauncher/src/main/jni/driver_helper/hook.c \
                   app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java \
+                  app_pojavlauncher/src/main/jni/awt_bridge.c \
                   app_pojavlauncher/src/main/res/values/headings_array.xml \
                   app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java \
                   tools/fearrender/

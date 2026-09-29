@@ -594,6 +594,60 @@ elif 'FEARWIRE: "off" is not a boolean' in sj:
 else:
     print("FEARWIRE INFO: fullscreen set line not found (already changed upstream)")
 
+# ---- HOLYZINK-ROTATE2: v10.4's bytehook intercept was dead code - the
+# ---- hs_err maps (pid 23862) show libexithook.so and liblinkerhook.so are
+# ---- never loaded in the game process, so install_global_egl_hook (which
+# ---- installs the hook) never ran. libpojavexec_awt.so IS always loaded and
+# ---- links bytehook directly, so install the intercept from its JNI_OnLoad.
+PA = 'app_pojavlauncher/src/main/jni/awt_bridge.c'
+sa = open(PA).read()
+if 'FEARWIRE-HOLYZINK-ROTATE2' not in sa:
+    old_inc = '''#include <jni.h>
+#include <assert.h>
+#include <string.h>
+#include <stdio.h>
+#include <dlfcn.h>
+#include "native_hooks.h"'''
+    if sa.count(old_inc) != 1:
+        fail("awt_bridge.c include anchor count = %d" % sa.count(old_inc))
+    sa = sa.replace(old_inc, old_inc + '''
+#include <stdlib.h>
+#include <stdint.h> /* FEARWIRE-HOLYZINK-ROTATE2 */''', 1)
+
+    old_jni = '''jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    // Install global EGL hook first - get bytehook_hook_all from exithook'''
+    if sa.count(old_jni) != 1:
+        fail("awt_bridge.c JNI_OnLoad anchor count = %d" % sa.count(old_jni))
+    new_jni = '''/* FEARWIRE-HOLYZINK-ROTATE2: rewrite 90/270 buffer transforms to identity
+   (ROT_90=0x10, ROT_270=0x30 - both match & 0x10) so zink's unrotated
+   landscape output is displayed upright instead of sideways. */
+static int32_t (*real_holy_setBuffersTransform_p)(void*, int32_t);
+static int32_t hooked_holy_setBuffersTransform_impl(void* window, int32_t transform) {
+    const char* fearRenderer = getenv("FEAR_RENDERER");
+    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0 && (transform & 0x10)) {
+        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\\n", transform);
+        transform = 0;
+    }
+    if (real_holy_setBuffersTransform_p == NULL)
+        real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+    if (real_holy_setBuffersTransform_p == NULL) return 0;
+    return real_holy_setBuffersTransform_p(window, transform);
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    /* FEARWIRE-HOLYZINK-ROTATE2: install the transform intercept directly via
+       bytehook - libpojavexec_awt always loads and links it, unlike the
+       exithook/linkerhook chain which is dead in this fork's game process. */
+    bytehook_hook_all(NULL, "ANativeWindow_setBuffersTransform",
+                      (void*) hooked_holy_setBuffersTransform_impl, NULL, NULL);
+
+    // Install global EGL hook first - get bytehook_hook_all from exithook'''
+    sa = sa.replace(old_jni, new_jni, 1)
+    open(PA, 'w').write(sa)
+    print("FEARWIRE OK: awt_bridge.c installs rotation intercept via direct bytehook")
+else:
+    print("FEARWIRE SKIP: awt_bridge.c rotation intercept already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
