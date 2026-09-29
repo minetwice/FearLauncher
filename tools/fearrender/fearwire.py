@@ -802,6 +802,186 @@ if 'FEARWIRE-HOLYZINK-ROTATE3' not in sj:
 else:
     print("FEARWIRE SKIP: MinecraftGLSurface override swap already present")
 
+# ---- HOLYZINK-ROTATE4: v10.6 ran but nothing changed - the log proves it:
+# ---- dlsym(RTLD_DEFAULT, "ANativeWindow_*") returns NULL inside the game's
+# ---- isolated linker namespace (pojav loads game libs in a custom namespace
+# ---- where the platform libnativewindow.so is not in the global scope).
+# ---- Every ROTATE block so far silently skipped. Fix: fall back to an
+# ---- explicit dlopen("libnativewindow.so") / dlopen("libandroid.so") and
+# ---- print the resolution result, plus take the rotation direction from
+# ---- Android's Display.getRotation() in Java instead of hardcoding 90.
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE4' not in sl:
+    old = '''            int (*setGeometry)(void*, int, int, int) =
+                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+            int (*getFormat)(void*) =
+                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
+            if (setGeometry != NULL && getFormat != NULL) {
+                setGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }'''
+    if sl.count(old) != 1:
+        fail("ROTATE4 geometry anchor count = %d" % sl.count(old))
+    new = '''            int (*setGeometry)(void*, int, int, int) =
+                (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+            int (*getFormat)(void*) =
+                (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getFormat");
+            /* FEARWIRE-HOLYZINK-ROTATE4: RTLD_DEFAULT cannot see the platform
+               libnativewindow.so from this isolated namespace - dlopen it. */
+            void* fearNatWin = NULL;
+            if (setGeometry == NULL || getFormat == NULL) {
+                fearNatWin = dlopen("libnativewindow.so", RTLD_NOW);
+                if (fearNatWin == NULL) fearNatWin = dlopen("libandroid.so", RTLD_NOW);
+                if (fearNatWin != NULL) {
+                    if (setGeometry == NULL)
+                        setGeometry = (int (*)(void*, int, int, int)) dlsym(fearNatWin, "ANativeWindow_setBuffersGeometry");
+                    if (getFormat == NULL)
+                        getFormat = (int (*)(void*)) dlsym(fearNatWin, "ANativeWindow_getFormat");
+                }
+                printf("FEARWIRE-ROTATE4: RTLD_DEFAULT missed, dlopen handle=%p setGeometry=%p getFormat=%p\\n",
+                       fearNatWin, (void*) setGeometry, (void*) getFormat);
+            }
+            if (setGeometry != NULL && getFormat != NULL) {
+                setGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, /* portrait width */
+                            bridge_environ.savedWidth,  /* portrait height */
+                            getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            } else {
+                printf("FEARWIRE-ROTATE3: FAILED to resolve ANativeWindow symbols, geometry NOT swapped!\\n");
+            }'''
+    sl = sl.replace(old, new, 1)
+    old_t = '''            int32_t (*setTransform)(void*, int32_t) =
+                (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+            if (setTransform != NULL) {'''
+    if sl.count(old_t) != 1:
+        fail("ROTATE4 transform anchor count = %d" % sl.count(old_t))
+    new_t = '''            int32_t (*setTransform)(void*, int32_t) =
+                (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+            if (setTransform == NULL) {
+                void* fearNatWinT = dlopen("libnativewindow.so", RTLD_NOW);
+                if (fearNatWinT == NULL) fearNatWinT = dlopen("libandroid.so", RTLD_NOW);
+                if (fearNatWinT != NULL)
+                    setTransform = (int32_t (*)(void*, int32_t)) dlsym(fearNatWinT, "ANativeWindow_setBuffersTransform");
+                printf("FEARWIRE-ROTATE4: setBuffersTransform resolved=%p\\n", (void*) setTransform);
+            }
+            if (setTransform != NULL) {'''
+    sl = sl.replace(old_t, new_t, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: lwjgl_dlopen_hook ROTATE4 dlopen fallback")
+else:
+    print("FEARWIRE SKIP: lwjgl ROTATE4 already present")
+
+PA = 'app_pojavlauncher/src/main/jni/awt_bridge.c'
+sa = open(PA).read()
+if 'FEARWIRE-HOLYZINK-ROTATE4' not in sa:
+    old_tr = '''    if (real_holy_setBuffersTransform_p == NULL)
+        real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");'''
+    if sa.count(old_tr) != 1:
+        fail("awt ROTATE4 transform anchor count = %d" % sa.count(old_tr))
+    new_tr = '''    if (real_holy_setBuffersTransform_p == NULL) {
+        real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+        /* FEARWIRE-HOLYZINK-ROTATE4: isolated namespace - dlopen fallback */
+        if (real_holy_setBuffersTransform_p == NULL) {
+            void* fearNatWin = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearNatWin == NULL) fearNatWin = dlopen("libandroid.so", RTLD_NOW);
+            if (fearNatWin != NULL)
+                real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(fearNatWin, "ANativeWindow_setBuffersTransform");
+        }
+        printf("FEARWIRE-ROTATE4: awt setBuffersTransform resolved=%p\\n", (void*) real_holy_setBuffersTransform_p);
+    }'''
+    sa = sa.replace(old_tr, new_tr, 1)
+    old_wh = '''            real_holy_getWinWidth_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getWidth");
+            real_holy_getWinHeight_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getHeight");'''
+    if sa.count(old_wh) != 1:
+        fail("awt ROTATE4 wh anchor count = %d" % sa.count(old_wh))
+    new_wh = '''            real_holy_getWinWidth_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getWidth");
+            real_holy_getWinHeight_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getHeight");
+            if (real_holy_getWinWidth_p == NULL || real_holy_getWinHeight_p == NULL) {
+                void* fearNatWinG = dlopen("libnativewindow.so", RTLD_NOW);
+                if (fearNatWinG == NULL) fearNatWinG = dlopen("libandroid.so", RTLD_NOW);
+                if (fearNatWinG != NULL) {
+                    if (real_holy_getWinWidth_p == NULL)
+                        real_holy_getWinWidth_p = (int (*)(void*)) dlsym(fearNatWinG, "ANativeWindow_getWidth");
+                    if (real_holy_getWinHeight_p == NULL)
+                        real_holy_getWinHeight_p = (int (*)(void*)) dlsym(fearNatWinG, "ANativeWindow_getHeight");
+                }
+            }'''
+    sa = sa.replace(old_wh, new_wh, 1)
+    old_g = '''        real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");'''
+    if sa.count(old_g) != 1:
+        fail("awt ROTATE4 geometry anchor count = %d" % sa.count(old_g))
+    new_g = '''        real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+        if (real_holy_setBuffersGeometry_p == NULL) {
+            void* fearNatWinH = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearNatWinH == NULL) fearNatWinH = dlopen("libandroid.so", RTLD_NOW);
+            if (fearNatWinH != NULL)
+                real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(fearNatWinH, "ANativeWindow_setBuffersGeometry");
+        }'''
+    sa = sa.replace(old_g, new_g, 1)
+    open(PA, 'w').write(sa)
+    print("FEARWIRE OK: awt_bridge ROTATE4 dlopen fallbacks")
+else:
+    print("FEARWIRE SKIP: awt ROTATE4 already present")
+
+PG = 'dnbglfw/src/main/java/git/artdeell/dnbootstrap/glfw/GLFW.java'
+sg = open(PG).read()
+if 'FEARWIRE-HOLYZINK-ROTATE4' not in sg:
+    old_flag = '''    public static boolean holyRotate = false;'''
+    if sg.count(old_flag) != 1:
+        fail("GLFW ROTATE4 flag anchor count = %d" % sg.count(old_flag))
+    sg = sg.replace(old_flag, old_flag + '''
+    /* FEARWIRE-HOLYZINK-ROTATE4: real rotation of the display (from
+       Display.getRotation()), so the remap direction is not a guess. */
+    public static int holyRotateDir = 90;''', 1)
+    old_send = '''        if (holyRotate) { sendX = cursorY; sendY = 1 - cursorX; }'''
+    if sg.count(old_send) != 1:
+        fail("GLFW ROTATE4 send anchor count = %d" % sg.count(old_send))
+    new_send = '''        if (holyRotate) { /* FEARWIRE-HOLYZINK-ROTATE4 */
+            if (holyRotateDir == 270) { sendX = 1 - cursorY; sendY = cursorX; }
+            else if (holyRotateDir == 180) { sendX = 1 - cursorX; sendY = 1 - cursorY; }
+            else { sendX = cursorY; sendY = 1 - cursorX; }
+        }'''
+    sg = sg.replace(old_send, new_send, 1)
+    old_recv = '''        if (holyRotate) { double t = x; x = 1 - y; y = t; } /* FEARWIRE-HOLYZINK-ROTATE3: MC portrait -> screen */'''
+    if sg.count(old_recv) != 1:
+        fail("GLFW ROTATE4 recv anchor count = %d" % sg.count(old_recv))
+    new_recv = '''        if (holyRotate) { /* FEARWIRE-HOLYZINK-ROTATE4: MC portrait -> screen */
+            if (holyRotateDir == 270) { double t = x; x = y; y = 1 - t; }
+            else if (holyRotateDir == 180) { x = 1 - x; y = 1 - y; }
+            else { double t = x; x = 1 - y; y = t; }
+        }'''
+    sg = sg.replace(old_recv, new_recv, 1)
+    open(PG, 'w').write(sg)
+    print("FEARWIRE OK: GLFW direction-aware remap")
+else:
+    print("FEARWIRE SKIP: GLFW ROTATE4 already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-ROTATE4' not in sj:
+    old_dir = '''        GLFW.holyRotate = holyZink;'''
+    if sj.count(old_dir) != 1:
+        fail("MGLS ROTATE4 anchor count = %d" % sj.count(old_dir))
+    new_dir = '''        GLFW.holyRotate = holyZink;
+        /* FEARWIRE-HOLYZINK-ROTATE4: take the real display rotation so the
+           input remap direction matches the compositor. */
+        try {
+            int dispRot = getDisplay().getRotation(); /* 0/1/2/3 = 0/90/180/270 */
+            GLFW.holyRotateDir = (dispRot == 3 ? 270 : dispRot == 2 ? 180 : 90);
+        } catch (Throwable ignored) { GLFW.holyRotateDir = 90; }'''
+    sj = sj.replace(old_dir, new_dir, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface feeds real display rotation")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface ROTATE4 already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
