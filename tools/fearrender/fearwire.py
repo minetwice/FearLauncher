@@ -982,6 +982,42 @@ if 'FEARWIRE-HOLYZINK-ROTATE4' not in sj:
 else:
     print("FEARWIRE SKIP: MinecraftGLSurface ROTATE4 already present")
 
+# ---- HOLYZINK-ROTATE5: log-61 proof - the whole ROTATE3 block in
+# ---- setupBridgeWindow still printed nothing while Renderspec printed
+# ---- right next to it: getenv("FEAR_RENDERER") is EMPTY at surface-setup
+# ---- time. The renderer env (envMap from setupRendererEnv) is applied later,
+# ---- at game launch - AFTER setupBridgeWindow already ran and published
+# ---- landscape params (2584x1220 in the log). Fix: publish the selected
+# ---- renderer into the process env from Java BEFORE the native surface
+# ---- setup (android.system.Os.setenv - inherited by a forked game process
+# ---- too, and re-applied identically by setupRendererEnv later).
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-ROTATE5' not in sj:
+    old = '''    @Override
+    public void onSurfaceAvailable(Surface surface) {
+        GLFW.nativeSurfaceCreated(surface);'''
+    if sj.count(old) != 1:
+        fail("ROTATE5 onSurfaceAvailable anchor count = %d" % sj.count(old))
+    new = '''    @Override
+    public void onSurfaceAvailable(Surface surface) {
+        /* FEARWIRE-HOLYZINK-ROTATE5: publish the selected renderer into the
+           process env BEFORE the native surface setup - setupRendererEnv's
+           envMap is applied later (at game launch), so every env-gated native
+           rotation fix silently skipped during window setup. */
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty())
+                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
+        } catch (Throwable ignored) {}
+        GLFW.nativeSurfaceCreated(surface);'''
+    sj = sj.replace(old, new, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface sets FEAR_RENDERER before surface setup")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface ROTATE5 already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
