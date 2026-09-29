@@ -170,6 +170,7 @@ public class JREUtils {
                 envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
                 envMap.put("vblank_mode", "0");
+                envMap.put("POJAVEXEC_EGL", "libEGL_mesa.so"); /* FEARWIRE-HOLYZINK-EGL: glxshim finds the EGL lib through this env var */
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
             case "turnip_zink":
