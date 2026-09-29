@@ -26,6 +26,9 @@ public class GLFW {
        screen is landscape (holy zink) - touch coords are remapped at the final
        native call so every input path funnels through one transform. */
     public static boolean holyRotate = false;
+    /* FEARWIRE-HOLYZINK-ROTATE4: real rotation of the display (from
+       Display.getRotation()), so the remap direction is not a guess. */
+    public static int holyRotateDir = 90;
     public static ByteBuffer gamepadButtonBuffer;
     public static FloatBuffer gamepadAxisBuffer;
 
@@ -71,7 +74,11 @@ public class GLFW {
         /* FEARWIRE-HOLYZINK-ROTATE3: MC's window is portrait, the screen is
            landscape - map screen coords into the game's portrait space. */
         double sendX = cursorX, sendY = cursorY;
-        if (holyRotate) { sendX = cursorY; sendY = 1 - cursorX; }
+        if (holyRotate) { /* FEARWIRE-HOLYZINK-ROTATE4 */
+            if (holyRotateDir == 270) { sendX = 1 - cursorY; sendY = cursorX; }
+            else if (holyRotateDir == 180) { sendX = 1 - cursorX; sendY = 1 - cursorY; }
+            else { sendX = cursorY; sendY = 1 - cursorX; }
+        }
         sendMousePosition0(sendX, sendY);
     }
 
@@ -91,7 +98,11 @@ public class GLFW {
 
     @SuppressWarnings("unused") // Used from native
     private static void receiveCursorPos(double x, double y) {
-        if (holyRotate) { double t = x; x = 1 - y; y = t; } /* FEARWIRE-HOLYZINK-ROTATE3: MC portrait -> screen */
+        if (holyRotate) { /* FEARWIRE-HOLYZINK-ROTATE4: MC portrait -> screen */
+            if (holyRotateDir == 270) { double t = x; x = y; y = 1 - t; }
+            else if (holyRotateDir == 180) { x = 1 - x; y = 1 - y; }
+            else { double t = x; x = 1 - y; y = t; }
+        }
         cursorX = x;
         cursorY = y;
         CursorImplementor cursor = Utils.getWeakReference(GLFW.cursorImpl);

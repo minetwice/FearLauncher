@@ -321,6 +321,12 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             holyZink = sel != null && "holy_zink_kopper".equals(sel.renderer);
         } catch (Throwable ignored) {}
         GLFW.holyRotate = holyZink;
+        /* FEARWIRE-HOLYZINK-ROTATE4: take the real display rotation so the
+           input remap direction matches the compositor. */
+        try {
+            int dispRot = getDisplay().getRotation(); /* 0/1/2/3 = 0/90/180/270 */
+            GLFW.holyRotateDir = (dispRot == 3 ? 270 : dispRot == 2 ? 180 : 90);
+        } catch (Throwable ignored) { GLFW.holyRotateDir = 90; }
         MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth));
         MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));
         MCOptionUtils.save();

@@ -49,8 +49,17 @@ static int32_t hooked_holy_setBuffersTransform_impl(void* window, int32_t transf
         printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\n", transform);
         transform = 0;
     }
-    if (real_holy_setBuffersTransform_p == NULL)
+    if (real_holy_setBuffersTransform_p == NULL) {
         real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+        /* FEARWIRE-HOLYZINK-ROTATE4: isolated namespace - dlopen fallback */
+        if (real_holy_setBuffersTransform_p == NULL) {
+            void* fearNatWin = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearNatWin == NULL) fearNatWin = dlopen("libandroid.so", RTLD_NOW);
+            if (fearNatWin != NULL)
+                real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(fearNatWin, "ANativeWindow_setBuffersTransform");
+        }
+        printf("FEARWIRE-ROTATE4: awt setBuffersTransform resolved=%p\n", (void*) real_holy_setBuffersTransform_p);
+    }
     if (real_holy_setBuffersTransform_p == NULL) return 0;
     return real_holy_setBuffersTransform_p(window, transform);
 }
@@ -67,6 +76,16 @@ static int hooked_holy_setBuffersGeometry_impl(void* window, int width, int heig
         if (real_holy_getWinWidth_p == NULL) {
             real_holy_getWinWidth_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getWidth");
             real_holy_getWinHeight_p = (int (*)(void*)) dlsym(RTLD_DEFAULT, "ANativeWindow_getHeight");
+            if (real_holy_getWinWidth_p == NULL || real_holy_getWinHeight_p == NULL) {
+                void* fearNatWinG = dlopen("libnativewindow.so", RTLD_NOW);
+                if (fearNatWinG == NULL) fearNatWinG = dlopen("libandroid.so", RTLD_NOW);
+                if (fearNatWinG != NULL) {
+                    if (real_holy_getWinWidth_p == NULL)
+                        real_holy_getWinWidth_p = (int (*)(void*)) dlsym(fearNatWinG, "ANativeWindow_getWidth");
+                    if (real_holy_getWinHeight_p == NULL)
+                        real_holy_getWinHeight_p = (int (*)(void*)) dlsym(fearNatWinG, "ANativeWindow_getHeight");
+                }
+            }
         }
         if (real_holy_getWinWidth_p != NULL && real_holy_getWinHeight_p != NULL) {
             width = real_holy_getWinWidth_p(window);
@@ -76,6 +95,12 @@ static int hooked_holy_setBuffersGeometry_impl(void* window, int width, int heig
     }
     if (real_holy_setBuffersGeometry_p == NULL)
         real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersGeometry");
+        if (real_holy_setBuffersGeometry_p == NULL) {
+            void* fearNatWinH = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearNatWinH == NULL) fearNatWinH = dlopen("libandroid.so", RTLD_NOW);
+            if (fearNatWinH != NULL)
+                real_holy_setBuffersGeometry_p = (int (*)(void*, int, int, int)) dlsym(fearNatWinH, "ANativeWindow_setBuffersGeometry");
+        }
     if (real_holy_setBuffersGeometry_p == NULL) return -1;
     return real_holy_setBuffersGeometry_p(window, width, height, format);
 }
