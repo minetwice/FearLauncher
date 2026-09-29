@@ -420,6 +420,80 @@ if 'FEARWIRE-HOLYZINK-DESKTOP' not in s:
 else:
     print("FEARWIRE SKIP: holy zink useGles already false")
 
+# ---- HOLYZINK-LANDSCAPE fix (FEARWIRE-DISPSPEC): the runtime's prebuilt
+# ---- libglfw.so builds its sole (fake) monitor video mode from
+# ---- mojoexec_renderspec.disp_width/height/hz - fields the fork's pojavexec.h
+# ---- dropped, so glfw read past the struct and MC sized its window from garbage
+# ---- (portrait, latestlog-57). Restore the fields at the ABI-correct tail and
+# ---- publish the real surface size when the bridge window is set.
+PH = 'app_pojavlauncher/src/main/jni/pojavexec.h'
+sh = open(PH).read()
+if 'FEARWIRE-DISPSPEC' not in sh:
+    old = '''    int force_gles_context;
+    int override_major_version;
+} pojavexec_renderspec_t;
+'''
+    if sh.count(old) != 1:
+        fail("pojavexec.h struct anchor count = %d" % sh.count(old))
+    sh = sh.replace(old, '''    int force_gles_context;
+    int override_major_version;
+    /* FEARWIRE-DISPSPEC: the runtime's prebuilt libglfw.so continues its
+       mojoexec_renderspec ABI here (disp_width/height/hz) for the fake
+       monitor video mode; without these fields it read past the struct. */
+    int disp_width;
+    int disp_height;
+    float disp_hz;
+} pojavexec_renderspec_t;
+''', 1)
+    old2 = 'void* pojavexec_loadVulkanDriver();'
+    if sh.count(old2) != 1:
+        fail("pojavexec.h decl anchor count = %d" % sh.count(old2))
+    sh = sh.replace(old2, 'void pojavexec_setDisplayParams(int width, int height, float hz);\n' + old2, 1)
+    open(PH, 'w').write(sh)
+    print("FEARWIRE OK: pojavexec.h display fields restored (DISPSPEC)")
+else:
+    print("FEARWIRE SKIP: pojavexec.h display fields already present")
+
+PM = 'app_pojavlauncher/src/main/jni/minibridge.c'
+sm = open(PM).read()
+if 'FEARWIRE-DISPSPEC' not in sm:
+    anchor_mb = '''const pojavexec_renderspec_t* pojavexec_getRenderSpec() {
+    return &renderspec;
+}
+'''
+    if sm.count(anchor_mb) != 1:
+        fail("minibridge.c getRenderSpec anchor count = %d" % sm.count(anchor_mb))
+    sm = sm.replace(anchor_mb, anchor_mb + '''
+
+/* FEARWIRE-DISPSPEC: publish the display size the prebuilt libglfw.so reports
+   as the monitor video mode (see pojavexec.h). */
+void pojavexec_setDisplayParams(int width, int height, float hz) {
+    renderspec.disp_width = width;
+    renderspec.disp_height = height;
+    renderspec.disp_hz = hz;
+    printf("Renderspec display params: %dx%d@%g\\n", width, height, hz);
+}
+''', 1)
+    open(PM, 'w').write(sm)
+    print("FEARWIRE OK: minibridge.c pojavexec_setDisplayParams added")
+else:
+    print("FEARWIRE SKIP: minibridge.c display setter already present")
+
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-DISPSPEC' not in sl:
+    old3 = '    if (osmesa_is_loaded()) osm_setup_window();'
+    if sl.count(old3) != 1:
+        fail("lwjgl_dlopen_hook.c setup-window anchor count = %d" % sl.count(old3))
+    sl = sl.replace(old3, '''    /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
+       so the prebuilt libglfw.so reports a sane landscape monitor to the game */
+    pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    if (osmesa_is_loaded()) osm_setup_window();''', 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: setupBridgeWindow publishes display params")
+else:
+    print("FEARWIRE SKIP: setupBridgeWindow already publishes display params")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
