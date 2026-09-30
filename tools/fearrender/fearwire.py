@@ -379,7 +379,7 @@ else:
 # ---- ("GLXShim: context init failed: EGL lib envvar not found!" in
 # ---- latestlog-55). FCL's plugin contract sets it; our launcher never did.
 s = open(P).read()
-if 'POJAVEXEC_EGL' not in s:
+if 'POJAVEXEC_EGL' not in s and 'FEARWIRE-HOLYZINK-OSMESA' not in s:
     old_case = '''                envMap.put("vblank_mode", "0");
                 envMap.put("FEAR_RENDERER", renderer);
                 break;
@@ -404,7 +404,7 @@ else:
 # ---- glTexImage2D(DEPTH_COMPONENT32, GL_FLOAT). With useGles=false GLFW keeps
 # ---- MC's desktop GL 3.2 core request -> zink desktop GL over system Vulkan.
 s = open(P).read()
-if 'FEARWIRE-HOLYZINK-DESKTOP' not in s:
+if 'FEARWIRE-HOLYZINK-DESKTOP' not in s and 'FEARWIRE-HOLYZINK-OSMESA' not in s:
     old_case = '''                renderLibrary = "libEGL_mesa.so";
                 useGles = true;
                 bypassNamespace = false;
@@ -1583,7 +1583,7 @@ else:
 
 PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
 sj = open(PMJ).read()
-if 'FEARWIRE-HOLYZINK-ROTATE9' not in sj:
+if 'FEARWIRE-HOLYZINK-ROTATE9' not in sj and 'FEARWIRE-HOLYZINK-OSMESA' not in sj:
     old_rot8 = '''        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-ROTATE8: WSI preTransform fix - turnip-like, no remap */'''
     if sj.count(old_rot8) != 1:
         fail("ROTATE9 java rot8 anchor count = %d" % sj.count(old_rot8))
@@ -1632,6 +1632,154 @@ if 'sFearRotateDir' not in sp:
     print("FEARWIRE OK: JREUtils sFearRotateDir field")
 else:
     print("FEARWIRE SKIP: JREUtils ROTATE9 already present")
+
+# ---- HOLYZINK-OSMESA (v10.13): user call - drop Kopper. Eight rotation
+# ---- rounds proved the Kopper/WSI present path cannot be tamed from outside
+# ---- (WSI preTransform from the window hint). The launcher ALREADY has a
+# ---- proven rotation-free presentation: the OSMesa bridge (turnip path):
+# ---- zink renders into a CPU buffer, the bridge blits it into the locked
+# ---- ANativeWindow - no WSI, no preTransform, no ANativeWindow present
+# ---- crash. On this Mali device turnip_zink already runs zink over the
+# ---- SYSTEM Vulkan driver, so the OSMesa path is the correct present for
+# ---- holy too. Route holy through the identical turnip configuration.
+PJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/GameRunner.java'
+sg = open(PJ).read()
+if 'FEARWIRE-HOLYZINK-OSMESA' not in sg:
+    old = '''        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("holy_zink_kopper") ? "libglxshim.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so")); /* FEARWIRE-HOLYZINK */'''
+    if sg.count(old) != 1:
+        fail("OSMESA GameRunner anchor count = %d" % sg.count(old))
+    new = '''        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so")); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): holy presents via the OSMesa bridge like turnip */'''
+    sg = sg.replace(old, new, 1)
+    open(PJ, 'w').write(sg)
+    print("FEARWIRE OK: GameRunner LWJGL libname -> mh_drive_vulkan_mesa for holy")
+else:
+    print("FEARWIRE SKIP: GameRunner OSMESA already present")
+
+PE = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
+se = open(PE).read()
+if se.count('FEARWIRE-HOLYZINK-OSMESA') < 2:
+    old_load = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
+                renderLibrary = "libEGL_mesa.so";
+                useGles = false; /* FEARWIRE-HOLYZINK-DESKTOP: GLFW honors MC's desktop GL request; zink serves GL 4.6 over system Vulkan */
+                bypassNamespace = false;
+                glesVersion = 3;
+                break;'''
+    if se.count(old_load) != 1:
+        fail("OSMESA loadGraphicsLibrary anchor count = %d" % se.count(old_load))
+    new_load = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK-OSMESA (v10.13): present via the
+               proven rotation-free OSMesa bridge (same path as turnip) instead of
+               Kopper's WSI present - the WSI preTransform rotation and the
+               ANativeWindow present crash both vanish by design; zink still
+               renders desktop GL 4.6 over the SYSTEM Vulkan driver. */
+                Logger.appendToLog("[HolyZink] Loading Mesa OSMesa bridge (zink over the system Vulkan driver)...");
+                renderLibrary = "libOSMesa_8.so";
+                useGles = false;
+                bypassNamespace = true;
+                glesVersion = 3;
+                if(preloadVk) preloadVulkan();
+                break;'''
+    se = se.replace(old_load, new_load, 1)
+    old_env = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
+                Logger.appendToLog("[HolyZink] Initializing Zink Kopper renderer (Mesa EGL + Zink over the system Vulkan driver)...");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("LIBGL_ES", "3");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("vblank_mode", "0");
+                envMap.put("POJAVEXEC_EGL", "libEGL_mesa.so"); /* FEARWIRE-HOLYZINK-EGL: glxshim finds the EGL lib through this env var */
+                envMap.put("FEAR_RENDERER", renderer);
+                break;'''
+    if se.count(old_env) != 1:
+        fail("OSMESA setupRendererEnv anchor count = %d" % se.count(old_env))
+    new_env = '''            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */
+                Logger.appendToLog("[HolyZink] Initializing Zink renderer (OSMesa + Mesa Zink over the system Vulkan driver)...");
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("vblank_mode", "0");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("FEAR_RENDERER", renderer);
+                if (!GLInfoUtils.getGlInfo().isAdreno()) {
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                } else {
+                    envMap.put("mesa_glthread", "false");
+                }
+                break;'''
+    se = se.replace(old_env, new_env, 1)
+    old_iz = '''        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);'''
+    if se.count(old_iz) != 1:
+        fail("OSMESA isZink anchor count = %d" % se.count(old_iz))
+    new_iz = '''        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "holy_zink_kopper".equals(renderer); /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */'''
+    se = se.replace(old_iz, new_iz, 1)
+    open(PE, 'w').write(se)
+    print("FEARWIRE OK: JREUtils holy -> turnip-style OSMesa config")
+else:
+    print("FEARWIRE SKIP: JREUtils OSMESA already present")
+
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if sl.count('FEARWIRE-HOLYZINK-OSMESA') < 3:
+    old_iz = '''    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0))
+        z = true;'''
+    if sl.count(old_iz) != 1:
+        fail("OSMESA is_zink anchor count = %d" % sl.count(old_iz))
+    new_iz = '''    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0
+                 || strcmp(fear, "holy_zink_kopper") == 0)) /* FEARWIRE-HOLYZINK-OSMESA (v10.13): route holy through the hooked-glfw + OSMesa bridge path */
+        z = true;'''
+    sl = sl.replace(old_iz, new_iz, 1)
+    old_gate = '''        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && bridge_environ.pojavWindow != NULL
+            && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {'''
+    if sl.count(old_gate) != 1:
+        fail("OSMESA rotate gate anchor count = %d" % sl.count(old_gate))
+    new_gate = '''        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && getenv("FEAR_HOLY_KOPPER") != NULL /* FEARWIRE-HOLYZINK-OSMESA (v10.13): kopper-only rotation experiments, OFF for the OSMesa bridge */
+            && bridge_environ.pojavWindow != NULL
+            && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {'''
+    sl = sl.replace(old_gate, new_gate, 1)
+    old_poll = '''        if ((fearRendererNow == NULL || strcmp(fearRendererNow, "holy_zink_kopper") != 0)
+            && !fear_rotate_started) {'''
+    if sl.count(old_poll) != 1:
+        fail("OSMESA poller gate anchor count = %d" % sl.count(old_poll))
+    new_poll = '''        if ((fearRendererNow == NULL || strcmp(fearRendererNow, "holy_zink_kopper") != 0)
+            && getenv("FEAR_HOLY_KOPPER") != NULL /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */
+            && !fear_rotate_started) {'''
+    sl = sl.replace(old_poll, new_poll, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: native is_zink + holy + kopper-only rotation gates")
+else:
+    print("FEARWIRE SKIP: native OSMESA already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-OSMESA' not in sj:
+    old_rot = '''        /* FEARWIRE-HOLYZINK-ROTATE9: pre-rotation contract - portrait MC
+           window + ROTATE_90 transform; touch remapped to portrait space.
+           holy_rotate.txt (4 -> 270, 3 -> 180) flips direction without a
+           rebuild. */
+        GLFW.holyRotate = holyZink;
+        GLFW.holyRotateDir = net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir;'''
+    if sj.count(old_rot) != 1:
+        fail("OSMESA java rot anchor count = %d" % sj.count(old_rot))
+    new_rot = '''        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-OSMESA (v10.13): the OSMesa bridge presents rotation-free - no remap */'''
+    sj = sj.replace(old_rot, new_rot, 1)
+    old_opt = '''        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE9 */
+        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));'''
+    if sj.count(old_opt) != 1:
+        fail("OSMESA java opt anchor count = %d" % sj.count(old_opt))
+    new_opt = '''        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): landscape, like turnip */
+        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));'''
+    sj = sj.replace(old_opt, new_opt, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface plain landscape for holy")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface OSMESA already present")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
