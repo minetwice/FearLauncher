@@ -19,3 +19,4 @@ include ':app_pojavlauncher'
 
 include ':forge_installer'
 include ':dnbglfw'
+include ':zalith-lwjgl'

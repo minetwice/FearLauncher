@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+}
+
+// Zalith LWJGL 3.4.1 module - groovy port of ZalithLauncher2's LWJGL/3.4.1
+// build.gradle.kts (credit MovTery, GPL-3.0). Merges the custom LWJGL jars +
+// patched classes into ONE game-classpath jar under app assets.
+
+group = 'org.lwjgl.glfw'
+def lwjglVersion = '3.4.1'
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'patches-src/main/java', 'shared/src/main/java']
+    }
+}
+
+dependencies {
+    compileOnly fileTree(dir: 'compileOnly', include: ['*.jar'])
+    implementation fileTree(dir: "libs/${lwjglVersion}", include: ['*.jar'])
+}
+
+def excludedModules = [
+        'lwjgl-lwjglx.jar', 'lwjgl.jar', 'jsr305.jar', 'lwjgl-freetype.jar',
+        'lwjgl-jemalloc.jar', 'lwjgl-nanovg.jar', 'lwjgl-openal.jar',
+        'lwjgl-stb.jar', 'lwjgl-tinyfd.jar', 'lwjgl-shaderc.jar',
+        'lwjgl-spvc.jar', 'lwjgl-vma.jar', 'lwjgl-vulkan.jar', 'lwjgl-spng.jar'
+]
+
+tasks.named('jar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveBaseName = "lwjgl-${lwjglVersion}-merged-modules"
+    destinationDirectory = file("${rootDir}/app_pojavlauncher/src/main/assets/app_runtime/lwjgl/${lwjglVersion}")
+    from({
+        configurations.runtimeClasspath
+                .filter { it.name.endsWith('.jar') && !excludedModules.contains(it.name) }
+                .collect { zipTree(it) }
+    })
+    exclude 'net/java/openjdk/cacio/ctc/**'
+    doLast {
+        copy {
+            from(configurations.runtimeClasspath.filter { excludedModules.contains(it.name) })
+            into destinationDirectory.get().asFile
+        }
+        new File(destinationDirectory.get().asFile, 'version').text = '3.4.1-fear'
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
