@@ -13,6 +13,9 @@ name: Fetch Zalith renderer AARs
 # -Dorg.lwjgl.opengl.libname=libglxshim.so
 on:
   workflow_dispatch:
+  push:
+    branches: [ Mega-checkpoint ]
+    paths: [ '.github/workflows/fetch-zalith-aars.yml' ]
 permissions:
   contents: write
 concurrency:
