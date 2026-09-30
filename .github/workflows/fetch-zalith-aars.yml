@@ -1,0 +1,51 @@
+name: Fetch Zalith renderer AARs
+# Zalith Kopper-Zink port - PHASE 1: vendor the proven stable renderer stack
+# from ZalithLauncher2 (GPL-3.0, credit MovTery & contributors):
+#   - kopper-zink-release.aar  : libglxshim + libEGL_mesa + libzink_dri (Mesa 23.0.4,
+#                                the stack that runs glitch-free on the dev's Mali phone)
+#   - SDL-release.aar          : libSDL2/libSDL3 - the window/EGL manager (stability secret)
+#   - lwjgl-3.4.1-natives      : custom LWJGL natives (glfw-free game GL loading)
+#   - openal-soft, spirv-cross : audio + shader translation natives
+# Phase 2 will port the launch layer (game.launch + game.sdl) and add the
+# "Kopper Zink (Zalith)" renderer entry with the Zalith env recipe:
+# LIBGL_ES=3, MESA_LOADER_DRIVER_OVERRIDE=zink, MESA_GL_VERSION_OVERRIDE=4.6,
+# MESA_GLSL_VERSION_OVERRIDE=460, POJAVEXEC_EGL=libEGL_mesa.so,
+# -Dorg.lwjgl.opengl.libname=libglxshim.so
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: fetch-zalith-aars
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Download AARs
+        run: |
+          mkdir -p app_pojavlauncher/libs
+          BASE="https://raw.githubusercontent.com/ZalithLauncher/ZalithLauncher2/main/ZalithLauncher/libs"
+          for aar in kopper-zink-release.aar SDL-release.aar lwjgl-3.4.1-natives-release.aar openal-soft-release.aar spirv-cross-natives.aar; do
+            echo "Fetching $aar ..."
+            curl -L --fail --retry 3 "$BASE/$aar" -o "app_pojavlauncher/libs/$aar"
+            unzip -t "app_pojavlauncher/libs/$aar" > /dev/null || { echo "CORRUPT: $aar"; exit 1; }
+          done
+          ls -la app_pojavlauncher/libs/
+
+      - name: Commit AARs
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add app_pojavlauncher/libs/
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git pull --rebase || true
+            git commit -m "zalith port phase 1: vendor kopper-zink/SDL/LWJGL/openal/spirv-cross AARs from ZalithLauncher2 (stable kopper zink renderer stack)"
+            git push
+            echo "PUSHED Zalith AARs"
+          fi
