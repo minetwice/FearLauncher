@@ -45,9 +45,11 @@ typedef void (*install_global_egl_hook_fn)(bytehook_hook_all_t);
 static int32_t (*real_holy_setBuffersTransform_p)(void*, int32_t);
 static int32_t hooked_holy_setBuffersTransform_impl(void* window, int32_t transform) {
     const char* fearRenderer = getenv("FEAR_RENDERER");
-    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0 && (transform & 0x10)) {
-        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 0 (zink rotation fix)\n", transform);
-        transform = 0;
+    /* FEARWIRE-HOLYZINK-ROTATE8: force ROTATE_90 - the producer transform
+       is what neutralizes the WSI's preTransform rotation. */
+    if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0 && transform != 1) {
+        printf("FEARWIRE-ROTATE: ANativeWindow_setBuffersTransform(%d) -> 1 (ROTATE8)\n", transform);
+        transform = 1;
     }
     if (real_holy_setBuffersTransform_p == NULL) {
         real_holy_setBuffersTransform_p = (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");

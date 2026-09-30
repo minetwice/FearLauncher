@@ -325,15 +325,9 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
             holyZink = "holy_zink_kopper".equals(fearR);
         } catch (Throwable ignored) {}
-        GLFW.holyRotate = holyZink;
-        /* FEARWIRE-HOLYZINK-ROTATE4: take the real display rotation so the
-           input remap direction matches the compositor. */
-        try {
-            int dispRot = getDisplay().getRotation(); /* 0/1/2/3 = 0/90/180/270 */
-            GLFW.holyRotateDir = (dispRot == 3 ? 270 : dispRot == 2 ? 180 : 90);
-        } catch (Throwable ignored) { GLFW.holyRotateDir = 90; }
-        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth));
-        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));
+        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-ROTATE8: WSI preTransform fix - turnip-like, no remap */
+        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE8: landscape, no swap */
+        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
         MCOptionUtils.save();
         getMcScale();
 
@@ -387,7 +381,17 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         if (fearRenderer5 != null && !fearRenderer5.isEmpty() && !fearRenderer5.startsWith("ERR")) {
             try { android.system.Os.setenv("FEAR_RENDERER", fearRenderer5, true); } catch (Throwable ignored) {}
         }
-        System.out.println("FEARWIRE v10.10: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);
+        System.out.println("FEARWIRE v10.11: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);
+        /* FEARWIRE-HOLYZINK-ROTATE8: holy_rotate.txt in the game dir can
+           override the counter-rotation (0/1/3/4) without a rebuild. */
+        try {
+            java.io.File fearTFile = new java.io.File(Tools.DIR_GAME_HOME, "holy_rotate.txt");
+            if (fearTFile.isFile()) {
+                String t = new String(java.nio.file.Files.readAllBytes(fearTFile.toPath())).trim();
+                if (!t.isEmpty()) android.system.Os.setenv("FEAR_ROTATE_T", t, true);
+                System.out.println("FEARWIRE v10.11: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
+            }
+        } catch (Throwable ignored) {}
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {

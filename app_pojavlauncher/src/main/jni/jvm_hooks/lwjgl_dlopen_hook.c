@@ -69,14 +69,12 @@ static void* fear_rotate_env_wait(void* arg) {
                 printf("FEARWIRE-ROTATE7: renderer=%s, no rotation needed\n", r);
                 return NULL;
             }
-            if (bridge_environ.pojavWindow != NULL
-                && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
-                ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
-                        bridge_environ.savedHeight, bridge_environ.savedWidth,
-                        ANativeWindow_getFormat(bridge_environ.pojavWindow));
-                pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
-                printf("FEARWIRE-ROTATE7: late renderer pick-up, portrait geometry %dx%d APPLIED\n",
-                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            if (bridge_environ.pojavWindow != NULL) {
+                const char* fearT = getenv("FEAR_ROTATE_T");
+                int rotateT = fearT != NULL ? atoi(fearT) : 1;
+                if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+                ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
+                printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\n", rotateT);
             }
             return NULL;
         }
@@ -104,26 +102,24 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     }
     /* FEARWIRE-DISPSPEC: publish the real surface size as the display mode
        so the prebuilt libglfw.so reports a sane landscape monitor to the game */
-    /* FEARWIRE-HOLYZINK-ROTATE3: the compositor shows this window's buffers
-       rotated 90 (landscape-locked activity on a portrait-native display).
-       zink renders straight into the buffers, so force PORTRAIT geometry:
-       MC renders portrait, Android rotates it upright. */
+    /* FEARWIRE-HOLYZINK-ROTATE8: the Android Vulkan WSI queues buffers with
+       preTransform from the window transform hint (the display rotation); MC
+       does not pre-rotate, so content shows +90 rotated (sky on the right).
+       Set the producer transform to ROTATE_90 so the hint becomes IDENTITY
+       and the swapchain presents unrotated - turnip-like: landscape window,
+       no geometry swap, no input remap. FEAR_ROTATE_T env (0/1/3/4, from
+       holy_rotate.txt in the game dir) overrides without a rebuild. */
     {
         const char* fearRenderer = getenv("FEAR_RENDERER");
         if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
-            && bridge_environ.savedHeight > 0 && bridge_environ.savedWidth > 0) {
-            /* FEARWIRE-HOLYZINK-ROTATE6: these are NDK-public functions and
-               pojavexec links libnativewindow directly - no dlsym needed. */
-            ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
-                            bridge_environ.savedHeight, /* portrait width */
-                            bridge_environ.savedWidth,  /* portrait height */
-                            ANativeWindow_getFormat(bridge_environ.pojavWindow));
-            printf("FEARWIRE-ROTATE3: portrait buffer geometry %dx%d APPLIED (direct NDK call)\n",
-                   bridge_environ.savedHeight, bridge_environ.savedWidth);
-            pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
-        } else {
-            pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+            && bridge_environ.pojavWindow != NULL) {
+            const char* fearT = getenv("FEAR_ROTATE_T");
+            int rotateT = fearT != NULL ? atoi(fearT) : 1;
+            if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+            ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
+            printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\n", rotateT);
         }
+        pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
     }
     /* FEARWIRE-HOLYZINK-ROTATE7: the renderer env usually appears only at
        game launch (after the surface exists) - watch for it in the background
@@ -139,27 +135,9 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
             printf("FEARWIRE-ROTATE7: renderer env watcher thread started\n");
         }
     }
-    /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the
-       game starts (belt+braces with the linkerhook intercept) - zink renders
-       unrotated landscape, so any pending 90-degree transform shows it sideways */
-    {
-        const char* fearRenderer = getenv("FEAR_RENDERER");
-        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0) {
-            int32_t (*setTransform)(void*, int32_t) =
-                (int32_t (*)(void*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
-            if (setTransform == NULL) {
-                void* fearNatWinT = dlopen("libnativewindow.so", RTLD_NOW);
-                if (fearNatWinT == NULL) fearNatWinT = dlopen("libandroid.so", RTLD_NOW);
-                if (fearNatWinT != NULL)
-                    setTransform = (int32_t (*)(void*, int32_t)) dlsym(fearNatWinT, "ANativeWindow_setBuffersTransform");
-                printf("FEARWIRE-ROTATE4: setBuffersTransform resolved=%p\n", (void*) setTransform);
-            }
-            if (setTransform != NULL) {
-                setTransform(bridge_environ.pojavWindow, 0);
-                printf("FEARWIRE-ROTATE: cleared ANativeWindow buffer transform\n");
-            }
-        }
-    }
+    /* FEARWIRE-HOLYZINK-ROTATE8: superseded - do NOT clear the transform;
+       the ROTATE_90 producer transform above is what neutralizes the WSI's
+       pre-rotation. */
     if (osmesa_is_loaded()) osm_setup_window();
 }
 
