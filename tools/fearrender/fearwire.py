@@ -1093,7 +1093,7 @@ else:
 
 PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
 sj = open(PMJ).read()
-if 'FEARWIRE v10.9: onSurfaceAvailable' not in sj:
+if 'FEARWIRE v10.9: onSurfaceAvailable' not in sj and 'FEARWIRE v10.10: onSurfaceAvailable' not in sj:
     old_env = '''        try {
             net.kdt.pojavlaunch.instances.Instance sel =
                     net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
@@ -1117,6 +1117,136 @@ if 'FEARWIRE v10.9: onSurfaceAvailable' not in sj:
     print("FEARWIRE OK: MinecraftGLSurface ROTATE6 Java marker with feedback")
 else:
     print("FEARWIRE SKIP: MinecraftGLSurface ROTATE6 already present")
+
+# ---- HOLYZINK-ROTATE7 (v10.10): ROOT CAUSE FOUND in log-63: the launcher
+# ---- resolves the renderer with Instance.getLaunchRenderer(), which falls
+# ---- back to the GLOBAL pref when instance.renderer is empty -
+# ---- "Selected renderer: holy_zink_kopper" (log line 12) came from that
+# ---- path. My checks used sel.renderer directly -> always false -> no setenv,
+# ---- no overrideWidth swap, no input remap. Fix: use getLaunchRenderer()/
+# ---- PREF_RENDERER (same resolution as the launcher), plus a native
+# ---- background watcher that applies the portrait geometry the moment the
+# ---- renderer env appears at game launch - so the geometry swap happens even
+# ---- if the Java path fails again.
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-ROTATE7' not in sj:
+    old_env = '''        String fearRenderer5 = "(unset)";
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty()) {
+                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
+                fearRenderer5 = sel.renderer;
+            }
+        } catch (Throwable t) { fearRenderer5 = "ERR " + t; }
+        System.out.println("FEARWIRE v10.9: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);'''
+    if sj.count(old_env) != 1:
+        fail("ROTATE7 env anchor count = %d" % sj.count(old_env))
+    new_env = '''        String fearRenderer5 = "(unset)";
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            /* FEARWIRE-HOLYZINK-ROTATE7: use getLaunchRenderer() - the exact
+               method the launcher itself uses. instance.renderer can be empty
+               while the real renderer comes from the global PREF_RENDERER. */
+            fearRenderer5 = sel != null ? sel.getLaunchRenderer()
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
+        } catch (Throwable t) { fearRenderer5 = "ERR " + t; }
+        if (fearRenderer5 != null && !fearRenderer5.isEmpty() && !fearRenderer5.startsWith("ERR")) {
+            try { android.system.Os.setenv("FEAR_RENDERER", fearRenderer5, true); } catch (Throwable ignored) {}
+        }
+        System.out.println("FEARWIRE v10.10: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);'''
+    sj = sj.replace(old_env, new_env, 1)
+    old_holy = '''        boolean holyZink = false;
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            holyZink = sel != null && "holy_zink_kopper".equals(sel.renderer);
+        } catch (Throwable ignored) {}'''
+    if sj.count(old_holy) != 1:
+        fail("ROTATE7 holy anchor count = %d" % sj.count(old_holy))
+    new_holy = '''        boolean holyZink = false;
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            /* FEARWIRE-HOLYZINK-ROTATE7: same renderer resolution as the
+               launcher itself (getLaunchRenderer falls back to PREF_RENDERER
+               when instance.renderer is empty). */
+            String fearR = sel != null ? sel.getLaunchRenderer()
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
+            holyZink = "holy_zink_kopper".equals(fearR);
+        } catch (Throwable ignored) {}'''
+    sj = sj.replace(old_holy, new_holy, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface uses getLaunchRenderer (launcher-identical)")
+else:
+    print("FEARWIRE SKIP: MinecraftGLSurface ROTATE7 already present")
+
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE7' not in sl:
+    old_fn = '''JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {'''
+    if sl.count(old_fn) != 1:
+        fail("ROTATE7 native fn anchor count = %d" % sl.count(old_fn))
+    new_fn = '''#include <unistd.h>
+/* FEARWIRE-HOLYZINK-ROTATE7: waits (up to 60s) for FEAR_RENDERER - the env is
+   set at game launch, after the surface already exists - then applies the
+   portrait buffer geometry for holy zink before the game creates its window. */
+static volatile int fear_rotate_started = 0;
+static void* fear_rotate_env_wait(void* arg) {
+    (void) arg;
+    for (int i = 0; i < 300; i++) {
+        const char* r = getenv("FEAR_RENDERER");
+        if (r != NULL) {
+            if (strcmp(r, "holy_zink_kopper") != 0) {
+                printf("FEARWIRE-ROTATE7: renderer=%s, no rotation needed\\n", r);
+                return NULL;
+            }
+            if (bridge_environ.pojavWindow != NULL
+                && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
+                ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                        bridge_environ.savedHeight, bridge_environ.savedWidth,
+                        ANativeWindow_getFormat(bridge_environ.pojavWindow));
+                pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+                printf("FEARWIRE-ROTATE7: late renderer pick-up, portrait geometry %dx%d APPLIED\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
+            return NULL;
+        }
+        usleep(200 * 1000);
+    }
+    printf("FEARWIRE-ROTATE7: renderer env never appeared\\n");
+    return NULL;
+}
+
+JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {'''
+    sl = sl.replace(old_fn, new_fn, 1)
+    old_start = '''    /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the'''
+    if sl.count(old_start) != 1:
+        fail("ROTATE7 poller anchor count = %d" % sl.count(old_start))
+    new_start = '''    /* FEARWIRE-HOLYZINK-ROTATE7: the renderer env usually appears only at
+       game launch (after the surface exists) - watch for it in the background
+       and apply the portrait geometry for holy zink as soon as it shows up. */
+    {
+        const char* fearRendererNow = getenv("FEAR_RENDERER");
+        if ((fearRendererNow == NULL || strcmp(fearRendererNow, "holy_zink_kopper") != 0)
+            && !fear_rotate_started) {
+            fear_rotate_started = 1;
+            pthread_t fearRotateThread;
+            if (pthread_create(&fearRotateThread, NULL, fear_rotate_env_wait, NULL) == 0)
+                pthread_detach(fearRotateThread);
+            printf("FEARWIRE-ROTATE7: renderer env watcher thread started\\n");
+        }
+    }
+    /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the'''
+    sl = sl.replace(old_start, new_start, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: native env watcher thread added")
+else:
+    print("FEARWIRE SKIP: native ROTATE7 already present")
 
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
