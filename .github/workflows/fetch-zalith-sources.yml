@@ -1,0 +1,78 @@
+name: Fetch Zalith port sources (Phase 2)
+# Zalith Kopper-Zink port - PHASE 2: vendor the source material needed to port
+# the stable renderer stack into FearLauncher (credit: MovTery & ZalithLauncher2
+# contributors, GPL-3.0):
+#   1) zalith-lwjgl/            - LWJGL 3.4.1 custom module (Java sources + the
+#                                 merged-jar input jars + patches + shared src)
+#   2) jni/zalith/              - SDL glfw native hooks (sdl_hook.c/h,
+#                                 sdl_dlopen_hook.c) - the stability core
+#   3) tools/zalith-reference/  - their launcher-side game.launch + game.sdl +
+#                                 bridge sources (Kotlin porting reference)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ Mega-checkpoint ]
+    paths: [ '.github/workflows/fetch-zalith-sources.yml' ]
+permissions:
+  contents: write
+concurrency:
+  group: fetch-zalith-sources
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Download and vendor sources
+        run: |
+          set -e
+          curl -sL --fail --retry 3 "https://codeload.github.com/ZalithLauncher/ZalithLauncher2/tar.gz/refs/heads/main" -o /tmp/zalith.tgz
+          mkdir -p /tmp/z
+          tar -xzf /tmp/zalith.tgz -C /tmp/z
+          SRC=/tmp/z/ZalithLauncher2-main
+
+          # --- 1) LWJGL 3.4.1 module (sources + jars) ---
+          mkdir -p zalith-lwjgl
+          cp -r "$SRC/LWJGL/3.4.1/src" zalith-lwjgl/
+          cp -r "$SRC/LWJGL/3.4.1/libs" zalith-lwjgl/
+          cp -r "$SRC/LWJGL/patches/src" zalith-lwjgl/patches-src
+          cp -r "$SRC/LWJGL/shared" zalith-lwjgl/shared || true
+          mkdir -p zalith-lwjgl/compileOnly
+          cp "$SRC/LWJGL/compileOnly/"*.jar zalith-lwjgl/compileOnly/ 2>/dev/null || true
+          test -f zalith-lwjgl/src/main/java/org/lwjgl/glfw/GLFW.java || { echo "FATAL: LWJGL sources missing"; exit 1; }
+          test -f zalith-lwjgl/libs/3.4.1/lwjgl-glfw.jar || { echo "FATAL: lwjgl-glfw.jar missing"; exit 1; }
+
+          # --- 2) native SDL glfw hooks ---
+          mkdir -p jni/zalith
+          cp "$SRC/ZalithLauncher/src/main/jni/sdl_hook.c" jni/zalith/
+          cp "$SRC/ZalithLauncher/src/main/jni/sdl_hook.h" jni/zalith/
+          cp "$SRC/ZalithLauncher/src/main/jni/sdl_dlopen_hook.c" jni/zalith/
+          test -f jni/zalith/sdl_hook.c || { echo "FATAL: sdl_hook.c missing"; exit 1; }
+
+          # --- 3) launcher reference sources (game.launch, game.sdl, bridge) ---
+          mkdir -p tools/zalith-reference
+          cp -r "$SRC/ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game" tools/zalith-reference/game
+          cp -r "$SRC/ZalithLauncher/src/main/java/com/movtery/zalithlauncher/bridge" tools/zalith-reference/bridge
+          cp "$SRC/ZalithLauncher/src/main/jni/CMakeLists.txt" tools/zalith-reference/native-CMakeLists.txt 2>/dev/null || true
+          cp "$SRC/ZalithLauncher/src/main/jni/Android.mk" tools/zalith-reference/native-Android.mk 2>/dev/null || true
+          test -f tools/zalith-reference/game/sdl/SdlBridge.kt || { echo "FATAL: SdlBridge.kt missing"; exit 1; }
+
+          echo "=== vendored tree ==="
+          find zalith-lwjgl jni/zalith tools/zalith-reference -type f | wc -l
+
+      - name: Commit vendored sources
+        run: |
+          git config user.name "Twicefear"
+          git config user.email "ytd82774@gmail.com"
+          git add zalith-lwjgl jni/zalith tools/zalith-reference
+          if git diff --cached --quiet; then
+            echo "No change to push"
+          else
+            git pull --rebase || true
+            git commit -m "zalith port phase 2: vendor LWJGL 3.4.1 module (sources+jars+patches), SDL glfw native hooks (sdl_hook/sdl_dlopen_hook), and launcher game/sdl reference sources from ZalithLauncher2 (credit MovTery, GPL-3.0)"
+            git push
+            echo "PUSHED"
+          fi
