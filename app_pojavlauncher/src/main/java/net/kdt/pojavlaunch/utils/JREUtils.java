@@ -163,15 +163,22 @@ public class JREUtils {
                     Logger.appendToLog("[FearRender] MobileGlues config setup failed: " + t);
                 }
                 break;
-            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
-                Logger.appendToLog("[HolyZink] Initializing Zink Kopper renderer (Mesa EGL + Zink over the system Vulkan driver)...");
+            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */
+                Logger.appendToLog("[HolyZink] Initializing Zink renderer (OSMesa + Mesa Zink over the system Vulkan driver)...");
+                envMap.put("GALLIUM_DRIVER", "zink");
                 envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-                envMap.put("LIBGL_ES", "3");
-                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
                 envMap.put("vblank_mode", "0");
-                envMap.put("POJAVEXEC_EGL", "libEGL_mesa.so"); /* FEARWIRE-HOLYZINK-EGL: glxshim finds the EGL lib through this env var */
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
+                if (!GLInfoUtils.getGlInfo().isAdreno()) {
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                } else {
+                    envMap.put("mesa_glthread", "false");
+                }
                 break;
             case "turnip_zink":
             case "vulkan_zink":
@@ -209,7 +216,7 @@ public class JREUtils {
         if(PREF_VSYNC_IN_ZINK)
             envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "holy_zink_kopper".equals(renderer); /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -354,12 +361,17 @@ public class JREUtils {
 
 
         switch (renderer){
-            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK */
-                Logger.appendToLog("[HolyZink] Loading Mesa Kopper EGL (libEGL_mesa.so - Zink over the system Vulkan driver)...");
-                renderLibrary = "libEGL_mesa.so";
-                useGles = false; /* FEARWIRE-HOLYZINK-DESKTOP: GLFW honors MC's desktop GL request; zink serves GL 4.6 over system Vulkan */
-                bypassNamespace = false;
+            case "holy_zink_kopper": /* FEARWIRE-HOLYZINK-OSMESA (v10.13): present via the
+               proven rotation-free OSMesa bridge (same path as turnip) instead of
+               Kopper's WSI present - the WSI preTransform rotation and the
+               ANativeWindow present crash both vanish by design; zink still
+               renders desktop GL 4.6 over the SYSTEM Vulkan driver. */
+                Logger.appendToLog("[HolyZink] Loading Mesa OSMesa bridge (zink over the system Vulkan driver)...");
+                renderLibrary = "libOSMesa_8.so";
+                useGles = false;
+                bypassNamespace = true;
                 glesVersion = 3;
+                if(preloadVk) preloadVulkan();
                 break;
             case "turnip_zink":
             case "vulkan_zink":

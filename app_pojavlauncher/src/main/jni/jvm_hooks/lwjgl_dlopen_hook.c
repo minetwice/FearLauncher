@@ -32,7 +32,8 @@ static bool is_zink_renderer() {
     const char* gallium = getenv("GALLIUM_DRIVER");
     const char* renderer = getenv("POJAV_RENDERER");
     bool z = false;
-    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0))
+    if (fear && (strcmp(fear, "turnip_zink") == 0 || strcmp(fear, "vulkan_zink") == 0
+                 || strcmp(fear, "holy_zink_kopper") == 0)) /* FEARWIRE-HOLYZINK-OSMESA (v10.13): route holy through the hooked-glfw + OSMesa bridge path */
         z = true;
     else if (gallium && strcmp(gallium, "zink") == 0)
         z = true;
@@ -137,6 +138,7 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     {
         const char* fearRenderer = getenv("FEAR_RENDERER");
         if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && getenv("FEAR_HOLY_KOPPER") != NULL /* FEARWIRE-HOLYZINK-OSMESA (v10.13): kopper-only rotation experiments, OFF for the OSMesa bridge */
             && bridge_environ.pojavWindow != NULL
             && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
             /* FEARWIRE-HOLYZINK-ROTATE9: the Android pre-rotation contract -
@@ -170,6 +172,7 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     {
         const char* fearRendererNow = getenv("FEAR_RENDERER");
         if ((fearRendererNow == NULL || strcmp(fearRendererNow, "holy_zink_kopper") != 0)
+            && getenv("FEAR_HOLY_KOPPER") != NULL /* FEARWIRE-HOLYZINK-OSMESA (v10.13) */
             && !fear_rotate_started) {
             fear_rotate_started = 1;
             pthread_t fearRotateThread;

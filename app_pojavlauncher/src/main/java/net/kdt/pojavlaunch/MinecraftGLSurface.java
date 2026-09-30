@@ -325,14 +325,9 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
             holyZink = "holy_zink_kopper".equals(fearR);
         } catch (Throwable ignored) {}
-        /* FEARWIRE-HOLYZINK-ROTATE9: pre-rotation contract - portrait MC
-           window + ROTATE_90 transform; touch remapped to portrait space.
-           holy_rotate.txt (4 -> 270, 3 -> 180) flips direction without a
-           rebuild. */
-        GLFW.holyRotate = holyZink;
-        GLFW.holyRotateDir = net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir;
-        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE9 */
-        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));
+        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-OSMESA (v10.13): the OSMesa bridge presents rotation-free - no remap */
+        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): landscape, like turnip */
+        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
         MCOptionUtils.save();
         getMcScale();
 
