@@ -10,6 +10,7 @@
 #include <sys/user.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <linux/limits.h>
 #include <errno.h>
 #include <unistd.h>
