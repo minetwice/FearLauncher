@@ -176,6 +176,15 @@ public class JREUtils {
                     envMap.put("ZINK_DEBUG", "noreorder,sync");
                     envMap.put("GALLIUM_THREAD", "0");
                     envMap.put("mesa_glthread", "false");
+                    /* FEARWIRE-ZINK-MALI (v10.14): the bundled Mesa 25.1.4 fork
+                       ships Mali-specific zink correctness knobs (all off by
+                       default, documented in tools/fearrender/mesapatch.py) -
+                       texture corruption / flickering chunks on the proprietary
+                       Mali Vulkan driver are exactly what they patch. */
+                    envMap.put("ZINK_MALI_NOBINDLESS", "1");
+                    envMap.put("ZINK_MALI_NOCOHERENT", "1");
+                    envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
+                    envMap.put("ZINK_MALI_NOREUSE", "1");
                 } else {
                     envMap.put("mesa_glthread", "false");
                 }

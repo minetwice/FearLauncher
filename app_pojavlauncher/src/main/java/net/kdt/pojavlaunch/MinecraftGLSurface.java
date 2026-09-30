@@ -399,6 +399,25 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir = "4".equals(t) ? 270 : "3".equals(t) ? 180 : 90;
                 }
                 System.out.println("FEARWIRE v10.12: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
+        /* FEARWIRE-ZINK-MALI (v10.14): holy_zink.txt in the game dir - one
+           KEY=VALUE per line (# comments allowed) - applies env overrides for
+           the zink stack WITHOUT a rebuild (e.g. ZINK_MALI_NOBINDLESS=0 to
+           re-enable bindless for performance once textures are correct). */
+        try {
+            java.io.File fearEnvFile = new java.io.File(Tools.DIR_GAME_HOME, "holy_zink.txt");
+            if (fearEnvFile.isFile()) {
+                java.io.BufferedReader fearBr = new java.io.BufferedReader(new java.io.FileReader(fearEnvFile));
+                String fearLn;
+                while ((fearLn = fearBr.readLine()) != null) {
+                    fearLn = fearLn.trim();
+                    int fearEq = fearLn.indexOf('=');
+                    if (fearLn.isEmpty() || fearLn.startsWith("#") || fearEq <= 0) continue;
+                    try { android.system.Os.setenv(fearLn.substring(0, fearEq), fearLn.substring(fearEq + 1), true); } catch (Throwable ignored) {}
+                }
+                fearBr.close();
+                System.out.println("FEARWIRE v10.14: holy_zink.txt env overrides applied");
+            }
+        } catch (Throwable ignored) {}
             }
         } catch (Throwable ignored) {}
         GLFW.nativeSurfaceCreated(surface);
