@@ -1968,7 +1968,7 @@ if 'FEARWIRE-FRAMEDUMP' not in so:
                 if (fear_dump_wait <= 5.0) fear_dump_wait = 60.0;
                 fear_dump_t0 = now;
                 fear_dump_state = 1;
-                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs\n",
+                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs\\n",
                         fear_dump_wait);
             }
             if (fear_dump_state == 1 && (now - fear_dump_t0) >= fear_dump_wait) {
@@ -1982,13 +1982,13 @@ if 'FEARWIRE-FRAMEDUMP' not in so:
                         fwrite(currentBundle->color_buffer, 1,
                                (size_t)currentBundle->color_width * currentBundle->color_height * 4, f);
                         fclose(f);
-                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s\n",
+                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s\\n",
                                 currentBundle->color_width, currentBundle->color_height, path);
                     } else {
-                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s\n", path);
+                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s\\n", path);
                     }
                 } else {
-                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)\n",
+                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)\\n",
                             gdir, currentBundle->color_buffer);
                 }
             }
@@ -1998,7 +1998,7 @@ if 'FEARWIRE-FRAMEDUMP' not in so:
         static int fear_v1016_marker = 0;
         if (!fear_v1016_marker) {
             fear_v1016_marker = 1;
-            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)\n");
+            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)\\n");
         }
     }
 
@@ -2010,7 +2010,7 @@ if 'FEARWIRE-FRAMEDUMP' not in so:
     new_bl = '''    if (dst != NULL && copy_w > 0 && copy_h > 0 && (g_diag_blits % 120) == 1) {
         const uint32_t* dc = (const uint32_t*)(dst + (size_t)(copy_h / 2) * dst_stride_bytes
                                                + (size_t)(copy_w / 2) * 4);
-        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)\n", *dc);
+        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)\\n", *dc);
     }
 
     if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {'''

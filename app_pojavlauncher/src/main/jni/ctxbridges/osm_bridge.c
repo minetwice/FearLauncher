@@ -578,8 +578,7 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     if (dst != NULL && copy_w > 0 && copy_h > 0 && (g_diag_blits % 120) == 1) {
         const uint32_t* dc = (const uint32_t*)(dst + (size_t)(copy_h / 2) * dst_stride_bytes
                                                + (size_t)(copy_w / 2) * 4);
-        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)
-", *dc);
+        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)\n", *dc);
     }
 
     if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {
@@ -620,7 +619,7 @@ void osm_swap_buffers() {
         static int fear_dump_state = 0; /* 0=idle 1=armed 2=done */
         static double fear_dump_t0 = -1.0, fear_dump_wait = 60.0;
         const char* fd = getenv("FEAR_DUMP_FRAME");
-        if (fd != NULL && fd[0] != ' ' && strcmp(fd, "0") != 0 && fear_dump_state < 2) {
+        if (fd != NULL && fd[0] != '\0' && strcmp(fd, "0") != 0 && fear_dump_state < 2) {
             struct timespec ts;
             double now;
             clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -630,8 +629,7 @@ void osm_swap_buffers() {
                 if (fear_dump_wait <= 5.0) fear_dump_wait = 60.0;
                 fear_dump_t0 = now;
                 fear_dump_state = 1;
-                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs
-",
+                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs\n",
                         fear_dump_wait);
             }
             if (fear_dump_state == 1 && (now - fear_dump_t0) >= fear_dump_wait) {
@@ -645,16 +643,13 @@ void osm_swap_buffers() {
                         fwrite(currentBundle->color_buffer, 1,
                                (size_t)currentBundle->color_width * currentBundle->color_height * 4, f);
                         fclose(f);
-                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s
-",
+                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s\n",
                                 currentBundle->color_width, currentBundle->color_height, path);
                     } else {
-                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s
-", path);
+                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s\n", path);
                     }
                 } else {
-                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)
-",
+                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)\n",
                             gdir, currentBundle->color_buffer);
                 }
             }
@@ -664,8 +659,7 @@ void osm_swap_buffers() {
         static int fear_v1016_marker = 0;
         if (!fear_v1016_marker) {
             fear_v1016_marker = 1;
-            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)
-");
+            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)\n");
         }
     }
 
