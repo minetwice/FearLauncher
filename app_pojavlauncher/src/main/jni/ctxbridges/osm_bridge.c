@@ -546,11 +546,31 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
     const int dst_stride_bytes = nb.stride * 4; /* stride is in pixels */
 
     if (dst != NULL && copy_w > 0 && copy_h > 0) {
-        for (int y = 0; y < copy_h; y++) {
-            int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
-            memcpy(dst + (size_t)y * dst_stride_bytes,
-                   src + (size_t)sy * src_stride_bytes,
-                   (size_t)copy_w * 4u);
+        /* FEARWIRE-ALPHA (v10.15): MC clears with alpha=0 (OSMDIAG corners
+           show A=0x00), so the compositor shows the launcher background
+           through sky/translucent pixels - the "world texture glitch".
+           Force the alpha channel opaque during the blit; disable with
+           FEAR_ALPHA_FIX=0 (e.g. via holy_zink.txt). */
+        static int fear_alpha_fix = -1;
+        if (fear_alpha_fix < 0) {
+            const char* fav = getenv("FEAR_ALPHA_FIX");
+            fear_alpha_fix = (fav == NULL || atoi(fav) != 0) ? 1 : 0;
+        }
+        if (fear_alpha_fix) {
+            for (int y = 0; y < copy_h; y++) {
+                int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+                const uint32_t* src_row = (const uint32_t*)(src + (size_t)sy * src_stride_bytes);
+                uint32_t* dst_row = (uint32_t*)(dst + (size_t)y * dst_stride_bytes);
+                for (int x = 0; x < copy_w; x++)
+                    dst_row[x] = src_row[x] | 0xFF000000u;
+            }
+        } else {
+            for (int y = 0; y < copy_h; y++) {
+                int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+                memcpy(dst + (size_t)y * dst_stride_bytes,
+                       src + (size_t)sy * src_stride_bytes,
+                       (size_t)copy_w * 4u);
+            }
         }
     }
 
