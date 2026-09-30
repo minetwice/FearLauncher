@@ -14,7 +14,7 @@ import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.lifecycle.LifecycleAwareAlertDialog;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
-import net.kdt.pojavlaunch.utils.MCOptionUtils; // FEAR-FPSUNLOCK
+import net.kdt.pojavlaunch.utils.MCOptionUtils;
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DateUtils;
@@ -23,7 +23,6 @@ import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.GameOptionsUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
 import net.kdt.pojavlaunch.utils.JSONUtils;
-import net.kdt.pojavlaunch.utils.MCOptionUtils;
 import net.kdt.pojavlaunch.utils.OldVersionsUtils;
 import net.kdt.pojavlaunch.utils.RendererCompatUtil;
 
@@ -75,10 +74,6 @@ public class GameRunner {
         return renderDistance > 7;
     }
 
-    private static boolean isGl4esCompatible(JMinecraftVersionList.Version version) throws Exception{
-        return DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2025, 1, 7);
-    }
-
     private static boolean isCompatContext(JMinecraftVersionList.Version version) throws Exception{
         return DateUtils.dateBefore(DateUtils.getOriginalReleaseDate(version), 2021, 3, 9);
     }
@@ -89,19 +84,6 @@ public class GameRunner {
                         .setCancelable(false)
                         .setPositiveButton(android.R.string.ok, (d, w)->{}));
         return LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator);
-    }
-
-    private static String switchLtw(boolean hasLtw, Instance instance, AppCompatActivity activity, int resId) throws InterruptedException, IOException {
-        if(hasLtw) {
-            String ltwRenderer = "opengles3_ltw";
-            instance.renderer = ltwRenderer;
-            instance.write();
-            return ltwRenderer;
-        }else {
-            showDialog(activity, resId);
-            System.exit(0);
-            return null;
-        }
     }
 
     public static void launchMinecraft(final AppCompatActivity activity, MinecraftAccount minecraftAccount,
@@ -129,55 +111,11 @@ public class GameRunner {
         File gamedir = instance.getGameDirectory();
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
-        // [FearRender] FEAR-FPSUNLOCK + FEAR-TURBO: vanilla defaults cap the game
-        // at maxFps=60 with vsync on - bump to Unlimited (260) + vsync off (the
-        // renderer also forces EGL swap interval 0); never fights a deliberate
-        // low setting like 30. FEAR-TURBO then trims hidden CPU costs that never
-        // pay off visually on heavy modpacks: biome blending above 1 and
-        // simulation distance above 6 (per-chunk entity ticking is the main
-        // stutter source - see the multi-second worst-frame spikes in FEAR-PERF
-        // logs). Values are only lowered, never raised, and only for
-        // fear_render.
-        if (rendererName.equals("fear_render")) {
-            try {
-                MCOptionUtils.load(gamedir.getAbsolutePath());
-                String maxFps = MCOptionUtils.get("maxFps");
-                boolean fearChanged = false;
-                if (maxFps == null || "60".equals(maxFps) || "120".equals(maxFps)) {
-                    MCOptionUtils.set("maxFps", "260");
-                    MCOptionUtils.set("vsync", "false");
-                    fearChanged = true;
-                }
-                String fearBiome = MCOptionUtils.get("biomeBlendRadius");
-                if (fearBiome == null || Integer.parseInt(fearBiome.trim()) > 1) {
-                    MCOptionUtils.set("biomeBlendRadius", "1");
-                    fearChanged = true;
-                }
-                String fearSim = MCOptionUtils.get("simulationDistance");
-                if (fearSim == null || Integer.parseInt(fearSim.trim()) > 6) {
-                    MCOptionUtils.set("simulationDistance", "6");
-                    fearChanged = true;
-                }
-                if (fearChanged) MCOptionUtils.save();
-            } catch (Throwable t) {
-                Log.w("FearRender", "Could not apply fps unlock / FEAR-TURBO in options.txt", t);
-            }
-        }
-
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
-            instance.renderer = rendererName = "opengles2";
+            instance.renderer = rendererName = "turnip_zink";
             instance.write();
         }
 
-        boolean isGl4es = rendererName.equals("opengles2");
-        boolean ltwSupported = RendererCompatUtil.getCompatibleRenderers(activity).rendererIds.contains("opengles3_ltw");
-        if(!isCompatContext(versionInfo) && isGl4es && hasSodium(gamedir)) {
-            rendererName = switchLtw(ltwSupported, instance, activity, R.string.compat_sodium_not_supported);
-        }
-
-        if(!isGl4esCompatible(versionInfo) && isGl4es) {
-            rendererName = switchLtw(ltwSupported, instance, activity, R.string.compat_version_not_supported);
-        }
         RendererCompatUtil.releaseRenderersCache();
 
         boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turnip_zink");
@@ -244,15 +182,15 @@ public class GameRunner {
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         if(rendererLibrary == null) {
-            Log.i("GameRunner", "Falling back to GL4ES 1.1.4");
-            rendererName = "opengles2";
+            Log.i("GameRunner", "Falling back to Turnip Zink");
+            rendererName = "turnip_zink";
             rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         }
         if(rendererLibrary == null) {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") ? "libmh_drive_vulkan_mesa.so" : rendererName.equals("fear_render") ? "libFearRender.so" : "libGL.so")); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): holy presents via the OSMesa bridge like turnip */
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
@@ -355,48 +293,35 @@ public class GameRunner {
         try {
             Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
             if(creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) { userType = "msa"; }
-        }catch (ParseException e) { Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e); }
-
+        } catch (ParseException e) {
+            Log.e("GameRunner", "Failed to parse version date", e);
+        }
         Map<String, String> varArgMap = new ArrayMap<>();
-        varArgMap.put("auth_session", profile.accessToken);
-        varArgMap.put("auth_access_token", profile.accessToken);
         varArgMap.put("auth_player_name", username);
-        varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
-        varArgMap.put("auth_xuid", profile.xuid);
+        varArgMap.put("version_name", versionName);
+        varArgMap.put("game_directory", gameDir.getAbsolutePath());
         varArgMap.put("assets_root", Tools.ASSETS_PATH);
         varArgMap.put("assets_index_name", versionInfo.assets);
-        varArgMap.put("game_assets", Tools.ASSETS_PATH);
-        varArgMap.put("game_directory", gameDir.getAbsolutePath());
+        varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
+        varArgMap.put("auth_access_token", profile.accessToken);
         varArgMap.put("user_properties", "{}");
         varArgMap.put("user_type", userType);
-        varArgMap.put("version_name", versionName);
         varArgMap.put("version_type", versionInfo.type);
-
         List<String> minecraftArgs = new ArrayList<>();
         if (versionInfo.arguments != null && versionInfo.arguments.game != null) {
             for (Object arg : versionInfo.arguments.game) {
                 if (arg instanceof String) { minecraftArgs.add((String) arg); }
             }
+        } else if (versionInfo.minecraftArguments != null) {
+            Collections.addAll(minecraftArgs, versionInfo.minecraftArguments.split(" "));
         }
-        if(versionInfo.minecraftArguments != null){ minecraftArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments)); }
         return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
     }
 
-    private static List<String> splitAndFilterEmpty(String argStr) {
-        List<String> strList = new ArrayList<>();
-        for (String arg : argStr.split(" ")) { if (!arg.isEmpty()) { strList.add(arg); } }
-        return strList;
-    }
-
-    public static @NonNull String pickRuntime(Instance instance, int targetJavaVersion) {
-        String runtime = Tools.getSelectedRuntime(instance);
-        String profileRuntime = instance.selectedRuntime;
-        Runtime pickedRuntime = MultiRTUtils.read(runtime);
-        if(runtime == null || pickedRuntime.javaVersion == 0 || pickedRuntime.javaVersion < targetJavaVersion) {
-            String preferredRuntime = MultiRTUtils.getNearestJreName(targetJavaVersion);
-            if(preferredRuntime == null) throw new RuntimeException("Failed to autopick runtime!");
-            if(profileRuntime != null) { instance.selectedRuntime = preferredRuntime; instance.maybeWrite(); }
-            runtime = preferredRuntime;
+    public static String pickRuntime(Instance instance, int targetJavaVersion) {
+        String runtime = instance.runtime;
+        if (runtime == null || runtime.isEmpty()) {
+            runtime = LauncherPreferences.PREF_DEFAULT_RUNTIME;
         }
         return runtime;
     }
