@@ -1781,6 +1781,86 @@ if 'FEARWIRE-HOLYZINK-OSMESA' not in sj:
 else:
     print("FEARWIRE SKIP: MinecraftGLSurface OSMESA already present")
 
+# ---- ZINK-MALI (v10.14): the bundled Mesa 25.1.4 OSMesa fork ships
+# ---- Mali-specific zink correctness knobs (verified in its strings, and
+# ---- documented by our own tools/fearrender/mesapatch.py):
+# ----   ZINK_MALI_NOBINDLESS      disable bindless/descriptor-indexing caps
+# ----   ZINK_MALI_NOCOHERENT      always vkFlush/vkInvalidate mapped memory
+# ----   ZINK_MALI_NOCOMPUTEUPLOAD staging-blit-only texture uploads
+# ----   ZINK_MALI_NOREUSE         never reclaim/reuse buffers
+# ---- All are OFF by default and NOTHING in the launcher ever set them -
+# ---- texture glitches / flickering chunks on the proprietary Mali Vulkan
+# ---- driver are exactly what they patch. Enable them for holy zink, and
+# ---- add a holy_zink.txt env-file (KEY=VALUE lines) in the game dir so the
+# ---- user can tune/override without a rebuild.
+PE = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
+se = open(PE).read()
+if 'FEARWIRE-ZINK-MALI' not in se:
+    old = '''                if (!GLInfoUtils.getGlInfo().isAdreno()) {
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                } else {
+                    envMap.put("mesa_glthread", "false");
+                }
+                break;'''
+    if se.count(old) != 1:
+        fail("ZINK-MALI env anchor count = %d" % se.count(old))
+    new = '''                if (!GLInfoUtils.getGlInfo().isAdreno()) {
+                    envMap.put("ZINK_DEBUG", "noreorder,sync");
+                    envMap.put("GALLIUM_THREAD", "0");
+                    envMap.put("mesa_glthread", "false");
+                    /* FEARWIRE-ZINK-MALI (v10.14): the bundled Mesa 25.1.4 fork
+                       ships Mali-specific zink correctness knobs (all off by
+                       default, documented in tools/fearrender/mesapatch.py) -
+                       texture corruption / flickering chunks on the proprietary
+                       Mali Vulkan driver are exactly what they patch. */
+                    envMap.put("ZINK_MALI_NOBINDLESS", "1");
+                    envMap.put("ZINK_MALI_NOCOHERENT", "1");
+                    envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
+                    envMap.put("ZINK_MALI_NOREUSE", "1");
+                } else {
+                    envMap.put("mesa_glthread", "false");
+                }
+                break;'''
+    se = se.replace(old, new, 1)
+    open(PE, 'w').write(se)
+    print("FEARWIRE OK: ZINK_MALI_* knobs enabled for holy zink")
+else:
+    print("FEARWIRE SKIP: ZINK_MALI env already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'holy_zink.txt' not in sj:
+    old = '''        System.out.println("FEARWIRE v10.12: holy_rotate.txt -> FEAR_ROTATE_T=" + t);'''
+    if sj.count(old) != 1:
+        fail("ZINK-MALI txt anchor count = %d" % sj.count(old))
+    new = '''        System.out.println("FEARWIRE v10.12: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
+        /* FEARWIRE-ZINK-MALI (v10.14): holy_zink.txt in the game dir - one
+           KEY=VALUE per line (# comments allowed) - applies env overrides for
+           the zink stack WITHOUT a rebuild (e.g. ZINK_MALI_NOBINDLESS=0 to
+           re-enable bindless for performance once textures are correct). */
+        try {
+            java.io.File fearEnvFile = new java.io.File(Tools.DIR_GAME_HOME, "holy_zink.txt");
+            if (fearEnvFile.isFile()) {
+                java.io.BufferedReader fearBr = new java.io.BufferedReader(new java.io.FileReader(fearEnvFile));
+                String fearLn;
+                while ((fearLn = fearBr.readLine()) != null) {
+                    fearLn = fearLn.trim();
+                    int fearEq = fearLn.indexOf('=');
+                    if (fearLn.isEmpty() || fearLn.startsWith("#") || fearEq <= 0) continue;
+                    try { android.system.Os.setenv(fearLn.substring(0, fearEq), fearLn.substring(fearEq + 1), true); } catch (Throwable ignored) {}
+                }
+                fearBr.close();
+                System.out.println("FEARWIRE v10.14: holy_zink.txt env overrides applied");
+            }
+        } catch (Throwable ignored) {}'''
+    sj = sj.replace(old, new, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: holy_zink.txt env-file override mechanism")
+else:
+    print("FEARWIRE SKIP: holy_zink.txt mechanism already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
