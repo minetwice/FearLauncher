@@ -118,7 +118,7 @@ public class GameRunner {
 
         RendererCompatUtil.releaseRenderersCache();
 
-        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turnip_zink");
+        boolean isLtw = rendererName.equals("opengles3_ltw") || rendererName.equals("turnip_zink") || rendererName.equals("panvk_zink");
 
         if(isLtw && checkRenderDistance(versionInfo, gamedir)) {
             if(showDialog(activity, R.string.ltw_render_distance_warning_msg)) return;
@@ -190,7 +190,7 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") || rendererName.equals("panvk_zink") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
