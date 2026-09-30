@@ -293,35 +293,48 @@ public class GameRunner {
         try {
             Date creationDate = DateUtils.getOriginalReleaseDate(versionInfo);
             if(creationDate != null && !DateUtils.dateBefore(creationDate, 2022, 9, 26)) { userType = "msa"; }
-        } catch (ParseException e) {
-            Log.e("GameRunner", "Failed to parse version date", e);
-        }
+        }catch (ParseException e) { Log.e("CheckForProfileKey", "Failed to determine profile creation date, using \"mojang\"", e); }
+
         Map<String, String> varArgMap = new ArrayMap<>();
+        varArgMap.put("auth_session", profile.accessToken);
+        varArgMap.put("auth_access_token", profile.accessToken);
         varArgMap.put("auth_player_name", username);
-        varArgMap.put("version_name", versionName);
-        varArgMap.put("game_directory", gameDir.getAbsolutePath());
+        varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
+        varArgMap.put("auth_xuid", profile.xuid);
         varArgMap.put("assets_root", Tools.ASSETS_PATH);
         varArgMap.put("assets_index_name", versionInfo.assets);
-        varArgMap.put("auth_uuid", profile.profileId.replace("-", ""));
-        varArgMap.put("auth_access_token", profile.accessToken);
+        varArgMap.put("game_assets", Tools.ASSETS_PATH);
+        varArgMap.put("game_directory", gameDir.getAbsolutePath());
         varArgMap.put("user_properties", "{}");
         varArgMap.put("user_type", userType);
+        varArgMap.put("version_name", versionName);
         varArgMap.put("version_type", versionInfo.type);
+
         List<String> minecraftArgs = new ArrayList<>();
         if (versionInfo.arguments != null && versionInfo.arguments.game != null) {
             for (Object arg : versionInfo.arguments.game) {
                 if (arg instanceof String) { minecraftArgs.add((String) arg); }
             }
-        } else if (versionInfo.minecraftArguments != null) {
-            Collections.addAll(minecraftArgs, versionInfo.minecraftArguments.split(" "));
         }
+        if(versionInfo.minecraftArguments != null){ minecraftArgs.addAll(splitAndFilterEmpty(versionInfo.minecraftArguments)); }
         return JSONUtils.insertJSONValueList(minecraftArgs, varArgMap);
     }
 
-    public static String pickRuntime(Instance instance, int targetJavaVersion) {
-        String runtime = instance.runtime;
-        if (runtime == null || runtime.isEmpty()) {
-            runtime = LauncherPreferences.PREF_DEFAULT_RUNTIME;
+    private static List<String> splitAndFilterEmpty(String argStr) {
+        List<String> strList = new ArrayList<>();
+        for (String arg : argStr.split(" ")) { if (!arg.isEmpty()) { strList.add(arg); } }
+        return strList;
+    }
+
+    public static @NonNull String pickRuntime(Instance instance, int targetJavaVersion) {
+        String runtime = Tools.getSelectedRuntime(instance);
+        String profileRuntime = instance.selectedRuntime;
+        Runtime pickedRuntime = MultiRTUtils.read(runtime);
+        if(runtime == null || pickedRuntime.javaVersion == 0 || pickedRuntime.javaVersion < targetJavaVersion) {
+            String preferredRuntime = MultiRTUtils.getNearestJreName(targetJavaVersion);
+            if(preferredRuntime == null) throw new RuntimeException("Failed to autopick runtime!");
+            if(profileRuntime != null) { instance.selectedRuntime = preferredRuntime; instance.maybeWrite(); }
+            runtime = preferredRuntime;
         }
         return runtime;
     }
