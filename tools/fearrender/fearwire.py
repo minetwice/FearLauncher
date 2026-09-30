@@ -1423,6 +1423,75 @@ if 'FEARWIRE-HOLYZINK-ROTATE8' not in sa:
 else:
     print("FEARWIRE SKIP: awt_bridge ROTATE8 already present")
 
+# ---- HOLYZINK-ROTATE8b: build fix - ANativeWindow_setBuffersTransform is not
+# ---- an NDK public symbol (cannot be linked directly; CI run 2140 failed),
+# ---- so resolve it at runtime; and read holy_rotate.txt without the API-26
+# ---- Files.readAllBytes.
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE8b' not in sl:
+    old1 = '#include <unistd.h>\n/* FEARWIRE-HOLYZINK-ROTATE7: waits (up to 60s) for FEAR_RENDERER - the env is'
+    new1 = '''#include <unistd.h>
+/* FEARWIRE-HOLYZINK-ROTATE8b: ANativeWindow_setBuffersTransform is not in the
+   NDK public symbol list, so it cannot be linked directly - resolve it at
+   runtime (RTLD_DEFAULT, then explicit dlopen; the log-65 dlopen path
+   resolved fine). */
+static int32_t (*fear_setBuffersTransform_p)(struct ANativeWindow*, int32_t);
+static int32_t fear_applyRotateT(int rotateT) {
+    if (fear_setBuffersTransform_p == NULL) {
+        fear_setBuffersTransform_p = (int32_t (*)(struct ANativeWindow*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+        if (fear_setBuffersTransform_p == NULL) {
+            void* fearH = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearH == NULL) fearH = dlopen("libandroid.so", RTLD_NOW);
+            if (fearH != NULL)
+                fear_setBuffersTransform_p = (int32_t (*)(struct ANativeWindow*, int32_t)) dlsym(fearH, "ANativeWindow_setBuffersTransform");
+        }
+        printf("FEARWIRE-ROTATE8: setBuffersTransform resolved=%p\\n", (void*) fear_setBuffersTransform_p);
+    }
+    if (fear_setBuffersTransform_p == NULL || bridge_environ.pojavWindow == NULL) return -1;
+    return fear_setBuffersTransform_p(bridge_environ.pojavWindow, rotateT);
+}
+
+/* FEARWIRE-HOLYZINK-ROTATE7: waits (up to 60s) for FEAR_RENDERER - the env is'''
+    if sl.count(old1) != 1: fail("8b helper anchor %d" % sl.count(old1))
+    sl = sl.replace(old1, new1, 1)
+    old2 = '''                ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
+                printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\\n", rotateT);'''
+    new2 = '''                fear_applyRotateT(rotateT);
+                printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\\n", rotateT);'''
+    if sl.count(old2) != 1: fail("8b poller anchor %d" % sl.count(old2))
+    sl = sl.replace(old2, new2, 1)
+    old3 = '''            ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
+            printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\\n", rotateT);'''
+    new3 = '''            if (fear_applyRotateT(rotateT) == 0)
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\\n", rotateT);
+            else
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) FAILED to resolve/apply\\n", rotateT);'''
+    if sl.count(old3) != 1: fail("8b setup anchor %d" % sl.count(old3))
+    sl = sl.replace(old3, new3, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: native ROTATE8b runtime resolution")
+else:
+    print("FEARWIRE SKIP: native ROTATE8b already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'fearBos' not in sj:
+    old4 = '''                String t = new String(java.nio.file.Files.readAllBytes(fearTFile.toPath())).trim();'''
+    new4 = '''                java.io.ByteArrayOutputStream fearBos = new java.io.ByteArrayOutputStream();
+                try (java.io.FileInputStream fearFis = new java.io.FileInputStream(fearTFile)) {
+                    byte[] buf = new byte[16];
+                    int n;
+                    while ((n = fearFis.read(buf)) > 0) fearBos.write(buf, 0, n);
+                }
+                String t = fearBos.toString().trim();'''
+    if sj.count(old4) != 1: fail("8b java anchor %d" % sj.count(old4))
+    sj = sj.replace(old4, new4, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: java stream read for holy_rotate.txt")
+else:
+    print("FEARWIRE SKIP: java ROTATE8b already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
