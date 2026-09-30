@@ -318,7 +318,12 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         try {
             net.kdt.pojavlaunch.instances.Instance sel =
                     net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
-            holyZink = sel != null && "holy_zink_kopper".equals(sel.renderer);
+            /* FEARWIRE-HOLYZINK-ROTATE7: same renderer resolution as the
+               launcher itself (getLaunchRenderer falls back to PREF_RENDERER
+               when instance.renderer is empty). */
+            String fearR = sel != null ? sel.getLaunchRenderer()
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
+            holyZink = "holy_zink_kopper".equals(fearR);
         } catch (Throwable ignored) {}
         GLFW.holyRotate = holyZink;
         /* FEARWIRE-HOLYZINK-ROTATE4: take the real display rotation so the
@@ -373,12 +378,16 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         try {
             net.kdt.pojavlaunch.instances.Instance sel =
                     net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
-            if (sel != null && sel.renderer != null && !sel.renderer.isEmpty()) {
-                android.system.Os.setenv("FEAR_RENDERER", sel.renderer, true);
-                fearRenderer5 = sel.renderer;
-            }
+            /* FEARWIRE-HOLYZINK-ROTATE7: use getLaunchRenderer() - the exact
+               method the launcher itself uses. instance.renderer can be empty
+               while the real renderer comes from the global PREF_RENDERER. */
+            fearRenderer5 = sel != null ? sel.getLaunchRenderer()
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
         } catch (Throwable t) { fearRenderer5 = "ERR " + t; }
-        System.out.println("FEARWIRE v10.9: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);
+        if (fearRenderer5 != null && !fearRenderer5.isEmpty() && !fearRenderer5.startsWith("ERR")) {
+            try { android.system.Os.setenv("FEAR_RENDERER", fearRenderer5, true); } catch (Throwable ignored) {}
+        }
+        System.out.println("FEARWIRE v10.10: onSurfaceAvailable FEAR_RENDERER=" + fearRenderer5);
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {

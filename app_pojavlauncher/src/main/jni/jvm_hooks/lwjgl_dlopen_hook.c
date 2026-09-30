@@ -55,6 +55,37 @@ static bool is_panfork_renderer(void) {
     return fear && strcmp(fear, "panfork") == 0;
 }
 
+#include <unistd.h>
+/* FEARWIRE-HOLYZINK-ROTATE7: waits (up to 60s) for FEAR_RENDERER - the env is
+   set at game launch, after the surface already exists - then applies the
+   portrait buffer geometry for holy zink before the game creates its window. */
+static volatile int fear_rotate_started = 0;
+static void* fear_rotate_env_wait(void* arg) {
+    (void) arg;
+    for (int i = 0; i < 300; i++) {
+        const char* r = getenv("FEAR_RENDERER");
+        if (r != NULL) {
+            if (strcmp(r, "holy_zink_kopper") != 0) {
+                printf("FEARWIRE-ROTATE7: renderer=%s, no rotation needed\n", r);
+                return NULL;
+            }
+            if (bridge_environ.pojavWindow != NULL
+                && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
+                ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                        bridge_environ.savedHeight, bridge_environ.savedWidth,
+                        ANativeWindow_getFormat(bridge_environ.pojavWindow));
+                pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+                printf("FEARWIRE-ROTATE7: late renderer pick-up, portrait geometry %dx%d APPLIED\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
+            return NULL;
+        }
+        usleep(200 * 1000);
+    }
+    printf("FEARWIRE-ROTATE7: renderer env never appeared\n");
+    return NULL;
+}
+
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass clazz, jobject surface) {
     if (surface == NULL) return;
@@ -92,6 +123,20 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
             pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
         } else {
             pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+        }
+    }
+    /* FEARWIRE-HOLYZINK-ROTATE7: the renderer env usually appears only at
+       game launch (after the surface exists) - watch for it in the background
+       and apply the portrait geometry for holy zink as soon as it shows up. */
+    {
+        const char* fearRendererNow = getenv("FEAR_RENDERER");
+        if ((fearRendererNow == NULL || strcmp(fearRendererNow, "holy_zink_kopper") != 0)
+            && !fear_rotate_started) {
+            fear_rotate_started = 1;
+            pthread_t fearRotateThread;
+            if (pthread_create(&fearRotateThread, NULL, fear_rotate_env_wait, NULL) == 0)
+                pthread_detach(fearRotateThread);
+            printf("FEARWIRE-ROTATE7: renderer env watcher thread started\n");
         }
     }
     /* FEARWIRE-HOLYZINK-ROTATE: clear the window's buffer transform before the
