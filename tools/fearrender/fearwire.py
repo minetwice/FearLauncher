@@ -1861,6 +1861,73 @@ if 'holy_zink.txt' not in sj:
 else:
     print("FEARWIRE SKIP: holy_zink.txt mechanism already present")
 
+# ---- FEARWIRE-ALPHA (v10.15): log-67 OSMDIAG smoking gun - MC clears its
+# ---- framebuffer with alpha=0 (corners show A=0x00, world center A=0xFF);
+# ---- the raw RGBA blit hands those pixels to the compositor with garbage
+# ---- alpha, so the launcher background shows through the sky/translucent
+# ---- pixels - that IS the "world texture glitch" (same on turnip: same
+# ---- bridge). Force the alpha channel opaque in the blit (classic pojav
+# ---- virgl/OSMesa alpha fix), env-toggleable via FEAR_ALPHA_FIX=0.
+PO = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
+so = open(PO).read()
+if 'FEARWIRE-ALPHA' not in so:
+    old = '''    if (dst != NULL && copy_w > 0 && copy_h > 0) {
+        for (int y = 0; y < copy_h; y++) {
+            int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+            memcpy(dst + (size_t)y * dst_stride_bytes,
+                   src + (size_t)sy * src_stride_bytes,
+                   (size_t)copy_w * 4u);
+        }
+    }'''
+    if so.count(old) != 1:
+        fail("ALPHA blit anchor count = %d" % so.count(old))
+    new = '''    if (dst != NULL && copy_w > 0 && copy_h > 0) {
+        /* FEARWIRE-ALPHA (v10.15): MC clears with alpha=0 (OSMDIAG corners
+           show A=0x00), so the compositor shows the launcher background
+           through sky/translucent pixels - the "world texture glitch".
+           Force the alpha channel opaque during the blit; disable with
+           FEAR_ALPHA_FIX=0 (e.g. via holy_zink.txt). */
+        static int fear_alpha_fix = -1;
+        if (fear_alpha_fix < 0) {
+            const char* fav = getenv("FEAR_ALPHA_FIX");
+            fear_alpha_fix = (fav == NULL || atoi(fav) != 0) ? 1 : 0;
+        }
+        if (fear_alpha_fix) {
+            for (int y = 0; y < copy_h; y++) {
+                int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+                const uint32_t* src_row = (const uint32_t*)(src + (size_t)sy * src_stride_bytes);
+                uint32_t* dst_row = (uint32_t*)(dst + (size_t)y * dst_stride_bytes);
+                for (int x = 0; x < copy_w; x++)
+                    dst_row[x] = src_row[x] | 0xFF000000u;
+            }
+        } else {
+            for (int y = 0; y < copy_h; y++) {
+                int sy = g_readback_flipped ? (copy_h - 1 - y) : y;
+                memcpy(dst + (size_t)y * dst_stride_bytes,
+                       src + (size_t)sy * src_stride_bytes,
+                       (size_t)copy_w * 4u);
+            }
+        }
+    }'''
+    so = so.replace(old, new, 1)
+    open(PO, 'w').write(so)
+    print("FEARWIRE OK: osm_bridge blit forces opaque alpha")
+else:
+    print("FEARWIRE SKIP: osm_bridge alpha fix already present")
+
+PW = '.github/workflows/build-fearrender.yml'
+sw = open(PW).read()
+if 'ctxbridges/osm_bridge.c' not in sw:
+    old_add = '''                  app_pojavlauncher/src/main/jni/awt_bridge.c \\'''
+    if sw.count(old_add) != 1:
+        fail("ALPHA workflow anchor count = %d" % sw.count(old_add))
+    sw = sw.replace(old_add, old_add + '''
+                  app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c \\''', 1)
+    open(PW, 'w').write(sw)
+    print("FEARWIRE OK: osm_bridge.c added to workflow git add list")
+else:
+    print("FEARWIRE SKIP: osm_bridge.c already in git add list")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
