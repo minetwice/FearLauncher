@@ -9,6 +9,11 @@ plugins {
 group = 'org.lwjgl.glfw'
 def lwjglVersion = '3.4.1'
 
+// Merge inputs = ONLY the custom LWJGL jars from libs/3.4.1 (like Zalith's
+// lwjglModules configuration) - implementation deps must NOT leak into the
+// merged game jar.
+def lwjglJars = fileTree(dir: "libs/${lwjglVersion}", include: ['*.jar'])
+
 sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'patches-src/main/java', 'shared/src/main/java']
@@ -17,7 +22,8 @@ sourceSets {
 
 dependencies {
     compileOnly fileTree(dir: 'compileOnly', include: ['*.jar'])
-    implementation fileTree(dir: "libs/${lwjglVersion}", include: ['*.jar'])
+    implementation lwjglJars
+    implementation 'org.jspecify:jspecify:1.0.0'
 }
 
 def excludedModules = [
@@ -32,14 +38,12 @@ tasks.named('jar') {
     archiveBaseName = "lwjgl-${lwjglVersion}-merged-modules"
     destinationDirectory = file("${rootDir}/app_pojavlauncher/src/main/assets/app_runtime/lwjgl/${lwjglVersion}")
     from({
-        configurations.runtimeClasspath
-                .filter { it.name.endsWith('.jar') && !excludedModules.contains(it.name) }
-                .collect { zipTree(it) }
+        lwjglJars.filter { !excludedModules.contains(it.name) }.collect { zipTree(it) }
     })
     exclude 'net/java/openjdk/cacio/ctc/**'
     doLast {
         copy {
-            from(configurations.runtimeClasspath.filter { excludedModules.contains(it.name) })
+            from(lwjglJars.filter { excludedModules.contains(it.name) })
             into destinationDirectory.get().asFile
         }
         new File(destinationDirectory.get().asFile, 'version').text = '3.4.1-fear'
