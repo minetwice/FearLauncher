@@ -1492,6 +1492,147 @@ if 'fearBos' not in sj:
 else:
     print("FEARWIRE SKIP: java ROTATE8b already present")
 
+# ---- HOLYZINK-ROTATE9 (v10.12): log-66 proved setBuffersTransform(ROT_90)
+# ---- changes the display (game went from full-screen sideways to a
+# ---- portrait-shaped presentation) - the transform IS the correct
+# ---- compensating direction. The Android pre-rotation contract needs BOTH
+# ---- the ROTATE_90 producer transform AND swapped-dimension (portrait)
+# ---- buffers, with MC rendering into a portrait window and touch remapped
+# ---- to portrait space. v10.10 had the geometry without the transform,
+# ---- v10.11 the transform without the geometry - v10.12 pairs them.
+# ---- holy_rotate.txt (1/3/4) in the game dir flips BOTH the transform and
+# ---- the input direction without a rebuild.
+PL = 'app_pojavlauncher/src/main/jni/jvm_hooks/lwjgl_dlopen_hook.c'
+sl = open(PL).read()
+if 'FEARWIRE-HOLYZINK-ROTATE9' not in sl:
+    old = '''    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && bridge_environ.pojavWindow != NULL) {
+            const char* fearT = getenv("FEAR_ROTATE_T");
+            int rotateT = fearT != NULL ? atoi(fearT) : 1;
+            if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+            if (fear_applyRotateT(rotateT) == 0)
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\\n", rotateT);
+            else
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) FAILED to resolve/apply\\n", rotateT);
+        }
+        pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+    }'''
+    if sl.count(old) != 1:
+        fail("ROTATE9 setup anchor count = %d" % sl.count(old))
+    new = '''    {
+        const char* fearRenderer = getenv("FEAR_RENDERER");
+        if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
+            && bridge_environ.pojavWindow != NULL
+            && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
+            /* FEARWIRE-HOLYZINK-ROTATE9: the Android pre-rotation contract -
+               swapped-dimension (portrait) buffers PLUS the ROTATE_90 buffer
+               transform. log-66 proved ROTATE_90 is the correct compensating
+               direction; pairing it with swapped geometry fills the screen.
+               holy_rotate.txt (0/1/3/4) overrides without a rebuild. */
+            const char* fearT = getenv("FEAR_ROTATE_T");
+            int rotateT = fearT != NULL ? atoi(fearT) : 1;
+            if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+            if (rotateT != 0) {
+                ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                                bridge_environ.savedHeight, /* portrait width */
+                                bridge_environ.savedWidth,  /* portrait height */
+                                ANativeWindow_getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE9: portrait buffer geometry %dx%d APPLIED\\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
+            if (fear_applyRotateT(rotateT) == 0)
+                printf("FEARWIRE-ROTATE9: setBuffersTransform(%d) APPLIED (pre-rotation contract)\\n", rotateT);
+            else
+                printf("FEARWIRE-ROTATE9: setBuffersTransform(%d) FAILED to resolve/apply\\n", rotateT);
+            pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+        } else {
+            pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
+        }
+    }'''
+    sl = sl.replace(old, new, 1)
+    old_poll = '''            if (bridge_environ.pojavWindow != NULL) {
+                const char* fearT = getenv("FEAR_ROTATE_T");
+                int rotateT = fearT != NULL ? atoi(fearT) : 1;
+                if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+                fear_applyRotateT(rotateT);
+                printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\\n", rotateT);
+            }
+            return NULL;'''
+    if sl.count(old_poll) != 1:
+        fail("ROTATE9 poller anchor count = %d" % sl.count(old_poll))
+    new_poll = '''            if (bridge_environ.pojavWindow != NULL
+                && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
+                const char* fearT = getenv("FEAR_ROTATE_T");
+                int rotateT = fearT != NULL ? atoi(fearT) : 1;
+                if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+                if (rotateT != 0)
+                    ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, bridge_environ.savedWidth,
+                            ANativeWindow_getFormat(bridge_environ.pojavWindow));
+                fear_applyRotateT(rotateT);
+                printf("FEARWIRE-ROTATE9: late renderer pick-up, geometry+transform(%d) applied\\n", rotateT);
+            }
+            return NULL;'''
+    sl = sl.replace(old_poll, new_poll, 1)
+    open(PL, 'w').write(sl)
+    print("FEARWIRE OK: native ROTATE9 pre-rotation contract")
+else:
+    print("FEARWIRE SKIP: native ROTATE9 already present")
+
+PMJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PMJ).read()
+if 'FEARWIRE-HOLYZINK-ROTATE9' not in sj:
+    old_rot8 = '''        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-ROTATE8: WSI preTransform fix - turnip-like, no remap */'''
+    if sj.count(old_rot8) != 1:
+        fail("ROTATE9 java rot8 anchor count = %d" % sj.count(old_rot8))
+    new_rot8 = '''        /* FEARWIRE-HOLYZINK-ROTATE9: pre-rotation contract - portrait MC
+           window + ROTATE_90 transform; touch remapped to portrait space.
+           holy_rotate.txt (4 -> 270, 3 -> 180) flips direction without a
+           rebuild. */
+        GLFW.holyRotate = holyZink;
+        GLFW.holyRotateDir = net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir;'''
+    sj = sj.replace(old_rot8, new_rot8, 1)
+    old_opt = '''        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE8: landscape, no swap */
+        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));'''
+    if sj.count(old_opt) != 1:
+        fail("ROTATE9 java opt anchor count = %d" % sj.count(old_opt))
+    new_opt = '''        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE9 */
+        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));'''
+    sj = sj.replace(old_opt, new_opt, 1)
+    old_txt = '''                String t = fearBos.toString().trim();
+                if (!t.isEmpty()) android.system.Os.setenv("FEAR_ROTATE_T", t, true);
+                System.out.println("FEARWIRE v10.11: holy_rotate.txt -> FEAR_ROTATE_T=" + t);'''
+    if sj.count(old_txt) != 1:
+        fail("ROTATE9 java txt anchor count = %d" % sj.count(old_txt))
+    new_txt = '''                String t = fearBos.toString().trim();
+                if (!t.isEmpty()) {
+                    android.system.Os.setenv("FEAR_ROTATE_T", t, true);
+                    net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir = "4".equals(t) ? 270 : "3".equals(t) ? 180 : 90;
+                }
+                System.out.println("FEARWIRE v10.12: holy_rotate.txt -> FEAR_ROTATE_T=" + t);'''
+    sj = sj.replace(old_txt, new_txt, 1)
+    open(PMJ, 'w').write(sj)
+    print("FEARWIRE OK: java ROTATE9 swap + dir knob")
+else:
+    print("FEARWIRE SKIP: java ROTATE9 already present")
+
+PJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java'
+sp = open(PJ).read()
+if 'sFearRotateDir' not in sp:
+    old_pub = '''    public static native void setupBridgeWindow(android.view.Surface surface);'''
+    if sp.count(old_pub) != 1:
+        fail("ROTATE9 JREUtils anchor count = %d" % sp.count(old_pub))
+    sp = sp.replace(old_pub, '''    /* FEARWIRE-HOLYZINK-ROTATE9: input remap direction, from holy_rotate.txt */
+    public static volatile int sFearRotateDir = 90;
+
+    public static native void setupBridgeWindow(android.view.Surface surface);''', 1)
+    open(PJ, 'w').write(sp)
+    print("FEARWIRE OK: JREUtils sFearRotateDir field")
+else:
+    print("FEARWIRE SKIP: JREUtils ROTATE9 already present")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
