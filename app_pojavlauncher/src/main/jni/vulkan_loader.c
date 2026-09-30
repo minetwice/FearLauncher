@@ -20,6 +20,19 @@ static bool panvk_enabled = false;
 
 #ifdef ENABLE_TURNIP_LOADER
 
+/* Resolve a writable temp dir for linker_ns_dlopen_unique file fallback. */
+static const char* resolve_tmpdir(void) {
+    const char* d = getenv("TMPDIR");
+    if (d && d[0]) return d;
+    d = getenv("MESA_GLSL_CACHE_DIR");
+    if (d && d[0]) return d;
+    d = getenv("XDG_CACHE_HOME");
+    if (d && d[0]) return d;
+    d = getenv("HOME");
+    if (d && d[0]) return d;
+    return "/data/local/tmp";
+}
+
 /* Shared path: load a Mesa ICD .so via linker namespace + hook, expose as libmjlvlk.so */
 static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
     static bool driver_loaded = false;
@@ -32,18 +45,20 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
     }
 
     const char* native_dir = getenv("POJAV_NATIVEDIR");
-    const char* cache_dir = getenv("TMPDIR");
+    const char* cache_dir = resolve_tmpdir();
     if (!native_dir) {
         printf("DriverHook: POJAV_NATIVEDIR not set\n");
         return false;
     }
+    printf("DriverHook: native_dir=%s tmpdir=%s loading %s (%s)\n",
+           native_dir, cache_dir, driver_soname, label ? label : "?");
+
     if (!linker_ns_load(native_dir)) {
         printf("DriverHook: linker_ns_load failed\n");
         return false;
     }
 
-    /* RTLD_LAZY: avoid hard-fail on symbols resolved later (e.g. eglGetProcAddress_hook).
-       RTLD_NOW previously broke PanVK preload when the stub was missing. */
+    /* RTLD_LAZY: avoid hard-fail on symbols resolved later (e.g. eglGetProcAddress_hook). */
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_LAZY);
     if (linkerhook == NULL) {
         printf("DriverHook: liblinkerhook.so failed: %s\n", dlerror());
@@ -56,6 +71,7 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
         dlclose(linkerhook);
         return false;
     }
+    printf("DriverHook: ICD %s handle=%p\n", driver_soname, driver_handle);
 
     void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
     if (dl_android == NULL) {
@@ -70,7 +86,8 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
         (void (*)(void*, void*, void*))dlsym(linkerhook, "app__pojav_linkerhook_pass_handles");
 
     if (linkerhook_pass_handles == NULL || android_get_exported_namespace == NULL) {
-        printf("DriverHook: missing symbols\n");
+        printf("DriverHook: missing symbols (pass_handles=%p ns=%p)\n",
+               (void*)linkerhook_pass_handles, android_get_exported_namespace);
         dlclose(dl_android);
         dlclose(driver_handle);
         dlclose(linkerhook);
@@ -79,8 +96,8 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
     linkerhook_pass_handles(driver_handle, android_dlopen_ext, android_get_exported_namespace);
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", "libmjlvlk.so", RTLD_LOCAL | RTLD_NOW);
-    printf("DriverHook: Loaded %s as mjlvlk, ptr=%p\n", label ? label : "ICD", libvulkan);
     if (libvulkan) {
+        printf("DriverHook: Loaded %s as mjlvlk, ptr=%p\n", label ? label : "ICD", libvulkan);
         driver_loaded = true;
         if (label) {
             strncpy(loaded_label, label, sizeof(loaded_label) - 1);
@@ -89,6 +106,8 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
         return true;
     }
 
+    printf("DriverHook: unique mjlvlk failed for %s — ICD handle alone is not enough for Zink\n",
+           label ? label : "ICD");
     dlclose(dl_android);
     dlclose(driver_handle);
     dlclose(linkerhook);
@@ -100,9 +119,8 @@ bool load_turnip_vulkan() {
 }
 
 bool load_panvk_vulkan() {
-    if (load_mesa_vulkan_icd("libvulkan_panfrost.so", "PanVK"))
-        return true;
-    return load_mesa_vulkan_icd("libvulkan_panvk.so", "PanVK");
+    /* Only the panfrost ICD is shipped in jniLibs (kbase-enabled build). */
+    return load_mesa_vulkan_icd("libvulkan_panfrost.so", "PanVK");
 }
 #endif
 

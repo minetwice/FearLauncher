@@ -89,7 +89,11 @@ bool patch_elf_soname(int patchfd, int realfd, size_t size, const char* patchnam
                     char* soname = strtab + dynEntry->d_un.d_val;
                     size_t soname_len = strlen(soname);
                     size_t patchname_len = strlen(patchname);
-                    if(patchname_len != soname_len) goto fail;
+                    if(patchname_len != soname_len) {
+                        printf("DriverHook: SONAME len mismatch %zu vs %zu (\"%s\")\n",
+                               soname_len, patchname_len, soname);
+                        goto fail;
+                    }
 
                     strcpy(soname, patchname);
                     munmap(target, size);
@@ -106,6 +110,66 @@ bool patch_elf_soname(int patchfd, int realfd, size_t size, const char* patchnam
 
 #define PAGE_ALIGN(addr)        (((addr)+pagesize-1)&(~(pagesize-1)))
 
+/* Resolve the on-disk path of the system Vulkan loader.
+   Android 10+ may put it under /apex or only expose it via the linker. */
+static int open_system_vulkan_fd(void) {
+    static const char* candidates[] = {
+        "/system/lib64/libvulkan.so",
+        "/system/lib/libvulkan.so",
+        "/apex/com.android.runtime/lib64/libvulkan.so",
+        "/apex/com.android.vndk.v34/lib64/libvulkan.so",
+        "/apex/com.android.vndk.v33/lib64/libvulkan.so",
+        "/vendor/lib64/libvulkan.so",
+        NULL
+    };
+    for (int i = 0; candidates[i]; i++) {
+        int fd = open(candidates[i], O_RDONLY);
+        if (fd >= 0) {
+            printf("DriverHook: system vulkan path=%s\n", candidates[i]);
+            return fd;
+        }
+    }
+
+    /* Fallback: dlopen then read /proc/self/maps for the real path */
+    void* h = dlopen("libvulkan.so", RTLD_NOW | RTLD_NOLOAD);
+    if (h == NULL) h = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+    if (h == NULL) {
+        printf("DriverHook: cannot dlopen system libvulkan.so: %s\n", dlerror());
+        return -1;
+    }
+    FILE* maps = fopen("/proc/self/maps", "r");
+    if (maps == NULL) {
+        printf("DriverHook: cannot open /proc/self/maps\n");
+        return -1;
+    }
+    char line[512];
+    char found[PATH_MAX] = {0};
+    while (fgets(line, sizeof(line), maps)) {
+        if (strstr(line, "libvulkan.so") == NULL) continue;
+        /* skip memfd / anonymous */
+        char* path = strchr(line, '/');
+        if (path == NULL) continue;
+        /* trim trailing newline */
+        size_t n = strlen(path);
+        while (n > 0 && (path[n-1] == '\n' || path[n-1] == '\r')) path[--n] = 0;
+        if (n > 0 && n < PATH_MAX) {
+            strncpy(found, path, PATH_MAX - 1);
+            break;
+        }
+    }
+    fclose(maps);
+    if (found[0] == 0) {
+        printf("DriverHook: libvulkan.so not found in /proc/self/maps\n");
+        return -1;
+    }
+    int fd = open(found, O_RDONLY);
+    if (fd < 0)
+        printf("DriverHook: open(%s) failed: %s\n", found, strerror(errno));
+    else
+        printf("DriverHook: system vulkan path(maps)=%s\n", found);
+    return fd;
+}
+
 void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* patch_name, int flags) {
     int pagesize = getpagesize();
     char pathbuf[PATH_MAX];
@@ -113,31 +177,50 @@ void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* 
     int patch_fd, real_fd;
     size_t fsize, totalsize;
 
-    snprintf(pathbuf, PATH_MAX, "%s/%s", SEARCH_PATH, name);
-    real_fd = open(pathbuf, O_RDONLY);
-    if(real_fd == -1) return NULL;
+    (void)name; /* always resolve system vulkan via robust path finder */
+    real_fd = open_system_vulkan_fd();
+    if (real_fd == -1) {
+        printf("DriverHook: unique: no system libvulkan.so readable\n");
+        return NULL;
+    }
 
     {
         struct stat64 real_stat;
-        if (fstat64(real_fd, &real_stat)) goto fail_real;
+        if (fstat64(real_fd, &real_stat)) {
+            printf("DriverHook: unique: fstat failed: %s\n", strerror(errno));
+            goto fail_real;
+        }
         fsize = real_stat.st_size;
         totalsize = PAGE_ALIGN(fsize);
     }
 
     patch_fd = (int) syscall(__NR_memfd_create, patch_name, MFD_CLOEXEC);
     if(patch_fd == -1) {
-        // TODO: use ASharedMemory as fallback
-        // NOTE: use page-aligned size (totalsize) for ashmem
-        snprintf(pathbuf, PATH_MAX, "%s/%"PRIu16"", tmpdir, patchid++);
+        /* Fallback to a real file in tmpdir (must be writable). */
+        const char* dir = tmpdir;
+        if (dir == NULL || dir[0] == 0) dir = getenv("TMPDIR");
+        if (dir == NULL || dir[0] == 0) dir = getenv("MESA_GLSL_CACHE_DIR");
+        if (dir == NULL || dir[0] == 0) dir = getenv("XDG_CACHE_HOME");
+        if (dir == NULL || dir[0] == 0) dir = "/data/local/tmp";
+        snprintf(pathbuf, PATH_MAX, "%s/%"PRIu16"_%s", dir, patchid++, patch_name);
         patch_fd = open(pathbuf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+        if (patch_fd == -1)
+            printf("DriverHook: unique: memfd+file fallback failed dir=%s err=%s\n", dir, strerror(errno));
+        else
+            printf("DriverHook: unique: using file fallback %s\n", pathbuf);
     }
     if(patch_fd == -1) goto fail_real;
 
-    if(ftruncate64(patch_fd, totalsize) == -1) goto fail_both;
+    if(ftruncate64(patch_fd, totalsize) == -1) {
+        printf("DriverHook: unique: ftruncate failed: %s\n", strerror(errno));
+        goto fail_both;
+    }
 
     bool patch_result = patch_elf_soname(patch_fd, real_fd, fsize, patch_name);
     close(real_fd);
+    real_fd = -1;
     if(!patch_result) {
+        printf("DriverHook: unique: SONAME patch failed for %s\n", patch_name);
         close(patch_fd);
         return NULL;
     }
@@ -146,11 +229,14 @@ void* linker_ns_dlopen_unique(const char* tmpdir, const char* name, const char* 
     extinfo.flags = ANDROID_DLEXT_USE_NAMESPACE | ANDROID_DLEXT_USE_LIBRARY_FD;
     extinfo.library_fd = patch_fd;
     extinfo.library_namespace = driver_namespace;
-    return android_dlopen_ext(patch_name, flags, &extinfo);
+    void* handle = android_dlopen_ext(patch_name, flags, &extinfo);
+    if (handle == NULL)
+        printf("DriverHook: unique: android_dlopen_ext(%s) failed: %s\n", patch_name, dlerror());
+    return handle;
 
     fail_both:
     close(patch_fd);
     fail_real:
-    close(real_fd);
+    if (real_fd >= 0) close(real_fd);
     return NULL;
 }
