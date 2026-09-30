@@ -170,6 +170,8 @@ android {
             useLegacyPackaging = true
         }
         pickFirst '**/libbytehook.so'
+        // LWJGL jars ship identical META-INF/INDEX.LIST; exclude so mergeJavaRes does not fail
+        exclude 'META-INF/INDEX.LIST'
     }
 
     buildFeatures {
@@ -329,7 +331,8 @@ dependencies {
     implementation 'com.bytedance:bytehook:1.1.1'
     implementation 'com.github.MojoLauncher:alsoft-android-aar:f369161d5f'
     implementation project(":dnbglfw")
-    implementation project(":zalith-lwjgl") /* FEAR-ZALITH: custom LWJGL 3.4.1 (SDL glfw) */
+    // FEAR-ZALITH: do NOT implementation project(:zalith-lwjgl) — LWJGL is for the
+    // game JVM via assets (jar task). APK implementation leaks META-INF/INDEX.LIST.
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
     implementation 'com.google.android.material:material:1.11.0'

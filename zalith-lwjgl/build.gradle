@@ -10,8 +10,7 @@ group = 'org.lwjgl.glfw'
 def lwjglVersion = '3.4.1'
 
 // Merge inputs = ONLY the custom LWJGL jars from libs/3.4.1 (like Zalith's
-// lwjglModules configuration) - implementation deps must NOT leak into the
-// merged game jar.
+// lwjglModules configuration) - must NOT leak into the Android app classpath.
 def lwjglJars = fileTree(dir: "libs/${lwjglVersion}", include: ['*.jar'])
 
 sourceSets {
@@ -22,8 +21,9 @@ sourceSets {
 
 dependencies {
     compileOnly fileTree(dir: 'compileOnly', include: ['*.jar'])
-    implementation lwjglJars
-    implementation 'org.jspecify:jspecify:1.0.0'
+    // compileOnly: needed to compile patches, but must not transitively enter the APK
+    compileOnly lwjglJars
+    compileOnly 'org.jspecify:jspecify:1.0.0'
 }
 
 def excludedModules = [
@@ -41,6 +41,7 @@ tasks.named('jar') {
         lwjglJars.filter { !excludedModules.contains(it.name) }.collect { zipTree(it) }
     })
     exclude 'net/java/openjdk/cacio/ctc/**'
+    exclude 'META-INF/INDEX.LIST'
     doLast {
         copy {
             from(lwjglJars.filter { excludedModules.contains(it.name) })
