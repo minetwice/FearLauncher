@@ -54,3 +54,8 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
+
+// Chinese comments in Zalith-ported sources need UTF-8; CI runners default to US-ASCII
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
