@@ -407,6 +407,9 @@ public class JREUtils {
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
 
+    /* FEARWIRE-HOLYZINK-ROTATE9: input remap direction, from holy_rotate.txt */
+    public static volatile int sFearRotateDir = 90;
+
     public static native void setupBridgeWindow(android.view.Surface surface);
     public static native void releaseBridgeWindow();
 

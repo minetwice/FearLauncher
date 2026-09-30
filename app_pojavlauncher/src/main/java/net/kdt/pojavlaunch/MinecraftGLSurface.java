@@ -325,9 +325,14 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
             holyZink = "holy_zink_kopper".equals(fearR);
         } catch (Throwable ignored) {}
-        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-ROTATE8: WSI preTransform fix - turnip-like, no remap */
-        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE8: landscape, no swap */
-        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
+        /* FEARWIRE-HOLYZINK-ROTATE9: pre-rotation contract - portrait MC
+           window + ROTATE_90 transform; touch remapped to portrait space.
+           holy_rotate.txt (4 -> 270, 3 -> 180) flips direction without a
+           rebuild. */
+        GLFW.holyRotate = holyZink;
+        GLFW.holyRotateDir = net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir;
+        MCOptionUtils.set("overrideWidth", String.valueOf(holyZink ? windowHeight : windowWidth)); /* FEARWIRE-HOLYZINK-ROTATE9 */
+        MCOptionUtils.set("overrideHeight", String.valueOf(holyZink ? windowWidth : windowHeight));
         MCOptionUtils.save();
         getMcScale();
 
@@ -394,8 +399,11 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     while ((n = fearFis.read(buf)) > 0) fearBos.write(buf, 0, n);
                 }
                 String t = fearBos.toString().trim();
-                if (!t.isEmpty()) android.system.Os.setenv("FEAR_ROTATE_T", t, true);
-                System.out.println("FEARWIRE v10.11: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
+                if (!t.isEmpty()) {
+                    android.system.Os.setenv("FEAR_ROTATE_T", t, true);
+                    net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir = "4".equals(t) ? 270 : "3".equals(t) ? 180 : 90;
+                }
+                System.out.println("FEARWIRE v10.12: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
             }
         } catch (Throwable ignored) {}
         GLFW.nativeSurfaceCreated(surface);

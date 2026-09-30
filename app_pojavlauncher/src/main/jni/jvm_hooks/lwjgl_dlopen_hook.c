@@ -89,12 +89,17 @@ static void* fear_rotate_env_wait(void* arg) {
                 printf("FEARWIRE-ROTATE7: renderer=%s, no rotation needed\n", r);
                 return NULL;
             }
-            if (bridge_environ.pojavWindow != NULL) {
+            if (bridge_environ.pojavWindow != NULL
+                && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
                 const char* fearT = getenv("FEAR_ROTATE_T");
                 int rotateT = fearT != NULL ? atoi(fearT) : 1;
                 if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+                if (rotateT != 0)
+                    ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                            bridge_environ.savedHeight, bridge_environ.savedWidth,
+                            ANativeWindow_getFormat(bridge_environ.pojavWindow));
                 fear_applyRotateT(rotateT);
-                printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\n", rotateT);
+                printf("FEARWIRE-ROTATE9: late renderer pick-up, geometry+transform(%d) applied\n", rotateT);
             }
             return NULL;
         }
@@ -132,16 +137,32 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
     {
         const char* fearRenderer = getenv("FEAR_RENDERER");
         if (fearRenderer && strcmp(fearRenderer, "holy_zink_kopper") == 0
-            && bridge_environ.pojavWindow != NULL) {
+            && bridge_environ.pojavWindow != NULL
+            && bridge_environ.savedWidth > 0 && bridge_environ.savedHeight > 0) {
+            /* FEARWIRE-HOLYZINK-ROTATE9: the Android pre-rotation contract -
+               swapped-dimension (portrait) buffers PLUS the ROTATE_90 buffer
+               transform. log-66 proved ROTATE_90 is the correct compensating
+               direction; pairing it with swapped geometry fills the screen.
+               holy_rotate.txt (0/1/3/4) overrides without a rebuild. */
             const char* fearT = getenv("FEAR_ROTATE_T");
             int rotateT = fearT != NULL ? atoi(fearT) : 1;
             if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
+            if (rotateT != 0) {
+                ANativeWindow_setBuffersGeometry(bridge_environ.pojavWindow,
+                                bridge_environ.savedHeight, /* portrait width */
+                                bridge_environ.savedWidth,  /* portrait height */
+                                ANativeWindow_getFormat(bridge_environ.pojavWindow));
+                printf("FEARWIRE-ROTATE9: portrait buffer geometry %dx%d APPLIED\n",
+                       bridge_environ.savedHeight, bridge_environ.savedWidth);
+            }
             if (fear_applyRotateT(rotateT) == 0)
-                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\n", rotateT);
+                printf("FEARWIRE-ROTATE9: setBuffersTransform(%d) APPLIED (pre-rotation contract)\n", rotateT);
             else
-                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) FAILED to resolve/apply\n", rotateT);
+                printf("FEARWIRE-ROTATE9: setBuffersTransform(%d) FAILED to resolve/apply\n", rotateT);
+            pojavexec_setDisplayParams(bridge_environ.savedHeight, bridge_environ.savedWidth, 60);
+        } else {
+            pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
         }
-        pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
     }
     /* FEARWIRE-HOLYZINK-ROTATE7: the renderer env usually appears only at
        game launch (after the surface exists) - watch for it in the background
