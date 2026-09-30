@@ -334,3 +334,10 @@ dependencies {
 
     implementation 'com.google.android.material:material:1.11.0'
 }
+
+// FEAR-ZALITH: the zalith-lwjgl jar task writes the merged game LWJGL jar
+// into this module's assets dir (app_runtime/lwjgl/3.4.1) - make every
+// asset-merge task depend on it so Gradle orders them correctly.
+tasks.matching { it.name.startsWith('merge') && it.name.endsWith('Assets') }.configureEach {
+    dependsOn project(':zalith-lwjgl').tasks.named('jar')
+}
