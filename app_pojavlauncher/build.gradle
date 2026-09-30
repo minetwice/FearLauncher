@@ -170,6 +170,12 @@ android {
             useLegacyPackaging = true
         }
         pickFirst '**/libbytehook.so'
+        // mesa.aar + kopper-zink-release.aar (+ app jniLibs) all ship libEGL_mesa.so
+        pickFirst '**/libEGL_mesa.so'
+        pickFirst '**/libglapi.so'
+        pickFirst '**/libgallium_dri.so'
+        pickFirst '**/libOSMesa.so'
+        pickFirst '**/libOSMesa_8.so'
         // LWJGL jars ship identical META-INF/INDEX.LIST; exclude so mergeJavaRes does not fail
         exclude 'META-INF/INDEX.LIST'
     }
