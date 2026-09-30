@@ -99,6 +99,24 @@ public class JREUtils {
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
         switch(renderer) {
+            case "panvk_zink":
+                Logger.appendToLog("[PanVK] Initializing Zink over Mesa PanVK (Mali open-source Vulkan ICD)...");
+                envMap.put("GALLIUM_DRIVER", "zink");
+                envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
+                envMap.put("MESA_GLSL_VERSION_OVERRIDE", "460");
+                envMap.put("MESA_GL_VERSION_OVERRIDE", "4.6");
+                envMap.put("vblank_mode", "0");
+                envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
+                envMap.put("FEAR_RENDERER", renderer);
+                envMap.put("PAN_I_WANT_A_BROKEN_VULKAN_DRIVER", "1");
+                envMap.put("mesa_glthread", "false");
+                envMap.put("GALLIUM_THREAD", "0");
+                envMap.put("ZINK_DEBUG", "noreorder,sync");
+                envMap.put("ZINK_MALI_NOBINDLESS", "1");
+                envMap.put("ZINK_MALI_NOCOHERENT", "1");
+                envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
+                envMap.put("ZINK_MALI_NOREUSE", "1");
+                break;
             case "holy_zink_kopper":
                 Logger.appendToLog("[HolyZink] Initializing Zink renderer (OSMesa + Mesa Zink over the system Vulkan driver)...");
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -151,7 +169,7 @@ public class JREUtils {
         if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
         if(PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
 
-        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "holy_zink_kopper".equals(renderer);
+        boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "holy_zink_kopper".equals(renderer) || "panvk_zink".equals(renderer);
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
@@ -178,7 +196,15 @@ public class JREUtils {
         }
 
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
-        if(GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) setUseTurnip(true);
+        if ("panvk_zink".equals(renderer)) {
+            setUsePanvk(true);
+            Logger.appendToLog("[PanVK] Requesting Mesa PanVK ICD (libvulkan_panfrost.so)");
+        } else if (GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
+            setUseTurnip(true);
+        } else if (GLInfoUtils.getGlInfo().isArm() && ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer))) {
+            setUsePanvk(true);
+            Logger.appendToLog("[PanVK] Mali detected — using PanVK ICD under Zink");
+        }
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             envMap.put("FD_MESA_DEBUG", "sysmem");
             envMap.put("TU_DEBUG", "sysmem");
@@ -191,7 +217,7 @@ public class JREUtils {
                 Log.e("JREUtils", exception.toString());
             }
         }
-        if (isZink || "holy_zink_kopper".equals(renderer)) scrubPojavDetectorEnv();
+        if (isZink) scrubPojavDetectorEnv();
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
@@ -245,6 +271,14 @@ public class JREUtils {
         }
 
         switch (renderer){
+            case "panvk_zink":
+                Logger.appendToLog("[PanVK] Loading Mesa OSMesa + PanVK ICD path...");
+                renderLibrary = "libOSMesa_8.so";
+                useGles = false;
+                bypassNamespace = true;
+                glesVersion = 3;
+                if(preloadVk) preloadVulkan();
+                break;
             case "holy_zink_kopper":
                 Logger.appendToLog("[HolyZink] Loading Mesa OSMesa bridge (zink over the system Vulkan driver)...");
                 renderLibrary = "libOSMesa_8.so";
@@ -285,6 +319,7 @@ public class JREUtils {
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
     public static native void setUseTurnip(boolean enable);
+    public static native void setUsePanvk(boolean enable);
 
     public static volatile int sFearRotateDir = 90;
 
