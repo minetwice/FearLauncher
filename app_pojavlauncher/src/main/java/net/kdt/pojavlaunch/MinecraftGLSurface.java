@@ -387,7 +387,13 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         try {
             java.io.File fearTFile = new java.io.File(Tools.DIR_GAME_HOME, "holy_rotate.txt");
             if (fearTFile.isFile()) {
-                String t = new String(java.nio.file.Files.readAllBytes(fearTFile.toPath())).trim();
+                java.io.ByteArrayOutputStream fearBos = new java.io.ByteArrayOutputStream();
+                try (java.io.FileInputStream fearFis = new java.io.FileInputStream(fearTFile)) {
+                    byte[] buf = new byte[16];
+                    int n;
+                    while ((n = fearFis.read(buf)) > 0) fearBos.write(buf, 0, n);
+                }
+                String t = fearBos.toString().trim();
                 if (!t.isEmpty()) android.system.Os.setenv("FEAR_ROTATE_T", t, true);
                 System.out.println("FEARWIRE v10.11: holy_rotate.txt -> FEAR_ROTATE_T=" + t);
             }

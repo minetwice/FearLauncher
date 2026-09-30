@@ -56,6 +56,26 @@ static bool is_panfork_renderer(void) {
 }
 
 #include <unistd.h>
+/* FEARWIRE-HOLYZINK-ROTATE8b: ANativeWindow_setBuffersTransform is not in the
+   NDK public symbol list, so it cannot be linked directly - resolve it at
+   runtime (RTLD_DEFAULT, then explicit dlopen; the log-65 dlopen path
+   resolved fine). */
+static int32_t (*fear_setBuffersTransform_p)(struct ANativeWindow*, int32_t);
+static int32_t fear_applyRotateT(int rotateT) {
+    if (fear_setBuffersTransform_p == NULL) {
+        fear_setBuffersTransform_p = (int32_t (*)(struct ANativeWindow*, int32_t)) dlsym(RTLD_DEFAULT, "ANativeWindow_setBuffersTransform");
+        if (fear_setBuffersTransform_p == NULL) {
+            void* fearH = dlopen("libnativewindow.so", RTLD_NOW);
+            if (fearH == NULL) fearH = dlopen("libandroid.so", RTLD_NOW);
+            if (fearH != NULL)
+                fear_setBuffersTransform_p = (int32_t (*)(struct ANativeWindow*, int32_t)) dlsym(fearH, "ANativeWindow_setBuffersTransform");
+        }
+        printf("FEARWIRE-ROTATE8: setBuffersTransform resolved=%p\n", (void*) fear_setBuffersTransform_p);
+    }
+    if (fear_setBuffersTransform_p == NULL || bridge_environ.pojavWindow == NULL) return -1;
+    return fear_setBuffersTransform_p(bridge_environ.pojavWindow, rotateT);
+}
+
 /* FEARWIRE-HOLYZINK-ROTATE7: waits (up to 60s) for FEAR_RENDERER - the env is
    set at game launch, after the surface already exists - then applies the
    portrait buffer geometry for holy zink before the game creates its window. */
@@ -73,7 +93,7 @@ static void* fear_rotate_env_wait(void* arg) {
                 const char* fearT = getenv("FEAR_ROTATE_T");
                 int rotateT = fearT != NULL ? atoi(fearT) : 1;
                 if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
-                ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
+                fear_applyRotateT(rotateT);
                 printf("FEARWIRE-ROTATE8: late renderer pick-up, setBuffersTransform(%d) applied\n", rotateT);
             }
             return NULL;
@@ -116,8 +136,10 @@ Java_net_kdt_pojavlaunch_utils_JREUtils_setupBridgeWindow(JNIEnv* env, jclass cl
             const char* fearT = getenv("FEAR_ROTATE_T");
             int rotateT = fearT != NULL ? atoi(fearT) : 1;
             if (rotateT != 0 && rotateT != 1 && rotateT != 3 && rotateT != 4) rotateT = 1;
-            ANativeWindow_setBuffersTransform(bridge_environ.pojavWindow, rotateT);
-            printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\n", rotateT);
+            if (fear_applyRotateT(rotateT) == 0)
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) APPLIED (1=ROT90 neutralizes the WSI preTransform)\n", rotateT);
+            else
+                printf("FEARWIRE-ROTATE8: setBuffersTransform(%d) FAILED to resolve/apply\n", rotateT);
         }
         pojavexec_setDisplayParams(bridge_environ.savedWidth, bridge_environ.savedHeight, 60);
     }
