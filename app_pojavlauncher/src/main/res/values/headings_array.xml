@@ -2,6 +2,7 @@
 <resources>
     <string-array name="renderer">
         <item>Turnip Zink (Vulkan — best for Mali/Adreno)</item>
+        <item>PanVK Zink (Mali open-source Vulkan ICD + Zink)</item>
         <item>Holy Zink (Kopper — GL 4.6 over system Vulkan, shaders)</item>
         <item>@string/mcl_setting_renderer_ltw</item>
     </string-array>
@@ -35,6 +36,7 @@
     
     <string-array name="renderer_values">
         <item>turnip_zink</item> <!-- Turnip Zink: OSMesa-based Zink (GL→Vulkan via Mesa) -->
+        <item>panvk_zink</item> <!-- PanVK Zink: Mesa Zink over PanVK (libvulkan_panfrost.so) -->
         <item>holy_zink_kopper</item> <!-- HolyZink: Mesa Zink+Kopper over system Vulkan -->
         <item>opengles3_ltw</item> <!-- LTW: OpenGL ES 3 (requires libltw.so) -->
     </string-array>
