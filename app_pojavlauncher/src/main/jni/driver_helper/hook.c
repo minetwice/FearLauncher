@@ -19,8 +19,27 @@ static struct android_namespace_t* (*android_get_exported_namespace_p)(const cha
 //NOLINTEND
 static void* ready_handle;
 
-// External hook from lwjgl_dlopen_hook.c
-void* eglGetProcAddress_hook(const char* procname);
+/* eglGetProcAddress_hook lives in pojavexec (lwjgl_dlopen_hook.c).
+   liblinkerhook is a separate .so and is dlopened with RTLD_NOW, so the
+   symbol must exist here or the ICD preload fails. Provide a local stub
+   that forwards to the real eglGetProcAddress; install_global_egl_hook
+   (AWT path) may later replace the bytehook target with the real hook. */
+__attribute__((visibility("default"), used))
+void* eglGetProcAddress_hook(const char* procname) {
+    typedef void* (*eglGPA_t)(const char*);
+    static eglGPA_t real_eglGPA = NULL;
+    if (real_eglGPA == NULL) {
+        real_eglGPA = (eglGPA_t)dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (real_eglGPA == NULL) {
+            void* egl = dlopen("libEGL.so", RTLD_NOW);
+            if (egl == NULL) egl = dlopen("libEGL.so.1", RTLD_NOW);
+            if (egl != NULL)
+                real_eglGPA = (eglGPA_t)dlsym(egl, "eglGetProcAddress");
+        }
+    }
+    if (real_eglGPA == NULL) return NULL;
+    return real_eglGPA(procname);
+}
 
 /* FEARWIRE-HOLYZINK-ROTATE: rewrite 90/270 buffer transforms to identity
    (ROT_90=0x10, ROT_270=0x30 - both match & 0x10) for holy_zink_kopper so

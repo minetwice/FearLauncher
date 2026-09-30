@@ -42,7 +42,9 @@ static bool load_mesa_vulkan_icd(const char* driver_soname, const char* label) {
         return false;
     }
 
-    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
+    /* RTLD_LAZY: avoid hard-fail on symbols resolved later (e.g. eglGetProcAddress_hook).
+       RTLD_NOW previously broke PanVK preload when the stub was missing. */
+    void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_LAZY);
     if (linkerhook == NULL) {
         printf("DriverHook: liblinkerhook.so failed: %s\n", dlerror());
         return false;
