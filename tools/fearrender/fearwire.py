@@ -1928,6 +1928,115 @@ if 'ctxbridges/osm_bridge.c' not in sw:
 else:
     print("FEARWIRE SKIP: osm_bridge.c already in git add list")
 
+# ---- FEARWIRE-FRAMEDUMP (v10.16): two blind fixes (ZINK_MALI knobs, alpha
+# ---- force) did not clear the world glitch - stop guessing and get eyes.
+# ---- (1) Java publishes FEAR_GAME_DIR so native can write next to latestlog.
+# ---- (2) osm_bridge dumps ONE full source frame (the exact bytes MC+ zink
+# ---- produced, pre-blit) to <game_dir>/holy_frame.raw when
+# ---- FEAR_DUMP_FRAME=<seconds> is set (holy_zink.txt); <=5 means default 60s
+# ---- so the dump lands mid-world, not on the loading screen.
+# ---- (3) OSMDIAG[dest] samples the post-blit destination pixel so the alpha
+# ---- force is verifiable in latestlog. (4) one-shot v10.16 build marker.
+PO = 'app_pojavlauncher/src/main/jni/ctxbridges/osm_bridge.c'
+so = open(PO).read()
+if 'FEARWIRE-FRAMEDUMP' not in so:
+    if '#include <time.h>' not in so:
+        old_inc = '#include <stdio.h>'
+        assert so.count(old_inc) == 1
+        so = so.replace(old_inc, old_inc + '\n#include <time.h>', 1)
+    old_sw = '''    osm_fallback_readback();
+
+    osm_blit_to_native(currentBundle);'''
+    if so.count(old_sw) != 1:
+        fail("FRAMEDUMP swap anchor count = %d" % so.count(old_sw))
+    new_sw = '''    osm_fallback_readback();
+
+    /* FEARWIRE-FRAMEDUMP (v10.16): FEAR_DUMP_FRAME=<seconds> (holy_zink.txt)
+       writes ONE full pre-blit source frame to <FEAR_GAME_DIR>/holy_frame.raw
+       so the exact renderer output can be inspected offline. <=5 -> 60s. */
+    {
+        static int fear_dump_state = 0; /* 0=idle 1=armed 2=done */
+        static double fear_dump_t0 = -1.0, fear_dump_wait = 60.0;
+        const char* fd = getenv("FEAR_DUMP_FRAME");
+        if (fd != NULL && fd[0] != '\0' && strcmp(fd, "0") != 0 && fear_dump_state < 2) {
+            struct timespec ts;
+            double now;
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+            now = (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+            if (fear_dump_state == 0) {
+                fear_dump_wait = atof(fd);
+                if (fear_dump_wait <= 5.0) fear_dump_wait = 60.0;
+                fear_dump_t0 = now;
+                fear_dump_state = 1;
+                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs\n",
+                        fear_dump_wait);
+            }
+            if (fear_dump_state == 1 && (now - fear_dump_t0) >= fear_dump_wait) {
+                const char* gdir = getenv("FEAR_GAME_DIR");
+                fear_dump_state = 2;
+                if (gdir != NULL && currentBundle->color_buffer != NULL) {
+                    char path[512];
+                    snprintf(path, sizeof(path), "%s/holy_frame.raw", gdir);
+                    FILE* f = fopen(path, "wb");
+                    if (f != NULL) {
+                        fwrite(currentBundle->color_buffer, 1,
+                               (size_t)currentBundle->color_width * currentBundle->color_height * 4, f);
+                        fclose(f);
+                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s\n",
+                                currentBundle->color_width, currentBundle->color_height, path);
+                    } else {
+                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s\n", path);
+                    }
+                } else {
+                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)\n",
+                            gdir, currentBundle->color_buffer);
+                }
+            }
+        }
+    }
+    {
+        static int fear_v1016_marker = 0;
+        if (!fear_v1016_marker) {
+            fear_v1016_marker = 1;
+            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)\n");
+        }
+    }
+
+    osm_blit_to_native(currentBundle);'''
+    so = so.replace(old_sw, new_sw, 1)
+    old_bl = '''    if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {'''
+    if so.count(old_bl) != 1:
+        fail("FRAMEDUMP dest anchor count = %d" % so.count(old_bl))
+    new_bl = '''    if (dst != NULL && copy_w > 0 && copy_h > 0 && (g_diag_blits % 120) == 1) {
+        const uint32_t* dc = (const uint32_t*)(dst + (size_t)(copy_h / 2) * dst_stride_bytes
+                                               + (size_t)(copy_w / 2) * 4);
+        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)\n", *dc);
+    }
+
+    if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {'''
+    so = so.replace(old_bl, new_bl, 1)
+    open(PO, 'w').write(so)
+    print("FEARWIRE OK: osm_bridge frame dump + dest diag + marker")
+else:
+    print("FEARWIRE SKIP: osm_bridge frame dump already present")
+
+PJ = 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java'
+sj = open(PJ).read()
+if 'FEARWIRE-FRAMEDUMP' not in sj:
+    old_j = '''        GLFW.nativeSurfaceCreated(surface);'''
+    if sj.count(old_j) != 1:
+        fail("FRAMEDUMP java anchor count = %d" % sj.count(old_j))
+    new_j = '''        /* FEARWIRE-FRAMEDUMP (v10.16): publish the game dir to native so the
+           osm_bridge frame dump (FEAR_DUMP_FRAME=<seconds> via holy_zink.txt)
+           can write holy_frame.raw next to latestlog for offline analysis. */
+        try { android.system.Os.setenv("FEAR_GAME_DIR", Tools.DIR_GAME_HOME, true); } catch (Throwable ignored) {}
+        GLFW.nativeSurfaceCreated(surface);'''
+    sj = sj.replace(old_j, new_j, 1)
+    open(PJ, 'w').write(sj)
+    print("FEARWIRE OK: MinecraftGLSurface publishes FEAR_GAME_DIR")
+else:
+    print("FEARWIRE SKIP: FEAR_GAME_DIR already published")
+
 # ---- remove fear_vulkan (user decision: zink stays as turnip_zink only) ----
 if 'case "fear_vulkan":' in s and '[FearVulkan] Initializing' in s:
     start = s.find('            case "fear_vulkan":\n                Logger.appendToLog("[FearVulkan] Initializing')
