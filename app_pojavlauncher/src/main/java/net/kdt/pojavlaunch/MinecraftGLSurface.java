@@ -420,6 +420,10 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         } catch (Throwable ignored) {}
             }
         } catch (Throwable ignored) {}
+        /* FEARWIRE-FRAMEDUMP (v10.16): publish the game dir to native so the
+           osm_bridge frame dump (FEAR_DUMP_FRAME=<seconds> via holy_zink.txt)
+           can write holy_frame.raw next to latestlog for offline analysis. */
+        try { android.system.Os.setenv("FEAR_GAME_DIR", Tools.DIR_GAME_HOME, true); } catch (Throwable ignored) {}
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <dlfcn.h>
 #include <android/log.h>
 #include "osm_bridge.h"
@@ -574,6 +575,13 @@ static void osm_blit_to_native(osm_render_window_t* bundle) {
         }
     }
 
+    if (dst != NULL && copy_w > 0 && copy_h > 0 && (g_diag_blits % 120) == 1) {
+        const uint32_t* dc = (const uint32_t*)(dst + (size_t)(copy_h / 2) * dst_stride_bytes
+                                               + (size_t)(copy_w / 2) * 4);
+        fprintf(stderr, "OSMDIAG[dest]: center=0x%08x (post-blit, alpha-forced)
+", *dc);
+    }
+
     if (ANativeWindow_unlockAndPost(bundle->nativeSurface) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "unlockAndPost failed");
     }
@@ -604,6 +612,62 @@ void osm_swap_buffers() {
         osm_diag_sample("swap");
 
     osm_fallback_readback();
+
+    /* FEARWIRE-FRAMEDUMP (v10.16): FEAR_DUMP_FRAME=<seconds> (holy_zink.txt)
+       writes ONE full pre-blit source frame to <FEAR_GAME_DIR>/holy_frame.raw
+       so the exact renderer output can be inspected offline. <=5 -> 60s. */
+    {
+        static int fear_dump_state = 0; /* 0=idle 1=armed 2=done */
+        static double fear_dump_t0 = -1.0, fear_dump_wait = 60.0;
+        const char* fd = getenv("FEAR_DUMP_FRAME");
+        if (fd != NULL && fd[0] != ' ' && strcmp(fd, "0") != 0 && fear_dump_state < 2) {
+            struct timespec ts;
+            double now;
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+            now = (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+            if (fear_dump_state == 0) {
+                fear_dump_wait = atof(fd);
+                if (fear_dump_wait <= 5.0) fear_dump_wait = 60.0;
+                fear_dump_t0 = now;
+                fear_dump_state = 1;
+                fprintf(stderr, "FEARWIRE v10.16: frame dump armed, holy_frame.raw in %.0fs
+",
+                        fear_dump_wait);
+            }
+            if (fear_dump_state == 1 && (now - fear_dump_t0) >= fear_dump_wait) {
+                const char* gdir = getenv("FEAR_GAME_DIR");
+                fear_dump_state = 2;
+                if (gdir != NULL && currentBundle->color_buffer != NULL) {
+                    char path[512];
+                    snprintf(path, sizeof(path), "%s/holy_frame.raw", gdir);
+                    FILE* f = fopen(path, "wb");
+                    if (f != NULL) {
+                        fwrite(currentBundle->color_buffer, 1,
+                               (size_t)currentBundle->color_width * currentBundle->color_height * 4, f);
+                        fclose(f);
+                        fprintf(stderr, "FEARWIRE v10.16: dumped %dx%d source frame to %s
+",
+                                currentBundle->color_width, currentBundle->color_height, path);
+                    } else {
+                        fprintf(stderr, "FEARWIRE v10.16: dump fopen FAILED for %s
+", path);
+                    }
+                } else {
+                    fprintf(stderr, "FEARWIRE v10.16: dump skipped (FEAR_GAME_DIR=%p buf=%p)
+",
+                            gdir, currentBundle->color_buffer);
+                }
+            }
+        }
+    }
+    {
+        static int fear_v1016_marker = 0;
+        if (!fear_v1016_marker) {
+            fear_v1016_marker = 1;
+            fprintf(stderr, "FEARWIRE v10.16: osm_bridge present-path active (alpha-force + FEAR_DUMP_FRAME ready)
+");
+        }
+    }
 
     osm_blit_to_native(currentBundle);
 
