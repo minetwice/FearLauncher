@@ -242,6 +242,60 @@ EDITS = [
      '''         ctx->di.t.tbos[shader][slot] = VK_NULL_HANDLE;''',
      '''         ctx->di.t.tbos[shader][slot] = zink_screen(ctx->base.screen)->dummy_buffer_view;''',
      'FEARPATCH_DUMMY_TBO'),
+
+    # E1) zink_types.h: also need a dummy sampler handle.
+    ('src/gallium/drivers/zink/zink_types.h',
+     '''   VkBufferView dummy_buffer_view;
+};''',
+     '''   VkBufferView dummy_buffer_view;
+   VkSampler dummy_sampler;
+};''',
+     'FEARPATCH_DUMMY_SAMPLER_FIELD'),
+
+    # E2) zink_screen.c: create the dummy sampler.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''      fprintf(stderr, "FEARPATCH: dummy resources ready (imgview=%p bufview=%p)",''',
+     '''      VkSamplerCreateInfo sci = {
+         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+         .magFilter = VK_FILTER_NEAREST,
+         .minFilter = VK_FILTER_NEAREST,
+         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+         .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+         .maxLod = 0.0f,
+      };
+      VKSCR(CreateSampler)(screen->dev, &sci, NULL, &screen->dummy_sampler);
+      fprintf(stderr, "FEARPATCH: dummy resources ready (imgview=%p bufview=%p) sampler=%p",''',
+     'FEARPATCH_DUMMY_SAMPLER_CREATE'),
+
+    # E3) zink_screen.c: destroy the dummy sampler.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''      if (screen->dummy_buffer_view) VKSCR(DestroyBufferView)(screen->dev, screen->dummy_buffer_view, NULL);''',
+     '''      if (screen->dummy_sampler) VKSCR(DestroySampler)(screen->dev, screen->dummy_sampler, NULL);
+      if (screen->dummy_buffer_view) VKSCR(DestroyBufferView)(screen->dev, screen->dummy_buffer_view, NULL);''',
+     'FEARPATCH_DUMMY_SAMPLER_DESTROY'),
+
+    # E4) zink_context.c: bind the dummy sampler for unbound sampler slots.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''         ctx->di.textures[shader][start_slot + i].sampler = VK_NULL_HANDLE;''',
+     '''         ctx->di.textures[shader][start_slot + i].sampler = zink_screen(ctx->base.screen)->dummy_sampler;''',
+     'FEARPATCH_DUMMY_SAMPLER_BIND'),
+
+    # E5) zink_context.c: dummy image view for the texel-buffer image path.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''         ctx->di.t.texel_images[shader][slot] = VK_NULL_HANDLE;''',
+     '''         ctx->di.t.texel_images[shader][slot] = zink_screen(ctx->base.screen)->dummy_image_view;''',
+     'FEARPATCH_DUMMY_TEXELIMG'),
+
+    # E6) zink_context.c: the storage-image path memsets the whole descriptor
+    # (imageView = NULL); give it the dummy view + a valid layout.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''      memset(&ctx->di.images[shader][slot], 0, sizeof(ctx->di.images[shader][slot]));''',
+     '''      memset(&ctx->di.images[shader][slot], 0, sizeof(ctx->di.images[shader][slot]));
+      ctx->di.images[shader][slot].imageView = zink_screen(ctx->base.screen)->dummy_image_view;
+      ctx->di.images[shader][slot].imageLayout = VK_IMAGE_LAYOUT_GENERAL;''',
+     'FEARPATCH_DUMMY_STOREIMG'),
 ]
 
 applied = 0
