@@ -112,13 +112,6 @@ public class JavaRunner {
         userArguments.add("-XX:+OptimizeStringConcat");
         userArguments.add("-XX:-UseBiasedLocking");
         userArguments.add("-XX:+UnlockExperimentalVMOptions");
-        // FEARPATCH: smoothness extras. AlwaysPreTouch removes page-fault hitches
-        // (the #1 cause of camera stutter on Android); the G1 young-gen knobs
-        // keep pauses short and frequent instead of long and rare.
-        userArguments.add("-XX:+AlwaysPreTouch");
-        userArguments.add("-XX:G1NewSizePercent=20");
-        userArguments.add("-XX:SurvivorRatio=32");
-        userArguments.add("-XX:+PerfDisableSharedMem");
 
         ArrayList<String> overridableArguments = new ArrayList<>(Arrays.asList(
                 "-Djava.home=" + runtimeHome,
@@ -326,7 +319,29 @@ public class JavaRunner {
         setImmutableEnvVars(runtimeHomeDir);
         relocateLdLibPath(vmPath, null);
 
+        startFearNativePerfWatcher();
         nativeLoadJVM(vmPath.getAbsolutePath(), runtimeArgs.toArray(new String[0]), mainClass, applicationArgs.toArray(new String[0]), hasJavaAgent);
+    }
+
+    /* FEARPATCH: the JVM is created in this same process, so a lightweight
+     * daemon watcher can pin the game's hot threads onto the performance CPU
+     * cluster as soon as they appear. Best-effort: never throws, never blocks
+     * the game. */
+    private static void startFearNativePerfWatcher() {
+        Thread watcher = new Thread(() -> {
+            try {
+                JREUtils.nativeFearPerfStart();
+                for (int i = 0; i < 120; i++) {
+                    JREUtils.nativeFearPinGameThreads();
+                    Thread.sleep(2000L);
+                }
+            } catch (Throwable ignored) {
+                // Best-effort only: a failure here must never affect the game.
+            }
+        }, "FearPerfWatcher");
+        watcher.setDaemon(true);
+        watcher.setPriority(Thread.MIN_PRIORITY);
+        watcher.start();
     }
 
     public static native boolean nativeLoadJVM(String vmPath, String[] javaArgs, String mainClass, String[] appArgs, boolean hasJavaAgents) throws VMLoadException;

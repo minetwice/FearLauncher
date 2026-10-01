@@ -336,6 +336,12 @@ public class JREUtils {
     public static native void clearShaderCache();
     public static native int getTranslatedShaderCount();
 
+    /* FEARPATCH native performance engine: pins the game's hot threads
+     * (Render thread / Client thread / main / JIT compilers) onto the
+     * performance CPU cluster. Non-root, best-effort, renderer-agnostic. */
+    public static native int nativeFearPerfStart();
+    public static native int nativeFearPinGameThreads();
+
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");
