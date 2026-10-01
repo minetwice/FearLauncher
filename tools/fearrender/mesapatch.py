@@ -269,6 +269,13 @@ EDITS = [
       fprintf(stderr, "FEARPATCH: dummy resources ready (imgview=%p bufview=%p) sampler=%p",''',
      'FEARPATCH_DUMMY_SAMPLER_CREATE'),
 
+    # E2b) zink_screen.c: the fprintf now has 3 %p - supply the sampler arg too.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''              (void *)screen->dummy_image_view, (void *)screen->dummy_buffer_view);''',
+     '''              (void *)screen->dummy_image_view, (void *)screen->dummy_buffer_view,
+              (void *)screen->dummy_sampler);''',
+     'FEARPATCH_DUMMY_LOG_ARGS'),
+
     # E3) zink_screen.c: destroy the dummy sampler.
     ('src/gallium/drivers/zink/zink_screen.c',
      '''      if (screen->dummy_buffer_view) VKSCR(DestroyBufferView)(screen->dev, screen->dummy_buffer_view, NULL);''',
