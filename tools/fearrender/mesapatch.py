@@ -50,25 +50,34 @@ EDITS = [
     ('src/mesa/state_tracker/st_manager.c',
      r'pipe = fscreen->screen->context_create[(]fscreen->screen, NULL,',
      '''if (fscreen->screen == NULL) {
-      fprintf(stderr, "FEARPATCH: st_api_create_context: fscreen->screen is NULL - driver screen failed to init; returning error instead of crashing");
-      fputc(10, stderr);
+      /* FEARPATCH: the Gallium driver screen failed to initialise (Zink on
+       * Mali). Without this guard the ->context_create() below dereferences
+       * NULL and SIGSEGVs at [NULL + 0x5c0]. */
       *error = ST_CONTEXT_ERROR_NO_MEMORY;
       return NULL;
    }
    pipe = fscreen->screen->context_create(fscreen->screen, NULL,''',
      'FEARPATCH_ST_API_NULLGUARD'),
 
-    # B) Mirror every mesa_loge() in zink_screen.c to stderr so Zink's
-    #    "why did the screen fail" reason shows up in latestlog.txt (by
-    #    default mesa_loge only reaches logcat and is never captured).
-    ('src/gallium/drivers/zink/zink_screen.c',
-     r'#include "util/u_cpu_detect.h"',
-     '''#include "util/u_cpu_detect.h"
+    # B) Mirror mesa_log() error output to stderr (one place, covers every
+    #    mesa_loge in the tree) so Zink's "why did the screen fail" reason
+    #    shows up in latestlog.txt - by default it only reaches logcat.
+    ('src/util/log.c',
+     r'   mesa_log_v[(]level, tag, format, va[)];',
+     '''   mesa_log_v(level, tag, format, va);
 
-/* FEARPATCH: mirror Zink error logs to stderr so they land in latestlog.txt */
-#undef mesa_loge
-#define mesa_loge(...) do { mesa_log(MESA_LOG_ERROR, __VA_ARGS__); fprintf(stderr, "FEARPATCH ZINK: " __VA_ARGS__); fputc(10, stderr); fflush(stderr); } while (0)''',
-     'FEARPATCH_ZINK_STDERR'),
+   /* FEARPATCH: mirror error logs to stderr for the launcher latestlog.txt */
+   if (level == MESA_LOG_ERROR || level == MESA_LOG_WARN) {
+      char fear_buf[MAX_LOG_MESSAGE_LENGTH];
+      va_list fear_va;
+      va_start(fear_va, format);
+      vsnprintf(fear_buf, sizeof(fear_buf), format, fear_va);
+      va_end(fear_va);
+      fprintf(stderr, "FEARPATCH MESA[%s]: %s", tag ? tag : "?", fear_buf);
+      fputc(10, stderr);
+      fflush(stderr);
+   }''',
+     'FEARPATCH_LOG_MIRROR'),
 ]
 
 applied = 0
