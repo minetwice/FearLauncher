@@ -19,6 +19,7 @@ import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DateUtils;
 import net.kdt.pojavlaunch.utils.FileUtils;
+import net.kdt.pojavlaunch.utils.FearPerformanceMode;
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.GameOptionsUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
@@ -150,6 +151,12 @@ public class GameRunner {
             }catch (Exception e) {
                 Log.e("Tools", "Failed to fix render distance setting", e);
             }
+        }
+
+        // FEARPATCH performance mode: device-tier tune of the game's own options.
+        // These settings decide frame time far more than anything native can.
+        if(LauncherPreferences.PREF_PERFORMANCE_MODE) {
+            FearPerformanceMode.apply(gamedir);
         }
 
         GameOptionsUtils.fixOptions(isLtw);

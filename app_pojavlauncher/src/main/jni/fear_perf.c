@@ -27,6 +27,7 @@
 #include <sched.h>
 #include <errno.h>
 #include <linux/limits.h>
+#include <sys/mman.h>
 #include <android/log.h>
 
 #define LOG_TAG "FearPerf"
@@ -146,12 +147,39 @@ static int fear_pin_hot_threads(void) {
     return pinned;
 }
 
+// Best-effort transparent huge pages for this process' anonymous mappings
+// (this includes the JVM heap). madvise is advisory: if the kernel does not
+// support THP we simply get nothing back, so there is no downside.
+static int fear_madvise_hugepages(void) {
+#ifdef MADV_HUGEPAGE
+    FILE *f = fopen("/proc/self/maps", "r");
+    if (!f) return 0;
+    char line[512];
+    int n = 0;
+    while (fgets(line, sizeof(line), f)) {
+        unsigned long s, e;
+        char perms[8];
+        if (sscanf(line, "%lx-%lx %7s", &s, &e, perms) != 3) continue;
+        if (perms[0] != 'r' || perms[1] != 'w') continue;
+        size_t len = (size_t)(e - s);
+        if (len < (2u << 20)) continue;   // only mappings >= 2 MB
+        if (madvise((void *)s, len, MADV_HUGEPAGE) == 0) n++;
+    }
+    fclose(f);
+    return n;
+#else
+    return 0;
+#endif
+}
+
 // One-shot: build the topology view and pin whatever hot threads already exist.
 JNIEXPORT jint JNICALL
 Java_net_kdt_pojavlaunch_utils_JREUtils_nativeFearPerfStart(JNIEnv *env, jclass clazz) {
     (void)env; (void)clazz;
     LOGI("=== Fear native perf engine start ===");
     fear_build_perf_set();
+    int hp = fear_madvise_hugepages();
+    LOGI("hugepage hint applied to %d anonymous regions", hp);
     int n = fear_pin_hot_threads();
     LOGI("=== Fear native perf engine: %d hot threads pinned to %d performance cores ===",
          n, g_perf_count);
