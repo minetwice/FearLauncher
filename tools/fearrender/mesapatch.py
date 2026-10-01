@@ -96,6 +96,152 @@ EDITS = [
       screen->info.rb2_feats.nullDescriptor = VK_TRUE;
    }''',
      'FEARPATCH_NULLDESC_FORCE'),
+
+    # D1) zink_types.h: add dummy-resource handles to struct zink_screen.
+    ('src/gallium/drivers/zink/zink_types.h',
+     '''      bool general_layout;
+   } driver_workarounds;
+};''',
+     '''      bool general_layout;
+   } driver_workarounds;
+
+   /* FEARPATCH: dummy resources bound in place of NULL descriptors, which the
+    * Mali vendor driver cannot handle (it crashes at NULL+0x28). */
+   VkImage dummy_image;
+   VkDeviceMemory dummy_image_mem;
+   VkImageView dummy_image_view;
+   VkBuffer dummy_buffer;
+   VkDeviceMemory dummy_buffer_mem;
+   VkBufferView dummy_buffer_view;
+};''',
+     'FEARPATCH_DUMMY_FIELDS'),
+
+    # D2) zink_screen.c: create the dummies at screen init.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''   screen->frame_marker_emitted = zink_screen_debug_marker_begin(screen, "frame");
+
+   return screen;''',
+     '''   screen->frame_marker_emitted = zink_screen_debug_marker_begin(screen, "frame");
+
+   /* FEARPATCH: create dummy 1x1 image/buffer + views to stand in for NULL
+    * descriptors (the Mali vendor driver crashes on NULL descriptors). */
+   {
+      VkImageCreateInfo ici = {
+         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+         .imageType = VK_IMAGE_TYPE_2D,
+         .format = VK_FORMAT_R8G8B8A8_UNORM,
+         .extent = { 1, 1, 1 },
+         .mipLevels = 1,
+         .arrayLayers = 1,
+         .samples = VK_SAMPLE_COUNT_1_BIT,
+         .tiling = VK_IMAGE_TILING_OPTIMAL,
+         .usage = VK_IMAGE_USAGE_SAMPLED_BIT,
+         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      };
+      if (VKSCR(CreateImage)(screen->dev, &ici, NULL, &screen->dummy_image) == VK_SUCCESS) {
+         VkMemoryRequirements mr;
+         VKSCR(GetImageMemoryRequirements)(screen->dev, screen->dummy_image, &mr);
+         VkMemoryAllocateInfo mai = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = mr.size,
+            .memoryTypeIndex = 0,
+         };
+         for (uint32_t i = 0; i < screen->info.mem_props.memoryTypeCount; i++) {
+            if ((mr.memoryTypeBits & (1u << i)) &&
+                (screen->info.mem_props.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+               mai.memoryTypeIndex = i;
+               break;
+            }
+         }
+         if (VKSCR(AllocateMemory)(screen->dev, &mai, NULL, &screen->dummy_image_mem) == VK_SUCCESS) {
+            VKSCR(BindImageMemory)(screen->dev, screen->dummy_image, screen->dummy_image_mem, 0);
+            VkImageViewCreateInfo ivci = {
+               .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+               .image = screen->dummy_image,
+               .viewType = VK_IMAGE_VIEW_TYPE_2D,
+               .format = VK_FORMAT_R8G8B8A8_UNORM,
+               .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+            };
+            VKSCR(CreateImageView)(screen->dev, &ivci, NULL, &screen->dummy_image_view);
+         }
+      }
+      VkBufferCreateInfo bci = {
+         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+         .size = 16,
+         .usage = VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
+         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      };
+      if (VKSCR(CreateBuffer)(screen->dev, &bci, NULL, &screen->dummy_buffer) == VK_SUCCESS) {
+         VkMemoryRequirements mr;
+         VKSCR(GetBufferMemoryRequirements)(screen->dev, screen->dummy_buffer, &mr);
+         VkMemoryAllocateInfo mai = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = mr.size,
+            .memoryTypeIndex = 0,
+         };
+         for (uint32_t i = 0; i < screen->info.mem_props.memoryTypeCount; i++) {
+            if (mr.memoryTypeBits & (1u << i)) {
+               mai.memoryTypeIndex = i;
+               break;
+            }
+         }
+         if (VKSCR(AllocateMemory)(screen->dev, &mai, NULL, &screen->dummy_buffer_mem) == VK_SUCCESS) {
+            VKSCR(BindBufferMemory)(screen->dev, screen->dummy_buffer, screen->dummy_buffer_mem, 0);
+            VkBufferViewCreateInfo bvci = {
+               .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
+               .buffer = screen->dummy_buffer,
+               .format = VK_FORMAT_R8G8B8A8_UNORM,
+               .offset = 0,
+               .range = VK_WHOLE_SIZE,
+            };
+            VKSCR(CreateBufferView)(screen->dev, &bvci, NULL, &screen->dummy_buffer_view);
+         }
+      }
+      fprintf(stderr, "FEARPATCH: dummy resources ready (imgview=%p bufview=%p)",
+              (void *)screen->dummy_image_view, (void *)screen->dummy_buffer_view);
+      fputc(10, stderr);
+      fflush(stderr);
+   }
+
+   return screen;''',
+     'FEARPATCH_DUMMY_CREATE'),
+
+    # D3) zink_screen.c: destroy the dummies.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''      VKSCR(DestroyDescriptorSetLayout)(screen->dev, screen->bindless_layout, NULL);
+
+   if (screen->dev) {''',
+     '''      VKSCR(DestroyDescriptorSetLayout)(screen->dev, screen->bindless_layout, NULL);
+
+   /* FEARPATCH: destroy the dummy null-descriptor stand-ins. */
+   if (screen->dev) {
+      if (screen->dummy_buffer_view) VKSCR(DestroyBufferView)(screen->dev, screen->dummy_buffer_view, NULL);
+      if (screen->dummy_buffer) VKSCR(DestroyBuffer)(screen->dev, screen->dummy_buffer, NULL);
+      if (screen->dummy_buffer_mem) VKSCR(FreeMemory)(screen->dev, screen->dummy_buffer_mem, NULL);
+      if (screen->dummy_image_view) VKSCR(DestroyImageView)(screen->dev, screen->dummy_image_view, NULL);
+      if (screen->dummy_image) VKSCR(DestroyImage)(screen->dev, screen->dummy_image, NULL);
+      if (screen->dummy_image_mem) VKSCR(FreeMemory)(screen->dev, screen->dummy_image_mem, NULL);
+   }
+
+   if (screen->dev) {''',
+     'FEARPATCH_DUMMY_DESTROY'),
+
+    # D4) zink_context.c: bind the dummy instead of NULL for unbound slots.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''      ctx->di.textures[shader][slot].imageView = VK_NULL_HANDLE;
+      ctx->di.textures[shader][slot].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;''',
+     '''      /* FEARPATCH: never hand the Mali driver a NULL descriptor (it crashes
+       * at NULL+0x28); bind a dummy 1x1 resource instead. */
+      ctx->di.textures[shader][slot].imageView = zink_screen(ctx->base.screen)->dummy_image_view;
+      ctx->di.textures[shader][slot].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;''',
+     'FEARPATCH_DUMMY_TEX'),
+
+    # D5) zink_context.c: same for the texel-buffer (tbos) null path.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''         ctx->di.t.tbos[shader][slot] = VK_NULL_HANDLE;''',
+     '''         ctx->di.t.tbos[shader][slot] = zink_screen(ctx->base.screen)->dummy_buffer_view;''',
+     'FEARPATCH_DUMMY_TBO'),
 ]
 
 applied = 0
@@ -110,7 +256,11 @@ for path, pat, repl, note in EDITS:
         print("MESAPATCH SKIP: %s already patched" % path)
         applied += 1
         continue
-    new, n = re.subn(pat, repl, s, count=1)
+    if pat in s:
+        new = s.replace(pat, repl, 1)
+        n = 1
+    else:
+        new, n = re.subn(pat, repl, s, count=1)
     if n == 0:
         print("MESAPATCH WARN: pattern not found in %s - %s toggle NOT applied (source moved?)" % (path, note))
         for i, l in enumerate(s.splitlines()):
