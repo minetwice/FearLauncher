@@ -1,0 +1,20 @@
+{
+  "file_format_version": "1.2.0",
+  "layer": {
+    "name": "VK_LAYER_fear_mali_compat",
+    "type": "GLOBAL",
+    "library_path": "libVkLayer_fear_mali_compat.so",
+    "api_version": "1.3.268",
+    "implementation_version": "1",
+    "description": "FearLauncher Mali compatibility layer for Zink (logicOp / fillModeNonSolid / shaderClipDistance / alphaToOne)",
+    "functions": {
+      "vkGetInstanceProcAddr": "vkGetInstanceProcAddr",
+      "vkGetDeviceProcAddr": "vkGetDeviceProcAddr"
+    },
+    "instance_extensions": [],
+    "device_extensions": [],
+    "enable_environment": {
+      "FEAR_MALI_COMPAT": "1"
+    }
+  }
+}

@@ -1,7 +1,6 @@
-
 cmake_minimum_required(VERSION 3.22.1)
 
-project("MojoLauncher")
+project("FearLauncher")
 
 add_library(pojavexec SHARED
         affinity.c
@@ -47,3 +46,25 @@ add_library(awt_xawt SHARED
         awt_xawt/xawt_fake.c
 )
 target_link_libraries(awt_xawt PRIVATE awt_headless)
+
+# Quasar Helper Library for Mali GPU shader fixes
+add_library(quasar SHARED
+        quasar_helper.c
+)
+
+target_include_directories(quasar PRIVATE .)
+target_link_libraries(quasar PRIVATE log GLESv3)
+
+# fear_mali_compat - Vulkan layer that makes Mesa's Zink work on ARM Mali GPUs.
+# The layer reports the Zink-required features the Mali vendor driver is missing
+# and strips them again before device creation. See mali_compat/README.md.
+add_library(VkLayer_fear_mali_compat SHARED
+        mali_compat/fear_mali_compat.c
+)
+target_include_directories(VkLayer_fear_mali_compat PRIVATE .)
+target_compile_definitions(VkLayer_fear_mali_compat PRIVATE VK_NO_PROTOTYPES)
+target_link_libraries(VkLayer_fear_mali_compat PRIVATE log)
+set_target_properties(VkLayer_fear_mali_compat PROPERTIES
+        C_VISIBILITY_PRESET hidden
+        PREFIX "lib"
+)
