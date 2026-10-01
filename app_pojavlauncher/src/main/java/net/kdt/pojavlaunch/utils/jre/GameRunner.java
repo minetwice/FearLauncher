@@ -59,6 +59,27 @@ public class GameRunner {
         return false;
     }
 
+    /**
+     * FEARPATCH render engine: pick a renderer this GPU can actually run.
+     * Turnip / Vulkan-Zink are Adreno-only, so on Mali (and any other
+     * non-Adreno GPU) requesting them can only ever fail. In that case use the
+     * Mali Zink path instead. LTW and the other renderers are left alone.
+     */
+    private static String pickRendererForDevice(String requested) {
+        try {
+            GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
+            if (!info.isAdreno() && (requested == null
+                    || requested.equals("turnip_zink")
+                    || requested.equals("vulkan_zink"))) {
+                Log.i("GameRunner", "FEARPATCH: non-Adreno GPU -> using holy_zink_kopper instead of " + requested);
+                return "holy_zink_kopper";
+            }
+        } catch (Throwable t) {
+            Log.w("GameRunner", "FEARPATCH: GPU detect failed, keeping " + requested, t);
+        }
+        return requested;
+    }
+
     private static boolean affectedByRenderDistanceIssue(JMinecraftVersionList.Version version) throws ParseException {
         if(LauncherPreferences.PREF_USE_ANGLE) return false;
         GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
@@ -112,7 +133,8 @@ public class GameRunner {
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
         if(isCompatContext(versionInfo) && !hasAngelica(gamedir) && rendererName.equals("opengles3_ltw")) {
-            instance.renderer = rendererName = "turnip_zink";
+            // FEARPATCH: on a non-Adreno GPU this must not become Turnip.
+            instance.renderer = rendererName = pickRendererForDevice("turnip_zink");
             instance.write();
         }
 
@@ -182,8 +204,11 @@ public class GameRunner {
 
         String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         if(rendererLibrary == null) {
-            Log.i("GameRunner", "Falling back to Turnip Zink");
-            rendererName = "turnip_zink";
+            // FEARPATCH: fall back to a renderer this GPU can actually run,
+            // not blindly to Turnip (which is Adreno-only).
+            String fallback = pickRendererForDevice("turnip_zink");
+            Log.i("GameRunner", "Renderer failed to load, falling back to " + fallback);
+            rendererName = fallback;
             rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         }
         if(rendererLibrary == null) {
