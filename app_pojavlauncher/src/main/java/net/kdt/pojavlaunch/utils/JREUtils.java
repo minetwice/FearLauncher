@@ -177,6 +177,18 @@ public class JREUtils {
         if (!isZink) {
             envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
         }
+
+        if ("opengles3_ltw".equals(renderer)) {
+            // FEARPATCH: upstream sets these for LTW. Without POJAVEXEC_EGL the
+            // native ctxbridge never selects the LTW EGL, so the game dies in
+            // GL.createCapabilities with "There is no OpenGL context current".
+            envMap.put("LIBGL_ES", "3");
+            envMap.put("POJAVEXEC_EGL", "libltw.so");
+            // Upstream also publishes POJAV_RENDERER so the native ctxbridge can
+            // pick the right backend; the LWJGL hook still scrubs it before
+            // Sodium looks, so this does not re-enable Sodium's Pojav detection.
+            envMap.put("POJAV_RENDERER", "opengles3_ltw");
+        }
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -192,7 +204,10 @@ public class JREUtils {
 
         setupAngleEnv(context, envMap);
         setupFfmpegEnv(context, envMap);
-        setupRendererEnv(envMap, renderer);
+        // FEARPATCH: setupRendererEnv() is a Zink-only env block. Calling it for
+        // LTW (or any other renderer) forced GALLIUM_DRIVER=zink /
+        // MESA_LOADER_DRIVER_OVERRIDE=zink and broke the native GLES context.
+        if (isZink) setupRendererEnv(envMap, renderer);
 
         envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
