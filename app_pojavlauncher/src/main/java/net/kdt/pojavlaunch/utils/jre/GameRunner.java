@@ -19,7 +19,6 @@ import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DateUtils;
 import net.kdt.pojavlaunch.utils.FileUtils;
-import net.kdt.pojavlaunch.utils.FearPerformanceMode;
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.GameOptionsUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
@@ -153,12 +152,6 @@ public class GameRunner {
             }
         }
 
-        // FEARPATCH performance mode: device-tier tune of the game's own options.
-        // These settings decide frame time far more than anything native can.
-        if(LauncherPreferences.PREF_PERFORMANCE_MODE) {
-            FearPerformanceMode.apply(gamedir);
-        }
-
         GameOptionsUtils.fixOptions(isLtw);
 
         if(isLtw && GLInfoUtils.getGlInfo().forcedMsaa) {
@@ -222,7 +215,13 @@ public class GameRunner {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
         }
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink") || rendererName.equals("holy_zink_kopper") || rendererName.equals("panvk_zink") ? "libmh_drive_vulkan_mesa.so" : "libGL.so"));
+        // FEARPATCH: LWJGL must be pointed at the library that actually exists.
+        // For LTW that is libltw.so (the LTW wrapper), not a non-existent
+        // libGL.so - the old hardcode made the game die in GL.create() with
+        // "Failed to locate library: libGL.so".
+        boolean isZinkRenderer = rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")
+                || rendererName.equals("holy_zink_kopper") || rendererName.equals("panvk_zink");
+        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (isZinkRenderer ? "libmh_drive_vulkan_mesa.so" : rendererLibrary));
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
