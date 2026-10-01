@@ -51,9 +51,14 @@
 #ifdef __ANDROID__
 #include <android/log.h>
 #define LOG_TAG "FearMaliCompat"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+/* Log to logcat AND stderr, so the lines also land in the launcher's
+ * latestlog.txt (which captures the JRE stdout/stderr). */
+#define LOGI(...) do { __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__); \
+    fprintf(stderr, "[FearMaliCompat] " __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr); } while (0)
+#define LOGW(...) do { __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__); \
+    fprintf(stderr, "[FearMaliCompat] " __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr); } while (0)
+#define LOGE(...) do { __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__); \
+    fprintf(stderr, "[FearMaliCompat] " __VA_ARGS__); fprintf(stderr, "\n"); fflush(stderr); } while (0)
 #else
 #define LOGI(...) do { fprintf(stderr, "[FearMaliCompat] " __VA_ARGS__); fprintf(stderr, "\n"); } while (0)
 #define LOGW(...) LOGI(__VA_ARGS__)
@@ -124,8 +129,8 @@ typedef struct VkLayerDeviceCreateInfo {
 
 #define FF_ALL (FF_LOGIC_OP | FF_FILL_NON_SOLID | FF_CLIP_DISTANCE | FF_ALPHA_TO_ONE)
 
-/* Which features we are allowed to lie about (from env, default: all). */
-static uint32_t g_enabled_mask = FF_ALL;
+/* Which features we are allowed to lie about (from env, default: fillModeNonSolid). */
+static uint32_t g_enabled_mask = FF_FILL_NON_SOLID; /* safest default; opt in via env */
 
 static const char *bit_name(unsigned bit)
 {
@@ -194,6 +199,8 @@ typedef struct FearPhysDev {
 } FearPhysDev;
 
 static PFN_vkGetInstanceProcAddr g_next_gipa = NULL;
+static PFN_vkGetDeviceProcAddr   g_next_gdpa = NULL;   /* fallback device dispatch */
+static VkInstance                g_last_instance = VK_NULL_HANDLE;
 
 static FearInstance *g_instances = NULL;
 static FearDevice   *g_devices   = NULL;
@@ -262,6 +269,12 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
 VKAPI_ATTR void VKAPI_CALL fear_DestroyDevice(
     VkDevice device, const VkAllocationCallbacks *pAllocator);
 
+VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL fear_GetInstanceProcAddr(
+    VkInstance instance, const char *pName);
+
+VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL fear_GetDeviceProcAddr(
+    VkDevice device, const char *pName);
+
 /* ------------------------------------------------------------------------- */
 /* Feature patching                                                          */
 /* ------------------------------------------------------------------------- */
@@ -308,6 +321,7 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateInstance(
     const VkAllocationCallbacks *pAllocator,
     VkInstance *pInstance)
 {
+    LOGI("fear_mali_compat layer loaded (v2), creating instance");
     parse_features_env();
 
     /* Find the loader link so we can reach the next layer / driver. */
@@ -341,8 +355,9 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateInstance(
         (PFN_vkDestroyInstance)g_next_gipa(*pInstance, "vkDestroyInstance");
     inst->next = g_instances;
     g_instances = inst;
+    g_last_instance = *pInstance;
 
-    LOGI("instance created, compat layer active");
+    LOGI("instance created, compat layer active (feature mask 0x%x)", g_enabled_mask);
     return VK_SUCCESS;
 }
 
@@ -434,6 +449,9 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
 {
     FearPhysDev *pdev = find_physdev(physicalDevice);
     FearInstance *inst = pdev ? pdev->inst : NULL;
+    VkInstance instance_handle = inst ? inst->instance : g_last_instance;
+    if (!instance_handle)
+        LOGE("create device: no instance handle, passing through");
 
     PFN_vkGetDeviceProcAddr next_gdpa = NULL;
 
@@ -448,6 +466,12 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
         next_gdpa = chain->u.pLayerInfo->pfnNextGetDeviceProcAddr;
         chain->u.pLayerInfo = chain->u.pLayerInfo->pNext;
     }
+    /* Fall back to asking the next layer/driver for its device dispatch. */
+    if (!next_gdpa && g_next_gipa && instance_handle)
+        next_gdpa = (PFN_vkGetDeviceProcAddr)g_next_gipa(instance_handle, "vkGetDeviceProcAddr");
+    if (next_gdpa) g_next_gdpa = next_gdpa;
+    if (!next_gdpa)
+        LOGE("create device: no device dispatch found");
 
     /* Build a modified create-info with the lied-about features stripped. */
     VkDeviceCreateInfo local = *pCreateInfo;
@@ -493,8 +517,8 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
         local = relinked;
     }
 
-    PFN_vkCreateDevice fpCreate =
-        (PFN_vkCreateDevice)g_next_gipa(inst->instance, "vkCreateDevice");
+    PFN_vkCreateDevice fpCreate = (g_next_gipa && instance_handle)
+        ? (PFN_vkCreateDevice)g_next_gipa(instance_handle, "vkCreateDevice") : NULL;
     if (!fpCreate) return VK_ERROR_INITIALIZATION_FAILED;
 
     VkResult res = fpCreate(physicalDevice, &local, pAllocator, pDevice);
@@ -509,8 +533,8 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
     dev->next = g_devices;
     g_devices = dev;
 
-    LOGI("device created with stripped feature mask 0x%x",
-         pdev ? pdev->lied_mask : 0);
+    LOGI("device created (next_gdpa=%p, lied feature mask 0x%x)",
+         (void *)next_gdpa, pdev ? pdev->lied_mask : 0);
     return VK_SUCCESS;
 }
 
@@ -547,6 +571,7 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL fear_GetInstanceProcAddr(
     if (!strcmp(pName, "vkGetPhysicalDeviceFeatures2KHR")) return (PFN_vkVoidFunction)fear_GetPhysicalDeviceFeatures2;
     if (!strcmp(pName, "vkCreateDevice"))              return (PFN_vkVoidFunction)fear_CreateDevice;
     if (!strcmp(pName, "vkDestroyDevice"))             return (PFN_vkVoidFunction)fear_DestroyDevice;
+    if (!strcmp(pName, "vkGetDeviceProcAddr"))         return (PFN_vkVoidFunction)fear_GetDeviceProcAddr;
 
     if (!g_next_gipa) return NULL;
     return g_next_gipa(instance, pName);
@@ -561,7 +586,9 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL fear_GetDeviceProcAddr(
     if (!strcmp(pName, "vkDestroyDevice"))     return (PFN_vkVoidFunction)fear_DestroyDevice;
 
     FearDevice *dev = find_device(device);
-    if (dev && dev->next_gdpa) return dev->next_gdpa(device, pName);
+    PFN_vkGetDeviceProcAddr gdpa = (dev && dev->next_gdpa) ? dev->next_gdpa : g_next_gdpa;
+    if (gdpa) return gdpa(device, pName);
+    LOGE("vkGetDeviceProcAddr(%s): no device dispatch, returning NULL", pName);
     return NULL;
 }
 
