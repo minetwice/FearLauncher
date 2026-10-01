@@ -56,3 +56,17 @@ add_library(awt_xawt SHARED
         awt_xawt/xawt_fake.c
 )
 target_link_libraries(awt_xawt PRIVATE awt_headless)
+
+# fear_mali_compat - Vulkan layer that makes Mesa's Zink work on ARM Mali GPUs.
+# Reports the Zink-required features the Mali vendor driver lacks and strips
+# them again before vkCreateDevice. See mali_compat/README.md.
+add_library(VkLayer_fear_mali_compat SHARED
+        mali_compat/fear_mali_compat.c
+)
+target_include_directories(VkLayer_fear_mali_compat PRIVATE .)
+target_compile_definitions(VkLayer_fear_mali_compat PRIVATE VK_NO_PROTOTYPES)
+target_link_libraries(VkLayer_fear_mali_compat PRIVATE log)
+set_target_properties(VkLayer_fear_mali_compat PROPERTIES
+        C_VISIBILITY_PRESET hidden
+        PREFIX "lib"
+)
