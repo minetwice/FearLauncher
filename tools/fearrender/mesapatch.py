@@ -303,6 +303,32 @@ EDITS = [
       ctx->di.images[shader][slot].imageView = zink_screen(ctx->base.screen)->dummy_image_view;
       ctx->di.images[shader][slot].imageLayout = VK_IMAGE_LAYOUT_GENERAL;''',
      'FEARPATCH_DUMMY_STOREIMG'),
+
+    # F1) zink_screen.c: the dummy buffer must also be usable as a UBO/SSBO.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''         .size = 16,
+         .usage = VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,''',
+     '''         .size = 256,
+         .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,''',
+     'FEARPATCH_DUMMY_BUF_USAGE'),
+
+    # F2) zink_context.c: unbound UBO slots wrote a NULL buffer.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''      ctx->di.t.ubos[shader][slot].buffer = VK_NULL_HANDLE;
+      ctx->di.t.ubos[shader][slot].range = VK_WHOLE_SIZE;''',
+     '''      ctx->di.t.ubos[shader][slot].buffer = zink_screen(ctx->base.screen)->dummy_buffer;
+      ctx->di.t.ubos[shader][slot].offset = 0;
+      ctx->di.t.ubos[shader][slot].range = VK_WHOLE_SIZE;''',
+     'FEARPATCH_DUMMY_UBO'),
+
+    # F3) zink_context.c: unbound SSBO slots wrote a NULL buffer.
+    ('src/gallium/drivers/zink/zink_context.c',
+     '''      ctx->di.t.ssbos[shader][slot].buffer = VK_NULL_HANDLE;
+      ctx->di.t.ssbos[shader][slot].range = VK_WHOLE_SIZE;''',
+     '''      ctx->di.t.ssbos[shader][slot].buffer = zink_screen(ctx->base.screen)->dummy_buffer;
+      ctx->di.t.ssbos[shader][slot].offset = 0;
+      ctx->di.t.ssbos[shader][slot].range = VK_WHOLE_SIZE;''',
+     'FEARPATCH_DUMMY_SSBO'),
 ]
 
 applied = 0
