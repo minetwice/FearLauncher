@@ -78,6 +78,24 @@ EDITS = [
       fflush(stderr);
    }''',
      'FEARPATCH_LOG_MIRROR'),
+
+    # C) The Mali vendor driver has no VK_EXT_robustness2 nullDescriptor, but
+    #    Zink hard-requires it, so screen init fails and OSMesaCreateContext
+    #    returns NULL. Force it ON and continue instead of bailing out.
+    ('src/gallium/drivers/zink/zink_screen.c',
+     '''   if [(]!screen->info.rb2_feats.nullDescriptor[)] [{]
+      mesa_loge[(]"Zink requires the nullDescriptor feature of KHR/EXT robustness2."[)];
+      goto fail;
+   [}]''',
+     '''   if (!screen->info.rb2_feats.nullDescriptor) {
+      /* FEARPATCH: Mali vendor driver lacks robustness2 nullDescriptor and
+       * Zink hard-requires it, so screen init fails. Force it ON and continue. */
+      fprintf(stderr, "FEARPATCH: Mali lacks robustness2 nullDescriptor - forcing it ON and continuing");
+      fputc(10, stderr);
+      fflush(stderr);
+      screen->info.rb2_feats.nullDescriptor = VK_TRUE;
+   }''',
+     'FEARPATCH_NULLDESC_FORCE'),
 ]
 
 applied = 0
