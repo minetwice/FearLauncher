@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.kdt.pojavlaunch.*;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
@@ -135,6 +134,10 @@ public class JREUtils {
                     envMap.put("ZINK_MALI_NOCOHERENT", "1");
                     envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
                     envMap.put("ZINK_MALI_NOREUSE", "1");
+                    // FEARPATCH: Mali pre-G710 cannot do multi-draw (drawCount>1),
+                    // which crashes the driver during Sodium's batched terrain
+                    // draws. Force Zink to emit single draws instead.
+                    envMap.put("ZINK_MALI_NOMULTIDRAW", "1");
                 } else {
                     envMap.put("mesa_glthread", "false");
                 }
@@ -158,67 +161,6 @@ public class JREUtils {
                     envMap.put("mesa_glthread", "false");
                 }
                 break;
-        }
-
-        // On ARM Mali, Zink needs features the vendor Vulkan driver lacks
-        // (logicOp / fillModeNonSolid / shaderClipDistance). The
-        // fear_mali_compat layer bridges that gap. No-op on non-Mali GPUs.
-        if (renderer != null && renderer.contains("zink")) {
-            setupMaliCompatLayer(envMap);
-        }
-    }
-
-    /**
-     * Enable the fear_mali_compat Vulkan layer on ARM Mali GPUs.
-     *
-     * The layer reports the Zink-required features the Mali vendor driver is
-     * missing and strips them again before device creation, so Zink can
-     * initialise. No-op on non-Mali GPUs. The layer JSON must live somewhere
-     * writable, with an absolute library_path pointing at the .so.
-     */
-    private static void setupMaliCompatLayer(Map<String, String> envMap) {
-        if (!GLInfoUtils.getGlInfo().isArm()) return;
-        final String layerName = "VK_LAYER_fear_mali_compat";
-        try {
-            File soFile = new File(Tools.NATIVE_LIB_DIR, "libVkLayer_fear_mali_compat.so");
-            if (!soFile.exists()) {
-                Logger.appendToLog("Mali compat layer .so not found, skipping");
-                return;
-            }
-            File layerDir = new File(Tools.DIR_GAME_HOME, "vk_layers");
-            if (!layerDir.isDirectory() && !layerDir.mkdirs()) {
-                Logger.appendToLog("Could not create vk_layers dir");
-                return;
-            }
-            String json = "{\n" +
-                    "  \"file_format_version\": \"1.2.0\",\n" +
-                    "  \"layer\": {\n" +
-                    "    \"name\": \"" + layerName + "\",\n" +
-                    "    \"type\": \"GLOBAL\",\n" +
-                    "    \"library_path\": \"" + soFile.getAbsolutePath() + "\",\n" +
-                    "    \"api_version\": \"1.3.268\",\n" +
-                    "    \"implementation_version\": \"1\",\n" +
-                    "    \"description\": \"FearLauncher Mali compat layer for Zink\",\n" +
-                    "    \"functions\": {\n" +
-                    "      \"vkGetInstanceProcAddr\": \"vkGetInstanceProcAddr\",\n" +
-                    "      \"vkGetDeviceProcAddr\": \"vkGetDeviceProcAddr\"\n" +
-                    "    },\n" +
-                    "    \"instance_extensions\": [],\n" +
-                    "    \"device_extensions\": [],\n" +
-                    "    \"enable_environment\": { \"FEAR_MALI_COMPAT\": \"1\" }\n" +
-                    "  }\n" +
-                    "}\n";
-            File jsonFile = new File(layerDir, layerName + ".json");
-            try (FileOutputStream fos = new FileOutputStream(jsonFile)) {
-                fos.write(json.getBytes(StandardCharsets.UTF_8));
-            }
-            envMap.put("FEAR_MALI_COMPAT", "1");
-            envMap.put("VK_LAYER_PATH", layerDir.getAbsolutePath());
-            envMap.put("VK_INSTANCE_LAYERS", layerName);
-            envMap.put("VK_LOADER_LAYERS_ENABLE", layerName);
-            Logger.appendToLog("Enabled Mali compat Vulkan layer: " + jsonFile.getAbsolutePath());
-        } catch (Exception e) {
-            Logger.appendToLog("Failed to enable Mali compat layer: " + e);
         }
     }
 

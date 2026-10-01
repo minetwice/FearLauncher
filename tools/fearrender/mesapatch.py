@@ -329,6 +329,22 @@ EDITS = [
       ctx->di.t.ssbos[shader][slot].offset = 0;
       ctx->di.t.ssbos[shader][slot].range = VK_WHOLE_SIZE;''',
      'FEARPATCH_DUMMY_SSBO'),
+
+    # ---- G) Mali has no working multi-draw ----
+    # Zink picks vkCmdDrawMultiIndexedEXT / vkCmdDrawMultiEXT when
+    # VK_EXT_multi_draw is advertised. ARM's own guidance: "drawCount must be a
+    # maximum of 1 on all pre-Mali-G710 family hardware", and the Mali driver
+    # SIGSEGVs (libGLES_mali.so, si_addr=0x28) when Sodium issues a batched
+    # terrain multi-draw through it. Force the single-draw loop for ARM GPUs
+    # (vendorID 0x13b5) - or when ZINK_MALI_NOMULTIDRAW is set.
+    ('src/gallium/drivers/zink/zink_draw.cpp',
+     r'draw_vbo_array\[screen->info\.have_EXT_multi_draw\]',
+     'draw_vbo_array[screen->info.have_EXT_multi_draw && !(screen->info.props.vendorID == 0x13b5 || getenv("ZINK_MALI_NOMULTIDRAW") != NULL)]',
+     'FEARPATCH_NOMULTIDRAW_VBO'),
+    ('src/gallium/drivers/zink/zink_draw.cpp',
+     r'draw_state_array\[screen->info\.have_EXT_multi_draw\]',
+     'draw_state_array[screen->info.have_EXT_multi_draw && !(screen->info.props.vendorID == 0x13b5 || getenv("ZINK_MALI_NOMULTIDRAW") != NULL)]',
+     'FEARPATCH_NOMULTIDRAW_STATE'),
 ]
 
 applied = 0
