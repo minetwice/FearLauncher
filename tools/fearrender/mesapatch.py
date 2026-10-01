@@ -285,7 +285,7 @@ EDITS = [
     # E5) zink_context.c: dummy image view for the texel-buffer image path.
     ('src/gallium/drivers/zink/zink_context.c',
      '''         ctx->di.t.texel_images[shader][slot] = VK_NULL_HANDLE;''',
-     '''         ctx->di.t.texel_images[shader][slot] = zink_screen(ctx->base.screen)->dummy_image_view;''',
+     '''         ctx->di.t.texel_images[shader][slot] = zink_screen(ctx->base.screen)->dummy_buffer_view;''',
      'FEARPATCH_DUMMY_TEXELIMG'),
 
     # E6) zink_context.c: the storage-image path memsets the whole descriptor
