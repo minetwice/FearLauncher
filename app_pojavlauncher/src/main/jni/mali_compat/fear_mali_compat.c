@@ -126,11 +126,15 @@ typedef struct VkLayerDeviceCreateInfo {
 #define FF_FILL_NON_SOLID (1u << 1)
 #define FF_CLIP_DISTANCE  (1u << 2)
 #define FF_ALPHA_TO_ONE   (1u << 3)
+/* not a base VkPhysicalDeviceFeatures bit: lives in
+ * VkPhysicalDeviceRobustness2FeaturesEXT.nullDescriptor */
+#define FF_NULL_DESC      (1u << 4)
 
-#define FF_ALL (FF_LOGIC_OP | FF_FILL_NON_SOLID | FF_CLIP_DISTANCE | FF_ALPHA_TO_ONE)
+#define FF_ALL (FF_LOGIC_OP | FF_FILL_NON_SOLID | FF_CLIP_DISTANCE | FF_ALPHA_TO_ONE | FF_NULL_DESC)
 
-/* Which features we are allowed to lie about (from env, default: fillModeNonSolid). */
-static uint32_t g_enabled_mask = FF_FILL_NON_SOLID; /* safest default; opt in via env */
+/* Which features we are allowed to lie about (from env). Default: the two
+ * things the Mali vendor driver is missing and Zink needs. */
+static uint32_t g_enabled_mask = FF_FILL_NON_SOLID | FF_NULL_DESC;
 
 static const char *bit_name(unsigned bit)
 {
@@ -139,6 +143,7 @@ static const char *bit_name(unsigned bit)
     case FF_FILL_NON_SOLID: return "fillModeNonSolid";
     case FF_CLIP_DISTANCE:  return "shaderClipDistance";
     case FF_ALPHA_TO_ONE:   return "alphaToOne";
+    case FF_NULL_DESC:      return "nullDescriptor";
     default:                return "?";
     }
 }
@@ -152,6 +157,15 @@ static VkBool32 *feature_ptr(VkPhysicalDeviceFeatures *f, unsigned bit)
     case FF_ALPHA_TO_ONE:   return &f->alphaToOne;
     default:                return NULL;
     }
+}
+
+static VkPhysicalDeviceRobustness2FeaturesEXT *
+find_rb2_features(void *pNext)
+{
+    for (VkBaseOutStructure *s = (VkBaseOutStructure *)pNext; s; s = s->pNext)
+        if (s->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT)
+            return (VkPhysicalDeviceRobustness2FeaturesEXT *)s;
+    return NULL;
 }
 
 static void parse_features_env(void)
@@ -169,6 +183,7 @@ static void parse_features_env(void)
     if (strstr(v, "fillModeNonSolid") || strstr(v, "fill")) mask |= FF_FILL_NON_SOLID;
     if (strstr(v, "shaderClipDistance") || strstr(v, "clip")) mask |= FF_CLIP_DISTANCE;
     if (strstr(v, "alphaToOne") || strstr(v, "alpha"))      mask |= FF_ALPHA_TO_ONE;
+    if (strstr(v, "nullDescriptor") || strstr(v, "null"))   mask |= FF_NULL_DESC;
     g_enabled_mask = mask;
     LOGI("feature override from env: mask=0x%x", mask);
 }
@@ -441,6 +456,18 @@ VKAPI_ATTR void VKAPI_CALL fear_GetPhysicalDeviceFeatures2(
 
     /* Zink queries features2; patch the base feature struct it points at. */
     patch_features_up(pdev, &pFeatures->features);
+
+    /* Zink also hard-requires robustness2 nullDescriptor. If the driver lacks
+     * it, report it as supported so Zink's screen init passes; we strip it
+     * again in vkCreateDevice. */
+    if (g_enabled_mask & FF_NULL_DESC) {
+        VkPhysicalDeviceRobustness2FeaturesEXT *rb2 = find_rb2_features(pFeatures->pNext);
+        if (rb2 && rb2->nullDescriptor == VK_FALSE) {
+            rb2->nullDescriptor = VK_TRUE;
+            if (pdev) pdev->lied_mask |= FF_NULL_DESC;
+            LOGI("reporting robustness2 nullDescriptor = VK_TRUE (driver lacks it)");
+        }
+    }
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
@@ -521,7 +548,20 @@ VKAPI_ATTR VkResult VKAPI_CALL fear_CreateDevice(
         ? (PFN_vkCreateDevice)g_next_gipa(instance_handle, "vkCreateDevice") : NULL;
     if (!fpCreate) return VK_ERROR_INITIALIZATION_FAILED;
 
+    /* If we lied about robustness2 nullDescriptor, strip it (temporarily) so
+     * the Mali driver never sees a feature it does not support. */
+    VkPhysicalDeviceRobustness2FeaturesEXT *rb2 =
+        (pdev && (pdev->lied_mask & FF_NULL_DESC)) ? find_rb2_features((void *)local.pNext) : NULL;
+    VkBool32 rb2_saved = VK_FALSE;
+    if (rb2) {
+        rb2_saved = rb2->nullDescriptor;
+        rb2->nullDescriptor = VK_FALSE;
+        LOGI("stripping robustness2 nullDescriptor before driver create");
+    }
+
     VkResult res = fpCreate(physicalDevice, &local, pAllocator, pDevice);
+
+    if (rb2) rb2->nullDescriptor = rb2_saved;
     if (res != VK_SUCCESS) return res;
 
     FearDevice *dev = (FearDevice *)calloc(1, sizeof(*dev));
