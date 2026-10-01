@@ -112,6 +112,13 @@ public class JavaRunner {
         userArguments.add("-XX:+OptimizeStringConcat");
         userArguments.add("-XX:-UseBiasedLocking");
         userArguments.add("-XX:+UnlockExperimentalVMOptions");
+        // FEARPATCH: smoothness extras. AlwaysPreTouch removes page-fault hitches
+        // (the #1 cause of camera stutter on Android); the G1 young-gen knobs
+        // keep pauses short and frequent instead of long and rare.
+        userArguments.add("-XX:+AlwaysPreTouch");
+        userArguments.add("-XX:G1NewSizePercent=20");
+        userArguments.add("-XX:SurvivorRatio=32");
+        userArguments.add("-XX:+PerfDisableSharedMem");
 
         ArrayList<String> overridableArguments = new ArrayList<>(Arrays.asList(
                 "-Djava.home=" + runtimeHome,

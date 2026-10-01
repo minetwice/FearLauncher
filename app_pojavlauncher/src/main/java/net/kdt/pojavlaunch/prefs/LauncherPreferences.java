@@ -108,7 +108,7 @@ public class LauncherPreferences {
         PREF_BUTTON_ALL_CAPS = DEFAULT_PREF.getBoolean("buttonAllCaps", true);
         PREF_DUMP_SHADERS = DEFAULT_PREF.getBoolean("dump_shaders", false);
         PREF_DEADZONE_SCALE = ((float) DEFAULT_PREF.getInt("gamepad_deadzone_scale", 100))/100f;
-        PREF_BIG_CORE_AFFINITY = DEFAULT_PREF.getBoolean("bigCoreAffinity", false);
+        PREF_BIG_CORE_AFFINITY = DEFAULT_PREF.getBoolean("bigCoreAffinity", true);
         PREF_ZINK_PREFER_SYSTEM_DRIVER = DEFAULT_PREF.getBoolean("zinkPreferSystemDriver", false);
         PREF_DOWNLOAD_SOURCE = DEFAULT_PREF.getString("downloadSource", "default");
         PREF_VERIFY_MANIFEST = DEFAULT_PREF.getBoolean("verifyManifest", true);
@@ -158,7 +158,11 @@ public class LauncherPreferences {
         if (deviceRam < 3064) return 936;
         if (deviceRam < 4096) return 1144;
         if (deviceRam < 6144) return 1536;
-        return 2048; //Default RAM allocation for 64 bits
+        // FEARPATCH: give larger devices a bit more headroom (G1 + a low pause
+        // target keeps this smooth), and smaller devices stay conservative.
+        if (deviceRam < 8192) return 2048;
+        if (deviceRam < 12288) return 3072;
+        return 4096;
     }
 
     /// Find a correct resolution for the device
