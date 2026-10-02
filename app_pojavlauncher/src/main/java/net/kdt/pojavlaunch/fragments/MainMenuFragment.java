@@ -1666,6 +1666,25 @@ public class MainMenuFragment extends Fragment {
         v.setBackground(g);
     }
 
+    /**
+     * PLAY as a round, glossy button: a radial gradient that runs bright accent
+     * -> deep accent -> black, ringed in white, so it reads like the reference's
+     * 3D button but in the black/red (and black/blue) palette.
+     */
+    private void applyPlayButton(View v, float k) {
+        if (v == null) return;
+        android.animation.ArgbEvaluator eval = new android.animation.ArgbEvaluator();
+        int light = (int) eval.evaluate(k, 0xFFFF5A4A, 0xFF6FA8FF);
+        int deep  = (int) eval.evaluate(k, 0xFF8E0F1A, 0xFF123A7A);
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        g.setGradientType(android.graphics.drawable.GradientDrawable.RADIAL);
+        g.setGradientRadius(Math.max(1f, v.getWidth() * 0.62f));
+        g.setColors(new int[]{light, deep, 0xFF050102});
+        g.setStroke((int) (3 * getResources().getDisplayMetrics().density), 0xE6FFFFFF);
+        v.setBackground(g);
+    }
+
     private void bindHomeBackground(View view) {
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
@@ -1702,7 +1721,7 @@ public class MainMenuFragment extends Fragment {
             int colour = (int) evaluator.evaluate(k, RED, BLUE);
             // PLAY and the download bar follow the cycle as a gradient. The
             // instance bar stays translucent glass - no solid colour on it.
-            applyAccentGradient(play, k, 13);
+            applyPlayButton(play, k);
             applyAccentGradient(mBarFill, k, 7);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);

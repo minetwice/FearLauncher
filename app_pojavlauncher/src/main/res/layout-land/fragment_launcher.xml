@@ -122,17 +122,15 @@
         <!-- character -->
         <com.kdt.mcgui.MinecraftSkinView
             android:id="@+id/homepage_skin_body"
-            android:layout_width="130dp"
-            android:layout_height="170dp"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/premium_glass_black_bg"
-            android:elevation="18dp" />
+            android:layout_width="190dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center_horizontal" />
 
         <!-- instance select -->
         <com.kdt.mcgui.mcVersionSpinner
             android:id="@+id/mc_version_spinner"
-            android:layout_width="230dp"
-            android:layout_height="40dp"
+            android:layout_width="250dp"
+            android:layout_height="46dp"
             android:layout_marginTop="@dimen/_10sdp"
             android:background="@drawable/premium_glass_black_bg"
             android:elevation="12dp" />
@@ -140,10 +138,10 @@
         <!-- PLAY at the bottom -->
         <com.kdt.mcgui.MineButton
             android:id="@+id/play_button"
-            android:layout_width="200dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:elevation="20dp"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:elevation="22dp"
             android:text="PLAY"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_18ssp"
