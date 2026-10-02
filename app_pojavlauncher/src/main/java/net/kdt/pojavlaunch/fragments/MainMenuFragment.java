@@ -1678,7 +1678,7 @@ public class MainMenuFragment extends Fragment {
         int deep  = (int) eval.evaluate(k, 0xFF8E0F1A, 0xFF123A7A);
         android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
         g.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        g.setGradientType(android.graphics.drawable.GradientDrawable.RADIAL);
+        g.setGradientType(android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT);
         g.setGradientRadius(Math.max(1f, v.getWidth() * 0.62f));
         g.setColors(new int[]{light, deep, 0xFF050102});
         g.setStroke((int) (3 * getResources().getDisplayMetrics().density), 0xE6FFFFFF);
