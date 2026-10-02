@@ -123,37 +123,41 @@
 
     </LinearLayout>
 
-    <!-- == MAIN STACK == -->
-    <ScrollView
+    <!-- == LANDSCAPE DASHBOARD == -->
+    <!-- Wide phones waste the vertical portrait stack, so the home screen is
+         laid out as two columns here: the hero card (version + PLAY) on the
+         left, the instance carousel on the right. -->
+    <LinearLayout
+        android:id="@+id/landscape_dashboard"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:scrollbars="none"
-        android:clipToPadding="false"
-        android:paddingBottom="@dimen/_10sdp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_8sdp"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+        <!-- LEFT COLUMN: hero card -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.2"
+            android:scrollbars="none"
+            android:clipToPadding="false">
 
-            <!-- HERO CARD -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@drawable/premium_glass_black_bg"
-                android:padding="@dimen/_16sdp"
-                android:layout_marginHorizontal="@dimen/_12sdp"
-                android:layout_marginTop="@dimen/_8sdp">
+                android:padding="@dimen/_16sdp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="FEAR LAUNCHER"
                     android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_22ssp"
+                    android:textSize="@dimen/_20ssp"
                     android:textStyle="bold"
                     android:letterSpacing="0.04" />
 
@@ -280,8 +284,18 @@
                 </LinearLayout>
 
             </LinearLayout>
+        </ScrollView>
 
-            <!-- INSTANCE CAROUSEL -->
+        <!-- RIGHT COLUMN: instances -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/_12sdp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:padding="@dimen/_12sdp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -290,17 +304,13 @@
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.12"
-                android:layout_marginStart="@dimen/_16sdp"
-                android:layout_marginTop="@dimen/_14sdp"
                 android:layout_marginBottom="@dimen/_8sdp" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none"
-                android:clipToPadding="false"
-                android:paddingStart="@dimen/_12sdp"
-                android:paddingEnd="@dimen/_12sdp">
+                android:clipToPadding="false">
 
                 <LinearLayout
                     android:id="@+id/homepage_instance_carousel"
@@ -311,7 +321,7 @@
             </HorizontalScrollView>
 
         </LinearLayout>
-    </ScrollView>
+    </LinearLayout>
 
     <!-- UI Logic Dummies -->
     <TextView android:id="@+id/account_name" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
