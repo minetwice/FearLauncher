@@ -27,12 +27,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="#40FFFFFF" />
 
-    <!-- FearLauncher logo. The artwork is 2:1, so keep its real aspect
-         (adjustViewBounds + fitCenter) instead of squashing it into a square. -->
+    <!-- FearLauncher logo (transparent PNG). Its true aspect is kept via
+         adjustViewBounds + fitCenter so it never gets stretched. -->
     <ImageView
         android:id="@+id/splash_logo"
-        android:layout_width="320dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="215dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:src="@drawable/fear_logo"
@@ -43,7 +43,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginBottom="40dp" />
+        android:layout_marginBottom="70dp" />
 
     <!-- FearLauncher wordmark: hard offset shadow gives it the blocky,
          extruded depth of the Minecraft logo -->
