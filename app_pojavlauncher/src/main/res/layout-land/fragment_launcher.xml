@@ -129,11 +129,13 @@
          left, the instance carousel on the right. -->
     <LinearLayout
         android:id="@+id/landscape_dashboard"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/_12sdp"
         android:paddingBottom="@dimen/_8sdp"
+        app:layout_constraintStart_toEndOf="@id/settings_tray"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -353,13 +355,13 @@
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
     <FrameLayout
         android:id="@+id/settings_tray"
-        android:layout_width="246dp"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        android:background="@drawable/tray_triangle_bg"
-        android:elevation="32dp"
+        android:layout_width="230dp"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        android:background="@drawable/premium_glass_black_bg"
+        android:elevation="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ScrollView
