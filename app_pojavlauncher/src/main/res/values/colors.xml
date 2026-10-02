@@ -3,57 +3,60 @@
     <!-- ═══════════════════════════════════════════════ -->
     <!-- GAME CONTROLS                                   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="control_button_color">#5C4D9BFF</color> <!-- Neon Red control -->
-    <color name="control_button_pressed_color">#804D9BFF</color>
-
-    <!-- MineButton text -->
+    <color name="control_button_color">#5CFF2B3A</color>
+    <color name="control_button_pressed_color">#80FF2B3A</color>
     <color name="minebutton_color">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- PREMIUM CYBER-RED THEME COLORS                   -->
+    <!-- FEAR THEME - RED & BLACK GLASS                  -->
+    <!-- Surfaces are deliberately translucent so the    -->
+    <!-- background art shows through (glassmorphism).   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="background_app">#050102</color> <!-- Ultra Dark Charcoal Red -->
-    <color name="background_overlay">#A60D1220</color> <!-- Glass Black with Red Undertone -->
-    <color name="background_status_bar">#050102</color>
-    <color name="background_bottom_bar">#050102</color>
-    <color name="divider">#404D9BFF</color> <!-- Red neon divider -->
+    <color name="background_app">#050102</color>
+    <color name="background_overlay">#8C14060A</color>
+    <color name="background_status_bar">#000000</color>
+    <color name="background_bottom_bar">#8C14060A</color>
+    <color name="divider">#40FF2B3A</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- TEXT COLORS                                     -->
+    <!-- TEXT                                            -->
     <!-- ═══════════════════════════════════════════════ -->
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#B3FFFFFF</color>
-    <color name="icon_outline_color">#4D9BFF</color> <!-- Cyber-Red Outline -->
+    <color name="tertiary_text">#80FFFFFF</color>
+    <color name="icon_outline_color">#FF2B3A</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- ACCENT COLORS (CYBER-RED & BLACK)               -->
+    <!-- ACCENTS                                         -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_primary">#4D9BFF</color> <!-- Cyber-Red -->
-    <color name="fear_secondary">#7CB9FF</color> <!-- Neon Red/Pink -->
-    <color name="fear_tertiary">#000000</color>
-
+    <color name="fear_primary">#FF2B3A</color>
+    <color name="fear_secondary">#FF6B5E</color>
+    <color name="fear_tertiary">#7A0B14</color>
     <color name="fear_on_primary">#FFFFFF</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- STATUS COLORS                                   -->
+    <!-- STATUS                                          -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="status_error">#7CB9FF</color>
-    <color name="status_success">#34D399</color> <!-- Success is now Red-themed -->
-    <color name="status_warning">#A855F7</color>
+    <color name="status_error">#FF2B3A</color>
+    <color name="status_success">#34D399</color>
+    <color name="status_warning">#FF9E5E</color>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- MISC                                            -->
+    <!-- SURFACES (low opacity glass)                    -->
     <!-- ═══════════════════════════════════════════════ -->
-    <color name="fear_glass_bg">#A60D1220</color>
-    <color name="mc_official_green">#22C55E</color> <!-- Overridden to premium Cyber-Red -->
-    <color name="carousel_card_bg">#264D9BFF</color>
+    <color name="fear_glass_bg">#8C14060A</color>
+    <color name="fear_glass_bg_soft">#6614060A</color>
+    <color name="carousel_card_bg">#1AFF2B3A</color>
+    <color name="top_bar_bg">#7314060A</color>
+    <color name="sidebar_bg">#7314060A</color>
 
-    <!-- Legacy Mappings -->
-    <color name="seekbar_progress_start">#4D9BFF</color>
-    <color name="seekbar_progress_end">#7CB9FF</color>
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- LEGACY MAPPINGS                                 -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <color name="seekbar_progress_start">#FF2B3A</color>
+    <color name="seekbar_progress_end">#FF6B5E</color>
     <color name="fear_surface">#050102</color>
-    <color name="fear_surface_variant">#0B0305</color>
-    <color name="fear_surface_container">#0F0407</color>
-    <color name="top_bar_bg">#A60D1220</color>
-    <color name="sidebar_bg">#A60D1220</color>
+    <color name="fear_surface_variant">#14060A</color>
+    <color name="fear_surface_container">#1A080C</color>
+    <color name="mc_official_green">#FF2B3A</color>
 </resources>

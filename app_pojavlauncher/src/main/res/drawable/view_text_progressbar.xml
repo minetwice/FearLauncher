@@ -5,8 +5,8 @@
     <item android:id="@android:id/background">
         <shape>
             <corners android:radius="@dimen/_4sdp" />
-            <solid android:color="#F20D1220" />
-            <stroke android:width="1dp" android:color="#664D9BFF" />
+            <solid android:color="#F214060A" />
+            <stroke android:width="1dp" android:color="#66FF2B3A" />
         </shape>
     </item>
 
@@ -16,8 +16,8 @@
              <shape>
                 <corners android:radius="@dimen/_4sdp" />
                 <gradient
-                    android:startColor="#1E3A8A"
-                    android:endColor="#4D9BFF"
+                    android:startColor="#3A0A10"
+                    android:endColor="#FF2B3A"
                     android:angle="0" />
             </shape>
         </clip>

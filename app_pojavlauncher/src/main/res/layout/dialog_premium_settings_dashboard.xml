@@ -21,7 +21,7 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_px_arrow_left"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#4D9BFF"
+            app:tint="#FF2B3A"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FEAR SYSTEM COMMAND CORE"
-            android:textColor="#4D9BFF"
+            android:textColor="#FF2B3A"
             android:textSize="@dimen/_14ssp"
             android:textStyle="bold"
             android:letterSpacing="0.12"
@@ -61,7 +61,7 @@
         android:id="@+id/dash_header_divider"
         android:layout_width="match_parent"
         android:layout_height="1.5dp"
-        android:background="#4D9BFF"
+        android:background="#FF2B3A"
         android:layout_marginTop="6dp"
         app:layout_constraintTop_toBottomOf="@id/dash_top_bar" />
 

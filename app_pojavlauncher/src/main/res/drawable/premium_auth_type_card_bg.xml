@@ -3,11 +3,11 @@
     <!-- Selected State (Red Neon Glow) -->
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="#264D9BFF" />
+            <solid android:color="#26FF2B3A" />
             <corners android:radius="@dimen/_10sdp" />
             <stroke
                 android:width="2dp"
-                android:color="#7CB9FF" />
+                android:color="#FF6B5E" />
         </shape>
     </item>
 

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#407CB9FF">
+    android:color="#40FF6B5E">
     <item>
         <shape android:shape="rectangle">
             <!-- Premium cyber-red to deep red neon gradient background -->
             <gradient
-                android:startColor="#4D9BFF"
-                android:endColor="#1E3A8A"
+                android:startColor="#FF2B3A"
+                android:endColor="#3A0A10"
                 android:angle="0" />
             <corners android:radius="@dimen/_8sdp" />
             <stroke
                 android:width="2dp"
-                android:color="#7CB9FF" />
+                android:color="#FF6B5E" />
         </shape>
     </item>
 </ripple>

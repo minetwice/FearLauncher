@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#804D9BFF">
+    android:color="#80FF2B3A">
     <item android:id="@android:id/mask">
         <shape>
             <corners android:radius="10dp" />
@@ -16,7 +16,7 @@
                         <shape>
                             <solid android:color="#F20B0305" />
                             <corners android:radius="10dp" />
-                            <stroke android:width="2dp" android:color="#4D9BFF" />
+                            <stroke android:width="2dp" android:color="#FF2B3A" />
                         </shape>
                     </item>
                     <!-- Gloss shine overlay -->
@@ -37,9 +37,9 @@
                     <!-- Base State: Premium Dark Glass background -->
                     <item>
                         <shape>
-                            <solid android:color="#A60D1220" />
+                            <solid android:color="#A614060A" />
                             <corners android:radius="10dp" />
-                            <stroke android:width="1.5dp" android:color="#664D9BFF" />
+                            <stroke android:width="1.5dp" android:color="#66FF2B3A" />
                         </shape>
                     </item>
                     <!-- Glass Gloss highlight overlay -->
@@ -59,7 +59,7 @@
                             <gradient
                                 android:angle="45"
                                 android:startColor="#00FFFFFF"
-                                android:centerColor="#3D4D9BFF"
+                                android:centerColor="#3DFF2B3A"
                                 android:endColor="#00FFFFFF"
                                 android:type="linear" />
                         </shape>

@@ -147,7 +147,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Synchronisation failure."
-            android:textColor="#7CB9FF" />
+            android:textColor="#FF6B5E" />
         <Button
             android:id="@+id/fabric_installer_retry_button"
             android:layout_width="wrap_content"

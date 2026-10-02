@@ -313,7 +313,7 @@
                     android:id="@+id/local_error_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#7CB9FF"
+                    android:textColor="#FF6B5E"
                     android:textSize="@dimen/_8ssp"
                     android:visibility="gone"
                     android:layout_marginTop="2dp" />

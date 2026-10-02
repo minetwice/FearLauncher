@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ACTIVE IDENTITIES"
-                android:textColor="#4D9BFF"
+                android:textColor="#FF2B3A"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05" />
@@ -71,7 +71,7 @@
                         android:layout_width="@dimen/_28sdp"
                         android:layout_height="@dimen/_28sdp"
                         android:src="@drawable/ic_mc_skull"
-                        app:tint="#664D9BFF"/>
+                        app:tint="#66FF2B3A"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -110,7 +110,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="CONSOLIDATE NEW PROFILE"
-                android:textColor="#4D9BFF"
+                android:textColor="#FF2B3A"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05" />
@@ -281,7 +281,7 @@
                 android:id="@+id/local_error_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#7CB9FF"
+                android:textColor="#FF6B5E"
                 android:textSize="@dimen/_8ssp"
                 android:visibility="gone"
                 android:layout_marginTop="4dp" />

@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="#F20B0305" /> <!-- Cinematic near-opaque glass black background -->
     <corners android:radius="16dp" />
-    <stroke android:width="2dp" android:color="#FF4D9BFF" /> <!-- Vibrant Red neon glow border -->
+    <stroke android:width="2dp" android:color="#FFFF2B3A" /> <!-- Vibrant Red neon glow border -->
 </shape>

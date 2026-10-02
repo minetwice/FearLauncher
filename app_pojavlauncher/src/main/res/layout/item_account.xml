@@ -91,7 +91,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Active"
-                android:textColor="#7CB9FF"
+                android:textColor="#FF6B5E"
                 android:textSize="@dimen/_7ssp"
                 android:textStyle="bold" />
         </LinearLayout>

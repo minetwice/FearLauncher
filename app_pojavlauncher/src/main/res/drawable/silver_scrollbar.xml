@@ -1,5 +1,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Premium Neon Crimson Red Scrollbar (Redesign Requirements) -->
-    <solid android:color="#B34D9BFF" />
+    <solid android:color="#B3FF2B3A" />
     <corners android:radius="100dp" />
 </shape>

@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="SECURE IDENTITY AUTHORIZATION"
-            android:textColor="#4D9BFF"
+            android:textColor="#FF2B3A"
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -84,7 +84,7 @@
             android:layout_width="@dimen/_160sdp"
             android:layout_height="@dimen/_160sdp"
             android:src="@drawable/ic_app_logo"
-            app:tint="#264D9BFF"
+            app:tint="#26FF2B3A"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

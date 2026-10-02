@@ -95,7 +95,7 @@
             android:layout_height="26dp"
             android:src="@drawable/ic_px_bell"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#4D9BFF"
+            app:tint="#FF2B3A"
             android:layout_marginEnd="12dp" />
 
         <FrameLayout
@@ -162,7 +162,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1.21.1"
-                    android:textColor="#A855F7"
+                    android:textColor="#FF4D5E"
                     android:textSize="@dimen/_10ssp"
                     android:textStyle="bold"
                     android:layout_marginTop="2dp" />
@@ -191,10 +191,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="LOADER: AUTO"
-                        android:textColor="#4D9BFF"
+                        android:textColor="#FF2B3A"
                         android:textSize="@dimen/_8ssp"
                         android:textStyle="bold"
-                        android:background="#294D9BFF"
+                        android:background="#29FF2B3A"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="4dp" />
                 </LinearLayout>
@@ -245,7 +245,7 @@
                         android:src="@drawable/ic_sharp_settings_24"
                         android:background="@drawable/premium_glass_black_bg"
                         android:padding="9dp"
-                        app:tint="#4D9BFF"
+                        app:tint="#FF2B3A"
                         android:layout_marginStart="8dp" />
                 </LinearLayout>
 
@@ -286,7 +286,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="INSTANCES"
-                android:textColor="#A855F7"
+                android:textColor="#FF4D5E"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.12"
@@ -392,7 +392,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="SYSTEMS ONLINE"
-                            android:textColor="#4D9BFF"
+                            android:textColor="#FF2B3A"
                             android:textSize="@dimen/_7ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
