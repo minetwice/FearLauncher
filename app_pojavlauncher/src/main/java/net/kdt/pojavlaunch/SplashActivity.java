@@ -1,9 +1,16 @@
 package net.kdt.pojavlaunch;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.kdt.mcgui.AspectVideoView;
+
+import git.artdeell.mojo.R;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.tasks.AsyncAssetManager;
@@ -11,19 +18,21 @@ import net.kdt.pojavlaunch.tasks.AsyncAssetManager;
 /**
  * FearLauncher startup.
  *
- * No intro screen: this goes straight to the launcher. All it does is the
- * mandatory boot work (storage check, preferences, asset unpacking) and then
- * hands over, with a plain fade.
+ * Plays the FearLauncher intro clip full-screen, then hands over to the
+ * launcher. All of the mandatory boot work runs first so the clip costs no
+ * extra boot time, and there is a hard timeout plus tap-to-skip so a video that
+ * never reports back can never trap the user on the intro.
  */
 public class SplashActivity extends AppCompatActivity {
+    /** Hard ceiling on the intro, whatever the media does. */
+    private static final long INTRO_TIMEOUT_MS = 12000L;
+
+    private boolean mLauncherStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startLauncher();
-    }
 
-    private void startLauncher() {
         if (!Tools.checkStorageRoot(this)) {
             startActivity(new Intent(this, MissingStorageActivity.class));
             finish();
@@ -33,8 +42,54 @@ public class SplashActivity extends AppCompatActivity {
         AsyncAssetManager.unpackComponents(this);
         AsyncAssetManager.unpackSingleFiles(this);
 
-        Intent intent = new Intent(this, LauncherActivity.class);
-        startActivity(intent);
+        setContentView(R.layout.activity_intro);
+        playIntro();
+    }
+
+    private void playIntro() {
+        final AspectVideoView video = findViewById(R.id.intro_video);
+        if (video == null) {
+            startLauncher();
+            return;
+        }
+
+        try {
+            video.setVideoURI(Uri.parse(
+                    "android.resource://" + getPackageName() + "/" + R.raw.fear_intro));
+
+            video.setOnPreparedListener(mp -> {
+                if (mp.getVideoHeight() > 0) {
+                    // Keep the real aspect so the clip is never stretched.
+                    video.setAspect(mp.getVideoWidth() / (float) mp.getVideoHeight());
+                }
+                mp.setLooping(false);
+                video.start();
+            });
+            video.setOnCompletionListener(mp -> startLauncher());
+            video.setOnErrorListener((mp, what, extra) -> {
+                startLauncher();
+                return true;
+            });
+            // Tap anywhere to skip.
+            video.setOnTouchListener((v, event) -> {
+                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    startLauncher();
+                    return true;
+                }
+                return false;
+            });
+        } catch (Throwable t) {
+            startLauncher();
+            return;
+        }
+
+        new Handler(Looper.getMainLooper()).postDelayed(this::startLauncher, INTRO_TIMEOUT_MS);
+    }
+
+    private void startLauncher() {
+        if (mLauncherStarted) return;
+        mLauncherStarted = true;
+        startActivity(new Intent(this, LauncherActivity.class));
         finish();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
