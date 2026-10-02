@@ -139,43 +139,13 @@
                 android:layout_width="220dp"
                 android:layout_height="62dp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:elevation="22dp"
+                android:elevation="0dp"
                 android:text="PLAY"
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_16ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.16" />
 
-            <LinearLayout
-                android:layout_width="240dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="@dimen/_12sdp">
-
-                <TextView
-                    android:id="@+id/download_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="READY"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="@dimen/_8ssp"
-                    android:letterSpacing="0.12"
-                    android:layout_marginBottom="5dp" />
-
-                <FrameLayout
-                    android:id="@+id/download_bar_track"
-                    android:layout_width="match_parent"
-                    android:layout_height="14dp"
-                    android:background="@drawable/download_track_bg">
-
-                    <View
-                        android:id="@+id/download_bar_fill"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="start"
-                        android:background="@drawable/download_fill_bg" />
-                </FrameLayout>
-            </LinearLayout>
         </LinearLayout>
 
         <!-- character: right side, vertically centred -->

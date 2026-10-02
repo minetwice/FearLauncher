@@ -1676,44 +1676,34 @@ public class MainMenuFragment extends Fragment {
     }
 
     /**
-     * PLAY as the reference's capsule: a thick dark border wrapping a glossy
-     * face, with a light gloss across the top. The reference's light green
-     * becomes our accent (red, or blue on the other half of the cycle) and its
-     * dark green becomes black, so the shape and lighting match exactly while
-     * the palette stays on theme.
+     * PLAY is now a bare transparent button - no fill, no border. All the weight
+     * comes from a soft shadow sitting behind it, tinted with the cycling accent
+     * so it still moves with the background.
      */
     private void applyPlayButton(View v, float k) {
         if (v == null) return;
         final float d = getResources().getDisplayMetrics().density;
         android.animation.ArgbEvaluator eval = new android.animation.ArgbEvaluator();
-        int bright = (int) eval.evaluate(k, 0xFFFF5A4A, 0xFF6FA8FF);   // lit face
-        int deep   = (int) eval.evaluate(k, 0xFF8E0F1A, 0xFF123A7A);   // face bottom
+        int accent = (int) eval.evaluate(k, 0xFFFF2B3A, 0xFF2B7BE0);
 
-        float radius = 31f * d;                       // half of the 62dp height
-        int border = (int) (5 * d);
+        float radius = 31f * d;
 
-        android.graphics.drawable.GradientDrawable rim = new android.graphics.drawable.GradientDrawable();
-        rim.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        rim.setColor(0xFF050102);                     // thick black bevel
-        rim.setCornerRadius(radius);
+        // shadow behind the button: accent tint, dropped a little lower
+        android.graphics.drawable.GradientDrawable shadow = new android.graphics.drawable.GradientDrawable();
+        shadow.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        shadow.setColor((accent & 0x00FFFFFF) | 0x59000000);
+        shadow.setCornerRadius(radius);
+        android.graphics.drawable.InsetDrawable shadowLayer =
+                new android.graphics.drawable.InsetDrawable(shadow, (int) (3 * d), (int) (7 * d), (int) (3 * d), 0);
 
-        android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{bright, deep});
+        // the button face itself: fully transparent
+        android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable();
+        face.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        face.setColor(0x00000000);
         face.setCornerRadius(radius);
-        android.graphics.drawable.InsetDrawable faceLayer =
-                new android.graphics.drawable.InsetDrawable(face, border, border, border, border);
-
-        android.graphics.drawable.GradientDrawable gloss = new android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x66FFFFFF, 0x00FFFFFF});
-        gloss.setCornerRadius(radius);
-        android.graphics.drawable.InsetDrawable glossLayer = new android.graphics.drawable.InsetDrawable(
-                gloss, border + (int) (7 * d), border + (int) (4 * d),
-                border + (int) (7 * d), (int) (24 * d));
 
         v.setBackground(new android.graphics.drawable.LayerDrawable(
-                new android.graphics.drawable.Drawable[]{rim, faceLayer, glossLayer}));
+                new android.graphics.drawable.Drawable[]{shadowLayer, face}));
     }
 
     private void bindHomeBackground(View view) {
