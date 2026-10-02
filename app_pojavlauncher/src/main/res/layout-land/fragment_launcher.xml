@@ -142,7 +142,7 @@
             android:layout_height="104dp"
             android:layout_marginTop="@dimen/_12sdp"
             android:elevation="22dp"
-            android:text="PLAY"
+            android:text="&#9654;"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_18ssp"
             android:textStyle="bold"
