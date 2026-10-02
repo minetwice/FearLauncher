@@ -97,7 +97,16 @@ public class MainMenuFragment extends Fragment {
                 @Override public void onProgressEnded() { setDownloadBar(100, false); }
             };
 
-    private void setDownloadBar(int percent, boolean active) {
+    private void setDownloadBar(final int percent, final boolean active) {
+        // ProgressKeeper fires from worker threads, so hop to the main thread
+        // before touching any view - otherwise ViewRootImpl throws
+        // CalledFromWrongThreadException.
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            new android.os.Handler(android.os.Looper.getMainLooper())
+                    .post(() -> setDownloadBar(percent, active));
+            return;
+        }
+        if (mBarFill == null && mBarLabel == null) return;
         final int pct = Math.max(0, Math.min(100, percent));
         if (mBarFill != null && mBarTrack != null && mBarTrack.getWidth() > 0) {
             mBarFill.getLayoutParams().width = Math.max(2, (int) (mBarTrack.getWidth() * pct / 100f));
