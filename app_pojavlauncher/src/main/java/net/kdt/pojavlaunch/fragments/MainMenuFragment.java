@@ -1663,7 +1663,93 @@ public class MainMenuFragment extends Fragment {
                 new android.graphics.drawable.Drawable[]{shadowLayer, face}));
     }
 
+    // ---- FEAR download bar ----
+    private net.kdt.pojavlaunch.progresskeeper.ProgressListener mFearDlListener;
+    private static final String[] FEAR_DL_KEYS = {
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT,
+            com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME,
+            com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK,
+            com.kdt.mcgui.ProgressLayout.AUTHENTICATE,
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST,
+            com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
+    };
+
+    /**
+     * The FEAR download bar. The downloader already pushes the real percentage,
+     * the megabytes moved and the current speed through the progress listener,
+     * so the fill simply follows the transfer - it creeps while the network is
+     * slow and races when it is fast.
+     */
+    private void bindFearDownloadBar(View view) {
+        final View wrap = view.findViewById(R.id.fear_dl_wrap);
+        final View track = view.findViewById(R.id.fear_dl_track);
+        final View fill = view.findViewById(R.id.fear_dl_fill);
+        final View glow = view.findViewById(R.id.fear_dl_glow);
+        final TextView text = view.findViewById(R.id.fear_dl_text);
+        if (wrap == null || track == null || mFearDlListener != null) return;
+
+        final float half = 26f * getResources().getDisplayMetrics().density;
+        mFearDlListener = new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
+            private void apply(int percent, Object[] va) {
+                final int p = Math.max(0, Math.min(100, percent));
+                String msg = p + "%";
+                if (va != null && va.length >= 2 && va[0] instanceof Number && va[1] instanceof Number) {
+                    msg = p + "%      "
+                            + String.format(java.util.Locale.US, "%.1f", ((Number) va[0]).doubleValue())
+                            + " / " + String.format(java.util.Locale.US, "%.1f", ((Number) va[1]).doubleValue())
+                            + " MB";
+                    if (va.length >= 3 && va[2] instanceof Number) {
+                        msg += "      " + String.format(java.util.Locale.US, "%.1f", ((Number) va[2]).doubleValue()) + " MB/s";
+                    }
+                }
+                final String fmsg = msg;
+                wrap.post(() -> {
+                    wrap.setVisibility(View.VISIBLE);
+                    if (text != null) text.setText(fmsg);
+                    int w = track.getWidth();
+                    if (w <= 0) {
+                        track.post(() -> resize(track, fill, glow, p, half));
+                    } else {
+                        resize(track, fill, glow, p, half);
+                    }
+                });
+            }
+
+            @Override
+            public void onProgressStarted() {
+                wrap.post(() -> wrap.setVisibility(View.VISIBLE));
+            }
+
+            @Override
+            public void onProgressUpdated(int progress, int resid, Object... va) {
+                apply(progress, va);
+            }
+
+            @Override
+            public void onProgressEnded() {
+                wrap.post(() -> {
+                    if (ProgressKeeper.getTaskCount() == 0) wrap.setVisibility(View.GONE);
+                });
+            }
+        };
+        for (String key : FEAR_DL_KEYS) {
+            ProgressKeeper.addListener(key, mFearDlListener);
+        }
+    }
+
+    private void resize(View track, View fill, View glow, int percent, float half) {
+        int w = track.getWidth();
+        if (w <= 0) return;
+        int filled = Math.max(4, (int) (w * (percent / 100f)));
+        if (fill != null) {
+            fill.getLayoutParams().width = filled;
+            fill.requestLayout();
+        }
+        if (glow != null) glow.setTranslationX(filled - half);
+    }
+
     private void bindHomeBackground(View view) {
+        bindFearDownloadBar(view);
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
             ((com.kdt.mcgui.LoopingVideoBackground) bg)
@@ -1850,5 +1936,9 @@ public class MainMenuFragment extends Fragment {
         }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
+        if (mFearDlListener != null) {
+            for (String key : FEAR_DL_KEYS) ProgressKeeper.removeListener(key, mFearDlListener);
+            mFearDlListener = null;
+        }
     }
 }
