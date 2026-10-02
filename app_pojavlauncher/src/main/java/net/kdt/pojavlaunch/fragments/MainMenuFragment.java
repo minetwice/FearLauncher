@@ -72,6 +72,39 @@ public class MainMenuFragment extends Fragment {
     private android.animation.ValueAnimator mBodyRotationAnimator;
     private android.animation.ValueAnimator mColorCycleAnimator;
     private int mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_STANDING;
+
+    private View mBarFill, mBarTrack;
+    private TextView mBarLabel;
+    private boolean mBarRegistered = false;
+
+    private static final String[] DOWNLOAD_PROGRESS_KEYS = {
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT,
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST,
+            com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME,
+            com.kdt.mcgui.ProgressLayout.EXTRACT_COMPONENTS,
+            com.kdt.mcgui.ProgressLayout.EXTRACT_SINGLE_FILES,
+            com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
+            com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK
+    };
+
+    /** Mirrors the launcher's real download/unpack progress onto the home bar. */
+    private final net.kdt.pojavlaunch.progresskeeper.ProgressListener mDownloadListener =
+            new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
+                @Override public void onProgressStarted() { setDownloadBar(0, true); }
+                @Override public void onProgressUpdated(int progress, int resid, Object... va) {
+                    setDownloadBar(progress, true);
+                }
+                @Override public void onProgressEnded() { setDownloadBar(100, false); }
+            };
+
+    private void setDownloadBar(int percent, boolean active) {
+        final int pct = Math.max(0, Math.min(100, percent));
+        if (mBarFill != null && mBarTrack != null && mBarTrack.getWidth() > 0) {
+            mBarFill.getLayoutParams().width = Math.max(2, (int) (mBarTrack.getWidth() * pct / 100f));
+            mBarFill.requestLayout();
+        }
+        if (mBarLabel != null) mBarLabel.setText(active ? ("DOWNLOADING  " + pct + "%") : "READY");
+    }
     private android.animation.ValueAnimator mBodyBobAnimator;
     private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
@@ -1643,24 +1676,17 @@ public class MainMenuFragment extends Fragment {
         final View wash = view.findViewById(R.id.color_wash);
         final View play = view.findViewById(R.id.play_button);
         final View spinner = view.findViewById(R.id.mc_version_spinner);
-        final View barFill = view.findViewById(R.id.download_bar_fill);
-        final View barTrack = view.findViewById(R.id.download_bar_track);
-        final TextView barLabel = view.findViewById(R.id.download_label);
+        mBarFill = view.findViewById(R.id.download_bar_fill);
+        mBarTrack = view.findViewById(R.id.download_bar_track);
+        mBarLabel = view.findViewById(R.id.download_label);
 
-        // A looping progress sweep so the bar reads like the reference.
-        android.animation.ValueAnimator sweep = android.animation.ValueAnimator.ofFloat(0f, 1f);
-        sweep.setDuration(4200);
-        sweep.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-        sweep.setInterpolator(new android.view.animation.LinearInterpolator());
-        sweep.addUpdateListener(animation -> {
-            float t = (float) animation.getAnimatedValue();
-            if (barFill != null && barTrack != null && barTrack.getWidth() > 0) {
-                barFill.getLayoutParams().width = Math.max(2, (int) (barTrack.getWidth() * t));
-                barFill.requestLayout();
-            }
-            if (barLabel != null) barLabel.setText("DOWNLOADING  " + (int) (t * 100) + "%");
-        });
-        sweep.start();
+        // Real progress: every download / unpack task in the launcher reports to
+        // ProgressKeeper, so the bar mirrors whatever is actually happening.
+        for (String key : DOWNLOAD_PROGRESS_KEYS) {
+            net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.addListener(key, mDownloadListener);
+        }
+        mBarRegistered = true;
+        setDownloadBar(0, false);
         final int RED = 0xFFFF2B3A;
         final int BLUE = 0xFF2B7BE0;
 
@@ -1824,6 +1850,13 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (mBarRegistered) {
+            for (String key : DOWNLOAD_PROGRESS_KEYS) {
+                net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.removeListener(key, mDownloadListener);
+            }
+            mBarRegistered = false;
+        }
+
         if (mHeadRotationAnimator != null) {
             mHeadRotationAnimator.cancel();
         }
