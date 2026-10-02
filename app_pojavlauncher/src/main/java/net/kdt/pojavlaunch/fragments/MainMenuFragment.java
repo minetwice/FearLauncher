@@ -1703,7 +1703,7 @@ public class MainMenuFragment extends Fragment {
             // PLAY and the download bar follow the cycle as a gradient. The
             // instance bar stays translucent glass - no solid colour on it.
             applyAccentGradient(play, k, 13);
-            applyAccentGradient(barFill, k, 7);
+            applyAccentGradient(mBarFill, k, 7);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
