@@ -27,6 +27,7 @@
         android:allowBackup="true"
         android:allowNativeHeapPointerTagging="false"
         android:appCategory="game"
+        android:hardwareAccelerated="true"
         android:hasFragileUserData="true"
         android:icon="@drawable/ic_app_logo"
         android:isGame="true"
