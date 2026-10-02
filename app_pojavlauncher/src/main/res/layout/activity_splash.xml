@@ -4,15 +4,9 @@
     android:id="@+id/splash_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#070012">
 
-    <!-- Glass Background Reflections -->
-    <View
-        android:id="@+id/glass_reflection_bg"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/premium_glass_black_bg"
-        android:alpha="0.2" />
+
 
     <!-- Animated Particles/Glow -->
     <ImageView
@@ -32,7 +26,7 @@
     <ImageView
         android:id="@+id/splash_logo"
         android:layout_width="wrap_content"
-        android:layout_height="215dp"
+        android:layout_height="200dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:src="@drawable/fear_logo"
@@ -44,6 +38,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginBottom="0dp" />
+
+    <!-- Full shine pass that sweeps across the logo -->
+    <View
+        android:id="@+id/logo_shine"
+        android:layout_width="80dp"
+        android:layout_height="0dp"
+        android:background="@drawable/logo_shine_band"
+        android:rotation="14"
+        android:alpha="0"
+        app:layout_constraintTop_toTopOf="@+id/splash_logo"
+        app:layout_constraintBottom_toBottomOf="@+id/splash_logo"
+        app:layout_constraintStart_toStartOf="@+id/splash_logo" />
 
     <!-- Shine Sweep Line -->
     <View
