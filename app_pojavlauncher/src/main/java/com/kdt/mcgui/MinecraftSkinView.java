@@ -326,6 +326,11 @@ public class MinecraftSkinView extends View {
                 mLastTouchY = y;
                 invalidate();
                 break;
+            case MotionEvent.ACTION_UP:
+                // Let a tap still reach an OnClickListener - dragging spins the
+                // model, tapping opens the skin viewer.
+                performClick();
+                break;
         }
         return true;
     }
@@ -359,10 +364,14 @@ public class MinecraftSkinView extends View {
         }
 
         // 3D rotation and projection
-        float scale = mShowHeadOnly ? (getHeight() / 9.5f) : (getHeight() / 32f);
+        float scale = mShowHeadOnly ? (getHeight() / 9.5f) : (getHeight() / 34f);
         float centerX = getWidth() / 2f;
-        // Shift centerY slightly upwards (higher up on screen) to make the entire body/feet perfectly visible
-        float centerY = mShowHeadOnly ? (getHeight() / 2f + 3.8f * scale) : (getHeight() / 2.8f);
+        // The body spans y = -8 (top of head) .. 24 (feet) = 32 units, so its own
+        // centre sits 8 units above the origin. Offset by exactly that so head and
+        // feet both land inside the view instead of the legs sliding off the bottom.
+        float centerY = mShowHeadOnly
+                ? (getHeight() / 2f + 3.8f * scale)
+                : (getHeight() / 2f - 8f * scale);
 
         List<ProjectedFace> projected = new ArrayList<>();
         for (Face3D f : faces) {

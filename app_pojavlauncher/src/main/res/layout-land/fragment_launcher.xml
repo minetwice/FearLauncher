@@ -122,15 +122,16 @@
         <!-- character -->
         <com.kdt.mcgui.MinecraftSkinView
             android:id="@+id/homepage_skin_body"
-            android:layout_width="match_parent"
+            android:layout_width="130dp"
             android:layout_height="170dp"
+            android:layout_gravity="center_horizontal"
             android:background="@drawable/premium_glass_black_bg"
             android:elevation="18dp" />
 
         <!-- instance select -->
         <com.kdt.mcgui.mcVersionSpinner
             android:id="@+id/mc_version_spinner"
-            android:layout_width="match_parent"
+            android:layout_width="230dp"
             android:layout_height="40dp"
             android:layout_marginTop="@dimen/_10sdp"
             android:background="@drawable/premium_glass_black_bg"

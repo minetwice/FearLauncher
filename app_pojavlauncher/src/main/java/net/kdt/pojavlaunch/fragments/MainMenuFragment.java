@@ -1615,6 +1615,16 @@ public class MainMenuFragment extends Fragment {
         dialog.show();
     }
 
+    /** Repaint a control with the cycling accent colour. */
+    private void applyAccent(View v, int colour) {
+        if (v == null) return;
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        g.setColor(colour);
+        g.setCornerRadius(13f * getResources().getDisplayMetrics().density);
+        v.setBackground(g);
+    }
+
     private void bindHomeBackground(View view) {
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
@@ -1638,10 +1648,10 @@ public class MainMenuFragment extends Fragment {
             float t = (float) animation.getAnimatedValue();     // 0..1 over six seconds
             float k = t < 0.5f ? t * 2f : (1f - t) * 2f;        // triangle: red -> blue -> red
             int colour = (int) evaluator.evaluate(k, RED, BLUE);
-            android.content.res.ColorStateList tint =
-                    android.content.res.ColorStateList.valueOf(colour);
-            if (play != null) play.setBackgroundTintList(tint);
-            if (spinner != null) spinner.setBackgroundTintList(tint);
+            // Paint the accent straight onto the backgrounds: a tint on a
+            // gradient/ripple drawable barely shows, a solid colour always does.
+            applyAccent(play, colour);
+            applyAccent(spinner, colour);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
