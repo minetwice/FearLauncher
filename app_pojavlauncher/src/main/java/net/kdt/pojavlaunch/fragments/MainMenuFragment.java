@@ -1615,13 +1615,21 @@ public class MainMenuFragment extends Fragment {
         dialog.show();
     }
 
-    /** Repaint a control with the cycling accent colour. */
-    private void applyAccent(View v, int colour) {
+    /**
+     * Paint a control with the cycling accent as a light->dark gradient, so the
+     * button reads as polished rather than flat. k = 0 is the red phase, k = 1
+     * the blue one.
+     */
+    private void applyAccentGradient(View v, float k, int radiusDp) {
         if (v == null) return;
-        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
-        g.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        g.setColor(colour);
-        g.setCornerRadius(13f * getResources().getDisplayMetrics().density);
+        android.animation.ArgbEvaluator eval = new android.animation.ArgbEvaluator();
+        int light = (int) eval.evaluate(k, 0xFFFF6B5E, 0xFF6FA8FF);
+        int dark  = (int) eval.evaluate(k, 0xFFA8121F, 0xFF1B4FA8);
+        android.graphics.drawable.GradientDrawable g =
+                new android.graphics.drawable.GradientDrawable(
+                        android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                        new int[]{light, dark});
+        g.setCornerRadius(radiusDp * getResources().getDisplayMetrics().density);
         v.setBackground(g);
     }
 
@@ -1635,6 +1643,24 @@ public class MainMenuFragment extends Fragment {
         final View wash = view.findViewById(R.id.color_wash);
         final View play = view.findViewById(R.id.play_button);
         final View spinner = view.findViewById(R.id.mc_version_spinner);
+        final View barFill = view.findViewById(R.id.download_bar_fill);
+        final View barTrack = view.findViewById(R.id.download_bar_track);
+        final TextView barLabel = view.findViewById(R.id.download_label);
+
+        // A looping progress sweep so the bar reads like the reference.
+        android.animation.ValueAnimator sweep = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        sweep.setDuration(4200);
+        sweep.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        sweep.setInterpolator(new android.view.animation.LinearInterpolator());
+        sweep.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();
+            if (barFill != null && barTrack != null && barTrack.getWidth() > 0) {
+                barFill.getLayoutParams().width = Math.max(2, (int) (barTrack.getWidth() * t));
+                barFill.requestLayout();
+            }
+            if (barLabel != null) barLabel.setText("DOWNLOADING  " + (int) (t * 100) + "%");
+        });
+        sweep.start();
         final int RED = 0xFFFF2B3A;
         final int BLUE = 0xFF2B7BE0;
 
@@ -1648,10 +1674,10 @@ public class MainMenuFragment extends Fragment {
             float t = (float) animation.getAnimatedValue();     // 0..1 over six seconds
             float k = t < 0.5f ? t * 2f : (1f - t) * 2f;        // triangle: red -> blue -> red
             int colour = (int) evaluator.evaluate(k, RED, BLUE);
-            // Paint the accent straight onto the backgrounds: a tint on a
-            // gradient/ripple drawable barely shows, a solid colour always does.
-            applyAccent(play, colour);
-            applyAccent(spinner, colour);
+            // PLAY and the download bar follow the cycle as a gradient. The
+            // instance bar stays translucent glass - no solid colour on it.
+            applyAccentGradient(play, k, 13);
+            applyAccentGradient(barFill, k, 7);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
