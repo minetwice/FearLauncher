@@ -37,7 +37,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@null"
         android:padding="6dp"
-        android:elevation="12dp"
+        android:elevation="18dp"
         app:tint="#FFFFFF"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -102,7 +102,7 @@
         android:layout_height="0dp"
         android:orientation="vertical"
         android:gravity="center"
-        android:paddingHorizontal="@dimen/_56sdp"
+        android:paddingHorizontal="@dimen/_24sdp"
         android:paddingBottom="@dimen/_12sdp"
         app:layout_constraintStart_toEndOf="@id/settings_tray"
         app:layout_constraintEnd_toEndOf="parent"
@@ -125,7 +125,7 @@
             android:layout_width="match_parent"
             android:layout_height="170dp"
             android:background="@drawable/premium_glass_black_bg"
-            android:elevation="12dp" />
+            android:elevation="18dp" />
 
         <!-- instance select -->
         <com.kdt.mcgui.mcVersionSpinner
@@ -134,7 +134,7 @@
             android:layout_height="40dp"
             android:layout_marginTop="@dimen/_10sdp"
             android:background="@drawable/premium_glass_black_bg"
-            android:elevation="12dp" />
+            android:elevation="18dp" />
 
         <!-- PLAY at the bottom -->
         <com.kdt.mcgui.MineButton
@@ -142,7 +142,7 @@
             android:layout_width="200dp"
             android:layout_height="50dp"
             android:layout_marginTop="@dimen/_10sdp"
-            android:elevation="14dp"
+            android:elevation="20dp"
             android:text="PLAY"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_18ssp"

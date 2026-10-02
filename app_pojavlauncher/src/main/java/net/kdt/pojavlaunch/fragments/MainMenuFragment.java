@@ -71,6 +71,7 @@ public class MainMenuFragment extends Fragment {
     private android.animation.ValueAnimator mHeadRotationAnimator;
     private android.animation.ValueAnimator mBodyRotationAnimator;
     private android.animation.ValueAnimator mColorCycleAnimator;
+    private int mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_STANDING;
     private android.animation.ValueAnimator mBodyBobAnimator;
     private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
@@ -184,6 +185,7 @@ public class MainMenuFragment extends Fragment {
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
         bindUiToggle(view);
+        bindSkinViewer(view);
 
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         bindHomeBackground(view);
@@ -1501,6 +1503,7 @@ public class MainMenuFragment extends Fragment {
         if (mBodyRotationAnimator != null) { mBodyRotationAnimator.cancel(); mBodyRotationAnimator = null; }
         if (mBodyBobAnimator != null) { mBodyBobAnimator.cancel(); mBodyBobAnimator = null; }
         body.setRotationAngles(-20f, -5f);   // gentle three-quarter standing view
+        body.setPose(mCharacterPose);
         body.setTranslationY(0f);
     }
 
@@ -1550,6 +1553,66 @@ public class MainMenuFragment extends Fragment {
                 .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
                 .withEndAction(() -> { if (hide) part.setVisibility(View.GONE); })
                 .start();
+    }
+
+    /** Tapping the home character opens the skin viewer. */
+    private void bindSkinViewer(View view) {
+        View body = view.findViewById(R.id.homepage_skin_body);
+        if (body == null) return;
+        body.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            showSkinViewer();
+        });
+    }
+
+    /**
+     * Character viewer: preview the skin on a big model, switch between the Steve
+     * and Alex models, and cycle the three poses.
+     */
+    private void showSkinViewer() {
+        if (getContext() == null) return;
+        final View content = getLayoutInflater().inflate(R.layout.dialog_skin_viewer, null);
+        final com.kdt.mcgui.MinecraftSkinView preview = content.findViewById(R.id.viewer_skin);
+        if (preview == null) return;
+
+        final android.content.SharedPreferences prefs =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        final String[] skinPath = { prefs.getString("active_skin_path", "steve") };
+        final boolean[] isAlex = { prefs.getBoolean("active_skin_is_alex", false) };
+
+        preview.loadSkin(skinPath[0], isAlex[0]);
+        preview.setRotationAngles(-20f, -5f);
+        preview.setPose(mCharacterPose);
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setView(content)
+                        .create();
+
+        content.findViewById(R.id.viewer_steve).setOnClickListener(b -> {
+            skinPath[0] = "steve"; isAlex[0] = false;
+            preview.loadSkin("steve", false);
+        });
+        content.findViewById(R.id.viewer_alex).setOnClickListener(b -> {
+            skinPath[0] = "alex"; isAlex[0] = true;
+            preview.loadSkin("alex", true);
+        });
+        content.findViewById(R.id.viewer_pose_standing).setOnClickListener(b ->
+                { mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_STANDING; preview.setPose(mCharacterPose); });
+        content.findViewById(R.id.viewer_pose_t).setOnClickListener(b ->
+                { mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_T; preview.setPose(mCharacterPose); });
+        content.findViewById(R.id.viewer_pose_fly).setOnClickListener(b ->
+                { mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_FLY; preview.setPose(mCharacterPose); });
+
+        dialog.setOnDismissListener(d -> {
+            // remember the model choice and refresh the home character
+            prefs.edit()
+                    .putString("active_skin_path", skinPath[0])
+                    .putBoolean("active_skin_is_alex", isAlex[0])
+                    .apply();
+            if (mRootView != null) refreshSkinBodyDisplay(mRootView);
+        });
+        dialog.show();
     }
 
     private void bindHomeBackground(View view) {

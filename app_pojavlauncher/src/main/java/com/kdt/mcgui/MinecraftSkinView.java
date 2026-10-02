@@ -24,6 +24,21 @@ public class MinecraftSkinView extends View {
     private float mLastTouchY;
     private boolean mShowHeadOnly = false;
 
+    /** Character poses the home screen / viewer can switch between. */
+    public static final int POSE_STANDING = 0;
+    public static final int POSE_T = 1;
+    public static final int POSE_FLY = 2;
+    private int mPose = POSE_STANDING;
+
+    public void setPose(int pose) {
+        if (pose != mPose) {
+            mPose = pose;
+            invalidate();
+        }
+    }
+
+    public int getPose() { return mPose; }
+
     public void setShowHeadOnly(boolean headOnly) {
         mShowHeadOnly = headOnly;
         invalidate();
@@ -433,28 +448,69 @@ public class MinecraftSkinView extends View {
     private Point3D transformPoint(Point3D p, int partId, float yaw, float pitch) {
         Point3D r = new Point3D(p.x, p.y, p.z);
 
-        // 1. Local part rotations - a clean, upright standing pose. Limbs hang
-        //    straight down with only the tiny bit of spread needed to keep the
-        //    arms from clipping through the torso, so the skin reads clearly.
-        switch (partId) {
-            case PART_HEAD:
-            case PART_HEAD_OVERLAY:
+        // 1. Local part rotations, per pose.
+        switch (mPose) {
+            case POSE_T:
+                // Arms straight out to the sides.
+                switch (partId) {
+                    case PART_RIGHT_ARM:
+                    case PART_RIGHT_ARM_OVERLAY:
+                        r = rotateZ(r, 6, 0, 0, -90);
+                        break;
+                    case PART_LEFT_ARM:
+                    case PART_LEFT_ARM_OVERLAY:
+                        r = rotateZ(r, -6, 0, 0, 90);
+                        break;
+                }
                 break;
-            case PART_RIGHT_ARM:
-            case PART_RIGHT_ARM_OVERLAY:
-                r = rotateZ(r, 6, 0, 0, -3);
+            case POSE_FLY:
+                // Arms tucked forward, legs together, body pitched flat.
+                switch (partId) {
+                    case PART_RIGHT_ARM:
+                    case PART_RIGHT_ARM_OVERLAY:
+                        r = rotateX(r, 6, 0, 0, -82);
+                        r = rotateZ(r, 6, 0, 0, -6);
+                        break;
+                    case PART_LEFT_ARM:
+                    case PART_LEFT_ARM_OVERLAY:
+                        r = rotateX(r, -6, 0, 0, -82);
+                        r = rotateZ(r, -6, 0, 0, 6);
+                        break;
+                    case PART_RIGHT_LEG:
+                    case PART_RIGHT_LEG_OVERLAY:
+                        r = rotateX(r, 2, 12, 0, 8);
+                        break;
+                    case PART_LEFT_LEG:
+                    case PART_LEFT_LEG_OVERLAY:
+                        r = rotateX(r, -2, 12, 0, 8);
+                        break;
+                }
+                r = rotateX(r, 0, 10, 0, 78);
                 break;
-            case PART_LEFT_ARM:
-            case PART_LEFT_ARM_OVERLAY:
-                r = rotateZ(r, -6, 0, 0, 3);
-                break;
-            case PART_RIGHT_LEG:
-            case PART_RIGHT_LEG_OVERLAY:
-                r = rotateZ(r, 2, 12, 0, -1);
-                break;
-            case PART_LEFT_LEG:
-            case PART_LEFT_LEG_OVERLAY:
-                r = rotateZ(r, -2, 12, 0, 1);
+            case POSE_STANDING:
+            default:
+                // Limbs hang straight, with just enough spread to clear the torso.
+                switch (partId) {
+                    case PART_HEAD:
+                    case PART_HEAD_OVERLAY:
+                        break;
+                    case PART_RIGHT_ARM:
+                    case PART_RIGHT_ARM_OVERLAY:
+                        r = rotateZ(r, 6, 0, 0, -3);
+                        break;
+                    case PART_LEFT_ARM:
+                    case PART_LEFT_ARM_OVERLAY:
+                        r = rotateZ(r, -6, 0, 0, 3);
+                        break;
+                    case PART_RIGHT_LEG:
+                    case PART_RIGHT_LEG_OVERLAY:
+                        r = rotateZ(r, 2, 12, 0, -1);
+                        break;
+                    case PART_LEFT_LEG:
+                    case PART_LEFT_LEG_OVERLAY:
+                        r = rotateZ(r, -2, 12, 0, 1);
+                        break;
+                }
                 break;
         }
 

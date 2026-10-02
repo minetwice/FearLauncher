@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR character viewer: preview the skin, switch model and pose -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/premium_glass_black_bg"
+    android:padding="@dimen/_16sdp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CHARACTER"
+        android:textColor="#FF4D5E"
+        android:textSize="@dimen/_11ssp"
+        android:textStyle="bold"
+        android:letterSpacing="0.14" />
+
+    <com.kdt.mcgui.MinecraftSkinView
+        android:id="@+id/viewer_skin"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:background="@drawable/premium_glass_black_bg"
+        android:elevation="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/_12sdp">
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/viewer_steve"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_weight="1"
+            android:text="STEVE" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/viewer_alex"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="ALEX" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/_8sdp">
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/viewer_pose_standing"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_weight="1"
+            android:text="STANDING" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/viewer_pose_t"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="T-POSE" />
+
+        <com.kdt.mcgui.LauncherMenuButton
+            android:id="@+id/viewer_pose_fly"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_36sdp"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="FLY" />
+    </LinearLayout>
+</LinearLayout>
