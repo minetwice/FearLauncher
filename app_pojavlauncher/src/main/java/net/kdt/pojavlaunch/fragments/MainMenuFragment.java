@@ -1676,53 +1676,44 @@ public class MainMenuFragment extends Fragment {
     }
 
     /**
-     * PLAY as the reference's 3D puck: a rounded top face over a thin dark side
-     * wall, wrapped in a thick white rim, with a radial gradient across the face
-     * and a specular highlight on the upper-left. Same shape as the reference,
-     * but the face runs black/red and black/blue instead of green.
+     * PLAY as the reference's capsule: a thick dark border wrapping a glossy
+     * face, with a light gloss across the top. The reference's light green
+     * becomes our accent (red, or blue on the other half of the cycle) and its
+     * dark green becomes black, so the shape and lighting match exactly while
+     * the palette stays on theme.
      */
     private void applyPlayButton(View v, float k) {
         if (v == null) return;
         final float d = getResources().getDisplayMetrics().density;
         android.animation.ArgbEvaluator eval = new android.animation.ArgbEvaluator();
-        int bright = (int) eval.evaluate(k, 0xFFFF5A4A, 0xFF6FA8FF);   // lit centre
-        int deep   = (int) eval.evaluate(k, 0xFF7A0C16, 0xFF10306A);   // face edge
-        int wall   = (int) eval.evaluate(k, 0xFF16040A, 0xFF04081A);   // puck side
+        int bright = (int) eval.evaluate(k, 0xFFFF5A4A, 0xFF6FA8FF);   // lit face
+        int deep   = (int) eval.evaluate(k, 0xFF8E0F1A, 0xFF123A7A);   // face bottom
 
-        // 1. side wall: the same oval pushed down, so it peeks out as depth
-        android.graphics.drawable.GradientDrawable side = oval(wall);
-        android.graphics.drawable.InsetDrawable sideLayer =
-                new android.graphics.drawable.InsetDrawable(side, 0, (int) (7 * d), 0, 0);
+        float radius = 31f * d;                       // half of the 62dp height
+        int border = (int) (5 * d);
 
-        // 2. thick white rim
-        android.graphics.drawable.GradientDrawable rim = oval(0xFFFFFFFF);
+        android.graphics.drawable.GradientDrawable rim = new android.graphics.drawable.GradientDrawable();
+        rim.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        rim.setColor(0xFF050102);                     // thick black bevel
+        rim.setCornerRadius(radius);
 
-        // 3. top face: radial gradient, recessed inside the rim
-        android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable();
-        face.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        face.setGradientType(android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT);
-        face.setGradientRadius(Math.max(1f, v.getWidth() * 0.55f));
-        face.setColors(new int[]{bright, deep, 0xFF050102});
-        int inset = (int) (7 * d);
+        android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{bright, deep});
+        face.setCornerRadius(radius);
         android.graphics.drawable.InsetDrawable faceLayer =
-                new android.graphics.drawable.InsetDrawable(face, inset, inset, inset, inset + (int) (7 * d));
+                new android.graphics.drawable.InsetDrawable(face, border, border, border, border);
 
-        // 4. specular highlight, upper-left, like the reference's gloss
-        android.graphics.drawable.GradientDrawable gloss = oval(0x59FFFFFF);
-        android.graphics.drawable.InsetDrawable glossLayer =
-                new android.graphics.drawable.InsetDrawable(gloss,
-                        (int) (20 * d), (int) (12 * d) + (int) (7 * d), (int) (46 * d), (int) (40 * d));
+        android.graphics.drawable.GradientDrawable gloss = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{0x66FFFFFF, 0x00FFFFFF});
+        gloss.setCornerRadius(radius);
+        android.graphics.drawable.InsetDrawable glossLayer = new android.graphics.drawable.InsetDrawable(
+                gloss, border + (int) (7 * d), border + (int) (4 * d),
+                border + (int) (7 * d), (int) (24 * d));
 
-        android.graphics.drawable.LayerDrawable puck = new android.graphics.drawable.LayerDrawable(
-                new android.graphics.drawable.Drawable[]{sideLayer, rim, faceLayer, glossLayer});
-        v.setBackground(puck);
-    }
-
-    private android.graphics.drawable.GradientDrawable oval(int colour) {
-        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
-        g.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        g.setColor(colour);
-        return g;
+        v.setBackground(new android.graphics.drawable.LayerDrawable(
+                new android.graphics.drawable.Drawable[]{rim, faceLayer, glossLayer}));
     }
 
     private void bindHomeBackground(View view) {
