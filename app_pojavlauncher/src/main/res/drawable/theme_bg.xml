@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR UI: plain black background -->
+<!-- FEAR UI: deep red-black backdrop -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#000000" />
+    <gradient
+        android:angle="270"
+        android:startColor="#0E0509"
+        android:centerColor="#080306"
+        android:endColor="#12060B" />
 </shape>

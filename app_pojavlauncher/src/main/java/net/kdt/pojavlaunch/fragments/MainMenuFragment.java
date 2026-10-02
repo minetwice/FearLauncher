@@ -1492,26 +1492,12 @@ public class MainMenuFragment extends Fragment {
         body.setShowHeadOnly(false);
         body.loadSkin(activeSkinPath, activeSkinIsAlex);
 
-        if (mBodyRotationAnimator != null) mBodyRotationAnimator.cancel();
-        mBodyRotationAnimator = android.animation.ValueAnimator.ofFloat(-28f, 28f);
-        mBodyRotationAnimator.setDuration(4200);
-        mBodyRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-        mBodyRotationAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
-        mBodyRotationAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-        mBodyRotationAnimator.addUpdateListener(animation ->
-                body.setRotationAngles((float) animation.getAnimatedValue(), 0f));
-        mBodyRotationAnimator.start();
-
-        if (mBodyBobAnimator != null) mBodyBobAnimator.cancel();
-        final float bob = 8f * getResources().getDisplayMetrics().density;
-        mBodyBobAnimator = android.animation.ValueAnimator.ofFloat(0f, -bob);
-        mBodyBobAnimator.setDuration(1900);
-        mBodyBobAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-        mBodyBobAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
-        mBodyBobAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-        mBodyBobAnimator.addUpdateListener(animation ->
-                body.setTranslationY((float) animation.getAnimatedValue()));
-        mBodyBobAnimator.start();
+        // Standing pose: no auto-spin. MinecraftSkinView handles drag itself, so
+        // the player turns the character whenever they want to.
+        if (mBodyRotationAnimator != null) { mBodyRotationAnimator.cancel(); mBodyRotationAnimator = null; }
+        if (mBodyBobAnimator != null) { mBodyBobAnimator.cancel(); mBodyBobAnimator = null; }
+        body.setRotationAngles(0f, 0f);
+        body.setTranslationY(0f);
     }
 
     private void refreshSkinHeadDisplay(View view) {

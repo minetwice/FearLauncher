@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FEAR UI: angular triangle tray - midnight navy glass, electric blue chevron edges -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="246dp"
-    android:height="820dp"
-    android:viewportWidth="246"
-    android:viewportHeight="820">
-    <path android:fillColor="#F2070912" android:pathData="M0,0 L178,0 L246,76 L246,744 L178,820 L0,820 Z" />
-    <path android:fillColor="#33000000" android:pathData="M0,0 L178,0 L246,76 L246,104 L176,36 L0,32 Z" />
-    <path android:fillColor="#33000000" android:pathData="M0,788 L176,784 L246,716 L246,744 L178,820 L0,820 Z" />
-    <path android:strokeColor="#CCFF2B3A" android:strokeWidth="3" android:pathData="M178,0 L246,76" />
-    <path android:strokeColor="#CCFF2B3A" android:strokeWidth="3" android:pathData="M246,744 L178,820" />
-    <path android:strokeColor="#80FF4D5E" android:strokeWidth="2.5" android:pathData="M196,30 L232,66" />
-    <path android:strokeColor="#80FF4D5E" android:strokeWidth="2.5" android:pathData="M232,754 L196,790" />
-    <path android:fillColor="#12FF2B3A" android:pathData="M0,0 L178,0 L246,76 L246,110 L170,26 L0,22 Z" />
-    <path android:fillColor="#12FF4D5E" android:pathData="M0,798 L170,794 L246,714 L246,744 L178,820 L0,820 Z" />
-</vector>
+<!-- FEAR UI: command sidebar - clean rounded glass, no borders -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#B314060A" />
+    <corners android:radius="16dp" />
+</shape>
