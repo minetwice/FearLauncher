@@ -1500,7 +1500,7 @@ public class MainMenuFragment extends Fragment {
         // the player turns the character whenever they want to.
         if (mBodyRotationAnimator != null) { mBodyRotationAnimator.cancel(); mBodyRotationAnimator = null; }
         if (mBodyBobAnimator != null) { mBodyBobAnimator.cancel(); mBodyBobAnimator = null; }
-        body.setRotationAngles(0f, 0f);
+        body.setRotationAngles(-20f, -5f);   // gentle three-quarter standing view
         body.setTranslationY(0f);
     }
 
@@ -1707,6 +1707,9 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onResume() {
+        // Re-read the skin so a change made in the customiser shows immediately.
+        if (mRootView != null) refreshSkinBodyDisplay(mRootView);
+
         super.onResume();
         ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
         refreshAccountUI();

@@ -71,6 +71,7 @@ public class MinecraftSkinView extends View {
         mPaint.setAntiAlias(true);
         // Use Nearest Neighbor/Point filtering to ensure razor-sharp pixels for low-res Minecraft skins
         mPaint.setFilterBitmap(false);
+        mPaint.setDither(true);
         setSkinBase64(DEFAULT_STEVE_BASE64, false);
     }
 
@@ -432,30 +433,28 @@ public class MinecraftSkinView extends View {
     private Point3D transformPoint(Point3D p, int partId, float yaw, float pitch) {
         Point3D r = new Point3D(p.x, p.y, p.z);
 
-        // 1. Local part rotations for dynamic pose
+        // 1. Local part rotations - a clean, upright standing pose. Limbs hang
+        //    straight down with only the tiny bit of spread needed to keep the
+        //    arms from clipping through the torso, so the skin reads clearly.
         switch (partId) {
             case PART_HEAD:
             case PART_HEAD_OVERLAY:
-                r = rotateY(r, 0, 0, 0, 8);
-                r = rotateX(r, 0, 0, 0, 4);
                 break;
             case PART_RIGHT_ARM:
             case PART_RIGHT_ARM_OVERLAY:
-                r = rotateX(r, 6, 0, 0, -10);
-                r = rotateZ(r, 6, 0, 0, 5);
+                r = rotateZ(r, 6, 0, 0, -3);
                 break;
             case PART_LEFT_ARM:
             case PART_LEFT_ARM_OVERLAY:
-                r = rotateX(r, -6, 0, 0, 10);
-                r = rotateZ(r, -6, 0, 0, -5);
+                r = rotateZ(r, -6, 0, 0, 3);
                 break;
             case PART_RIGHT_LEG:
             case PART_RIGHT_LEG_OVERLAY:
-                r = rotateX(r, 2, 12, 0, 8);
+                r = rotateZ(r, 2, 12, 0, -1);
                 break;
             case PART_LEFT_LEG:
             case PART_LEFT_LEG_OVERLAY:
-                r = rotateX(r, -2, 12, 0, -8);
+                r = rotateZ(r, -2, 12, 0, 1);
                 break;
         }
 
