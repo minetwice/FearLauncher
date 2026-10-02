@@ -69,6 +69,8 @@ public class MainMenuFragment extends Fragment {
     };
 
     private android.animation.ValueAnimator mHeadRotationAnimator;
+    private android.animation.ValueAnimator mBodyRotationAnimator;
+    private android.animation.ValueAnimator mBodyBobAnimator;
     private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
     private java.lang.Runnable mChatBubbleRunnable;
@@ -1469,7 +1471,47 @@ public class MainMenuFragment extends Fragment {
 
         if (mRootView != null) {
             refreshSkinHeadDisplay(mRootView);
+            refreshSkinBodyDisplay(mRootView);
         }
+    }
+
+    /**
+     * FEAR home: the full character, rendered from the skin the user imported,
+     * standing next to the play/instance bar. It gets a slow idle turn plus a
+     * gentle breathing bob so it does not look frozen.
+     */
+    private void refreshSkinBodyDisplay(View view) {
+        com.kdt.mcgui.MinecraftSkinView body = view.findViewById(R.id.homepage_skin_body);
+        if (body == null) return;
+
+        android.content.SharedPreferences prefs =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String activeSkinPath = prefs.getString("active_skin_path", "steve");
+        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+
+        body.setShowHeadOnly(false);
+        body.loadSkin(activeSkinPath, activeSkinIsAlex);
+
+        if (mBodyRotationAnimator != null) mBodyRotationAnimator.cancel();
+        mBodyRotationAnimator = android.animation.ValueAnimator.ofFloat(-28f, 28f);
+        mBodyRotationAnimator.setDuration(4200);
+        mBodyRotationAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        mBodyRotationAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        mBodyRotationAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+        mBodyRotationAnimator.addUpdateListener(animation ->
+                body.setRotationAngles((float) animation.getAnimatedValue(), 0f));
+        mBodyRotationAnimator.start();
+
+        if (mBodyBobAnimator != null) mBodyBobAnimator.cancel();
+        final float bob = 8f * getResources().getDisplayMetrics().density;
+        mBodyBobAnimator = android.animation.ValueAnimator.ofFloat(0f, -bob);
+        mBodyBobAnimator.setDuration(1900);
+        mBodyBobAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        mBodyBobAnimator.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        mBodyBobAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+        mBodyBobAnimator.addUpdateListener(animation ->
+                body.setTranslationY((float) animation.getAnimatedValue()));
+        mBodyBobAnimator.start();
     }
 
     private void refreshSkinHeadDisplay(View view) {
