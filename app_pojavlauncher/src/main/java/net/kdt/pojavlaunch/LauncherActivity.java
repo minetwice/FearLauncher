@@ -322,9 +322,12 @@ public class LauncherActivity extends BaseActivity {
 
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
-        mProgressLayout = findViewById(R.id.progress_layout);
+        // Both views were removed from the layouts - the old progress/download
+        // bar and the slide-out sidebar. The fields stay so every guarded call
+        // site keeps compiling; they are simply null now.
+        mProgressLayout = null;
         mDrawerLayout = findViewById(R.id.drawer_layout);
-        mNavigationView = findViewById(R.id.sidebar_navigation);
+        mNavigationView = null;
         // The slide-out navigation sidebar was removed - the hamburger tray in
         // the home fragment is the only menu now, so kill the edge-swipe.
         if (mDrawerLayout != null) {
