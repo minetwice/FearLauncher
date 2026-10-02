@@ -70,6 +70,7 @@ public class MainMenuFragment extends Fragment {
 
     private android.animation.ValueAnimator mHeadRotationAnimator;
     private android.animation.ValueAnimator mBodyRotationAnimator;
+    private android.animation.ValueAnimator mColorCycleAnimator;
     private android.animation.ValueAnimator mBodyBobAnimator;
     private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
@@ -183,6 +184,7 @@ public class MainMenuFragment extends Fragment {
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
+        bindHomeBackground(view);
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
         View settingsBtnMain     = view.findViewById(R.id.settings_button_main);
         View headerAvatarCard    = view.findViewById(R.id.header_avatar_card);
@@ -1498,6 +1500,44 @@ public class MainMenuFragment extends Fragment {
         if (mBodyBobAnimator != null) { mBodyBobAnimator.cancel(); mBodyBobAnimator = null; }
         body.setRotationAngles(0f, 0f);
         body.setTranslationY(0f);
+    }
+
+    /**
+     * FEAR home background: the looping clip behind the UI, plus a colour cycle
+     * that follows the clip's own beat - it holds red for three seconds, then
+     * blue for three, and the accent colour (PLAY button + a soft wash over the
+     * screen) moves with it.
+     */
+    private void bindHomeBackground(View view) {
+        View bg = view.findViewById(R.id.background_animation_view);
+        if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
+            ((com.kdt.mcgui.LoopingVideoBackground) bg)
+                    .setVideoResource(git.artdeell.mojo.R.raw.fear_bg_loop);
+        }
+
+        final View wash = view.findViewById(R.id.color_wash);
+        final View play = view.findViewById(R.id.play_button);
+        final int RED = 0xFFFF2B3A;
+        final int BLUE = 0xFF2B7BE0;
+
+        if (mColorCycleAnimator != null) mColorCycleAnimator.cancel();
+        mColorCycleAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        mColorCycleAnimator.setDuration(6000);
+        mColorCycleAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        mColorCycleAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        final android.animation.ArgbEvaluator evaluator = new android.animation.ArgbEvaluator();
+        mColorCycleAnimator.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();     // 0..1 over six seconds
+            float k = t < 0.5f ? t * 2f : (1f - t) * 2f;        // triangle: red -> blue -> red
+            int colour = (int) evaluator.evaluate(k, RED, BLUE);
+            if (play != null) {
+                play.setBackgroundTintList(android.content.res.ColorStateList.valueOf(colour));
+            }
+            if (wash != null) {
+                wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
+            }
+        });
+        mColorCycleAnimator.start();
     }
 
     private void refreshSkinHeadDisplay(View view) {

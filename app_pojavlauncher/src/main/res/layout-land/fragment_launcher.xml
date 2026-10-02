@@ -7,15 +7,26 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/theme_bg">
+    android:background="#00000000">
 
-    <ImageView
+    <!-- looping clip behind the UI -->
+    <com.kdt.mcgui.LoopingVideoBackground
         android:id="@+id/background_animation_view"
         android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- scrim so the interface stays readable over the clip -->
+    <View
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/fear_bg_full"
-        android:contentDescription="@null" />
+        android:background="#99000000" />
+
+    <!-- colour wash that follows the clip's red/blue cycle -->
+    <View
+        android:id="@+id/color_wash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#00FF2B3A" />
 
     <!-- == TOP BAR == -->
     <LinearLayout
@@ -174,22 +185,23 @@
                 android:textSize="@dimen/_18ssp"
                 android:textStyle="bold"
                 android:letterSpacing="0.18"
-                android:background="@drawable/theme_button_bg" />
+                android:background="@drawable/play_btn_cycle" />
         </LinearLayout>
 
         <!-- RIGHT: the character, standing beside the launch bar -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1.2"
+            android:layout_weight="1"
             android:orientation="vertical"
+            android:gravity="center"
             android:layout_marginStart="@dimen/_12sdp">
 
             <com.kdt.mcgui.MinecraftSkinView
                 android:id="@+id/homepage_skin_body"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="240dp"
+                android:layout_gravity="center"
                 android:background="@drawable/premium_glass_black_bg"
                 android:elevation="10dp" />
 

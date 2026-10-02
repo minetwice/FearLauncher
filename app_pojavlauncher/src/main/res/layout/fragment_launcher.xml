@@ -7,15 +7,23 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/theme_bg">
+    android:background="#00000000">
 
-    <ImageView
+    <com.kdt.mcgui.LoopingVideoBackground
         android:id="@+id/background_animation_view"
         android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/fear_bg_full"
-        android:contentDescription="@null" />
+        android:background="#99000000" />
+
+    <View
+        android:id="@+id/color_wash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#00FF2B3A" />
 
     <!-- == TOP BAR == -->
     <LinearLayout
