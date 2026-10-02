@@ -32,7 +32,7 @@
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@drawable/ic_skull_new"
+            android:src="@drawable/ic_hamburger"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:layout_marginEnd="10dp" />
 
