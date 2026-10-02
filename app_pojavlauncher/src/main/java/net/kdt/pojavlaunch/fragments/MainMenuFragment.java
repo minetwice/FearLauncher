@@ -1522,6 +1522,8 @@ public class MainMenuFragment extends Fragment {
         final View header = view.findViewById(R.id.header_layout);
         final View home = view.findViewById(R.id.landscape_dashboard);
         final View tray = view.findViewById(R.id.settings_tray);
+        final View scrim = view.findViewById(R.id.bg_scrim);
+        final View wash = view.findViewById(R.id.color_wash);
         final boolean[] hidden = {false};
 
         toggle.setOnClickListener(v -> {
@@ -1531,6 +1533,9 @@ public class MainMenuFragment extends Fragment {
             fadeUi(header, hide);
             fadeUi(home, hide);
             if (tray != null && tray.getVisibility() == View.VISIBLE) fadeUi(tray, hide);
+            // drop the scrim and the colour wash too, so the clip behind is clean
+            fadeUi(scrim, hide);
+            fadeUi(wash, hide);
         });
     }
 
@@ -1556,6 +1561,7 @@ public class MainMenuFragment extends Fragment {
 
         final View wash = view.findViewById(R.id.color_wash);
         final View play = view.findViewById(R.id.play_button);
+        final View spinner = view.findViewById(R.id.mc_version_spinner);
         final int RED = 0xFFFF2B3A;
         final int BLUE = 0xFF2B7BE0;
 
@@ -1569,9 +1575,10 @@ public class MainMenuFragment extends Fragment {
             float t = (float) animation.getAnimatedValue();     // 0..1 over six seconds
             float k = t < 0.5f ? t * 2f : (1f - t) * 2f;        // triangle: red -> blue -> red
             int colour = (int) evaluator.evaluate(k, RED, BLUE);
-            if (play != null) {
-                play.setBackgroundTintList(android.content.res.ColorStateList.valueOf(colour));
-            }
+            android.content.res.ColorStateList tint =
+                    android.content.res.ColorStateList.valueOf(colour);
+            if (play != null) play.setBackgroundTintList(tint);
+            if (spinner != null) spinner.setBackgroundTintList(tint);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
