@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR loading bar: blinding energy fill with a sharp leading edge -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="9dp" />
+    <gradient
+        android:angle="0"
+        android:startColor="#FF7A0C16"
+        android:centerColor="#FFFF6B5E"
+        android:endColor="#FFFFF2D0" />
+</shape>

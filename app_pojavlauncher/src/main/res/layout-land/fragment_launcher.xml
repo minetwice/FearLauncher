@@ -146,6 +146,42 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.16" />
 
+            <!-- FEAR loading bar: glowing head + crimson glass track + energy fill -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/_14sdp">
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:src="@drawable/ic_app_logo"
+                    android:contentDescription="@null" />
+
+                <FrameLayout
+                    android:id="@+id/fear_bar_track"
+                    android:layout_width="250dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="@dimen/_6sdp"
+                    android:background="@drawable/fear_bar_track">
+
+                    <View
+                        android:id="@+id/fear_bar_fill"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="start"
+                        android:background="@drawable/fear_bar_fill" />
+
+                    <View
+                        android:id="@+id/fear_bar_glow"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_gravity="start|center_vertical"
+                        android:background="@drawable/fear_bar_glow" />
+                </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <!-- character: right side, vertically centred -->
