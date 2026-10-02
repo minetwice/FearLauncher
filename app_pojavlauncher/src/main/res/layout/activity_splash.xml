@@ -27,12 +27,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="#40FFFFFF" />
 
-    <!-- Logo Holder (Will be logo.png) -->
+    <!-- FearLauncher logo. The artwork is 2:1, so keep its real aspect
+         (adjustViewBounds + fitCenter) instead of squashing it into a square. -->
     <ImageView
         android:id="@+id/splash_logo"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:src="@drawable/ic_app_logo"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/fear_logo"
         android:alpha="0"
         android:scaleX="0.8"
         android:scaleY="0.8"
