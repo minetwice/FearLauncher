@@ -138,6 +138,19 @@ public class MinecraftSkinView extends View {
         invalidate();
     }
 
+    // Idle animation angles, driven from the fragment. The head yaws about the
+    // neck and the arms lift out to the sides; both are zero at rest.
+    private float mAnimHeadYaw = 0f;
+    private float mAnimArmRaise = 0f;
+
+    /** Sets the idle gesture pose. headYaw is degrees about the neck, armRaise is degrees out to the sides. */
+    public void setAnimationAngles(float headYaw, float armRaise) {
+        if (mAnimHeadYaw == headYaw && mAnimArmRaise == armRaise) return;
+        mAnimHeadYaw = headYaw;
+        mAnimArmRaise = armRaise;
+        invalidate();
+    }
+
     public void setRotationAngles(float yaw, float pitch) {
         mRotationY = yaw;
         mRotationX = pitch;
@@ -327,8 +340,8 @@ public class MinecraftSkinView extends View {
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                // Let a tap still reach an OnClickListener - dragging spins the
-                // model, tapping opens the skin viewer.
+                // Dragging spins the model; a tap fires performClick (there is no
+                // click listener on the home model any more, so it is a no-op).
                 performClick();
                 break;
         }
@@ -521,6 +534,24 @@ public class MinecraftSkinView extends View {
                         break;
                 }
                 break;
+        }
+
+        // 1b. Idle gesture - only while standing, so it never fights the T or fly pose.
+        if (mPose == POSE_STANDING && (mAnimHeadYaw != 0f || mAnimArmRaise != 0f)) {
+            switch (partId) {
+                case PART_HEAD:
+                case PART_HEAD_OVERLAY:
+                    r = rotateY(r, 0, 0, 0, mAnimHeadYaw);
+                    break;
+                case PART_RIGHT_ARM:
+                case PART_RIGHT_ARM_OVERLAY:
+                    r = rotateZ(r, 6, 0, 0, -mAnimArmRaise);
+                    break;
+                case PART_LEFT_ARM:
+                case PART_LEFT_ARM_OVERLAY:
+                    r = rotateZ(r, -6, 0, 0, mAnimArmRaise);
+                    break;
+            }
         }
 
         // 2. Global rotation around model center (0, 10, 0)

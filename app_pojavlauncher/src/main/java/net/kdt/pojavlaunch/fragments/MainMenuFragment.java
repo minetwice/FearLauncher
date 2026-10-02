@@ -1506,6 +1506,7 @@ public class MainMenuFragment extends Fragment {
         body.setRotationAngles(-20f, -5f);   // gentle three-quarter standing view
         body.setPose(mCharacterPose);
         body.setTranslationY(0f);
+        startCharacterIdle(view);
     }
 
     /**
@@ -1556,14 +1557,16 @@ public class MainMenuFragment extends Fragment {
                 .start();
     }
 
-    /** Tapping the home character opens the skin viewer. */
+    /**
+     * Tapping the home character used to open the skin viewer dialog. That is
+     * switched off now - the model only answers to drags, so a stray tap on the
+     * character no longer throws a panel over the screen.
+     */
     private void bindSkinViewer(View view) {
         View body = view.findViewById(R.id.homepage_skin_body);
         if (body == null) return;
-        body.setOnClickListener(v -> {
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            showSkinViewer();
-        });
+        body.setOnClickListener(null);
+        body.setClickable(false);
     }
 
     /**
@@ -1639,28 +1642,23 @@ public class MainMenuFragment extends Fragment {
      * comes from a soft shadow sitting behind it, tinted with the cycling accent
      * so it still moves with the background.
      */
+    /**
+     * PLAY button: no colour at all - a white face at 20% opacity so the looping
+     * clip shows straight through it, plus a slightly stronger white border.
+     */
     private void applyPlayButton(View v, float k) {
         if (v == null) return;
         final float d = getResources().getDisplayMetrics().density;
-        android.animation.ArgbEvaluator eval = new android.animation.ArgbEvaluator();
-        int accent = (int) eval.evaluate(k, 0xFFFF2B3A, 0xFF2B7BE0);
-
         float radius = 31f * d;
-
-        android.graphics.drawable.GradientDrawable shadow = new android.graphics.drawable.GradientDrawable();
-        shadow.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        shadow.setColor((accent & 0x00FFFFFF) | 0x59000000);
-        shadow.setCornerRadius(radius);
-        android.graphics.drawable.InsetDrawable shadowLayer =
-                new android.graphics.drawable.InsetDrawable(shadow, (int) (3 * d), (int) (7 * d), (int) (3 * d), 0);
 
         android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable();
         face.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        face.setColor(0x00000000);
+        face.setColor(0x33FFFFFF);                       // white, 20% opacity
         face.setCornerRadius(radius);
+        face.setStroke(Math.max(1, (int) (1.5f * d)), 0x73FFFFFF);   // white border, ~45%
 
-        v.setBackground(new android.graphics.drawable.LayerDrawable(
-                new android.graphics.drawable.Drawable[]{shadowLayer, face}));
+        v.setBackground(face);
+        v.setElevation(0f);
     }
 
     // ---- FEAR download bar ----
@@ -1680,6 +1678,47 @@ public class MainMenuFragment extends Fragment {
      * so the fill simply follows the transfer - it creeps while the network is
      * slow and races when it is fast.
      */
+    // ---- character idle gesture ----
+    private android.os.Handler mIdleHandler;
+    private Runnable mIdleRunnable;
+    private android.animation.ValueAnimator mIdleAnimator;
+
+    /** Every 10 seconds the character glances left and right and lifts its arms. */
+    private void startCharacterIdle(View view) {
+        final com.kdt.mcgui.MinecraftSkinView body = view.findViewById(R.id.homepage_skin_body);
+        if (body == null) return;
+        if (mIdleHandler == null) mIdleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        if (mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
+        mIdleRunnable = new Runnable() {
+            @Override
+            public void run() {
+                playCharacterGesture(body);
+                mIdleHandler.postDelayed(this, 10000);
+            }
+        };
+        mIdleHandler.postDelayed(mIdleRunnable, 10000);
+    }
+
+    private void playCharacterGesture(final com.kdt.mcgui.MinecraftSkinView body) {
+        if (mIdleAnimator != null) mIdleAnimator.cancel();
+        mIdleAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        mIdleAnimator.setDuration(2600);
+        mIdleAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        mIdleAnimator.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            float head = (float) Math.sin(t * Math.PI * 2.0) * 24f;   // turn left, then right
+            float arm = (float) Math.abs(Math.sin(t * Math.PI * 2.0)) * 34f;  // lift, twice
+            body.setAnimationAngles(head, arm);
+        });
+        mIdleAnimator.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                body.setAnimationAngles(0f, 0f);
+            }
+        });
+        mIdleAnimator.start();
+    }
+
     private void bindFearDownloadBar(View view) {
         final View wrap = view.findViewById(R.id.fear_dl_wrap);
         final View track = view.findViewById(R.id.fear_dl_track);
@@ -1940,5 +1979,7 @@ public class MainMenuFragment extends Fragment {
             for (String key : FEAR_DL_KEYS) ProgressKeeper.removeListener(key, mFearDlListener);
             mFearDlListener = null;
         }
+        if (mIdleHandler != null && mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
+        if (mIdleAnimator != null) { mIdleAnimator.cancel(); mIdleAnimator = null; }
     }
 }
