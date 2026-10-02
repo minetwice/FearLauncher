@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item>Turnip Zink (Vulkan — best for Mali/Adreno)</item>
+        <item>mesa turnip</item>
         <item>PanVK Zink (Mali open-source Vulkan ICD + Zink)</item>
-        <item>Holy Zink (Kopper — GL 4.6 over system Vulkan, shaders)</item>
+        <item>Quasar</item>
         <item>@string/mcl_setting_renderer_ltw</item>
     </string-array>
 
