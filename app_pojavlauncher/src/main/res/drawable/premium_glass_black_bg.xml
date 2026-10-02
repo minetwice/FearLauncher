@@ -10,7 +10,7 @@
     <item>
         <shape>
             <!-- Premium Dark Red Glassmorphism translucent back -->
-            <solid android:color="#A614060A" />
+            <solid android:color="#7314060A" />
             <corners android:radius="12dp" /> <!-- Red neon subtle glow border -->
         </shape>
     </item>

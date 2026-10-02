@@ -29,6 +29,10 @@ public class SplashActivity extends AppCompatActivity {
 
     private boolean mLauncherStarted = false;
 
+    /** Intro only after the launcher has sat idle this long. */
+    private static final long IDLE_BEFORE_INTRO_MS = 25L * 60L * 1000L;
+    private static final String PREF_LAST_LAUNCH = "fear_last_launch_time";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,8 +46,31 @@ public class SplashActivity extends AppCompatActivity {
         AsyncAssetManager.unpackComponents(this);
         AsyncAssetManager.unpackSingleFiles(this);
 
-        setContentView(R.layout.activity_intro);
-        playIntro();
+        if (shouldPlayIntro()) {
+            setContentView(R.layout.activity_intro);
+            playIntro();
+        } else {
+            // Opened recently: go straight in, no clip.
+            startLauncher();
+        }
+    }
+
+    /**
+     * The intro is a "welcome back" - it only plays when the launcher has not
+     * been opened for a while. Launch it again within 25 minutes and you land
+     * straight on the interface.
+     */
+    private boolean shouldPlayIntro() {
+        try {
+            android.content.SharedPreferences prefs =
+                    androidx.preference.PreferenceManager.getDefaultSharedPreferences(this);
+            long last = prefs.getLong(PREF_LAST_LAUNCH, 0L);
+            long now = System.currentTimeMillis();
+            prefs.edit().putLong(PREF_LAST_LAUNCH, now).apply();
+            return last == 0L || (now - last) > IDLE_BEFORE_INTRO_MS;
+        } catch (Throwable t) {
+            return true;
+        }
     }
 
     private void playIntro() {

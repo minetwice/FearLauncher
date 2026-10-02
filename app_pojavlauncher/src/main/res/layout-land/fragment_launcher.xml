@@ -39,9 +39,19 @@
         android:paddingVertical="@dimen/_8sdp"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageButton
+            android:id="@+id/hamburger_menu_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_hamburger"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@null"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="10dp" />
+
         <FrameLayout
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:background="@drawable/premium_glass_black_bg"
             android:padding="5dp">
             <ImageView
@@ -62,156 +72,74 @@
             android:letterSpacing="0.1"
             android:layout_marginStart="10dp" />
 
-        <FrameLayout
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:background="@drawable/premium_glass_black_bg"
-            android:layout_marginEnd="10dp">
-            <ImageButton
-                android:id="@+id/social_discord_btn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_discord"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="5dp"
-                android:scaleType="fitCenter" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:background="@drawable/premium_glass_black_bg"
-            android:layout_marginEnd="10dp">
-            <ImageButton
-                android:id="@+id/social_youtube_btn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_youtube_logo"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="6dp"
-                android:scaleType="fitCenter" />
-        </FrameLayout>
-
         <ImageButton
-            android:id="@+id/header_notification_btn"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_px_bell"
+            android:id="@+id/ui_toggle_btn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_eye"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FF2B3A"
-            android:layout_marginEnd="12dp" />
+            android:contentDescription="@null"
+            app:tint="#FFFFFF" />
 
-        <FrameLayout
-            android:layout_width="42dp"
-            android:layout_height="42dp">
-            <androidx.cardview.widget.CardView
-                android:id="@+id/header_avatar_card"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:cardCornerRadius="21dp"
-                app:cardBackgroundColor="#3313162C"
-                app:cardElevation="0dp">
-                <com.kdt.mcgui.MinecraftSkinView
-                    android:id="@+id/homepage_skin_head"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </androidx.cardview.widget.CardView>
-            <ImageButton
-                android:id="@+id/header_account_hub_btn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@null"
-                android:contentDescription="@null" />
-        </FrameLayout>
-
+        <!-- kept for the fragment's bindings, no longer shown -->
+        <ImageButton android:id="@+id/social_discord_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <ImageButton android:id="@+id/social_youtube_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <ImageButton android:id="@+id/header_notification_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <FrameLayout android:id="@+id/header_avatar_card" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+        <ImageButton android:id="@+id/header_account_hub_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     </LinearLayout>
 
-    <!-- == LANDSCAPE DASHBOARD == -->
-    <!-- Wide phones waste the vertical portrait stack, so the home screen is
-         laid out as two columns here: the hero card (version + PLAY) on the
-         left, the instance carousel on the right. -->
+    <!-- == HOME: character, then instance bar, then PLAY == -->
     <LinearLayout
         android:id="@+id/landscape_dashboard"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/_12sdp"
-        android:paddingBottom="@dimen/_8sdp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingHorizontal="@dimen/_56sdp"
+        android:paddingBottom="@dimen/_12sdp"
         app:layout_constraintStart_toEndOf="@id/settings_tray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- LEFT: just the launch bar -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:background="@drawable/premium_glass_black_bg"
-            android:elevation="10dp"
-            android:padding="@dimen/_16sdp">
+        <!-- ids the fragment still binds - kept, hidden for a clean screen -->
+        <TextView android:id="@+id/version_text_display" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+        <TextView android:id="@+id/card_runtime_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+        <TextView android:id="@+id/card_loader_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+        <TextView android:id="@+id/account_name_display" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+        <TextView android:id="@+id/homepage_chat_bubble" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+        <ImageButton android:id="@+id/settings_button_main" android:layout_width="42dp" android:layout_height="42dp" android:visibility="gone" />
+        <ImageButton android:id="@+id/edit_profile_button_main" android:layout_width="52dp" android:layout_height="52dp" android:visibility="gone" />
+        <LinearLayout android:id="@+id/homepage_instance_carousel" android:layout_width="wrap_content" android:layout_height="0dp" android:visibility="gone" android:orientation="horizontal" />
 
-            <!-- ids the fragment still binds - kept, hidden for a clean screen -->
-            <TextView android:id="@+id/version_text_display" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:visibility="gone" />
-            <TextView android:id="@+id/card_runtime_info" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:visibility="gone" />
-            <TextView android:id="@+id/card_loader_info" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:visibility="gone" />
-            <TextView android:id="@+id/account_name_display" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:visibility="gone" />
-            <TextView android:id="@+id/homepage_chat_bubble" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:visibility="gone" />
-            <ImageButton android:id="@+id/settings_button_main" android:layout_width="42dp"
-                android:layout_height="42dp" android:visibility="gone" />
-            <ImageButton android:id="@+id/edit_profile_button_main" android:layout_width="52dp"
-                android:layout_height="52dp" android:visibility="gone" />
+        <!-- character -->
+        <com.kdt.mcgui.MinecraftSkinView
+            android:id="@+id/homepage_skin_body"
+            android:layout_width="match_parent"
+            android:layout_height="230dp"
+            android:background="@drawable/premium_glass_black_bg" />
 
-            <com.kdt.mcgui.mcVersionSpinner
-                android:id="@+id/mc_version_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:background="@drawable/premium_glass_black_bg" />
+        <!-- instance select -->
+        <com.kdt.mcgui.mcVersionSpinner
+            android:id="@+id/mc_version_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:background="@drawable/premium_glass_black_bg" />
 
-            <com.kdt.mcgui.MineButton
-                android:id="@+id/play_button"
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="@dimen/_14sdp"
-                android:text="PLAY"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_18ssp"
-                android:textStyle="bold"
-                android:letterSpacing="0.18"
-                android:background="@drawable/play_btn_cycle" />
-        </LinearLayout>
-
-        <!-- RIGHT: the character, standing beside the launch bar -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_marginStart="@dimen/_12sdp">
-
-            <com.kdt.mcgui.MinecraftSkinView
-                android:id="@+id/homepage_skin_body"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:layout_gravity="center"
-                android:background="@drawable/premium_glass_black_bg"
-                android:elevation="10dp" />
-
-            <LinearLayout
-                android:id="@+id/homepage_instance_carousel"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:visibility="gone"
-                android:orientation="horizontal" />
-        </LinearLayout>
+        <!-- PLAY at the bottom -->
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/play_button"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:text="PLAY"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.18"
+            android:background="@drawable/play_btn_cycle" />
     </LinearLayout>
 
     <!-- UI Logic Dummies -->
@@ -225,14 +153,12 @@
     <View android:id="@+id/tab_skin" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <include layout="@layout/splash_overlay_layout" />
-
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
     <FrameLayout
         android:id="@+id/settings_tray"
         android:layout_width="230dp"
         android:layout_height="0dp"
-        android:visibility="visible"
+        android:visibility="gone"
         android:background="@drawable/premium_glass_black_bg"
         android:elevation="10dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -316,15 +242,6 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
-                    android:background="@drawable/tray_button_bg"
-                    android:layout_marginBottom="6dp" />
-
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_downloads_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
-                    android:text="BACKGROUND DOWNLOADS"
-                    android:drawableStart="@drawable/ic_download"
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="6dp" />
 

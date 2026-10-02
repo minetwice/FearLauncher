@@ -183,6 +183,8 @@ public class MainMenuFragment extends Fragment {
 
         // Buttons
         View playButton          = view.findViewById(R.id.play_button);
+        bindUiToggle(view);
+
         View hamburgerBtn        = view.findViewById(R.id.hamburger_menu_icon);
         bindHomeBackground(view);
         View editBtnMain         = view.findViewById(R.id.edit_profile_button_main);
@@ -249,7 +251,7 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        view.post(() -> playSplashIntro(view));
+        // FEAR: the shard/beam intro overlay is gone - no second animation after the video.
         loadInstanceCarousel(view);
         bindSocialButtons(view);
 
@@ -1508,6 +1510,43 @@ public class MainMenuFragment extends Fragment {
      * blue for three, and the accent colour (PLAY button + a soft wash over the
      * screen) moves with it.
      */
+    /**
+     * FEAR eye button: drops the whole interface away so the clip behind it can
+     * be seen clean, then brings it back. Header and home fade + shrink out, and
+     * the sidebar joins in if it happens to be open.
+     */
+    private void bindUiToggle(View view) {
+        View toggle = view.findViewById(R.id.ui_toggle_btn);
+        if (toggle == null) return;
+
+        final View header = view.findViewById(R.id.header_layout);
+        final View home = view.findViewById(R.id.landscape_dashboard);
+        final View tray = view.findViewById(R.id.settings_tray);
+        final boolean[] hidden = {false};
+
+        toggle.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            hidden[0] = !hidden[0];
+            final boolean hide = hidden[0];
+            fadeUi(header, hide);
+            fadeUi(home, hide);
+            if (tray != null && tray.getVisibility() == View.VISIBLE) fadeUi(tray, hide);
+        });
+    }
+
+    private void fadeUi(View part, boolean hide) {
+        if (part == null) return;
+        if (!hide) part.setVisibility(View.VISIBLE);
+        part.animate()
+                .alpha(hide ? 0f : 1f)
+                .scaleX(hide ? 0.94f : 1f)
+                .scaleY(hide ? 0.94f : 1f)
+                .setDuration(320)
+                .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                .withEndAction(() -> { if (hide) part.setVisibility(View.GONE); })
+                .start();
+    }
+
     private void bindHomeBackground(View view) {
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
