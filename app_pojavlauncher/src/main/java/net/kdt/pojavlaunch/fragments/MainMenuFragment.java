@@ -73,47 +73,6 @@ public class MainMenuFragment extends Fragment {
     private android.animation.ValueAnimator mColorCycleAnimator;
     private int mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_STANDING;
 
-    private View mBarFill, mBarTrack;
-    private TextView mBarLabel;
-    private boolean mBarRegistered = false;
-
-    private static final String[] DOWNLOAD_PROGRESS_KEYS = {
-            com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT,
-            com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST,
-            com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME,
-            com.kdt.mcgui.ProgressLayout.EXTRACT_COMPONENTS,
-            com.kdt.mcgui.ProgressLayout.EXTRACT_SINGLE_FILES,
-            com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
-            com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK
-    };
-
-    /** Mirrors the launcher's real download/unpack progress onto the home bar. */
-    private final net.kdt.pojavlaunch.progresskeeper.ProgressListener mDownloadListener =
-            new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
-                @Override public void onProgressStarted() { setDownloadBar(0, true); }
-                @Override public void onProgressUpdated(int progress, int resid, Object... va) {
-                    setDownloadBar(progress, true);
-                }
-                @Override public void onProgressEnded() { setDownloadBar(100, false); }
-            };
-
-    private void setDownloadBar(final int percent, final boolean active) {
-        // ProgressKeeper fires from worker threads, so hop to the main thread
-        // before touching any view - otherwise ViewRootImpl throws
-        // CalledFromWrongThreadException.
-        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
-            new android.os.Handler(android.os.Looper.getMainLooper())
-                    .post(() -> setDownloadBar(percent, active));
-            return;
-        }
-        if (mBarFill == null && mBarLabel == null) return;
-        final int pct = Math.max(0, Math.min(100, percent));
-        if (mBarFill != null && mBarTrack != null && mBarTrack.getWidth() > 0) {
-            mBarFill.getLayoutParams().width = Math.max(2, (int) (mBarTrack.getWidth() * pct / 100f));
-            mBarFill.requestLayout();
-        }
-        if (mBarLabel != null) mBarLabel.setText(active ? ("DOWNLOADING  " + pct + "%") : "READY");
-    }
     private android.animation.ValueAnimator mBodyBobAnimator;
     private android.animation.ValueAnimator mSkinRotationAnimator;
     private android.os.Handler mChatBubbleHandler;
@@ -1676,7 +1635,7 @@ public class MainMenuFragment extends Fragment {
     }
 
     /**
-     * PLAY is now a bare transparent button - no fill, no border. All the weight
+     * PLAY is a bare transparent button - no fill, no border. All of its weight
      * comes from a soft shadow sitting behind it, tinted with the cycling accent
      * so it still moves with the background.
      */
@@ -1688,7 +1647,6 @@ public class MainMenuFragment extends Fragment {
 
         float radius = 31f * d;
 
-        // shadow behind the button: accent tint, dropped a little lower
         android.graphics.drawable.GradientDrawable shadow = new android.graphics.drawable.GradientDrawable();
         shadow.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
         shadow.setColor((accent & 0x00FFFFFF) | 0x59000000);
@@ -1696,7 +1654,6 @@ public class MainMenuFragment extends Fragment {
         android.graphics.drawable.InsetDrawable shadowLayer =
                 new android.graphics.drawable.InsetDrawable(shadow, (int) (3 * d), (int) (7 * d), (int) (3 * d), 0);
 
-        // the button face itself: fully transparent
         android.graphics.drawable.GradientDrawable face = new android.graphics.drawable.GradientDrawable();
         face.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
         face.setColor(0x00000000);
@@ -1716,17 +1673,7 @@ public class MainMenuFragment extends Fragment {
         final View wash = view.findViewById(R.id.color_wash);
         final View play = view.findViewById(R.id.play_button);
         final View spinner = view.findViewById(R.id.mc_version_spinner);
-        mBarFill = view.findViewById(R.id.download_bar_fill);
-        mBarTrack = view.findViewById(R.id.download_bar_track);
-        mBarLabel = view.findViewById(R.id.download_label);
-
-        // Real progress: every download / unpack task in the launcher reports to
-        // ProgressKeeper, so the bar mirrors whatever is actually happening.
-        for (String key : DOWNLOAD_PROGRESS_KEYS) {
-            net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.addListener(key, mDownloadListener);
-        }
-        mBarRegistered = true;
-        setDownloadBar(0, false);
+        // The download bar was removed from the home screen.
         final int RED = 0xFFFF2B3A;
         final int BLUE = 0xFF2B7BE0;
 
@@ -1743,7 +1690,6 @@ public class MainMenuFragment extends Fragment {
             // PLAY and the download bar follow the cycle as a gradient. The
             // instance bar stays translucent glass - no solid colour on it.
             applyPlayButton(play, k);
-            applyAccentGradient(mBarFill, k, 7);
             if (wash != null) {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
@@ -1890,12 +1836,6 @@ public class MainMenuFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        if (mBarRegistered) {
-            for (String key : DOWNLOAD_PROGRESS_KEYS) {
-                net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.removeListener(key, mDownloadListener);
-            }
-            mBarRegistered = false;
-        }
 
         if (mHeadRotationAnimator != null) {
             mHeadRotationAnimator.cancel();
