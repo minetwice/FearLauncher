@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <linux/limits.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include <android/log.h>
 
 #define LOG_TAG "FearPerf"
@@ -105,13 +106,25 @@ static int fear_pin_tid(int tid) {
 static int fear_name_is_hot(const char *name) {
     static const char *hot[] = {
         "Render thread", "Client thread", "main",
-        "C2 CompilerThre", "C1 CompilerThre", "C2 CompilerThrea"
+        "C2 CompilerThre", "C1 CompilerThre", "C2 CompilerThrea",
+        "Worker-Main", "Chunk Batcher", "Netty ", "SoundEngine",
+        "GL Thread", "GLFW Thread", "ForkJoinPool", "G1 ", "LWJGL"
     };
     for (unsigned i = 0; i < sizeof(hot) / sizeof(hot[0]); i++) {
         size_t l = strlen(hot[i]);
         if (strncmp(name, hot[i], l) == 0) return 1;
     }
     return 0;
+}
+
+// Boost thread priority for rendering & network latency critical threads (nice -10)
+static void fear_boost_priority(int tid, const char *comm) {
+    if (strncmp(comm, "Render thread", 13) == 0 ||
+        strncmp(comm, "Client thread", 13) == 0 ||
+        strncmp(comm, "main", 4) == 0 ||
+        strncmp(comm, "Netty ", 6) == 0) {
+        setpriority(PRIO_PROCESS, tid, -10);
+    }
 }
 
 static int fear_pin_hot_threads(void) {
@@ -138,9 +151,12 @@ static int fear_pin_hot_threads(void) {
         }
         fclose(f);
 
-        if (fear_name_is_hot(comm) && fear_pin_tid(tid)) {
-            pinned++;
-            LOGI("pinned tid %d (%s) -> %d performance cores", tid, comm, g_perf_count);
+        if (fear_name_is_hot(comm)) {
+            fear_boost_priority(tid, comm);
+            if (fear_pin_tid(tid)) {
+                pinned++;
+                LOGI("pinned & boosted tid %d (%s) -> %d performance cores", tid, comm, g_perf_count);
+            }
         }
     }
     closedir(d);
