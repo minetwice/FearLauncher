@@ -1673,29 +1673,6 @@ public class MainMenuFragment extends Fragment {
         final View wash = view.findViewById(R.id.color_wash);
         final View play = view.findViewById(R.id.play_button);
         final View spinner = view.findViewById(R.id.mc_version_spinner);
-        // FEAR loading bar: the energy fill sweeps left to right and the bloom
-        // rides its leading edge, so it reads like the reference.
-        final View barFill = view.findViewById(R.id.fear_bar_fill);
-        final View barGlow = view.findViewById(R.id.fear_bar_glow);
-        final View barTrack = view.findViewById(R.id.fear_bar_track);
-        if (barTrack != null) {
-            final float half = 26f * getResources().getDisplayMetrics().density;
-            android.animation.ValueAnimator load = android.animation.ValueAnimator.ofFloat(0f, 1f);
-            load.setDuration(2600);
-            load.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-            load.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-            load.addUpdateListener(animation -> {
-                int w = barTrack.getWidth();
-                if (w <= 0) return;
-                int filled = Math.max(6, (int) (w * (float) animation.getAnimatedValue()));
-                if (barFill != null) {
-                    barFill.getLayoutParams().width = filled;
-                    barFill.requestLayout();
-                }
-                if (barGlow != null) barGlow.setTranslationX(filled - half);
-            });
-            load.start();
-        }
         final int RED = 0xFFFF2B3A;
         final int BLUE = 0xFF2B7BE0;
 

@@ -76,7 +76,7 @@ public class LauncherActivity extends BaseActivity {
     };
 
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
-        if (mProgressLayout.hasProcesses()) {
+        if (mProgressLayout != null && mProgressLayout.hasProcesses()) {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;
         }
@@ -174,7 +174,7 @@ public class LauncherActivity extends BaseActivity {
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
         mProgressServiceKeeper = new ProgressServiceKeeper(this);
         ProgressKeeper.addTaskCountListener(mProgressServiceKeeper);
-        ProgressKeeper.addTaskCountListener(mProgressLayout);
+        if (mProgressLayout != null) ProgressKeeper.addTaskCountListener(mProgressLayout);
 
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.addExtraListener(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
@@ -196,12 +196,16 @@ public class LauncherActivity extends BaseActivity {
                 ExtraCore.setValue(ExtraConstants.RELEASE_TABLE, versions)
         );
 
-        mProgressLayout.observe(ProgressLayout.DOWNLOAD_MINECRAFT);
-        mProgressLayout.observe(ProgressLayout.UNPACK_RUNTIME);
-        mProgressLayout.observe(ProgressLayout.INSTALL_MODPACK);
-        mProgressLayout.observe(ProgressLayout.AUTHENTICATE);
-        mProgressLayout.observe(ProgressLayout.DOWNLOAD_VERSION_LIST);
-        mProgressLayout.observe(ProgressLayout.INSTANCE_INSTALL);
+        // The on-screen progress/download bar view was removed; the progress
+        // keys below still drive everything else, so only guard the view.
+        if (mProgressLayout != null) {
+            mProgressLayout.observe(ProgressLayout.DOWNLOAD_MINECRAFT);
+            mProgressLayout.observe(ProgressLayout.UNPACK_RUNTIME);
+            mProgressLayout.observe(ProgressLayout.INSTALL_MODPACK);
+            mProgressLayout.observe(ProgressLayout.AUTHENTICATE);
+            mProgressLayout.observe(ProgressLayout.DOWNLOAD_VERSION_LIST);
+            mProgressLayout.observe(ProgressLayout.INSTANCE_INSTALL);
+        }
 
         // Auto-reload listener
         ProgressKeeper.addTaskCountListener(tc -> {
@@ -240,8 +244,10 @@ public class LauncherActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mProgressLayout.cleanUpObservers();
-        ProgressKeeper.removeTaskCountListener(mProgressLayout);
+        if (mProgressLayout != null) {
+            mProgressLayout.cleanUpObservers();
+            ProgressKeeper.removeTaskCountListener(mProgressLayout);
+        }
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
@@ -249,7 +255,7 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
+        if (mDrawerLayout != null && mNavigationView != null && mDrawerLayout.isDrawerOpen(mNavigationView)) {
             mDrawerLayout.closeDrawer(mNavigationView);
             return;
         }
@@ -319,13 +325,18 @@ public class LauncherActivity extends BaseActivity {
         mProgressLayout = findViewById(R.id.progress_layout);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mNavigationView = findViewById(R.id.sidebar_navigation);
+        // The slide-out navigation sidebar was removed - the hamburger tray in
+        // the home fragment is the only menu now, so kill the edge-swipe.
+        if (mDrawerLayout != null) {
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
     }
 
     private void setupDrawer() {
         ImageButton hamburgerButton = findViewById(R.id.hamburger_button);
         if (hamburgerButton != null) {
             hamburgerButton.setOnClickListener(v -> {
-                if (mDrawerLayout != null) {
+                if (mDrawerLayout != null && mNavigationView != null) {
                     mDrawerLayout.openDrawer(mNavigationView);
                 }
             });
