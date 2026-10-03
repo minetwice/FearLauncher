@@ -177,7 +177,7 @@
         android:layout_width="230dp"
         android:layout_height="0dp"
         android:visibility="gone"
-        android:background="@drawable/premium_glass_black_bg"
+        android:background="@drawable/fear_tray_bg"
         android:elevation="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
@@ -195,7 +195,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="@dimen/_14sdp"
-                android:background="@drawable/premium_glass_black_bg">
+                android:background="@drawable/fear_tray_bg">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -212,7 +212,7 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="INSTALLATIONS"
                     android:drawableStart="@drawable/ic_px_java"
-                    android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/fear_tray_item_bg"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -221,7 +221,7 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="EXECUTE A JAR"
                     android:drawableStart="@drawable/ic_px_file_dl"
-                    android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/fear_tray_item_bg"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -230,7 +230,7 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="CUSTOM CONTROLS"
                     android:drawableStart="@drawable/ic_px_gamepad"
-                    android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/fear_tray_item_bg"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -239,7 +239,7 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="MORE OPTIONS"
                     android:drawableStart="@drawable/ic_px_sliders"
-                    android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/fear_tray_item_bg"
                     android:layout_marginBottom="16dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
@@ -248,7 +248,7 @@
                     android:layout_height="@dimen/_36sdp"
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
-                    android:background="@drawable/tray_button_bg"
+                    android:background="@drawable/fear_tray_item_bg"
                     android:layout_marginBottom="16dp" />
 
                 <com.kdt.mcgui.MineButton

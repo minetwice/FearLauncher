@@ -339,11 +339,8 @@ public class MainMenuFragment extends Fragment {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                // Opens the installer list - Fabric, Quilt, Forge, NeoForge,
-                // OptiFine, Legacy Fabric - so an installer can be fetched from here.
-                Tools.swapFragment(requireActivity(),
-                        net.kdt.pojavlaunch.fragments.ProfileTypeSelectFragment.class,
-                        net.kdt.pojavlaunch.fragments.ProfileTypeSelectFragment.TAG, null);
+                // Pick a .jar off the device and run it as an installer.
+                mModInstallerLauncher.launch(null);
             });
         }
 

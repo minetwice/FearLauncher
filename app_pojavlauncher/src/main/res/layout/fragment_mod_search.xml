@@ -120,7 +120,7 @@
             android:textSize="@dimen/_11ssp"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/search_mod_filter"
+            app:layout_constraintEnd_toStartOf="@+id/search_mod_done_btn"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/downloader_tabs"
             android:layout_marginTop="@dimen/_10sdp" />
@@ -137,6 +137,23 @@
             app:layout_constraintTop_toBottomOf="@id/downloader_tabs"
             android:layout_marginTop="@dimen/_10sdp"
             app:tint="#FFFFFF" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/search_mod_done_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_38sdp"
+            android:minWidth="@dimen/_56sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:paddingHorizontal="@dimen/_10sdp"
+            android:text="DONE"
+            android:textColor="#000000"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/theme_button_bg"
+            app:layout_constraintEnd_toStartOf="@+id/search_mod_filter"
+            app:layout_constraintTop_toBottomOf="@id/downloader_tabs"
+            android:layout_marginTop="@dimen/_10sdp" />
 
         <ProgressBar
             android:id="@+id/search_mod_progressbar"

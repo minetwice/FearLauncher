@@ -80,12 +80,42 @@ public class LauncherActivity extends BaseActivity {
             com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
     };
 
+    private long mLastButtonTint = 0L;
+
     /** The wash rides the shared FearTheme cycle so every screen shifts together. */
     private final net.kdt.pojavlaunch.utils.FearTheme.Listener mFearWashListener = colour -> {
         if (mFearGlobalWash != null) {
             mFearGlobalWash.setBackgroundColor((colour & 0x00FFFFFF) | 0x14000000);
         }
+        // Recolour every button on the current screen off the same cycle. MineButton
+        // already paints its background through a PorterDuff filter, so we drive the
+        // same filter. Throttled - the shift is slow, 12fps is plenty.
+        long now = android.os.SystemClock.uptimeMillis();
+        if (now - mLastButtonTint > 80) {
+            mLastButtonTint = now;
+            android.content.SharedPreferences prefs =
+                    android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+            prefs.edit().putInt("launcher_theme_color_v2", colour).apply();
+            tintFearButtons(findViewById(R.id.container_fragment), colour);
+        }
     };
+
+    private void tintFearButtons(View root, int colour) {
+        if (root == null) return;
+        if (root instanceof com.kdt.mcgui.MineButton) {
+            android.graphics.drawable.Drawable bg = root.getBackground();
+            if (bg != null) {
+                bg.setColorFilter(new android.graphics.PorterDuffColorFilter(
+                        colour, android.graphics.PorterDuff.Mode.SRC_ATOP));
+            }
+        }
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                tintFearButtons(group.getChildAt(i), colour);
+            }
+        }
+    }
     private NavigationView mNavigationView;
     private static ActivityResultLauncher<String> mRequestPermissionLauncher;
 

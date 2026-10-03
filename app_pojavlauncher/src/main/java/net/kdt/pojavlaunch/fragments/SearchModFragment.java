@@ -292,6 +292,16 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         });
 
         mFilterButton.setOnClickListener(v -> displayFilterDialog());
+
+        // DONE confirms the current search / selection straight away.
+        View doneBtn = view.findViewById(R.id.search_mod_done_btn);
+        if (doneBtn != null) {
+            doneBtn.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                searchMods(mSearchEditText != null ? mSearchEditText.getText().toString() : "");
+            });
+        }
         if (mImportButton != null) {
             mImportButton.setOnClickListener(v -> {
                 mImportLauncher.launch("*/*");
