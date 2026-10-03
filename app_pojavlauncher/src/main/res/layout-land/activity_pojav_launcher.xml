@@ -40,17 +40,23 @@
 
 
         <!-- FEAR download bar: topmost layer, so it shows over EVERY screen
-             whenever anything is downloading -->
+             whenever anything is downloading. Status sits UNDER the bar. -->
         <LinearLayout
             android:id="@+id/fear_dl_wrap"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="@dimen/_14sdp"
+            android:layout_marginBottom="@dimen/_8sdp"
             android:orientation="vertical"
             android:gravity="center_horizontal"
             android:elevation="40dp"
             android:visibility="gone">
+
+            <com.kdt.mcgui.FearBarView
+                android:id="@+id/fear_dl_bar"
+                android:layout_width="match_parent"
+                android:layout_height="136dp"
+                android:layout_marginHorizontal="@dimen/_4sdp" />
 
             <TextView
                 android:id="@+id/fear_dl_text"
@@ -58,20 +64,11 @@
                 android:layout_height="wrap_content"
                 android:text="0%"
                 android:textColor="#FFFFD9A0"
-                android:textSize="@dimen/_11ssp"
+                android:textSize="@dimen/_9ssp"
                 android:textStyle="bold"
-                android:letterSpacing="0.08"
-                android:shadowColor="#CC000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="4"
-                android:layout_marginBottom="@dimen/_2sdp" />
-
-            <com.kdt.mcgui.FearBarView
-                android:id="@+id/fear_dl_bar"
-                android:layout_width="match_parent"
-                android:layout_height="96dp"
-                android:layout_marginHorizontal="@dimen/_18sdp" />
+                android:letterSpacing="0.06"
+                android:maxLines="1"
+                android:layout_marginTop="@dimen/_1sdp" />
         </LinearLayout>
     </FrameLayout>
 
