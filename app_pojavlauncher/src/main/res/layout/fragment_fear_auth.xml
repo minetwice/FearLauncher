@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR ACCOUNTS - pick a method on the left, sign in on the right -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/theme_bg"
+    android:padding="@dimen/_12sdp">
+
+    <LinearLayout
+        android:id="@+id/fear_auth_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/fear_panel_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="4dp"
+                android:layout_height="@dimen/_28sdp"
+                android:background="@drawable/fear_accent_stripe" />
+
+            <TextView
+                android:id="@+id/add_account_title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="ACCOUNTS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_10sdp" />
+
+            <ImageButton
+                android:id="@+id/auth_open_site"
+                android:layout_width="@dimen/_34sdp"
+                android:layout_height="@dimen/_34sdp"
+                android:background="@drawable/fear_tray_row_bg"
+                android:padding="@dimen/_7sdp"
+                android:src="@drawable/ic_link_arrow"
+                android:contentDescription="@null"
+                android:visibility="gone"
+                app:tint="#FFFFFF" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/add_account_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pick a method on the left, then sign in beside it."
+            android:textColor="#99FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="@dimen/_4sdp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/auth_body"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:layout_constraintTop_toBottomOf="@id/fear_auth_header"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/auth_method_rail"
+            android:layout_width="@dimen/_132sdp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingEnd="@dimen/_8sdp">
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/auth_method_craftyn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_46sdp"
+                android:text="CRAFTYNMC"
+                android:textColor="#000000"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:minWidth="0dp"
+                android:maxLines="1"
+                android:background="@drawable/premium_button_bg"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/auth_method_mojang"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_46sdp"
+                android:text="MOJANG"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:minWidth="0dp"
+                android:maxLines="1"
+                android:background="@drawable/premium_glass_black_bg"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/auth_method_local"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_46sdp"
+                android:text="LOCAL"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_9ssp"
+                android:textStyle="bold"
+                android:minWidth="0dp"
+                android:maxLines="1"
+                android:background="@drawable/premium_glass_black_bg" />
+        </LinearLayout>
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/auth_pane"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

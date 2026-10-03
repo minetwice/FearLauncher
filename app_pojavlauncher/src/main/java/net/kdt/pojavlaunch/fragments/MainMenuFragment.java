@@ -360,7 +360,7 @@ public class MainMenuFragment extends Fragment {
             addAccount.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
-                Tools.swapFragment(requireActivity(), SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+                Tools.swapFragment(requireActivity(), FearAuthFragment.class, FearAuthFragment.TAG, null);
             });
         }
 
