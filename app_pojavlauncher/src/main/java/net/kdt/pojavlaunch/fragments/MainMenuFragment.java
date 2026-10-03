@@ -298,9 +298,26 @@ public class MainMenuFragment extends Fragment {
         }
         View trayCloseBg = view.findViewById(R.id.tray_close);
         if (trayCloseBg != null) {
-            trayCloseBg.setBackgroundResource(R.drawable.fear_tray_close_bg);
+            trayCloseBg.setBackgroundResource(R.drawable.fear_tray_row_bg);
             trayCloseBg.setBackgroundTintList(null);
         }
+
+        // Selection indicator, like the reference: the row being used takes a lighter
+        // fill and a white bar down its left edge; the rest stay flat.
+        final int[] trayRowIds = {R.id.tray_installations_btn, R.id.tray_jar_btn,
+                R.id.tray_controls_btn, R.id.tray_manager_btn, R.id.tray_more_btn,
+                R.id.tray_logs_btn};
+        for (int id : trayRowIds) {
+            View row = view.findViewById(id);
+            if (row == null) continue;
+            row.setOnTouchListener((vv, ev) -> {
+                if (ev.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                    markTrayActive(view, id);
+                }
+                return false;
+            });
+        }
+        markTrayActive(view, R.id.tray_installations_btn);
 
         // Sidebar icons are colourless - they were picking up the red accent through
         // @color/icon_outline_color. Tint the drawables white directly.
@@ -877,6 +894,20 @@ public class MainMenuFragment extends Fragment {
         if (tg != null) tg.setOnClickListener(v -> {
             try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://youtube.com/@twicefear3"))); } catch (Throwable ignored) {}
         });
+    }
+
+    /** Moves the selection indicator onto the given sidebar row. */
+    private void markTrayActive(View root, int activeId) {
+        if (root == null) return;
+        int[] ids = {R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
+                R.id.tray_manager_btn, R.id.tray_more_btn, R.id.tray_logs_btn};
+        for (int id : ids) {
+            View v = root.findViewById(id);
+            if (v == null) continue;
+            v.setBackgroundResource(id == activeId
+                    ? R.drawable.fear_tray_row_active
+                    : R.drawable.fear_tray_row_bg);
+        }
     }
 
     /** Swaps the menu icon between its orange (shut) and blue (open) forms. */
