@@ -1721,13 +1721,9 @@ public class MainMenuFragment extends Fragment {
 
     private void bindFearDownloadBar(View view) {
         final View wrap = view.findViewById(R.id.fear_dl_wrap);
-        final View track = view.findViewById(R.id.fear_dl_track);
-        final View fill = view.findViewById(R.id.fear_dl_fill);
-        final View glow = view.findViewById(R.id.fear_dl_glow);
+        final com.kdt.mcgui.FearBarView bar = view.findViewById(R.id.fear_dl_bar);
         final TextView text = view.findViewById(R.id.fear_dl_text);
-        if (wrap == null || track == null || mFearDlListener != null) return;
-
-        final float half = 26f * getResources().getDisplayMetrics().density;
+        if (wrap == null || bar == null || mFearDlListener != null) return;
         mFearDlListener = new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
             private void apply(int percent, Object[] va) {
                 final int p = Math.max(0, Math.min(100, percent));
@@ -1745,12 +1741,7 @@ public class MainMenuFragment extends Fragment {
                 wrap.post(() -> {
                     wrap.setVisibility(View.VISIBLE);
                     if (text != null) text.setText(fmsg);
-                    int w = track.getWidth();
-                    if (w <= 0) {
-                        track.post(() -> resize(track, fill, glow, p, half));
-                    } else {
-                        resize(track, fill, glow, p, half);
-                    }
+                    bar.setProgress(p);
                 });
             }
 
@@ -1774,17 +1765,6 @@ public class MainMenuFragment extends Fragment {
         for (String key : FEAR_DL_KEYS) {
             ProgressKeeper.addListener(key, mFearDlListener);
         }
-    }
-
-    private void resize(View track, View fill, View glow, int percent, float half) {
-        int w = track.getWidth();
-        if (w <= 0) return;
-        int filled = Math.max(4, (int) (w * (percent / 100f)));
-        if (fill != null) {
-            fill.getLayoutParams().width = filled;
-            fill.requestLayout();
-        }
-        if (glow != null) glow.setTranslationX(filled - half);
     }
 
     private void bindHomeBackground(View view) {
