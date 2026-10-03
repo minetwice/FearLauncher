@@ -309,81 +309,25 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-        // Drawer Operations Click Listeners
-        View trayLogs = view.findViewById(R.id.tray_logs_btn);
-        if (trayLogs != null) {
-            trayLogs.setOnClickListener(v -> {
+        // Drawer Operations Click Listeners - just the main entries
+        View trayInstallations = view.findViewById(R.id.tray_installations_btn);
+        if (trayInstallations != null) {
+            trayInstallations.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                shareLog(requireContext());
+                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.fragments.InstallationsFragment.class,
+                        net.kdt.pojavlaunch.fragments.InstallationsFragment.TAG, null);
             });
         }
 
-        View trayDownloads = view.findViewById(R.id.tray_downloads_btn);
-        if (trayDownloads != null) {
-            trayDownloads.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                int count = ProgressKeeper.getTaskCount();
-                if (count == 0) {
-                    Toast.makeText(requireContext(), "No active background downloads.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), count + " background download task(s) active.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        View trayNews = view.findViewById(R.id.tray_news_btn);
-        if (trayNews != null) {
-            trayNews.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                try {
-                    android.net.Uri uri = android.net.Uri.parse(getString(R.string.social_media_invite));
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } catch (Exception e) {
-                    Toast.makeText(requireContext(), "Opening Wiki/Discord invite failed.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        View trayMods = view.findViewById(R.id.tray_mods_btn);
-        if (trayMods != null) {
-            trayMods.setOnClickListener(v -> {
+        View trayJar = view.findViewById(R.id.tray_jar_btn);
+        if (trayJar != null) {
+            trayJar.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "mods");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View trayResourcePacks = view.findViewById(R.id.tray_resource_packs_btn);
-        if (trayResourcePacks != null) {
-            trayResourcePacks.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "resourcepacks");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
-            });
-        }
-
-        View trayShaderPacks = view.findViewById(R.id.tray_shader_packs_btn);
-        if (trayShaderPacks != null) {
-            trayShaderPacks.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                Bundle bundle = new Bundle();
-                bundle.putString("mode", "addon");
-                bundle.putString("initial_category", "shaders");
-                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, bundle);
+                mModInstallerLauncher.launch(null);
             });
         }
 
@@ -397,26 +341,15 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
-
-        // Open our Command Dashboard Dialog from Tray Experimental Stuff button
-        View traySettings = view.findViewById(R.id.tray_settings_btn);
-        if (traySettings != null) {
-            traySettings.setOnClickListener(v -> {
+        View trayMore = view.findViewById(R.id.tray_more_btn);
+        if (trayMore != null) {
+            trayMore.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                openCommandDashboard();
-            });
-        }
-
-        // Open our Creators Info Dialog from Tray Info button
-        View trayInfo = view.findViewById(R.id.tray_info_btn);
-        if (trayInfo != null) {
-            trayInfo.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
-                openCreatorsInfoDialog();
+                Tools.swapFragment(requireActivity(),
+                        net.kdt.pojavlaunch.prefs.screens.LauncherPreferenceFragment.class,
+                        net.kdt.pojavlaunch.LauncherActivity.SETTING_FRAGMENT_TAG, null);
             });
         }
 
