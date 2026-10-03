@@ -290,22 +290,7 @@
                     android:background="@drawable/fear_tray_row_bg"
                     android:layout_marginBottom="@dimen/_4sdp" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@drawable/fear_tray_divider"
-                    android:layout_marginTop="@dimen/_6sdp"
-                    android:layout_marginBottom="@dimen/_10sdp" />
 
-                <!-- footer: close, styled like the reference's sign-out row -->
-                <com.kdt.mcgui.LauncherMenuButton
-                    android:id="@+id/tray_close"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_46sdp"
-                    android:text="CLOSE PANEL"
-                    android:drawableStart="@drawable/ic_px_arrow_left"
-                    android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

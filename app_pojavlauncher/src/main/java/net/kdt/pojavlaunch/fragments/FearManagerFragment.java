@@ -43,6 +43,11 @@ public class FearManagerFragment extends Fragment {
     private final List<FearToggle> mToggles = new ArrayList<>();
     private FearTheme.Listener mAccentListener;
 
+    private File mGameDir;
+    private LinearLayout mSections;
+    /** "all" | "mods" | "resources" | "shaders" */
+    private String mFilter = "all";
+
     public FearManagerFragment() {
         super(R.layout.fragment_fear_manager);
     }
@@ -60,16 +65,15 @@ public class FearManagerFragment extends Fragment {
             instanceLabel.setText("INSTANCE: " + name.toUpperCase(Locale.US));
         }
 
-        LinearLayout sections = view.findViewById(R.id.manager_sections);
-        if (sections == null) return;
+        mSections = view.findViewById(R.id.manager_sections);
+        mGameDir = gameDir;
+        rebuildSections();
 
-        if (gameDir == null) {
-            sections.addView(note("NO INSTANCE SELECTED - PICK ONE ON THE HOME SCREEN FIRST."));
-        } else {
-            addSection(sections, gameDir, "mods", "MODS");
-            addSection(sections, gameDir, "resourcepacks", "RESOURCE PACKS");
-            addSection(sections, gameDir, "shaderpacks", "SHADERS");
-        }
+        // one filter per asset class, so only that class is listed
+        bindFilter(view, R.id.manager_filter_all, "all");
+        bindFilter(view, R.id.manager_filter_mods, "mods");
+        bindFilter(view, R.id.manager_filter_resources, "resources");
+        bindFilter(view, R.id.manager_filter_shaders, "shaders");
 
         // keep the pills in step with the launcher-wide colour cycle
         final View root = view;
@@ -91,6 +95,59 @@ public class FearManagerFragment extends Fragment {
         }
         mToggles.clear();
         super.onDestroyView();
+    }
+
+    /** Rebuilds the list for the active filter. */
+    private void rebuildSections() {
+        if (mSections == null) return;
+        mSections.removeAllViews();
+        mToggles.clear();
+        if (mGameDir == null) {
+            mSections.addView(note("NO INSTANCE SELECTED - PICK ONE ON THE HOME SCREEN FIRST."));
+            return;
+        }
+        if (mFilter.equals("all") || mFilter.equals("mods")) {
+            addSection(mSections, mGameDir, "mods", "MODS");
+        }
+        if (mFilter.equals("all") || mFilter.equals("resources")) {
+            addSection(mSections, mGameDir, "resourcepacks", "RESOURCE PACKS");
+        }
+        if (mFilter.equals("all") || mFilter.equals("shaders")) {
+            addSection(mSections, mGameDir, "shaderpacks", "SHADERS");
+        }
+    }
+
+    private void bindFilter(View root, int buttonId, String filter) {
+        View b = root.findViewById(buttonId);
+        if (b == null) return;
+        b.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            mFilter = filter;
+            styleFilters(root);
+            rebuildSections();
+        });
+        styleFilters(root);
+    }
+
+    private void styleFilters(View root) {
+        int[] ids = {R.id.manager_filter_all, R.id.manager_filter_mods,
+                R.id.manager_filter_resources, R.id.manager_filter_shaders};
+        for (int id : ids) {
+            View b = root.findViewById(id);
+            if (!(b instanceof android.widget.TextView)) continue;
+            boolean on = mFilter.equals(filterName(id));
+            ((android.widget.TextView) b).setTextColor(on ? android.graphics.Color.BLACK
+                    : android.graphics.Color.WHITE);
+            b.setBackgroundResource(on ? R.drawable.premium_button_bg
+                    : R.drawable.premium_glass_black_bg);
+        }
+    }
+
+    private static String filterName(int id) {
+        if (id == R.id.manager_filter_mods) return "mods";
+        if (id == R.id.manager_filter_resources) return "resources";
+        if (id == R.id.manager_filter_shaders) return "shaders";
+        return "all";
     }
 
     private void addSection(LinearLayout parent, File gameDir, String folder, String label) {

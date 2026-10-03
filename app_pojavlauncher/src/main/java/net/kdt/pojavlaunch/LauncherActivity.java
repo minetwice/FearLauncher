@@ -105,8 +105,7 @@ public class LauncherActivity extends BaseActivity {
         int id = v.getId();
         return id == R.id.tray_installations_btn || id == R.id.tray_jar_btn
                 || id == R.id.tray_controls_btn || id == R.id.tray_more_btn
-                || id == R.id.tray_manager_btn || id == R.id.tray_logs_btn
-                || id == R.id.tray_close;
+                || id == R.id.tray_manager_btn || id == R.id.tray_logs_btn;
     }
 
     private void tintFearButtons(View root, int colour) {

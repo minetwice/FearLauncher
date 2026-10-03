@@ -66,12 +66,48 @@
             android:layout_marginTop="@dimen/_2sdp" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/manager_filters"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_34sdp"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/_8sdp"
+        app:layout_constraintTop_toBottomOf="@id/manager_header">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/manager_filter_all"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="ALL" android:textSize="@dimen/_8ssp" android:textColor="#000000"
+            android:minWidth="0dp" android:maxLines="1" android:background="@drawable/premium_button_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/manager_filter_mods"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="MODS" android:textSize="@dimen/_8ssp" android:textColor="#FFFFFF"
+            android:minWidth="0dp" android:maxLines="1" android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/manager_filter_resources"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="RESOURCES" android:textSize="@dimen/_8ssp" android:textColor="#FFFFFF"
+            android:minWidth="0dp" android:maxLines="1" android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="4dp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/manager_filter_shaders"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:text="SHADERS" android:textSize="@dimen/_8ssp" android:textColor="#FFFFFF"
+            android:minWidth="0dp" android:maxLines="1" android:background="@drawable/premium_glass_black_bg" />
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/_8sdp"
         android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/manager_header"
+        app:layout_constraintTop_toBottomOf="@id/manager_filters"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout

@@ -283,6 +283,7 @@ public class MainMenuFragment extends Fragment {
         if (settingsTray != null) {
             // Plain rounded panel again - no wedge silhouette.
             settingsTray.setBackgroundResource(R.drawable.fear_tray_panel);
+            settingsTray.setBackgroundTintList(null);
         }
 
         // The rows and the close button were inheriting premium_button_bg / theme_button_bg
@@ -291,12 +292,6 @@ public class MainMenuFragment extends Fragment {
         // Row backgrounds are drawn by FearRowBgDrawable (see markTrayActive) so the
         // style's bordered drawable can never come back, and the selection bar stays a
         // fixed 3dp instead of stretching across the row.
-        View trayCloseBg = view.findViewById(R.id.tray_close);
-        if (trayCloseBg != null) {
-            trayCloseBg.setBackgroundResource(R.drawable.fear_tray_row_bg);
-            trayCloseBg.setBackgroundTintList(null);
-        }
-
         // Selection indicator, like the reference: the row being used takes a lighter
         // fill and a white bar down its left edge; the rest stay flat.
         final int[] trayRowIds = {R.id.tray_installations_btn, R.id.tray_jar_btn,
@@ -352,15 +347,6 @@ public class MainMenuFragment extends Fragment {
                 } else {
                     collapseTray(settingsTray);
                 }
-            });
-        }
-
-        View trayClose = view.findViewById(R.id.tray_close);
-        if (trayClose != null && settingsTray != null) {
-            trayClose.setOnClickListener(v -> {
-                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                net.kdt.pojavlaunch.SoundManager.playClick();
-                collapseTray(settingsTray);
             });
         }
 
