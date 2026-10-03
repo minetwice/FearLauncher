@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- renderer: a processor die with pins -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M6,6h12v12H6zM8.5,8.5h7v7h-7z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M3,8h2v2H3zM3,11h2v2H3zM3,14h2v2H3zM19,8h2v2h-2zM19,11h2v2h-2zM19,14h2v2h-2zM8,3h2v2H8zM11,3h2v2h-2zM14,3h2v2h-2zM8,19h2v2H8zM11,19h2v2h-2zM14,19h2v2h-2z" />
+</vector>
