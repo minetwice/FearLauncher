@@ -288,8 +288,11 @@ public class MainMenuFragment extends Fragment {
                 if (settingsTray.getVisibility() != View.VISIBLE) {
                     settingsTray.setVisibility(View.VISIBLE);
                     settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                    // fade + slide in together
+                    settingsTray.setTranslationX(-46f * getResources().getDisplayMetrics().density);
+                    settingsTray.setAlpha(0f);
                     settingsTray.animate()
-                            .translationX(0f).setDuration(240)
+                            .translationX(0f).alpha(1f).setDuration(280)
                             .setInterpolator(new android.view.animation.DecelerateInterpolator())
                             .withEndAction(() -> settingsTray.setLayerType(View.LAYER_TYPE_NONE, null))
                             .start();
@@ -831,10 +834,12 @@ public class MainMenuFragment extends Fragment {
             settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             settingsTray.animate()
                     .translationX(-settingsTray.getWidth() - 24)
-                    .setDuration(200)
+                    .alpha(0f)
+                    .setDuration(220)
                     .setInterpolator(new android.view.animation.AccelerateInterpolator())
                     .withEndAction(() -> {
                         settingsTray.setVisibility(View.GONE);
+                        settingsTray.setAlpha(1f);
                         settingsTray.setLayerType(View.LAYER_TYPE_NONE, null);
                     }).start();
         }

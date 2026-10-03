@@ -102,7 +102,8 @@ public class LauncherActivity extends BaseActivity {
 
     private void tintFearButtons(View root, int colour) {
         if (root == null) return;
-        if (root instanceof com.kdt.mcgui.MineButton) {
+        if (root instanceof com.kdt.mcgui.MineButton
+                || root instanceof com.kdt.mcgui.LauncherMenuButton) {
             android.graphics.drawable.Drawable bg = root.getBackground();
             if (bg != null) {
                 bg.setColorFilter(new android.graphics.PorterDuffColorFilter(
