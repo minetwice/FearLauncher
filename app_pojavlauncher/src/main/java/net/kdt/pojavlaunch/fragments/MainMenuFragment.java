@@ -354,6 +354,16 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        // Add account, right at the top of the home screen
+        View addAccount = view.findViewById(R.id.add_account_btn);
+        if (addAccount != null) {
+            addAccount.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                Tools.swapFragment(requireActivity(), SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+            });
+        }
+
         View trayManager = view.findViewById(R.id.tray_manager_btn);
         if (trayManager != null) {
             trayManager.setOnClickListener(v -> {

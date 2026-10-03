@@ -1,93 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Redesigned FEAR Authentication Method Selector — 2026 Popular Launcher Dashboard Standard -->
+<!-- FEAR ADD ACCOUNT - pick how the account is created -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/theme_bg">
+    android:background="@drawable/theme_bg"
+    android:padding="@dimen/_12sdp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="@dimen/_500sdp"
-        android:layout_height="@dimen/_280sdp"
-        android:layout_gravity="center"
-        android:background="@drawable/premium_glass_black_bg"
-        android:padding="@dimen/_24sdp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout
+        android:id="@+id/fear_auth_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/fear_panel_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Left Side: Header and Button Selectors -->
-        <TextView
-            android:id="@+id/add_account_title"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SECURE IDENTITY AUTHORIZATION"
-            android:textColor="#FF2B3A"
-            android:textSize="@dimen/_16ssp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="4dp"
+                android:layout_height="@dimen/_28sdp"
+                android:background="@drawable/fear_accent_stripe" />
+
+            <TextView
+                android:id="@+id/add_account_title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="ADD ACCOUNT"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_10sdp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/add_account_subtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose your preferred Minecraft authentication mechanism"
-            android:textColor="#80FFFFFF"
+            android:text="Pick how you want to sign in."
+            android:textColor="#99FFFFFF"
             android:textSize="@dimen/_8ssp"
-            app:layout_constraintTop_toBottomOf="@id/add_account_title"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="2dp" />
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="@dimen/_4sdp" />
+    </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/auth_method_container"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="@dimen/_20sdp"
-            app:layout_constraintTop_toBottomOf="@id/add_account_subtitle"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintWidth_percent="0.55">
+    <LinearLayout
+        android:id="@+id/auth_method_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/_12sdp"
+        app:layout_constraintTop_toBottomOf="@id/fear_auth_header"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-            <!-- Microsoft Auth -->
-            <com.kdt.mcgui.MineButton
-                android:id="@+id/button_microsoft_authentication"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_40sdp"
-                android:text="MICROSOFT SECURITY ACCESS"
-                android:drawableStart="@drawable/ic_auth_ms"
-                android:layout_marginBottom="10dp" />
-
-            <!-- Local Identity -->
-            <com.kdt.mcgui.MineButton
-                android:id="@+id/button_local_authentication"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_40sdp"
-                android:text="LOCAL IDENTITY ACCESS"
-                android:drawableStart="@drawable/ic_mc_skull"
-                android:layout_marginBottom="10dp" />
-
-            <!-- CraftynMC Network Auth -->
             <com.kdt.mcgui.MineButton
                 android:id="@+id/button_elyfly_authentication"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_40sdp"
-                android:text="FEAR NETWORK COMMUNITY"
-                android:drawableStart="@drawable/ic_auth_craftynmc" />
-        </LinearLayout>
+                android:layout_height="@dimen/_64sdp"
+                android:text="CRAFTYNMC"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:paddingHorizontal="@dimen/_16sdp"
+                android:drawableStart="@drawable/ic_auth_craftynmc"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_14sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_10sdp" />
 
-        <!-- Right Side Logo visuals -->
-        <ImageView
-            android:layout_width="@dimen/_160sdp"
-            android:layout_height="@dimen/_160sdp"
-            android:src="@drawable/ic_app_logo"
-            app:tint="#26FF2B3A"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Create or sign in with a CraftynMC account."
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:layout_marginBottom="@dimen/_14sdp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_microsoft_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_64sdp"
+                android:text="MOJANG"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:paddingHorizontal="@dimen/_16sdp"
+                android:drawableStart="@drawable/ic_auth_ms"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_14sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_10sdp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sign in with your Mojang / Microsoft account."
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:layout_marginBottom="@dimen/_14sdp" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/button_local_authentication"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_64sdp"
+                android:text="LOCAL"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:paddingHorizontal="@dimen/_16sdp"
+                android:drawableStart="@drawable/ic_mc_skull"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_14sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_10sdp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Play offline with just a username."
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:layout_marginBottom="@dimen/_14sdp" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

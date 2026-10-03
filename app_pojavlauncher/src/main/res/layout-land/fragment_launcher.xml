@@ -95,6 +95,24 @@
         <ImageButton android:id="@+id/header_account_hub_btn" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     </LinearLayout>
 
+    <!-- == ADD ACCOUNT (top centre) == -->
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/add_account_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_34sdp"
+        android:minWidth="0dp"
+        android:paddingHorizontal="@dimen/_16sdp"
+        android:text="+  ADD ACCOUNT"
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/_9ssp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:background="@drawable/fear_tray_row_bg"
+        android:layout_marginTop="@dimen/_6sdp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- == HOME == -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/landscape_dashboard"
