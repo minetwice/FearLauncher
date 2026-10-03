@@ -200,32 +200,6 @@
                 android:orientation="vertical"
                 android:padding="@dimen/_12sdp">
 
-                <!-- header -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="@dimen/_12sdp">
-
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="@dimen/_22sdp"
-                        android:background="@drawable/fear_accent_stripe" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="FEAR BOOST"
-                        android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_12ssp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.12"
-                        android:maxLines="1"
-                        android:layout_marginStart="@dimen/_10sdp" />
-                </LinearLayout>
-
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_installations_btn"
                     android:layout_width="match_parent"
