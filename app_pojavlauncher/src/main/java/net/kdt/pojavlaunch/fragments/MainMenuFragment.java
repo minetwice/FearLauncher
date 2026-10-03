@@ -281,9 +281,20 @@ public class MainMenuFragment extends Fragment {
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (settingsTray != null) {
-            // Plain rounded panel again - no wedge silhouette.
-            settingsTray.setBackgroundResource(R.drawable.fear_tray_panel);
+            // Panel background built in code rather than from a shape resource, with an
+            // explicit zero-width stroke. Nothing - not a stale drawable, not a style,
+            // not a tint - can put a border on it now.
+            android.graphics.drawable.GradientDrawable panel =
+                    new android.graphics.drawable.GradientDrawable();
+            panel.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            panel.setColor(0x99101828);
+            panel.setCornerRadius(20f * getResources().getDisplayMetrics().density);
+            panel.setStroke(0, 0x00000000);
+            settingsTray.setBackground(panel);
             settingsTray.setBackgroundTintList(null);
+            // and make sure the container inside never carries one either
+            View trayContainer = view.findViewById(R.id.tray_container);
+            if (trayContainer != null) trayContainer.setBackground(null);
         }
 
         // The rows and the close button were inheriting premium_button_bg / theme_button_bg
