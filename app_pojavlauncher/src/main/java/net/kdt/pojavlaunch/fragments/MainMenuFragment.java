@@ -1610,6 +1610,47 @@ public class MainMenuFragment extends Fragment {
         v.setElevation(0f);
     }
 
+    // ---- character idle gesture ----
+    private android.os.Handler mIdleHandler;
+    private Runnable mIdleRunnable;
+    private android.animation.ValueAnimator mIdleAnimator;
+
+    /** Every 10 seconds the character glances left and right and lifts its arms. */
+    private void startCharacterIdle(View view) {
+        final com.kdt.mcgui.MinecraftSkinView body = view.findViewById(R.id.homepage_skin_body);
+        if (body == null) return;
+        if (mIdleHandler == null) mIdleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        if (mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
+        mIdleRunnable = new Runnable() {
+            @Override
+            public void run() {
+                playCharacterGesture(body);
+                mIdleHandler.postDelayed(this, 10000);
+            }
+        };
+        mIdleHandler.postDelayed(mIdleRunnable, 10000);
+    }
+
+    private void playCharacterGesture(final com.kdt.mcgui.MinecraftSkinView body) {
+        if (mIdleAnimator != null) mIdleAnimator.cancel();
+        mIdleAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        mIdleAnimator.setDuration(2600);
+        mIdleAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        mIdleAnimator.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            float head = (float) Math.sin(t * Math.PI * 2.0) * 24f;   // turn left, then right
+            float arm = (float) Math.abs(Math.sin(t * Math.PI * 2.0)) * 34f;  // lift, twice
+            body.setAnimationAngles(head, arm);
+        });
+        mIdleAnimator.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                body.setAnimationAngles(0f, 0f);
+            }
+        });
+        mIdleAnimator.start();
+    }
+
     private void bindHomeBackground(View view) {
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
