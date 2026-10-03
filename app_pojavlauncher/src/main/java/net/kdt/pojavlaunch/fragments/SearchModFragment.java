@@ -126,9 +126,11 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         // red <-> blue in step with the rest of the launcher.
         final TextView fearHeader = view.findViewById(R.id.search_mod_header_title);
         final View fearImportBtn = view.findViewById(R.id.mineButton_import_local_modpack);
+        final View fearStripe = view.findViewById(R.id.fear_deck_stripe);
         if (fearHeader != null) {
             mFearAccentListener = colour -> {
                 fearHeader.setTextColor(colour);
+                if (fearStripe != null) fearStripe.setBackgroundTintList(ColorStateList.valueOf(colour));
                 if (fearImportBtn != null) fearImportBtn.setBackgroundTintList(ColorStateList.valueOf(colour));
             };
             net.kdt.pojavlaunch.utils.FearTheme.register(mFearAccentListener);
@@ -155,13 +157,13 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
 
         if ("modpack".equals(mode)) {
             if (headerTitle != null) {
-                headerTitle.setText("MODPACK DEPLOY ENGINE");
+                headerTitle.setText("DOWNLOAD CENTRE");
             }
             if (downloaderTabs != null) {
                 downloaderTabs.setVisibility(View.GONE);
             }
             if (mSearchEditText != null) {
-                mSearchEditText.setHint("SEARCH MODPACK PROTOCOLS...");
+                mSearchEditText.setHint("SEARCH MODPACKS...");
             }
             if (mImportButton != null) {
                 mImportButton.setVisibility(View.VISIBLE);
@@ -172,7 +174,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
             mSearchFilters.isShaderPack = false;
         } else {
             if (headerTitle != null) {
-                headerTitle.setText("ADDON PROVISIONING HUB");
+                headerTitle.setText("DOWNLOAD CENTRE");
             }
             if (downloaderTabs != null) {
                 downloaderTabs.setVisibility(View.VISIBLE);
@@ -181,7 +183,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 btnModpacks.setVisibility(View.GONE);
             }
             if (mSearchEditText != null) {
-                mSearchEditText.setHint("SEARCH ADDONS & ASSETS...");
+                mSearchEditText.setHint("SEARCH THE ARCHIVE...");
             }
             if (mImportButton != null) {
                 mImportButton.setVisibility(View.GONE);

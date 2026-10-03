@@ -1610,114 +1610,7 @@ public class MainMenuFragment extends Fragment {
         v.setElevation(0f);
     }
 
-    // ---- FEAR download bar ----
-    private net.kdt.pojavlaunch.progresskeeper.ProgressListener mFearDlListener;
-    private static final String[] FEAR_DL_KEYS = {
-            com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT,
-            com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME,
-            com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK,
-            com.kdt.mcgui.ProgressLayout.AUTHENTICATE,
-            com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST,
-            com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
-    };
-
-    /**
-     * The FEAR download bar. The downloader already pushes the real percentage,
-     * the megabytes moved and the current speed through the progress listener,
-     * so the fill simply follows the transfer - it creeps while the network is
-     * slow and races when it is fast.
-     */
-    // ---- character idle gesture ----
-    private android.os.Handler mIdleHandler;
-    private Runnable mIdleRunnable;
-    private android.animation.ValueAnimator mIdleAnimator;
-
-    /** Every 10 seconds the character glances left and right and lifts its arms. */
-    private void startCharacterIdle(View view) {
-        final com.kdt.mcgui.MinecraftSkinView body = view.findViewById(R.id.homepage_skin_body);
-        if (body == null) return;
-        if (mIdleHandler == null) mIdleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-        if (mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
-        mIdleRunnable = new Runnable() {
-            @Override
-            public void run() {
-                playCharacterGesture(body);
-                mIdleHandler.postDelayed(this, 10000);
-            }
-        };
-        mIdleHandler.postDelayed(mIdleRunnable, 10000);
-    }
-
-    private void playCharacterGesture(final com.kdt.mcgui.MinecraftSkinView body) {
-        if (mIdleAnimator != null) mIdleAnimator.cancel();
-        mIdleAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f);
-        mIdleAnimator.setDuration(2600);
-        mIdleAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
-        mIdleAnimator.addUpdateListener(a -> {
-            float t = (float) a.getAnimatedValue();
-            float head = (float) Math.sin(t * Math.PI * 2.0) * 24f;   // turn left, then right
-            float arm = (float) Math.abs(Math.sin(t * Math.PI * 2.0)) * 34f;  // lift, twice
-            body.setAnimationAngles(head, arm);
-        });
-        mIdleAnimator.addListener(new android.animation.AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(android.animation.Animator animation) {
-                body.setAnimationAngles(0f, 0f);
-            }
-        });
-        mIdleAnimator.start();
-    }
-
-    private void bindFearDownloadBar(View view) {
-        final View wrap = view.findViewById(R.id.fear_dl_wrap);
-        final com.kdt.mcgui.FearBarView bar = view.findViewById(R.id.fear_dl_bar);
-        final TextView text = view.findViewById(R.id.fear_dl_text);
-        if (wrap == null || bar == null || mFearDlListener != null) return;
-        mFearDlListener = new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
-            private void apply(int percent, Object[] va) {
-                final int p = Math.max(0, Math.min(100, percent));
-                String msg = p + "%";
-                if (va != null && va.length >= 2 && va[0] instanceof Number && va[1] instanceof Number) {
-                    msg = p + "%      "
-                            + String.format(java.util.Locale.US, "%.1f", ((Number) va[0]).doubleValue())
-                            + " / " + String.format(java.util.Locale.US, "%.1f", ((Number) va[1]).doubleValue())
-                            + " MB";
-                    if (va.length >= 3 && va[2] instanceof Number) {
-                        msg += "      " + String.format(java.util.Locale.US, "%.1f", ((Number) va[2]).doubleValue()) + " MB/s";
-                    }
-                }
-                final String fmsg = msg;
-                wrap.post(() -> {
-                    wrap.setVisibility(View.VISIBLE);
-                    if (text != null) text.setText(fmsg);
-                    bar.setProgress(p);
-                });
-            }
-
-            @Override
-            public void onProgressStarted() {
-                wrap.post(() -> wrap.setVisibility(View.VISIBLE));
-            }
-
-            @Override
-            public void onProgressUpdated(int progress, int resid, Object... va) {
-                apply(progress, va);
-            }
-
-            @Override
-            public void onProgressEnded() {
-                wrap.post(() -> {
-                    if (ProgressKeeper.getTaskCount() == 0) wrap.setVisibility(View.GONE);
-                });
-            }
-        };
-        for (String key : FEAR_DL_KEYS) {
-            ProgressKeeper.addListener(key, mFearDlListener);
-        }
-    }
-
     private void bindHomeBackground(View view) {
-        bindFearDownloadBar(view);
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
             ((com.kdt.mcgui.LoopingVideoBackground) bg)
@@ -1904,10 +1797,6 @@ public class MainMenuFragment extends Fragment {
         }
         super.onDestroyView();
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
-        if (mFearDlListener != null) {
-            for (String key : FEAR_DL_KEYS) ProgressKeeper.removeListener(key, mFearDlListener);
-            mFearDlListener = null;
-        }
         if (mIdleHandler != null && mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
         if (mIdleAnimator != null) { mIdleAnimator.cancel(); mIdleAnimator = null; }
     }

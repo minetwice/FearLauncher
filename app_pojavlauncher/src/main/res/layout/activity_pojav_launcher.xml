@@ -62,6 +62,35 @@
             android:focusable="false"
             android:background="#00FF2B3A" />
 
+
+        <!-- FEAR download bar: topmost layer, so it shows over EVERY screen
+             whenever anything is downloading -->
+        <LinearLayout
+            android:id="@+id/fear_dl_wrap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:elevation="40dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/fear_dl_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0%"
+                android:textColor="#FFFFD9A0"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06" />
+
+            <com.kdt.mcgui.FearBarView
+                android:id="@+id/fear_dl_bar"
+                android:layout_width="330dp"
+                android:layout_height="60dp" />
+        </LinearLayout>
     </FrameLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

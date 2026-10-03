@@ -65,6 +65,21 @@ public class LauncherActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
     private View mFearGlobalWash;
 
+    // ---- global download bar: lives on the top layer of the activity, so it
+    // shows over every screen whenever anything is downloading ----
+    private View mFearDlWrap;
+    private com.kdt.mcgui.FearBarView mFearDlBar;
+    private android.widget.TextView mFearDlText;
+    private net.kdt.pojavlaunch.progresskeeper.ProgressListener mFearDlListener;
+    private static final String[] FEAR_DL_KEYS = {
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_MINECRAFT,
+            com.kdt.mcgui.ProgressLayout.UNPACK_RUNTIME,
+            com.kdt.mcgui.ProgressLayout.INSTALL_MODPACK,
+            com.kdt.mcgui.ProgressLayout.AUTHENTICATE,
+            com.kdt.mcgui.ProgressLayout.DOWNLOAD_VERSION_LIST,
+            com.kdt.mcgui.ProgressLayout.INSTANCE_INSTALL,
+    };
+
     /** The wash rides the shared FearTheme cycle so every screen shifts together. */
     private final net.kdt.pojavlaunch.utils.FearTheme.Listener mFearWashListener = colour -> {
         if (mFearGlobalWash != null) {
@@ -258,6 +273,11 @@ public class LauncherActivity extends BaseActivity {
         }
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
         net.kdt.pojavlaunch.utils.FearTheme.unregister(mFearWashListener);
+        if (mFearDlListener != null) {
+            for (String key : FEAR_DL_KEYS)
+                net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.removeListener(key, mFearDlListener);
+            mFearDlListener = null;
+        }
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
     }
@@ -339,10 +359,65 @@ public class LauncherActivity extends BaseActivity {
         mNavigationView = null;
         mFearGlobalWash = findViewById(R.id.fear_global_wash);
         net.kdt.pojavlaunch.utils.FearTheme.register(mFearWashListener);
+        bindGlobalDownloadBar();
         // The slide-out navigation sidebar was removed - the hamburger tray in
         // the home fragment is the only menu now, so kill the edge-swipe.
         if (mDrawerLayout != null) {
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
+    }
+
+    /**
+     * The dragon-head bar, hoisted to the activity so it floats above every
+     * screen. It listens to all the download progress keys and follows the real
+     * transfer, and hides itself once no task is left.
+     */
+    private void bindGlobalDownloadBar() {
+        mFearDlWrap = findViewById(R.id.fear_dl_wrap);
+        mFearDlBar = findViewById(R.id.fear_dl_bar);
+        mFearDlText = findViewById(R.id.fear_dl_text);
+        if (mFearDlWrap == null || mFearDlBar == null || mFearDlListener != null) return;
+
+        mFearDlListener = new net.kdt.pojavlaunch.progresskeeper.ProgressListener() {
+            private void apply(int percent, Object[] va) {
+                final int p = Math.max(0, Math.min(100, percent));
+                String msg = p + "%";
+                if (va != null && va.length >= 2 && va[0] instanceof Number && va[1] instanceof Number) {
+                    msg = p + "%      "
+                            + String.format(java.util.Locale.US, "%.1f", ((Number) va[0]).doubleValue())
+                            + " / " + String.format(java.util.Locale.US, "%.1f", ((Number) va[1]).doubleValue())
+                            + " MB";
+                    if (va.length >= 3 && va[2] instanceof Number) {
+                        msg += "      " + String.format(java.util.Locale.US, "%.1f",
+                                ((Number) va[2]).doubleValue()) + " MB/s";
+                    }
+                }
+                final String fmsg = msg;
+                mFearDlWrap.post(() -> {
+                    mFearDlWrap.setVisibility(View.VISIBLE);
+                    if (mFearDlText != null) mFearDlText.setText(fmsg);
+                    mFearDlBar.setProgress(p);
+                });
+            }
+
+            @Override public void onProgressStarted() {
+                mFearDlWrap.post(() -> mFearDlWrap.setVisibility(View.VISIBLE));
+            }
+
+            @Override public void onProgressUpdated(int progress, int resid, Object... va) {
+                apply(progress, va);
+            }
+
+            @Override public void onProgressEnded() {
+                mFearDlWrap.post(() -> {
+                    if (net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.getTaskCount() == 0) {
+                        mFearDlWrap.setVisibility(View.GONE);
+                    }
+                });
+            }
+        };
+        for (String key : FEAR_DL_KEYS) {
+            net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.addListener(key, mFearDlListener);
         }
     }
 
