@@ -1,10 +1,15 @@
 package net.kdt.pojavlaunch.fragments;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,14 +21,21 @@ import com.kdt.mcgui.ProgressLayout;
 
 import git.artdeell.mojo.R;
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
+import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
+import net.kdt.pojavlaunch.extra.ExtraConstants;
+import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * One screen for every way in.
+ * Accounts in one place.
  *
- * The method rail sits on the left - CraftynMC, Mojang, Local - and the matching
- * sign-in form loads into the pane beside it, so nothing is a separate page.
- * CraftynMC also carries an arrow that opens the account site in the browser.
+ * Your existing accounts are listed on the left, each with its head and name, and
+ * the one in use is marked. Tapping one switches to it. The last entry adds a new
+ * account, which is what reveals the method rail and the sign-in pane on the right.
  */
 public class FearAuthFragment extends Fragment {
 
@@ -32,6 +44,10 @@ public class FearAuthFragment extends Fragment {
     private static final String CRAFTYN_SITE = "https://craftynmc.onrender.com/";
 
     private View mOpenSite;
+    private LinearLayout mAccountsList;
+    private View mNewContainer;
+    private ImageView mCurrentHead;
+    private TextView mCurrentName;
     private String mMethod = "craftyn";
 
     public FearAuthFragment() {
@@ -41,6 +57,11 @@ public class FearAuthFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        mAccountsList = view.findViewById(R.id.auth_accounts_list);
+        mNewContainer = view.findViewById(R.id.auth_new_container);
+        mCurrentHead = view.findViewById(R.id.auth_current_head);
+        mCurrentName = view.findViewById(R.id.auth_current_name);
 
         mOpenSite = view.findViewById(R.id.auth_open_site);
         if (mOpenSite != null) {
@@ -59,7 +80,135 @@ public class FearAuthFragment extends Fragment {
         bindMethod(view, R.id.auth_method_mojang, "mojang");
         bindMethod(view, R.id.auth_method_local, "local");
 
+        rebuildAccounts();
         showMethod("craftyn");
+    }
+
+    /** Rebuilds the left column: one row per account, then the add-new row. */
+    private void rebuildAccounts() {
+        if (mAccountsList == null) return;
+        mAccountsList.removeAllViews();
+
+        List<MinecraftAccount> accounts = new ArrayList<>();
+        MinecraftAccount current = null;
+        try {
+            Accounts loaded = Accounts.load();
+            accounts.addAll(loaded.accounts);
+            current = Accounts.getCurrent();
+        } catch (Exception ignored) { }
+
+        refreshHeader(current);
+
+        for (MinecraftAccount account : accounts) {
+            boolean selected = current != null
+                    && current.mSaveLocation != null
+                    && current.mSaveLocation.equals(account.mSaveLocation);
+            mAccountsList.addView(accountRow(account, selected));
+        }
+        if (accounts.isEmpty()) {
+            mAccountsList.addView(hint("No accounts yet."));
+        }
+        mAccountsList.addView(addNewRow());
+    }
+
+    private void refreshHeader(MinecraftAccount current) {
+        if (mCurrentName != null) {
+            mCurrentName.setText(current != null ? current.username : "No account selected");
+        }
+        if (mCurrentHead != null) {
+            Bitmap face = null;
+            try {
+                if (current != null) face = current.getSkinFace();
+            } catch (Exception ignored) { }
+            if (face != null) mCurrentHead.setImageBitmap(face);
+            else mCurrentHead.setImageResource(R.drawable.ic_app_logo);
+        }
+    }
+
+    private View accountRow(final MinecraftAccount account, boolean selected) {
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rp.bottomMargin = dp(6);
+        row.setLayoutParams(rp);
+        row.setBackgroundResource(selected ? R.drawable.fear_tray_row_active
+                : R.drawable.fear_tray_row_bg);
+        row.setPadding(dp(10), dp(8), dp(10), dp(8));
+        row.setElevation(dp(3));
+
+        ImageView head = new ImageView(requireContext());
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(dp(26), dp(26));
+        hp.setMarginEnd(dp(10));
+        head.setLayoutParams(hp);
+        head.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        Bitmap face = null;
+        try {
+            face = account.getSkinFace();
+        } catch (Exception ignored) { }
+        if (face != null) head.setImageBitmap(face);
+        else head.setImageResource(R.drawable.ic_app_logo);
+
+        TextView name = new TextView(requireContext());
+        name.setText(account.username != null ? account.username : "Account");
+        name.setTextColor(selected ? Color.BLACK : Color.WHITE);
+        name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f);
+        name.setMaxLines(1);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        name.setLayoutParams(np);
+
+        row.addView(head);
+        row.addView(name);
+        row.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            Accounts.setCurrent(account);
+            ExtraCore.setValue(ExtraConstants.REFRESH_ACCOUNT_SPINNER, true);
+            rebuildAccounts();
+            if (mNewContainer != null) mNewContainer.setVisibility(View.GONE);
+        });
+        return row;
+    }
+
+    private View addNewRow() {
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rp.topMargin = dp(4);
+        row.setLayoutParams(rp);
+        row.setBackgroundResource(R.drawable.fear_tray_row_bg);
+        row.setPadding(dp(10), dp(10), dp(10), dp(10));
+        row.setElevation(dp(3));
+
+        TextView label = new TextView(requireContext());
+        label.setText("+  NEW ACCOUNT");
+        label.setTextColor(Color.WHITE);
+        label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f);
+        label.setMaxLines(1);
+        label.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        row.addView(label);
+
+        row.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            if (mNewContainer != null) mNewContainer.setVisibility(View.VISIBLE);
+            showMethod(mMethod);
+        });
+        return row;
+    }
+
+    private TextView hint(String text) {
+        TextView tv = new TextView(requireContext());
+        tv.setText(text);
+        tv.setTextColor(0x80FFFFFF);
+        tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f);
+        tv.setPadding(dp(4), dp(2), dp(4), dp(6));
+        return tv;
     }
 
     private void bindMethod(View root, int buttonId, String method) {
@@ -115,5 +264,9 @@ public class FearAuthFragment extends Fragment {
             b.setBackgroundResource(on ? R.drawable.premium_button_bg
                     : R.drawable.premium_glass_black_bg);
         }
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 }
