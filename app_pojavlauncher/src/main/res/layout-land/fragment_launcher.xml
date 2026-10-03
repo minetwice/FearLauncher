@@ -207,7 +207,7 @@
                     android:text="INSTALLATIONS"
                     android:drawableStart="@drawable/ic_px_home"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
@@ -218,7 +218,7 @@
                     android:text="EXECUTE A JAR"
                     android:drawableStart="@drawable/ic_px_java_run"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
@@ -229,7 +229,7 @@
                     android:text="CUSTOM CONTROLS"
                     android:drawableStart="@drawable/ic_px_gamepad"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
@@ -240,7 +240,7 @@
                     android:text="MORE OPTIONS"
                     android:drawableStart="@drawable/ic_px_gear"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
@@ -251,7 +251,7 @@
                     android:text="MANAGER"
                     android:drawableStart="@drawable/ic_px_runtime_mgr"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
@@ -263,7 +263,7 @@
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_item_bg"
+                    android:background="@drawable/fear_tray_row_bg"
                     android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />

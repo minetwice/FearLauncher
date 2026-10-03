@@ -285,6 +285,23 @@ public class MainMenuFragment extends Fragment {
             settingsTray.setBackgroundResource(R.drawable.fear_tray_panel);
         }
 
+        // The rows and the close button were inheriting premium_button_bg / theme_button_bg
+        // from their styles, and both of those carry a red stroke or a red gradient band.
+        // Force a borderless background on them after inflation so nothing re-applies it.
+        int[] trayBgIds = {R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
+                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn};
+        for (int id : trayBgIds) {
+            View row = view.findViewById(id);
+            if (row == null) continue;
+            row.setBackgroundResource(R.drawable.fear_tray_row_bg);
+            row.setBackgroundTintList(null);
+        }
+        View trayCloseBg = view.findViewById(R.id.tray_close);
+        if (trayCloseBg != null) {
+            trayCloseBg.setBackgroundResource(R.drawable.fear_tray_close_bg);
+            trayCloseBg.setBackgroundTintList(null);
+        }
+
         // Sidebar icons are colourless - they were picking up the red accent through
         // @color/icon_outline_color. Tint the drawables white directly.
         for (int trayIconId : new int[]{

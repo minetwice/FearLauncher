@@ -100,10 +100,20 @@ public class LauncherActivity extends BaseActivity {
         }
     };
 
+    /** Sidebar entries keep their own flat look - the colour cycle skips them. */
+    private boolean isSidebarEntry(View v) {
+        int id = v.getId();
+        return id == R.id.tray_installations_btn || id == R.id.tray_jar_btn
+                || id == R.id.tray_controls_btn || id == R.id.tray_more_btn
+                || id == R.id.tray_manager_btn || id == R.id.tray_logs_btn
+                || id == R.id.tray_close;
+    }
+
     private void tintFearButtons(View root, int colour) {
         if (root == null) return;
-        if (root instanceof com.kdt.mcgui.MineButton
-                || root instanceof com.kdt.mcgui.LauncherMenuButton) {
+        if (!isSidebarEntry(root)
+                && (root instanceof com.kdt.mcgui.MineButton
+                    || root instanceof com.kdt.mcgui.LauncherMenuButton)) {
             android.graphics.drawable.Drawable bg = root.getBackground();
             if (bg != null) {
                 bg.setColorFilter(new android.graphics.PorterDuffColorFilter(

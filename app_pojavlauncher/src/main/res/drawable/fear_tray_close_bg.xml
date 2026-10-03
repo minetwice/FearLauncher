@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sidebar close: plain fill, no stroke, no red band -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#E6FF2B3A" />
+    <corners android:radius="12dp" />
+</shape>
