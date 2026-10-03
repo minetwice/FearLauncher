@@ -330,6 +330,16 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        View trayManager = view.findViewById(R.id.tray_manager_btn);
+        if (trayManager != null) {
+            trayManager.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                Tools.swapFragment(requireActivity(), FearManagerFragment.class, FearManagerFragment.TAG, null);
+            });
+        }
+
         View trayLogs = view.findViewById(R.id.tray_logs_btn);
         if (trayLogs != null) {
             trayLogs.setOnClickListener(v -> {

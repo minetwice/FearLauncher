@@ -267,6 +267,17 @@
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_7sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_manager_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_44sdp"
+                    android:text="MANAGER"
+                    android:drawableStart="@drawable/ic_px_file_dl"
+                    android:background="@drawable/fear_tray_item_bg"
+                    android:elevation="@dimen/_4sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_7sdp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_logs_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_44sdp"
