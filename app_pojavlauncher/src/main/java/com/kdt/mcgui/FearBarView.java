@@ -74,6 +74,20 @@ public class FearBarView extends View {
         if (old != null && !old.isRecycled()) old.recycle();
     }
 
+    /** The frame's own aspect (w/h). The view takes its height from this so the
+     *  status line always sits exactly under the bar, whatever the screen width. */
+    private static final float FRAME_ASPECT = 664f / 112f;
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        if (width <= 0) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
+        setMeasuredDimension(width, Math.max(1, Math.round(width / FRAME_ASPECT)));
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         if (mFrame == null) loadFrame();
