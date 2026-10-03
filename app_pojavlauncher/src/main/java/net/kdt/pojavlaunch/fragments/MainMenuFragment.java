@@ -280,6 +280,13 @@ public class MainMenuFragment extends Fragment {
 
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
+        if (settingsTray != null) {
+            // Wedge silhouette instead of a plain rectangle, so the panel reads
+            // as an angled slab like the reference.
+            com.kdt.mcgui.FearWedgeDrawable wedge = new com.kdt.mcgui.FearWedgeDrawable();
+            wedge.setSlant(34f * getResources().getDisplayMetrics().density);
+            settingsTray.setBackground(wedge);
+        }
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
