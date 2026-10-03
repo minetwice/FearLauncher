@@ -287,7 +287,7 @@ public class MainMenuFragment extends Fragment {
         // The menu icon is the same hamburger in two colours: orange while the tray
         // is shut, blue while it is open. Swap with a small pulse so the change reads.
         if (hamburgerBtn instanceof android.widget.ImageButton) {
-            ((android.widget.ImageButton) hamburgerBtn).setImageResource(R.drawable.ic_hamburger_orange);
+            ((android.widget.ImageButton) hamburgerBtn).setImageResource(R.drawable.ic_menu_orange);
         }
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
@@ -853,7 +853,7 @@ public class MainMenuFragment extends Fragment {
     private void setHamburgerState(View hamburgerBtn, boolean open) {
         if (!(hamburgerBtn instanceof android.widget.ImageButton)) return;
         android.widget.ImageButton ib = (android.widget.ImageButton) hamburgerBtn;
-        ib.setImageResource(open ? R.drawable.ic_hamburger_blue : R.drawable.ic_hamburger_orange);
+        ib.setImageResource(open ? R.drawable.ic_menu_blue : R.drawable.ic_menu_orange);
         ib.setAlpha(0.35f);
         ib.animate().alpha(1f).setDuration(180).start();
     }
