@@ -284,6 +284,11 @@ public class MainMenuFragment extends Fragment {
             // Plain rounded panel again - no wedge silhouette.
             settingsTray.setBackgroundResource(R.drawable.fear_tray_panel);
         }
+        // The menu icon is the same hamburger in two colours: orange while the tray
+        // is shut, blue while it is open. Swap with a small pulse so the change reads.
+        if (hamburgerBtn instanceof android.widget.ImageButton) {
+            ((android.widget.ImageButton) hamburgerBtn).setImageResource(R.drawable.ic_hamburger_orange);
+        }
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
@@ -300,6 +305,7 @@ public class MainMenuFragment extends Fragment {
                             .setInterpolator(new android.view.animation.DecelerateInterpolator())
                             .withEndAction(() -> settingsTray.setLayerType(View.LAYER_TYPE_NONE, null))
                             .start();
+                    setHamburgerState(hamburgerBtn, true);
                     bindPerformanceStats(view);
                 } else {
                     collapseTray(settingsTray);
@@ -843,8 +849,19 @@ public class MainMenuFragment extends Fragment {
         });
     }
 
+    /** Swaps the menu icon between its orange (shut) and blue (open) forms. */
+    private void setHamburgerState(View hamburgerBtn, boolean open) {
+        if (!(hamburgerBtn instanceof android.widget.ImageButton)) return;
+        android.widget.ImageButton ib = (android.widget.ImageButton) hamburgerBtn;
+        ib.setImageResource(open ? R.drawable.ic_hamburger_blue : R.drawable.ic_hamburger_orange);
+        ib.setAlpha(0.35f);
+        ib.animate().alpha(1f).setDuration(180).start();
+    }
+
     private void collapseTray(View settingsTray) {
         if (settingsTray != null && settingsTray.getVisibility() == View.VISIBLE) {
+            View hb = settingsTray.getRootView().findViewById(R.id.hamburger_menu_icon);
+            setHamburgerState(hb, false);
             settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             settingsTray.animate()
                     .translationX(-settingsTray.getWidth() - 24)

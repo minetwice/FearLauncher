@@ -58,10 +58,9 @@
             android:id="@+id/hamburger_menu_icon"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_hamburger"
+            android:src="@drawable/ic_hamburger_orange"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@null"
-            app:tint="#FFFFFF"
             android:layout_marginEnd="10dp" />
 
         <FrameLayout
