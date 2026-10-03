@@ -192,6 +192,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
             mSearchFilters.isMod = true;
             mSearchFilters.isResourcePack = false;
             mSearchFilters.isShaderPack = false;
+            setPanelCopy(view, "MODPACKS", "Complete modpacks you can install as a new instance.");
         }
 
         if (btnModpacks != null && btnMods != null && btnRes != null && btnShaders != null) {
@@ -211,6 +212,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 mSearchFilters.isMod = false;
                 mSearchFilters.isResourcePack = false;
                 mSearchFilters.isShaderPack = false;
+                setPanelCopy(view, "MODPACKS", "Complete modpacks you can install as a new instance.");
                 searchMods(mSearchEditText.getText().toString());
             });
 
@@ -230,6 +232,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 mSearchFilters.isMod = true;
                 mSearchFilters.isResourcePack = false;
                 mSearchFilters.isShaderPack = false;
+                setPanelCopy(view, "MODS", "Client mods you can install into your selected instance.");
                 searchMods(mSearchEditText.getText().toString());
             });
 
@@ -249,6 +252,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 mSearchFilters.isMod = false;
                 mSearchFilters.isResourcePack = true;
                 mSearchFilters.isShaderPack = false;
+                setPanelCopy(view, "RESOURCE PACKS", "Textures and assets that restyle the world.");
                 searchMods(mSearchEditText.getText().toString());
             });
 
@@ -268,13 +272,14 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                 mSearchFilters.isMod = false;
                 mSearchFilters.isResourcePack = false;
                 mSearchFilters.isShaderPack = true;
+                setPanelCopy(view, "SHADERS", "Lighting and post-processing packs.");
                 searchMods(mSearchEditText.getText().toString());
             });
         }
 
         mDefaultTextColor = mStatusTextView.getTextColors();
 
-        int spanCount = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
+        int spanCount = 2;   // reference lays the cards out two-up
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), spanCount);
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -370,6 +375,15 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mSearchProgressBar.setVisibility(View.VISIBLE);
         mSearchFilters.name = name == null ? "" : name;
         mModItemAdapter.performSearchQuery(mSearchFilters);
+    }
+
+    /** Title + one-liner under it, swapped as the asset class changes. */
+    private void setPanelCopy(View root, String title, String desc) {
+        if (root == null) return;
+        TextView t = root.findViewById(R.id.search_mod_panel_title);
+        TextView d = root.findViewById(R.id.search_mod_panel_desc);
+        if (t != null) t.setText(title);
+        if (d != null) d.setText(desc);
     }
 
     private void displayFilterDialog() {
