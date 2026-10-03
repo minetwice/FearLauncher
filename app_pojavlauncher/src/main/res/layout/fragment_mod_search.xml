@@ -130,7 +130,7 @@
 
         <LinearLayout
             android:id="@+id/downloader_tabs"
-            android:layout_width="@dimen/_116sdp"
+            android:layout_width="@dimen/_104sdp"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingEnd="@dimen/_8sdp">
@@ -138,6 +138,9 @@
             <com.kdt.mcgui.MineButton
                 android:id="@+id/tab_modpacks"
                 android:layout_width="match_parent"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:includeFontPadding="false"
                 android:layout_height="@dimen/_36sdp"
                 android:text="MODPACKS"
                 android:textSize="@dimen/_8ssp"
@@ -149,6 +152,9 @@
             <com.kdt.mcgui.MineButton
                 android:id="@+id/tab_mods"
                 android:layout_width="match_parent"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:includeFontPadding="false"
                 android:layout_height="@dimen/_36sdp"
                 android:text="MODS"
                 android:textSize="@dimen/_8ssp"
@@ -160,6 +166,9 @@
             <com.kdt.mcgui.MineButton
                 android:id="@+id/tab_resourcepacks"
                 android:layout_width="match_parent"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:includeFontPadding="false"
                 android:layout_height="@dimen/_36sdp"
                 android:text="RESOURCES"
                 android:textSize="@dimen/_8ssp"
@@ -171,6 +180,9 @@
             <com.kdt.mcgui.MineButton
                 android:id="@+id/tab_shaders"
                 android:layout_width="match_parent"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:includeFontPadding="false"
                 android:layout_height="@dimen/_36sdp"
                 android:text="SHADERS"
                 android:textSize="@dimen/_8ssp"
@@ -231,7 +243,10 @@
     <com.kdt.mcgui.MineButton
         android:id="@+id/mineButton_import_local_modpack"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_42sdp"
+        android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:includeFontPadding="false"
+                android:layout_height="@dimen/_42sdp"
         android:layout_marginTop="@dimen/_8sdp"
         android:text="IMPORT EXTERNAL MODPACK"
         android:textColor="#000000"

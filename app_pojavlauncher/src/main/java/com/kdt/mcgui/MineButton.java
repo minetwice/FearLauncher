@@ -21,10 +21,14 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 	
 	public MineButton(Context ctx, AttributeSet attrs) {
 		super(ctx, attrs);
-		init();
+		init(attrs);
 	}
 
 	public void init() {
+		init(null);
+	}
+
+	public void init(AttributeSet attrs) {
 		setTypeface(ResourcesCompat.getFont(getContext(), R.font.noto_sans_bold));
 
 		// If background is not set, set premium_button_bg
@@ -53,10 +57,21 @@ public class MineButton extends androidx.appcompat.widget.AppCompatButton {
 		}
 		setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawables[3]);
 
-		// All buttons now feature premium white text for dark glass/blue neon contrast
-		setTextColor(Color.WHITE);
+		// Defaults only - a button that sets its own size or colour in XML keeps it.
+		// Forcing 13ssp on everything is what made small buttons overflow their frames.
+		boolean hasTextSize = false, hasTextColor = false;
+		if (attrs != null) {
+			TypedArray ta = getContext().obtainStyledAttributes(attrs,
+					new int[]{android.R.attr.textSize, android.R.attr.textColor});
+			hasTextSize = ta.hasValue(0);
+			hasTextColor = ta.hasValue(1);
+			ta.recycle();
+		}
+		if (!hasTextColor) setTextColor(Color.WHITE);
 		setAllCaps(true);
-		setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));
+		if (!hasTextSize) {
+			setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._13ssp));
+		}
 
 		// On click TouchListener animations (No stretching/looping)
 		setOnTouchListener((v, event) -> {
