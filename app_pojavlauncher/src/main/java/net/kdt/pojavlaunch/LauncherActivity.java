@@ -89,9 +89,10 @@ public class LauncherActivity extends BaseActivity {
         }
         // Recolour every button on the current screen off the same cycle. MineButton
         // already paints its background through a PorterDuff filter, so we drive the
-        // same filter. Throttled - the shift is slow, 12fps is plenty.
+        // same filter. Throttled hard - walking every view to set a colour filter is
+        // real UI-thread work, and the shift is slow enough that 5fps is plenty.
         long now = android.os.SystemClock.uptimeMillis();
-        if (now - mLastButtonTint > 80) {
+        if (now - mLastButtonTint > 200) {
             mLastButtonTint = now;
             android.content.SharedPreferences prefs =
                     android.preference.PreferenceManager.getDefaultSharedPreferences(this);

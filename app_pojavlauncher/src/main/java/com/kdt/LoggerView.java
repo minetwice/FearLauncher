@@ -60,7 +60,10 @@ public class LoggerView extends ConstraintLayout {
         //TODO clamp the max text so it doesn't go oob (handled by FEAR-LOGCOMPACT below)
         mLogTextView.setMaxLines(Integer.MAX_VALUE);
         mLogTextView.setEllipsize(null);
-        mLogTextView.setVisibility(GONE);
+        // FEAR: start VISIBLE - the console used to start hidden with its output
+        // toggle off, which meant Logger.setLogListener(null) was in force and
+        // nothing was captured at all while the game was launching.
+        mLogTextView.setVisibility(VISIBLE);
 
         // Toggle log visibility
         mLogToggle = findViewById(R.id.content_log_toggle_log);
@@ -76,7 +79,7 @@ public class LoggerView extends ConstraintLayout {
                         // NOTE: was tested by rapidly smashing the log on/off button, no sync issues found :)
                     }
                 });
-        mLogToggle.setChecked(false);
+        mLogToggle.setChecked(true);   // capture from the very first launch line
 
         // Remove the loggerView from the user View
         ImageButton cancelButton = findViewById(R.id.log_view_cancel);
