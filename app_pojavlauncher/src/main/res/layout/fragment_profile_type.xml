@@ -1,97 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- FEAR NEW INSTANCE - pick the engine for a fresh instance -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
-    android:padding="@dimen/_16sdp">
+    android:background="@drawable/theme_bg"
+    android:padding="@dimen/_12sdp">
 
-    <!-- Header -->
-    <TextView
-        android:id="@+id/title_textview"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/fear_profile_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DEPLOYMENT PROTOCOL"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/_20ssp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:orientation="vertical"
+        android:background="@drawable/fear_panel_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select the architecture for your new instance."
-        android:textColor="#B3FFFFFF"
-        android:textSize="@dimen/_10ssp"
-        app:layout_constraintTop_toBottomOf="@id/title_textview"
-        app:layout_constraintStart_toStartOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="4dp"
+                android:layout_height="@dimen/_28sdp"
+                android:background="@drawable/fear_accent_stripe" />
+
+            <TextView
+                android:id="@+id/title_textview"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="NEW INSTANCE"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_10sdp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pick the engine for your new instance."
+            android:textColor="#99FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="@dimen/_4sdp" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/_24sdp"
-        app:layout_constraintTop_toBottomOf="@id/subtitle"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/fear_profile_header"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/_12sdp">
 
-            <!-- Category: Pure -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="STABLE BUILDS"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_9ssp"
+                android:textColor="#99FFFFFF"
+                android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/_12sdp" />
+                android:letterSpacing="0.1"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="@dimen/_8sdp" />
 
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:layout_marginBottom="@dimen/_24sdp">
+                android:columnCount="2">
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/vanilla_profile"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_60sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="VANILLA"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_vanilla"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/optifine_profile"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_60sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="OPTIFINE"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_zap"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
             </GridLayout>
 
-            <!-- Category: Modded -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MODIFICATION ENGINES"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/_9ssp"
+                android:textColor="#99FFFFFF"
+                android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/_12sdp" />
+                android:letterSpacing="0.1"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="@dimen/_8sdp" />
 
             <GridLayout
                 android:layout_width="match_parent"
@@ -101,87 +136,126 @@
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_fabric"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="FABRIC"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_fabric"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_forge"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="FORGE"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_forge"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_quilt"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="QUILT"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_quilt"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_neoforge"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="NEOFORGE"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_neoforge"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
+                <com.kdt.mcgui.MineButton
+                    android:id="@+id/modded_profile_legacy_fabric"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_56sdp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:text="LEGACY FABRIC"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
+                    android:drawableStart="@drawable/ic_fabric"
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
+            </GridLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONTENT &amp; OTHER"
+                android:textColor="#99FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="@dimen/_8sdp" />
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2">
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_modpack"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="MODPACKS"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_file_dl"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/modded_profile_bta"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_height="@dimen/_56sdp"
                     android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/_4sdp"
                     android:text="BTA ENGINE"
-                    android:padding="@dimen/_12sdp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_9ssp"
+                    android:paddingHorizontal="@dimen/_12sdp"
                     android:drawableStart="@drawable/ic_px_experiment"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
-                <com.kdt.mcgui.MineButton
-                    android:id="@+id/modded_profile_legacy_fabric"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/_50sdp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:text="LEGACY FABRIC"
-                    android:padding="@dimen/_12sdp"
-                    android:drawableStart="@drawable/ic_fabric"
-                    android:drawablePadding="12dp"
-                    android:background="@drawable/premium_button_bg" />
-
+                    android:drawableTint="#FFFFFF"
+                    android:drawablePadding="@dimen/_10sdp"
+                    android:maxLines="1"
+                    android:background="@drawable/fear_tray_row_bg" />
             </GridLayout>
 
         </LinearLayout>

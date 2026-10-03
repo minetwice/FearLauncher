@@ -1,93 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR INSTALLATIONS - the executor and modification entry points -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
-    android:padding="@dimen/_16sdp">
+    android:background="@drawable/theme_bg"
+    android:padding="@dimen/_12sdp">
 
-    <!-- Header -->
-    <TextView
-        android:id="@+id/title_installations"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/fear_install_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="CORE COMMAND"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/_20ssp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:orientation="vertical"
+        android:background="@drawable/fear_panel_bg"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Advanced executor and modification protocols."
-        android:textColor="#B3FFFFFF"
-        android:textSize="@dimen/_10ssp"
-        app:layout_constraintTop_toBottomOf="@id/title_installations"
-        app:layout_constraintStart_toStartOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-    <!-- Grid Container for Actions -->
-    <GridLayout
+            <View
+                android:layout_width="4dp"
+                android:layout_height="@dimen/_28sdp"
+                android:background="@drawable/fear_accent_stripe" />
+
+            <TextView
+                android:id="@+id/title_installations"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="INSTALLATIONS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginStart="@dimen/_10sdp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Executors and modification protocols."
+            android:textColor="#99FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="@dimen/_4sdp" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/_32sdp"
-        android:columnCount="2"
-        android:rowCount="3"
-        app:layout_constraintTop_toBottomOf="@id/title_installations"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:layout_constraintTop_toBottomOf="@id/fear_install_header"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/execute_jar_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_columnWeight="1"
-            android:layout_margin="8dp"
-            android:text="RUN EXECUTABLE"
-            android:drawableTop="@drawable/ic_px_java_run"
-            android:background="@drawable/premium_glass_black_bg" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/custom_controls_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_columnWeight="1"
-            android:layout_margin="8dp"
-            android:text="INPUT MAP"
-            android:drawableTop="@drawable/ic_px_gamepad"
-            android:background="@drawable/premium_glass_black_bg" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/mods_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_columnWeight="1"
-            android:layout_margin="8dp"
-            android:text="MODS"
-            android:drawableTop="@drawable/ic_px_file_dl"
-            android:background="@drawable/premium_glass_black_bg" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/share_logs_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_columnWeight="1"
-            android:layout_margin="8dp"
-            android:text="DATA STREAM"
-            android:drawableTop="@drawable/ic_px_sharelog"
-            android:background="@drawable/premium_glass_black_bg" />
-
-        <com.kdt.mcgui.MineButton
-            android:id="@+id/open_directory_button"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_columnWeight="1"
-            android:layout_margin="8dp"
-            android:text="DIRECTORY"
-            android:drawableTop="@drawable/ic_px_folder"
-            android:background="@drawable/premium_glass_black_bg" />
-
-    </GridLayout>
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/execute_jar_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_50sdp"
+                android:text="RUN EXECUTABLE"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:paddingHorizontal="@dimen/_14sdp"
+                android:drawableStart="@drawable/ic_side_jar"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_12sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_7sdp" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/custom_controls_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_50sdp"
+                android:text="INPUT MAP"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:paddingHorizontal="@dimen/_14sdp"
+                android:drawableStart="@drawable/ic_side_controls"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_12sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_7sdp" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/mods_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_50sdp"
+                android:text="MODS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:paddingHorizontal="@dimen/_14sdp"
+                android:drawableStart="@drawable/ic_side_manager"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_12sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_7sdp" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/share_logs_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_50sdp"
+                android:text="EXPORT LOGS"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:paddingHorizontal="@dimen/_14sdp"
+                android:drawableStart="@drawable/ic_side_logs"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_12sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_7sdp" />
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/open_directory_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_50sdp"
+                android:text="DIRECTORY"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_10ssp"
+                android:paddingHorizontal="@dimen/_14sdp"
+                android:drawableStart="@drawable/ic_px_folder"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="@dimen/_12sdp"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg"
+                android:layout_marginBottom="@dimen/_7sdp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
