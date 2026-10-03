@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- memory slider track, reference style: dark red bed, filled with a red -> pink
+     gradient that runs to a white-hot point at the handle -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
-        <shape>
-            <corners android:radius="4dp" />
-            <solid android:color="#404040" />
+        <shape android:shape="rectangle">
+            <size android:height="18dp" />
+            <corners android:radius="9dp" />
+            <gradient android:angle="270"
+                android:startColor="#4A160208"
+                android:centerColor="#7A24060C"
+                android:endColor="#4A160208" />
+            <stroke android:width="1dp" android:color="#3DFF2B3A" />
         </shape>
     </item>
     <item android:id="@android:id/progress">
         <clip>
-            <shape>
-                <corners android:radius="4dp" />
-                <gradient
-                    android:startColor="@color/seekbar_progress_start"
-                    android:endColor="@color/seekbar_progress_end"
-                    android:angle="0" />
+            <shape android:shape="rectangle">
+                <corners android:radius="9dp" />
+                <gradient android:angle="0"
+                    android:startColor="#7A0A10"
+                    android:centerColor="#E0203038"
+                    android:endColor="#FFF0F4" />
             </shape>
         </clip>
     </item>
