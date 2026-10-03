@@ -9,7 +9,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="@dimen/_520sdp"
         android:layout_height="@dimen/_280sdp"
-        android:background="@drawable/premium_glass_black_bg"
+        android:background="@drawable/fear_tray_row_bg"
         android:padding="@dimen/_18sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -72,7 +72,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="@dimen/_9ssp"
                     android:textStyle="bold"
-                    android:background="@drawable/premium_glass_black_bg" />
+                    android:background="@drawable/fear_tray_row_bg" />
             </LinearLayout>
 
             <!-- Inputs Column -->
@@ -224,7 +224,7 @@
                         android:id="@+id/stage_1_icon"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:background="@drawable/premium_glass_black_bg"
+                        android:background="@drawable/fear_tray_row_bg"
                         android:text="1"
                         android:textColor="#FFFFFF"
                         android:textSize="14sp"
@@ -264,7 +264,7 @@
                         android:id="@+id/stage_2_icon"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:background="@drawable/premium_glass_black_bg"
+                        android:background="@drawable/fear_tray_row_bg"
                         android:text="2"
                         android:textColor="#FFFFFF"
                         android:textSize="14sp"
@@ -304,7 +304,7 @@
                         android:id="@+id/stage_3_icon"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:background="@drawable/premium_glass_black_bg"
+                        android:background="@drawable/fear_tray_row_bg"
                         android:text="3"
                         android:textColor="#FFFFFF"
                         android:textSize="14sp"

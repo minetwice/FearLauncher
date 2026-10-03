@@ -182,7 +182,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
             // Menu
             gameActionArrayAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.menu_ingame));
+                    R.layout.item_game_menu, getResources().getStringArray(R.array.menu_ingame));
             gameActionClickListener = (parent, view, position, id) -> {
                 switch(position) {
                      case 0: dialogForceClose(MainActivity.this); break;

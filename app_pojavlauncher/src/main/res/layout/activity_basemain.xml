@@ -6,7 +6,7 @@
     android:id="@+id/main_drawer_options"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/premium_gradient_bg"
+    android:background="@drawable/fear_panel_bg"
     android:keepScreenOn="true">
 
     <!-- GAME CONTENT FRAME -->
@@ -74,7 +74,7 @@
             android:id="@+id/mainLoggerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#CC000000"
+            android:background="#CC0A0A12"
             android:visibility="gone" />
 
     </FrameLayout>
@@ -85,9 +85,9 @@
         android:layout_width="240dp"
         android:layout_height="match_parent"
         android:layout_gravity="right"
-        android:background="@drawable/premium_gradient_bg"
+        android:background="@drawable/fear_panel_bg"
         android:fitsSystemWindows="false"
-        android:divider="@color/background_overlay"
+        android:divider="#1FFFFFFF"
         android:dividerHeight="1dp" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
