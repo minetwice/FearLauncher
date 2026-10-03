@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- verify manifest: a page under a magnifier -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M3,2h8v18H3zM5,4h4v14H5z" />
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M12,9h6.5v6.5H12zM13.6,10.6h3.3v3.3h-3.3z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M17.6,14.4h1.8v4.6h-1.8z" />
+</vector>
