@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- long press trigger: a ring with a press dot in the middle -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M9,3h6l3,3v6l-3,3h-6l-3,-3v-6zM10.6,5.4h2.8l2,2v2.8l-2,2h-2.8l-2,-2V7.4z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M11,9.4h2v2h-2z" />
+</vector>

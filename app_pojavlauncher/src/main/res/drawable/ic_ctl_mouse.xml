@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- virtual mouse: a mouse body with the wheel slot -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M8,3h8v18H8zM10.4,5.2h3.2v5h-3.2z" />
+</vector>
