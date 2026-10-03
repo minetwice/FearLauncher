@@ -284,6 +284,19 @@ public class MainMenuFragment extends Fragment {
             // Plain rounded panel again - no wedge silhouette.
             settingsTray.setBackgroundResource(R.drawable.fear_tray_panel);
         }
+
+        // Sidebar icons are colourless - they were picking up the red accent through
+        // @color/icon_outline_color. Tint the drawables white directly.
+        for (int trayIconId : new int[]{
+                R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
+                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn}) {
+            View row = view.findViewById(trayIconId);
+            if (!(row instanceof android.widget.TextView)) continue;
+            for (android.graphics.drawable.Drawable d
+                    : ((android.widget.TextView) row).getCompoundDrawables()) {
+                if (d != null) d.setTint(0xFFFFFFFF);
+            }
+        }
         // The menu icon is the same hamburger in two colours: orange while the tray
         // is shut, blue while it is open. Swap with a small pulse so the change reads.
         if (hamburgerBtn instanceof android.widget.ImageButton) {
