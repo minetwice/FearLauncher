@@ -284,7 +284,7 @@ public class MainMenuFragment extends Fragment {
             // Wedge silhouette instead of a plain rectangle, so the panel reads
             // as an angled slab like the reference.
             com.kdt.mcgui.FearWedgeDrawable wedge = new com.kdt.mcgui.FearWedgeDrawable();
-            wedge.setSlant(34f * getResources().getDisplayMetrics().density);
+            wedge.setSlant(64f * getResources().getDisplayMetrics().density);
             settingsTray.setBackground(wedge);
         }
         if (hamburgerBtn != null && settingsTray != null) {
