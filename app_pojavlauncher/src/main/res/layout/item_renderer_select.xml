@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- renderer picker row: clean glass, tick marker, no heavy shadow text -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,17 +7,18 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="16dp"
-    android:background="@drawable/premium_glass_black_bg"
-    android:layout_marginBottom="2dp">
+    android:paddingHorizontal="@dimen/_14sdp"
+    android:paddingVertical="@dimen/_11sdp"
+    android:background="@drawable/fear_tray_row_bg"
+    android:layout_marginBottom="@dimen/_3sdp">
 
     <ImageView
         android:id="@+id/item_check"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:src="@drawable/ic_px_zap"
-        app:tint="#FFFFFF"
-        android:layout_marginEnd="16dp" />
+        android:layout_width="@dimen/_18sdp"
+        android:layout_height="@dimen/_18sdp"
+        android:src="@drawable/ic_check_white"
+        android:contentDescription="@null"
+        android:layout_marginEnd="@dimen/_12sdp" />
 
     <TextView
         android:id="@android:id/text1"
@@ -24,12 +26,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textColor="#FFFFFF"
-        android:textSize="@dimen/_14ssp"
+        android:textSize="@dimen/_12ssp"
         android:textStyle="bold"
-        android:shadowColor="#80000000"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="2"
-        tools:text="Holy GL4ES" />
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="Mesa turnip" />
 
 </LinearLayout>

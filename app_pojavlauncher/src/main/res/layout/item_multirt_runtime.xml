@@ -1,79 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- runtime manager row: the installed JRE, its full name, and its actions -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/_60sdp"
-    android:paddingHorizontal="@dimen/padding_medium"
-    android:background="@drawable/preference_background_selector"
-    android:layout_margin="4dp"
-    >
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/_62sdp"
+    android:paddingHorizontal="@dimen/_14sdp"
+    android:paddingVertical="@dimen/_10sdp"
+    android:background="@drawable/fear_tray_row_bg"
+    android:layout_marginHorizontal="@dimen/_4sdp"
+    android:layout_marginBottom="@dimen/_6sdp">
 
     <TextView
         android:id="@+id/multirt_view_java_version"
-        style="@style/TextAppearance.AppCompat.Body1"
-        android:layout_width="@dimen/_150sdp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-
-
-        android:layout_marginEnd="@dimen/_8sdp"
         android:textSize="@dimen/_12ssp"
-        android:textColor="@color/primary_text"
+        android:textColor="#FFFFFF"
         android:textStyle="bold"
-
-
-        app:layout_constraintBottom_toBottomOf="parent"
-
-        app:layout_constraintHorizontal_bias="0.0"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/multirt_view_removebtn"
         app:layout_constraintTop_toTopOf="parent"
-
-        app:layout_constraintVertical_bias="0.28"
         tools:text="Java 17" />
 
     <TextView
         android:id="@+id/multirt_view_java_version_full"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-
-        android:layout_marginTop="8dp"
-        android:textSize="@dimen/_10ssp"
-        android:textColor="@color/secondary_text"
-
-        app:layout_constraintStart_toStartOf="@+id/multirt_view_java_version"
-        app:layout_constraintTop_toBottomOf="@+id/multirt_view_java_version"
+        android:textSize="@dimen/_9ssp"
+        android:textColor="#99FFFFFF"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_marginTop="@dimen/_2sdp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/multirt_view_setdefaultbtn"
+        app:layout_constraintTop_toBottomOf="@id/multirt_view_java_version"
         tools:text="Internal 17" />
 
     <ImageButton
         android:id="@+id/multirt_view_removebtn"
-        android:layout_width="@dimen/_35sdp"
-        android:layout_height="0dp"
-        android:background="@drawable/premium_button_bg"
-        android:paddingVertical="@dimen/padding_heavy"
+        android:layout_width="@dimen/_36sdp"
+        android:layout_height="@dimen/_36sdp"
+        android:background="@drawable/fear_tray_row_bg"
+        android:padding="@dimen/_9sdp"
         android:scaleType="fitCenter"
-        android:tint="#000000"
         android:src="@drawable/ic_px_trash"
+        android:tint="#FFFFFF"
+        android:contentDescription="@null"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/multirt_view_java_version"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible" />
 
     <com.kdt.mcgui.MineButton
         android:id="@+id/multirt_view_setdefaultbtn"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:background="@drawable/premium_button_bg"
+        android:layout_height="@dimen/_30sdp"
+        android:minWidth="0dp"
+        android:paddingHorizontal="@dimen/_10sdp"
+        android:background="@drawable/theme_button_bg"
         android:textColor="#000000"
+        android:textSize="@dimen/_8ssp"
+        android:textStyle="bold"
+        android:maxLines="1"
         android:text="SET DEFAULT"
         android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/multirt_view_removebtn"
+        app:layout_constraintTop_toBottomOf="@id/multirt_view_java_version"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/multirt_view_java_version"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

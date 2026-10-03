@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
-        <item>mesa turnip</item>
+        <item>Mesa turnip</item>
         <item>Quasar</item>
         <item>@string/mcl_setting_renderer_ltw</item>
     </string-array>
