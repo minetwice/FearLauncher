@@ -174,11 +174,14 @@
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
     <FrameLayout
         android:id="@+id/settings_tray"
-        android:layout_width="230dp"
+        android:layout_width="266dp"
         android:layout_height="0dp"
         android:visibility="gone"
-        android:background="@drawable/fear_tray_bg"
-        android:elevation="10dp"
+        android:background="@drawable/fear_tray_panel"
+        android:elevation="26dp"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -194,82 +197,96 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/_14sdp"
-                android:background="@drawable/fear_tray_bg">
+                android:padding="@dimen/_12sdp">
 
-                <TextView
+                <!-- header -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="COMMAND CORE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="@dimen/_10ssp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="@dimen/_14sdp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="@dimen/_12sdp">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="@dimen/_22sdp"
+                        android:background="@drawable/fear_accent_stripe" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="FEAR BOOST"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_12ssp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.12"
+                        android:maxLines="1"
+                        android:layout_marginStart="@dimen/_10sdp" />
+                </LinearLayout>
 
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_installations_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_44sdp"
                     android:text="INSTALLATIONS"
                     android:drawableStart="@drawable/ic_px_java"
                     android:background="@drawable/fear_tray_item_bg"
-                    android:elevation="@dimen/_3sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
-                    android:layout_marginBottom="6dp" />
-
+                    android:layout_marginBottom="@dimen/_7sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_jar_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_44sdp"
                     android:text="EXECUTE A JAR"
                     android:drawableStart="@drawable/ic_px_file_dl"
                     android:background="@drawable/fear_tray_item_bg"
-                    android:elevation="@dimen/_3sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
-                    android:layout_marginBottom="6dp" />
-
+                    android:layout_marginBottom="@dimen/_7sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_controls_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_44sdp"
                     android:text="CUSTOM CONTROLS"
                     android:drawableStart="@drawable/ic_px_gamepad"
                     android:background="@drawable/fear_tray_item_bg"
-                    android:elevation="@dimen/_3sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
-                    android:layout_marginBottom="6dp" />
-
+                    android:layout_marginBottom="@dimen/_7sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_more_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_44sdp"
                     android:text="MORE OPTIONS"
                     android:drawableStart="@drawable/ic_px_sliders"
                     android:background="@drawable/fear_tray_item_bg"
-                    android:elevation="@dimen/_3sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
-                    android:layout_marginBottom="16dp" />
-
+                    android:layout_marginBottom="@dimen/_7sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_logs_btn"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_44sdp"
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
                     android:background="@drawable/fear_tray_item_bg"
-                    android:elevation="@dimen/_3sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:stateListAnimator="@null"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="@dimen/_7sdp" />
 
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/tray_close"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_36sdp"
+                    android:layout_height="@dimen/_40sdp"
                     android:text="CLOSE"
                     android:textColor="#000000"
                     android:textSize="@dimen/_10ssp"
                     android:textStyle="bold"
-                    android:background="@drawable/theme_button_bg" />
+                    android:maxLines="1"
+                    android:background="@drawable/theme_button_bg"
+                    android:layout_marginTop="@dimen/_6sdp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

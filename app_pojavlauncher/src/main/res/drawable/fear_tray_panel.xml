@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RedMagic-style side panel: rounded rectangle, translucent, no outline -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#E60E0509" />
+    <corners android:radius="18dp" />
+</shape>
