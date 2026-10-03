@@ -63,6 +63,14 @@ public class LauncherActivity extends BaseActivity {
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
     private DrawerLayout mDrawerLayout;
+    private View mFearGlobalWash;
+
+    /** The wash rides the shared FearTheme cycle so every screen shifts together. */
+    private final net.kdt.pojavlaunch.utils.FearTheme.Listener mFearWashListener = colour -> {
+        if (mFearGlobalWash != null) {
+            mFearGlobalWash.setBackgroundColor((colour & 0x00FFFFFF) | 0x14000000);
+        }
+    };
     private NavigationView mNavigationView;
     private static ActivityResultLauncher<String> mRequestPermissionLauncher;
 
@@ -249,6 +257,7 @@ public class LauncherActivity extends BaseActivity {
             ProgressKeeper.removeTaskCountListener(mProgressLayout);
         }
         ProgressKeeper.removeTaskCountListener(mProgressServiceKeeper);
+        net.kdt.pojavlaunch.utils.FearTheme.unregister(mFearWashListener);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
         ExtraCore.removeExtraListenerFromValue(ExtraConstants.LAUNCH_GAME, mLaunchGameListener);
     }
@@ -328,6 +337,8 @@ public class LauncherActivity extends BaseActivity {
         mProgressLayout = null;
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mNavigationView = null;
+        mFearGlobalWash = findViewById(R.id.fear_global_wash);
+        net.kdt.pojavlaunch.utils.FearTheme.register(mFearWashListener);
         // The slide-out navigation sidebar was removed - the hamburger tray in
         // the home fragment is the only menu now, so kill the edge-swipe.
         if (mDrawerLayout != null) {

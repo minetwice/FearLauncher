@@ -316,8 +316,20 @@ public class MainMenuFragment extends Fragment {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                Tools.swapFragment(requireActivity(), net.kdt.pojavlaunch.fragments.InstallationsFragment.class,
-                        net.kdt.pojavlaunch.fragments.InstallationsFragment.TAG, null);
+                Bundle dash = new Bundle();
+                dash.putString("mode", "addon");
+                dash.putString("initial_category", "mods");
+                Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, dash);
+            });
+        }
+
+        View trayLogs = view.findViewById(R.id.tray_logs_btn);
+        if (trayLogs != null) {
+            trayLogs.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                shareLog(requireContext());
             });
         }
 
@@ -327,7 +339,11 @@ public class MainMenuFragment extends Fragment {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 net.kdt.pojavlaunch.SoundManager.playClick();
                 collapseTray(settingsTray);
-                mModInstallerLauncher.launch(null);
+                // Opens the installer list - Fabric, Quilt, Forge, NeoForge,
+                // OptiFine, Legacy Fabric - so an installer can be fetched from here.
+                Tools.swapFragment(requireActivity(),
+                        net.kdt.pojavlaunch.fragments.ProfileTypeSelectFragment.class,
+                        net.kdt.pojavlaunch.fragments.ProfileTypeSelectFragment.TAG, null);
             });
         }
 

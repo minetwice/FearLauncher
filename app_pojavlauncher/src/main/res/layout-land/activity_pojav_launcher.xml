@@ -8,6 +8,10 @@
     android:fitsSystemWindows="true">
 
     <!-- Main Content -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,5 +28,16 @@
 
     </LinearLayout>
 
+        <!-- global red/blue wash: sits over every screen so the accent cycle is
+             identical everywhere instead of per-screen -->
+        <View
+            android:id="@+id/fear_global_wash"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
+            android:focusable="false"
+            android:background="#00FF2B3A" />
+
+    </FrameLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

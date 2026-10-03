@@ -61,6 +61,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     private TextView mStatusTextView;
     private ColorStateList mDefaultTextColor;
     private ModpackApi modpackApi;
+    private net.kdt.pojavlaunch.utils.FearTheme.Listener mFearAccentListener;
 
     private final SearchFilters mSearchFilters;
 
@@ -121,6 +122,17 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         ProgressKeeper.addTaskCountListener(mModItemAdapter);
 
         mOverlay = view.findViewById(R.id.search_mod_overlay);
+        // The dashboard rides the shared accent cycle too, so its header shifts
+        // red <-> blue in step with the rest of the launcher.
+        final TextView fearHeader = view.findViewById(R.id.search_mod_header_title);
+        final View fearImportBtn = view.findViewById(R.id.mineButton_import_local_modpack);
+        if (fearHeader != null) {
+            mFearAccentListener = colour -> {
+                fearHeader.setTextColor(colour);
+                if (fearImportBtn != null) fearImportBtn.setBackgroundTintList(ColorStateList.valueOf(colour));
+            };
+            net.kdt.pojavlaunch.utils.FearTheme.register(mFearAccentListener);
+        }
         mSearchEditText = view.findViewById(R.id.search_mod_edittext);
         mSearchProgressBar = view.findViewById(R.id.search_mod_progressbar);
         mRecyclerview = view.findViewById(R.id.search_mod_list);
@@ -312,6 +324,10 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (mFearAccentListener != null) {
+            net.kdt.pojavlaunch.utils.FearTheme.unregister(mFearAccentListener);
+            mFearAccentListener = null;
+        }
         ProgressKeeper.removeTaskCountListener(mModItemAdapter);
         if (mTaskCountListener != null) { ProgressKeeper.removeTaskCountListener(mTaskCountListener); }
     }

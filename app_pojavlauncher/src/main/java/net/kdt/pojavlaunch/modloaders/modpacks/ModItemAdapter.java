@@ -144,6 +144,9 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
 
+    /** Titles the user has finished installing this session - drives the green tick. */
+    private static final Set<String> sInstalledMods = Collections.synchronizedSet(new java.util.HashSet<>());
+
     /**
      * Basic viewholder with expension capabilities
      */
@@ -152,6 +155,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         private ModDetail mModDetail = null;
         private ModItem mModItem = null;
         private final TextView mTitle, mDescription;
+        private final ImageView mDownloadState;
         private final ImageView mIconView, mSourceView;
         private View mExtendedLayout;
         private Spinner mExtendedSpinner;
@@ -393,6 +397,20 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                                         mModDetail,
                                                         finalOrigIdx
                                                     );
+                                                    // Flip this row to the green tick once the
+                                                    // install task actually drains.
+                                                    final String doneKey = mModItem != null ? mModItem.title : null;
+                                                    if (doneKey != null) {
+                                                        net.kdt.pojavlaunch.progresskeeper.ProgressKeeper.addTaskCountListener(new TaskCountListener() {
+                                                            @Override
+                                                            public boolean onUpdateTaskCount(int count) {
+                                                                if (count != 0) return false;
+                                                                sInstalledMods.add(doneKey);
+                                                                Tools.runOnUiThread(() -> notifyDataSetChanged());
+                                                                return true;
+                                                            }
+                                                        }, false);
+                                                    }
                                                 }
                                             });
                                         }
@@ -499,6 +517,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mDescription = view.findViewById(R.id.mod_body_textview);
             mIconView = view.findViewById(R.id.mod_thumbnail_imageview);
             mSourceView = view.findViewById(R.id.mod_source_imageview);
+            mDownloadState = view.findViewById(R.id.mod_download_state);
         }
 
         /** Display basic info about the moditem */
@@ -531,6 +550,12 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             };
             mIconCache.getImage(mImageReceiver, mModItem.getIconCacheTag(), mModItem.imageUrl);
             mSourceView.setImageResource(getSourceDrawable(item.apiSource));
+            // Download state: a plain arrow until the item has actually finished
+            // installing, then the green tick.
+            if (mDownloadState != null) {
+                boolean done = item.title != null && sInstalledMods.contains(item.title);
+                mDownloadState.setImageResource(done ? R.drawable.ic_fear_done : R.drawable.ic_fear_download);
+            }
             mTitle.setText(item.title);
             mDescription.setText(item.description);
 

@@ -266,6 +266,15 @@
                     android:background="@drawable/tray_button_bg"
                     android:layout_marginBottom="16dp" />
 
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_logs_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="EXPORT LOGS"
+                    android:drawableStart="@drawable/ic_px_sharelog"
+                    android:background="@drawable/tray_button_bg"
+                    android:layout_marginBottom="16dp" />
+
                 <com.kdt.mcgui.MineButton
                     android:id="@+id/tray_close"
                     android:layout_width="match_parent"
