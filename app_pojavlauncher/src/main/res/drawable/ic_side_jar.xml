@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- execute a jar: a run glyph - bar and play head -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:pathData="M4,5h2.4v14H4z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M9,6.5 L19,12 9,17.5z" />
+</vector>

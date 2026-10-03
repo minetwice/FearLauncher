@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- export logs: a page with an up arrow out of it -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M6,2h7l5,5v15H6zM12,19.5h2v-5.2h2.2L12,10.1 7.8,14.3H10z" />
+</vector>

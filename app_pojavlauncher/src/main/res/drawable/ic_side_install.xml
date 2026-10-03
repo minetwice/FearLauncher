@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- installations: an arrow dropping into a tray -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M11,3h2v5.2h2.9L12,12.1 8.1,8.2H11z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M4,14h2v4h12v-4h2v6H4z" />
+</vector>

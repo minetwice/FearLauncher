@@ -332,6 +332,7 @@ public class MainMenuFragment extends Fragment {
                             .withEndAction(() -> settingsTray.setLayerType(View.LAYER_TYPE_NONE, null))
                             .start();
                     setHamburgerState(hamburgerBtn, true);
+                    animateTrayRows(settingsTray, true);
                     bindPerformanceStats(view);
                 } else {
                     collapseTray(settingsTray);
@@ -869,6 +870,36 @@ public class MainMenuFragment extends Fragment {
     private final java.util.HashMap<Integer, com.kdt.mcgui.FearRowBgDrawable> mTrayRowBgs =
             new java.util.HashMap<>();
 
+    /**
+     * Stair animation: the rows come in one after another on open, and peel away
+     * top-down on close.
+     */
+    private void animateTrayRows(View tray, boolean open) {
+        if (tray == null) return;
+        View c = tray.findViewById(R.id.tray_container);
+        if (!(c instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup container = (android.view.ViewGroup) c;
+        float dx = 46f * getResources().getDisplayMetrics().density;
+        int n = container.getChildCount();
+        for (int i = 0; i < n; i++) {
+            View child = container.getChildAt(i);
+            child.animate().cancel();
+            if (open) {
+                child.setAlpha(0f);
+                child.setTranslationX(dx);
+                child.animate().alpha(1f).translationX(0f)
+                        .setStartDelay(i * 45L).setDuration(220)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .start();
+            } else {
+                child.animate().alpha(0f).translationX(dx)
+                        .setStartDelay(i * 28L).setDuration(150)
+                        .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                        .start();
+            }
+        }
+    }
+
     /** Draws the sidebar rows and moves the selection bar onto the given one. */
     private void markTrayActive(View root, int activeId) {
         if (root == null) return;
@@ -901,6 +932,7 @@ public class MainMenuFragment extends Fragment {
         if (settingsTray != null && settingsTray.getVisibility() == View.VISIBLE) {
             View hb = settingsTray.getRootView().findViewById(R.id.hamburger_menu_icon);
             setHamburgerState(hb, false);
+            animateTrayRows(settingsTray, false);
             settingsTray.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             settingsTray.animate()
                     .translationX(-settingsTray.getWidth() - 24)
