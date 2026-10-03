@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- panel row: rounded, no outline - depth comes from the shadow -->
+<!-- panel row: rounded, borderless, very translucent - depth is the shadow alone -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#4D1A0A12" />
+    <solid android:color="#2E1A0A12" />
     <corners android:radius="12dp" />
 </shape>

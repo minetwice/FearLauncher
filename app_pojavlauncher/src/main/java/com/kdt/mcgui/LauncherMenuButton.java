@@ -34,23 +34,20 @@ public class LauncherMenuButton extends ExtendedButton {
 
     /** Set style stuff */
     private void setSettings(){
-        // Loop Animation
-        Animator pulse = AnimatorInflater.loadAnimator(getContext(), R.animator.button_loop_pulse);
-        pulse.setTarget(this);
-        pulse.start();
-
+        // No looping pulse here - the constant scale/alpha breathing made the rows
+        // look like they had a shifting edge. Rows stay still and rely on the shadow.
         Resources resources = getContext().getResources();
 
-        int padding = resources.getDimensionPixelSize(R.dimen._22sdp);
+        int padding = resources.getDimensionPixelSize(R.dimen._14sdp);
         setCompoundDrawablePadding(padding);
-        setPaddingRelative(padding, 0, 0, 0);
+        setPaddingRelative(padding, 0, resources.getDimensionPixelSize(R.dimen._10sdp), 0);
         setGravity(Gravity.CENTER_VERTICAL);
 
         setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen._12ssp));
 
         // Set drawable size
         int[] sizes = getExtendedViewData().getSizeCompounds();
-        sizes[0] = resources.getDimensionPixelSize(R.dimen._30sdp);
+        sizes[0] = resources.getDimensionPixelSize(R.dimen._26sdp);
         getExtendedViewData().setSizeCompounds(sizes);
         postProcessDrawables();
     }
