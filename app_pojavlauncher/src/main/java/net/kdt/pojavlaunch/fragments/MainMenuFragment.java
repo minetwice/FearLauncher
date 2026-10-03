@@ -288,14 +288,9 @@ public class MainMenuFragment extends Fragment {
         // The rows and the close button were inheriting premium_button_bg / theme_button_bg
         // from their styles, and both of those carry a red stroke or a red gradient band.
         // Force a borderless background on them after inflation so nothing re-applies it.
-        int[] trayBgIds = {R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
-                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn};
-        for (int id : trayBgIds) {
-            View row = view.findViewById(id);
-            if (row == null) continue;
-            row.setBackgroundResource(R.drawable.fear_tray_row_bg);
-            row.setBackgroundTintList(null);
-        }
+        // Row backgrounds are drawn by FearRowBgDrawable (see markTrayActive) so the
+        // style's bordered drawable can never come back, and the selection bar stays a
+        // fixed 3dp instead of stretching across the row.
         View trayCloseBg = view.findViewById(R.id.tray_close);
         if (trayCloseBg != null) {
             trayCloseBg.setBackgroundResource(R.drawable.fear_tray_row_bg);
@@ -896,7 +891,10 @@ public class MainMenuFragment extends Fragment {
         });
     }
 
-    /** Moves the selection indicator onto the given sidebar row. */
+    private final java.util.HashMap<Integer, com.kdt.mcgui.FearRowBgDrawable> mTrayRowBgs =
+            new java.util.HashMap<>();
+
+    /** Draws the sidebar rows and moves the selection bar onto the given one. */
     private void markTrayActive(View root, int activeId) {
         if (root == null) return;
         int[] ids = {R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
@@ -904,9 +902,14 @@ public class MainMenuFragment extends Fragment {
         for (int id : ids) {
             View v = root.findViewById(id);
             if (v == null) continue;
-            v.setBackgroundResource(id == activeId
-                    ? R.drawable.fear_tray_row_active
-                    : R.drawable.fear_tray_row_bg);
+            com.kdt.mcgui.FearRowBgDrawable bg = mTrayRowBgs.get(id);
+            if (bg == null) {
+                bg = new com.kdt.mcgui.FearRowBgDrawable();
+                bg.setMetrics(getResources().getDisplayMetrics().density);
+                mTrayRowBgs.put(id, bg);
+                v.setBackground(bg);
+            }
+            bg.setActive(id == activeId);
         }
     }
 
