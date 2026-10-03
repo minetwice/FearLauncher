@@ -179,6 +179,20 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 android.app.Dialog dialog = new android.app.Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
                 dialog.setContentView(R.layout.dialog_mod_detail_fullscreen);
 
+                // Pin the window to the screen. Without this the sheet was measured
+                // against a window wider than the display, which pushed the install
+                // button and the version arrow off the right edge.
+                android.view.Window fearWindow = dialog.getWindow();
+                if (fearWindow != null) {
+                    fearWindow.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+                    fearWindow.setBackgroundDrawableResource(android.R.color.black);
+                    android.view.WindowManager.LayoutParams lp = fearWindow.getAttributes();
+                    lp.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+                    lp.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+                    fearWindow.setAttributes(lp);
+                }
+
                 View closeBtn = dialog.findViewById(R.id.detail_close_btn);
                 closeBtn.setOnClickListener(v2 -> {
                     v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);

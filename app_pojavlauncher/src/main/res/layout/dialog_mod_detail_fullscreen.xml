@@ -6,7 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FA000000"
-    android:padding="@dimen/_12sdp">
+    android:fitsSystemWindows="true"
+    android:clipChildren="true"
+    android:clipToPadding="true"
+    android:padding="@dimen/_10sdp">
 
     <!-- ===== TOP BAR ===== -->
     <ImageButton
@@ -333,7 +336,7 @@
                 <ImageView
                     android:id="@+id/detail_preview_image"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_160sdp"
+                    android:layout_height="@dimen/_120sdp"
                     android:scaleType="centerCrop" />
             </androidx.cardview.widget.CardView>
 
