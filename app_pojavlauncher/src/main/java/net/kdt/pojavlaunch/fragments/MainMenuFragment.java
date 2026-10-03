@@ -281,30 +281,26 @@ public class MainMenuFragment extends Fragment {
         // Sliding Drawer (settings_tray) bindings and trigger logic
         View settingsTray = view.findViewById(R.id.settings_tray);
         if (settingsTray != null) {
-            // Panel background built in code rather than from a shape resource, with an
-            // explicit zero-width stroke. Nothing - not a stale drawable, not a style,
-            // not a tint - can put a border on it now.
-            android.graphics.drawable.GradientDrawable panel =
-                    new android.graphics.drawable.GradientDrawable();
-            panel.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-            panel.setColor(0x99101828);
-            panel.setCornerRadius(20f * getResources().getDisplayMetrics().density);
-            panel.setStroke(0, 0x00000000);
-            settingsTray.setBackground(panel);
-            settingsTray.setBackgroundTintList(null);
-            // and make sure the container inside never carries one either
+            // The shell is fully transparent now - the rows are the only thing drawn.
+            settingsTray.setBackground(null);
             View trayContainer = view.findViewById(R.id.tray_container);
             if (trayContainer != null) trayContainer.setBackground(null);
         }
 
-        // The rows and the close button were inheriting premium_button_bg / theme_button_bg
-        // from their styles, and both of those carry a red stroke or a red gradient band.
-        // Force a borderless background on them after inflation so nothing re-applies it.
-        // Row backgrounds are drawn by FearRowBgDrawable (see markTrayActive) so the
-        // style's bordered drawable can never come back, and the selection bar stays a
-        // fixed 3dp instead of stretching across the row.
-        // Selection indicator, like the reference: the row being used takes a lighter
-        // fill and a white bar down its left edge; the rest stay flat.
+        // Sidebar icons are colourless - they would otherwise pick up the red accent
+        // through @color/icon_outline_color. Tint the drawables white directly.
+        for (int trayIconId : new int[]{
+                R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
+                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn}) {
+            View row = view.findViewById(trayIconId);
+            if (!(row instanceof android.widget.TextView)) continue;
+            for (android.graphics.drawable.Drawable d
+                    : ((android.widget.TextView) row).getCompoundDrawables()) {
+                if (d != null) d.setTint(0xFFFFFFFF);
+            }
+        }
+
+        // Selection bar: moves on touch, starts on Installations.
         final int[] trayRowIds = {R.id.tray_installations_btn, R.id.tray_jar_btn,
                 R.id.tray_controls_btn, R.id.tray_manager_btn, R.id.tray_more_btn,
                 R.id.tray_logs_btn};
@@ -319,24 +315,6 @@ public class MainMenuFragment extends Fragment {
             });
         }
         markTrayActive(view, R.id.tray_installations_btn);
-
-        // Sidebar icons are colourless - they were picking up the red accent through
-        // @color/icon_outline_color. Tint the drawables white directly.
-        for (int trayIconId : new int[]{
-                R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
-                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn}) {
-            View row = view.findViewById(trayIconId);
-            if (!(row instanceof android.widget.TextView)) continue;
-            for (android.graphics.drawable.Drawable d
-                    : ((android.widget.TextView) row).getCompoundDrawables()) {
-                if (d != null) d.setTint(0xFFFFFFFF);
-            }
-        }
-        // The menu icon is the same hamburger in two colours: orange while the tray
-        // is shut, blue while it is open. Swap with a small pulse so the change reads.
-        if (hamburgerBtn instanceof android.widget.ImageButton) {
-            ((android.widget.ImageButton) hamburgerBtn).setImageResource(R.drawable.ic_menu_orange);
-        }
         if (hamburgerBtn != null && settingsTray != null) {
             hamburgerBtn.setOnClickListener(v -> {
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);

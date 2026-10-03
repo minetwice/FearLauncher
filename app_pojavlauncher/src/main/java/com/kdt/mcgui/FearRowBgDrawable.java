@@ -17,8 +17,8 @@ import androidx.annotation.Nullable;
  * API 23, and below that the "bar" stretches across the whole row and blanks it out.
  */
 public class FearRowBgDrawable extends Drawable {
-    private static final int RESTING = 0x14FFFFFF;
-    private static final int ACTIVE  = 0x1FFFFFFF;
+    private static final int RESTING = 0x33101828;   // faint navy glass
+    private static final int ACTIVE  = 0x59101828;   // lit when selected
 
     private final Paint mFill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint mBar = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -34,7 +34,7 @@ public class FearRowBgDrawable extends Drawable {
     }
 
     public void setMetrics(float density) {
-        mRadius = 12f * density;
+        mRadius = 14f * density;
         mBarWidth = 3f * density;
         mBarInset = 9f * density;
     }
@@ -58,6 +58,12 @@ public class FearRowBgDrawable extends Drawable {
             mRect.set(0f, mBarInset, w, getBounds().height() - mBarInset);
             canvas.drawRoundRect(mRect, w / 2f, w / 2f, mBar);
         }
+    }
+
+    /** Rounded outline so the row's elevation shadow follows the pill, not a box. */
+    @Override
+    public void getOutline(@NonNull android.graphics.Outline outline) {
+        outline.setRoundRect(getBounds(), mRadius);
     }
 
     @Override public void setAlpha(int alpha) { mFill.setAlpha(alpha); }

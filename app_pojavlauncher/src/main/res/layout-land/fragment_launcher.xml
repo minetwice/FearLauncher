@@ -172,17 +172,18 @@
     <View android:id="@+id/tab_settings_icon" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
     <!-- ULTRA-PROFESSIONAL GLASS SIDEBAR TRAY (Slides from Left - Overhauled perfect dimensions) -->
+        <!-- ===== SIDE PANEL (transparent shell, floating glass rows) ===== -->
     <FrameLayout
         android:id="@+id/settings_tray"
-        android:layout_width="266dp"
+        android:layout_width="252dp"
         android:layout_height="0dp"
         android:visibility="gone"
-        android:background="@drawable/fear_tray_panel"
-        android:elevation="26dp"
-        android:clipToOutline="false"
-        android:layout_marginStart="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_8sdp"
-        android:layout_marginBottom="@dimen/_10sdp"
+        android:background="@null"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:layout_marginTop="@dimen/_6sdp"
+        android:layout_marginBottom="@dimen/_8sdp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -191,27 +192,28 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:clipToPadding="false">
 
             <LinearLayout
                 android:id="@+id/tray_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/_10sdp">
+                android:padding="@dimen/_6sdp">
 
-                <!-- header: mark + name, as the reference -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/_6sdp"
-                    android:layout_marginBottom="@dimen/_10sdp">
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:paddingVertical="@dimen/_6sdp"
+                    android:layout_marginBottom="@dimen/_8sdp">
 
                     <ImageView
-                        android:layout_width="@dimen/_20sdp"
-                        android:layout_height="@dimen/_20sdp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
                         android:src="@drawable/ic_fear_diamond"
                         android:contentDescription="@null" />
 
@@ -221,19 +223,13 @@
                         android:layout_height="wrap_content"
                         android:text="FEAR LAUNCHER"
                         android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_12ssp"
+                        android:textSize="@dimen/_11ssp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.12"
+                        android:letterSpacing="0.14"
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:layout_marginStart="@dimen/_10sdp" />
                 </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@drawable/fear_tray_divider"
-                    android:layout_marginBottom="@dimen/_10sdp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_installations_btn"
@@ -242,8 +238,10 @@
                     android:text="INSTALLATIONS"
                     android:drawableStart="@drawable/ic_px_home"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_jar_btn"
                     android:layout_width="match_parent"
@@ -251,8 +249,10 @@
                     android:text="EXECUTE A JAR"
                     android:drawableStart="@drawable/ic_px_java_run"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_controls_btn"
                     android:layout_width="match_parent"
@@ -260,8 +260,10 @@
                     android:text="CUSTOM CONTROLS"
                     android:drawableStart="@drawable/ic_px_gamepad"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_manager_btn"
                     android:layout_width="match_parent"
@@ -269,8 +271,10 @@
                     android:text="MANAGER"
                     android:drawableStart="@drawable/ic_px_runtime_mgr"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_more_btn"
                     android:layout_width="match_parent"
@@ -278,8 +282,10 @@
                     android:text="MORE OPTIONS"
                     android:drawableStart="@drawable/ic_px_gear"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
                 <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_logs_btn"
                     android:layout_width="match_parent"
@@ -287,10 +293,10 @@
                     android:text="EXPORT LOGS"
                     android:drawableStart="@drawable/ic_px_sharelog"
                     android:drawableTint="#FFFFFF"
-                    android:background="@drawable/fear_tray_row_bg"
-                    android:layout_marginBottom="@dimen/_4sdp" />
-
-
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
