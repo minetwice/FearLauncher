@@ -142,32 +142,76 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ===== VERSION / MODLOADER PICKERS ===== -->
+    <!-- ===== COMPACT SPEC ROW: tap the arrow to open the tray ===== -->
+    <LinearLayout
+        android:id="@+id/detail_spec_row"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_44sdp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:background="@drawable/fear_panel_bg"
+        android:paddingHorizontal="@dimen/_12sdp"
+        app:layout_constraintTop_toBottomOf="@id/detail_top_spec_row">
+
+        <TextView
+            android:id="@+id/detail_spec_summary"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="VERSION &amp; LOADER"
+            android:textColor="#CCFFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.06"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <ImageButton
+            android:id="@+id/detail_spec_arrow"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:src="@drawable/ic_fear_chevron"
+            android:background="@drawable/fear_search_bg"
+            android:padding="@dimen/_7sdp"
+            android:contentDescription="@null"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- ===== VERSION / MODLOADER TRAY (hidden until the arrow is tapped) ===== -->
     <LinearLayout
         android:id="@+id/detail_selector_hud"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="@dimen/_8sdp"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/_6sdp"
         android:background="@drawable/fear_panel_bg"
         android:padding="@dimen/_12sdp"
-        app:layout_constraintTop_toBottomOf="@id/detail_top_spec_row">
+        app:layout_constraintTop_toBottomOf="@id/detail_spec_row">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="MODLOADER"
-            android:textColor="#80FFFFFF"
-            android:textSize="@dimen/_8ssp"
-            android:textStyle="bold"
-            android:letterSpacing="0.08" />
-        <androidx.appcompat.widget.AppCompatSpinner
-            android:id="@+id/detail_modloader_spinner"
+        <LinearLayout
+            android:id="@+id/detail_modloader_row"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_36sdp"
-            android:layout_marginTop="@dimen/_4sdp"
-            android:layout_marginBottom="@dimen/_8sdp"
-            android:background="@drawable/fear_search_bg" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MODLOADER"
+                android:textColor="#80FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/detail_modloader_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_36sdp"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
+                android:background="@drawable/fear_search_bg" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

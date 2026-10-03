@@ -230,6 +230,31 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
                 final boolean finalIsShader = isShader;
 
+                // The version / loader pickers live in a tray that stays shut, so the
+                // preview and description get the room. Shaders and resource packs only
+                // need a version, so the loader row is dropped for them entirely.
+                final View specArrow = dialog.findViewById(R.id.detail_spec_arrow);
+                final View specTray = dialog.findViewById(R.id.detail_selector_hud);
+                View loaderRow = dialog.findViewById(R.id.detail_modloader_row);
+                TextView specSummary = dialog.findViewById(R.id.detail_spec_summary);
+                boolean isResourcePack = mModItem.itemType != null && mModItem.itemType.equals("resourcepack");
+                if (loaderRow != null && (isShader || isResourcePack)) loaderRow.setVisibility(View.GONE);
+                if (specSummary != null && (isShader || isResourcePack)) specSummary.setText("VERSION");
+                if (specArrow != null && specTray != null) {
+                    specArrow.setOnClickListener(v2 -> {
+                        v2.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                        net.kdt.pojavlaunch.SoundManager.playClick();
+                        if (specTray.getVisibility() == View.VISIBLE) {
+                            specTray.setVisibility(View.GONE);
+                        } else {
+                            specTray.setVisibility(View.VISIBLE);
+                            specTray.setAlpha(0f);
+                            specTray.setTranslationY(-12f);
+                            specTray.animate().alpha(1f).translationY(0f).setDuration(180).start();
+                        }
+                    });
+                }
+
                 installBtn.setEnabled(false);
                 detailSpinner.setAdapter(mLoadingAdapter);
 
