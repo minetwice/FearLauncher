@@ -345,8 +345,16 @@ dependencies {
 }
 
 // FEAR-ZALITH: the zalith-lwjgl jar task writes the merged game LWJGL jar
-// into this module's assets dir (app_runtime/lwjgl/3.4.1) - make every
-// asset-merge task depend on it so Gradle orders them correctly.
-tasks.matching { it.name.startsWith('merge') && it.name.endsWith('Assets') }.configureEach {
+// into this module's assets dir (app_runtime/lwjgl/3.4.1) - make every task
+// that reads those assets depend on it so Gradle orders them correctly.
+// Besides the asset-merge tasks this must include the release lint-vital
+// model task: it scans src/main/assets, so without the dependency Gradle
+// fails validation with
+//   "Task '...generateFullPubReleaseLintVitalReportModel' uses this output
+//    of task ':zalith-lwjgl:jar' without declaring ... a dependency."
+// (Release-only: debug builds never run lintVital.)
+tasks.matching {
+    (it.name.startsWith('merge') && it.name.endsWith('Assets')) || it.name.contains('LintVital')
+}.configureEach {
     dependsOn ':zalith-lwjgl:jar' /* lazy path form: app configures before zalith-lwjgl */
 }
