@@ -27,8 +27,8 @@ panvk_mc25_fd_ok(int fd)
  * reader dies ~1s after the hang starts). MC24: dump files live in BOTH
  * the private app dir AND the SHARED external dir next to latestlog.txt,
  * where the user can grab them without root. */
-#define PANVK_WD_DUMP_PATH "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
-#define PANVK_WD_DUMP_EXT "/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_PATH "/data/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_EXT "/storage/emulated/0/Android/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
 
 __attribute__((unused)) static void
 panvk_mc23_flog(const char *fmt, ...)
@@ -194,8 +194,8 @@ wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
  * in the same instant), which points to a spin loop holding a global lock
  * such as malloc. Everything the watchdog prints therefore goes through
  * raw write(2), which cannot block on malloc. */
-#define PANVK_WD_DUMP_PATH2 "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
-#define PANVK_WD_DUMP_EXT2 "/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_PATH2 "/data/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_EXT2 "/storage/emulated/0/Android/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
 
 /* MC21f: everything is ALSO appended to a file - the stdout pipe reader
  * dies ~1s after the freeze, so anything printed later would be lost. */

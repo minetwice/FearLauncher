@@ -4,7 +4,7 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public class SoundManager {
     private static SoundPool sSoundPool;

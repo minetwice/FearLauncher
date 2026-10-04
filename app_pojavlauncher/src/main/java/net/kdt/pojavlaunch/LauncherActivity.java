@@ -28,7 +28,7 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.material.navigation.NavigationView;
 import com.kdt.mcgui.ProgressLayout;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;

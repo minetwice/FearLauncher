@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.kdt.mcgui.AspectVideoView;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.tasks.AsyncAssetManager;

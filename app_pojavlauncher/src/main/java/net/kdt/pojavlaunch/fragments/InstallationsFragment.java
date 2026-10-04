@@ -18,7 +18,7 @@ import net.kdt.pojavlaunch.instances.Instances;
 
 import java.io.File;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public class InstallationsFragment extends Fragment {
     public static final String TAG = "InstallationsFragment";

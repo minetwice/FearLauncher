@@ -33,7 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.kdt.mcgui.mcVersionSpinner;
 
 import net.kdt.pojavlaunch.CustomControlsActivity;
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
@@ -1728,7 +1728,7 @@ public class MainMenuFragment extends Fragment {
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
             ((com.kdt.mcgui.LoopingVideoBackground) bg)
-                    .setVideoResource(git.artdeell.mojo.R.raw.fear_bg_loop);
+                    .setVideoResource(com.fearlauncher.fear.R.raw.fear_bg_loop);
         }
 
         final View wash = view.findViewById(R.id.color_wash);

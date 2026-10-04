@@ -3,7 +3,7 @@ package net.kdt.pojavlaunch.fearfiles;
 import android.graphics.drawable.Drawable;
 import android.webkit.MimeTypeMap;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 import java.io.File;
 import java.util.Locale;

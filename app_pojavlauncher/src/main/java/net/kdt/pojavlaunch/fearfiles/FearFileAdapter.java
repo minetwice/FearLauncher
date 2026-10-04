@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 import java.io.File;
 import java.util.ArrayList;

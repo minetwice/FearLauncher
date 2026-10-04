@@ -11,7 +11,7 @@ import android.view.animation.AnimationUtils;
 import androidx.core.content.res.ResourcesCompat;
 import android.graphics.drawable.Drawable;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.SoundManager;
 
 public class MineButton extends androidx.appcompat.widget.AppCompatButton {

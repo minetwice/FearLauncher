@@ -29,8 +29,8 @@ panvk_mc25_fd_ok(int fd)
  * reader dies ~1s after the hang starts). MC24: dump files live in BOTH
  * the private app dir AND the SHARED external dir next to latestlog.txt,
  * where the user can grab them without root. */
-#define PANVK_WD_DUMP_PATH "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
-#define PANVK_WD_DUMP_EXT "/storage/emulated/0/Android/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_PATH "/data/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_EXT "/storage/emulated/0/Android/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
 
 /* MC26: pre-opened non-blocking dump descriptors. v10 lost its final
  * cycles because EVERY output line did openat()+write()+close() - and

@@ -50,7 +50,7 @@ configurations {
 }
 
 android {
-    namespace 'git.artdeell.mojo'
+    namespace 'com.fearlauncher.fear'
 
     compileSdk = 36
 
@@ -67,13 +67,13 @@ android {
             keyPassword "android"
         }
         googlePlayBuild {
-            storeFile file("mojo_upload.jks")
+            storeFile file("fear_upload.jks")
             storePassword System.getenv("UPLOAD_KEYSTORE_PASSWORD")
             keyAlias "key0"
             keyPassword System.getenv("UPLOAD_KEYSTORE_PASSWORD")
         }
         publicBuild {
-            storeFile file("mojo_pub.jks")
+            storeFile file("fear_pub.jks")
             storePassword System.getenv("MOJOPUB_KEYSTORE_PASSWORD")
             keyAlias "key0"
             keyPassword System.getenv("MOJOPUB_KEYSTORE_PASSWORD")

@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.kdt.mcgui.FearToggle;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.utils.FearTheme;

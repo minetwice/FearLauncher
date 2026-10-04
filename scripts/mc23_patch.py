@@ -11,7 +11,7 @@ whelp = """#include <stdarg.h>
 /* MC23: raw-syscall file logger - survives the freeze (the stdout pipe
  * reader dies ~1s after the hang starts). Same dump file the MC21f
  * watchdog uses; stderr copy is best-effort. */
-#define PANVK_WD_DUMP_PATH "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_PATH "/data/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
 
 __attribute__((unused)) static void
 panvk_mc23_flog(const char *fmt, ...)
@@ -170,7 +170,7 @@ wd_fn = """#ifdef HAVE_PAN_KMOD_KBASE
  * in the same instant), which points to a spin loop holding a global lock
  * such as malloc. Everything the watchdog prints therefore goes through
  * raw write(2), which cannot block on malloc. */
-#define PANVK_WD_DUMP_PATH2 "/data/data/git.artdeell.mojo.debug/files/panvk_wd_dump.txt"
+#define PANVK_WD_DUMP_PATH2 "/data/data/com.fearlauncher.fear.debug/files/panvk_wd_dump.txt"
 
 /* MC21f: everything is ALSO appended to a file - the stdout pipe reader
  * dies ~1s after the freeze, so anything printed later would be lost. */

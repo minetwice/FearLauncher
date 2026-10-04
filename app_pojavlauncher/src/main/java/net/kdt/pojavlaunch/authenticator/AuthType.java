@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import net.kdt.pojavlaunch.authenticator.impl.MicrosoftBackgroundLogin;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public enum AuthType {
     @SerializedName("microsoft")

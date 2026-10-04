@@ -26,7 +26,7 @@ import androidx.preference.PreferenceManager;
 
 import com.google.gson.JsonObject;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.PojavApplication;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.authenticator.AuthType;

@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public class GameRunner {
     private static boolean hasSodium(File gameDir) {

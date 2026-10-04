@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 import java.util.List;
 

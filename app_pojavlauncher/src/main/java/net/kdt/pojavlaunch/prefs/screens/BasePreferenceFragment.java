@@ -13,7 +13,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
 

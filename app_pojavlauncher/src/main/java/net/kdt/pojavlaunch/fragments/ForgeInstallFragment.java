@@ -4,7 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 import net.kdt.pojavlaunch.modloaders.ForgelikeUtils;
 

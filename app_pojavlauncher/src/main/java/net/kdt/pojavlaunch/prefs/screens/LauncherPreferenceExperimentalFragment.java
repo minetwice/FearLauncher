@@ -6,7 +6,7 @@ import androidx.preference.SwitchPreference;
 
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public class LauncherPreferenceExperimentalFragment extends LauncherPreferenceFragment {
 

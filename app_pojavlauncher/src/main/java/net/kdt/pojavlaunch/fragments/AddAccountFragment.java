@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 import android.widget.Button;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.authenticator.AuthType;

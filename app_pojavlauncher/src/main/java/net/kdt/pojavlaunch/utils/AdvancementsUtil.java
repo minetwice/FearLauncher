@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.TextView;
 
-import git.artdeell.mojo.R;
+import com.fearlauncher.fear.R;
 
 public class AdvancementsUtil {
 
