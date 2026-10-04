@@ -14,6 +14,12 @@ jobs:
       UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
       MOJOPUB_KEYSTORE_PASSWORD: ${{ secrets.MOJOPUB_KEYSTORE_PASSWORD }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+      # Pushes to this branch build and publish the FearLauncher nightly release.
+      FEARLAUNCHER_RELEASE_BRANCH: Mega-checkpoint
+      # FearLauncher's Google Play publishing needs BOTH secrets. Until they are
+      # added to the repo, the gplay AAB build and the Play upload are skipped
+      # instead of failing the whole build.
+      HAS_PLAY_UPLOAD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD != '' && secrets.SERVICE_JSON != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,9 +61,11 @@ jobs:
       - name: Create out directory
         run: mkdir out
 
-      # ⚠️ तुम अपने खुद के release के लिए ये conditions बदल सकते हो
-      - name: Build Publishing .aab (only for your own releases)
-        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+      # Release + Google Play steps run only for FearLauncher itself (owner check
+      # keeps forks from publishing) and only on the release branch. The Play
+      # steps additionally wait for the Play secrets to exist.
+      - name: Build FearLauncher Publishing .aab (Google Play)
+        if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH && env.HAS_PLAY_UPLOAD == 'true'
         run: |
           gradle :app_pojavlauncher:bundleFullGplay
           mv app_pojavlauncher/build/outputs/bundle/fullGplay/app_pojavlauncher-full-gplay.aab out/FearLauncher-gplay.aab
@@ -72,8 +80,8 @@ jobs:
           gradle :app_pojavlauncher:assembleNoruntimeDebug
           mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
 
-      - name: Build Nightly Release .apk
-        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+      - name: Build FearLauncher Nightly Release .apk
+        if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH
         run: |
           gradle :app_pojavlauncher:assembleFullPubRelease
           mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
@@ -95,32 +103,34 @@ jobs:
           name: FearLauncher-debug-noruntime
           path: out/FearLauncher-debug-noruntime.apk
 
-      - name: Release Nightly APK (GitHub Release)
-        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+      - name: Publish FearLauncher Nightly Release (GitHub Release)
+        if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH
         uses: softprops/action-gh-release@v3
         with:
-          name: FearLauncher Nightly Build
+          name: FearLauncher Nightly
           prerelease: true
           tag_name: nightly
           body: |
             FearLauncher nightly build.
+            Branch: ${{ github.ref_name }}
             Commit hash: ${{ github.sha }}
           files: |
             out/FearLauncher-release.apk
 
-      - name: Upload AAB (for Google Play)
+      - name: Upload FearLauncher AAB (Google Play)
+        if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH && env.HAS_PLAY_UPLOAD == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: FearLauncher-release-aab
           path: out/FearLauncher-gplay.aab
 
-      - name: Upload to Google Play testing track
+      - name: Upload FearLauncher to Google Play (internal track)
         continue-on-error: true
-        if: github.repository_owner == 'YourGitHubUsername' && github.ref_name == 'v3_openjdk'
+        if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH && env.HAS_PLAY_UPLOAD == 'true'
         uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_JSON }}
-          packageName: com.yourcompany.fearlauncher
+          packageName: git.artdeell.mojo
           releaseFiles: out/FearLauncher-gplay.aab
           track: internal
           inAppUpdatePriority: 5
