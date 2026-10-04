@@ -319,13 +319,14 @@
         </ScrollView>
     </FrameLayout>
 
-    <!-- Minecraft Advancement Made Toast Overlay -->
+    <!-- Fear social display: extracted banner art + 3D skin head -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/advancement_toast_layout"
-        android:layout_width="@dimen/_180sdp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/minecraft_advancement_bg"
-        android:padding="@dimen/_8sdp"
+        android:layout_width="@dimen/_230sdp"
+        android:layout_height="@dimen/_64sdp"
+        android:background="@drawable/fear_display_blue"
+        android:paddingStart="@dimen/_6sdp"
+        android:paddingEnd="@dimen/_8sdp"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true"
@@ -335,10 +336,10 @@
         android:layout_marginEnd="@dimen/_16sdp">
 
         <ImageView
-            android:id="@+id/advancement_icon"
-            android:layout_width="@dimen/_24sdp"
-            android:layout_height="@dimen/_24sdp"
-            android:src="@drawable/ic_youtube_logo"
+            android:id="@+id/advancement_head"
+            android:layout_width="@dimen/_46sdp"
+            android:layout_height="@dimen/_46sdp"
+            android:src="@drawable/fear_head_blue"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>
@@ -347,11 +348,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginStart="@dimen/_8sdp"
+            android:layout_marginStart="@dimen/_6sdp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/advancement_icon"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintStart_toEndOf="@id/advancement_head"
+            app:layout_constraintEnd_toStartOf="@id/advancement_icon">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -359,7 +360,11 @@
                 android:text="Advancement Made!"
                 android:textColor="#FFFF55"
                 android:textSize="@dimen/_9ssp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:shadowColor="#CC000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"/>
 
             <TextView
                 android:id="@+id/advancement_message"
@@ -369,8 +374,21 @@
                 android:textColor="#FFFFFF"
                 android:textSize="@dimen/_8ssp"
                 android:textStyle="bold"
+                android:shadowColor="#CC000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
                 android:layout_marginTop="1dp"/>
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/advancement_icon"
+            android:layout_width="@dimen/_22sdp"
+            android:layout_height="@dimen/_22sdp"
+            android:src="@drawable/ic_youtube_logo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

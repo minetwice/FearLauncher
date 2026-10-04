@@ -489,6 +489,16 @@ public class MainMenuFragment extends Fragment {
         if (advIcon != null) {
             advIcon.setImageResource(isDiscord ? R.drawable.ic_discord : R.drawable.ic_youtube_logo);
         }
+        // Fear social display: Twicefear gets the blue banner with the blue-skin
+        // 3D head, Hellzior the red banner with the white-skin head.
+        final boolean twicefear = (state == 0 || state == 2);
+        android.widget.ImageView advHead = getView().findViewById(R.id.advancement_head);
+        if (advHead != null) {
+            advHead.setImageResource(twicefear ? R.drawable.fear_head_blue : R.drawable.fear_head_white);
+        }
+        if (advToast != null) {
+            advToast.setBackgroundResource(twicefear ? R.drawable.fear_display_blue : R.drawable.fear_display_red);
+        }
 
         // Position it completely off-screen to start BEFORE making it visible (prevents static flicker)
         float startX = advToast.getWidth() > 0 ? advToast.getWidth() + 200f : 1000f;
