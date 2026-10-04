@@ -10,6 +10,12 @@ public class ModItem extends ModSource {
     public String imageUrl;
     public String itemType;
 
+    /* Filled in after the fact by ModVersionEnricher; both stay null/false until then. */
+    /** True when this item runs on the version the current instance is on. */
+    public boolean recommended;
+    /** Compact span of versions it covers, e.g. "1.21 - 1.21.3". */
+    public String versionRange;
+
     public ModItem(int apiSource, boolean isModpack, String id, String title, String description, String imageUrl) {
         this.apiSource = apiSource;
         this.isModpack = isModpack;

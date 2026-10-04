@@ -61,6 +61,8 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private SearchResult mCurrentResult;
     private boolean mLastPage;
     private boolean mTasksRunning;
+    /* The version the selected instance runs; items that cover it get recommended. */
+    private String mTargetVersion;
 
 
     public ModItemAdapter(Resources resources, ModpackApi api, SearchResultCallback callback) {
@@ -68,6 +70,24 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         mModpackApi = api;
         mModItems = new ModItem[]{};
         mSearchResultCallback = callback;
+    }
+
+    /** Set before searching; drives the recommendation star. */
+    public void setTargetVersion(String targetVersion) {
+        mTargetVersion = targetVersion;
+    }
+
+    private void enrich(ModItem[] items, boolean sort) {
+        if (items == null || items.length == 0) return;
+        ModVersionEnricher.enrich(mModpackApi, items, mTargetVersion, enriched -> {
+            if (sort) sortRecommendedFirst(enriched);
+            notifyDataSetChanged();
+        });
+    }
+
+    /** Recommended first, everything else keeps the order the API gave it. */
+    private static void sortRecommendedFirst(ModItem[] items) {
+        Arrays.sort(items, (a, b) -> Boolean.compare(b.recommended, a.recommended));
     }
 
     public void performSearchQuery(SearchFilters searchFilters) {
@@ -176,6 +196,8 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         private final TextView mTitle, mDescription;
         private final ImageView mDownloadState;
         private final ImageView mIconView, mSourceView;
+        private final ImageView mRecommendStar;
+        private final TextView mVersionRange;
         private View mExtendedLayout;
         private Spinner mExtendedSpinner;
         private Button mExtendedButton;
@@ -576,6 +598,8 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mIconView = view.findViewById(R.id.mod_thumbnail_imageview);
             mSourceView = view.findViewById(R.id.mod_source_imageview);
             mDownloadState = view.findViewById(R.id.mod_download_state);
+            mRecommendStar = view.findViewById(R.id.mod_recommend_star);
+            mVersionRange = view.findViewById(R.id.mod_version_range_textview);
         }
 
         /** Display basic info about the moditem */
@@ -616,6 +640,17 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
             mTitle.setText(item.title);
             mDescription.setText(cleanDescription(item.description));
+            // The star is the whole point of the enricher: this item runs on the version
+            // this instance is on. The range is shown either way, so a miss still tells
+            // you what the item does cover.
+            if (mRecommendStar != null) {
+                mRecommendStar.setVisibility(item.recommended ? View.VISIBLE : View.GONE);
+            }
+            if (mVersionRange != null) {
+                boolean hasRange = item.versionRange != null && !item.versionRange.isEmpty();
+                mVersionRange.setVisibility(hasRange ? View.VISIBLE : View.GONE);
+                if (hasRange) mVersionRange.setText(item.versionRange);
+            }
 
             if(hasExtended()){
                 closeDetailedView();
@@ -751,6 +786,9 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }else {
                     mModItems = finalModItems;
                     notifyDataSetChanged();
+                    // Only the first page is reordered - re-sorting under a scrolling
+                    // thumb would move rows out from under the finger.
+                    enrich(finalModItems, mPreviousResult == null);
                 }
             });
         }

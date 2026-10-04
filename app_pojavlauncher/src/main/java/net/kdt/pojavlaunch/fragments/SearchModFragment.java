@@ -119,6 +119,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // You can only access resources after attaching to current context
         mModItemAdapter = new ModItemAdapter(getResources(), modpackApi, this);
+        // The instance's own version is what the star means: this item runs on it.
+        mModItemAdapter.setTargetVersion(selectedInstanceVersion());
         ProgressKeeper.addTaskCountListener(mModItemAdapter);
 
         mOverlay = view.findViewById(R.id.search_mod_overlay);
@@ -416,5 +418,17 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         });
 
         dialog.show();
+    }
+
+    /** The MC version of the instance this download is for, or null if unknown. */
+    private String selectedInstanceVersion() {
+        try {
+            net.kdt.pojavlaunch.instances.Instance instance =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (instance != null && instance.versionId != null && !instance.versionId.isEmpty()) {
+                return instance.versionId;
+            }
+        } catch (Throwable ignored) { }
+        return null;
     }
 }
