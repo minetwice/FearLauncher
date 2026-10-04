@@ -20,16 +20,14 @@ import git.artdeell.mojo.R;
  * It has support for the Logger class
  */
 public class LoggerView extends ConstraintLayout {
-    private Logger.eventLogListener mLogListener;
     private ToggleButton mLogToggle;
     private DefocusableScrollView mScrollView;
     private TextView mLogTextView;
-    // FEAR-LOGCOMPACT: pending log text, flushed to the TextView at most every
-    // 100ms. Appending per line floods the UI thread and the fullScroll() per
-    // line is what made the game stutter while the log was open.
-    private final StringBuilder mPendingLog = new StringBuilder();
-    private boolean mFlushScheduled = false;
     private static final int FEAR_MAX_LOG_LINES = 1000;
+    // FEAR-LOGTAIL: the console follows latestlog.txt directly (see tailLogFile).
+    private Thread mTailThread;
+    private long mTailOffset = 0;
+    private volatile boolean mTailRunning = true;
 
     public LoggerView(@NonNull Context context) {
         this(context, null);
@@ -70,14 +68,7 @@ public class LoggerView extends ConstraintLayout {
         mLogToggle.setOnCheckedChangeListener(
                 (compoundButton, isChecked) -> {
                     mLogTextView.setVisibility(isChecked ? VISIBLE : GONE);
-                    if(isChecked) {
-                        Logger.setLogListener(mLogListener);
-                    }else{
-                        mLogTextView.setText("");
-                        synchronized (mPendingLog) { mPendingLog.setLength(0); } // FEAR-LOGCOMPACT: drop pending batch
-                        Logger.setLogListener(null); // Makes the JNI code be able to skip expensive logger callbacks
-                        // NOTE: was tested by rapidly smashing the log on/off button, no sync issues found :)
-                    }
+                    if(!isChecked) mLogTextView.setText("");
                 });
         mLogToggle.setChecked(true);   // capture from the very first launch line
 
@@ -160,41 +151,67 @@ public class LoggerView extends ConstraintLayout {
         );
         autoscrollToggle.setChecked(true);
 
-        // Listen to logs
-        // FEAR-LOGCOMPACT: buffer incoming lines and flush in one TextView
-        // update every 100ms - one layout pass instead of one per log line -
-        // and cap the buffer at 1000 lines so it can never grow unbounded
-        // (fixes the old "TODO clamp the max text so it doesn't go oob").
-        mLogListener = text -> {
-            if(mLogTextView.getVisibility() != VISIBLE) return;
-            synchronized (mPendingLog) {
-                mPendingLog.append(text).append('\n');
-            }
-            if(mFlushScheduled) return;
-            mFlushScheduled = true;
-            postDelayed(() -> {
-                mFlushScheduled = false;
-                String chunk;
-                synchronized (mPendingLog) {
-                    chunk = mPendingLog.toString();
-                    mPendingLog.setLength(0);
-                }
-                if (chunk.isEmpty()) return;
-                mLogTextView.append(chunk);
-                int lineCount = mLogTextView.getLineCount();
-                if (lineCount > FEAR_MAX_LOG_LINES + 200 && mLogTextView.getLayout() != null) {
-                    int cut = mLogTextView.getLayout().getLineStart(lineCount - FEAR_MAX_LOG_LINES);
-                    if (cut > 0) mLogTextView.getEditableText().delete(0, cut);
-                }
-                if(mScrollView.isKeepFocusing()) mScrollView.fullScroll(View.FOCUS_DOWN);
-            }, 100);
-        };
+        // FEAR-LOGTAIL: follow latestlog.txt directly.
+        //
+        // The native stdout reader writes the game's own output to latestlog.txt
+        // but deliberately never calls the Java log listener (see stdio_is.c, MC27),
+        // so the old listener-driven console showed only the launcher's own lines
+        // and then sat still while the game logged. Reading the file itself means
+        // every line - game stdout included - reaches the view, and it keeps
+        // following the file as it grows.
+        mTailThread = new Thread(this::tailLogFile, "fear-log-tail");
+        mTailThread.setDaemon(true);
+        mTailThread.start();
+    }
 
-        // FEAR: the log toggle was checked (line ~82) before mLogListener existed,
-        // so Logger.setLogListener() ran with null and the native logger had no
-        // listener to call - the on-screen log stayed empty for the whole launch.
-        // Register the real listener now that it has been created.
-        if (mLogToggle.isChecked()) Logger.setLogListener(mLogListener);
+    /** Polls latestlog.txt and appends whatever is new to the console. */
+    private void tailLogFile() {
+        while (mTailRunning) {
+            try {
+                Thread.sleep(250);
+                java.io.File home = net.kdt.pojavlaunch.Tools.DIR_GAME_HOME;
+                if (home == null) continue;
+                java.io.File log = new java.io.File(home, "latestlog.txt");
+                if (!log.isFile()) continue;
+                long len = log.length();
+                if (len < mTailOffset) mTailOffset = 0; // truncated by Logger.begin
+                if (len <= mTailOffset) continue;
+                long start = mTailOffset;
+                String complete;
+                long consumed;
+                try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(log, "r")) {
+                    raf.seek(start);
+                    byte[] buf = new byte[(int) Math.min(len - start, 65536)];
+                    int read = raf.read(buf);
+                    if (read <= 0) continue;
+                    String raw = new String(buf, 0, read, "UTF-8");
+                    int lastNewline = raw.lastIndexOf('\n');
+                    if (lastNewline < 0) continue; // wait for a whole line
+                    complete = raw.substring(0, lastNewline + 1);
+                    consumed = complete.getBytes("UTF-8").length;
+                }
+                mTailOffset = start + consumed;
+                if (mLogTextView.getVisibility() == VISIBLE) {
+                    final String chunk = complete;
+                    post(() -> appendLogChunk(chunk));
+                }
+            } catch (InterruptedException e) {
+                return;
+            } catch (Throwable ignored) { }
+        }
+    }
+
+    /** Appends text on the UI thread, caps the buffer and follows the bottom. */
+    private void appendLogChunk(String chunk) {
+        mLogTextView.append(chunk);
+        int lineCount = mLogTextView.getLineCount();
+        if (lineCount > FEAR_MAX_LOG_LINES + 200 && mLogTextView.getLayout() != null) {
+            int cut = mLogTextView.getLayout().getLineStart(lineCount - FEAR_MAX_LOG_LINES);
+            if (cut > 0) mLogTextView.getEditableText().delete(0, cut);
+        }
+        if (mScrollView != null && mScrollView.isKeepFocusing()) {
+            mScrollView.post(() -> mScrollView.fullScroll(View.FOCUS_DOWN));
+        }
     }
 
 }

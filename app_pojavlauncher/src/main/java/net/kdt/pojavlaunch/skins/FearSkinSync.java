@@ -146,9 +146,17 @@ public final class FearSkinSync {
             }
         }
 
+        // Minecraft 1.21.9+ refuses a pack whose declared max format is newer than
+        // 64 unless min_format/max_format are present, and then REMOVES it from the
+        // enabled list ("Pack declares support for version newer than 64, but is
+        // missing mandatory fields min_format and max_format"). That is why the
+        // skin pack silently stopped applying. Keep the legacy fields for older
+        // versions and add the new range fields for modern ones.
         writeString(new File(packDir, "pack.mcmeta"),
                 "{\n  \"pack\": {\n    \"pack_format\": 46,\n"
                         + "    \"supported_formats\": [15, 99],\n"
+                        + "    \"min_format\": 15,\n"
+                        + "    \"max_format\": 99,\n"
                         + "    \"description\": \"FEAR Skin Pack - synced from your account\"\n  }\n}\n");
 
         writePackIcon(packDir);
