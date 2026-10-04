@@ -569,9 +569,11 @@ public class LocalSkinServer {
 
         JsonObject textures = new JsonObject();
         JsonObject skin = new JsonObject();
-        // The Mojang host in the URL is deliberate: it is what the client will accept, and
-        // authlib-injector intercepts it back to here.
-        skin.addProperty("url", "https://textures.minecraft.net/texture/" + skinHash);
+        // Point at THIS local server. authlib-injector only extends the client's allowed
+        // texture domains with skinDomains (127.0.0.1 is one), and it does NOT redirect
+        // textures.minecraft.net - the client downloads the PNG from the URL verbatim, so a
+        // fake Mojang hash returns 404 and the player falls back to the default skin.
+        skin.addProperty("url", "http://127.0.0.1:25599/texture/" + skinHash);
         if (slim) {
             JsonObject metadata = new JsonObject();
             metadata.addProperty("model", "slim");
@@ -604,9 +606,10 @@ public class LocalSkinServer {
 
         JsonObject textures = new JsonObject();
         JsonObject skin = new JsonObject();
-        // Point to textures.minecraft.net to pass client domain whitelisting, which authlib-injector intercepts
+        // Serve from the local server: 127.0.0.1 is in skinDomains, so the patched client
+        // accepts it and fetches the PNG from us (see createProfile() for why not Mojang).
         String skinHash = getSHA256(uuid);
-        skin.addProperty("url", "https://textures.minecraft.net/texture/" + skinHash);
+        skin.addProperty("url", "http://127.0.0.1:25599/texture/" + skinHash);
 
         if (mIsAlex) {
             JsonObject metadata = new JsonObject();
