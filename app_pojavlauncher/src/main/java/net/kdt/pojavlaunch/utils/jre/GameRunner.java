@@ -285,6 +285,29 @@ public class GameRunner {
                         javaArgList.add("-Dauthlibinjector.yggdrasil.prefetched=" + prefetched);
                     }
                     Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
+
+                    // The launcher's own authlib transformer, alongside authlib-injector.
+                    // It hands the profile names over to this server, which is what lets an
+                    // offline-mode lookup be answered instead of refused.
+                    File skinAgent = new File(Tools.DIR_DATA, "fear_skin_agent/fear-skin-agent.jar");
+                    if (!skinAgent.exists()) {
+                        try {
+                            skinAgent.getParentFile().mkdirs();
+                            try (java.io.InputStream in = context.getAssets().open(
+                                        "components/fear-skin-agent/fear-skin-agent.jar");
+                                 java.io.OutputStream out = new java.io.FileOutputStream(skinAgent)) {
+                                byte[] buffer = new byte[8192];
+                                int read;
+                                while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+                            }
+                        } catch (Exception e) {
+                            Log.e("FearSkinAgent", "Could not extract the skin agent", e);
+                        }
+                    }
+                    if (skinAgent.exists()) {
+                        javaArgList.add("-javaagent:" + skinAgent.getAbsolutePath());
+                        Log.i("FearSkinAgent", "Installed the launcher's authlib transformer.");
+                    }
                 } catch (Exception e) { Log.e("LocalSkinServer", "Error starting/injecting local skin server.", e); }
             } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection."); }
             return;

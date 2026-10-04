@@ -54,6 +54,11 @@ public class LocalSkinServer {
     private net.kdt.pojavlaunch.authenticator.AuthType mAuthType = net.kdt.pojavlaunch.authenticator.AuthType.LOCAL;
     private Context mContext;
 
+    /* Names reported by the launcher's own authlib transformer, keyed by undashed UUID. */
+    private final java.util.Map<String, String> mNotedNames = new java.util.concurrent.ConcurrentHashMap<>();
+    /* Textures resolved for those names, keyed by the hash the profile advertises. */
+    private final java.util.Map<String, byte[]> mResolvedTextures = new java.util.concurrent.ConcurrentHashMap<>();
+
     public static synchronized LocalSkinServer getInstance() {
         if (sInstance == null) {
             sInstance = new LocalSkinServer();
@@ -244,6 +249,17 @@ public class LocalSkinServer {
 
                 byte[] body = response.toString().getBytes(StandardCharsets.UTF_8);
                 sendResponse(os, 200, "application/json; charset=utf-8", body);
+            } else if (path.startsWith("/fear/skin-note")) {
+                // Sent by FearSkinAgent from inside the game: the name behind a UUID the
+                // client is about to look up. Without it an offline-mode lookup is a UUID
+                // we cannot reverse, and the player renders as Steve.
+                String notedUuid = queryParam(path, "uuid");
+                String notedName = queryParam(path, "name");
+                if (notedUuid != null && notedName != null && !notedName.isEmpty()) {
+                    mNotedNames.put(notedUuid.toLowerCase().trim(), notedName.trim());
+                    Log.i(TAG, "Noted " + notedName + " for " + notedUuid);
+                }
+                sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
             } else if (path.startsWith("/sessionserver/session/minecraft/join")) {
                 if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
                     int[] statusCode = new int[1];
@@ -328,6 +344,19 @@ public class LocalSkinServer {
                     JsonObject profile = createLocalProfile(uuidStr);
                     byte[] body = profile.toString().getBytes(StandardCharsets.UTF_8);
                     sendResponse(os, 200, "application/json; charset=utf-8", body);
+                } else if (mNotedNames.containsKey(uuidStr)) {
+                    // We know who this is, so the lookup can be answered instead of refused.
+                    String noted = mNotedNames.get(uuidStr);
+                    byte[] skin = fetchCraftynSkinFor(noted);
+                    if (skin != null) {
+                        String hash = getSHA256(uuidStr);
+                        mResolvedTextures.put(hash, skin);
+                        JsonObject profile = createProfile(uuidStr, noted, hash, false);
+                        sendResponse(os, 200, "application/json; charset=utf-8",
+                                profile.toString().getBytes(StandardCharsets.UTF_8));
+                    } else {
+                        sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
+                    }
                 } else if (mAuthType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) {
                     int[] statusCode = new int[1];
                     String[] outContentType = new String[1];
@@ -370,7 +399,10 @@ public class LocalSkinServer {
                         .toString().replace("-", "").toLowerCase();
                 String myOfflineHash = getSHA256(offlineUuidStr).toLowerCase().trim();
 
-                if (hash.equals(myHash) || hash.equals(myOfflineHash) || hash.equals("skin")) {
+                byte[] resolved = mResolvedTextures.get(hash);
+                if (resolved != null) {
+                    sendResponse(os, 200, "image/png", resolved);
+                } else if (hash.equals(myHash) || hash.equals(myOfflineHash) || hash.equals("skin")) {
                     Log.i(TAG, "Serving local skin for hash: " + hash);
                     byte[] imgBytes = null;
                     if (mActiveSkinPath != null && !mActiveSkinPath.equals("steve") && !mActiveSkinPath.equals("alex")) {
@@ -472,6 +504,79 @@ public class LocalSkinServer {
             Log.w(TAG, "Failed to proxy texture for " + hash, e);
         }
         return null;
+    }
+
+    /** One query parameter out of a request line, or null. */
+    private static String queryParam(String path, String key) {
+        int at = path.indexOf(key + "=");
+        if (at < 0) return null;
+        int start = at + key.length() + 1;
+        int end = path.indexOf('&', start);
+        String value = end < 0 ? path.substring(start) : path.substring(start, end);
+        try {
+            return java.net.URLDecoder.decode(value, "UTF-8");
+        } catch (Exception e) {
+            return value;
+        }
+    }
+
+    /** Another player's skin, from the same place ours comes from. */
+    private byte[] fetchCraftynSkinFor(String username) {
+        try {
+            URL url = new URL("https://craftynmc.onrender.com/skins/"
+                    + java.net.URLEncoder.encode(username, "UTF-8") + ".png");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(15000);
+            if (conn.getResponseCode() != 200) return null;
+            try (InputStream is = conn.getInputStream();
+                 ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                byte[] buf = new byte[4096];
+                int read;
+                while ((read = is.read(buf)) != -1) bos.write(buf, 0, read);
+                return bos.toByteArray();
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not fetch a skin for " + username, e);
+            return null;
+        }
+    }
+
+    /** A profile carrying a texture hash, signed with this server's key. */
+    private JsonObject createProfile(String uuid, String name, String skinHash, boolean slim) throws Exception {
+        JsonObject profile = new JsonObject();
+        profile.addProperty("id", uuid);
+        profile.addProperty("name", name);
+
+        JsonArray properties = new JsonArray();
+        JsonObject texturesProp = new JsonObject();
+        texturesProp.addProperty("name", "textures");
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("timestamp", System.currentTimeMillis());
+        payload.addProperty("profileId", uuid);
+        payload.addProperty("profileName", name);
+
+        JsonObject textures = new JsonObject();
+        JsonObject skin = new JsonObject();
+        // The Mojang host in the URL is deliberate: it is what the client will accept, and
+        // authlib-injector intercepts it back to here.
+        skin.addProperty("url", "https://textures.minecraft.net/texture/" + skinHash);
+        if (slim) {
+            JsonObject metadata = new JsonObject();
+            metadata.addProperty("model", "slim");
+            skin.add("metadata", metadata);
+        }
+        textures.add("SKIN", skin);
+        payload.add("textures", textures);
+
+        String base64Value = Base64.encodeToString(payload.toString().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+        texturesProp.addProperty("value", base64Value);
+        texturesProp.addProperty("signature", signData(base64Value));
+        properties.add(texturesProp);
+        profile.add("properties", properties);
+        return profile;
     }
 
     private JsonObject createLocalProfile(String uuid) throws Exception {

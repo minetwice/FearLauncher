@@ -1,0 +1,5 @@
+Premain-Class: com.fear.skin.agent.FearSkinAgent
+Can-Retransform-Classes: false
+Can-Redefine-Classes: false
+Implementation-Title: FearLauncher Skin Agent
+Implementation-Version: 1.0
