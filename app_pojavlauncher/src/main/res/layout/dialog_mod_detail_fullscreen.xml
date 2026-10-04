@@ -149,7 +149,7 @@
     <LinearLayout
         android:id="@+id/detail_spec_row"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_44sdp"
+        android:layout_height="@dimen/_32sdp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layout_marginTop="@dimen/_8sdp"
@@ -172,8 +172,8 @@
 
         <ImageButton
             android:id="@+id/detail_spec_arrow"
-            android:layout_width="@dimen/_32sdp"
-            android:layout_height="@dimen/_32sdp"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
             android:src="@drawable/ic_fear_chevron"
             android:background="@drawable/fear_search_bg"
             android:padding="@dimen/_7sdp"
@@ -210,9 +210,9 @@
             <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/detail_modloader_spinner"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_36sdp"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:layout_marginBottom="@dimen/_8sdp"
+                android:layout_height="@dimen/_28sdp"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:layout_marginBottom="@dimen/_6sdp"
                 android:background="@drawable/fear_search_bg" />
         </LinearLayout>
 
@@ -227,8 +227,8 @@
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/detail_version_spinner"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_36sdp"
-            android:layout_marginTop="@dimen/_4sdp"
+            android:layout_height="@dimen/_28sdp"
+            android:layout_marginTop="@dimen/_2sdp"
             android:background="@drawable/fear_search_bg" />
     </LinearLayout>
 
@@ -236,9 +236,9 @@
     <LinearLayout
         android:id="@+id/detail_type_filters"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_32sdp"
+        android:layout_height="@dimen/_26sdp"
         android:orientation="horizontal"
-        android:layout_marginTop="@dimen/_8sdp"
+        android:layout_marginTop="@dimen/_6sdp"
         app:layout_constraintTop_toBottomOf="@id/detail_selector_hud">
 
         <com.kdt.mcgui.MineButton

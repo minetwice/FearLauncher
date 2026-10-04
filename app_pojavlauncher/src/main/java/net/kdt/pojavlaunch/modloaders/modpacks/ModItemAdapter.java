@@ -144,6 +144,25 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
 
+    /**
+     * Modrinth and CurseForge hand back descriptions as markdown, and some carry raw
+     * JSON fragments. Strip the syntax so the sheet shows prose rather than punctuation.
+     */
+    private static String cleanDescription(String raw) {
+        if (raw == null) return "";
+        String s = raw;
+        s = s.replaceAll("(?m)^\\s*#{1,6}\\s*", "");            // markdown headings
+        s = s.replaceAll("!?\\[[^\\]]*\\]\\([^)]*\\)", " ");    // links and images
+        s = s.replaceAll("\\*\\*|__|`|~~", "");                 // emphasis markers
+        s = s.replaceAll("(?m)^\\s*[-*+]\\s+", "\u2022 ");       // list bullets
+        s = s.replaceAll("[{}\\[\\]]", " ");                    // json brackets
+        s = s.replaceAll("\"\\s*:\\s*\"", ": ");                // json key/value
+        s = s.replaceAll("\\s*\"", "");                         // stray quotes
+        s = s.replaceAll("[ \\t]{2,}", " ");                    // collapse runs
+        s = s.replaceAll("\\n{3,}", "\n\n");                    // collapse blank lines
+        return s.trim();
+    }
+
     /** Titles the user has finished installing this session - drives the green tick. */
     private static final Set<String> sInstalledMods = Collections.synchronizedSet(new java.util.HashSet<>());
 
@@ -223,7 +242,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 sourceText.setText(mModItem.apiSource == Constants.SOURCE_MODRINTH ? "MODRINTH ENGINE" : "CURSEFORGE DATA STREAM");
 
                 TextView detailDesc = dialog.findViewById(R.id.detail_desc);
-                detailDesc.setText(mModItem.description);
+                detailDesc.setText(cleanDescription(mModItem.description));
 
                 androidx.appcompat.widget.AppCompatSpinner detailSpinner = dialog.findViewById(R.id.detail_version_spinner);
                 androidx.appcompat.widget.AppCompatSpinner loaderSpinner = dialog.findViewById(R.id.detail_modloader_spinner);
@@ -596,7 +615,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 mDownloadState.setImageResource(done ? R.drawable.ic_fear_done : R.drawable.ic_fear_download);
             }
             mTitle.setText(item.title);
-            mDescription.setText(item.description);
+            mDescription.setText(cleanDescription(item.description));
 
             if(hasExtended()){
                 closeDetailedView();
