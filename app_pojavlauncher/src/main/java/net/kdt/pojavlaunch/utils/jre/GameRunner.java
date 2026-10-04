@@ -308,6 +308,13 @@ public class GameRunner {
                     }
                     if (skinAgent.exists()) {
                         javaArgList.add("-javaagent:" + skinAgent.getAbsolutePath());
+                        // FEAR: expose the agent's classes to the game classloader. Fabric's
+                        // KnotClassLoader refuses to load classes from a plain -javaagent jar
+                        // ("can't load class com.fear.skin.agent.FearSkinBridge ... as it hasn't
+                        // been exposed to the game"), so the injected note() call crashed the
+                        // game the first time a profile was looked up. Listing the jar as a
+                        // system library lets Knot resolve it from the parent class loader.
+                        javaArgList.add("-Dfabric.systemLibraries=" + skinAgent.getAbsolutePath());
                         Log.i("FearSkinAgent", "Installed the launcher's authlib transformer.");
                     }
                 } catch (Exception e) { Log.e("LocalSkinServer", "Error starting/injecting local skin server.", e); }
