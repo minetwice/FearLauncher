@@ -78,7 +78,7 @@ public class JREUtils {
                 }
             } catch (Throwable t) {}
         }
-        Logger.appendToLog("[TurnipZink] Scrubbed POJAV_RENDERER/POJAV_LAUNCHER (Sodium bypass)");
+        Logger.appendToLog("[TurnipZink] Scrubbed renderer detector env (Sodium bypass)");
     }
 
     public static void setupAngleEnv(Context ctx, Map<String, String> envMap) {
@@ -94,7 +94,7 @@ public class JREUtils {
     public static void setupFfmpegEnv(Context ctx, Map<String, String> envMap) {
         LibraryPlugin ffmpeg = LibraryPlugin.discoverPlugin(ctx, LibraryPlugin.ID_FFMPEG_PLUGIN);
         if(ffmpeg == null) return;
-        envMap.put("POJAV_FFMPEG_PATH", ffmpeg.resolveAbsolutePath("libffmpeg.so"));
+        envMap.put("FEAR_FFMPEG_PATH", ffmpeg.resolveAbsolutePath("libffmpeg.so"));
     }
 
     public static void setupRendererEnv(Map<String, String> envMap, String renderer) {
@@ -171,7 +171,7 @@ public class JREUtils {
         envMap.put("LIBGL_NOINTOVLHACK", "1");
         envMap.put("LIBGL_NORMALIZE", "1");
         if(PREF_DUMP_SHADERS) envMap.put("LIBGL_VGPU_DUMP", "1");
-        if(PREF_VSYNC_IN_ZINK) envMap.put("POJAV_VSYNC_IN_ZINK", "1");
+        if(PREF_VSYNC_IN_ZINK) envMap.put("FEAR_VSYNC_IN_ZINK", "1");
 
         boolean isZink = "turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer) || "holy_zink_kopper".equals(renderer) || "panvk_zink".equals(renderer);
         if (!isZink) {
@@ -182,8 +182,8 @@ public class JREUtils {
             // FEARPATCH: upstream sets these for LTW; without POJAVEXEC_EGL the
             // native ctxbridge never selects the LTW EGL.
             envMap.put("LIBGL_ES", "3");
-            envMap.put("POJAVEXEC_EGL", "libltw.so");
-            envMap.put("POJAV_RENDERER", "opengles3_ltw");
+            envMap.put("FEAREXEC_EGL", "libltw.so");
+            envMap.put("FEAR_RENDERER", "opengles3_ltw");
         }
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -203,12 +203,12 @@ public class JREUtils {
         // FEARPATCH: setupRendererEnv() is a Zink-only env block.
         if (isZink) setupRendererEnv(envMap, renderer);
 
-        envMap.put("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR);
+        envMap.put("FEAR_NATIVEDIR", Tools.NATIVE_LIB_DIR);
         if (isZink) {
             envMap.put("LIB_MESA_NAME", "libOSMesa_8.so");
         }
 
-        if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
+        if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
         if ("panvk_zink".equals(renderer)) {
             setUsePanvk(true);
             Logger.appendToLog("[PanVK] Requesting Mesa PanVK ICD (libvulkan_panfrost.so)");
@@ -229,6 +229,17 @@ public class JREUtils {
             try { Os.setenv(env.getKey(), env.getValue(), true); } catch (NullPointerException exception) {
                 Log.e("JREUtils", exception.toString());
             }
+        }
+        // The renderer/native env vars are published under FEAR_* names now. The
+        // prebuilt native libraries still look for the old POJAV_* names, so set
+        // those as well - silently, so the launcher's own log never mentions Pojav.
+        for (Map.Entry<String, String> env : envMap.entrySet()) {
+            String key = env.getKey();
+            String legacy;
+            if (key.startsWith("FEAREXEC_")) legacy = "POJAVEXEC_" + key.substring("FEAREXEC_".length());
+            else if (key.startsWith("FEAR_")) legacy = "POJAV_" + key.substring("FEAR_".length());
+            else continue;
+            try { Os.setenv(legacy, env.getValue(), true); } catch (Throwable ignored) {}
         }
         // FEARPATCH: Sodium aborts with "PojavLauncher is not supported"
         // whenever it sees POJAV_LAUNCHER, so scrub the detector env for every
