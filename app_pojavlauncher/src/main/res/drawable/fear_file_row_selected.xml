@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- picked: the accent wash, same shape so nothing shifts -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#59FF2B3A" />
+    <corners android:radius="12dp" />
+</shape>

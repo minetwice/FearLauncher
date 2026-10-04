@@ -190,6 +190,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
                      case 2: dialogSendCustomKey(); break;
                      case 3: openQuickSettings(); break;
                      case 4: openCustomControls(); break;
+                     case 5: openFileManager(); break;
                 }
                 drawerLayout.closeDrawers();
             };
@@ -368,6 +369,14 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         navDrawer.setOnItemClickListener(ingameControlsEditorListener);
         mDrawerPullButton.setVisibility(View.VISIBLE);
         isInEditor = true;
+    }
+
+    private void openFileManager() {
+        // Shown as its own fullscreen dialog so it sits over the game like the rest of
+        // the drawer's tools do.
+        new net.kdt.pojavlaunch.fearfiles.FearFileManagerFragment()
+                .show(getSupportFragmentManager(),
+                        net.kdt.pojavlaunch.fearfiles.FearFileManagerFragment.TAG);
     }
 
     private void openLogOutput() {

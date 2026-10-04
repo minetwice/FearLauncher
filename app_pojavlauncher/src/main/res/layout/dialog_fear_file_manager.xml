@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR file manager: two roots, tap to open, long press to pick -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/fear_panel_bg"
+    android:padding="@dimen/_12sdp">
+
+    <!-- header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="@dimen/_24sdp"
+            android:background="@drawable/fear_accent_stripe" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="FILES"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_13ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.14"
+            android:layout_marginStart="@dimen/_10sdp" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_close"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_32sdp"
+            android:minWidth="@dimen/_64sdp"
+            android:text="CLOSE"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/fear_tray_row_bg" />
+    </LinearLayout>
+
+    <!-- where we are -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/_10sdp">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_up"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_30sdp"
+            android:minWidth="@dimen/_54sdp"
+            android:text="UP"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/fear_tray_row_bg" />
+
+        <TextView
+            android:id="@+id/fm_path"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:maxLines="1"
+            android:ellipsize="start"
+            tools:text="PojavLauncher/mods" />
+    </LinearLayout>
+
+    <!-- roots, and the paste target once something is on the clipboard -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/_8sdp">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_root_launcher"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/_30sdp"
+            android:text="LAUNCHER"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/fear_tray_row_bg" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_root_downloads"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="DOWNLOADS"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/fear_tray_row_bg" />
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_paste"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="PASTE"
+            android:textColor="#000000"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:visibility="gone"
+            android:background="@drawable/theme_button_bg" />
+    </LinearLayout>
+
+    <!-- the listing -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/_8sdp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/fm_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/_8sdp"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/fm_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Nothing in here"
+            android:textColor="#66FFFFFF"
+            android:textSize="@dimen/_10ssp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- picks -->
+    <LinearLayout
+        android:id="@+id/fm_selection_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/fm_selection_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 SELECTED"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/_6sdp">
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/fm_copy"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="@dimen/_34sdp"
+                android:text="COPY"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/fm_rename"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="@dimen/_34sdp"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:text="RENAME"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/fm_delete"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="@dimen/_34sdp"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:text="DELETE"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg" />
+
+            <com.kdt.mcgui.MineButton
+                android:id="@+id/fm_cancel_selection"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="@dimen/_34sdp"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:text="CANCEL"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/_8ssp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:background="@drawable/fear_tray_row_bg" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

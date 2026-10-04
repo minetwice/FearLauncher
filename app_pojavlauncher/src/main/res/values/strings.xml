@@ -98,4 +98,5 @@
     <string name="xerr_no_account">You don\'t seem to have an Xbox Live account. Please log in once on https://minecraft.net/ and try again.</string>
     <string name="xerr_not_available">Xbox Live is not available in your country</string>
     <string name="xerr_unknown">Unknown Xbox Live API error %d</string>
+    <string name="fear_manage_files">MANAGE FILES</string>
 </resources>
