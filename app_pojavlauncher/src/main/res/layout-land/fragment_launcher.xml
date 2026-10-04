@@ -323,7 +323,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/advancement_toast_layout"
         android:layout_width="@dimen/_230sdp"
-        android:layout_height="@dimen/_64sdp"
+        android:layout_height="@dimen/_108sdp"
         android:background="@drawable/fear_display_blue"
         android:paddingStart="@dimen/_6sdp"
         android:paddingEnd="@dimen/_8sdp"
@@ -337,8 +337,8 @@
 
         <ImageView
             android:id="@+id/advancement_head"
-            android:layout_width="@dimen/_46sdp"
-            android:layout_height="@dimen/_46sdp"
+            android:layout_width="@dimen/_64sdp"
+            android:layout_height="@dimen/_64sdp"
             android:src="@drawable/fear_head_blue"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
