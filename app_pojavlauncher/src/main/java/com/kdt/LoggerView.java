@@ -169,7 +169,7 @@ public class LoggerView extends ConstraintLayout {
         while (mTailRunning) {
             try {
                 Thread.sleep(250);
-                java.io.File home = net.kdt.pojavlaunch.Tools.DIR_GAME_HOME;
+                String home = net.kdt.pojavlaunch.Tools.DIR_GAME_HOME;
                 if (home == null) continue;
                 java.io.File log = new java.io.File(home, "latestlog.txt");
                 if (!log.isFile()) continue;
