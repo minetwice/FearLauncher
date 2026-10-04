@@ -94,6 +94,17 @@ public class LauncherPreferences {
         PREF_DISABLE_GESTURES = DEFAULT_PREF.getBoolean("disableGestures",false);
         PREF_DISABLE_SWAP_HAND = DEFAULT_PREF.getBoolean("disableDoubleTap", false);
         PREF_RAM_ALLOCATION = DEFAULT_PREF.getInt("allocation", findBestRAMAllocation(ctx));
+        // One-time lift: an allocation saved before that rescale is stuck at the old
+        // 2048 ceiling and would never pick the new value up on its own. It can still be
+        // changed by hand afterwards.
+        if (!DEFAULT_PREF.getBoolean("fear_ram_rescaled", false)) {
+            int suggested = findBestRAMAllocation(ctx);
+            if (PREF_RAM_ALLOCATION < suggested) {
+                PREF_RAM_ALLOCATION = suggested;
+                DEFAULT_PREF.edit().putInt("allocation", suggested).apply();
+            }
+            DEFAULT_PREF.edit().putBoolean("fear_ram_rescaled", true).apply();
+        }
         PREF_CUSTOM_JAVA_ARGS = DEFAULT_PREF.getString("javaArgs", "");
         PREF_SUSTAINED_PERFORMANCE = DEFAULT_PREF.getBoolean("sustainedPerformance", isDevicePowerful);
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
@@ -162,7 +173,13 @@ public class LauncherPreferences {
         if (deviceRam < 3064) return 936;
         if (deviceRam < 4096) return 1144;
         if (deviceRam < 6144) return 1536;
-        return 2048; //Default RAM allocation for 64 bits
+        // FEARPATCH: the old table stopped at 2048 however much the device had. A 1.21
+        // instance with Iris and a mod list wants far more than that, and the shortfall
+        // showed up as GC time while the mods were loading. Scale with the device, and
+        // keep roughly a quarter in reserve for the OS, the GL driver and the native
+        // allocations the JVM heap does not cover.
+        if (deviceRam < 8192) return 3072;
+        return 4096;
     }
 
     /// Find a correct resolution for the device

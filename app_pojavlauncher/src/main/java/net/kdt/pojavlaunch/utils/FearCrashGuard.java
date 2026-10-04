@@ -51,6 +51,12 @@ public final class FearCrashGuard {
         public String detail = "";
         /** The mod file blamed, if one could be worked out. Never null when set. */
         public File culprit;
+        /**
+         * True when the frame names the vendor GL driver. That crash is inside Mali's own
+         * library, so nothing the launcher passes it can avoid it - the only way past is
+         * to run on a renderer that does not hand the draws to that driver.
+         */
+        public boolean vendorDriverCrash;
     }
 
     /** Forgets the pending launch. Call once the board has been dealt with. */
@@ -139,8 +145,14 @@ public final class FearCrashGuard {
                 } else if (t.contains("Problematic frame:")) {
                     String next = r.readLine();
                     if (next != null) {
+                        String frame = next.replaceFirst("^#\\s*", "").trim();
                         report.detail = (report.detail.isEmpty() ? "" : report.detail + "  \u2014  ")
-                                + next.replaceFirst("^#\\s*", "").trim();
+                                + frame;
+                        String lower = frame.toLowerCase();
+                        report.vendorDriverCrash = lower.contains("libgles_mali")
+                                || lower.contains("libgles_adreno")
+                                || lower.contains("libgles_qualcomm")
+                                || lower.contains("vulkan.mali");
                     }
                     break;
                 }

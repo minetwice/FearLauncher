@@ -84,6 +84,24 @@ public class FearCrashFragment extends Fragment {
             });
         }
 
+        View switchRenderer = view.findViewById(R.id.crash_switch_renderer_btn);
+        if (switchRenderer != null) {
+            // Only worth offering when the crash is inside the vendor driver and the run
+            // was not already on a renderer that avoids it.
+            if (report.vendorDriverCrash && isOnVendorDriver()) {
+                switchRenderer.setVisibility(View.VISIBLE);
+                switchRenderer.setOnClickListener(v -> {
+                    v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                    net.kdt.pojavlaunch.SoundManager.playClick();
+                    switchToMesa();
+                    FearCrashGuard.clear(requireContext());
+                    relaunch();
+                });
+            } else {
+                switchRenderer.setVisibility(View.GONE);
+            }
+        }
+
         View skip = view.findViewById(R.id.crash_skip_btn);
         if (skip != null) {
             skip.setOnClickListener(v -> {
@@ -110,6 +128,32 @@ public class FearCrashFragment extends Fragment {
             return;
         }
         mCulprit.renameTo(target);
+    }
+
+    /** True when the run went straight to the phone's own GL driver. */
+    private boolean isOnVendorDriver() {
+        try {
+            net.kdt.pojavlaunch.instances.Instance instance =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            String renderer = instance != null && instance.renderer != null
+                    ? instance.renderer
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
+            return renderer != null && renderer.contains("ltw");
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** Moves the instance onto the Mesa path, where the multi-draw workaround applies. */
+    private void switchToMesa() {
+        try {
+            net.kdt.pojavlaunch.instances.Instance instance =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (instance != null) {
+                instance.renderer = "turnip_zink";
+                instance.write();
+            }
+        } catch (Throwable ignored) { }
     }
 
     private void relaunch() {

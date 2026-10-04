@@ -103,12 +103,16 @@ public class JavaRunner {
 
         // Advanced High-FPS Cotton-Smooth G1GC Tuning & Low-Latency Memory Management
         userArguments.add("-XX:+UseG1GC");
-        userArguments.add("-XX:MaxGCPauseMillis=10");
+        // A 10 ms pause target makes G1 collect in small, frequent bursts - which is
+        // exactly the wrong shape for a phone that spends its startup loading mods. 50 ms
+        // is the usual mobile target and costs nothing perceptible while playing.
+        userArguments.add("-XX:MaxGCPauseMillis=50");
         userArguments.add("-XX:InitiatingHeapOccupancyPercent=45");
         userArguments.add("-XX:G1ReservePercent=15");
         userArguments.add("-XX:+DisableExplicitGC");
         userArguments.add("-XX:+ParallelRefProcEnabled");
-        userArguments.add("-XX:+UseStringDeduplication");
+        // String deduplication is paid for on every collection and competes with the mod
+        // loading it is supposed to make room for. Not worth it at this heap size.
         userArguments.add("-XX:+OptimizeStringConcat");
         userArguments.add("-XX:-UseBiasedLocking");
         userArguments.add("-XX:+UnlockExperimentalVMOptions");
