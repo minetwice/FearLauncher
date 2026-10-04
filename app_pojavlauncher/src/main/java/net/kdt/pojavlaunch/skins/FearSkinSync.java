@@ -134,8 +134,19 @@ public final class FearSkinSync {
         List<File> targets = new ArrayList<>();
         targets.add(new File(assets, "steve.png"));      // pre-1.19.4
         targets.add(new File(assets, "alex.png"));       // pre-1.19.4
-        targets.add(new File(wideDir, "steve.png"));     // 1.19.4+
-        targets.add(new File(slimDir, "alex.png"));      // 1.19.4+
+        // 1.19.4+ / 1.21.9+: the game resolves a player with no skin to one of NINE
+        // default skins (steve, alex, ari, efe, kai, makena, noor, sunny, zuri), chosen
+        // by UUID, and per model (wide/slim). Overwriting only steve.png/alex.png is not
+        // enough - for most UUIDs the resolved default is one of the others, so the pack
+        // was silently ignored and the player kept the vanilla default skin. Write our
+        // skin into every default slot so it shows whichever one is resolved.
+        String[] defaultSkins = {
+            "steve", "alex", "ari", "efe", "kai", "makena", "noor", "sunny", "zuri"
+        };
+        for (String defaultSkin : defaultSkins) {
+            targets.add(new File(wideDir, defaultSkin + ".png"));
+            targets.add(new File(slimDir, defaultSkin + ".png"));
+        }
 
         for (File target : targets) {
             if (skin == null) {
