@@ -84,6 +84,15 @@ public class LauncherPreferences {
         boolean isDevicePowerful = isDevicePowerful(ctx);
 
         PREF_RENDERER = DEFAULT_PREF.getString("renderer", "opengles3_ltw");
+        // One-time fix: older builds persisted "opengles2" - the old
+        // pref_video.xml defaultValue - as the renderer. That id is no longer in
+        // the renderer list, so the picker showed nothing selected and the launch
+        // fell back to a different renderer. Move it to LTW (the launcher
+        // default); the user can still change it by hand afterwards.
+        if ("opengles2".equals(PREF_RENDERER)) {
+            PREF_RENDERER = "opengles3_ltw";
+            DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
+        }
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
         PREF_MOUSESCALE = DEFAULT_PREF.getInt("mousescale", 100)/100f;
         PREF_MOUSESPEED = ((float)DEFAULT_PREF.getInt("mousespeed",100))/100f;
