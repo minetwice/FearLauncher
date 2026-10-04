@@ -494,10 +494,11 @@ public class MainMenuFragment extends Fragment {
         final boolean twicefear = (state == 0 || state == 2);
         android.widget.ImageView advHead = getView().findViewById(R.id.advancement_head);
         if (advHead != null) {
-            advHead.setImageResource(twicefear ? R.drawable.fear_head_blue : R.drawable.fear_head_white);
+            // Hellzior -> blue design, Twicefear -> red design.
+            advHead.setImageResource(twicefear ? R.drawable.fear_head_white : R.drawable.fear_head_blue);
         }
         if (advToast != null) {
-            advToast.setBackgroundResource(twicefear ? R.drawable.fear_display_blue : R.drawable.fear_display_red);
+            advToast.setBackgroundResource(twicefear ? R.drawable.fear_display_red : R.drawable.fear_display_blue);
         }
 
         // Position it completely off-screen to start BEFORE making it visible (prevents static flicker)

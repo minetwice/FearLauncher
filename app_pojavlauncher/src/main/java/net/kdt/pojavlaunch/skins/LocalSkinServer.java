@@ -385,6 +385,15 @@ public class LocalSkinServer {
                         sendResponse(os, 204, "application/json; charset=utf-8", new byte[0]);
                     }
                 }
+            } else if (path.startsWith("/users/profiles/minecraft/") || path.startsWith("/api/profiles/minecraft")) {
+                // Name -> profile lookup, used by the client and by mods that render
+                // player skins. It used to fall through to the 404, so a skin resolved
+                // by name came back "Not Found" (a string the client cannot parse) and
+                // the player stayed on Steve. Forward it to the account server.
+                int[] statusCode = new int[1];
+                String[] outContentType = new String[1];
+                byte[] responseBody = proxyRequest(method, path, requestBody, contentTypeHeader, statusCode, outContentType);
+                sendResponse(os, statusCode[0], outContentType[0] != null ? outContentType[0] : "application/json; charset=utf-8", responseBody);
             } else if (path.contains("/texture/") || path.contains("/textures/") || path.contains("skin")) {
                 // Texture serving endpoint
                 String hash = path.substring(path.lastIndexOf('/') + 1);
