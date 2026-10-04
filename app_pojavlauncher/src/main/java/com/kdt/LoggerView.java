@@ -189,6 +189,12 @@ public class LoggerView extends ConstraintLayout {
                 if(mScrollView.isKeepFocusing()) mScrollView.fullScroll(View.FOCUS_DOWN);
             }, 100);
         };
+
+        // FEAR: the log toggle was checked (line ~82) before mLogListener existed,
+        // so Logger.setLogListener() ran with null and the native logger had no
+        // listener to call - the on-screen log stayed empty for the whole launch.
+        // Register the real listener now that it has been created.
+        if (mLogToggle.isChecked()) Logger.setLogListener(mLogListener);
     }
 
 }

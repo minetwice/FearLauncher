@@ -221,14 +221,36 @@ public final class FearSkinSync {
 
     // ---- launch time --------------------------------------------------------
 
+    /** How long a launch waits for a fresh skin before falling back to the cached one. */
+    private static final long PRELAUNCH_SKIN_WAIT_MS = 8_000L;
+
     /**
-     * Called just before the game starts. Cheap and local: it decides which skin file to
-     * use, points the preference at it so the local skin server picks it up, and rewrites
-     * the pack. Any network work happens afterwards, off this path.
+     * Called just before the game starts.
+     *
+     * The skin chosen on the website is fetched HERE, before the game reads it, so
+     * the launch the player is watching already shows it. It used to be fetched in
+     * the background, which meant the new skin only appeared one launch later - so a
+     * skin picked on the website looked like it had not applied at all.
+     *
+     * The fetch is bounded: if CraftynMC is cold (its free tier sleeps) the launch
+     * falls back to the cached skin after PRELAUNCH_SKIN_WAIT_MS and the fetch keeps
+     * running for the next launch, so a slow server can never stall the game.
      */
     public static void prepareForLaunch(Context context, MinecraftAccount account) {
         if (context == null) return;
         try {
+            if (account != null
+                    && account.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC
+                    && account.username != null) {
+                final Context app = context.getApplicationContext();
+                final String username = account.username;
+                final String profileId = account.profileId;
+                Thread fetch = new Thread(
+                        () -> downloadCraftynSkin(app, username, profileId), "fear-skin-prelaunch");
+                fetch.setDaemon(true);
+                fetch.start();
+                fetch.join(PRELAUNCH_SKIN_WAIT_MS);
+            }
             File skin = resolveSkinFile(context);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             if (skin != null) {
@@ -238,15 +260,6 @@ public final class FearSkinSync {
         } catch (Exception e) {
             Log.w(TAG, "Could not prepare the skin for launch", e);
         }
-        if (account != null) refreshInBackground(context, account);
-    }
-
-    /** Fire-and-forget: pulls a fresh copy for the next launch. */
-    private static void refreshInBackground(Context context, MinecraftAccount account) {
-        if (account.authType != net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) return;
-        if (account.username == null) return;
-        final Context app = context.getApplicationContext();
-        new Thread(() -> downloadCraftynSkin(app, account.username, account.profileId)).start();
     }
 
     // ---- downloading --------------------------------------------------------
