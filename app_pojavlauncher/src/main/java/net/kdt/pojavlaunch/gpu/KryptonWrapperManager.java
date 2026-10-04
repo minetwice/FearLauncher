@@ -83,7 +83,7 @@ public class KryptonWrapperManager {
         // Enable shader support
         System.setProperty("NGGL_ENABLE_SHADERS", "1");
         System.setProperty("NGGL_SHADER_PATH", 
-            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/cache/shaders");
+            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.fearlauncher.fear.debug/cache/shaders");
         
         // Performance and compatibility settings
         System.setProperty("NGGL_DEBUG", "0"); // 0 = no debug, 1 = info, 2 = warn, 3 = error
@@ -100,9 +100,9 @@ public class KryptonWrapperManager {
         
         // Shader cache settings
         System.setProperty("MESA_SHADER_CACHE_DIR", 
-            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/cache");
+            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.fearlauncher.fear.debug/cache");
         System.setProperty("MESA_GLSL_CACHE_DIR", 
-            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/cache");
+            android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.fearlauncher.fear.debug/cache");
         System.setProperty("MESA_GLSL_CACHE_DISABLE", "false");
         
         // Performance settings
@@ -174,7 +174,7 @@ public class KryptonWrapperManager {
      * Check if Krypton Wrapper libraries are available.
      */
     public static boolean hasKryptonWrapperLibraries() {
-        File libDir = new File(android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/git.artdeell.mojo.debug/lib/arm64");
+        File libDir = new File(android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.fearlauncher.fear.debug/lib/arm64");
         File libNGGL4ES = new File(libDir, "libNG-GL4ES.so");
         File libNGGFCL = new File(libDir, "libngg_fcl.so");
         

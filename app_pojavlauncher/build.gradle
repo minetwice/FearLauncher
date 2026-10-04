@@ -81,7 +81,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "git.artdeell.mojo"
+        applicationId "com.fearlauncher.fear"
         minSdkVersion 21
         targetSdkVersion 36
         versionCode getDateSeconds()
@@ -114,8 +114,8 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.customDebug
-            resValue 'string', 'application_package', 'git.artdeell.mojo.debug'
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.scoped.gamefolder.debug'
+            resValue 'string', 'application_package', 'com.fearlauncher.fear.debug'
+            resValue 'string', 'storageProviderAuthorities', 'com.fearlauncher.fear.scoped.gamefolder.debug'
         }
         proguard {
             initWith debug
@@ -130,8 +130,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.scoped.gamefolder'
-            resValue 'string', 'application_package', 'git.artdeell.mojo'
+            resValue 'string', 'storageProviderAuthorities', 'com.fearlauncher.fear.scoped.gamefolder'
+            resValue 'string', 'application_package', 'com.fearlauncher.fear'
         }
         gplay {
             initWith release
@@ -141,8 +141,8 @@ android {
             initWith release
             signingConfig signingConfigs.customDebug
             applicationIdSuffix '.pub'
-            resValue 'string', 'storageProviderAuthorities', 'git.artdeell.mojo.pub.scoped.gamefolder'
-            resValue 'string', 'application_package', 'git.artdeell.mojo.pub'
+            resValue 'string', 'storageProviderAuthorities', 'com.fearlauncher.fear.pub.scoped.gamefolder'
+            resValue 'string', 'application_package', 'com.fearlauncher.fear.pub'
         }
     }
 

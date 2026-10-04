@@ -27,5 +27,5 @@
     <string name="preference_vulkan_driver_system_title">Use system Vulkan driver</string>
     <string name="preference_wipe_controller_description">Reset controller bindings to defaults.</string>
     <string name="preference_wipe_controller_title">Wipe controller bindings</string>
-    <string name="application_package" translatable="false">git.artdeell.mojo.debug</string>
+    <string name="application_package" translatable="false">com.fearlauncher.fear.debug</string>
 </resources>
