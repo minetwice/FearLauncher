@@ -34,6 +34,7 @@ import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.extra.ExtraListener;
 import net.kdt.pojavlaunch.fragments.InstallationsFragment;
+import net.kdt.pojavlaunch.fragments.FearCrashFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
@@ -55,6 +56,8 @@ import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
 import net.kdt.pojavlaunch.utils.NotificationUtils;
 
 public class LauncherActivity extends BaseActivity {
+
+    private boolean mPendingCrashReport = false;
     public static final String SETTING_FRAGMENT_TAG = "SETTINGS_FRAGMENT";
     public static final String INSTALLATIONS_FRAGMENT_TAG = "INSTALLATIONS_FRAGMENT";
 
@@ -195,6 +198,8 @@ public class LauncherActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // A leftover flag means the last run died before it could clean up.
+        mPendingCrashReport = net.kdt.pojavlaunch.utils.FearCrashGuard.detect(this) != null;
         setContentView(R.layout.activity_pojav_launcher);
 
         try {
@@ -212,9 +217,13 @@ public class LauncherActivity extends BaseActivity {
         SoundManager.startMusic(this);
 
         if (savedInstanceState == null) {
+            // The last run died, so lead with the crash board instead of the menu.
+            androidx.fragment.app.Fragment first = mPendingCrashReport
+                    ? new FearCrashFragment()
+                    : new MainMenuFragment();
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.container_fragment, new MainMenuFragment())
+                    .replace(R.id.container_fragment, first)
                     .commit();
             if (mNavigationView != null) {
                 mNavigationView.setCheckedItem(R.id.nav_dashboard);

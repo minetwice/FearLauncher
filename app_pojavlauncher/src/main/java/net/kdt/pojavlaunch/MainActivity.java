@@ -288,6 +288,8 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     @Override
     protected void onDestroy() {
+        // Reaching here at all means the game ended without taking the process down.
+        net.kdt.pojavlaunch.utils.FearCrashGuard.markCleanExit(this);
         super.onDestroy();
         ContextExecutor.clearActivity();
     }

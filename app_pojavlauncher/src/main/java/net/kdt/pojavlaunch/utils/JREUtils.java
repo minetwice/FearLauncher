@@ -237,6 +237,9 @@ public class JREUtils {
     }
 
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
+        // If this process dies with the game still marked as running, the next launcher
+        // start knows the run never came back and can say so.
+        net.kdt.pojavlaunch.utils.FearCrashGuard.markLaunching(activity);
         Tools.fullyExit();
     }
 
