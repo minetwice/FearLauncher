@@ -116,6 +116,35 @@ public class LocalSkinServer {
         }
     }
 
+    /**
+     * This server's own API metadata, base64 encoded, for
+     * -Dauthlibinjector.yggdrasil.prefetched.
+     *
+     * The injector would otherwise fetch this itself as the game starts, which puts a
+     * network round trip on the launch path and lets a failure there take the launch with
+     * it. Handing it over removes both problems.
+     */
+    public String getPrefetchedMetadata() {
+        try {
+            URL url = new URL("http://127.0.0.1:" + PORT + "/");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(3000);
+            if (conn.getResponseCode() != 200) return null;
+            try (InputStream is = conn.getInputStream();
+                 ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                byte[] buf = new byte[4096];
+                int read;
+                while ((read = is.read(buf)) != -1) bos.write(buf, 0, read);
+                return Base64.encodeToString(bos.toByteArray(), Base64.NO_WRAP);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not prefetch the API metadata", e);
+            return null;
+        }
+    }
+
     public synchronized void stop() {
         mIsRunning = false;
         if (mServerSocket != null) {

@@ -277,6 +277,13 @@ public class GameRunner {
                     net.kdt.pojavlaunch.skins.FearSkinSync.prepareForLaunch(context, minecraftAccount);
                     net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
                     javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
+                    // Fetched here rather than left to the injector, so the game start does
+                    // not depend on a request succeeding.
+                    String prefetched = net.kdt.pojavlaunch.skins.LocalSkinServer
+                            .getInstance().getPrefetchedMetadata();
+                    if (prefetched != null) {
+                        javaArgList.add("-Dauthlibinjector.yggdrasil.prefetched=" + prefetched);
+                    }
                     Log.i("LocalSkinServer", "Successfully started and injected local skin server.");
                 } catch (Exception e) { Log.e("LocalSkinServer", "Error starting/injecting local skin server.", e); }
             } else { Log.w("LocalSkinServer", "authlib-injector.jar is missing; skipping local skin server injection."); }
