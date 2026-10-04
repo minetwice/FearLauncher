@@ -290,7 +290,9 @@ public class GameRunner {
                     // It hands the profile names over to this server, which is what lets an
                     // offline-mode lookup be answered instead of refused.
                     File skinAgent = new File(Tools.DIR_DATA, "fear_skin_agent/fear-skin-agent.jar");
-                    if (!skinAgent.exists()) {
+                    // Always re-extract: an earlier install left a copy behind, and
+                    // extract-only-if-missing would keep running that stale jar.
+                    {
                         try {
                             skinAgent.getParentFile().mkdirs();
                             try (java.io.InputStream in = context.getAssets().open(
