@@ -151,26 +151,71 @@ public final class FearSkinSync {
                         + "    \"supported_formats\": [15, 99],\n"
                         + "    \"description\": \"FEAR Skin Pack - synced from your account\"\n  }\n}\n");
 
+        writePackIcon(packDir);
         enablePackInOptions(base);
     }
 
-    /** Adds the pack to the enabled list, and repairs a list that no longer has it. */
+    /**
+     * Adds the pack to the game's enabled list.
+     *
+     * A missing options.txt used to end the whole thing, which is the normal state on a
+     * fresh instance - so the file is created instead. The list itself is spliced rather
+     * than string-replaced: dropping the entry in front of "]" leaves a trailing comma on
+     * an empty list, and a list the game cannot parse is a list it throws away.
+     */
     private static void enablePackInOptions(File base) {
         File options = new File(base, "options.txt");
-        if (!options.isFile()) return;
         try {
-            String content = readString(options);
-            if (content == null) return;
+            String content = options.isFile() ? readString(options) : null;
+            if (content == null) content = "";
             if (content.contains(PACK_NAME)) return;
-            if (content.contains("resourcePacks:[")) {
-                content = content.replace("resourcePacks:[",
-                        "resourcePacks:[\"file/" + PACK_NAME + "\",");
+
+            String entry = "\"file/" + PACK_NAME + "\"";
+            String key = "resourcePacks:[";
+            int at = content.indexOf(key);
+            if (at >= 0) {
+                int close = content.indexOf(']', at);
+                if (close < 0) return;
+                String inner = content.substring(at + key.length(), close).trim();
+                String spliced = inner.isEmpty() ? entry : entry + "," + inner;
+                content = content.substring(0, at + key.length()) + spliced + content.substring(close);
             } else {
-                content = content + "\nresourcePacks:[\"file/" + PACK_NAME + "\"]\n";
+                if (!content.isEmpty() && !content.endsWith("\n")) content += "\n";
+                content += key + entry + "]\n";
             }
             writeString(options, content);
         } catch (Exception e) {
             Log.w(TAG, "Could not enable the skin pack in " + options, e);
+        }
+    }
+
+    /** A small icon so the pack reads as a pack rather than a blank slot in the list. */
+    private static void writePackIcon(File packDir) {
+        try {
+            int size = 128;
+            android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(
+                    size, size, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(bmp);
+            android.graphics.Paint paint = new android.graphics.Paint(
+                    android.graphics.Paint.ANTI_ALIAS_FLAG);
+            canvas.drawColor(0xFF000000);
+            paint.setColor(0xFFFF2B3A);
+            android.graphics.Path wedge = new android.graphics.Path();
+            wedge.moveTo(0, size);
+            wedge.lineTo(size, 0);
+            wedge.lineTo(size, size);
+            wedge.close();
+            canvas.drawPath(wedge, paint);
+            paint.setColor(0xFFFFFFFF);
+            canvas.drawRect(size * 0.16f, size * 0.28f, size * 0.54f, size * 0.38f, paint);
+            canvas.drawRect(size * 0.16f, size * 0.45f, size * 0.46f, size * 0.55f, paint);
+            canvas.drawRect(size * 0.16f, size * 0.62f, size * 0.38f, size * 0.72f, paint);
+            try (FileOutputStream out = new FileOutputStream(new File(packDir, "pack.png"))) {
+                bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out);
+            }
+            bmp.recycle();
+        } catch (Throwable ignored) {
+            // An icon is a nicety; the pack works without one.
         }
     }
 

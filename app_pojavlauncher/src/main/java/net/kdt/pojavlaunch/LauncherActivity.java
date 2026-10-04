@@ -195,6 +195,49 @@ public class LauncherActivity extends BaseActivity {
         return false;
     }
 
+    /**
+     * One-time prompt for broad storage access.
+     *
+     * Android 11 and up only grant this from a settings screen, so there is no dialog to
+     * show inline - the best that can be done is to explain it and open that screen. Asked
+     * once; the file manager re-opens it on demand afterwards.
+     */
+    private void maybeAskForFileAccess() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) return;
+        try {
+            if (android.os.Environment.isExternalStorageManager()) return;
+        } catch (Throwable t) {
+            return;
+        }
+        android.content.SharedPreferences prefs =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getBoolean("fear_storage_prompt_done", false)) return;
+        prefs.edit().putBoolean("fear_storage_prompt_done", true).apply();
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("FILE ACCESS")
+                .setMessage("FearLauncher needs access to your storage to manage mods, "
+                        + "worlds, skins and downloads. Android only grants this from a "
+                        + "settings screen, so the next screen will ask you to allow it.")
+                .setPositiveButton("ALLOW", (d, w) -> openAllFilesAccessSettings())
+                .setNegativeButton("LATER", null)
+                .show();
+    }
+
+    private void openAllFilesAccessSettings() {
+        try {
+            android.content.Intent intent = new android.content.Intent(
+                    android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(android.net.Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            try {
+                startActivity(new android.content.Intent(
+                        android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            } catch (Exception ignored) { }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -229,6 +272,10 @@ public class LauncherActivity extends BaseActivity {
                 mNavigationView.setCheckedItem(R.id.nav_dashboard);
             }
         }
+
+        // Asked once, up front, because the file manager and half the launcher are useless
+        // without it and the grant only lives in a settings screen.
+        maybeAskForFileAccess();
 
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
