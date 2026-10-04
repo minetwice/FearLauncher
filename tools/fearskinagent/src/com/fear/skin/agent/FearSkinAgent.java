@@ -54,9 +54,16 @@ public final class FearSkinAgent {
                     public MethodVisitor visitMethod(int access, String name, String desc,
                                                      String signature, String[] exceptions) {
                         MethodVisitor next = super.visitMethod(access, name, desc, signature, exceptions);
+                        // Hook any method that takes a GameProfile as its first
+                        // argument. The lookup method was renamed across authlib
+                        // versions (fillProfileProperties/getTextures in old authlib,
+                        // fetchProfile(GameProfile, boolean) in modern authlib), so
+                        // matching by name silently stopped working and the agent
+                        // gave up with "no lookup method found". note() only reads the
+                        // profile's id and name, so hooking every profile-taking
+                        // method is safe.
                         boolean takesProfile = desc.startsWith("(" + PROFILE_DESC);
-                        boolean isLookup = "fillProfileProperties".equals(name) || "getTextures".equals(name);
-                        if (!takesProfile || !isLookup) return next;
+                        if (!takesProfile) return next;
                         hooked[0] = true;
                         final boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
                         return new MethodVisitor(Opcodes.ASM9, next) {
