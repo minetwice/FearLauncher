@@ -23,7 +23,8 @@ jobs:
           git config user.name "fear-rebrand"
           git config user.email "actions@users.noreply.github.com"
 
-          grep -rIl 'git\.artdeell\.mojo' . --exclude-dir=.git \
+          # .github is skipped: the Actions token may not modify workflow files.
+          grep -rIl 'git\.artdeell\.mojo' . --exclude-dir=.git --exclude-dir=.github \
             | while IFS= read -r f; do
                 sed -i 's/git\.artdeell\.mojo/com.fearlauncher.fear/g' "$f"
               done
@@ -35,8 +36,6 @@ jobs:
             git mv app_pojavlauncher/mojo_pub.jks app_pojavlauncher/fear_pub.jks
           fi
           sed -i 's/mojo_upload\.jks/fear_upload.jks/g; s/mojo_pub\.jks/fear_pub.jks/g' app_pojavlauncher/build.gradle
-
-          git rm -f .github/workflows/rebrand-mojo.yml || true
 
           git add -A
           git commit -m "Rebrand: git.artdeell.mojo -> com.fearlauncher.fear (namespace, keystores, scripts)" || echo "nothing to commit"
