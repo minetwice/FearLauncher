@@ -117,6 +117,11 @@ public class FearFileManagerFragment extends DialogFragment implements FearFileA
         View downloadsRoot = view.findViewById(R.id.fm_root_downloads);
         if (downloadsRoot != null) downloadsRoot.setOnClickListener(v -> openRoot(downloadsRoot()));
 
+        View storageRoot = view.findViewById(R.id.fm_root_storage);
+        if (storageRoot != null) storageRoot.setOnClickListener(v -> {
+            if (ensureAllFilesAccess()) openRoot(storageRoot());
+        });
+
         View copy = view.findViewById(R.id.fm_copy);
         if (copy != null) copy.setOnClickListener(v -> {
             mClipboard.clear();
@@ -144,6 +149,37 @@ public class FearFileManagerFragment extends DialogFragment implements FearFileA
     private File launcherRoot() {
         File home = new File(Tools.DIR_GAME_HOME);
         return home.isDirectory() ? home : new File(Tools.DIR_DATA);
+    }
+
+    /** The whole of the shared storage - /storage/emulated/0. */
+    private File storageRoot() {
+        try {
+            File root = Environment.getExternalStorageDirectory();
+            if (root != null && root.isDirectory()) return root;
+        } catch (Throwable ignored) { }
+        return launcherRoot();
+    }
+
+    /**
+     * Broad storage on Android 11 and up needs the all-files permission, and it is only
+     * grantable from a settings screen - there is no runtime dialog for it.
+     */
+    private boolean ensureAllFilesAccess() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) return true;
+        try {
+            if (Environment.isExternalStorageManager()) return true;
+            toast("Allow file access, then come back");
+            android.content.Intent intent = new android.content.Intent(
+                    android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(android.net.Uri.parse("package:" + requireContext().getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            try {
+                startActivity(new android.content.Intent(
+                        android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            } catch (Exception ignored) { }
+        }
+        return false;
     }
 
     private File downloadsRoot() {
@@ -182,6 +218,13 @@ public class FearFileManagerFragment extends DialogFragment implements FearFileA
         mAdapter.setFiles(entries);
         mPathView.setText(shortPath(dir));
         mEmptyView.setVisibility(entries.isEmpty() ? View.VISIBLE : View.GONE);
+        // A null listing on shared storage almost always means the all-files permission
+        // is missing, and an empty-looking folder would hide that.
+        if (files == null && dir.canRead() == false) {
+            mEmptyView.setText("Not readable - grant file access");
+        } else {
+            mEmptyView.setText("Nothing in here");
+        }
         updatePaste();
     }
 

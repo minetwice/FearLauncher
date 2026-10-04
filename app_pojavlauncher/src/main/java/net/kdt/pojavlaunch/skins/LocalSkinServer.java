@@ -90,8 +90,13 @@ public class LocalSkinServer {
         }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        mActiveSkinPath = prefs.getString("active_skin_path", "steve");
         mIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+        // Resolve rather than trust the preference: a path that has since been deleted is
+        // the difference between the account's skin and Steve, and the cached copy is a
+        // perfectly good answer.
+        java.io.File resolved = FearSkinSync.resolveSkinFile(mContext);
+        mActiveSkinPath = resolved != null ? resolved.getAbsolutePath() : "steve";
+        prefs.edit().putString("active_skin_path", mActiveSkinPath).apply();
 
         Log.i(TAG, "Starting LocalSkinServer for " + mUsername + " (" + mUserUuid + "), skin path: " + mActiveSkinPath + ", authType: " + mAuthType);
 

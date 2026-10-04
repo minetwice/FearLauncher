@@ -18,6 +18,7 @@ import net.kdt.pojavlaunch.authenticator.BackgroundLogin;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.authenticator.listener.LoginListener;
+import net.kdt.pojavlaunch.skins.FearSkinSync;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -158,54 +159,9 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
     }
 
     private void downloadAndSetSkin(Context context, String username, String uuid) {
-        try {
-            String dashedUuid = uuid;
-            if (dashedUuid != null && !dashedUuid.contains("-") && dashedUuid.length() == 32) {
-                dashedUuid = dashedUuid.substring(0, 8) + "-" +
-                             dashedUuid.substring(8, 12) + "-" +
-                             dashedUuid.substring(12, 16) + "-" +
-                             dashedUuid.substring(16, 20) + "-" +
-                             dashedUuid.substring(20, 32);
-            }
-            String undashedUuid = uuid != null ? uuid.replace("-", "").toLowerCase() : "";
-
-            URL url = new URL("https://craftynmc.onrender.com/skins/" + dashedUuid + ".png");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            if (conn.getResponseCode() != 200) {
-                url = new URL("https://craftynmc.onrender.com/skins/" + undashedUuid + ".png");
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-            }
-            if (conn.getResponseCode() != 200) {
-                url = new URL("https://craftynmc.onrender.com/skins/" + username + ".png");
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-            }
-            if (conn.getResponseCode() == 200) {
-                File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
-                if (!skinsDir.exists()) skinsDir.mkdirs();
-                File skinFile = new File(skinsDir, "craftynmc_" + username + ".png");
-                try (InputStream in = conn.getInputStream();
-                     FileOutputStream out = new FileOutputStream(skinFile)) {
-                    byte[] buffer = new byte[1024];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                    }
-                }
-                if (context != null) {
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-                    prefs.edit().putString("active_skin_path", skinFile.getAbsolutePath()).apply();
-                    Log.i("CraftynSkin", "Downloaded and activated CraftynMC skin for " + username);
-                }
-            }
-        } catch (Exception e) {
-            Log.w("CraftynSkin", "Could not download CraftynMC skin", e);
-        }
+        // Kept as a thin wrapper so the callers below read the same as before; the retrying,
+        // non-destructive version lives in FearSkinSync.
+        FearSkinSync.downloadCraftynSkin(context, username, uuid);
     }
 
     private void notifyProgress(LoginListener listener, int step) {

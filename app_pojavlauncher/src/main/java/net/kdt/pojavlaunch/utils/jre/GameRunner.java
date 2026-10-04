@@ -272,6 +272,9 @@ public class GameRunner {
             }
             if (injectorJar.exists()) {
                 try {
+                    // Resolve the skin and rewrite the pack first, so the server below
+                    // is handed a path that is known to exist.
+                    net.kdt.pojavlaunch.skins.FearSkinSync.prepareForLaunch(context, minecraftAccount);
                     net.kdt.pojavlaunch.skins.LocalSkinServer.getInstance().start(context, minecraftAccount);
                     javaArgList.add("-javaagent:" + injectorJar.getAbsolutePath() + "=http://127.0.0.1:25599/");
                     Log.i("LocalSkinServer", "Successfully started and injected local skin server.");

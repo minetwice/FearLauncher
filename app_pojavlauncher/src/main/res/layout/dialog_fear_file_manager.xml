@@ -111,6 +111,19 @@
             android:background="@drawable/fear_tray_row_bg" />
 
         <com.kdt.mcgui.MineButton
+            android:id="@+id/fm_root_storage"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:text="STORAGE"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_8ssp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:background="@drawable/fear_tray_row_bg" />
+
+        <com.kdt.mcgui.MineButton
             android:id="@+id/fm_paste"
             android:layout_width="0dp"
             android:layout_weight="1"

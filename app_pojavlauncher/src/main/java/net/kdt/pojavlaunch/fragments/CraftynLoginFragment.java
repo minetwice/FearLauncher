@@ -283,26 +283,11 @@ public class CraftynLoginFragment extends Fragment {
 
                         boolean skinSuccess = false;
                         try {
-                            URL skinUrl = new URL("https://craftynmc.onrender.com/skins/" + uuid + ".png");
-                            HttpURLConnection skinConn = (HttpURLConnection) skinUrl.openConnection();
-                            skinConn.setRequestMethod("GET");
-                            skinConn.setConnectTimeout(4000);
-                            if (skinConn.getResponseCode() == 200) {
-                                File skinsDir = new File(Tools.DIR_GAME_HOME, "skins");
-                                if (!skinsDir.exists()) skinsDir.mkdirs();
-                                File skinFile = new File(skinsDir, "craftynmc_" + finalUser + ".png");
-                                try (InputStream in = skinConn.getInputStream();
-                                     FileOutputStream out = new FileOutputStream(skinFile)) {
-                                    byte[] sBuf = new byte[1024];
-                                    int sRead;
-                                    while ((read = in.read(sBuf)) != -1) {
-                                        out.write(sBuf, 0, read);
-                                    }
-                                }
-                                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication());
-                                prefs.edit().putString("active_skin_path", skinFile.getAbsolutePath()).apply();
-                                skinSuccess = true;
-                            }
+                            // Retries and a proper read timeout, because the skin service sleeps
+                            // when idle and a single short attempt fails often enough to look random.
+                            skinSuccess = net.kdt.pojavlaunch.skins.FearSkinSync.downloadCraftynSkin(
+                                    net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication(),
+                                    finalUser, uuid);
                         } catch (Exception e) {
                             Log.w(TAG, "Skin fetch bypassed or not found", e);
                         }
