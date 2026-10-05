@@ -15,7 +15,8 @@ import java.util.Locale;
 /**
  * Re-encodes a recording with FFmpeg - the "render" step. The capture is whatever the
  * screen actually produced; this pass decides the output resolution, frame rate and
- * bitrate, and can raise the frame rate by generating in-between frames.
+ * bitrate, can raise the frame rate by generating in-between frames, and can keep only a
+ * trimmed window of the source.
  *
  * FFmpeg comes from an FFmpeg plugin app, the same binary the launcher already points the
  * game at through FEAR_FFMPEG_PATH. It is shipped as libffmpeg.so so the platform extracts
@@ -33,12 +34,31 @@ public final class FfmpegExporter {
         public final int fps;           // 0 = keep source
         public final int bitrate;       // bits per second
         public final boolean interpolate;
+        /** Trim window in milliseconds; 0 means "from the start" / "to the end". */
+        public final long trimStartMs;
+        public final long trimEndMs;
 
         public Options(int height, int fps, int bitrate, boolean interpolate) {
+            this(height, fps, bitrate, interpolate, 0L, 0L);
+        }
+
+        public Options(int height, int fps, int bitrate, boolean interpolate,
+                       long trimStartMs, long trimEndMs) {
             this.height = height;
             this.fps = fps;
             this.bitrate = bitrate;
             this.interpolate = interpolate;
+            this.trimStartMs = trimStartMs;
+            this.trimEndMs = trimEndMs;
+        }
+
+        /** Same settings, restricted to a trimmed window of the source. */
+        public Options withTrim(long startMs, long endMs) {
+            return new Options(height, fps, bitrate, interpolate, startMs, endMs);
+        }
+
+        public boolean isTrimmed() {
+            return trimStartMs > 0 || trimEndMs > 0;
         }
 
         public boolean isCopy() {
@@ -93,8 +113,19 @@ public final class FfmpegExporter {
         cmd.add(ffmpeg.getAbsolutePath());
         cmd.add("-y");
         cmd.add("-hide_banner");
+        // A trimmed render decodes only the wanted window, which is also faster than
+        // decoding the whole capture and throwing the rest away.
+        if (options.trimStartMs > 0) {
+            cmd.add("-ss");
+            cmd.add(String.format(Locale.US, "%.3f", options.trimStartMs / 1000.0));
+        }
         cmd.add("-i");
         cmd.add(input.getAbsolutePath());
+        if (options.trimEndMs > 0) {
+            cmd.add("-to");
+            cmd.add(String.format(Locale.US, "%.3f",
+                    Math.max(0, options.trimEndMs - options.trimStartMs) / 1000.0));
+        }
 
         String filters = buildFilters(options);
         if (!filters.isEmpty()) {
