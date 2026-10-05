@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#080A10"
+    android:padding="14dp">
+
+    <!-- top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/recordings_title"
+            android:textColor="#FFFFFFFF"
+            android:textStyle="bold"
+            android:textSize="17sp"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:id="@+id/export_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_dash_accent"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/recordings_export"
+            android:textColor="#FFFFFFFF"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:letterSpacing="0.06" />
+    </LinearLayout>
+
+    <!-- preview -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_dash_panel">
+
+        <VideoView
+            android:id="@+id/preview_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/preview_placeholder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/recordings_pick"
+            android:textColor="#80FFFFFF"
+            android:textSize="13sp" />
+    </FrameLayout>
+
+    <!-- transport -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/preview_play"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_rec_button"
+            android:contentDescription="@string/recordings_play"
+            android:padding="9dp"
+            android:src="@drawable/ic_rec_play" />
+
+        <TextView
+            android:id="@+id/preview_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
+            android:text="0:00" />
+
+        <SeekBar
+            android:id="@+id/preview_seek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/preview_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
+            android:text="0:00" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/recordings_all"
+        android:textColor="#80FFFFFF"
+        android:textSize="11sp"
+        android:letterSpacing="0.1" />
+
+    <TextView
+        android:id="@+id/recordings_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/recordings_empty"
+        android:textColor="#66FFFFFF"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recordings_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
+
+</LinearLayout>

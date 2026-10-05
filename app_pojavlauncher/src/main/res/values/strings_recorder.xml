@@ -10,4 +10,12 @@
     <string name="recorder_resume">Resume</string>
     <string name="recorder_mic">Microphone</string>
     <string name="recorder_speaker">Device audio</string>
+    <string name="recordings_title">RECORDINGS</string>
+    <string name="recordings_empty">No recordings yet. Start one from the in-game menu.</string>
+    <string name="recordings_pick">Pick a recording to preview</string>
+    <string name="recordings_export">EXPORT</string>
+    <string name="recordings_all">ALL RECORDINGS</string>
+    <string name="recordings_play">Play</string>
+    <string name="recordings_pause">Pause</string>
+    <string name="recordings_exported">Saved to your device</string>
 </resources>
