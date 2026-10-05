@@ -280,9 +280,11 @@ public final class FearSkinSync {
     public static void prepareForLaunch(Context context, MinecraftAccount account) {
         if (context == null) return;
         try {
-            if (account != null
-                    && account.authType == net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC
-                    && account.username != null) {
+            // Any account with a name gets looked up, not just our own auth type. The
+            // backend resolves the UUID first and then the username, so whoever is logged
+            // in sees their own skin and cape, and a name it does not know simply finds
+            // nothing - which is the same result as not asking at all.
+            if (account != null && account.username != null) {
                 final Context app = context.getApplicationContext();
                 final String username = account.username;
                 final String profileId = account.profileId;

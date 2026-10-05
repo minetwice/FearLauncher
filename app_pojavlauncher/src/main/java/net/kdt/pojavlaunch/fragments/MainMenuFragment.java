@@ -1523,8 +1523,9 @@ public class MainMenuFragment extends Fragment {
             final android.content.Context app = requireContext().getApplicationContext();
             net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account =
                     net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+            // Every account is looked up, not just the CraftynMC ones - the backend
+            // resolves by UUID and then by username, so any logged-in name can be dressed.
             if (account == null || account.username == null) return;
-            if (account.authType != net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) return;
 
             final String username = account.username;
             final String profileId = account.profileId;
