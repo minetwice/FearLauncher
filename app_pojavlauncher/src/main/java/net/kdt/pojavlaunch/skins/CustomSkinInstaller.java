@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Installs CustomSkinLoader into the game so the account's skin shows on ANY server
+ * Installs CustomSkinLoader into the game so the account's skin and cape show on ANY server
  * (cracked / offline-mode included), without disturbing the rest of the mod pack.
  *
  * Why the config is deliberately conservative: a resource pack can only change the
@@ -30,7 +30,7 @@ import java.util.List;
  * on this pack that made EMF throw
  *   "ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 513"
  * for every entity model and hang the game on the loading screen. Turning those options off
- * keeps CustomSkinLoader to the plain skin path, which is all we need.
+ * keeps CustomSkinLoader to the plain skin/cape path, which is all we need.
  *
  * Escape hatch: if a file named DISABLED exists in <gameDir>/CustomSkinLoader/, the launcher
  * removes the mod and its config again instead of installing them.
@@ -105,8 +105,8 @@ public final class CustomSkinInstaller {
 
     /**
      * Writes the CustomSkinLoader config: CraftynMC first (an offline account resolves to our
-     * skin), Mojang as the fallback for everyone else, and the mod-pack-conflicting features
-     * turned off.
+     * skin and cape), Mojang as the fallback for everyone else, and the mod-pack-conflicting
+     * features turned off.
      */
     private static void writeConfig(File base) throws Exception {
         File dir = new File(base, "CustomSkinLoader");
@@ -114,6 +114,7 @@ public final class CustomSkinInstaller {
         File file = new File(dir, "CustomSkinLoader.json");
         String json = "{\n"
                 + "  \"enable\": true,\n"
+                + "  \"enableCape\": true,\n"
                 + "  \"enableTransparentSkin\": false,\n"
                 + "  \"forceLoadAllTextures\": false,\n"
                 + "  \"enableSkull\": false,\n"
