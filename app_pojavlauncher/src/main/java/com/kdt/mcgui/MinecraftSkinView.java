@@ -57,6 +57,8 @@ public class MinecraftSkinView extends View {
     public static final int PART_LEFT_ARM_OVERLAY = 9;
     public static final int PART_RIGHT_LEG_OVERLAY = 10;
     public static final int PART_LEFT_LEG_OVERLAY = 11;
+    /** The cape is its own cuboid, hung off the back of the torso. */
+    public static final int PART_CAPE = 12;
 
     private static final int FACE_FRONT = 0;
     private static final int FACE_BACK = 1;
@@ -65,8 +67,10 @@ public class MinecraftSkinView extends View {
     private static final int FACE_LEFT = 4;
     private static final int FACE_RIGHT = 5;
 
-    private Bitmap[][] mFaceBitmaps = new Bitmap[12][6];
+    private Bitmap[][] mFaceBitmaps = new Bitmap[13][6];
     private Paint mPaint;
+    /** The cape texture, 64x32 in the standard layout, or null when there is no cape. */
+    private Bitmap mCapeBitmap;
 
     public static final String DEFAULT_STEVE_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAFhElEQVR4Xu1a328UVRjdR6UUKJFIKL90oa4Vs1TwgRItUvlljMYSjVIDBAzUloZkg5pIDFWJUE3UpyaQiokJSWM0PPjrwcAjT/2fPufc2TN++82dGcruTrfbOcnJ3L33u7f3nPvd2dm5LZUyMLitV8Bdm59wV5bBHRt65JNj1VTa8VYcKLi6Y72jNgCEyMlDe+Wbk/ujK9hVBlD8wJY1iQaUy+UGoq4rDODq223Auq43QItFBoB6O6wKA3ziswwYqwx0jwEU/vzWta6Mu781wMeuMYDCNZkZ+ivPRztex6HSv0ZAiHquv8eJfam8QV7cGbK6s1de2B7eBypbe9yNELGogwGMQx/0xRho57g0Kuk5ws4nd2gDwD3b1zkhELhvV5+7kvh8eHCjjAxucnEwhDHogzqOow1Ie46w88kdbtKbw1ULhQfC+rHS/Nwrf89ekvvf1+Th3Izc/64WlK/Ib5+ekv27N7oYxKIP+kbbJRgTY0Nw2nOEnU/ucCu1JUjlbevCVe0PtwLK1Wf75NcvLsif16fd9feZaZmvfSj/ztZk/uM3HRGDWPRBX5QxFsbE56znCDuf3MFUDbfBWik//aTceH9Y5s8fkeHKU048MPbKrPx19aITjzIAUxCDWPRBX4yhx9RiuT30drDzyR3RZIMVC9O2T66PDcncmdfk5qkDgbij8sfVc/LPV7Xo6+3BzUvyy+QxmQme+RGDWPRBX4zB1acBPvEdYwDTHml7brQqP02+LbfPvx79oPnx9Ggg8JB8dvjlBv5w+lX58uQBF4NY9EFfjOG2QH07UHzSc4SdT+7grzeKnr943K3otx8clCvHq3L5yB6ZHh10YsHP39onX7970BFlxCD254kTru/tj94Ir/XxaCQzgKRxdj7LjvdOLIpmpVJpoI2PYXEx9jAUPRQFbaWzZ9OZhYWFcBwwKGNLvjO0O7ra8CWjFQbYR2KyJQZQfJ2r24AgA7R49zeaRSsMsKnfzi3QtAF7KzUBB54Zd9ejw3cbqNts+/DQrJSuXfuf4+NSunVLSnfuuBsmvip580Sdo44HUQdR5L17Ifk5KZ4xtp39ySxQ4OMYALo/OjEREmVOvG5CJJ4T0vGgFq3JcXQsBbIPDbXtj2NAksCsdu8EOUlMEBmhRep40E5Ykyusx7eG2XY7RhayBGa1u7TnBFDWf5wG6LqkeMZBoC5bgTqb8soAHYN9rxkJITF5LZpl1utYGmBFq/54KCNvBA9f+P2hiTodY9ut3hh8BlCczoBEA7QYmKEN8AnThnEL+PrUU91nwNzl8Ugg61tqgM2AtPaYILv63LPWAKatR7Q2RIuzBuDqM8DV12Os3hgoLElgpgF2D2YZYL8FfLEJBtgVtgb4tojVG8OjGJDWHjOAgqwofk6L91CLSzLAZsiSDBgZGREwSSDrGTc1NdXASBCuzABSr36SATqeMSwH/bQ4a4AzQRnAdr1FrN4YKCxJYFa73iK4WgNBd7NUBuibKttdDLdJQN6EkwygSF+GLJsBvgxqMCEQlhbPGF1nV7jhBhjQd49YkgEFChQoUKBAgQIFChQoUKBAgQLNounDVbwVauXhZ95o2gBz/r/6DNAZsNiGf4BoN1pqwEIb/gWm1eDLTf2WV9O+BOXbXjJ6nU7qV+m+/yewZwfLjUc1IKndidLnBDz9pRG6XZ8krSQD0tpjBmhxMCGtvSsNaPX5f7uhxfkEWgPs8bo+1PCd7fkOPjTtfHIHxfmOupZiQNbRV0cbkJbiWe3WAH2sZQ1ghvBYbEUZQNp2e7hJYVEmqNX3bRE7n9yRJTCr3aa4zwBtUscZwFPjJIGsTzpdbhB/Jr7HG7JDGdQxWyDr+Dyr3bfCOgtWhQGkE6pucK5sMqTVBvwH+QeX13iz8VkAAAAASUVORK5CYII=";
     public static final String DEFAULT_ALEX_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAFJklEQVR4Xu2aP2sUURTF/RRir2BAsQyC4GJjaSwEg1iJqRSDgiBooSIWoggiYm0l2KiNiKCNhaWFlYVWVhYWfoAxZ8xZfnvyJtmdkN2dMBcO7++8fefc+2Zn3ps9e7awX48G1e/ng0rpjztHRlJD7a5zXqmQ43XOTMQQOSPrd7UAf18u10jCTRHiuhyvc2ZCTR5mPUVwW47XOaP3GQXON4ljMXK8zll61eRc/vn5RfXt3eOhEFwau0IAk7bXGe6CBDAkhGExcrzOmUgy7Bn+jgDh99fXI3B9jjd3lqFd8jKJu815Lgf3Yx3Hz7LyOZ+pmwmWSCbZJMd6lykCyymAr835TN048SSek1bq0E7i7M/ooLAeg7+X85m6pdecFkVYW9t/vn8arvOSCKxznoQpylzcJD0pkh/x8hpR2f4LB2rygvIyi1DyMoUkYfdT/VwIkF7mHd2EN4OFoggUIAlTpLkQwJMcPuxsRv7Dm/9YL/MvzySV2tMkTO/z93I+Uzd6ww8x+b++QYh18nlDJHGP6ehi3m1zIUDa1VdXKmJxcbHGwsJCjeyf9vDjg+r++3s1OYPEc/xEjpem8Q06I/u1tpyQiVuI7J9mAQR5ebi01kXwuOePHRxBWwFEXlGb/VpbTrBtBNy+e27kncAilMhThBwvLQXYkQjgpNpEgMjz5YjLIcffrgDbjgB5ywPefHujunjicHXt1GJ16+zxOm84MhzeBidE7/MmqQmqjktrK2gupfETTX2SZ6OJnH7M5C+fPFKTF5SnCIK95bJ+zNd7Qk+fXRr5m1S+JICuKdWRVArtPOvTIUqTZ6PJ2yIq2PMmr1R1FCD7UQBPXqlFSPIkndeZ5NMvT4ap8yyX6vLa5NloJkKiJG8xSiJZAJKxByxCkncbyyScqa5vg+TZaAxzhr8FYIQICn+WSSYnrzTJUoCSF+llgQ9khO8vCbcnz0ZbXl6uDIa4iauOfYSVlZUayjOMk0AdBWsp12aKUurPcfIJlH99FIL3GyF5NprJmJAJlgiXQELpzSREAQy2u8z6JJ4ilMhPJECJ4Orq6oY6izIYDKqlpaUaypMQiSgvUZKQ692HQrluqgIkoQzxbFfqyFB+39G9Qxw6s7Dhbm/CJqY+vIZiZKq2JJ0CcCm0EoChTpIlwu7DsgmYsAgmSYtjgdg/2wnVJ+kSeUbCxAKYLEl5CSTxFEiQp3xnF/KBJFP3cfgT9jzbk7jJ580vRUiejabne5EysVzzJi34fYBlT5Tk9M9x/fTREaiO4vCaFIJI8ikC01YR0FtvvfW20+bdIG6Jc5uMcFuO0XnL8wLXc7doVxKX2fu7luBW5tDP+nFMewqJfPdPqE+OM1NrS7633nrrrbfeeuuWeU9QaHO4qmcGb4Z0coODAgiTHq/7XUEC6FB14i2uWVseeU8aAX5n6GwEpACTRoAE8BLoRATw5NjwuSLPHQ2JUtoI1QapX5ezLTFXb5VJ0ALwcDUPWRkh3CmmALl7zH5Kcx4zMxL3wWqeMpfg43gR4nkiy1nHNOcxM+NROb8dYPjnNwXsk+/y48K/n/VG7iHkXgI5bMtSgCRrTztCEnm+n6c9JahPzmNmxuMzLoNxvi/QqZMJlU53mqA+OY+ZWekoLc8V85id/enVccgbOY+ZWRJUeZLvCzovQBLiAWuJsFJHhvK55pNoE3IeMzOGOkmWCJeQAowjwlzdA0yWpDb7viBB4rwZJmmSn6t/gc2+LxAcCULp+wKu/63I70QE/AMDdqWZ7rX6YgAAAABJRU5ErkJggg==";
@@ -135,7 +139,49 @@ public class MinecraftSkinView extends View {
         mIsAlex = isAlex;
         recycleFaceBitmaps();
         cropFaceBitmaps();
+        // recycleFaceBitmaps() empties the cape faces too, so they have to be cut again.
+        cropCapeFaces();
         invalidate();
+    }
+
+    /**
+     * Sets the cape. Pass null to take it off. The cape is drawn as its own thin cuboid
+     * behind the torso, exactly the way the game does it.
+     */
+    public void setCapeBitmap(Bitmap bmp) {
+        if (mCapeBitmap != null && mCapeBitmap != bmp) {
+            mCapeBitmap.recycle();
+        }
+        mCapeBitmap = bmp;
+        cropCapeFaces();
+        invalidate();
+    }
+
+    public void clearCape() {
+        setCapeBitmap(null);
+    }
+
+    /** Loads a cape PNG from disk. A missing, empty or unreadable file means no cape. */
+    public void loadCape(String path) {
+        if (path == null) {
+            clearCape();
+            return;
+        }
+        try {
+            java.io.File file = new java.io.File(path);
+            if (!file.isFile() || file.length() == 0) {
+                clearCape();
+                return;
+            }
+            Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
+            if (bmp == null) {
+                clearCape();
+                return;
+            }
+            setCapeBitmap(bmp);
+        } catch (Exception e) {
+            clearCape();
+        }
     }
 
     // Idle animation angles, driven from the fragment. The head yaws about the
@@ -158,7 +204,7 @@ public class MinecraftSkinView extends View {
     }
 
     private void recycleFaceBitmaps() {
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 13; i++) {
             for (int j = 0; j < 6; j++) {
                 if (mFaceBitmaps[i][j] != null) {
                     mFaceBitmaps[i][j].recycle();
@@ -169,9 +215,13 @@ public class MinecraftSkinView extends View {
     }
 
     private Bitmap crop(int x, int y, int w, int h, boolean mirror) {
-        if (mSkinBitmap == null) return null;
-        int sw = mSkinBitmap.getWidth();
-        int sh = mSkinBitmap.getHeight();
+        return cropFrom(mSkinBitmap, x, y, w, h, mirror);
+    }
+
+    private Bitmap cropFrom(Bitmap src, int x, int y, int w, int h, boolean mirror) {
+        if (src == null) return null;
+        int sw = src.getWidth();
+        int sh = src.getHeight();
 
         // Scale factor for HD skins
         int scale = sw / 64;
@@ -184,7 +234,7 @@ public class MinecraftSkinView extends View {
             return null;
         }
 
-        Bitmap cropped = Bitmap.createBitmap(mSkinBitmap, cx, cy, cw, ch);
+        Bitmap cropped = Bitmap.createBitmap(src, cx, cy, cw, ch);
         if (mirror) {
             Matrix matrix = new Matrix();
             matrix.setScale(-1, 1);
@@ -315,6 +365,27 @@ public class MinecraftSkinView extends View {
         }
     }
 
+    /**
+     * Cuts the cape's six faces out of its own 64x32 texture. The layout is the standard
+     * one: the two 10x16 sheets are the inner (against the back) and outer panels, the two
+     * 1x16 strips are the side edges, and the two 10x1 strips close the top and bottom.
+     */
+    private void cropCapeFaces() {
+        for (int f = 0; f < 6; f++) {
+            if (mFaceBitmaps[PART_CAPE][f] != null) {
+                mFaceBitmaps[PART_CAPE][f].recycle();
+                mFaceBitmaps[PART_CAPE][f] = null;
+            }
+        }
+        if (mCapeBitmap == null) return;
+        mFaceBitmaps[PART_CAPE][FACE_TOP] = cropFrom(mCapeBitmap, 1, 0, 10, 1, false);
+        mFaceBitmaps[PART_CAPE][FACE_BOTTOM] = cropFrom(mCapeBitmap, 11, 0, 10, 1, false);
+        mFaceBitmaps[PART_CAPE][FACE_RIGHT] = cropFrom(mCapeBitmap, 0, 1, 1, 16, false);
+        mFaceBitmaps[PART_CAPE][FACE_FRONT] = cropFrom(mCapeBitmap, 1, 1, 10, 16, false);
+        mFaceBitmaps[PART_CAPE][FACE_LEFT] = cropFrom(mCapeBitmap, 11, 1, 1, 16, false);
+        mFaceBitmaps[PART_CAPE][FACE_BACK] = cropFrom(mCapeBitmap, 12, 1, 10, 16, false);
+    }
+
     private Bitmap mirrorBitmap(Bitmap src) {
         Matrix m = new Matrix();
         m.setScale(-1, 1);
@@ -355,6 +426,12 @@ public class MinecraftSkinView extends View {
 
         List<Face3D> faces = new ArrayList<>();
         float armW = mIsAlex ? 3 : 4;
+
+        // The cape sits one unit behind the back panel, a little wider than the torso,
+        // and hangs four units past it. Added first so the body paints over its inner face.
+        if (!mShowHeadOnly && mFaceBitmaps[PART_CAPE][FACE_BACK] != null) {
+            addCuboidFaces(faces, PART_CAPE, -5, 0, -3, 5, 16, -2, false);
+        }
 
         // Add Base parts
         addCuboidFaces(faces, PART_HEAD, -4, -8, -4, 4, 0, 4, false);

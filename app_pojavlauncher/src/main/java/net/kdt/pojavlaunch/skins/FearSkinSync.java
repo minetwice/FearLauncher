@@ -36,6 +36,7 @@ public final class FearSkinSync {
 
     public static final String PREF_SKIN_PATH = "active_skin_path";
     public static final String PREF_SKIN_ALEX = "active_skin_is_alex";
+    public static final String PREF_CAPE_PATH = "active_cape_path";
 
     private static final String PACK_NAME = "FEAR_Skin_Pack";
     private static final String CRAFTYN_BASE = "https://craftynmc.onrender.com/skins/";
@@ -265,7 +266,12 @@ public final class FearSkinSync {
                 final String username = account.username;
                 final String profileId = account.profileId;
                 Thread fetch = new Thread(
-                        () -> downloadCraftynSkin(app, username, profileId), "fear-skin-prelaunch");
+                        () -> {
+                            downloadCraftynSkin(app, username, profileId);
+                            // The cape rides along with the skin, so the menu character is
+                            // dressed the moment the game comes up.
+                            downloadCraftynCape(app, username, profileId);
+                        }, "fear-skin-prelaunch");
                 fetch.setDaemon(true);
                 fetch.start();
                 fetch.join(PRELAUNCH_SKIN_WAIT_MS);
@@ -327,6 +333,56 @@ public final class FearSkinSync {
         }
         Log.w(TAG, "No skin available for " + username + "; keeping whatever was there");
         return false;
+    }
+
+    /**
+     * Fetches the account's cape from CraftynMC, the same way the skin is fetched.
+     *
+     * Returns the stored file, or null when the account has no cape - which is a normal
+     * answer, not an error, so a missing cape simply leaves the character without one.
+     */
+    public static File downloadCraftynCape(Context context, String username, String uuid) {
+        if (context == null || username == null) return null;
+        String dashed = dashUuid(uuid);
+        String undashed = uuid != null ? uuid.replace("-", "").toLowerCase() : null;
+
+        String[] candidates = { dashed != null ? CRAFTYN_BASE + dashed + "_cape.png" : null,
+                                undashed != null && !undashed.isEmpty() ? CRAFTYN_BASE + undashed + "_cape.png" : null,
+                                CRAFTYN_BASE + username + "_cape.png" };
+
+        for (String candidate : candidates) {
+            if (candidate == null) continue;
+            byte[] bytes = fetchWithRetries(candidate);
+            if (bytes == null || bytes.length == 0) continue;
+            try {
+                File dir = new File(Tools.DIR_GAME_HOME, "skins");
+                //noinspection ResultOfMethodCallIgnored
+                dir.mkdirs();
+                File target = new File(dir, "craftynmc_" + username + "_cape.png");
+                try (FileOutputStream out = new FileOutputStream(target)) {
+                    out.write(bytes);
+                }
+                PreferenceManager.getDefaultSharedPreferences(context).edit()
+                        .putString(PREF_CAPE_PATH, target.getAbsolutePath())
+                        .apply();
+                Log.i(TAG, "Cape refreshed for " + username);
+                return target;
+            } catch (Exception e) {
+                Log.w(TAG, "Could not store the cape for " + username, e);
+            }
+        }
+        Log.i(TAG, "No cape for " + username + "; leaving the character capless");
+        return null;
+    }
+
+    /** The cape file to draw in the launcher, or null when there is none on disk. */
+    public static File resolveCapeFile(Context context) {
+        if (context == null) return null;
+        String path = PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(PREF_CAPE_PATH, null);
+        if (path == null) return null;
+        File file = new File(path);
+        return (file.isFile() && file.length() > 0) ? file : null;
     }
 
     private static byte[] fetchWithRetries(String url) {

@@ -1505,6 +1505,34 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
+    /** Guards the one cape fetch per home screen, however often the view is rebuilt. */
+    private boolean mCapeFetchStarted;
+
+    /**
+     * Pulls the account's cape down once, off the main thread. The model is only re-loaded
+     * if the fetch actually produced a file, so a failed or capless fetch changes nothing.
+     */
+    private void refreshCapeInBackground(final com.kdt.mcgui.MinecraftSkinView body) {
+        if (mCapeFetchStarted) return;
+        mCapeFetchStarted = true;
+        if (getContext() == null) return;
+
+        final android.content.Context app = requireContext().getApplicationContext();
+        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account =
+                net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+        if (account == null || account.username == null) return;
+        if (account.authType != net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) return;
+
+        final String username = account.username;
+        final String profileId = account.profileId;
+        new Thread(() -> {
+            final java.io.File file = net.kdt.pojavlaunch.skins.FearSkinSync
+                    .downloadCraftynCape(app, username, profileId);
+            if (file == null) return;
+            Tools.runOnUiThread(() -> body.loadCape(file.getAbsolutePath()));
+        }, "fear-cape-refresh").start();
+    }
+
     /**
      * FEAR home: the full character, rendered from the skin the user imported,
      * standing next to the play/instance bar. It gets a slow idle turn plus a
@@ -1521,6 +1549,12 @@ public class MainMenuFragment extends Fragment {
 
         body.setShowHeadOnly(false);
         body.loadSkin(activeSkinPath, activeSkinIsAlex);
+        // The cape hangs behind the character. Whatever is already on disk goes up right
+        // away, and a background fetch then refreshes it for the connected account so a
+        // cape picked on the website shows here without waiting for another launch.
+        java.io.File cape = net.kdt.pojavlaunch.skins.FearSkinSync.resolveCapeFile(requireContext());
+        body.loadCape(cape != null ? cape.getAbsolutePath() : null);
+        refreshCapeInBackground(body);
 
         // Standing pose: no auto-spin. MinecraftSkinView handles drag itself, so
         // the player turns the character whenever they want to.
@@ -1608,6 +1642,11 @@ public class MainMenuFragment extends Fragment {
         final boolean[] isAlex = { prefs.getBoolean("active_skin_is_alex", false) };
 
         preview.loadSkin(skinPath[0], isAlex[0]);
+        // The viewer shows the same cape as the home character, so what you check here is
+        // what the model wears.
+        java.io.File viewerCape =
+                net.kdt.pojavlaunch.skins.FearSkinSync.resolveCapeFile(requireContext());
+        preview.loadCape(viewerCape != null ? viewerCape.getAbsolutePath() : null);
         preview.setRotationAngles(-20f, -5f);
         preview.setPose(mCharacterPose);
 
