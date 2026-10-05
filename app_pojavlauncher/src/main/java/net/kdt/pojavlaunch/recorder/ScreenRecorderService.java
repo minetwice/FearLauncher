@@ -30,7 +30,7 @@ import android.view.WindowManager;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import net.kdt.pojavlaunch.R;
+import com.fearlauncher.fear.R;
 
 import java.io.File;
 import java.nio.ByteBuffer;
