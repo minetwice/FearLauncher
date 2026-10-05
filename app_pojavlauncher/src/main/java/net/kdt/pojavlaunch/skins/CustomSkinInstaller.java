@@ -28,10 +28,9 @@ import java.util.List;
  * singleplayer but not in multiplayer. CustomSkinLoader loads the skin client-side from a
  * skin API and overrides whatever the server sent, which is exactly what we want.
  *
- * This drops the mod jar into the instance's mods folder and writes an ExtraList entry
- * pointing at this network's CustomSkinAPI (https://craftynmc.onrender.com/csl/).
- * ExtraList is additive: Mojang and the other built-in sources keep working, and our entry
- * is only reached when they have nothing - which is the case for an offline account.
+ * This drops the mod jar into the instance's mods folder and writes the CustomSkinLoader
+ * config (main config + an ExtraList entry) pointing at this network's CustomSkinAPI
+ * (https://craftynmc.onrender.com/csl/).
  */
 public final class CustomSkinInstaller {
 
@@ -97,6 +96,38 @@ public final class CustomSkinInstaller {
         }
 
         writeExtraList(base);
+        writeConfig(base);
+    }
+
+    /**
+     * Writes the main CustomSkinLoader config with this network at the TOP of the load list.
+     *
+     * ExtraList only *adds* a source and the file is deleted after it is processed, so the
+     * explicit config is the reliable path. CraftynMC first means an offline account (which
+     * Mojang does not know) resolves to our skin, while everyone else still falls through to
+     * Mojang for their own skin.
+     */
+    private static void writeConfig(File base) throws Exception {
+        File dir = new File(base, "CustomSkinLoader");
+        if (!dir.isDirectory() && !dir.mkdirs()) return;
+        File file = new File(dir, "CustomSkinLoader.json");
+        String json = "{\n"
+                + "  \"enable\": true,\n"
+                + "  \"loadlist\": [\n"
+                + "    {\n"
+                + "      \"name\": \"CraftynMC\",\n"
+                + "      \"type\": \"CustomSkinAPI\",\n"
+                + "      \"root\": \"" + API_ROOT + "\"\n"
+                + "    },\n"
+                + "    {\n"
+                + "      \"name\": \"Mojang\",\n"
+                + "      \"type\": \"MojangAPI\"\n"
+                + "    }\n"
+                + "  ]\n"
+                + "}\n";
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            out.write(json.getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     /** Adds this network to CustomSkinLoader's load list without replacing the defaults. */
