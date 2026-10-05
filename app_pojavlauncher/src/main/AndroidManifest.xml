@@ -26,6 +26,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <!-- Screen recorder: MediaProjection needs its own foreground-service type on
+         Android 14+, and the overlay control bar draws over the game. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name="net.kdt.pojavlaunch.PojavApplication"
@@ -161,6 +165,11 @@
             android:foregroundServiceType="dataSync"
             android:exported="false" />
             
+        <service
+            android:name="net.kdt.pojavlaunch.recorder.ScreenRecorderService"
+            android:foregroundServiceType="mediaProjection"
+            android:exported="false" />
+
         <service 
             android:name="net.kdt.pojavlaunch.services.GameService" 
             android:process=":game"

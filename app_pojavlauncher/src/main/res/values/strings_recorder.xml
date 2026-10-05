@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recorder_channel_name">Screen recorder</string>
+    <string name="recorder_notification_title">Recording screen</string>
+    <string name="recorder_notification_text">Tap stop in the in-game menu to finish</string>
+    <string name="recorder_stop">Stop</string>
+    <string name="recorder_start">Start Recording</string>
+    <string name="dashboard">Dashboard</string>
+</resources>
