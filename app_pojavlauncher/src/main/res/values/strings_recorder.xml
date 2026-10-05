@@ -6,4 +6,8 @@
     <string name="recorder_stop">Stop</string>
     <string name="recorder_start">Start Recording</string>
     <string name="dashboard">Dashboard</string>
+    <string name="recorder_pause">Pause</string>
+    <string name="recorder_resume">Resume</string>
+    <string name="recorder_mic">Microphone</string>
+    <string name="recorder_speaker">Device audio</string>
 </resources>

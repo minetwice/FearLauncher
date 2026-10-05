@@ -32,6 +32,7 @@
         <item>@string/quick_setting_title</item>
         <item>@string/mcl_option_customcontrol</item>
         <item>@string/fear_manage_files</item>
+        <item>@string/recorder_start</item>
     </string-array>
     
     <string-array name="renderer_values">
