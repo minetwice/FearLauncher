@@ -32,9 +32,10 @@ public class RecordingOverlay {
     private final Context mContext;
     private final ViewGroup mParent;
     private final LinearLayout mBar;
-    private final ImageView mPauseButton;
-    private final ImageView mMicButton;
-    private final ImageView mSpeakerButton;
+    // Not final: these are filled in by buildBar(), which the constructor calls.
+    private ImageView mPauseButton;
+    private ImageView mMicButton;
+    private ImageView mSpeakerButton;
 
     private boolean mPaused;
     private boolean mMicOn;
