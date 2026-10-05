@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.preference.PreferenceManager;
 
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
 import net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
@@ -119,10 +120,57 @@ public final class FearSkinSync {
 
         for (File base : bases) {
             try {
-                writePack(base, skin, slim);
+                // The pack is written WITHOUT the skin. A resource pack can only replace
+                // the DEFAULT player texture, so writing ours into those slots made every
+                // player on a server who had no skin of their own wear ours - the whole
+                // server looked identical. Passing null deletes those overrides again.
+                // Per-player skins come from the profile (authlib-injector plus the local
+                // skin server) and from CustomSkinLoader instead, both of which are
+                // resolved per player.
+                writePack(base, null, slim);
+                writeLocalSkin(base, context, skin);
             } catch (Exception e) {
                 Log.w(TAG, "Could not write the skin pack into " + base, e);
             }
+        }
+    }
+
+    /**
+     * Mirrors the account's skin and cape into CustomSkinLoader's own local folders.
+     *
+     * The mod reads LocalSkin/skins/&lt;username&gt;.png and LocalSkin/capes/&lt;username&gt;.png
+     * before any network source, and the load list points at that folder with a Legacy
+     * entry. This is what gives the cape a source at all: without these files the mod has
+     * nothing to load a cape from, however many servers the list offers.
+     */
+    private static void writeLocalSkin(File base, Context context, File skin) {
+        try {
+            MinecraftAccount account = Accounts.getCurrent();
+            String username = account != null ? account.username : null;
+            if (username == null || username.isEmpty()) return;
+
+            File skinsDir = new File(base, "CustomSkinLoader/LocalSkin/skins");
+            File capesDir = new File(base, "CustomSkinLoader/LocalSkin/capes");
+            //noinspection ResultOfMethodCallIgnored
+            skinsDir.mkdirs();
+            //noinspection ResultOfMethodCallIgnored
+            capesDir.mkdirs();
+
+            if (skin != null) {
+                copy(skin, new File(skinsDir, username + ".png"));
+            }
+
+            File cape = resolveCapeFile(context);
+            File capeTarget = new File(capesDir, username + ".png");
+            if (cape != null) {
+                copy(cape, capeTarget);
+            } else if (capeTarget.isFile()) {
+                // No cape on the account: drop any older one rather than keep showing it.
+                //noinspection ResultOfMethodCallIgnored
+                capeTarget.delete();
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not mirror the skin into CustomSkinLoader's local folder", e);
         }
     }
 
