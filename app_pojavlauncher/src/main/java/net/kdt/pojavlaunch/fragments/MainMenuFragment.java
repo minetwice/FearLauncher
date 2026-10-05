@@ -1670,7 +1670,7 @@ public class MainMenuFragment extends Fragment {
      * clip shows straight through it, plus a slightly stronger white border.
      */
     private void applyPlayButton(View v, float k) {
-        if (v == null) return;
+        if (v == null || getContext() == null) return;
         final float d = getResources().getDisplayMetrics().density;
         float radius = 31f * d;
 
@@ -1914,5 +1914,8 @@ public class MainMenuFragment extends Fragment {
         ProgressKeeper.removeTaskCountListener(mPlayStateListener);
         if (mIdleHandler != null && mIdleRunnable != null) mIdleHandler.removeCallbacks(mIdleRunnable);
         if (mIdleAnimator != null) { mIdleAnimator.cancel(); mIdleAnimator = null; }
+        // The colour cycle runs forever; left alive past onDestroyView its listener
+        // calls back into getResources() on a detached fragment and crashes the app.
+        if (mColorCycleAnimator != null) { mColorCycleAnimator.cancel(); mColorCycleAnimator = null; }
     }
 }
