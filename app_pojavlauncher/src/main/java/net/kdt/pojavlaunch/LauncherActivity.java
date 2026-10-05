@@ -358,14 +358,18 @@ public class LauncherActivity extends BaseActivity {
 
     /**
      * The home tray is built by MainMenuFragment, but its rows are plain menu buttons.
-     * Wiring the recordings row here - rather than through android:onClick in the layout -
-     * keeps it working regardless of which context the fragment inflated its views with,
-     * and re-binds after the fragment is recreated.
+     * Wiring the recordings entries here - rather than through android:onClick in the
+     * layout - keeps them working regardless of which context the fragment inflated its
+     * views with, and re-binds after the fragment is recreated.
      */
     private void bindHomeTrayActions() {
-        View recordings = findViewById(R.id.tray_recordings_btn);
-        if (recordings != null) {
-            recordings.setOnClickListener(this::openRecordings);
+        // Two entry points: the row inside the hamburger tray, and the always-visible
+        // button in the home top bar.
+        for (int id : new int[]{R.id.tray_recordings_btn, R.id.home_recordings_btn}) {
+            View recordings = findViewById(id);
+            if (recordings != null) {
+                recordings.setOnClickListener(this::openRecordings);
+            }
         }
     }
 
@@ -462,8 +466,8 @@ public class LauncherActivity extends BaseActivity {
     }
 
     /**
-     * Opens the recordings Dashboard. Called from the home tray's RECORDINGS row, whose
-     * click is bound in bindHomeTrayActions().
+     * Opens the recordings Dashboard. Called from the home tray's RECORDINGS row and the
+     * top-bar button, both of whose clicks are bound in bindHomeTrayActions().
      */
     public void openRecordings(View view) {
         view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
