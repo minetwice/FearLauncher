@@ -152,7 +152,22 @@ public final class FfmpegExporter {
      */
     public static void export(Context context, File input, Options options, File outputDir,
                               Listener listener) {
-        new Thread(() -> run(context, input, options, outputDir, listener), "fear-ffmpeg").start();
+        // The render runs off the main thread, but its listener belongs to a screen: the
+        // first Toast or dialog it touches from here would throw. Hand every callback back
+        // to the main looper.
+        final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+        Listener posted = new Listener() {
+            @Override
+            public void onProgress(int percent) {
+                main.post(() -> listener.onProgress(percent));
+            }
+
+            @Override
+            public void onFinished(boolean success, File output, String message) {
+                main.post(() -> listener.onFinished(success, output, message));
+            }
+        };
+        new Thread(() -> run(context, input, options, outputDir, posted), "fear-ffmpeg").start();
     }
 
     private static void run(Context context, File input, Options options, File outputDir,

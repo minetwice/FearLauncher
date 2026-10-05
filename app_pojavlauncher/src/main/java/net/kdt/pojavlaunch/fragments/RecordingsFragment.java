@@ -340,13 +340,19 @@ public class RecordingsFragment extends Fragment {
     /** Copies a finished file into the public Movies folder. */
     private void copyToDevice(File source) {
         try {
+            // Downloads, not Movies: that is the folder the phone's file manager and
+            // gallery actually surface, and where the user goes looking for it.
             File outDir = new File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                     "FearRecorder");
             //noinspection ResultOfMethodCallIgnored
             outDir.mkdirs();
             File target = new File(outDir, source.getName());
             copy(source, target);
+            // Tell the media store about it, or the gallery will not see it until the next
+            // full scan.
+            android.media.MediaScannerConnection.scanFile(getContext(),
+                    new String[]{target.getAbsolutePath()}, null, null);
             Toast.makeText(getContext(),
                     getString(R.string.recordings_exported) + ": " + target.getAbsolutePath(),
                     Toast.LENGTH_LONG).show();

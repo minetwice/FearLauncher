@@ -224,6 +224,10 @@ public class ScreenRecorderService extends Service {
             // "finished", so it must not be started before they are running.
             prepareVirtualDisplay();
             startDrainThread();
+            // Open whichever sources the settings asked for. Without this the audio loop
+            // finds both records null and faithfully records silence - which is exactly
+            // what a recording with no voice at all looks like.
+            applyAudioSourceChanges();
             startAudio();
 
             broadcastState(STATE_RECORDING);

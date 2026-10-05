@@ -27,4 +27,6 @@
     <string name="editor_rendered">Rendered</string>
     <string name="recordings_edit">EDIT</string>
     <string name="recordings_unplayable">This recording could not be opened</string>
+    <string name="recorder_collapse">Fold the recorder</string>
+    <string name="recorder_expand">Open the recorder</string>
 </resources>
