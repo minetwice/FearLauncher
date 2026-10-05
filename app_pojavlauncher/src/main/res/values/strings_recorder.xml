@@ -18,4 +18,7 @@
     <string name="recordings_play">Play</string>
     <string name="recordings_pause">Pause</string>
     <string name="recordings_exported">Saved to your device</string>
+    <string name="recorder_ffmpeg_title">FFmpeg needed</string>
+    <string name="recorder_ffmpeg_message">Exporting needs the FFmpeg plugin, which is not installed yet. Download it now? (about 38 MB)</string>
+    <string name="recorder_ffmpeg_download">DOWNLOAD</string>
 </resources>

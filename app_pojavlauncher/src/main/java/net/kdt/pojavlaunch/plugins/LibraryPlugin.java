@@ -19,6 +19,8 @@ public class LibraryPlugin {
     // Known plugins constants
     public static final String ID_ANGLE_PLUGIN = "git.fear.angle";
     public static final String ID_FFMPEG_PLUGIN = "git.fear.ffmpeg";
+    /** Upstream PojavLauncher FFmpeg plugin, accepted as a fallback. */
+    public static final String ID_FFMPEG_PLUGIN_UPSTREAM = "net.kdt.pojavlaunch.ffmpeg";
 
     // Mobile Glue & Common Custom Renderer Package Prefixes / Identifiers
     public static final String[] MOBILE_GLUE_PACKAGES = new String[]{
