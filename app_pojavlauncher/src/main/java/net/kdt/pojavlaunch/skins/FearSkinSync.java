@@ -276,6 +276,9 @@ public final class FearSkinSync {
                 prefs.edit().putString(PREF_SKIN_PATH, skin.getAbsolutePath()).apply();
             }
             syncPack(context);
+            // Also make sure CustomSkinLoader is in the instance, so the skin shows on
+            // any server (cracked / offline-mode included), not just in singleplayer.
+            CustomSkinInstaller.ensureInstalled(context);
         } catch (Exception e) {
             Log.w(TAG, "Could not prepare the skin for launch", e);
         }
