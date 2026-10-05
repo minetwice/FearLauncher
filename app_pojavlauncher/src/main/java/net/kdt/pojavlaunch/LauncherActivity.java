@@ -363,13 +363,20 @@ public class LauncherActivity extends BaseActivity {
      * views with, and re-binds after the fragment is recreated.
      */
     private void bindHomeTrayActions() {
-        // Two entry points: the row inside the hamburger tray, and the always-visible
-        // button in the home top bar.
+        // Two entry points: the row inside the hamburger tray (landscape home) and the
+        // always-visible button in the portrait home top bar.
         for (int id : new int[]{R.id.tray_recordings_btn, R.id.home_recordings_btn}) {
             View recordings = findViewById(id);
-            if (recordings != null) {
-                recordings.setOnClickListener(this::openRecordings);
+            if (recordings == null) continue;
+            // The tray rows are painted by MainMenuFragment with FearRowBgDrawable, but
+            // that loop does not know about this new row - so give it the same resting
+            // background here, or it would render as a bare, unstyled strip.
+            if (recordings.getBackground() == null) {
+                com.kdt.mcgui.FearRowBgDrawable bg = new com.kdt.mcgui.FearRowBgDrawable();
+                bg.setMetrics(getResources().getDisplayMetrics().density);
+                recordings.setBackground(bg);
             }
+            recordings.setOnClickListener(this::openRecordings);
         }
     }
 
@@ -471,6 +478,15 @@ public class LauncherActivity extends BaseActivity {
      */
     public void openRecordings(View view) {
         view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+        // Tapping a row in the hamburger tray should close it, the way every other
+        // tray entry does. MainMenuFragment owns that animation, but this row is wired
+        // from here, so hide the tray directly before swapping the screen.
+        View tray = findViewById(R.id.settings_tray);
+        if (tray != null && tray.getVisibility() == View.VISIBLE) {
+            tray.setVisibility(View.GONE);
+            tray.setTranslationX(0f);
+            tray.setAlpha(1f);
+        }
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.container_fragment, new RecordingsFragment())
