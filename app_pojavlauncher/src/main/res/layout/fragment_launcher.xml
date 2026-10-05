@@ -97,6 +97,22 @@
                 android:scaleType="fitCenter" />
         </FrameLayout>
 
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/premium_glass_black_bg"
+            android:layout_marginEnd="10dp">
+            <ImageButton
+                android:id="@+id/home_recordings_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_px_record"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/dashboard" />
+        </FrameLayout>
+
         <ImageButton
             android:id="@+id/header_notification_btn"
             android:layout_width="26dp"
@@ -442,7 +458,6 @@
                     android:text="RECORDINGS"
                     android:drawableStart="@drawable/ic_px_record"
                     android:background="@drawable/tray_button_bg"
-                    android:onClick="openRecordings"
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
