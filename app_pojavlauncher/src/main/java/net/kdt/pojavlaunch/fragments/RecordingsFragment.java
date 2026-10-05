@@ -1,5 +1,7 @@
 package net.kdt.pojavlaunch.fragments;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -21,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fearlauncher.fear.R;
 
+import net.kdt.pojavlaunch.recorder.FfmpegExporter;
 import net.kdt.pojavlaunch.recorder.RecordingEntry;
 import net.kdt.pojavlaunch.recorder.RecordingsAdapter;
 
@@ -157,24 +160,96 @@ public class RecordingsFragment extends Fragment {
 
     // ---- export -------------------------------------------------------------
 
+    /** The presets the EXPORT button offers, in the order they are shown. */
+    private static final String[] EXPORT_PRESETS = {
+            "1080p  ·  60fps  ·  smooth",
+            "1080p  ·  30fps",
+            "720p  ·  60fps  ·  smooth",
+            "720p  ·  30fps",
+            "480p  ·  30fps",
+            "Original  ·  no re-encode (fastest)",
+    };
+
+    private static FfmpegExporter.Options presetOptions(int which) {
+        switch (which) {
+            case 0: return new FfmpegExporter.Options(1080, 60, 12_000_000, true);
+            case 1: return new FfmpegExporter.Options(1080, 30, 12_000_000, false);
+            case 2: return new FfmpegExporter.Options(720, 60, 8_000_000, true);
+            case 3: return new FfmpegExporter.Options(720, 30, 8_000_000, false);
+            case 4: return new FfmpegExporter.Options(480, 30, 4_000_000, false);
+            default: return new FfmpegExporter.Options(0, 0, 0, false);
+        }
+    }
+
     /**
-     * Saves the selected recording somewhere the user can reach it. This is the plain copy
-     * today; the re-encode step (pick fps / quality and render) lands on top of this same
-     * entry point.
+     * Asks for the output resolution and frame rate, then renders. "Smooth" presets raise
+     * the frame rate by interpolation; the plain ones only resample.
      */
     private void exportSelected() {
         if (mSelected == null) {
             Toast.makeText(getContext(), R.string.recordings_pick, Toast.LENGTH_SHORT).show();
             return;
         }
+        if (getContext() == null) return;
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.recordings_export)
+                .setItems(EXPORT_PRESETS, (dialog, which) -> runExport(presetOptions(which)))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void runExport(FfmpegExporter.Options options) {
+        final RecordingEntry entry = mSelected;
+        if (entry == null) return;
+
+        // "No re-encode" is a straight copy - the fastest possible export.
+        if (options.isCopy()) {
+            copyToDevice(entry.file);
+            return;
+        }
+
+        ProgressDialog progress = new ProgressDialog(requireContext());
+        progress.setTitle(R.string.recordings_export);
+        progress.setMessage(FfmpegExporter.describe(options));
+        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progress.setMax(100);
+        progress.setCancelable(false);
+        progress.show();
+
+        File outDir = new File(requireContext().getExternalFilesDir(null), "exports");
+        FfmpegExporter.export(requireContext(), entry.file, options, outDir,
+                new FfmpegExporter.Listener() {
+                    @Override
+                    public void onProgress(int percent) {
+                        if (isAdded()) progress.setProgress(percent);
+                    }
+
+                    @Override
+                    public void onFinished(boolean success, File output, String message) {
+                        if (isAdded()) progress.dismiss();
+                        if (!success) {
+                            Toast.makeText(getContext(),
+                                    message != null ? message : "Export failed",
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        // Rendered file is then copied out where the user can reach it.
+                        copyToDevice(output);
+                    }
+                });
+    }
+
+    /** Copies a finished file into the public Movies folder. */
+    private void copyToDevice(File source) {
         try {
             File outDir = new File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
                     "FearRecorder");
             //noinspection ResultOfMethodCallIgnored
             outDir.mkdirs();
-            File target = new File(outDir, mSelected.file.getName());
-            copy(mSelected.file, target);
+            File target = new File(outDir, source.getName());
+            copy(source, target);
             Toast.makeText(getContext(),
                     getString(R.string.recordings_exported) + ": " + target.getAbsolutePath(),
                     Toast.LENGTH_LONG).show();
