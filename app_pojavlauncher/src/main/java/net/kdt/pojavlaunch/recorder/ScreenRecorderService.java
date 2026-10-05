@@ -84,6 +84,19 @@ public class ScreenRecorderService extends Service {
 
     private MediaProjection mProjection;
     private VirtualDisplay mVirtualDisplay;
+
+    /**
+     * Android 14 (API 34) and up refuse createVirtualDisplay() unless the projection has
+     * a callback registered first - it throws IllegalStateException, the capture never
+     * starts, and nothing is written to the file. It also tells us when the user revokes
+     * the projection from the system UI, so the recording can finish cleanly.
+     */
+    private final MediaProjection.Callback mProjectionCallback = new MediaProjection.Callback() {
+        @Override
+        public void onStop() {
+            if (mRunning) stopCapture();
+        }
+    };
     private MediaCodec mVideoEncoder;
     private MediaCodec mAudioEncoder;
     private MediaMuxer mMuxer;
@@ -217,9 +230,20 @@ public class ScreenRecorderService extends Service {
             Log.i(TAG, "Recording to " + mOutputFile.getAbsolutePath());
         } catch (Exception e) {
             Log.e(TAG, "Could not start recording", e);
+            showError("Recording could not start: " + e.getClass().getSimpleName());
             releaseAll();
             stopSelf();
         }
+    }
+
+    /** Surfaces a failure to the person holding the phone, not just to logcat. */
+    private void showError(final String message) {
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+            try {
+                android.widget.Toast.makeText(getApplicationContext(), message,
+                        android.widget.Toast.LENGTH_LONG).show();
+            } catch (Exception ignored) { }
+        });
     }
 
     private void stopCapture() {
@@ -313,10 +337,16 @@ public class ScreenRecorderService extends Service {
         mVideoEncoder.start();
         mAudioEncoder.start();
 
+        mProjection.registerCallback(mProjectionCallback,
+                new android.os.Handler(android.os.Looper.getMainLooper()));
+
         mVirtualDisplay = mProjection.createVirtualDisplay(
                 "fear-recorder", mWidth, mHeight, mDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 surface, null, null);
+        if (mVirtualDisplay == null) {
+            throw new IllegalStateException("Virtual display was refused");
+        }
     }
 
     // ---- audio --------------------------------------------------------------
@@ -375,11 +405,24 @@ public class ScreenRecorderService extends Service {
 
     private AudioRecord openInternal() {
         try {
+            // Match every usage the API allows. Each app picks its own usage - a voice
+            // chat and an in-app chime are not the same stream - so the wider the net the
+            // likelier the app we care about falls inside it. Whether an app may be
+            // captured at all is still that app's own choice.
             AudioPlaybackCaptureConfiguration capture =
                     new AudioPlaybackCaptureConfiguration.Builder(mProjection)
+                            .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
                             .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                             .addMatchingUsage(AudioAttributes.USAGE_GAME)
                             .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                            .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
+                            .addMatchingUsage(AudioAttributes.USAGE_ALARM)
+                            .addMatchingUsage(AudioAttributes.USAGE_NOTIFICATION)
+                            .addMatchingUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                            .addMatchingUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                            .addMatchingUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                            .addMatchingUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                            .addMatchingUsage(AudioAttributes.USAGE_ASSISTANT)
                             .build();
             int min = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
                     AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
