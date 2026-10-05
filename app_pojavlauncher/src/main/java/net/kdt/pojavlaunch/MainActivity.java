@@ -70,14 +70,11 @@ import git.artdeell.dnbootstrap.glfw.AndroidClipboardProvider;
 import git.artdeell.dnbootstrap.glfw.GLFW;
 import git.artdeell.dnbootstrap.glfw.GLFWCursorView;
 
-import android.media.projection.MediaProjectionManager;
 import android.view.ViewGroup;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
-import net.kdt.pojavlaunch.recorder.RecordingOverlay;
-import net.kdt.pojavlaunch.recorder.ScreenRecorderService;
 
 import com.fearlauncher.fear.R;
 
@@ -109,9 +106,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     private QuickSettingSideDialog mQuickSettingSideDialog;
 
-    private RecordingOverlay mRecordingOverlay;
-    private ActivityResultLauncher<Intent> mProjectionLauncher;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,17 +118,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         }
         AsyncAssetManager.extractDefaultSettings(this, instance.getGameDirectory());
         MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());
-
-        // The user's consent to capture the screen comes back here; only then does the
-        // recorder start, so a declined prompt simply does nothing.
-        mProjectionLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        ScreenRecorderService.start(this, result.getResultCode(), result.getData());
-                        if (mRecordingOverlay != null) mRecordingOverlay.show();
-                    }
-                });
 
         Intent gameServiceIntent = new Intent(this, GameService.class);
         // Start the service a bit early
@@ -215,18 +198,12 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
                      case 3: openQuickSettings(); break;
                      case 4: openCustomControls(); break;
                      case 5: openFileManager(); break;
-                     case 6: startRecording(); break;
                 }
                 drawerLayout.closeDrawers();
             };
             navDrawer.setAdapter(gameActionArrayAdapter);
             navDrawer.setOnItemClickListener(gameActionClickListener);
             drawerLayout.closeDrawers();
-
-            // The recording pill floats inside the game's own view tree, so it needs no
-            // overlay permission and vanishes with the activity.
-            mRecordingOverlay = new RecordingOverlay(this, (ViewGroup) findViewById(R.id.content_frame));
-            mRecordingOverlay.attach();
 
             minecraftGLView.setSurfaceReadyListener(() -> {
                 try {
@@ -321,10 +298,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     protected void onDestroy() {
         // Reaching here at all means the game ended without taking the process down.
         net.kdt.pojavlaunch.utils.FearCrashGuard.markCleanExit(this);
-        if (mRecordingOverlay != null) {
-            mRecordingOverlay.detach();
-            mRecordingOverlay = null;
-        }
         super.onDestroy();
         ContextExecutor.clearActivity();
     }
@@ -385,22 +358,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         GameRunner.launchMinecraft(this, minecraftAccount, instance, versionId, classpath, renderer);
         //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
         Tools.runOnUiThread(()-> mServiceBinder.isActive = false);
-    }
-
-    /**
-     * Asks for the microphone (if we do not have it yet) and then for the screen-capture
-     * consent, which is what actually starts the recording once granted.
-     */
-    private void startRecording() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            androidx.core.app.ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.RECORD_AUDIO}, 77);
-        }
-        MediaProjectionManager manager =
-                (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        if (manager == null || mProjectionLauncher == null) return;
-        mProjectionLauncher.launch(manager.createScreenCaptureIntent());
     }
 
     private void dialogSendCustomKey() {

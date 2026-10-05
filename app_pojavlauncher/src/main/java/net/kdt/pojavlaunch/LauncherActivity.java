@@ -36,7 +36,6 @@ import net.kdt.pojavlaunch.extra.ExtraListener;
 import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.FearCrashFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
-import net.kdt.pojavlaunch.fragments.RecordingsFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
 import net.kdt.pojavlaunch.fragments.SearchModFragment;
@@ -353,31 +352,6 @@ public class LauncherActivity extends BaseActivity {
         ContextExecutor.setActivity(this);
         InstanceInstaller.postInstallCheck(this);
         SoundManager.startMusic(this);
-        bindHomeTrayActions();
-    }
-
-    /**
-     * The home tray is built by MainMenuFragment, but its rows are plain menu buttons.
-     * Wiring the recordings entries here - rather than through android:onClick in the
-     * layout - keeps them working regardless of which context the fragment inflated its
-     * views with, and re-binds after the fragment is recreated.
-     */
-    private void bindHomeTrayActions() {
-        // Two entry points: the row inside the hamburger tray (landscape home) and the
-        // always-visible button in the portrait home top bar.
-        for (int id : new int[]{R.id.tray_recordings_btn, R.id.home_recordings_btn}) {
-            View recordings = findViewById(id);
-            if (recordings == null) continue;
-            // The tray rows are painted by MainMenuFragment with FearRowBgDrawable, but
-            // that loop does not know about this new row - so give it the same resting
-            // background here, or it would render as a bare, unstyled strip.
-            if (recordings.getBackground() == null) {
-                com.kdt.mcgui.FearRowBgDrawable bg = new com.kdt.mcgui.FearRowBgDrawable();
-                bg.setMetrics(getResources().getDisplayMetrics().density);
-                recordings.setBackground(bg);
-            }
-            recordings.setOnClickListener(this::openRecordings);
-        }
     }
 
     @Override
@@ -470,27 +444,6 @@ public class LauncherActivity extends BaseActivity {
 
     public ProgressLayout getProgressLayout() {
         return mProgressLayout;
-    }
-
-    /**
-     * Opens the recordings Dashboard. Called from the home tray's RECORDINGS row and the
-     * top-bar button, both of whose clicks are bound in bindHomeTrayActions().
-     */
-    public void openRecordings(View view) {
-        view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-        // Tapping a row in the hamburger tray should close it, the way every other
-        // tray entry does. MainMenuFragment owns that animation, but this row is wired
-        // from here, so hide the tray directly before swapping the screen.
-        View tray = findViewById(R.id.settings_tray);
-        if (tray != null && tray.getVisibility() == View.VISIBLE) {
-            tray.setVisibility(View.GONE);
-            tray.setTranslationX(0f);
-            tray.setAlpha(1f);
-        }
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.container_fragment, new RecordingsFragment())
-                .commit();
     }
 
     private void bindViews() {
@@ -591,8 +544,6 @@ public class LauncherActivity extends BaseActivity {
                     .setIcon(R.drawable.ic_px_edit);
             menu.add(0, R.id.nav_settings, 4, "Settings")
                     .setIcon(R.drawable.ic_px_sliders);
-            menu.add(0, R.id.nav_recordings, 5, "Recordings")
-                    .setIcon(R.drawable.ic_px_record);
 
             menu.findItem(R.id.nav_dashboard).setChecked(true);
 
@@ -614,11 +565,6 @@ public class LauncherActivity extends BaseActivity {
                     Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
-                } else if (id == R.id.nav_recordings) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.container_fragment, new RecordingsFragment())
-                            .commit();
                 }
                 // No nav_account handling
 
