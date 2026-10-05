@@ -36,6 +36,7 @@ import net.kdt.pojavlaunch.extra.ExtraListener;
 import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.FearCrashFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
+import net.kdt.pojavlaunch.fragments.RecordingsFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
 import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
 import net.kdt.pojavlaunch.fragments.SearchModFragment;
@@ -446,6 +447,18 @@ public class LauncherActivity extends BaseActivity {
         return mProgressLayout;
     }
 
+    /**
+     * Opens the recordings Dashboard. Wired from the home tray's button through
+     * android:onClick, so the tray layout needs no Java of its own.
+     */
+    public void openRecordings(View view) {
+        view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment, new RecordingsFragment())
+                .commit();
+    }
+
     private void bindViews() {
         mFragmentView = findViewById(R.id.container_fragment);
         // Both views were removed from the layouts - the old progress/download
@@ -544,6 +557,8 @@ public class LauncherActivity extends BaseActivity {
                     .setIcon(R.drawable.ic_px_edit);
             menu.add(0, R.id.nav_settings, 4, "Settings")
                     .setIcon(R.drawable.ic_px_sliders);
+            menu.add(0, R.id.nav_recordings, 5, "Recordings")
+                    .setIcon(R.drawable.ic_px_record);
 
             menu.findItem(R.id.nav_dashboard).setChecked(true);
 
@@ -565,6 +580,11 @@ public class LauncherActivity extends BaseActivity {
                     Tools.swapFragment(this, SearchModFragment.class, SearchModFragment.TAG, null);
                 } else if (id == R.id.nav_skins) {
                     Toast.makeText(this, "Skins (Coming soon)", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.nav_recordings) {
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.container_fragment, new RecordingsFragment())
+                            .commit();
                 }
                 // No nav_account handling
 
