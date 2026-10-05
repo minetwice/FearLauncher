@@ -226,17 +226,30 @@ public class EditorFragment extends Fragment {
         FfmpegExporter.Options trimmed = options.withTrim(startMs, endMs);
 
         File outDir = new File(requireContext().getExternalFilesDir(null), "exports");
+        // Listener has two callbacks, so this is an anonymous class rather than a lambda.
         FfmpegExporter.export(requireContext(), mFile, trimmed, outDir,
-                (success, output, message) -> requireActivity().runOnUiThread(() -> {
-                    if (success) {
-                        Toast.makeText(getContext(),
-                                getString(R.string.editor_rendered) + ": " + output.getName(),
-                                Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getContext(), message != null ? message : "Render failed",
-                                Toast.LENGTH_LONG).show();
+                new FfmpegExporter.Listener() {
+                    @Override
+                    public void onProgress(int percent) {
+                        // Progress is not surfaced on this screen yet.
                     }
-                }));
+
+                    @Override
+                    public void onFinished(boolean success, File output, String message) {
+                        if (!isAdded()) return;
+                        requireActivity().runOnUiThread(() -> {
+                            if (success) {
+                                Toast.makeText(getContext(),
+                                        getString(R.string.editor_rendered) + ": " + output.getName(),
+                                        Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(getContext(),
+                                        message != null ? message : "Render failed",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                });
     }
 
     private String timeLabel(int positionMs) {
