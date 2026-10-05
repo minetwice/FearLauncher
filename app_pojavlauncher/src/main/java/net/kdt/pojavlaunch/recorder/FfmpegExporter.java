@@ -17,10 +17,11 @@ import java.util.Locale;
  * screen actually produced; this pass decides the output resolution, frame rate and
  * bitrate, and can raise the frame rate by generating in-between frames.
  *
- * FFmpeg comes from the FEAR ffmpeg plugin app (git.fear.ffmpeg), the same binary the
- * launcher already points the game at through FEAR_FFMPEG_PATH. It is shipped as
- * libffmpeg.so so the platform extracts it into the plugin's native library directory,
- * which is the one place on Android a binary may be executed from.
+ * FFmpeg comes from an FFmpeg plugin app, the same binary the launcher already points the
+ * game at through FEAR_FFMPEG_PATH. It is shipped as libffmpeg.so so the platform extracts
+ * it into the plugin's native library directory, which is the one place on Android a
+ * binary may be executed from. Both the launcher's own plugin and the upstream
+ * PojavLauncher one are accepted.
  */
 public final class FfmpegExporter {
 
@@ -52,12 +53,17 @@ public final class FfmpegExporter {
 
     private FfmpegExporter() {}
 
-    /** The plugin's ffmpeg, or null when the plugin is not installed. */
+    /** The plugin's ffmpeg, or null when no ffmpeg plugin is installed. */
     public static File locate(Context context) {
-        LibraryPlugin plugin = LibraryPlugin.discoverPlugin(context, LibraryPlugin.ID_FFMPEG_PLUGIN);
-        if (plugin == null) return null;
-        File binary = new File(plugin.resolveAbsolutePath("libffmpeg.so"));
-        return binary.isFile() ? binary : null;
+        for (String id : new String[]{
+                LibraryPlugin.ID_FFMPEG_PLUGIN,
+                LibraryPlugin.ID_FFMPEG_PLUGIN_UPSTREAM}) {
+            LibraryPlugin plugin = LibraryPlugin.discoverPlugin(context, id);
+            if (plugin == null) continue;
+            File binary = new File(plugin.resolveAbsolutePath("libffmpeg.so"));
+            if (binary.isFile()) return binary;
+        }
+        return null;
     }
 
     /**
@@ -74,7 +80,7 @@ public final class FfmpegExporter {
         File ffmpeg = locate(context);
         if (ffmpeg == null) {
             listener.onFinished(false, null,
-                    "FFmpeg plugin not found. Install the FEAR FFmpeg app to export.");
+                    "FFmpeg plugin not found. Install the FFmpeg app to export.");
             return;
         }
 

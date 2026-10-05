@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fearlauncher.fear.R;
 
 import net.kdt.pojavlaunch.recorder.FfmpegExporter;
+import net.kdt.pojavlaunch.recorder.FfmpegPluginInstaller;
 import net.kdt.pojavlaunch.recorder.RecordingEntry;
 import net.kdt.pojavlaunch.recorder.RecordingsAdapter;
 
@@ -209,6 +210,12 @@ public class RecordingsFragment extends Fragment {
             return;
         }
 
+        // FFmpeg lives in a plugin app; if it is not here yet, offer to fetch it.
+        if (!FfmpegPluginInstaller.isInstalled(requireContext())) {
+            promptFfmpegInstall();
+            return;
+        }
+
         ProgressDialog progress = new ProgressDialog(requireContext());
         progress.setTitle(R.string.recordings_export);
         progress.setMessage(FfmpegExporter.describe(options));
@@ -238,6 +245,48 @@ public class RecordingsFragment extends Fragment {
                         copyToDevice(output);
                     }
                 });
+    }
+
+    /**
+     * FFmpeg is a separate app, so on a fresh device it is simply missing. Rather than
+     * failing the export, offer to download and install it once.
+     */
+    private void promptFfmpegInstall() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.recorder_ffmpeg_title)
+                .setMessage(R.string.recorder_ffmpeg_message)
+                .setPositiveButton(R.string.recorder_ffmpeg_download,
+                        (d, w) -> downloadFfmpeg())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void downloadFfmpeg() {
+        ProgressDialog progress = new ProgressDialog(requireContext());
+        progress.setTitle(R.string.recorder_ffmpeg_title);
+        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progress.setMax(100);
+        progress.setCancelable(false);
+        progress.show();
+
+        FfmpegPluginInstaller.download(requireContext(), new FfmpegPluginInstaller.Listener() {
+            @Override
+            public void onProgress(int percent) {
+                if (isAdded()) progress.setProgress(percent);
+            }
+
+            @Override
+            public void onReady(File apk) {
+                if (isAdded()) progress.dismiss();
+                FfmpegPluginInstaller.install(requireContext(), apk);
+            }
+
+            @Override
+            public void onFailed(String message) {
+                if (isAdded()) progress.dismiss();
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     /** Copies a finished file into the public Movies folder. */
