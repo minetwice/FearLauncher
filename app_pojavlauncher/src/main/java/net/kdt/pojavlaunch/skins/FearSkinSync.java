@@ -193,16 +193,23 @@ public final class FearSkinSync {
         try {
             String content = options.isFile() ? readString(options) : null;
             if (content == null) content = "";
-            if (content.contains(PACK_NAME)) return;
 
             String entry = "\"file/" + PACK_NAME + "\"";
             String key = "resourcePacks:[";
             int at = content.indexOf(key);
+
             if (at >= 0) {
                 int close = content.indexOf(']', at);
                 if (close < 0) return;
-                String inner = content.substring(at + key.length(), close).trim();
-                String spliced = inner.isEmpty() ? entry : entry + "," + inner;
+                // Take any previous entry out first. Skipping the whole method when the name
+                // was already present is what left installs that had the pack in the wrong
+                // slot stuck there for good.
+                String inner = trimCommas(content.substring(at + key.length(), close)
+                        .replace(entry, ""));
+                // Appended at the END, because in options.txt the LAST pack in the list has
+                // the highest priority - it is where the player's own packs sit. In front of
+                // vanilla the pack loaded and was then overridden by it, so it never showed.
+                String spliced = inner.isEmpty() ? entry : inner + "," + entry;
                 content = content.substring(0, at + key.length()) + spliced + content.substring(close);
             } else {
                 if (!content.isEmpty() && !content.endsWith("\n")) content += "\n";
@@ -212,6 +219,15 @@ public final class FearSkinSync {
         } catch (Exception e) {
             Log.w(TAG, "Could not enable the skin pack in " + options, e);
         }
+    }
+
+    /** Tidies the commas an entry leaves behind when it is pulled out of the list. */
+    private static String trimCommas(String value) {
+        String out = value.trim();
+        while (out.startsWith(",")) out = out.substring(1).trim();
+        while (out.endsWith(",")) out = out.substring(0, out.length() - 1).trim();
+        while (out.contains(",,")) out = out.replace(",,", ",");
+        return out;
     }
 
     /** A small icon so the pack reads as a pack rather than a blank slot in the list. */
