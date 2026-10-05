@@ -106,6 +106,7 @@ public class RecordingsFragment extends Fragment {
         });
 
         view.findViewById(R.id.export_button).setOnClickListener(v -> exportSelected());
+        view.findViewById(R.id.edit_button).setOnClickListener(v -> openEditor());
 
         RecyclerView list = view.findViewById(R.id.recordings_list);
         list.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -245,6 +246,20 @@ public class RecordingsFragment extends Fragment {
                         copyToDevice(output);
                     }
                 });
+    }
+
+    /** Opens the full editor on the selected clip. */
+    private void openEditor() {
+        if (mSelected == null) {
+            Toast.makeText(getContext(), R.string.recordings_pick, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment,
+                        net.kdt.pojavlaunch.editor.EditorFragment.forFile(
+                                mSelected.file.getAbsolutePath()))
+                .commit();
     }
 
     /**
