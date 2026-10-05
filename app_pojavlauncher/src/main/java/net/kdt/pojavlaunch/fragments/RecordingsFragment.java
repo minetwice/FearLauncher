@@ -127,12 +127,29 @@ public class RecordingsFragment extends Fragment {
     private void onRecordingPicked(RecordingEntry entry) {
         mSelected = entry;
         if (mVideo == null) return;
+
+        // A file with nothing in it cannot be opened - VideoView throws straight out of
+        // setVideoPath. Say so instead of taking the whole screen down.
+        if (entry.sizeBytes <= 0 || !entry.file.isFile()) {
+            showUnplayable();
+            return;
+        }
+
         mPlaceholder.setVisibility(View.GONE);
         mVideo.setVisibility(View.VISIBLE);
 
         // The default controller is disabled - the transport strip below is ours.
         mVideo.setMediaController(null);
-        mVideo.setVideoPath(entry.file.getAbsolutePath());
+        try {
+            mVideo.setVideoPath(entry.file.getAbsolutePath());
+        } catch (Exception e) {
+            showUnplayable();
+            return;
+        }
+        mVideo.setOnErrorListener((mp, what, extra) -> {
+            showUnplayable();
+            return true;
+        });
         mVideo.setOnPreparedListener(mp -> {
             mp.setLooping(false);
             int duration = mVideo.getDuration();
@@ -145,7 +162,23 @@ public class RecordingsFragment extends Fragment {
             mSeek.setProgress(0);
             mTime.setText(format(0));
         });
-        mVideo.seekTo(1);
+        try {
+            mVideo.seekTo(1);
+        } catch (Exception ignored) { }
+    }
+
+    /** Reports a clip the player cannot open, without letting it crash the screen. */
+    private void showUnplayable() {
+        if (mVideo != null) {
+            try {
+                mVideo.stopPlayback();
+            } catch (Exception ignored) { }
+            mVideo.setVisibility(View.INVISIBLE);
+        }
+        if (mPlaceholder != null) mPlaceholder.setVisibility(View.VISIBLE);
+        if (getContext() != null) {
+            Toast.makeText(getContext(), R.string.recordings_unplayable, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void togglePlayback() {
