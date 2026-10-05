@@ -51,7 +51,8 @@ public final class RecordingEntry {
         if (files == null) return entries;
         Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
         for (File file : files) {
-            if (!file.isFile() || !file.getName().toLowerCase().endsWith(".mp4")) continue;
+            if (!file.isFile() || file.length() == 0
+                    || !file.getName().toLowerCase().endsWith(".mp4")) continue;
             entries.add(new RecordingEntry(file, file.length(), readDuration(file), file.lastModified()));
         }
         return entries;

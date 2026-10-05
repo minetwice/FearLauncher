@@ -26,4 +26,5 @@
     <string name="editor_render">RENDER</string>
     <string name="editor_rendered">Rendered</string>
     <string name="recordings_edit">EDIT</string>
+    <string name="recordings_unplayable">This recording could not be opened</string>
 </resources>
