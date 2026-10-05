@@ -100,6 +100,7 @@ public class ScreenRecorderService extends Service {
     private MediaFormat mAudioFormat;
     private boolean mVideoFormatReady;
     private boolean mAudioFormatReady;
+    private int mSamplesWritten;
     private long mStartNanos;
     private volatile boolean mPaused;
     private volatile boolean mRunning;
@@ -193,15 +194,24 @@ public class ScreenRecorderService extends Service {
 
         try {
             mOutputFile = newOutputFile();
+            mMuxerStarted = false;
+            mVideoFormatReady = false;
+            mAudioFormatReady = false;
+            mVideoTrack = -1;
+            mAudioTrack = -1;
+            mSamplesWritten = 0;
             prepareEncoders();
             prepareMuxer();
-            prepareVirtualDisplay();
-            startAudio();
-
+            // The clock has to exist before the audio thread can stamp a chunk, or its
+            // first timestamp is nonsense and the muxer writes a broken timeline.
             mStartNanos = System.nanoTime();
-            mRunning = true;
             mStopRequested = false;
+            mRunning = true;
+            // Encoders first: the drain thread treats a dequeue on a stopped encoder as
+            // "finished", so it must not be started before they are running.
+            prepareVirtualDisplay();
             startDrainThread();
+            startAudio();
 
             broadcastState(STATE_RECORDING);
             Log.i(TAG, "Recording to " + mOutputFile.getAbsolutePath());
@@ -218,11 +228,17 @@ public class ScreenRecorderService extends Service {
             return;
         }
         mStopRequested = true;
-        mRunning = false;
-        releaseAll();
-        broadcastState(STATE_STOPPED);
-        stopForeground(true);
-        stopSelf();
+        // Flush instead of tearing down. Stopping the encoders right here discards every
+        // frame they still hold, and a short clip can lose all of them - which is exactly
+        // what leaves a file that reports 0:00. Signalling end-of-stream and letting the
+        // drain thread run to completion gives the muxer a whole file; the drain thread
+        // then releases everything and stops the service.
+        if (mVideoEncoder != null) {
+            try {
+                mVideoEncoder.signalEndOfInputStream();
+            } catch (Exception ignored) { }
+        }
+        mRunning = false;   // the audio loop leaves and queues its own end-of-stream
     }
 
     /** Picks an output size that keeps the device aspect ratio at the chosen quality. */
@@ -462,6 +478,19 @@ public class ScreenRecorderService extends Service {
             if (mPaused) continue;
             feedAudio(mixed, count);
         }
+        // End the audio track so the drain thread can finish the file.
+        queueAudioEos();
+    }
+
+    /** Queues the audio encoder's end-of-stream marker once capture has stopped. */
+    private void queueAudioEos() {
+        try {
+            int index = mAudioEncoder.dequeueInputBuffer(200_000);
+            if (index < 0) return;
+            long pts = Math.max(0L, (System.nanoTime() - mStartNanos) / 1000L);
+            mAudioEncoder.queueInputBuffer(index, 0, 0, pts,
+                    MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } catch (Exception ignored) { }
     }
 
     private void feedAudio(short[] pcm, int samples) {
@@ -501,10 +530,12 @@ public class ScreenRecorderService extends Service {
         while (!videoDone || !audioDone) {
             if (!videoDone) videoDone = drainVideo();
             if (!audioDone) audioDone = drainAudio();
-            if (!mRunning && videoDone && audioDone) break;
-            if (mStopRequested && videoDone && audioDone) break;
+            if (videoDone && audioDone) break;
         }
         finishMuxer();
+        // Teardown belongs to this thread: nothing may be released while samples are
+        // still being written, or the tail of the file is lost.
+        if (mStopRequested) teardownAfterStop();
     }
 
     private boolean drainVideo() {
@@ -567,7 +598,10 @@ public class ScreenRecorderService extends Service {
                     buffer.position(info.offset);
                     buffer.limit(info.offset + info.size);
                     int track = video ? mVideoTrack : mAudioTrack;
-                    if (track >= 0) mMuxer.writeSampleData(track, buffer, info);
+                    if (track >= 0) {
+                        mMuxer.writeSampleData(track, buffer, info);
+                        mSamplesWritten++;
+                    }
                 }
             }
             codec.releaseOutputBuffer(index, false);
@@ -577,6 +611,7 @@ public class ScreenRecorderService extends Service {
     }
 
     private void finishMuxer() {
+        boolean hadSamples = mSamplesWritten > 0;
         try {
             if (mMuxer != null && mMuxerStarted) mMuxer.stop();
         } catch (Exception e) {
@@ -586,11 +621,18 @@ public class ScreenRecorderService extends Service {
             if (mMuxer != null) mMuxer.release();
         } catch (Exception ignored) { }
         mMuxer = null;
+        // A muxer that never started, or that wrote nothing, leaves an unplayable stub
+        // behind. Delete it rather than list a 0:00 clip that cannot be opened.
+        if ((!mMuxerStarted || !hadSamples) && mOutputFile != null && mOutputFile.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            mOutputFile.delete();
+        }
     }
 
     // ---- lifecycle ----------------------------------------------------------
 
-    private void releaseAll() {
+    /** Frees the capture resources. Never called from the drain thread itself. */
+    private void releaseResources() {
         try {
             synchronized (this) {
                 if (mMicRecord != null) {
@@ -630,19 +672,36 @@ public class ScreenRecorderService extends Service {
         } catch (Exception ignored) { }
         mAudioEncoder = null;
 
-        // The drain thread stops the muxer once both encoders have gone quiet.
-        if (mVideoDrainThread != null) {
+    }
+
+    /** Runs on the drain thread once the file is closed: tear down, then stop. */
+    private void teardownAfterStop() {
+        if (mAudioThread != null && Thread.currentThread() != mAudioThread) {
+            try {
+                mAudioThread.join(1500);
+            } catch (InterruptedException ignored) { }
+        }
+        releaseResources();
+        broadcastState(STATE_STOPPED);
+        stopForeground(true);
+        stopSelf();
+    }
+
+    /** Full teardown, used when the service is destroyed while still recording. */
+    private void releaseAll() {
+        releaseResources();
+        if (mVideoDrainThread != null && Thread.currentThread() != mVideoDrainThread) {
             try {
                 mVideoDrainThread.join(3000);
             } catch (InterruptedException ignored) { }
-            mVideoDrainThread = null;
         }
-        if (mAudioThread != null) {
+        mVideoDrainThread = null;
+        if (mAudioThread != null && Thread.currentThread() != mAudioThread) {
             try {
                 mAudioThread.join(2000);
             } catch (InterruptedException ignored) { }
-            mAudioThread = null;
         }
+        mAudioThread = null;
         finishMuxer();
     }
 
