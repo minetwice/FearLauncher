@@ -1515,22 +1515,30 @@ public class MainMenuFragment extends Fragment {
     private void refreshCapeInBackground(final com.kdt.mcgui.MinecraftSkinView body) {
         if (mCapeFetchStarted) return;
         mCapeFetchStarted = true;
-        if (getContext() == null) return;
+        // The cape is a garnish. Nothing in here may be allowed to disturb the skin, so a
+        // failure just leaves the character without one.
+        try {
+            if (getContext() == null) return;
 
-        final android.content.Context app = requireContext().getApplicationContext();
-        net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account =
-                net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
-        if (account == null || account.username == null) return;
-        if (account.authType != net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) return;
+            final android.content.Context app = requireContext().getApplicationContext();
+            net.kdt.pojavlaunch.authenticator.accounts.MinecraftAccount account =
+                    net.kdt.pojavlaunch.authenticator.accounts.Accounts.getCurrent();
+            if (account == null || account.username == null) return;
+            if (account.authType != net.kdt.pojavlaunch.authenticator.AuthType.CRAFTYN_MC) return;
 
-        final String username = account.username;
-        final String profileId = account.profileId;
-        new Thread(() -> {
-            final java.io.File file = net.kdt.pojavlaunch.skins.FearSkinSync
-                    .downloadCraftynCape(app, username, profileId);
-            if (file == null) return;
-            Tools.runOnUiThread(() -> body.loadCape(file.getAbsolutePath()));
-        }, "fear-cape-refresh").start();
+            final String username = account.username;
+            final String profileId = account.profileId;
+            new Thread(() -> {
+                final java.io.File file = net.kdt.pojavlaunch.skins.FearSkinSync
+                        .downloadCraftynCape(app, username, profileId);
+                if (file == null) return;
+                Tools.runOnUiThread(() -> {
+                    try {
+                        body.loadCape(file.getAbsolutePath());
+                    } catch (Throwable ignored) { }
+                });
+            }, "fear-cape-refresh").start();
+        } catch (Throwable ignored) { }
     }
 
     /**
@@ -1544,7 +1552,13 @@ public class MainMenuFragment extends Fragment {
 
         android.content.SharedPreferences prefs =
                 androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String activeSkinPath = prefs.getString("active_skin_path", "steve");
+        // Ask the same resolver the resource pack uses, so the menu character and the
+        // in-game player can never end up wearing two different skins.
+        java.io.File resolvedSkin =
+                net.kdt.pojavlaunch.skins.FearSkinSync.resolveSkinFile(requireContext());
+        String activeSkinPath = resolvedSkin != null
+                ? resolvedSkin.getAbsolutePath()
+                : prefs.getString("active_skin_path", "steve");
         boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
 
         body.setShowHeadOnly(false);
@@ -1802,7 +1816,11 @@ public class MainMenuFragment extends Fragment {
         if (skinView == null) return;
 
         android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String activeSkinPath = prefs.getString("active_skin_path", "steve");
+        java.io.File resolvedSkin =
+                net.kdt.pojavlaunch.skins.FearSkinSync.resolveSkinFile(requireContext());
+        String activeSkinPath = resolvedSkin != null
+                ? resolvedSkin.getAbsolutePath()
+                : prefs.getString("active_skin_path", "steve");
         boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
 
         skinView.setShowHeadOnly(true);

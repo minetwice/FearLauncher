@@ -75,6 +75,11 @@ public final class FearSkinSync {
         for (File f : files) {
             if (!f.isFile() || !f.getName().startsWith("craftynmc_")) continue;
             if (f.length() == 0) continue;
+            // The cape is stored in this same folder, and it is a 64x32 texture rather
+            // than a skin - but it is newer than the skin, so without this it wins the
+            // "newest skin" test and gets written into the skin slots. That is what made
+            // the player render as a cape and look like they had no skin at all.
+            if (f.getName().endsWith("_cape.png")) continue;
             if (best == null || f.lastModified() > best.lastModified()) best = f;
         }
         return best;
@@ -358,7 +363,15 @@ public final class FearSkinSync {
                 File dir = new File(Tools.DIR_GAME_HOME, "skins");
                 //noinspection ResultOfMethodCallIgnored
                 dir.mkdirs();
-                File target = new File(dir, "craftynmc_" + username + "_cape.png");
+                // Deliberately NOT "craftynmc_*": cachedCraftynSkin() treats anything
+                // with that prefix as a skin, and the cape must never be taken for one.
+                File target = new File(dir, "craftyncape_" + username + ".png");
+                // Clear the old, colliding name from the build that had the bug.
+                File stale = new File(dir, "craftynmc_" + username + "_cape.png");
+                if (stale.isFile()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    stale.delete();
+                }
                 try (FileOutputStream out = new FileOutputStream(target)) {
                     out.write(bytes);
                 }
