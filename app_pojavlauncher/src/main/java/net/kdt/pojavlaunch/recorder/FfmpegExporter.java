@@ -15,8 +15,8 @@ import java.util.Locale;
 /**
  * Re-encodes a recording with FFmpeg - the "render" step. The capture is whatever the
  * screen actually produced; this pass decides the output resolution, frame rate and
- * bitrate, can raise the frame rate by generating in-between frames, and can keep only a
- * trimmed window of the source.
+ * bitrate, can raise the frame rate by generating in-between frames, can keep only a
+ * trimmed window, can apply a look, and can burn a caption over the video.
  *
  * FFmpeg comes from an FFmpeg plugin app, the same binary the launcher already points the
  * game at through FEAR_FFMPEG_PATH. It is shipped as libffmpeg.so so the platform extracts
@@ -37,24 +37,47 @@ public final class FfmpegExporter {
         /** Trim window in milliseconds; 0 means "from the start" / "to the end". */
         public final long trimStartMs;
         public final long trimEndMs;
+        /** Text burnt over the video, or null. */
+        public final String text;
+        /** Index into the effect presets, or 0 for none. */
+        public final int effect;
 
         public Options(int height, int fps, int bitrate, boolean interpolate) {
-            this(height, fps, bitrate, interpolate, 0L, 0L);
+            this(height, fps, bitrate, interpolate, 0L, 0L, null, 0);
         }
 
         public Options(int height, int fps, int bitrate, boolean interpolate,
                        long trimStartMs, long trimEndMs) {
+            this(height, fps, bitrate, interpolate, trimStartMs, trimEndMs, null, 0);
+        }
+
+        public Options(int height, int fps, int bitrate, boolean interpolate,
+                       long trimStartMs, long trimEndMs, String text, int effect) {
             this.height = height;
             this.fps = fps;
             this.bitrate = bitrate;
             this.interpolate = interpolate;
             this.trimStartMs = trimStartMs;
             this.trimEndMs = trimEndMs;
+            this.text = text;
+            this.effect = effect;
         }
 
         /** Same settings, restricted to a trimmed window of the source. */
         public Options withTrim(long startMs, long endMs) {
-            return new Options(height, fps, bitrate, interpolate, startMs, endMs);
+            return new Options(height, fps, bitrate, interpolate, startMs, endMs, text, effect);
+        }
+
+        /** Same settings, with an overlay caption. */
+        public Options withText(String overlayText) {
+            return new Options(height, fps, bitrate, interpolate, trimStartMs, trimEndMs,
+                    overlayText, effect);
+        }
+
+        /** Same settings, with a look applied. */
+        public Options withEffect(int effectIndex) {
+            return new Options(height, fps, bitrate, interpolate, trimStartMs, trimEndMs,
+                    text, effectIndex);
         }
 
         public boolean isTrimmed() {
@@ -177,8 +200,9 @@ public final class FfmpegExporter {
     }
 
     /**
-     * The filter chain. Frame interpolation is the piece that makes a low frame rate clip
-     * play smoothly: minterpolate synthesises the frames in between by estimating motion,
+     * The filter chain: scale, then frame rate (interpolated or resampled), then the look,
+     * then the caption. Frame interpolation is the piece that makes a low frame rate clip
+     * play smoothly - minterpolate synthesises the frames in between by estimating motion,
      * which is why it is slower and can show artefacts on fast motion.
      */
     private static String buildFilters(Options options) {
@@ -196,7 +220,54 @@ public final class FfmpegExporter {
                 sb.append("fps=").append(options.fps);
             }
         }
+        String effect = effectFilter(options.effect);
+        if (!effect.isEmpty()) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(effect);
+        }
+        if (options.text != null && !options.text.trim().isEmpty()) {
+            String font = fontPath();
+            if (font != null) {
+                if (sb.length() > 0) sb.append(',');
+                // Escape the characters drawtext treats specially.
+                String safe = options.text.replace("\\", "\\\\")
+                        .replace(":", "\\:").replace("'", "\\'").replace("%", "\\%");
+                sb.append("drawtext=fontfile=").append(font)
+                        .append(":text='").append(safe)
+                        .append("':fontcolor=white:fontsize=h/18:box=1:boxcolor=black@0.45")
+                        .append(":boxborderw=12:x=(w-text_w)/2:y=h-th-40");
+            }
+        }
         return sb.toString();
+    }
+
+    /**
+     * The look presets. Each is a short chain of stock filters - no extra libraries, so
+     * they work on any build of ffmpeg the plugin ships.
+     */
+    private static String effectFilter(int effect) {
+        switch (effect) {
+            case 1: return "eq=saturation=0";                                   // Black & white
+            case 2: return "eq=brightness=0.04:saturation=1.25:gamma_r=1.06";    // Warm
+            case 3: return "eq=brightness=-0.02:saturation=1.05:gamma_b=1.08";   // Cool
+            case 4: return "eq=contrast=1.18:saturation=1.35";                   // Vivid
+            case 5: return "curves=vintage";                                     // Vintage
+            default: return "";
+        }
+    }
+
+    /** First usable system font, so drawtext has something to draw with. */
+    private static String fontPath() {
+        String[] candidates = {
+                "/system/fonts/Roboto-Regular.ttf",
+                "/system/fonts/RobotoCondensed-Regular.ttf",
+                "/system/fonts/DroidSans.ttf",
+                "/system/fonts/NotoSans-Regular.ttf",
+        };
+        for (String path : candidates) {
+            if (new File(path).isFile()) return path;
+        }
+        return null;
     }
 
     /** Pulls the "time=HH:MM:SS.cc" field out of an ffmpeg progress line. */

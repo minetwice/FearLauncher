@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,8 +30,7 @@ import java.util.Locale;
  * row of tool tabs along the bottom - the same shape as the editing tools people already
  * use, so the recording can be trimmed and rendered without leaving the launcher.
  *
- * Trimming is what this first pass delivers; the tool tabs describe what each will do as
- * they are filled in.
+ * VIDEO (trim), TEXT and EFFECTS are live; CAPTIONS and STICKERS are still placeholders.
  */
 public class EditorFragment extends Fragment {
 
@@ -44,12 +44,15 @@ public class EditorFragment extends Fragment {
             R.drawable.ic_px_book, R.drawable.ic_px_zap, R.drawable.ic_px_image};
     private static final String[] TOOL_HINTS = {
             "Trim, split and reorder the clip. Drag the red handles on the timeline to keep only the part you want.",
-            "Add text over the video. Coming next.",
-            "Apply effects and filters. Coming next.",
+            "Add text over the video.",
+            "Apply effects and filters.",
             "Add captions. Coming next.",
             "Place stickers. Coming next.",
             "Change the output resolution and frame rate.",
     };
+
+    private static final String[] EFFECTS =
+            {"None", "Black & white", "Warm", "Cool", "Vivid", "Vintage"};
 
     private static final String[] EXPORT_PRESETS = {
             "1080p  ·  60fps  ·  smooth",
@@ -69,6 +72,8 @@ public class EditorFragment extends Fragment {
     private File mFile;
     private int mDurationMs;
     private int mSelectedTool = 0;
+    private String mText = null;
+    private int mEffect = 0;
 
     private final Handler mTicker = new Handler(Looper.getMainLooper());
     private final Runnable mProgressTask = new Runnable() {
@@ -172,6 +177,9 @@ public class EditorFragment extends Fragment {
     private void selectTool(int index) {
         mSelectedTool = index;
         mHint.setText(TOOL_HINTS[index]);
+        // TEXT and EFFECTS act immediately; the rest are still placeholders.
+        if (index == 1) { promptForText(); }
+        else if (index == 2) { promptForEffect(); }
         for (int i = 0; i < mTools.getChildCount(); i++) {
             mTools.getChildAt(i).setBackgroundResource(
                     i == index ? R.drawable.bg_editor_tool_active : R.drawable.bg_editor_tool);
@@ -214,6 +222,37 @@ public class EditorFragment extends Fragment {
         }
     }
 
+    /** Asks for the caption to burn over the video. */
+    private void promptForText() {
+        EditText input = new EditText(requireContext());
+        input.setHint("Text over the video");
+        if (mText != null) input.setText(mText);
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Text")
+                .setView(input)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    String value = input.getText().toString().trim();
+                    mText = value.isEmpty() ? null : value;
+                    mHint.setText(mText == null ? "No text added."
+                            : "Text will be burnt in: \"" + mText + "\"");
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** Picks the look applied during the render. */
+    private void promptForEffect() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Effect")
+                .setSingleChoiceItems(EFFECTS, mEffect, (d, which) -> {
+                    mEffect = which;
+                    mHint.setText("Effect: " + EFFECTS[which]);
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
     private void render(FfmpegExporter.Options options) {
         if (mDurationMs <= 0) {
             Toast.makeText(getContext(), "Clip not ready yet", Toast.LENGTH_SHORT).show();
@@ -223,7 +262,10 @@ public class EditorFragment extends Fragment {
         // trimmed part rather than the whole capture.
         long startMs = (long) (mTimeline.getTrimStart() * mDurationMs);
         long endMs = (long) (mTimeline.getTrimEnd() * mDurationMs);
-        FfmpegExporter.Options trimmed = options.withTrim(startMs, endMs);
+        FfmpegExporter.Options trimmed = options
+                .withTrim(startMs, endMs)
+                .withEffect(mEffect)
+                .withText(mText);
 
         File outDir = new File(requireContext().getExternalFilesDir(null), "exports");
         // Listener has two callbacks, so this is an anonymous class rather than a lambda.
