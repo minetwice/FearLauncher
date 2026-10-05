@@ -436,6 +436,16 @@
                     android:layout_marginBottom="6dp" />
 
                 <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_recordings_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_36sdp"
+                    android:text="RECORDINGS"
+                    android:drawableStart="@drawable/ic_px_record"
+                    android:background="@drawable/tray_button_bg"
+                    android:onClick="openRecordings"
+                    android:layout_marginBottom="6dp" />
+
+                <com.kdt.mcgui.LauncherMenuButton
                     android:id="@+id/tray_downloads_btn"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_36sdp"
@@ -540,7 +550,7 @@
                     android:background="@drawable/theme_button_bg" />
             </LinearLayout>
         </ScrollView>
-    </FrameLayout>w>
+    </FrameLayout>
 
     <!-- Fear social display: extracted banner art + 3D skin head -->
     <androidx.constraintlayout.widget.ConstraintLayout
