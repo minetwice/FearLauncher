@@ -16,7 +16,7 @@ import java.util.Locale;
  * Re-encodes a recording with FFmpeg - the "render" step. The capture is whatever the
  * screen actually produced; this pass decides the output resolution, frame rate and
  * bitrate, can raise the frame rate by generating in-between frames, can keep only a
- * trimmed window, can apply a look, and can burn a caption over the video.
+ * trimmed window, can apply a look, and can burn text, a timed caption and a sticker.
  *
  * FFmpeg comes from an FFmpeg plugin app, the same binary the launcher already points the
  * game at through FEAR_FFMPEG_PATH. It is shipped as libffmpeg.so so the platform extracts
@@ -41,6 +41,12 @@ public final class FfmpegExporter {
         public final String text;
         /** Index into the effect presets, or 0 for none. */
         public final int effect;
+        /** Timed caption burnt over the video, or null. */
+        public final String caption;
+        public final long captionStartMs;
+        public final long captionEndMs;
+        /** A sticker glyph placed in a corner, or null. */
+        public final String sticker;
 
         public Options(int height, int fps, int bitrate, boolean interpolate) {
             this(height, fps, bitrate, interpolate, 0L, 0L, null, 0);
@@ -53,6 +59,13 @@ public final class FfmpegExporter {
 
         public Options(int height, int fps, int bitrate, boolean interpolate,
                        long trimStartMs, long trimEndMs, String text, int effect) {
+            this(height, fps, bitrate, interpolate, trimStartMs, trimEndMs, text, effect,
+                    null, 0L, 0L, null);
+        }
+
+        public Options(int height, int fps, int bitrate, boolean interpolate,
+                       long trimStartMs, long trimEndMs, String text, int effect,
+                       String caption, long captionStartMs, long captionEndMs, String sticker) {
             this.height = height;
             this.fps = fps;
             this.bitrate = bitrate;
@@ -61,23 +74,47 @@ public final class FfmpegExporter {
             this.trimEndMs = trimEndMs;
             this.text = text;
             this.effect = effect;
+            this.caption = caption;
+            this.captionStartMs = captionStartMs;
+            this.captionEndMs = captionEndMs;
+            this.sticker = sticker;
+        }
+
+        private Options copy(String text, int effect, String caption,
+                             long captionStartMs, long captionEndMs, String sticker,
+                             long trimStartMs, long trimEndMs) {
+            return new Options(height, fps, bitrate, interpolate, trimStartMs, trimEndMs,
+                    text, effect, caption, captionStartMs, captionEndMs, sticker);
         }
 
         /** Same settings, restricted to a trimmed window of the source. */
         public Options withTrim(long startMs, long endMs) {
-            return new Options(height, fps, bitrate, interpolate, startMs, endMs, text, effect);
+            return copy(text, effect, caption, captionStartMs, captionEndMs, sticker,
+                    startMs, endMs);
         }
 
-        /** Same settings, with an overlay caption. */
+        /** Same settings, with a text overlay. */
         public Options withText(String overlayText) {
-            return new Options(height, fps, bitrate, interpolate, trimStartMs, trimEndMs,
-                    overlayText, effect);
+            return copy(overlayText, effect, caption, captionStartMs, captionEndMs, sticker,
+                    trimStartMs, trimEndMs);
+        }
+
+        /** Same settings, with a timed caption. */
+        public Options withCaption(String captionText, long startMs, long endMs) {
+            return copy(text, effect, captionText, startMs, endMs, sticker,
+                    trimStartMs, trimEndMs);
+        }
+
+        /** Same settings, with a sticker glyph. */
+        public Options withSticker(String glyph) {
+            return copy(text, effect, caption, captionStartMs, captionEndMs, glyph,
+                    trimStartMs, trimEndMs);
         }
 
         /** Same settings, with a look applied. */
         public Options withEffect(int effectIndex) {
-            return new Options(height, fps, bitrate, interpolate, trimStartMs, trimEndMs,
-                    text, effectIndex);
+            return copy(text, effectIndex, caption, captionStartMs, captionEndMs, sticker,
+                    trimStartMs, trimEndMs);
         }
 
         public boolean isTrimmed() {
@@ -201,7 +238,7 @@ public final class FfmpegExporter {
 
     /**
      * The filter chain: scale, then frame rate (interpolated or resampled), then the look,
-     * then the caption. Frame interpolation is the piece that makes a low frame rate clip
+     * then the overlays. Frame interpolation is the piece that makes a low frame rate clip
      * play smoothly - minterpolate synthesises the frames in between by estimating motion,
      * which is why it is slower and can show artefacts on fast motion.
      */
@@ -225,19 +262,40 @@ public final class FfmpegExporter {
             if (sb.length() > 0) sb.append(',');
             sb.append(effect);
         }
-        if (options.text != null && !options.text.trim().isEmpty()) {
-            String font = fontPath();
-            if (font != null) {
-                if (sb.length() > 0) sb.append(',');
-                // Escape the characters drawtext treats specially.
-                String safe = options.text.replace("\\", "\\\\")
-                        .replace(":", "\\:").replace("'", "\\'").replace("%", "\\%");
-                sb.append("drawtext=fontfile=").append(font)
-                        .append(":text='").append(safe)
-                        .append("':fontcolor=white:fontsize=h/18:box=1:boxcolor=black@0.45")
-                        .append(":boxborderw=12:x=(w-text_w)/2:y=h-th-40");
-            }
+        String font = fontPath();
+        if (options.text != null && !options.text.trim().isEmpty() && font != null) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(drawText(font, options.text, "h/18", "white",
+                    "black@0.45", "(w-text_w)/2", "h-th-40", null));
         }
+        if (options.caption != null && !options.caption.trim().isEmpty() && font != null) {
+            if (sb.length() > 0) sb.append(',');
+            // Captions are time-boxed, so they show only over the window they belong to.
+            String window = String.format(Locale.US, "between(t,%.3f,%.3f)",
+                    options.captionStartMs / 1000.0, options.captionEndMs / 1000.0);
+            sb.append(drawText(font, options.caption, "h/22", "black",
+                    "white@0.85", "(w-text_w)/2", "h-th-90", window));
+        }
+        if (options.sticker != null && !options.sticker.trim().isEmpty() && font != null) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(drawText(font, options.sticker, "h/8", "white",
+                    "black@0.35", "w-tw-30", "30", null));
+        }
+        return sb.toString();
+    }
+
+    /** One drawtext clause, with the escaping ffmpeg's filter parser needs. */
+    private static String drawText(String font, String value, String size, String colour,
+                                   String boxColour, String x, String y, String enable) {
+        String safe = value.replace("\\", "\\\\")
+                .replace(":", "\\:").replace("'", "\\'").replace("%", "\\%");
+        StringBuilder sb = new StringBuilder("drawtext=fontfile=");
+        sb.append(font).append(":text='").append(safe)
+                .append("':fontcolor=").append(colour)
+                .append(":fontsize=").append(size)
+                .append(":box=1:boxcolor=").append(boxColour)
+                .append(":boxborderw=12:x=").append(x).append(":y=").append(y);
+        if (enable != null) sb.append(":enable='").append(enable).append("'");
         return sb.toString();
     }
 

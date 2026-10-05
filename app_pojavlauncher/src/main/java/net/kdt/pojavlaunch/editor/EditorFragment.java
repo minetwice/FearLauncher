@@ -28,9 +28,10 @@ import java.util.Locale;
 /**
  * The editing screen: preview on top, a clip timeline with trim handles below it, and a
  * row of tool tabs along the bottom - the same shape as the editing tools people already
- * use, so the recording can be trimmed and rendered without leaving the launcher.
+ * use, so the recording can be trimmed, captioned and rendered without leaving the
+ * launcher.
  *
- * VIDEO (trim), TEXT and EFFECTS are live; CAPTIONS and STICKERS are still placeholders.
+ * VIDEO (trim), TEXT, EFFECTS, CAPTIONS and STICKERS are live; FORMAT is the render step.
  */
 public class EditorFragment extends Fragment {
 
@@ -46,13 +47,17 @@ public class EditorFragment extends Fragment {
             "Trim, split and reorder the clip. Drag the red handles on the timeline to keep only the part you want.",
             "Add text over the video.",
             "Apply effects and filters.",
-            "Add captions. Coming next.",
-            "Place stickers. Coming next.",
+            "Add captions over the kept part.",
+            "Place a sticker in the corner.",
             "Change the output resolution and frame rate.",
     };
 
     private static final String[] EFFECTS =
             {"None", "Black & white", "Warm", "Cool", "Vivid", "Vintage"};
+
+    /** Stickers are glyphs drawn in a corner - they need no image assets. */
+    private static final String[] STICKERS =
+            {"None", "★", "♥", "✓", "⚠", "→", "☀"};
 
     private static final String[] EXPORT_PRESETS = {
             "1080p  ·  60fps  ·  smooth",
@@ -74,6 +79,8 @@ public class EditorFragment extends Fragment {
     private int mSelectedTool = 0;
     private String mText = null;
     private int mEffect = 0;
+    private String mCaption = null;
+    private String mSticker = null;
 
     private final Handler mTicker = new Handler(Looper.getMainLooper());
     private final Runnable mProgressTask = new Runnable() {
@@ -177,9 +184,11 @@ public class EditorFragment extends Fragment {
     private void selectTool(int index) {
         mSelectedTool = index;
         mHint.setText(TOOL_HINTS[index]);
-        // TEXT and EFFECTS act immediately; the rest are still placeholders.
+        // Every tool acts immediately; the render step is the FORMAT tab / RENDER button.
         if (index == 1) { promptForText(); }
         else if (index == 2) { promptForEffect(); }
+        else if (index == 3) { promptForCaption(); }
+        else if (index == 4) { promptForSticker(); }
         for (int i = 0; i < mTools.getChildCount(); i++) {
             mTools.getChildAt(i).setBackgroundResource(
                     i == index ? R.drawable.bg_editor_tool_active : R.drawable.bg_editor_tool);
@@ -222,7 +231,7 @@ public class EditorFragment extends Fragment {
         }
     }
 
-    /** Asks for the caption to burn over the video. */
+    /** Asks for the text to burn over the video. */
     private void promptForText() {
         EditText input = new EditText(requireContext());
         input.setHint("Text over the video");
@@ -253,6 +262,41 @@ public class EditorFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Captions reuse the text machinery but are time-boxed: the caption shows only over
+     * the part of the clip the timeline has kept.
+     */
+    private void promptForCaption() {
+        EditText input = new EditText(requireContext());
+        input.setHint("Caption text");
+        if (mCaption != null) input.setText(mCaption);
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Caption")
+                .setView(input)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    String value = input.getText().toString().trim();
+                    mCaption = value.isEmpty() ? null : value;
+                    mHint.setText(mCaption == null ? "No caption added."
+                            : "Caption will show over the kept part: \"" + mCaption + "\"");
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** Picks a sticker glyph to place in the top-right corner. */
+    private void promptForSticker() {
+        final String[] labels = {"None", "Star", "Heart", "Tick", "Warning", "Arrow", "Sun"};
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Sticker")
+                .setItems(labels, (d, which) -> {
+                    mSticker = which == 0 ? null : STICKERS[which];
+                    mHint.setText(mSticker == null ? "No sticker."
+                            : "Sticker: " + labels[which]);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
     private void render(FfmpegExporter.Options options) {
         if (mDurationMs <= 0) {
             Toast.makeText(getContext(), "Clip not ready yet", Toast.LENGTH_SHORT).show();
@@ -265,7 +309,9 @@ public class EditorFragment extends Fragment {
         FfmpegExporter.Options trimmed = options
                 .withTrim(startMs, endMs)
                 .withEffect(mEffect)
-                .withText(mText);
+                .withText(mText)
+                .withCaption(mCaption, startMs, endMs)
+                .withSticker(mSticker);
 
         File outDir = new File(requireContext().getExternalFilesDir(null), "exports");
         // Listener has two callbacks, so this is an anonymous class rather than a lambda.
