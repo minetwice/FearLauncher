@@ -276,9 +276,10 @@ public final class FearSkinSync {
                 prefs.edit().putString(PREF_SKIN_PATH, skin.getAbsolutePath()).apply();
             }
             syncPack(context);
-            // Also make sure CustomSkinLoader is in the instance, so the skin shows on
-            // any server (cracked / offline-mode included), not just in singleplayer.
-            CustomSkinInstaller.ensureInstalled(context);
+            // CustomSkinLoader was removed again: on this mod pack it conflicts with
+            // Entity Model Features and the game hung on the loading screen. This call now
+            // undoes that install so the instance stays clean.
+            CustomSkinInstaller.removeInstalled(context);
         } catch (Exception e) {
             Log.w(TAG, "Could not prepare the skin for launch", e);
         }
