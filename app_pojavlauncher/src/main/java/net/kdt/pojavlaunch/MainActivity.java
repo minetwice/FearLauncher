@@ -302,6 +302,8 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     @Override
     protected void onDestroy() {
+        // The session is over: stop the sampler so it flushes fear_lag_report.txt.
+        net.kdt.pojavlaunch.utils.LagWatch.stop();
         // Reaching here at all means the game ended without taking the process down.
         net.kdt.pojavlaunch.utils.FearCrashGuard.markCleanExit(this);
         super.onDestroy();

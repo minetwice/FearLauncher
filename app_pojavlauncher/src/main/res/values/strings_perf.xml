@@ -40,4 +40,7 @@
     <string name="perf_smooth_launcher_desc">Stops the home screen\'s background clip and idle animations, so scrolling and the drawer stay fluid.</string>
     <string name="perf_entry_title">Performance</string>
     <string name="perf_entry_summary">Camera smoothing, frame rate, render distance and twelve more levers, all in one place.</string>
+    <string name="perf_lag_report">Lag report</string>
+    <string name="perf_lag_report_desc">Writes what the last session was struggling with - heap, garbage collections, CPU, thermals and the game log lines that name a cause - into fear_lag_report.txt in the instance. Tap to share it.</string>
+    <string name="perf_lag_report_none">No report yet - play once with this build and it will be written when you quit.</string>
 </resources>

@@ -131,6 +131,33 @@ public class PerformanceFragment extends Fragment {
                             .putBoolean("smooth_launcher_ui", on).apply();
                     LauncherPreferences.PREF_SMOOTH_LAUNCHER_UI = on;
                 });
+
+        // The recorder's output. Tapping it shares the report, which is the whole point:
+        // the numbers in it are what a fix has to be built from.
+        addSwitch(rows, R.string.perf_lag_report, R.string.perf_lag_report_desc,
+                () -> net.kdt.pojavlaunch.utils.LagWatch.reportFile(mGameDir) != null,
+                on -> {
+                    java.io.File report = net.kdt.pojavlaunch.utils.LagWatch.reportFile(mGameDir);
+                    if (report == null) {
+                        Toast.makeText(getContext(), R.string.perf_lag_report_none,
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    try {
+                        android.content.Intent share = new android.content.Intent(
+                                android.content.Intent.ACTION_SEND);
+                        share.setType("text/plain");
+                        share.putExtra(android.content.Intent.EXTRA_STREAM,
+                                androidx.core.content.FileProvider.getUriForFile(requireContext(),
+                                        requireContext().getPackageName() + ".fileprovider", report));
+                        share.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        startActivity(android.content.Intent.createChooser(share,
+                                getString(R.string.perf_lag_report)));
+                    } catch (Throwable t) {
+                        Toast.makeText(getContext(), report.getAbsolutePath(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     // ---- rows -----------------------------------------------------------------------

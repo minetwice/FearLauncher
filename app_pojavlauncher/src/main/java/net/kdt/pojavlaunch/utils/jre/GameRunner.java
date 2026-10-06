@@ -229,6 +229,9 @@ public class GameRunner {
         activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
         Log.i("GameRunner", "Running with "+ launchArgs.toString());
 
+        // Start recording the session just before the JVM comes up, so every sample
+        // describes the game that is actually running.
+        net.kdt.pojavlaunch.utils.LagWatch.start(activity, instance.getGameDirectory());
         try {
             JavaRunner.nativeSetupExit(activity);
             JavaRunner.startJvm(runtime, javaArgList, launchClassPath, versionInfo.mainClass, launchArgs);
