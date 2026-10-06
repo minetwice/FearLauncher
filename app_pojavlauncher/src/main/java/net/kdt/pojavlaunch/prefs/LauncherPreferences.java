@@ -129,6 +129,19 @@ public class LauncherPreferences {
             }
             DEFAULT_PREF.edit().putBoolean("fear_ram_rescaled", true).apply();
         }
+        // One-time reset: older builds shipped pref_video.xml with
+        // android:defaultValue="true" for vsync_in_zink, and PreferenceManager
+        // persists XML defaults into SharedPreferences on first run. On any device
+        // that has ever launched the app the key is therefore stored as true, which
+        // beats the getBoolean(key, false) fallback below and forces the GL swap
+        // interval (FEAR_VSYNC_IN_ZINK=1), capping the game at the panel refresh.
+        // Clear it once so the new false default actually takes effect; the user can
+        // still turn it back on by hand afterwards.
+        if (!DEFAULT_PREF.getBoolean("fear_vsync_in_zink_reset", false)) {
+            PREF_VSYNC_IN_ZINK = false;
+            DEFAULT_PREF.edit().putBoolean("vsync_in_zink", false).apply();
+            DEFAULT_PREF.edit().putBoolean("fear_vsync_in_zink_reset", true).apply();
+        }
         PREF_CUSTOM_JAVA_ARGS = DEFAULT_PREF.getString("javaArgs", "");
         PREF_SUSTAINED_PERFORMANCE = DEFAULT_PREF.getBoolean("sustainedPerformance", isDevicePowerful);
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
