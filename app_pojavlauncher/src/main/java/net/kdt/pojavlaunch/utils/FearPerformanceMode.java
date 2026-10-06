@@ -19,6 +19,9 @@ import java.io.File;
 public class FearPerformanceMode {
     private static final String TAG = "FearPerfMode";
 
+    /** The game's maximum frame-rate setting. Vanilla's slider tops out at 260. */
+    public static final String MAX_FPS = "260";
+
     /** @return true if the options were applied */
     public static boolean apply(File gamedir) {
         try {
@@ -28,7 +31,7 @@ public class FearPerformanceMode {
             boolean strong = cores >= 8;
 
             // Never cap the frame rate and never sync it to the panel.
-            set("maxFps", "260");
+            set("maxFps", MAX_FPS);
             set("enableVsync", "false");
 
             // The single biggest lever in the game.
@@ -61,6 +64,35 @@ public class FearPerformanceMode {
         } catch (Throwable t) {
             // Never let a settings tune break a launch.
             Log.w(TAG, "performance mode failed, ignoring", t);
+            return false;
+        }
+    }
+
+    /**
+     * FEARPATCH: writes ONLY the two keys that decide whether the frame rate is capped
+     * at all, and does so on EVERY launch.
+     *
+     * <p>The full {@link #apply(File)} tune is gated behind performance mode, so a player
+     * who never turns that on - or the Smooth PvP profile - keeps the game's vanilla
+     * {@code maxFps} (120) and {@code enableVsync} (true). That is how a session ends up
+     * pinned just under a 60 Hz panel with no cap the player ever chose. These two keys are
+     * therefore always written; render distance, simulation distance and every other value
+     * stay gated behind performance mode.</p>
+     *
+     * @return true if the options were applied
+     */
+    public static boolean applyUncappedFrameRate(File gamedir) {
+        try {
+            MCOptionUtils.load(gamedir.getAbsolutePath());
+            // Never cap the frame rate and never sync it to the panel.
+            set("maxFps", MAX_FPS);
+            set("enableVsync", "false");
+            MCOptionUtils.save();
+            Log.i(TAG, "uncapped frame-rate defaults applied");
+            return true;
+        } catch (Throwable t) {
+            // Never let a settings tune break a launch.
+            Log.w(TAG, "uncapped frame-rate defaults failed, ignoring", t);
             return false;
         }
     }

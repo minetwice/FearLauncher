@@ -121,6 +121,11 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         // The performance tune has to run AFTER the defaults are extracted and the options
         // are loaded, or those would overwrite it again. It was written for this build but
         // never actually called from anywhere, so none of it ever took effect.
+        // FEARPATCH: the two frame-rate keys are written on EVERY launch, whether or not
+        // performance mode is on. Performance mode still gates the rest of the tune below.
+        // Without this, a player who never enabled performance mode (or the Smooth PvP
+        // profile) kept the game's vanilla maxFps/enableVsync and sat under a 60 Hz cap.
+        net.kdt.pojavlaunch.utils.FearPerformanceMode.applyUncappedFrameRate(instance.getGameDirectory());
         if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_PERFORMANCE_MODE) {
             net.kdt.pojavlaunch.utils.FearPerformanceMode.apply(instance.getGameDirectory());
         }

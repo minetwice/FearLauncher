@@ -9,6 +9,7 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -80,6 +81,8 @@ public final class LagWatch {
     private static File sReport;
     private static File sMirror;
     private static String sRenderer = "?";
+    /** The last "setupBridgeWindow ... surface=WxH" line the log tail has seen. */
+    private static volatile String sSurfaceLine = "";
 
     private LagWatch() {}
 
@@ -266,6 +269,9 @@ public final class LagWatch {
                     while ((line = raf.readLine()) != null) {
                         note(line, counts, first);
                         tally.add(line);
+                        // Remember the last bridge-window line so the report can state
+                        // the real game surface resolution instead of guessing it.
+                        if (line.contains("setupBridgeWindow")) sSurfaceLine = line;
                         if (dipLines != null && dipLines.size() < MAX_DIP_LOG_LINES && isDipWorthy(line)) {
                             dipLines.add(line.length() > 200 ? line.substring(0, 200) : line);
                         }
@@ -570,6 +576,9 @@ public final class LagWatch {
             }
             sb.append('\n');
 
+            // -- what could be capping the frame rate, read at report time --
+            appendFrameRateSources(sb, gameDir);
+
             // -- what to build next --
             sb.append("RECOMMENDED FEATURES (what to add to FearLauncher)\n");
             sb.append("-------------------------------------------------\n");
@@ -622,6 +631,187 @@ public final class LagWatch {
         } catch (Throwable t) {
             Log.w(TAG, "could not write the report", t);
         }
+    }
+
+    // ---- frame-rate sources -----------------------------------------------------------
+
+    /**
+     * Writes the FRAME RATE SOURCES section: every source that could be capping the frame
+     * rate, each read from disk / the environment at report time, plus one verdict line.
+     *
+     * <p>Nothing here is guessed. A value that cannot be read is reported as unknown or as
+     * "not set" rather than assumed, and a cap is only named when a cap value is actually
+     * present. Runs on the sampler thread, never the main thread, and never throws.</p>
+     */
+    private static void appendFrameRateSources(StringBuilder sb, File gameDir) {
+        sb.append("FRAME RATE SOURCES\n");
+        sb.append("------------------\n");
+        try {
+            File optionsFile = gameDir == null ? null : new File(gameDir, "options.txt");
+            String maxFpsRaw = readOptionFileValue(optionsFile, "maxFps");
+            String enableVsyncRaw = readOptionFileValue(optionsFile, "enableVsync");
+
+            sb.append("  options.txt      : ")
+                    .append(optionsFile == null ? "unknown (no game directory)"
+                            : optionsFile.getAbsolutePath()).append('\n');
+            sb.append("  game maxFps      : ")
+                    .append(maxFpsRaw == null ? "not set" : maxFpsRaw).append('\n');
+            sb.append("  game enableVsync : ")
+                    .append(enableVsyncRaw == null ? "not set" : enableVsyncRaw).append('\n');
+
+            String forceVsyncEnv = envValue("FORCE_VSYNC");
+            String vsyncInZinkEnv = envValue("FEAR_VSYNC_IN_ZINK");
+            sb.append("  FORCE_VSYNC      : ")
+                    .append(forceVsyncEnv == null
+                            ? "not visible from the launcher process" : forceVsyncEnv).append('\n');
+            sb.append("  FEAR_VSYNC_IN_ZINK : ")
+                    .append(vsyncInZinkEnv == null
+                            ? "not visible from the launcher process" : vsyncInZinkEnv).append('\n');
+
+            sb.append("  renderer         : ").append(rendererName()).append('\n');
+
+            String surface = parseSurfaceResolution(sSurfaceLine);
+            sb.append("  game surface     : ")
+                    .append(surface == null
+                            ? "unknown (no setupBridgeWindow surface line in the log)"
+                            : surface).append('\n');
+
+            sb.append("  launcher res     : ")
+                    .append(String.format(Locale.US, "%.0f%% of the surface", scalePercent()))
+                    .append('\n');
+            sb.append("  performance mode : ")
+                    .append(performanceModeOn() ? "on" : "off").append('\n');
+
+            sb.append("  VERDICT          : ")
+                    .append(frameRateVerdict(maxFpsRaw, enableVsyncRaw, forceVsyncEnv,
+                            vsyncInZinkEnv, surface)).append('\n');
+        } catch (Throwable t) {
+            sb.append("  (frame-rate sources could not be read: ")
+                    .append(t.getClass().getSimpleName()).append(")\n");
+        }
+        sb.append('\n');
+    }
+
+    /** Reads one key out of an options.txt file, or null when the file or key is absent. */
+    private static String readOptionFileValue(File optionsFile, String key) {
+        if (optionsFile == null || !optionsFile.isFile()) return null;
+        try (BufferedReader r = new BufferedReader(new FileReader(optionsFile))) {
+            String line;
+            while ((line = r.readLine()) != null) {
+                int colon = line.indexOf(':');
+                if (colon <= 0) continue;
+                if (key.equals(line.substring(0, colon))) return line.substring(colon + 1).trim();
+            }
+        } catch (Throwable ignored) { }
+        return null;
+    }
+
+    /** System.getenv(name), or null when it is unset or unreadable. */
+    private static String envValue(String name) {
+        try {
+            return System.getenv(name);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** The launcher's selected renderer, or "unknown" if the preference cannot be read. */
+    private static String rendererName() {
+        try {
+            String r = LauncherPreferences.PREF_RENDERER;
+            return r == null ? "unknown" : r;
+        } catch (Throwable t) {
+            return "unknown";
+        }
+    }
+
+    /** The launcher's own render-resolution scale as a percentage of the surface. */
+    private static float scalePercent() {
+        try {
+            return LauncherPreferences.PREF_SCALE_FACTOR * 100f;
+        } catch (Throwable t) {
+            return 100f;
+        }
+    }
+
+    private static boolean performanceModeOn() {
+        try {
+            return LauncherPreferences.PREF_PERFORMANCE_MODE;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** Pulls "WxH" out of a "setupBridgeWindow ... surface=WxH" line, or null. */
+    private static String parseSurfaceResolution(String line) {
+        if (line == null) return null;
+        int i = line.indexOf("surface=");
+        if (i < 0) return null;
+        String rest = line.substring(i + "surface=".length()).trim();
+        int end = 0;
+        while (end < rest.length()
+                && (Character.isDigit(rest.charAt(end)) || rest.charAt(end) == 'x')) end++;
+        String res = rest.substring(0, end);
+        return res.matches("\\d+x\\d+") ? res : null;
+    }
+
+    /**
+     * One verdict line, built only from values that were actually read. A cap is claimed
+     * only when a cap value really is present; otherwise the frame rate is attributed to
+     * render cost at the measured surface resolution.
+     */
+    private static String frameRateVerdict(String maxFpsRaw, String enableVsyncRaw,
+                                           String forceVsyncEnv, String vsyncInZinkEnv,
+                                           String surface) {
+        List<String> caps = new ArrayList<>();
+        boolean vsyncClass = false;
+        if ("true".equalsIgnoreCase(enableVsyncRaw)) {
+            caps.add("enableVsync is true");
+            vsyncClass = true;
+        }
+        if ("true".equalsIgnoreCase(forceVsyncEnv)) {
+            caps.add("FORCE_VSYNC=" + forceVsyncEnv);
+            vsyncClass = true;
+        }
+        if (vsyncInZinkEnv != null && "1".equals(vsyncInZinkEnv.trim())) {
+            caps.add("FEAR_VSYNC_IN_ZINK=" + vsyncInZinkEnv.trim());
+            vsyncClass = true;
+        }
+        Integer maxFps = parseIntOrNull(maxFpsRaw);
+        if (maxFps != null && maxFps <= 60) {
+            caps.add("maxFps is " + maxFps);
+        }
+
+        if (!caps.isEmpty()) {
+            String prefix = vsyncClass ? "A 60 fps-class cap is active because "
+                    : "A frame-rate cap is active because ";
+            return prefix + joinWithAnd(caps) + ".";
+        }
+        if (maxFps != null && maxFps < 260) {
+            return "No VSync cap found, but maxFps is " + maxFps
+                    + ", which holds the game below the launcher's uncapped target of 260 fps.";
+        }
+        String at = surface == null ? "an unknown resolution" : surface;
+        return "No cap found; the frame rate is limited by render cost at " + at + ".";
+    }
+
+    private static Integer parseIntOrNull(String value) {
+        if (value == null) return null;
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** "a, b and c" - avoids String.join, which needs API 26 but minSdk here is 21. */
+    private static String joinWithAnd(List<String> parts) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < parts.size(); i++) {
+            if (i > 0) b.append(i == parts.size() - 1 ? " and " : ", ");
+            b.append(parts.get(i));
+        }
+        return b.toString();
     }
 
     // ---- dip trace --------------------------------------------------------------------
