@@ -374,8 +374,15 @@ def mobileGluesApk = new File(mobileGluesDir, "MobileGlues_2.0.0.apk")
 def mobileGluesJniLibsDir = new File(mobileGluesDir, "jniLibs")
 def mobileGluesSo = new File(mobileGluesJniLibsDir, "arm64-v8a/libmobileglues.so")
 
-// Package the generated native library directory alongside the checked-in ones.
-android.sourceSets.main.jniLibs.srcDirs += mobileGluesJniLibsDir.absolutePath
+// The build environment - the CI workflow, or a developer - may already drop
+// libmobileglues.so into the checked-in jniLibs directory. When it has, adding
+// our generated directory as well makes the native-library merge fail with
+// "Duplicate resources", so it is only added when the library is genuinely
+// absent.
+def mobileGluesProvidedSo = new File(project.projectDir, "src/main/jniLibs/arm64-v8a/libmobileglues.so")
+if (!mobileGluesProvidedSo.exists()) {
+    android.sourceSets.main.jniLibs.srcDirs += mobileGluesJniLibsDir.absolutePath
+}
 
 // Downloads a URL to a file, following GitHub's release redirects by hand (the
 // default HttpURLConnection handling is not reliable across hosts).
@@ -413,6 +420,10 @@ def fetchMobileGlues = tasks.register("fetchMobileGluesNativeLib") {
     description = "Downloads the MobileGlues APK and extracts libmobileglues.so into the app's jniLibs."
     outputs.file(mobileGluesSo)
     doLast {
+        if (mobileGluesProvidedSo.exists()) {
+            logger.lifecycle("MobileGlues: libmobileglues.so already provided in jniLibs; skipping the build-time fetch.")
+            return
+        }
         if (mobileGluesSo.exists()) {
             logger.lifecycle("MobileGlues: libmobileglues.so already extracted at ${mobileGluesSo}")
             return
