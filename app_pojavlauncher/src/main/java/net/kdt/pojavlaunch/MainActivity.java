@@ -118,6 +118,12 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         }
         AsyncAssetManager.extractDefaultSettings(this, instance.getGameDirectory());
         MCOptionUtils.load(instance.getGameDirectory().getAbsolutePath());
+        // The performance tune has to run AFTER the defaults are extracted and the options
+        // are loaded, or those would overwrite it again. It was written for this build but
+        // never actually called from anywhere, so none of it ever took effect.
+        if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_PERFORMANCE_MODE) {
+            net.kdt.pojavlaunch.utils.FearPerformanceMode.apply(instance.getGameDirectory());
+        }
 
         Intent gameServiceIntent = new Intent(this, GameService.class);
         // Start the service a bit early

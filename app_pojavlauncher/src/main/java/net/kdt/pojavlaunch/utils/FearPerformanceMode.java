@@ -48,6 +48,12 @@ public class FearPerformanceMode {
             set("mipmapLevels", "2");
             set("improvedTransparency", "false");
 
+            // The menu background blur re-renders the world into a smaller buffer and
+            // filters it every frame. Through a GL translation layer on a phone that is
+            // brutal, and it is what makes the pointer lag behind the finger in menus.
+            // 0 turns it off, and the menus then draw flat and stay responsive.
+            set("menuBackgroundBlurriness", "0");
+
             MCOptionUtils.save();
             Log.i(TAG, "performance mode applied (strong=" + strong + ")");
             return true;

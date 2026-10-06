@@ -126,8 +126,12 @@ public class LauncherPreferences {
         PREF_GYRO_SMOOTHING = DEFAULT_PREF.getBoolean("gyroSmoothing", true);
         PREF_GYRO_INVERT_X = DEFAULT_PREF.getBoolean("gyroInvertX", false);
         PREF_GYRO_INVERT_Y = DEFAULT_PREF.getBoolean("gyroInvertY", false);
-        PREF_FORCE_VSYNC = DEFAULT_PREF.getBoolean("force_vsync", isDevicePowerful);
         PREF_PERFORMANCE_MODE = DEFAULT_PREF.getBoolean("performance_mode", true);
+        // Default the VSync switch off while performance mode is on: syncing to the panel
+        // caps frames no matter what the game asks for, which is the opposite of what a
+        // performance mode is for. A deliberate choice by the user still wins.
+        PREF_FORCE_VSYNC = DEFAULT_PREF.getBoolean("force_vsync",
+                isDevicePowerful && !PREF_PERFORMANCE_MODE);
         PREF_USE_ANGLE = DEFAULT_PREF.getBoolean("use_angle", false);
         PREF_BUTTON_ALL_CAPS = DEFAULT_PREF.getBoolean("buttonAllCaps", true);
         PREF_DUMP_SHADERS = DEFAULT_PREF.getBoolean("dump_shaders", false);

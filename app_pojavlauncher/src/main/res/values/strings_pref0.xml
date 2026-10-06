@@ -18,6 +18,8 @@
     <string name="preference_force_english_title">Force language to English</string>
     <string name="preference_force_vsync_description">Limit thermal throttling by limiting peak performance.</string>
     <string name="preference_force_vsync_title">Force enable VSync</string>
+    <string name="preference_performance_mode_title">Performance mode</string>
+    <string name="preference_performance_mode_description">Tunes the game for frame rate on launch: no VSync, no menu blur, shorter render distance, fast graphics. Turn it off to keep your own video settings.</string>
     <string name="preference_go_vroom_description">Don\'t verify file checksums upon sequential restarts. Makes the game start-up very fast.</string>
     <string name="preference_go_vroom_title">Fast game startup</string>
     <string name="preference_gyro_invert_x_axis_description">Invert the horizontal axis.</string>
