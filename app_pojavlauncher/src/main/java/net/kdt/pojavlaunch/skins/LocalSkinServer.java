@@ -574,11 +574,11 @@ public class LocalSkinServer {
         // textures.minecraft.net - the client downloads the PNG from the URL verbatim, so a
         // fake Mojang hash returns 404 and the player falls back to the default skin.
         skin.addProperty("url", "http://127.0.0.1:25599/texture/" + skinHash);
-        if (slim) {
-            JsonObject metadata = new JsonObject();
-            metadata.addProperty("model", "slim");
-            skin.add("metadata", metadata);
-        }
+        // FEAR: always advertise the slim (Alex) model. The classic model mis-samples a
+        // slim skin (its unused arm pixels render black), so slim is forced for every profile.
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("model", "slim");
+        skin.add("metadata", metadata);
         textures.add("SKIN", skin);
         payload.add("textures", textures);
 
@@ -622,11 +622,11 @@ public class LocalSkinServer {
         String skinHash = getSHA256(uuid);
         skin.addProperty("url", "http://127.0.0.1:25599/texture/" + skinHash);
 
-        if (isSlimModel()) {
-            JsonObject metadata = new JsonObject();
-            metadata.addProperty("model", "slim");
-            skin.add("metadata", metadata);
-        }
+        // FEAR: always advertise the slim (Alex) model. The classic model mis-samples a
+        // slim skin (its unused arm pixels render black), so slim is forced for every profile.
+        JsonObject metadata = new JsonObject();
+        metadata.addProperty("model", "slim");
+        skin.add("metadata", metadata);
 
         textures.add("SKIN", skin);
         payload.add("textures", textures);

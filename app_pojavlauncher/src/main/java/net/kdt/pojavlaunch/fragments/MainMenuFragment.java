@@ -121,13 +121,11 @@ public class MainMenuFragment extends Fragment {
                             inputStream.close();
 
                             android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-                            // Import the model too: a slim skin left on the classic model has
-                            // stretched arms, and nothing else in the launcher works it out.
-                            boolean importedSlim = net.kdt.pojavlaunch.skins.FearSkinSync
-                                    .detectSlim(destFile);
+                            // FEAR: the slim (Alex) model is forced for every skin - the
+                            // classic model stretches a slim skin and samples unused pixels.
                             prefs.edit()
                                     .putString("active_skin_path", destFile.getAbsolutePath())
-                                    .putBoolean("active_skin_is_alex", importedSlim)
+                                    .putBoolean("active_skin_is_alex", true)
                                     .apply();
 
                             Toast.makeText(requireContext(), "Skin imported and set as active!", Toast.LENGTH_SHORT).show();
@@ -767,14 +765,11 @@ public class MainMenuFragment extends Fragment {
         android.content.SharedPreferences prefs =
                 androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
         if (skinPath != null && !"steve".equalsIgnoreCase(skinPath) && !"alex".equalsIgnoreCase(skinPath)) {
-            // A real file was set active here: work out its model from the artwork too, so a
-            // slim skin does not keep a stale classic flag from an earlier selection.
-            java.io.File skinFile = new java.io.File(skinPath);
-            boolean slim = skinFile.isFile()
-                    && net.kdt.pojavlaunch.skins.FearSkinSync.detectSlim(skinFile);
+            // A real file was set active here: FEAR forces the slim model for every skin,
+            // so a stale classic flag from an earlier selection is cleared.
             prefs.edit()
                     .putString("active_skin_path", skinPath)
-                    .putBoolean("active_skin_is_alex", slim)
+                    .putBoolean("active_skin_is_alex", true)
                     .apply();
         } else if ("alex".equalsIgnoreCase(skinPath)) {
             prefs.edit().putBoolean("active_skin_is_alex", true).apply();
@@ -1593,7 +1588,7 @@ public class MainMenuFragment extends Fragment {
         String activeSkinPath = resolvedSkin != null
                 ? resolvedSkin.getAbsolutePath()
                 : prefs.getString("active_skin_path", "steve");
-        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+        boolean activeSkinIsAlex = true; // FEAR: launcher preview always uses the slim model
 
         body.setShowHeadOnly(false);
         body.loadSkin(activeSkinPath, activeSkinIsAlex);
@@ -1691,7 +1686,7 @@ public class MainMenuFragment extends Fragment {
         final android.content.SharedPreferences prefs =
                 androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
         final String[] skinPath = { prefs.getString("active_skin_path", "steve") };
-        final boolean[] isAlex = { prefs.getBoolean("active_skin_is_alex", false) };
+        final boolean[] isAlex = { true };
 
         preview.loadSkin(skinPath[0], isAlex[0]);
         // The viewer shows the same cape as the home character, so what you check here is
@@ -1871,7 +1866,7 @@ public class MainMenuFragment extends Fragment {
         String activeSkinPath = resolvedSkin != null
                 ? resolvedSkin.getAbsolutePath()
                 : prefs.getString("active_skin_path", "steve");
-        boolean activeSkinIsAlex = prefs.getBoolean("active_skin_is_alex", false);
+        boolean activeSkinIsAlex = true; // FEAR: launcher preview always uses the slim model
 
         skinView.setShowHeadOnly(true);
         skinView.loadSkin(activeSkinPath, activeSkinIsAlex);

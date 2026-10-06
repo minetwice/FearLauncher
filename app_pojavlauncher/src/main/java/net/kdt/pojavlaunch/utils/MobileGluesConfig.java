@@ -40,7 +40,7 @@ public final class MobileGluesConfig {
      * already carry a config.json from an older build then receive the new tuning on
      * their next launch, while a config edited at the current version is preserved.
      */
-    private static final int PROFILE_VERSION = 4;
+    private static final int PROFILE_VERSION = 5;
 
     /**
      * The tuned profile. Keys and ranges are taken from MobileGlues'
@@ -61,7 +61,11 @@ public final class MobileGluesConfig {
     private static final String CONFIG_JSON =
             "{\n"
             + "  \"enableANGLE\": 0,\n"
-            + "  \"enableNoError\": 2,\n"
+            // FEAR: enableNoError has been measured on-device at all three values. 0 (Auto)
+            // measured 55.5 fps average / 210 fps max; 1 measured 1.0 fps average / 24 fps
+            // max; and 2 measured 0.8 fps average / 22 fps max. 0 is the only value that does
+            // not collapse the frame rate - do not optimise this back to 1 or 2.
+            + "  \"enableNoError\": 0,\n"
             + "  \"enableExtComputeShader\": 1,\n"
             + "  \"enableExtTimerQuery\": 1,\n"
             + "  \"enableExtDirectStateAccess\": 1,\n"

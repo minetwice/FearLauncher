@@ -85,14 +85,13 @@ public class CraftynBackgroundLogin implements BackgroundLogin {
                         JsonObject userJson = response.getAsJsonObject("user");
                         mUsername = userJson.get("username").getAsString();
                         mUuid = userJson.get("uuid").getAsString();
-                        String skinModel = userJson.has("skinModel") ? userJson.get("skinModel").getAsString() : "classic";
-                        boolean isAlex = "slim".equalsIgnoreCase(skinModel);
-
+                        // FEAR: the slim (Alex) model is forced for every account, so the
+                        // server-reported skinModel no longer decides the model.
                         Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
                         if (context != null) {
                             PreferenceManager.getDefaultSharedPreferences(context)
                                     .edit()
-                                    .putBoolean("active_skin_is_alex", isAlex)
+                                    .putBoolean("active_skin_is_alex", true)
                                     .apply();
                         }
 

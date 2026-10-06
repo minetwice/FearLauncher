@@ -357,7 +357,7 @@ public final class FearSkinSync {
                 // what puts a slim skin on the wide arms.
                 prefs.edit()
                         .putString(PREF_SKIN_PATH, skin.getAbsolutePath())
-                        .putBoolean(PREF_SKIN_ALEX, detectSlim(skin))
+                        .putBoolean(PREF_SKIN_ALEX, true)
                         .apply();
             }
             syncPack(context);
@@ -408,14 +408,13 @@ public final class FearSkinSync {
                         out.write(bytes);
                     }
                 }
-                // Store the model the artwork was drawn for, not just the file. A slim skin
-                // left on the classic model stretches the arms and looks broken, and the
-                // preference is what both the menu character and the game's profile read.
-                // Read it off the file on disk either way, so the model is corrected even when
-                // the bytes did not change, and only write the preference when it is actually
-                // missing or different so a no-op refresh stays a no-op.
+                // FEAR: the slim (Alex) model is forced for every account. A slim skin on
+                // the classic model stretches the arms and samples unused pixels (black arm),
+                // so the model is no longer derived from the artwork. The preference is what
+                // the menu character reads; write it only when it actually differs so a no-op
+                // refresh stays a no-op.
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-                boolean slim = detectSlim(target);
+                boolean slim = true;
                 SharedPreferences.Editor editor = null;
                 if (!target.getAbsolutePath().equals(prefs.getString(PREF_SKIN_PATH, null))) {
                     editor = prefs.edit().putString(PREF_SKIN_PATH, target.getAbsolutePath());
