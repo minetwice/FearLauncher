@@ -40,7 +40,7 @@ jobs:
         run: |
           set -e
           for attempt in 1 2 3; do
-            curl -sSL --retry 3 -o /tmp/mobileglues.apk "https://github.com/MobileGL-Dev/MobileGlues-release/releases/download/V1.3.5/MobileGlues_1.3.5.apk" && break || sleep 10
+            curl -sSL --retry 3 --retry-connrefused -o /tmp/mobileglues.apk "https://github.com/MobileGL-Dev/MobileGlues-release/releases/download/V2.0.0/MobileGlues_2.0.0.apk" && break || sleep 10
           done
           test -s /tmp/mobileglues.apk
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
