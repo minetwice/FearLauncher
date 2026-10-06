@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="perf_title">PERFORMANCE</string>
+    <string name="perf_back">BACK</string>
+    <string name="perf_summary">Every switch here writes a real setting into this instance. Game options apply the next time you launch.</string>
+    <string name="perf_applied">Saved</string>
+    <string name="perf_failed">Could not write the game options</string>
+
+    <string name="perf_smooth_camera">Smooth camera</string>
+    <string name="perf_smooth_camera_desc">The camera eases into turns instead of snapping, so fast mouse movement glides. Costs nothing.</string>
+    <string name="perf_uncap_fps">Uncap frame rate</string>
+    <string name="perf_uncap_fps_desc">Removes the game's own frame limit so it runs as fast as the device allows.</string>
+    <string name="perf_vsync">Vertical sync off</string>
+    <string name="perf_vsync_desc">Stops the frame rate being locked to the screen refresh. The single easiest win.</string>
+    <string name="perf_render_distance">Render distance</string>
+    <string name="perf_render_distance_desc">The biggest lever of all. Each step down is a large cut in the geometry drawn.</string>
+    <string name="perf_sim_distance">Simulation distance</string>
+    <string name="perf_sim_distance_desc">How far entities and ticks run. Lower costs almost nothing visually and frees a lot of CPU.</string>
+    <string name="perf_fast_graphics">Fast graphics</string>
+    <string name="perf_fast_graphics_desc">Turns off fancy leaves, water and clouds rendering.</string>
+    <string name="perf_smooth_lighting">Smooth lighting off</string>
+    <string name="perf_smooth_lighting_desc">Drops the per-face light blending across the whole world.</string>
+    <string name="perf_entity_shadows">Entity shadows off</string>
+    <string name="perf_entity_shadows_desc">Removes the shadow blob under every mob and player.</string>
+    <string name="perf_clouds">Clouds off</string>
+    <string name="perf_clouds_desc">Removes the cloud layer, which is a full-screen quad redrawn every frame.</string>
+    <string name="perf_particles">Minimal particles</string>
+    <string name="perf_particles_desc">Keeps only the particles that matter; the rest are pure fill rate.</string>
+    <string name="perf_menu_blur">Menu blur off</string>
+    <string name="perf_menu_blur_desc">Stops menus blurring the world behind them every frame - this is what makes the cursor lag.</string>
+    <string name="perf_biome_blend">Biome blending off</string>
+    <string name="perf_biome_blend_desc">Stops per-face colour blending between neighbouring biomes.</string>
+    <string name="perf_smooth_launcher">Smooth launcher</string>
+    <string name="perf_smooth_launcher_desc">Stops the home screen's background clip and idle animations, so scrolling and the drawer stay fluid.</string>
+    <string name="perf_entry_title">Performance</string>
+    <string name="perf_entry_summary">Camera smoothing, frame rate, render distance and twelve more levers, all in one place.</string>
+</resources>

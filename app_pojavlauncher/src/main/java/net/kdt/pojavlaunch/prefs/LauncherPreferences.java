@@ -58,6 +58,8 @@ public class LauncherPreferences {
 
     /** FEARPATCH: auto-tune the game's options.txt for frame rate (non-root). */
     public static boolean PREF_PERFORMANCE_MODE = true;
+    /** Stops the home screen's background clip and idle animations for a fluid UI. */
+    public static boolean PREF_SMOOTH_LAUNCHER_UI = false;
 
     public static boolean PREF_USE_ANGLE = false;
 
@@ -137,6 +139,7 @@ public class LauncherPreferences {
         PREF_GYRO_INVERT_X = DEFAULT_PREF.getBoolean("gyroInvertX", false);
         PREF_GYRO_INVERT_Y = DEFAULT_PREF.getBoolean("gyroInvertY", false);
         PREF_PERFORMANCE_MODE = DEFAULT_PREF.getBoolean("performance_mode", true);
+        PREF_SMOOTH_LAUNCHER_UI = DEFAULT_PREF.getBoolean("smooth_launcher_ui", false);
         // Default the VSync switch off while performance mode is on: syncing to the panel
         // caps frames no matter what the game asks for, which is the opposite of what a
         // performance mode is for. A deliberate choice by the user still wins.

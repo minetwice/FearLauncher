@@ -29,6 +29,7 @@ public class LauncherPreferenceFragment extends BasePreferenceFragment
         mVisibilityUpdater = this::updateVisibility;
         addPreferencesFromResource(R.xml.pref_main);
         setupNotificationRequestPreference();
+        setupPerformanceDashboardPreference();
     }
 
     private void updateVisibility() {
@@ -48,6 +49,15 @@ public class LauncherPreferenceFragment extends BasePreferenceFragment
             mRequestNotificationPermissionPreference.setVisible(false);
         }
         updateVisibility();
+    }
+
+    private void setupPerformanceDashboardPreference() {
+        requirePreference("performance_dashboard").setOnPreferenceClickListener(preference -> {
+            net.kdt.pojavlaunch.Tools.swapFragment(requireActivity(),
+                    net.kdt.pojavlaunch.fragments.PerformanceFragment.class,
+                    net.kdt.pojavlaunch.fragments.PerformanceFragment.TAG, null);
+            return true;
+        });
     }
 
     @Override

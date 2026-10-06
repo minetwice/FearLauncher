@@ -61,6 +61,12 @@
         android:icon="@drawable/ic_set_language"/>
 
     <Preference
+        android:key="performance_dashboard"
+        android:summary="@string/perf_entry_summary"
+        android:title="@string/perf_entry_title"
+        />
+
+    <Preference
         android:title="@string/preference_ask_for_notification_title"
         android:summary="@string/preference_ask_for_notification_description"
         android:key="notification_permission_request"

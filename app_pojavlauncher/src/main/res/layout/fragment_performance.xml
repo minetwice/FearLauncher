@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0C14">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/_12sdp">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/perf_back"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_32sdp"
+            android:text="@string/perf_back"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:background="@drawable/premium_glass_black_bg" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:text="@string/perf_title"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/perf_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/_14sdp"
+        android:paddingEnd="@dimen/_14sdp"
+        android:paddingBottom="@dimen/_8sdp"
+        android:textColor="#9AA4B2"
+        android:textSize="@dimen/_9ssp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/perf_rows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/_10sdp"
+            android:paddingEnd="@dimen/_10sdp"
+            android:paddingBottom="@dimen/_20sdp" />
+    </ScrollView>
+</LinearLayout>

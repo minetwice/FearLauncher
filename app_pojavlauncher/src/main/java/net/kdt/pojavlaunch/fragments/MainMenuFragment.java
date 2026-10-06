@@ -1585,7 +1585,10 @@ public class MainMenuFragment extends Fragment {
         body.setRotationAngles(-20f, -5f);   // gentle three-quarter standing view
         body.setPose(mCharacterPose);
         body.setTranslationY(0f);
-        startCharacterIdle(view);
+        // The idle gesture invalidates the 3D model every frame for ten seconds at a time.
+        if (!net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_SMOOTH_LAUNCHER_UI) {
+            startCharacterIdle(view);
+        }
     }
 
     /**
@@ -1787,6 +1790,13 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void bindHomeBackground(View view) {
+        // The smooth-launcher switch drops the background clip: decoding and uploading a
+        // video frame behind the whole UI every frame is the single biggest cause of the
+        // home screen stuttering while you scroll.
+        if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_SMOOTH_LAUNCHER_UI) {
+            View clip = view.findViewById(R.id.background_animation_view);
+            if (clip != null) clip.setVisibility(View.GONE);
+        }
         View bg = view.findViewById(R.id.background_animation_view);
         if (bg instanceof com.kdt.mcgui.LoopingVideoBackground) {
             ((com.kdt.mcgui.LoopingVideoBackground) bg)
@@ -1816,7 +1826,11 @@ public class MainMenuFragment extends Fragment {
                 wash.setBackgroundColor((colour & 0x00FFFFFF) | 0x26000000);
             }
         });
-        mColorCycleAnimator.start();
+        // The colour cycle repaints a background and walks every button on screen several
+        // times a second. It is skipped entirely when the launcher is set to run smooth.
+        if (!net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_SMOOTH_LAUNCHER_UI) {
+            mColorCycleAnimator.start();
+        }
     }
 
     private void refreshSkinHeadDisplay(View view) {
