@@ -352,7 +352,13 @@ public final class FearSkinSync {
             File skin = resolveSkinFile(context);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             if (skin != null) {
-                prefs.edit().putString(PREF_SKIN_PATH, skin.getAbsolutePath()).apply();
+                // Re-derive the model from the file every launch: the resolved path can point
+                // at a skin imported after the last run, and a stale model here is exactly
+                // what puts a slim skin on the wide arms.
+                prefs.edit()
+                        .putString(PREF_SKIN_PATH, skin.getAbsolutePath())
+                        .putBoolean(PREF_SKIN_ALEX, detectSlim(skin))
+                        .apply();
             }
             syncPack(context);
             // Keep CustomSkinLoader in the instance so the skin shows on any server. Its
@@ -392,17 +398,38 @@ public final class FearSkinSync {
                 //noinspection ResultOfMethodCallIgnored
                 dir.mkdirs();
                 File target = new File(dir, "craftynmc_" + username + ".png");
-                try (FileOutputStream out = new FileOutputStream(target)) {
-                    out.write(bytes);
+                // Rewriting identical bytes makes CustomSkinLoader and the game re-upload the
+                // texture for nothing - the on-device lag report showed hundreds of such
+                // uploads from this path. If the file already holds exactly these bytes, leave
+                // it (and the pack) alone.
+                boolean unchanged = bytesEqual(target, bytes);
+                if (!unchanged) {
+                    try (FileOutputStream out = new FileOutputStream(target)) {
+                        out.write(bytes);
+                    }
                 }
                 // Store the model the artwork was drawn for, not just the file. A slim skin
                 // left on the classic model stretches the arms and looks broken, and the
                 // preference is what both the menu character and the game's profile read.
-                PreferenceManager.getDefaultSharedPreferences(context).edit()
-                        .putString(PREF_SKIN_PATH, target.getAbsolutePath())
-                        .putBoolean(PREF_SKIN_ALEX, detectSlim(target))
-                        .apply();
-                Log.i(TAG, "Skin refreshed for " + username);
+                // Read it off the file on disk either way, so the model is corrected even when
+                // the bytes did not change, and only write the preference when it is actually
+                // missing or different so a no-op refresh stays a no-op.
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                boolean slim = detectSlim(target);
+                SharedPreferences.Editor editor = null;
+                if (!target.getAbsolutePath().equals(prefs.getString(PREF_SKIN_PATH, null))) {
+                    editor = prefs.edit().putString(PREF_SKIN_PATH, target.getAbsolutePath());
+                }
+                if (slim != prefs.getBoolean(PREF_SKIN_ALEX, false)) {
+                    editor = editor == null ? prefs.edit() : editor;
+                    editor.putBoolean(PREF_SKIN_ALEX, slim);
+                }
+                if (editor != null) editor.apply();
+                if (unchanged) {
+                    Log.i(TAG, "Skin for " + username + " is unchanged; not rewriting it or re-applying the pack");
+                } else {
+                    Log.i(TAG, "Skin refreshed for " + username);
+                }
                 return true;
             } catch (Exception e) {
                 Log.w(TAG, "Could not store the skin for " + username, e);
@@ -464,10 +491,12 @@ public final class FearSkinSync {
      * Works out whether a skin was drawn for the slim (Alex) arms or the classic (Steve)
      * ones, because the atlas does not record it.
      *
-     * The classic arm is four pixels wide and the slim arm three, so the extra column is
-     * painted in a classic skin and left fully transparent in a slim one. Reading those
-     * columns is the accepted test. A legacy 64x32 file predates slim entirely, so it is
-     * always classic.
+     * The classic arm is four pixels wide and the slim arm three, so the outer column of
+     * each arm face is painted in a classic skin and left fully transparent in a slim one.
+     * On a 64x64 atlas those unused columns are x 47 and x 55 on the right arm (its front
+     * and back faces) and x 39 and x 47 on the left arm, over rows y 20..31 and y 52..63.
+     * Reading them is the accepted test. A legacy 64x32 file predates slim entirely, so it
+     * is always classic.
      *
      * It is a heuristic, not metadata: an artist who deliberately erased the outer arm
      * column will read as slim, which is why the viewer still offers the two models by hand.
@@ -483,14 +512,20 @@ public final class FearSkinSync {
             if (w < 64 || h < 64) return false;
             int scale = Math.max(1, w / 64);
 
-            // Right arm: the two columns a three-pixel arm never uses (x 54..56, y 20..32).
-            for (int x = 54; x <= 55; x++) {
+            // Right arm: the block spans x 40..55, with its front face at x 44..47 and its
+            // back face at x 52..55. A classic arm is four pixels wide and paints all four
+            // columns of each face; a slim arm is three, so it leaves the outer column of
+            // each face transparent - x 47 (front) and x 55 (back).
+            int[] rightUnused = { 47, 55 };
+            for (int x : rightUnused) {
                 for (int y = 20; y < 32; y++) {
                     if (isOpaque(bmp, x * scale, y * scale)) return false;
                 }
             }
-            // Left arm: the same columns in its own part of the atlas (x 46..48, y 52..64).
-            for (int x = 46; x <= 47; x++) {
+            // Left arm: the block spans x 32..47, front face x 36..39 (slim leaves x 39
+            // unused) and back face x 44..47 (slim leaves x 47 unused).
+            int[] leftUnused = { 39, 47 };
+            for (int x : leftUnused) {
                 for (int y = 52; y < 64; y++) {
                     if (isOpaque(bmp, x * scale, y * scale)) return false;
                 }
@@ -557,6 +592,18 @@ public final class FearSkinSync {
         int read;
         while ((read = in.read(buffer)) != -1) bos.write(buffer, 0, read);
         return bos.toByteArray();
+    }
+
+    /** True when the file already holds exactly these bytes, so a rewrite would be a no-op. */
+    private static boolean bytesEqual(File file, byte[] bytes) {
+        try {
+            if (!file.isFile() || file.length() != bytes.length) return false;
+            try (InputStream in = new FileInputStream(file)) {
+                return java.util.Arrays.equals(readAll(in), bytes);
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void copy(File source, File target) throws IOException {

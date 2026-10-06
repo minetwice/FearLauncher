@@ -590,6 +590,17 @@ public class LocalSkinServer {
         return profile;
     }
 
+    /**
+     * The model to advertise, read fresh from the preferences at the moment the profile is
+     * built rather than from the value cached when the server started. A skin imported after
+     * start (which writes the preference) would otherwise still be served as classic.
+     */
+    private boolean isSlimModel() {
+        if (mContext == null) return mIsAlex;
+        return PreferenceManager.getDefaultSharedPreferences(mContext)
+                .getBoolean("active_skin_is_alex", false);
+    }
+
     private JsonObject createLocalProfile(String uuid) throws Exception {
         JsonObject profile = new JsonObject();
         profile.addProperty("id", uuid);
@@ -611,7 +622,7 @@ public class LocalSkinServer {
         String skinHash = getSHA256(uuid);
         skin.addProperty("url", "http://127.0.0.1:25599/texture/" + skinHash);
 
-        if (mIsAlex) {
+        if (isSlimModel()) {
             JsonObject metadata = new JsonObject();
             metadata.addProperty("model", "slim");
             skin.add("metadata", metadata);

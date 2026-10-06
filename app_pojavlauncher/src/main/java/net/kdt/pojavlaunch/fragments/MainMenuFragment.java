@@ -767,7 +767,15 @@ public class MainMenuFragment extends Fragment {
         android.content.SharedPreferences prefs =
                 androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
         if (skinPath != null && !"steve".equalsIgnoreCase(skinPath) && !"alex".equalsIgnoreCase(skinPath)) {
-            prefs.edit().putString("active_skin_path", skinPath).apply();
+            // A real file was set active here: work out its model from the artwork too, so a
+            // slim skin does not keep a stale classic flag from an earlier selection.
+            java.io.File skinFile = new java.io.File(skinPath);
+            boolean slim = skinFile.isFile()
+                    && net.kdt.pojavlaunch.skins.FearSkinSync.detectSlim(skinFile);
+            prefs.edit()
+                    .putString("active_skin_path", skinPath)
+                    .putBoolean("active_skin_is_alex", slim)
+                    .apply();
         } else if ("alex".equalsIgnoreCase(skinPath)) {
             prefs.edit().putBoolean("active_skin_is_alex", true).apply();
         } else if ("steve".equalsIgnoreCase(skinPath)) {
