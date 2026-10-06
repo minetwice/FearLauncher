@@ -8,6 +8,8 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
 
+import net.kdt.pojavlaunch.Tools;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
