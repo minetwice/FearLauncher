@@ -338,6 +338,18 @@ public class JREUtils {
     }
 
     public static String loadGraphicsLibrary(String renderer){
+        return loadGraphicsLibrary(renderer, null);
+    }
+
+    /**
+     * FEARPATCH: plugin renderers (MobileGlues, etc.) live inside a third-party
+     * app's native library directory. loadGraphicsLibrary has no Context, so the
+     * caller - which does have one - resolves the plugin library path and hands
+     * it down here. pluginLibraryPath is the absolute path to the plugin's
+     * libmobileglues.so, or null when the renderer is not a plugin or the plugin
+     * could not be resolved.
+     */
+    public static String loadGraphicsLibrary(String renderer, String pluginLibraryPath){
         String renderLibrary;
         boolean useGles;
         boolean bypassNamespace = false;
@@ -345,7 +357,17 @@ public class JREUtils {
         int glesVersion;
 
         if (renderer != null && renderer.startsWith("plugin:")) {
-            Log.w("RENDER_LIBRARY", "Plugin renderer load failed, falling back to Turnip Zink");
+            if (pluginLibraryPath != null && new File(pluginLibraryPath).exists()) {
+                // Load the renderer library that actually lives inside the plugin app.
+                Logger.appendToLog("[MobileGlues] Loading plugin renderer library " + pluginLibraryPath);
+                if (!configureRenderspec(pluginLibraryPath, false, true, 3)) {
+                    Log.e("RENDER_LIBRARY", "Failed to load plugin renderer library " + pluginLibraryPath);
+                    return null;
+                }
+                return pluginLibraryPath;
+            }
+            Log.w("RENDER_LIBRARY", "Plugin renderer " + renderer
+                    + " has no loadable libmobileglues.so, falling back to Turnip Zink");
             renderer = "turnip_zink";
         }
 
@@ -367,6 +389,7 @@ public class JREUtils {
                 if(preloadVk) preloadVulkan();
                 break;
             case "fear_v1":
+            case "opengles_mobileglues":
                 Logger.appendToLog("[FearV1] Loading MobileGlues (GL->GLES3.2 translation) - libmobileglues.so...");
                 renderLibrary = "libmobileglues.so";
                 useGles = true;

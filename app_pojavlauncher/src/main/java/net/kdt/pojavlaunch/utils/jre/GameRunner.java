@@ -1,5 +1,6 @@
 package net.kdt.pojavlaunch.utils.jre;
 
+import android.content.Context;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import net.kdt.pojavlaunch.lifecycle.LifecycleAwareAlertDialog;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
 import net.kdt.pojavlaunch.multirt.Runtime;
+import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DateUtils;
 import net.kdt.pojavlaunch.utils.FileUtils;
@@ -78,6 +80,32 @@ public class GameRunner {
             Log.w("GameRunner", "FEARPATCH: GPU detect failed, keeping " + requested, t);
         }
         return requested;
+    }
+
+    /**
+     * FEARPATCH: resolve the absolute path of a "plugin:" renderer's
+     * libmobileglues.so. The renderer picker stores plugin renderers as
+     * "plugin:<packageId>", and the library itself lives in that plugin app's
+     * native library directory. loadGraphicsLibrary has no Context, so it is
+     * resolved here - where the launching Activity is available - and the
+     * resolved path is passed down to it. Returns null when the renderer is not
+     * a plugin, the plugin is not installed, or the library is missing; the
+     * caller then falls back to the existing Turnip Zink behaviour.
+     */
+    private static String resolvePluginRendererPath(Context context, String rendererName) {
+        if (rendererName == null || !rendererName.startsWith("plugin:")) return null;
+        String pluginId = rendererName.substring("plugin:".length());
+        LibraryPlugin plugin = LibraryPlugin.discoverPlugin(context, pluginId);
+        if (plugin == null) {
+            Log.w("GameRunner", "Renderer plugin " + pluginId + " is not installed");
+            return null;
+        }
+        String libraryPath = plugin.resolveAbsolutePath("libmobileglues.so");
+        if (!new File(libraryPath).exists()) {
+            Log.w("GameRunner", "Renderer plugin " + pluginId + " has no libmobileglues.so at " + libraryPath);
+            return null;
+        }
+        return libraryPath;
     }
 
     private static boolean affectedByRenderDistanceIssue(JMinecraftVersionList.Version version) throws ParseException {
@@ -202,7 +230,8 @@ public class GameRunner {
         JREUtils.setEnviroimentForGame(activity, rendererName);
         JREUtils.chdir(instance.getGameDirectory().getAbsolutePath());
 
-        String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
+        String rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName,
+                resolvePluginRendererPath(activity, rendererName));
         if(rendererLibrary == null) {
             // FEARPATCH: fall back to a renderer this GPU can actually run,
             // not blindly to Turnip (which is Adreno-only).
