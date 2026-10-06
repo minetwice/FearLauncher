@@ -9,9 +9,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -119,12 +116,17 @@ public final class LagWatch {
                 long maxMb = rt.maxMemory() / (1024L * 1024L);
                 int threads = Thread.getAllStackTraces().size();
                 long gcCount = 0L, gcMillis = 0L;
-                try {
-                    for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
-                        if (gc.getCollectionCount() > 0) gcCount += gc.getCollectionCount();
-                        if (gc.getCollectionTime() > 0) gcMillis += gc.getCollectionTime();
-                    }
-                } catch (Throwable ignored) { }
+                // Android ships no java.lang.management, so the game's collector is read from
+                // the ART runtime instead: the same "GC runs / GC time for this process"
+                // numbers, and this process is the one running the game.
+                if (Build.VERSION.SDK_INT >= 23) {
+                    try {
+                        String gcRuns = android.os.Debug.getRuntimeStat("art.gc.gc-count");
+                        String gcTime = android.os.Debug.getRuntimeStat("art.gc.gc-time");
+                        if (gcRuns != null) gcCount = Long.parseLong(gcRuns.trim());
+                        if (gcTime != null) gcMillis = Long.parseLong(gcTime.trim());
+                    } catch (Throwable ignored) { }
+                }
 
                 // CPU: our own process, so /proc/self is readable.
                 long cpuJiffies = readCpuJiffies();
