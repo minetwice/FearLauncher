@@ -9,7 +9,7 @@
     <string name="perf_smooth_camera">Smooth camera</string>
     <string name="perf_smooth_camera_desc">The camera eases into turns instead of snapping, so fast mouse movement glides. Costs nothing.</string>
     <string name="perf_uncap_fps">Uncap frame rate</string>
-    <string name="perf_uncap_fps_desc">Removes the game's own frame limit so it runs as fast as the device allows.</string>
+    <string name="perf_uncap_fps_desc">Removes the game\'s own frame limit so it runs as fast as the device allows.</string>
     <string name="perf_vsync">Vertical sync off</string>
     <string name="perf_vsync_desc">Stops the frame rate being locked to the screen refresh. The single easiest win.</string>
     <string name="perf_render_distance">Render distance</string>
@@ -31,7 +31,7 @@
     <string name="perf_biome_blend">Biome blending off</string>
     <string name="perf_biome_blend_desc">Stops per-face colour blending between neighbouring biomes.</string>
     <string name="perf_smooth_launcher">Smooth launcher</string>
-    <string name="perf_smooth_launcher_desc">Stops the home screen's background clip and idle animations, so scrolling and the drawer stay fluid.</string>
+    <string name="perf_smooth_launcher_desc">Stops the home screen\'s background clip and idle animations, so scrolling and the drawer stay fluid.</string>
     <string name="perf_entry_title">Performance</string>
     <string name="perf_entry_summary">Camera smoothing, frame rate, render distance and twelve more levers, all in one place.</string>
 </resources>
