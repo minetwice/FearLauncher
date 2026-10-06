@@ -231,7 +231,7 @@ public class GameRunner {
 
         // Start recording the session just before the JVM comes up, so every sample
         // describes the game that is actually running.
-        net.kdt.pojavlaunch.utils.LagWatch.start(activity, instance.getGameDirectory());
+        net.kdt.pojavlaunch.utils.LagWatch.start(activity, instance.getGameDirectory(), rendererName);
         try {
             JavaRunner.nativeSetupExit(activity);
             JavaRunner.startJvm(runtime, javaArgList, launchClassPath, versionInfo.mainClass, launchArgs);
