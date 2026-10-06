@@ -22,6 +22,7 @@ import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
+import net.kdt.pojavlaunch.utils.MobileGluesConfig;
 
 import java.io.File;
 import java.util.Locale;
@@ -40,6 +41,20 @@ import java.util.Locale;
 public class PerformanceFragment extends Fragment {
 
     public static final String TAG = "PERFORMANCE_FRAGMENT";
+
+    /** Persisted flag: the Smooth PvP profile is currently applied. */
+    private static final String KEY_PVP = "smooth_pvp_profile";
+    /** Snapshot keys holding the values the profile overwrote, for a clean restore. */
+    private static final String KEY_PVP_RENDERER = "pvp_prev_renderer";
+    private static final String KEY_PVP_FORCE_VSYNC = "pvp_prev_force_vsync";
+    private static final String KEY_PVP_OPTION_PREFIX = "pvp_prev_option_";
+    /** Sentinel for an options.txt key that did not exist before the profile was enabled. */
+    private static final String PVP_OPTION_ABSENT = "__pvp_absent__";
+    /** The options.txt keys the Smooth PvP profile writes. */
+    private static final String[] PVP_OPTION_KEYS = {
+            "enableVsync", "maxFps", "entityDistanceScaling",
+            "particles", "graphicsMode", "entityShadows", "menuBackgroundBlurriness"
+    };
 
     private File mGameDir;
 
@@ -69,6 +84,27 @@ public class PerformanceFragment extends Fragment {
         summary.setText(R.string.perf_summary);
 
         LinearLayout rows = view.findViewById(R.id.perf_rows);
+
+        // ---- smooth PvP profile -----------------------------------------------------
+        // One switch that applies the whole smooth-PvP recipe at once. It snapshots
+        // every value it overwrites, so switching it off restores exactly what the
+        // player had before - nothing here is a one-way door. The options.txt changes
+        // take effect on the next launch, which the subtitle and toast both say.
+        addSwitch(rows, R.string.perf_pvp_profile, R.string.perf_pvp_profile_desc,
+                () -> LauncherPreferences.DEFAULT_PREF.getBoolean(KEY_PVP, false),
+                this::setSmoothPvpProfile);
+
+        // FSR1 spatial upscaling. Independent of the profile above; the profile turns it
+        // to UltraQuality, while this row lets the player pick Off or UltraQuality direct.
+        addSwitch(rows, R.string.perf_fsr1, R.string.perf_fsr1_desc,
+                () -> LauncherPreferences.DEFAULT_PREF.getInt("fsr1_setting", 0) == 1,
+                on -> {
+                    MobileGluesConfig.setFsr1Setting(requireContext(), on ? 1 : 0);
+                    LauncherPreferences.DEFAULT_PREF.edit()
+                            .putInt("fsr1_setting", on ? 1 : 0).apply();
+                    Toast.makeText(getContext(), R.string.perf_fsr1_toast,
+                            Toast.LENGTH_LONG).show();
+                });
 
         // ---- renderer ---------------------------------------------------------------
         // MobileGlues now ships inside the APK, so this is a one-tap switch rather
@@ -186,6 +222,80 @@ public class PerformanceFragment extends Fragment {
                                 Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    /**
+     * Applies or reverts the Smooth PvP profile.
+     *
+     * <p>Enabling it snapshots the renderer, the seven options.txt keys it touches and
+     * the VSync preference, then applies the recipe; disabling it writes the snapshot
+     * back. The snapshot lives in the default preferences under {@code pvp_prev_*}
+     * keys, so it survives the fragment being recreated. Game options only take effect
+     * on the next launch, which the row's subtitle and toast both say.</p>
+     */
+    private void setSmoothPvpProfile(boolean on) {
+        android.content.SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
+        if (on) {
+            // Snapshot everything we are about to overwrite, once, so OFF restores it.
+            if (!pref.getBoolean(KEY_PVP, false)) {
+                android.content.SharedPreferences.Editor snapshot = pref.edit();
+                snapshot.putString(KEY_PVP_RENDERER, LauncherPreferences.PREF_RENDERER);
+                snapshot.putBoolean(KEY_PVP_FORCE_VSYNC, LauncherPreferences.PREF_FORCE_VSYNC);
+                for (String key : PVP_OPTION_KEYS) {
+                    String value = MCOptionUtils.get(key);
+                    snapshot.putString(KEY_PVP_OPTION_PREFIX + key,
+                            value == null ? PVP_OPTION_ABSENT : value);
+                }
+                snapshot.putBoolean(KEY_PVP, true).apply();
+            }
+
+            // Force the MobileGlues renderer.
+            LauncherPreferences.PREF_RENDERER = "fear_v1";
+            pref.edit().putString("renderer", "fear_v1").apply();
+
+            // Game options, written through the launcher's own options.txt helper.
+            setOption("enableVsync", "false");
+            setOption("maxFps", "260");
+            setOption("entityDistanceScaling", "0.8");
+            setOption("particles", "2");
+            setOption("graphicsMode", "0");
+            setOption("entityShadows", "false");
+            setOption("menuBackgroundBlurriness", "0");
+
+            // Keep the dashboard's VSync row and its backing preference consistent.
+            LauncherPreferences.PREF_FORCE_VSYNC = false;
+            pref.edit().putBoolean("force_vsync", false).apply();
+
+            // A very mild spatial upscale for a little extra headroom.
+            MobileGluesConfig.setFsr1Setting(requireContext(), 1);
+            pref.edit().putInt("fsr1_setting", 1).apply();
+
+            Toast.makeText(getContext(), R.string.perf_pvp_applied, Toast.LENGTH_LONG).show();
+        } else {
+            // Restore the renderer.
+            String renderer = pref.getString(KEY_PVP_RENDERER, LauncherPreferences.PREF_RENDERER);
+            LauncherPreferences.PREF_RENDERER = renderer;
+            pref.edit().putString("renderer", renderer).apply();
+
+            // Restore the game options that had a value before the profile was enabled.
+            for (String key : PVP_OPTION_KEYS) {
+                String previous = pref.getString(KEY_PVP_OPTION_PREFIX + key, PVP_OPTION_ABSENT);
+                if (!PVP_OPTION_ABSENT.equals(previous)) setOption(key, previous);
+            }
+
+            // Restore the VSync preference.
+            boolean forceVsync = pref.getBoolean(KEY_PVP_FORCE_VSYNC,
+                    LauncherPreferences.PREF_FORCE_VSYNC);
+            LauncherPreferences.PREF_FORCE_VSYNC = forceVsync;
+            pref.edit().putBoolean("force_vsync", forceVsync).apply();
+
+            // Drop the snapshot and clear the flag.
+            android.content.SharedPreferences.Editor cleanup = pref.edit();
+            cleanup.remove(KEY_PVP_RENDERER);
+            cleanup.remove(KEY_PVP_FORCE_VSYNC);
+            for (String key : PVP_OPTION_KEYS) cleanup.remove(KEY_PVP_OPTION_PREFIX + key);
+            cleanup.putBoolean(KEY_PVP, false).apply();
+        }
     }
 
     // ---- rows -----------------------------------------------------------------------

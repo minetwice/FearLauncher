@@ -104,9 +104,10 @@ public class JavaRunner {
         // Advanced High-FPS Cotton-Smooth G1GC Tuning & Low-Latency Memory Management
         userArguments.add("-XX:+UseG1GC");
         // A 10 ms pause target makes G1 collect in small, frequent bursts - which is
-        // exactly the wrong shape for a phone that spends its startup loading mods. 50 ms
-        // is the usual mobile target and costs nothing perceptible while playing.
-        userArguments.add("-XX:MaxGCPauseMillis=50");
+        // exactly the wrong shape for a phone that spends its startup loading mods. 35 ms
+        // is a tight-but-safe mobile target now that the young generation is sized below,
+        // so collections are a touch shorter without turning into a stutter storm.
+        userArguments.add("-XX:MaxGCPauseMillis=35");
         userArguments.add("-XX:InitiatingHeapOccupancyPercent=45");
         userArguments.add("-XX:G1ReservePercent=15");
         userArguments.add("-XX:+DisableExplicitGC");
@@ -116,6 +117,24 @@ public class JavaRunner {
         userArguments.add("-XX:+OptimizeStringConcat");
         userArguments.add("-XX:-UseBiasedLocking");
         userArguments.add("-XX:+UnlockExperimentalVMOptions");
+        // Stop the JVM writing hsperfdata to disk: that periodic write is a known
+        // source of multi-frame hitches while the game is running.
+        userArguments.add("-XX:+PerfDisableSharedMem");
+        // Size the young generation explicitly so short-lived per-frame garbage is
+        // collected cheaply instead of being promoted into the old generation.
+        userArguments.add("-XX:G1NewSizePercent=20");
+        userArguments.add("-XX:G1MaxNewSizePercent=40");
+        // Fewer, larger survivor spaces: short-lived frame garbage dies in the young
+        // generation instead of being promoted on the way through.
+        userArguments.add("-XX:SurvivorRatio=32");
+        // A larger heap region cuts the number of regions G1 has to scan per collection.
+        userArguments.add("-XX:G1HeapRegionSize=8M");
+        // Pre-fault the whole heap at startup so the OS never page-faults it mid-game.
+        // This is the single biggest micro-stutter win, but it costs startup time and
+        // real RAM, so it is gated on the device actually having enough memory.
+        if (deviceHasEnoughRamForPreTouch()) {
+            userArguments.add("-XX:+AlwaysPreTouch");
+        }
 
         ArrayList<String> overridableArguments = new ArrayList<>(Arrays.asList(
                 "-Djava.home=" + runtimeHome,
@@ -172,6 +191,28 @@ public class JavaRunner {
         //Add all the arguments
         userArguments.addAll(additionalArguments);
         return userArguments;
+    }
+
+    /**
+     * FEARPATCH: whether the device has enough physical RAM to afford
+     * {@code -XX:+AlwaysPreTouch}, which pre-faults the whole heap at startup and so
+     * removes the mid-game page faults that show up as micro-stutter. Requires >= 6 GB
+     * of total RAM; returns false (so the flag is skipped) when the memory size cannot
+     * be read, so a probe failure can never hurt a launch.
+     */
+    private static boolean deviceHasEnoughRamForPreTouch() {
+        try {
+            Context context = net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+            if (context == null) return false;
+            android.app.ActivityManager activityManager = (android.app.ActivityManager)
+                    context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (activityManager == null) return false;
+            android.app.ActivityManager.MemoryInfo memoryInfo = new android.app.ActivityManager.MemoryInfo();
+            activityManager.getMemoryInfo(memoryInfo);
+            return memoryInfo.totalMem >= 6L * 1024L * 1024L * 1024L;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     private static File getVmPath(File runtimeHomeDir, String arch, String flavor) {

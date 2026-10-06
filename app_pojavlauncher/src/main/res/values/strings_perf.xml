@@ -45,4 +45,10 @@
     <string name="perf_lag_report">Lag report</string>
     <string name="perf_lag_report_desc">Writes what the last session was struggling with - heap, garbage collections, CPU, thermals and the game log lines that name a cause - into fear_lag_report.txt in the instance. Tap to share it.</string>
     <string name="perf_lag_report_none">No report yet - play once with this build and it will be written when you quit.</string>
+    <string name="perf_pvp_profile">Smooth PvP profile</string>
+    <string name="perf_pvp_profile_desc">Kills micro-stutter in fights - recommended. Game options apply on your next launch.</string>
+    <string name="perf_pvp_applied">Smooth PvP profile on - game options apply on your next launch</string>
+    <string name="perf_fsr1">FSR1 upscaling</string>
+    <string name="perf_fsr1_desc">UltraQuality spatial upscale for a little extra headroom. Applies on your next launch.</string>
+    <string name="perf_fsr1_toast">FSR1 setting saved - applies on your next launch</string>
 </resources>
