@@ -26,6 +26,12 @@
     <string name="perf_clouds_desc">Removes the cloud layer, which is a full-screen quad redrawn every frame.</string>
     <string name="perf_particles">Minimal particles</string>
     <string name="perf_particles_desc">Keeps only the particles that matter; the rest are pure fill rate.</string>
+    <string name="perf_resolution">Render resolution</string>
+    <string name="perf_resolution_desc">How many pixels the game is asked to draw. Nothing else here comes close: 100% on a 1220-pixel-wide screen is twice the work of 70%.</string>
+    <string name="perf_affinity">Big-core affinity</string>
+    <string name="perf_affinity_desc">Pins the game to the fast cores instead of letting Android scatter it across the little ones. Helps frame time, costs battery.</string>
+    <string name="perf_sustained">Sustained performance</string>
+    <string name="perf_sustained_desc">Asks Android to hold a steady clock instead of boosting and then throttling, so the frame rate stays flat through long sessions and while recording.</string>
     <string name="perf_menu_blur">Menu blur off</string>
     <string name="perf_menu_blur_desc">Stops menus blurring the world behind them every frame - this is what makes the cursor lag.</string>
     <string name="perf_biome_blend">Biome blending off</string>

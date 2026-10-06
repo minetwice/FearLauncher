@@ -91,42 +91,36 @@ public class PerformanceFragment extends Fragment {
                     LauncherPreferences.PREF_FORCE_VSYNC = !on;
                 });
 
-        // ---- the big levers ---------------------------------------------------------
-        addSlider(rows, R.string.perf_render_distance, R.string.perf_render_distance_desc,
-                4, 16, () -> safeInt(MCOptionUtils.get("renderDistance"), 8),
-                value -> setOption("renderDistance", String.valueOf(value)));
-        addSlider(rows, R.string.perf_sim_distance, R.string.perf_sim_distance_desc,
-                4, 12, () -> safeInt(MCOptionUtils.get("simulationDistance"), 8),
-                value -> setOption("simulationDistance", String.valueOf(value)));
+        // ---- the levers the game cannot offer ---------------------------------------
+        // The game's own video settings already cover render distance, graphics mode and
+        // the rest, so those are deliberately NOT repeated here. These change something the
+        // game has no setting for: how many pixels the launcher asks it to draw, how much of
+        // the phone's CPU it is allowed to use, and how Android clocks it under load.
+        addSlider(rows, R.string.perf_resolution, R.string.perf_resolution_desc,
+                30, 100, () -> Math.round(LauncherPreferences.PREF_SCALE_FACTOR * 100f),
+                value -> {
+                    LauncherPreferences.PREF_SCALE_FACTOR = value / 100f;
+                    LauncherPreferences.DEFAULT_PREF.edit()
+                            .putInt("resolutionRatio", value).apply();
+                });
+        addSwitch(rows, R.string.perf_affinity, R.string.perf_affinity_desc,
+                () -> LauncherPreferences.PREF_BIG_CORE_AFFINITY,
+                on -> {
+                    LauncherPreferences.PREF_BIG_CORE_AFFINITY = on;
+                    LauncherPreferences.DEFAULT_PREF.edit()
+                            .putBoolean("bigCoreAffinity", on).apply();
+                });
+        addSwitch(rows, R.string.perf_sustained, R.string.perf_sustained_desc,
+                () -> LauncherPreferences.PREF_SUSTAINED_PERFORMANCE,
+                on -> {
+                    LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = on;
+                    LauncherPreferences.DEFAULT_PREF.edit()
+                            .putBoolean("sustainedPerformance", on).apply();
+                });
 
-        // ---- cheap visual wins ------------------------------------------------------
-        addSwitch(rows, R.string.perf_fast_graphics, R.string.perf_fast_graphics_desc,
-                () -> "0".equals(MCOptionUtils.get("graphicsMode")),
-                on -> {
-                    setOption("graphicsMode", on ? "0" : "1");
-                    setOption("fancyGraphics", on ? "false" : "true");
-                });
-        addSwitch(rows, R.string.perf_smooth_lighting, R.string.perf_smooth_lighting_desc,
-                () -> "false".equals(MCOptionUtils.get("ao")),
-                on -> setOption("ao", on ? "false" : "true"));
-        addSwitch(rows, R.string.perf_entity_shadows, R.string.perf_entity_shadows_desc,
-                () -> "false".equals(MCOptionUtils.get("entityShadows")),
-                on -> setOption("entityShadows", on ? "false" : "true"));
-        addSwitch(rows, R.string.perf_clouds, R.string.perf_clouds_desc,
-                () -> "false".equals(MCOptionUtils.get("renderClouds")),
-                on -> {
-                    setOption("renderClouds", on ? "false" : "true");
-                    setOption("cloudStatus", on ? "false" : "true");
-                });
-        addSwitch(rows, R.string.perf_particles, R.string.perf_particles_desc,
-                () -> "2".equals(MCOptionUtils.get("particles")),
-                on -> setOption("particles", on ? "2" : "0"));
         addSwitch(rows, R.string.perf_menu_blur, R.string.perf_menu_blur_desc,
                 () -> "0".equals(MCOptionUtils.get("menuBackgroundBlurriness")),
                 on -> setOption("menuBackgroundBlurriness", on ? "0" : "1"));
-        addSwitch(rows, R.string.perf_biome_blend, R.string.perf_biome_blend_desc,
-                () -> "0".equals(MCOptionUtils.get("biomeBlendRadius")),
-                on -> setOption("biomeBlendRadius", on ? "0" : "2"));
 
         // ---- the launcher's own smoothness ------------------------------------------
         addSwitch(rows, R.string.perf_smooth_launcher, R.string.perf_smooth_launcher_desc,
