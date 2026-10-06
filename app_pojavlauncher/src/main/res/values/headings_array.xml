@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="renderer">
+        <item>FearV1</item>
         <item>Mesa turnip</item>
         <item>Quasar</item>
         <item>@string/mcl_setting_renderer_ltw</item>
@@ -35,6 +36,7 @@
     </string-array>
     
     <string-array name="renderer_values">
+        <item>fear_v1</item> <!-- FearV1: MobileGlues GL->GLES3.2 layer + the Fear performance engine -->
         <item>turnip_zink</item> <!-- Turnip Zink: OSMesa-based Zink (GL→Vulkan via Mesa) -->
         <item>holy_zink_kopper</item> <!-- HolyZink: Mesa Zink+Kopper over system Vulkan -->
         <item>opengles3_ltw</item> <!-- LTW: OpenGL ES 3 (requires libltw.so) -->

@@ -39,6 +39,8 @@ public class RendererCompatUtil {
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
         // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        // FearV1 runs on MobileGlues, which is shipped as a native library
+        boolean appHasMobileGlues = new File(Tools.NATIVE_LIB_DIR, "libmobileglues.so").exists();
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
@@ -49,6 +51,7 @@ public class RendererCompatUtil {
                 continue;
             }
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
+            if(rendererId.equals("fear_v1") && !appHasMobileGlues) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
             rendererIds.add(rendererId);

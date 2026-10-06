@@ -164,6 +164,36 @@ public class JREUtils {
         }
     }
 
+    /**
+     * FearV1 runs on MobileGlues, which reads its own tuning file from
+     * /sdcard/MG/config.json. We only seed the keys we are confident about and
+     * leave the rest at MobileGlues' defaults, so a future release cannot be
+     * broken by a stale guess. Best-effort: without storage access this simply
+     * does nothing, and an existing file (the user's own tuning) is never
+     * overwritten.
+     */
+    private static void writeFearV1Profile() {
+        try {
+            File dir = new File(android.os.Environment.getExternalStorageDirectory(), "MG");
+            if (!dir.exists() && !dir.mkdirs()) return;
+            File cfg = new File(dir, "config.json");
+            if (cfg.exists()) {
+                Logger.appendToLog("[FearV1] Keeping the existing MobileGlues profile at " + cfg.getAbsolutePath());
+                return;
+            }
+            String json = "{\n"
+                    + "  \"enableNoError\": 1,\n"
+                    + "  \"maxGlslCacheSize\": 512\n"
+                    + "}\n";
+            try (FileOutputStream out = new FileOutputStream(cfg)) {
+                out.write(json.getBytes("UTF-8"));
+            }
+            Logger.appendToLog("[FearV1] Seeded the MobileGlues profile at " + cfg.getAbsolutePath());
+        } catch (Throwable t) {
+            Logger.appendToLog("[FearV1] Could not seed the MobileGlues profile: " + t);
+        }
+    }
+
     public static void setEnviroimentForGame(Context context, String renderer) throws Throwable {
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("LIBGL_MIPMAP", "3");
@@ -184,6 +214,25 @@ public class JREUtils {
             envMap.put("LIBGL_ES", "3");
             envMap.put("FEAREXEC_EGL", "libltw.so");
             envMap.put("FEAR_RENDERER", "opengles3_ltw");
+        }
+
+        if ("fear_v1".equals(renderer)) {
+            // FearV1: MobileGlues translates desktop OpenGL onto the phone's own
+            // GLES 3.2 driver, which on Mali is far cheaper than Zink's Vulkan
+            // round trip. These are the launcher-side half of the profile; the
+            // MobileGlues half lives in its own config file (see writeFearV1Profile).
+            Logger.appendToLog("[FearV1] Applying the performance profile (MobileGlues + Fear engine)...");
+            envMap.put("FEAR_RENDERER", "fear_v1");
+            envMap.put("LIBGL_ES", "3");
+            // Skip per-call GL error checking: pure overhead in a shipped game.
+            envMap.put("MESA_NO_ERROR", "1");
+            envMap.put("LIBGL_NOERROR", "1");
+            // Keep GL submission off the render thread so a busy frame cannot
+            // stall camera movement.
+            envMap.put("mesa_glthread", "true");
+            // Pin the game's hot threads onto the big cores.
+            envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
+            writeFearV1Profile();
         }
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -316,6 +365,12 @@ public class JREUtils {
                 bypassNamespace = true;
                 glesVersion = 3;
                 if(preloadVk) preloadVulkan();
+                break;
+            case "fear_v1":
+                Logger.appendToLog("[FearV1] Loading MobileGlues (GL->GLES3.2 translation) - libmobileglues.so...");
+                renderLibrary = "libmobileglues.so";
+                useGles = true;
+                glesVersion = 3;
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
