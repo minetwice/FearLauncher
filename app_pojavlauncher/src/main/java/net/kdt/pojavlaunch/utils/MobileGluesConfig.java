@@ -1,6 +1,7 @@
 package net.kdt.pojavlaunch.utils;
 
 import android.content.Context;
+import android.os.Environment;
 import android.system.Os;
 import android.util.Log;
 
@@ -39,7 +40,7 @@ public final class MobileGluesConfig {
      * already carry a config.json from an older build then receive the new tuning on
      * their next launch, while a config edited at the current version is preserved.
      */
-    private static final int PROFILE_VERSION = 3;
+    private static final int PROFILE_VERSION = 4;
 
     /**
      * The tuned profile. Keys and ranges are taken from MobileGlues'
@@ -60,7 +61,7 @@ public final class MobileGluesConfig {
     private static final String CONFIG_JSON =
             "{\n"
             + "  \"enableANGLE\": 0,\n"
-            + "  \"enableNoError\": 1,\n"
+            + "  \"enableNoError\": 2,\n"
             + "  \"enableExtComputeShader\": 1,\n"
             + "  \"enableExtTimerQuery\": 1,\n"
             + "  \"enableExtDirectStateAccess\": 1,\n"
@@ -110,6 +111,7 @@ public final class MobileGluesConfig {
 
             Os.setenv("MG_DIR_PATH", dir.getAbsolutePath(), true);
             Log.i(TAG, "MG_DIR_PATH set to " + dir.getAbsolutePath());
+            deleteLegacyExternalConfig();
         } catch (Throwable t) {
             Log.w(TAG, "Could not prepare the MobileGlues config; it will use its defaults", t);
         }
@@ -140,6 +142,32 @@ public final class MobileGluesConfig {
         } catch (Throwable t) {
             Log.w(TAG, "Could not set the MobileGlues FSR1 setting", t);
             return false;
+        }
+    }
+
+    /**
+     * Deletes the stale {@code <externalStorage>/MG/config.json} that older builds
+     * wrote. MobileGlues still reads that path and warns about its deprecated keys
+     * ({@code multidrawMode}/{@code multidrawDisableBackends}) even though the launcher
+     * no longer writes it. Only that one file is removed - never the directory, never
+     * anything else on external storage. Never throws: unreadable storage is logged
+     * and ignored.
+     */
+    private static void deleteLegacyExternalConfig() {
+        try {
+            File legacy = new File(new File(Environment.getExternalStorageDirectory(), "MG"),
+                    CONFIG_NAME);
+            if (legacy.isFile()) {
+                if (legacy.delete()) {
+                    Log.i(TAG, "Removed the stale external MobileGlues config at "
+                            + legacy.getAbsolutePath());
+                } else {
+                    Log.w(TAG, "Could not remove the stale external MobileGlues config at "
+                            + legacy.getAbsolutePath());
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not inspect the external MobileGlues config; continuing", t);
         }
     }
 

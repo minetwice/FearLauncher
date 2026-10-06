@@ -47,6 +47,7 @@ public class PerformanceFragment extends Fragment {
     /** Snapshot keys holding the values the profile overwrote, for a clean restore. */
     private static final String KEY_PVP_RENDERER = "pvp_prev_renderer";
     private static final String KEY_PVP_FORCE_VSYNC = "pvp_prev_force_vsync";
+    private static final String KEY_PVP_VSYNC_IN_ZINK = "pvp_prev_vsync_in_zink";
     private static final String KEY_PVP_OPTION_PREFIX = "pvp_prev_option_";
     /** Sentinel for an options.txt key that did not exist before the profile was enabled. */
     private static final String PVP_OPTION_ABSENT = "__pvp_absent__";
@@ -147,12 +148,19 @@ public class PerformanceFragment extends Fragment {
                 },
                 on -> setOption("maxFps", on ? "260" : "120"));
         addSwitch(rows, R.string.perf_vsync, R.string.perf_vsync_desc,
-                () -> "false".equals(MCOptionUtils.get("enableVsync")),
+                // Reads as ON only when the game option AND both launcher switches
+                // are off: FORCE_VSYNC alone is not enough, FEAR_VSYNC_IN_ZINK forces
+                // the swap interval independently and would cap the frame rate.
+                () -> "false".equals(MCOptionUtils.get("enableVsync"))
+                        && !LauncherPreferences.PREF_FORCE_VSYNC
+                        && !LauncherPreferences.PREF_VSYNC_IN_ZINK,
                 on -> {
                     setOption("enableVsync", on ? "false" : "true");
-                    LauncherPreferences.DEFAULT_PREF.edit()
-                            .putBoolean("force_vsync", !on).apply();
                     LauncherPreferences.PREF_FORCE_VSYNC = !on;
+                    LauncherPreferences.PREF_VSYNC_IN_ZINK = !on;
+                    LauncherPreferences.DEFAULT_PREF.edit()
+                            .putBoolean("force_vsync", !on)
+                            .putBoolean("vsync_in_zink", !on).apply();
                 });
 
         // ---- the levers the game cannot offer ---------------------------------------
@@ -241,6 +249,7 @@ public class PerformanceFragment extends Fragment {
                 android.content.SharedPreferences.Editor snapshot = pref.edit();
                 snapshot.putString(KEY_PVP_RENDERER, LauncherPreferences.PREF_RENDERER);
                 snapshot.putBoolean(KEY_PVP_FORCE_VSYNC, LauncherPreferences.PREF_FORCE_VSYNC);
+                snapshot.putBoolean(KEY_PVP_VSYNC_IN_ZINK, LauncherPreferences.PREF_VSYNC_IN_ZINK);
                 for (String key : PVP_OPTION_KEYS) {
                     String value = MCOptionUtils.get(key);
                     snapshot.putString(KEY_PVP_OPTION_PREFIX + key,
@@ -265,6 +274,10 @@ public class PerformanceFragment extends Fragment {
             // Keep the dashboard's VSync row and its backing preference consistent.
             LauncherPreferences.PREF_FORCE_VSYNC = false;
             pref.edit().putBoolean("force_vsync", false).apply();
+            // FEAR_VSYNC_IN_ZINK forces the swap interval on its own, so the profile
+            // must clear it too or the "uncapped" profile would still be capped.
+            LauncherPreferences.PREF_VSYNC_IN_ZINK = false;
+            pref.edit().putBoolean("vsync_in_zink", false).apply();
 
             // A very mild spatial upscale for a little extra headroom.
             MobileGluesConfig.setFsr1Setting(requireContext(), 1);
@@ -288,11 +301,16 @@ public class PerformanceFragment extends Fragment {
                     LauncherPreferences.PREF_FORCE_VSYNC);
             LauncherPreferences.PREF_FORCE_VSYNC = forceVsync;
             pref.edit().putBoolean("force_vsync", forceVsync).apply();
+            boolean vsyncInZink = pref.getBoolean(KEY_PVP_VSYNC_IN_ZINK,
+                    LauncherPreferences.PREF_VSYNC_IN_ZINK);
+            LauncherPreferences.PREF_VSYNC_IN_ZINK = vsyncInZink;
+            pref.edit().putBoolean("vsync_in_zink", vsyncInZink).apply();
 
             // Drop the snapshot and clear the flag.
             android.content.SharedPreferences.Editor cleanup = pref.edit();
             cleanup.remove(KEY_PVP_RENDERER);
             cleanup.remove(KEY_PVP_FORCE_VSYNC);
+            cleanup.remove(KEY_PVP_VSYNC_IN_ZINK);
             for (String key : PVP_OPTION_KEYS) cleanup.remove(KEY_PVP_OPTION_PREFIX + key);
             cleanup.putBoolean(KEY_PVP, false).apply();
         }
