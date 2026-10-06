@@ -381,9 +381,9 @@ public class MinecraftSkinView extends View {
         mFaceBitmaps[PART_CAPE][FACE_TOP] = cropFrom(mCapeBitmap, 1, 0, 10, 1, false);
         mFaceBitmaps[PART_CAPE][FACE_BOTTOM] = cropFrom(mCapeBitmap, 11, 0, 10, 1, false);
         mFaceBitmaps[PART_CAPE][FACE_RIGHT] = cropFrom(mCapeBitmap, 0, 1, 1, 16, false);
-        mFaceBitmaps[PART_CAPE][FACE_FRONT] = cropFrom(mCapeBitmap, 1, 1, 10, 16, false);
+        mFaceBitmaps[PART_CAPE][FACE_FRONT] = cropFrom(mCapeBitmap, 12, 1, 10, 16, false); // inner face (z = -2)
         mFaceBitmaps[PART_CAPE][FACE_LEFT] = cropFrom(mCapeBitmap, 11, 1, 1, 16, false);
-        mFaceBitmaps[PART_CAPE][FACE_BACK] = cropFrom(mCapeBitmap, 12, 1, 10, 16, false);
+        mFaceBitmaps[PART_CAPE][FACE_BACK]  = cropFrom(mCapeBitmap,  1, 1, 10, 16, false); // visible outer face (z = -3)
     }
 
     private Bitmap mirrorBitmap(Bitmap src) {

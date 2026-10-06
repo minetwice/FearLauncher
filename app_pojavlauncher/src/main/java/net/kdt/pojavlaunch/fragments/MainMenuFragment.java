@@ -1520,16 +1520,25 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    /** Guards the one cape fetch per home screen, however often the view is rebuilt. */
-    private boolean mCapeFetchStarted;
+    /** Minimum gap between cape re-fetches, so a website change reaches the preview on resume. */
+    private static final long SKIN_CAPE_REFRESH_INTERVAL_MS = 60_000L;
+    private long mLastSkinCapeRefreshMs;
+    /** The skin viewer dialog's preview, re-dressed when a background cape fetch lands. */
+    private com.kdt.mcgui.MinecraftSkinView mViewerPreview;
+
+    /** Cheap identity of the on-disk cape (last-modified + length), or 0 when there is none. */
+    private static long capeStamp(java.io.File f) {
+        return f == null ? 0L : (f.lastModified() * 31L + f.length());
+    }
 
     /**
      * Pulls the account's cape down once, off the main thread. The model is only re-loaded
      * if the fetch actually produced a file, so a failed or capless fetch changes nothing.
      */
     private void refreshCapeInBackground(final com.kdt.mcgui.MinecraftSkinView body) {
-        if (mCapeFetchStarted) return;
-        mCapeFetchStarted = true;
+        final long now = System.currentTimeMillis();
+        if (now - mLastSkinCapeRefreshMs < SKIN_CAPE_REFRESH_INTERVAL_MS) return;
+        mLastSkinCapeRefreshMs = now;
         // The cape is a garnish. Nothing in here may be allowed to disturb the skin, so a
         // failure just leaves the character without one.
         try {
@@ -1544,13 +1553,22 @@ public class MainMenuFragment extends Fragment {
 
             final String username = account.username;
             final String profileId = account.profileId;
+            // Snapshot the cape already on disk so an unchanged fetch stays a no-op and does
+            // not force the viewers to reload an identical texture.
+            final long beforeStamp =
+                    capeStamp(net.kdt.pojavlaunch.skins.FearSkinSync.resolveCapeFile(app));
             new Thread(() -> {
                 final java.io.File file = net.kdt.pojavlaunch.skins.FearSkinSync
                         .downloadCraftynCape(app, username, profileId);
                 if (file == null) return;
                 Tools.runOnUiThread(() -> {
                     try {
-                        body.loadCape(file.getAbsolutePath());
+                        java.io.File resolved =
+                                net.kdt.pojavlaunch.skins.FearSkinSync.resolveCapeFile(requireContext());
+                        if (capeStamp(resolved) == beforeStamp) return;
+                        String capePath = resolved != null ? resolved.getAbsolutePath() : null;
+                        body.loadCape(capePath);
+                        if (mViewerPreview != null) mViewerPreview.loadCape(capePath);
                     } catch (Throwable ignored) { }
                 });
             }, "fear-cape-refresh").start();
@@ -1668,6 +1686,7 @@ public class MainMenuFragment extends Fragment {
         final View content = getLayoutInflater().inflate(R.layout.dialog_skin_viewer, null);
         final com.kdt.mcgui.MinecraftSkinView preview = content.findViewById(R.id.viewer_skin);
         if (preview == null) return;
+        mViewerPreview = preview;
 
         final android.content.SharedPreferences prefs =
                 androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
@@ -1704,6 +1723,7 @@ public class MainMenuFragment extends Fragment {
                 { mCharacterPose = com.kdt.mcgui.MinecraftSkinView.POSE_FLY; preview.setPose(mCharacterPose); });
 
         dialog.setOnDismissListener(d -> {
+            mViewerPreview = null;
             // remember the model choice and refresh the home character
             prefs.edit()
                     .putString("active_skin_path", skinPath[0])
