@@ -16,6 +16,7 @@ import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.lifecycle.LifecycleAwareAlertDialog;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
+import net.kdt.pojavlaunch.utils.MobileGluesConfig;
 import net.kdt.pojavlaunch.multirt.Runtime;
 import net.kdt.pojavlaunch.plugins.LibraryPlugin;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -227,6 +228,13 @@ public class GameRunner {
         javaArgList.addAll(getMinecraftJVMArgs(versionId));
         javaArgList.addAll(JREUtils.parseJavaArguments(instance.getLaunchArgs()));
 
+        // FEAR: MobileGlues ships inside the APK, so point it at our own config
+        // dir before the native library is loaded - only for the renderer that
+        // uses it. Without MG_DIR_PATH MobileGlues overrides its config with the
+        // "unsupported launcher" defaults.
+        if (rendererName.equals("fear_v1") || rendererName.equals("opengles_mobileglues")) {
+            MobileGluesConfig.prepare(activity);
+        }
         JREUtils.setEnviroimentForGame(activity, rendererName);
         JREUtils.chdir(instance.getGameDirectory().getAbsolutePath());
 

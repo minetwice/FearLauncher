@@ -70,6 +70,34 @@ public class PerformanceFragment extends Fragment {
 
         LinearLayout rows = view.findViewById(R.id.perf_rows);
 
+        // ---- renderer ---------------------------------------------------------------
+        // MobileGlues now ships inside the APK, so this is a one-tap switch rather
+        // than a download. The row only appears when the native library is actually
+        // present - RendererCompatUtil hides fear_v1 otherwise.
+        if (net.kdt.pojavlaunch.utils.RendererCompatUtil
+                .getCompatibleRenderers(requireContext()).rendererIds.contains("fear_v1")) {
+            addSwitch(rows, R.string.perf_renderer_mobileglues, R.string.perf_renderer_mobileglues_desc,
+                    () -> "fear_v1".equals(LauncherPreferences.PREF_RENDERER),
+                    on -> {
+                        if (on) {
+                            String current = LauncherPreferences.PREF_RENDERER;
+                            if (!"fear_v1".equals(current)) {
+                                LauncherPreferences.DEFAULT_PREF.edit()
+                                        .putString("renderer_before_mobileglues", current).apply();
+                            }
+                            LauncherPreferences.PREF_RENDERER = "fear_v1";
+                            LauncherPreferences.DEFAULT_PREF.edit()
+                                    .putString("renderer", "fear_v1").apply();
+                        } else {
+                            String restore = LauncherPreferences.DEFAULT_PREF
+                                    .getString("renderer_before_mobileglues", "opengles3_ltw");
+                            LauncherPreferences.PREF_RENDERER = restore;
+                            LauncherPreferences.DEFAULT_PREF.edit()
+                                    .putString("renderer", restore).apply();
+                        }
+                    });
+        }
+
         // ---- camera -----------------------------------------------------------------
         addSwitch(rows, R.string.perf_smooth_camera, R.string.perf_smooth_camera_desc,
                 () -> "true".equals(MCOptionUtils.get("smoothCamera")),

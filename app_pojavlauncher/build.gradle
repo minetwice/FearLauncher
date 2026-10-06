@@ -358,3 +358,94 @@ tasks.matching {
 }.configureEach {
     dependsOn ':zalith-lwjgl:jar' /* lazy path form: app configures before zalith-lwjgl */
 }
+
+// FEAR: ship the MobileGlues renderer INSIDE the APK so the user downloads
+// nothing. MobileGlues (LGPL-2.1) is an OpenGL-on-OpenGL-ES translator, and the
+// only payload we need is lib/arm64-v8a/libmobileglues.so from its release APK.
+// Committing a 6 MB blob to git is not acceptable, so the binary is fetched at
+// build time and extracted into a generated jniLibs directory that the main
+// source set then packages. The fetch is best-effort: if the download or the
+// extraction fails we log a clear warning and carry on, and the app simply keeps
+// hiding the fear_v1 renderer (RendererCompatUtil only offers it when
+// libmobileglues.so exists), which is today's behaviour.
+def mobileGluesApkUrl = "https://github.com/MobileGL-Dev/MobileGlues-release/releases/download/V2.0.0/MobileGlues_2.0.0.apk"
+def mobileGluesDir = new File(project.projectDir, "build/mobileglues")
+def mobileGluesApk = new File(mobileGluesDir, "MobileGlues_2.0.0.apk")
+def mobileGluesJniLibsDir = new File(mobileGluesDir, "jniLibs")
+def mobileGluesSo = new File(mobileGluesJniLibsDir, "arm64-v8a/libmobileglues.so")
+
+// Package the generated native library directory alongside the checked-in ones.
+android.sourceSets.main.jniLibs.srcDirs += mobileGluesJniLibsDir.absolutePath
+
+// Downloads a URL to a file, following GitHub's release redirects by hand (the
+// default HttpURLConnection handling is not reliable across hosts).
+static def downloadFile(String url, File dest) {
+    int redirects = 0
+    while (redirects < 6) {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection()
+        conn.setInstanceFollowRedirects(false)
+        conn.setConnectTimeout(30000)
+        conn.setReadTimeout(120000)
+        conn.setRequestProperty("User-Agent", "FearLauncher-build")
+        conn.connect()
+        int code = conn.getResponseCode()
+        if (code >= 300 && code < 400) {
+            String location = conn.getHeaderField("Location")
+            conn.disconnect()
+            if (location == null) throw new IOException("Redirect without a Location header")
+            url = location
+            redirects++
+            continue
+        }
+        if (code != 200) throw new IOException("HTTP " + code + " fetching " + url)
+        dest.getParentFile().mkdirs()
+        dest.withOutputStream { OutputStream out ->
+            conn.getInputStream().withStream { InputStream input -> out << input }
+        }
+        conn.disconnect()
+        return
+    }
+    throw new IOException("Too many redirects fetching " + url)
+}
+
+def fetchMobileGlues = tasks.register("fetchMobileGluesNativeLib") {
+    group = "mobileglues"
+    description = "Downloads the MobileGlues APK and extracts libmobileglues.so into the app's jniLibs."
+    outputs.file(mobileGluesSo)
+    doLast {
+        if (mobileGluesSo.exists()) {
+            logger.lifecycle("MobileGlues: libmobileglues.so already extracted at ${mobileGluesSo}")
+            return
+        }
+        try {
+            if (!mobileGluesApk.exists()) {
+                logger.lifecycle("MobileGlues: downloading ${mobileGluesApkUrl}")
+                downloadFile(mobileGluesApkUrl, mobileGluesApk)
+            }
+            mobileGluesJniLibsDir.mkdirs()
+            def zipFile = new java.util.zip.ZipFile(mobileGluesApk)
+            try {
+                def entry = zipFile.getEntry("lib/arm64-v8a/libmobileglues.so")
+                if (entry == null) throw new IOException("lib/arm64-v8a/libmobileglues.so not found in ${mobileGluesApk}")
+                mobileGluesSo.getParentFile().mkdirs()
+                zipFile.getInputStream(entry).withStream { InputStream input ->
+                    mobileGluesSo.withOutputStream { OutputStream out -> out << input }
+                }
+            } finally {
+                zipFile.close()
+            }
+            logger.lifecycle("MobileGlues: placed ${mobileGluesSo} (${mobileGluesSo.length()} bytes) for packaging into the APK")
+        } catch (Throwable t) {
+            logger.warn("MobileGlues: could not fetch/extract libmobileglues.so, so the fear_v1 renderer will stay hidden. Cause: ${t}")
+        }
+    }
+}
+
+// Make every task that consumes jniLibs run after the fetch, so the .so is on
+// disk by the time the native libraries are merged and packaged into the APK.
+tasks.matching {
+    it.name == 'preBuild' ||
+            (it.name.startsWith('merge') && (it.name.endsWith('JniLibFolders') || it.name.endsWith('NativeLibs')))
+}.configureEach {
+    dependsOn fetchMobileGlues
+}

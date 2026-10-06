@@ -6,6 +6,8 @@
     <string name="perf_applied">Saved</string>
     <string name="perf_failed">Could not write the game options</string>
 
+    <string name="perf_renderer_mobileglues">Renderer: MobileGlues</string>
+    <string name="perf_renderer_mobileglues_desc">Highest FPS - built in, no download</string>
     <string name="perf_smooth_camera">Smooth camera</string>
     <string name="perf_smooth_camera_desc">The camera eases into turns instead of snapping, so fast mouse movement glides. Costs nothing.</string>
     <string name="perf_uncap_fps">Uncap frame rate</string>
