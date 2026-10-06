@@ -119,7 +119,17 @@ public class LauncherPreferences {
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
         PREF_USE_ALTERNATE_SURFACE = DEFAULT_PREF.getBoolean("alternate_surface", isDevicePowerful);
         PREF_JAVA_SANDBOX = DEFAULT_PREF.getBoolean("java_sandbox", true);
-        PREF_SCALE_FACTOR = DEFAULT_PREF.getInt("resolutionRatio", findBestResolution(ctx, isDevicePowerful))/100f;
+        float resolutionScale = DEFAULT_PREF.getInt("resolutionRatio",
+                findBestResolution(ctx, isDevicePowerful))/100f;
+        if (DEFAULT_PREF.getBoolean("performance_mode", true)) {
+            // Performance mode draws no more pixels than a 720-class surface. The number of
+            // pixels is by far the biggest lever on frame time on a phone, and this is the
+            // one place the launcher can cut it without touching the game's own settings.
+            // The resolution slider still lets you go lower than the cap.
+            float cap = findBestResolution(ctx, false) / 100f;
+            if (resolutionScale > cap) resolutionScale = cap;
+        }
+        PREF_SCALE_FACTOR = resolutionScale;
         PREF_ENABLE_GYRO = DEFAULT_PREF.getBoolean("enableGyro", false);
         PREF_GYRO_SENSITIVITY = ((float)DEFAULT_PREF.getInt("gyroSensitivity", 100))/100f;
         PREF_GYRO_SAMPLE_RATE = DEFAULT_PREF.getInt("gyroSampleRate", 16);

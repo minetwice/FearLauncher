@@ -47,6 +47,7 @@ public class FearPerformanceMode {
             set("entityDistanceScaling", "0.5");
             set("mipmapLevels", "2");
             set("improvedTransparency", "false");
+            set("biomeBlendRadius", "0");         // no per-face biome colour blending
 
             // The menu background blur re-renders the world into a smaller buffer and
             // filters it every frame. Through a GL translation layer on a phone that is
