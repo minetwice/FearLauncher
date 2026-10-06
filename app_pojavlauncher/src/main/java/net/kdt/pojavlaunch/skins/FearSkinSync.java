@@ -2,6 +2,8 @@ package net.kdt.pojavlaunch.skins;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
@@ -393,8 +395,12 @@ public final class FearSkinSync {
                 try (FileOutputStream out = new FileOutputStream(target)) {
                     out.write(bytes);
                 }
+                // Store the model the artwork was drawn for, not just the file. A slim skin
+                // left on the classic model stretches the arms and looks broken, and the
+                // preference is what both the menu character and the game's profile read.
                 PreferenceManager.getDefaultSharedPreferences(context).edit()
                         .putString(PREF_SKIN_PATH, target.getAbsolutePath())
+                        .putBoolean(PREF_SKIN_ALEX, detectSlim(target))
                         .apply();
                 Log.i(TAG, "Skin refreshed for " + username);
                 return true;
@@ -452,6 +458,55 @@ public final class FearSkinSync {
         }
         Log.i(TAG, "No cape for " + username + "; leaving the character capless");
         return null;
+    }
+
+    /**
+     * Works out whether a skin was drawn for the slim (Alex) arms or the classic (Steve)
+     * ones, because the atlas does not record it.
+     *
+     * The classic arm is four pixels wide and the slim arm three, so the extra column is
+     * painted in a classic skin and left fully transparent in a slim one. Reading those
+     * columns is the accepted test. A legacy 64x32 file predates slim entirely, so it is
+     * always classic.
+     *
+     * It is a heuristic, not metadata: an artist who deliberately erased the outer arm
+     * column will read as slim, which is why the viewer still offers the two models by hand.
+     */
+    public static boolean detectSlim(File skinFile) {
+        if (skinFile == null || !skinFile.isFile() || skinFile.length() == 0) return false;
+        Bitmap bmp = null;
+        try {
+            bmp = BitmapFactory.decodeFile(skinFile.getAbsolutePath());
+            if (bmp == null) return false;
+            int w = bmp.getWidth();
+            int h = bmp.getHeight();
+            if (w < 64 || h < 64) return false;
+            int scale = Math.max(1, w / 64);
+
+            // Right arm: the two columns a three-pixel arm never uses (x 54..56, y 20..32).
+            for (int x = 54; x <= 55; x++) {
+                for (int y = 20; y < 32; y++) {
+                    if (isOpaque(bmp, x * scale, y * scale)) return false;
+                }
+            }
+            // Left arm: the same columns in its own part of the atlas (x 46..48, y 52..64).
+            for (int x = 46; x <= 47; x++) {
+                for (int y = 52; y < 64; y++) {
+                    if (isOpaque(bmp, x * scale, y * scale)) return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            Log.w(TAG, "Could not read the skin model", e);
+            return false;
+        } finally {
+            if (bmp != null) bmp.recycle();
+        }
+    }
+
+    private static boolean isOpaque(Bitmap bmp, int x, int y) {
+        if (x < 0 || y < 0 || x >= bmp.getWidth() || y >= bmp.getHeight()) return false;
+        return ((bmp.getPixel(x, y) >>> 24) != 0);
     }
 
     /** The cape file to draw in the launcher, or null when there is none on disk. */

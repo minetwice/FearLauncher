@@ -121,7 +121,14 @@ public class MainMenuFragment extends Fragment {
                             inputStream.close();
 
                             android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext());
-                            prefs.edit().putString("active_skin_path", destFile.getAbsolutePath()).apply();
+                            // Import the model too: a slim skin left on the classic model has
+                            // stretched arms, and nothing else in the launcher works it out.
+                            boolean importedSlim = net.kdt.pojavlaunch.skins.FearSkinSync
+                                    .detectSlim(destFile);
+                            prefs.edit()
+                                    .putString("active_skin_path", destFile.getAbsolutePath())
+                                    .putBoolean("active_skin_is_alex", importedSlim)
+                                    .apply();
 
                             Toast.makeText(requireContext(), "Skin imported and set as active!", Toast.LENGTH_SHORT).show();
 
