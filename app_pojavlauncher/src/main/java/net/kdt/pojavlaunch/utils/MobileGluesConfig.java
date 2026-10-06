@@ -39,7 +39,7 @@ public final class MobileGluesConfig {
      * already carry a config.json from an older build then receive the new tuning on
      * their next launch, while a config edited at the current version is preserved.
      */
-    private static final int PROFILE_VERSION = 2;
+    private static final int PROFILE_VERSION = 3;
 
     /**
      * The tuned profile. Keys and ranges are taken from MobileGlues'
@@ -60,7 +60,7 @@ public final class MobileGluesConfig {
     private static final String CONFIG_JSON =
             "{\n"
             + "  \"enableANGLE\": 0,\n"
-            + "  \"enableNoError\": 0,\n"
+            + "  \"enableNoError\": 1,\n"
             + "  \"enableExtComputeShader\": 1,\n"
             + "  \"enableExtTimerQuery\": 1,\n"
             + "  \"enableExtDirectStateAccess\": 1,\n"

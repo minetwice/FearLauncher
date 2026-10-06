@@ -140,6 +140,8 @@ public final class LagWatch {
         int thermalStatus = -1;
         double fps = -1;
         String frameMarker = "";
+        long gcRunDelta, gcMsDelta;
+        List<String> logLines = new ArrayList<>();
     }
 
     private static void loop(Context context, File gameDir) {
@@ -158,6 +160,7 @@ public final class LagWatch {
         long lastWall = 0L;
         Map<Integer, Long> lastThreadJiffies = new LinkedHashMap<>();
         long lastPartial = 0L;
+        long lastGcRuns = -1L, lastGcMs = -1L;
         String started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date());
 
         while (sRunning) {
@@ -185,6 +188,13 @@ public final class LagWatch {
                     } catch (Throwable ignored) { }
                 }
 
+                if (lastGcRuns >= 0) {
+                    s.gcRunDelta = s.gcRuns - lastGcRuns;
+                    s.gcMsDelta = s.gcMs - lastGcMs;
+                }
+                lastGcRuns = s.gcRuns;
+                lastGcMs = s.gcMs;
+
                 long cpuJiffies = readCpuJiffies();
                 if (lastCpuJiffies >= 0 && lastWall > 0 && cpuJiffies >= 0) {
                     long dj = cpuJiffies - lastCpuJiffies;
@@ -209,7 +219,7 @@ public final class LagWatch {
                 // the most common line shape this window, preferring a shape that looks
                 // like a known frame marker, and divide by the window length.
                 FrameTally tally = new FrameTally();
-                for (LogTail t : tails) t.read(counts, firstExample, tally);
+                for (LogTail t : tails) t.read(counts, firstExample, tally, s.logLines);
                 if (tally.total > 0 && lastWall > 0) {
                     s.fps = tally.fpsFor(SAMPLE_INTERVAL_MS / 1000.0);
                     s.frameMarker = tally.bestShape();
@@ -243,7 +253,8 @@ public final class LagWatch {
 
         LogTail(File file) { this.file = file; }
 
-        void read(Map<String, Integer> counts, Map<String, String> first, FrameTally tally) {
+        void read(Map<String, Integer> counts, Map<String, String> first, FrameTally tally,
+                  List<String> dipLines) {
             try {
                 if (!file.isFile()) return;
                 long size = file.length();
@@ -255,6 +266,9 @@ public final class LagWatch {
                     while ((line = raf.readLine()) != null) {
                         note(line, counts, first);
                         tally.add(line);
+                        if (dipLines != null && dipLines.size() < MAX_DIP_LOG_LINES && isDipWorthy(line)) {
+                            dipLines.add(line.length() > 200 ? line.substring(0, 200) : line);
+                        }
                     }
                 }
                 offset = size;
@@ -522,6 +536,7 @@ public final class LagWatch {
             sb.append('\n');
 
             Analysis a = analyse(samples, counts);
+            List<Dip> dips = findDips(samples);
 
             // -- what actually looked wrong --
             sb.append("VERDICT\n");
@@ -533,6 +548,7 @@ public final class LagWatch {
             } else {
                 for (String f : a.findings) sb.append("  - ").append(f).append('\n');
             }
+            sb.append(dipVerdictLine(dips)).append('\n');
             sb.append('\n');
 
             // -- measured numbers --
@@ -581,6 +597,9 @@ public final class LagWatch {
             }
             sb.append('\n');
 
+            // -- dip trace: what was happening at each frame-rate dip --
+            writeDipTrace(sb, dips);
+
             // -- raw evidence --
             sb.append("SAMPLES\n");
             sb.append("-------\n");
@@ -603,6 +622,155 @@ public final class LagWatch {
         } catch (Throwable t) {
             Log.w(TAG, "could not write the report", t);
         }
+    }
+
+    // ---- dip trace --------------------------------------------------------------------
+
+    /**
+     * A sample is a "dip" when its measured frame rate is far below what the session has
+     * been managing: {@code fps <= max(5, running median fps * 0.4)}. The running median is
+     * taken over the samples before this one, so a stall cannot lower its own threshold,
+     * and at least {@link #MIN_DIP_HISTORY} samples must have been measured first so the
+     * median is meaningful.
+     */
+    private static final int MIN_DIP_HISTORY = 3;
+    private static final int MAX_DIP_LOG_LINES = 5;
+
+    /** Extra words (beyond {@link #SIGNATURES}) that make a log line worth attaching. */
+    private static final String[] DIP_EXTRA_KEYWORDS = {
+            "Exception", "ERROR", "Failed to load", "shader", "texture", "mixin", "OutOfMemory"
+    };
+
+    /** One recorded frame-rate dip and the log evidence that fell in its window. */
+    private static final class Dip {
+        Sample sample;
+        long sincePrevDipMs = -1L;
+        final List<String> logLines = new ArrayList<>();
+        boolean shaderTextureMixin;
+    }
+
+    /** True when a log line names a known stutter cause or a dip-relevant keyword. */
+    private static boolean isDipWorthy(String line) {
+        if (line == null) return false;
+        String lower = line.toLowerCase(Locale.US);
+        for (String[] sig : SIGNATURES) {
+            if (lower.contains(sig[0].toLowerCase(Locale.US))) return true;
+        }
+        for (String kw : DIP_EXTRA_KEYWORDS) {
+            if (lower.contains(kw.toLowerCase(Locale.US))) return true;
+        }
+        return false;
+    }
+
+    private static boolean mentionsShaderTextureOrMixin(String line) {
+        if (line == null) return false;
+        String lower = line.toLowerCase(Locale.US);
+        return lower.contains("shader") || lower.contains("texture") || lower.contains("mixin");
+    }
+
+    private static double median(List<Double> values) {
+        List<Double> copy = new ArrayList<>(values);
+        copy.sort(null);
+        int n = copy.size();
+        if (n == 0) return -1;
+        return n % 2 == 1 ? copy.get(n / 2) : (copy.get(n / 2 - 1) + copy.get(n / 2)) / 2.0;
+    }
+
+    /** Walks the samples in order and returns every frame-rate dip, with its log window. */
+    private static List<Dip> findDips(List<Sample> samples) {
+        List<Dip> dips = new ArrayList<>();
+        try {
+            List<Double> history = new ArrayList<>();
+            Dip previous = null;
+            for (Sample s : samples) {
+                if (s.fps < 0) continue;
+                if (history.size() >= MIN_DIP_HISTORY) {
+                    double threshold = Math.max(5.0, median(history) * 0.4);
+                    if (s.fps <= threshold) {
+                        Dip d = new Dip();
+                        d.sample = s;
+                        if (previous != null) d.sincePrevDipMs = s.wallMs - previous.sample.wallMs;
+                        int taken = 0;
+                        for (String line : s.logLines) {
+                            if (taken >= MAX_DIP_LOG_LINES) break;
+                            d.logLines.add(line);
+                            taken++;
+                        }
+                        for (String line : d.logLines) {
+                            if (mentionsShaderTextureOrMixin(line)) {
+                                d.shaderTextureMixin = true;
+                                break;
+                            }
+                        }
+                        dips.add(d);
+                        previous = d;
+                    }
+                }
+                history.add(s.fps);
+            }
+        } catch (Throwable ignored) { }
+        return dips;
+    }
+
+    /** One VERDICT line: how many dips, and how many lined up with a shader/texture/mixin. */
+    private static String dipVerdictLine(List<Dip> dips) {
+        if (dips.isEmpty()) {
+            return "  - No frame-rate dips were detected this session.";
+        }
+        int coincident = 0;
+        for (Dip d : dips) {
+            if (d.shaderTextureMixin) coincident++;
+        }
+        return String.format(Locale.US,
+                "  - %d dips recorded; %d of them coincided with a shader/texture/mixin log line.",
+                dips.size(), coincident);
+    }
+
+    /** The min-max core clock range in kHz, matching the SAMPLES table's formatting. */
+    private static String coreRange(Sample s) {
+        if (s.coreFreqKhz.length == 0) return "n/a";
+        int max = 0, min = Integer.MAX_VALUE;
+        for (int f : s.coreFreqKhz) {
+            if (f <= 0) continue;
+            max = Math.max(max, f);
+            min = Math.min(min, f);
+        }
+        if (min == Integer.MAX_VALUE) return "n/a";
+        return (min / 1000) + "-" + (max / 1000) + " kHz";
+    }
+
+    private static void writeDipTrace(StringBuilder sb, List<Dip> dips) {
+        sb.append("DIP TRACE\n");
+        sb.append("---------\n");
+        sb.append("  rule: a sample is a dip when fps <= max(5, running median fps * 0.4)\n");
+        if (dips.isEmpty()) {
+            sb.append("  No frame-rate dips were detected this session.\n");
+            sb.append('\n');
+            return;
+        }
+        SimpleDateFormat hms = new SimpleDateFormat("HH:mm:ss", Locale.US);
+        for (int i = 0; i < dips.size(); i++) {
+            Dip d = dips.get(i);
+            Sample s = d.sample;
+            sb.append(String.format(Locale.US,
+                    "  #%d  %s  fps %.0f  cpu %s  cores %s  gc +%d runs/+%d ms  threads %d  since prev dip %s\n",
+                    i + 1,
+                    hms.format(new Date(s.wallMs)),
+                    s.fps,
+                    s.cpuPct < 0 ? "-" : String.format(Locale.US, "%.0f%%", s.cpuPct),
+                    coreRange(s),
+                    s.gcRunDelta, s.gcMsDelta,
+                    s.threads,
+                    d.sincePrevDipMs < 0 ? "-" : String.format(Locale.US, "%.1f s", d.sincePrevDipMs / 1000.0)));
+            if (d.logLines.isEmpty()) {
+                sb.append("      log: (no matching game-log line in this window)\n");
+            } else {
+                for (String line : d.logLines) {
+                    sb.append("      log: ").append(line.trim()).append('\n');
+                }
+            }
+        }
+        sb.append('\n');
     }
 
     private static void writeBoth(String text) {
