@@ -77,7 +77,7 @@
     <string name="runtime_error_title">Runtime not available</string>
     <string name="search_modpack_error">Failed to find modpacks</string>
     <string name="search_modpack_no_result">No modpacks found</string>
-    <string name="social_media_invite" translatable="false">https://discord.gg/9xBZSNG3Uc</string>
+    <string name="social_media_invite" translatable="false">https://discord.gg/b3uj4YPYAu</string>
     <string name="vml_err_detached">Thread is detached from the Java VM</string>
     <string name="vml_err_exists">The VM is already loaded</string>
     <string name="vml_err_inval">Bad arguments</string>

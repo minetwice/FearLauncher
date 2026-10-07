@@ -496,7 +496,7 @@ public class MainMenuFragment extends Fragment {
             case 3:
             default:
                 text = "Join Hellzior's Discord";
-                url = "https://discord.gg/bsGtVV5sk";
+                url = "https://discord.gg/yjuax9fh5w";
                 isDiscord = true;
                 break;
         }
@@ -743,7 +743,7 @@ public class MainMenuFragment extends Fragment {
                     v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/NGMjxn9a7"));
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/b3uj4YPYAu"));
                         startActivity(intent);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -756,7 +756,7 @@ public class MainMenuFragment extends Fragment {
                     v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/bsGtVV5sk"));
+                        Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/yjuax9fh5w"));
                         startActivity(intent);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -850,7 +850,7 @@ public class MainMenuFragment extends Fragment {
     private void bindSocialButtons(View view) {
         View discord = view.findViewById(R.id.social_discord_btn);
         if (discord != null) discord.setOnClickListener(v -> {
-            try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/9xBZSNG3Uc"))); } catch (Throwable ignored) {}
+            try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://discord.gg/b3uj4YPYAu"))); } catch (Throwable ignored) {}
         });
         View tg = view.findViewById(R.id.social_youtube_btn);
         if (tg != null) tg.setOnClickListener(v -> {
