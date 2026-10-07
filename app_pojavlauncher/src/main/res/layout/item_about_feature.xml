@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One feature row on the About screen: a bold title over a muted description. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/premium_glass_black_bg"
+    android:padding="@dimen/_12sdp"
+    android:layout_marginBottom="@dimen/_6sdp">
+
+    <View
+        android:layout_width="@dimen/_3sdp"
+        android:layout_height="@dimen/_32sdp"
+        android:background="#FF2B3A"
+        android:layout_marginEnd="@dimen/_10sdp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/about_feature_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_11ssp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/about_feature_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="#8A93A0"
+            android:textSize="@dimen/_8ssp"
+            android:lineSpacingExtra="1dp" />
+    </LinearLayout>
+</LinearLayout>

@@ -315,6 +315,17 @@
                     android:elevation="@dimen/_6sdp"
                     android:stateListAnimator="@null"
                     android:layout_marginBottom="@dimen/_8sdp" />
+                <com.kdt.mcgui.LauncherMenuButton
+                    android:id="@+id/tray_about_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_46sdp"
+                    android:text="@string/about_entry"
+                    android:drawableStart="@drawable/ic_side_about"
+                    android:drawableTint="#FFFFFF"
+                    android:background="@null"
+                    android:elevation="@dimen/_6sdp"
+                    android:stateListAnimator="@null"
+                    android:layout_marginBottom="@dimen/_8sdp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

@@ -99,4 +99,42 @@
     <string name="xerr_not_available">Xbox Live is not available in your country</string>
     <string name="xerr_unknown">Unknown Xbox Live API error %d</string>
     <string name="fear_manage_files">MANAGE FILES</string>
+
+    <!-- About Us dashboard -->
+    <string name="about_entry">ABOUT US</string>
+    <string name="about_title">ABOUT US</string>
+    <string name="about_back">BACK</string>
+    <string name="about_app_name">FEAR LAUNCHER</string>
+    <string name="about_version_format">Version %1$s</string>
+    <string name="about_description">FearLauncher is a community-made launcher that runs Minecraft: Java Edition on Android. It tunes the renderer for your device, keeps the frame rate high, and keeps your instances, mods, skins and accounts in one place.</string>
+
+    <string name="about_features_title">WHAT\'S INSIDE</string>
+    <string name="about_feature_renderer_title">MobileGlues-free LTW renderer tuning</string>
+    <string name="about_feature_renderer_desc">Ships an OpenGL ES 3 (LTW) path and a Mesa-based wrapper that supports shaders without MobileGlues, so the game runs without the old plugin stack.</string>
+    <string name="about_feature_performance_title">Performance dashboard</string>
+    <string name="about_feature_performance_desc">One screen of real levers - render distance, simulation distance, frame limits and more - plus a self-tuning render resolution that steers toward a high frame rate between sessions.</string>
+    <string name="about_feature_pvp_title">Smooth PvP profile</string>
+    <string name="about_feature_pvp_desc">A single switch that applies a stutter-free recipe for combat, and restores your previous settings when you turn it off.</string>
+    <string name="about_feature_quality_title">Graphics quality tiers</string>
+    <string name="about_feature_quality_desc">Low, Balanced or High - one tap sets the instance\'s graphics options as a coherent bundle, with Iris shaders detected and handled.</string>
+    <string name="about_feature_skin_title">Per-account skin and cape</string>
+    <string name="about_feature_skin_desc">Import your own skin and cape; CustomSkinLoader integration shows them on any server, with CraftynMC resolving other players by username.</string>
+    <string name="about_feature_accounts_title">Multiple account types</string>
+    <string name="about_feature_accounts_desc">CraftynMC accounts sit alongside Microsoft and offline (local) accounts, so you can use the one you already have.</string>
+    <string name="about_feature_instances_title">Instances and modpacks</string>
+    <string name="about_feature_instances_desc">Create and switch instances, and install mods and modpacks from a built-in browser, with the mod loader handled for you.</string>
+
+    <string name="about_credits_title">CREDITS</string>
+    <string name="about_credit_twicefear_name">Twicefear</string>
+    <string name="about_credit_twicefear_role">Owner - built the most of this launcher</string>
+    <string name="about_credit_twicefear_initial">T</string>
+    <string name="about_credit_hellzior_name">Hellzior</string>
+    <string name="about_credit_hellzior_role">Co-owner</string>
+    <string name="about_credit_hellzior_initial">H</string>
+    <string name="about_credit_crazy_name">Its_crazy_plays</string>
+    <string name="about_credit_crazy_role">Manager - contributed ideas and motivation</string>
+    <string name="about_credit_crazy_initial">I</string>
+    <string name="about_link_youtube">YouTube</string>
+    <string name="about_link_discord">Discord</string>
+    <string name="about_footer">FearLauncher %1$s - community-made, and not affiliated with Mojang or Microsoft.</string>
 </resources>

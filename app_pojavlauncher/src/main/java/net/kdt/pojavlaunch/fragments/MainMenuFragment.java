@@ -296,7 +296,8 @@ public class MainMenuFragment extends Fragment {
         // through @color/icon_outline_color. Tint the drawables white directly.
         for (int trayIconId : new int[]{
                 R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
-                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn}) {
+                R.id.tray_more_btn, R.id.tray_manager_btn, R.id.tray_logs_btn,
+                R.id.tray_about_btn}) {
             View row = view.findViewById(trayIconId);
             if (!(row instanceof android.widget.TextView)) continue;
             for (android.graphics.drawable.Drawable d
@@ -308,7 +309,7 @@ public class MainMenuFragment extends Fragment {
         // Selection bar: moves on touch, starts on Installations.
         final int[] trayRowIds = {R.id.tray_installations_btn, R.id.tray_jar_btn,
                 R.id.tray_controls_btn, R.id.tray_manager_btn, R.id.tray_more_btn,
-                R.id.tray_logs_btn};
+                R.id.tray_logs_btn, R.id.tray_about_btn};
         for (int id : trayRowIds) {
             View row = view.findViewById(id);
             if (row == null) continue;
@@ -422,6 +423,16 @@ public class MainMenuFragment extends Fragment {
             });
         }
 
+        View trayAbout = view.findViewById(R.id.tray_about_btn);
+        if (trayAbout != null) {
+            trayAbout.setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                net.kdt.pojavlaunch.SoundManager.playClick();
+                collapseTray(settingsTray);
+                Tools.swapFragment(requireActivity(), AboutFragment.class, AboutFragment.TAG, null);
+            });
+        }
+
         // Setup custom looping advancement announcements (Step 3)
         mAnnouncementHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         mAnnouncementRunnable = new java.lang.Runnable() {
@@ -479,7 +490,7 @@ public class MainMenuFragment extends Fragment {
                 break;
             case 2:
                 text = "Join Twicefear's Discord";
-                url = "https://discord.gg/NGMjxn9a7";
+                url = "https://discord.gg/b3uj4YPYAu";
                 isDiscord = true;
                 break;
             case 3:
@@ -884,7 +895,8 @@ public class MainMenuFragment extends Fragment {
     private void markTrayActive(View root, int activeId) {
         if (root == null) return;
         int[] ids = {R.id.tray_installations_btn, R.id.tray_jar_btn, R.id.tray_controls_btn,
-                R.id.tray_manager_btn, R.id.tray_more_btn, R.id.tray_logs_btn};
+                R.id.tray_manager_btn, R.id.tray_more_btn, R.id.tray_logs_btn,
+                R.id.tray_about_btn};
         for (int id : ids) {
             View v = root.findViewById(id);
             if (v == null) continue;

@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FEAR LAUNCHER - About Us dashboard (credits + feature overview) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0C14">
+
+    <!-- == TOP BAR == -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/_12sdp">
+
+        <com.kdt.mcgui.MineButton
+            android:id="@+id/about_back"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_32sdp"
+            android:text="@string/about_back"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_9ssp"
+            android:background="@drawable/premium_glass_black_bg" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:text="@string/about_title"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_14ssp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/_10sdp"
+            android:paddingEnd="@dimen/_10sdp"
+            android:paddingBottom="@dimen/_24sdp">
+
+            <!-- == HEADER CARD == -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="@dimen/_16sdp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="@dimen/_46sdp"
+                        android:layout_height="@dimen/_46sdp"
+                        android:background="@drawable/theme_button_bg"
+                        android:padding="@dimen/_6sdp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_app_logo"
+                            android:scaleType="fitCenter"
+                            android:contentDescription="@null" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="@dimen/_12sdp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/about_app_name"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_16ssp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.06" />
+
+                        <TextView
+                            android:id="@+id/about_version"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="#FF4D5E"
+                            android:textSize="@dimen/_9ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/about_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_12sdp"
+                    android:text="@string/about_description"
+                    android:textColor="#C7CDD6"
+                    android:textSize="@dimen/_10ssp"
+                    android:lineSpacingExtra="2dp" />
+            </LinearLayout>
+
+            <!-- == FEATURES == -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
+                android:text="@string/about_features_title"
+                android:textColor="#FF4D5E"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <LinearLayout
+                android:id="@+id/about_features"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- == CREDITS == -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
+                android:text="@string/about_credits_title"
+                android:textColor="#FF4D5E"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <!-- Twicefear -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="@dimen/_12sdp"
+                android:layout_marginBottom="@dimen/_6sdp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="@dimen/_40sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        app:cardCornerRadius="@dimen/_20sdp"
+                        app:cardBackgroundColor="#26FF2B3A"
+                        app:cardElevation="0dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/about_credit_twicefear_initial"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_16ssp"
+                            android:textStyle="bold" />
+                    </androidx.cardview.widget.CardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="@dimen/_12sdp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/about_credit_twicefear_name"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/about_credit_twicefear_role"
+                            android:textColor="#FF4D5E"
+                            android:textSize="@dimen/_8ssp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="@dimen/_10sdp">
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/credit_twicefear_youtube"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="@dimen/_34sdp"
+                        android:text="@string/about_link_youtube"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/theme_button_bg" />
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/credit_twicefear_discord"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="@dimen/_34sdp"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:text="@string/about_link_discord"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/theme_button_bg" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Hellzior -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="@dimen/_12sdp"
+                android:layout_marginBottom="@dimen/_6sdp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="@dimen/_40sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        app:cardCornerRadius="@dimen/_20sdp"
+                        app:cardBackgroundColor="#26FF2B3A"
+                        app:cardElevation="0dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/about_credit_hellzior_initial"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_16ssp"
+                            android:textStyle="bold" />
+                    </androidx.cardview.widget.CardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="@dimen/_12sdp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/about_credit_hellzior_name"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/about_credit_hellzior_role"
+                            android:textColor="#FF4D5E"
+                            android:textSize="@dimen/_8ssp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="@dimen/_10sdp">
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/credit_hellzior_youtube"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="@dimen/_34sdp"
+                        android:text="@string/about_link_youtube"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/theme_button_bg" />
+
+                    <com.kdt.mcgui.MineButton
+                        android:id="@+id/credit_hellzior_discord"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="@dimen/_34sdp"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:text="@string/about_link_discord"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/_9ssp"
+                        android:background="@drawable/theme_button_bg" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Its_crazy_plays (no public links) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/premium_glass_black_bg"
+                android:padding="@dimen/_12sdp"
+                android:layout_marginBottom="@dimen/_6sdp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="@dimen/_40sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        app:cardCornerRadius="@dimen/_20sdp"
+                        app:cardBackgroundColor="#26FF2B3A"
+                        app:cardElevation="0dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/about_credit_crazy_initial"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_16ssp"
+                            android:textStyle="bold" />
+                    </androidx.cardview.widget.CardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="@dimen/_12sdp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/about_credit_crazy_name"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/about_credit_crazy_role"
+                            android:textColor="#FF4D5E"
+                            android:textSize="@dimen/_8ssp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- == FOOTER == -->
+            <TextView
+                android:id="@+id/about_footer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:gravity="center"
+                android:textColor="#8A93A0"
+                android:textSize="@dimen/_8ssp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

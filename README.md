@@ -2,7 +2,7 @@
 
 <a href="./README_RU.md">Readme на русском</a>
 
-<img src="./app_pojavlauncher/src/main/assets/pojavlauncher.png" align="left" width="150" height="150" alt="FearLauncher logo">
+<img src="./app_pojavlauncher/src/main/res/drawable/fear_logo.png" align="left" width="150" height="150" alt="FearLauncher logo">
 
 [![Android CI](https://github.com/FearLauncher/FearLauncher/workflows/Android%20CI/badge.svg)](https://github.com/FearLauncher/FearLauncher/actions)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/FearLauncher/FearLauncher)](https://github.com/FearLauncher/FearLauncher/actions)
