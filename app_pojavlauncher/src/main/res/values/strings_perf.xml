@@ -6,8 +6,6 @@
     <string name="perf_applied">Saved</string>
     <string name="perf_failed">Could not write the game options</string>
 
-    <string name="perf_renderer_mobileglues">Renderer: MobileGlues</string>
-    <string name="perf_renderer_mobileglues_desc">Highest FPS - built in, no download</string>
     <string name="perf_smooth_camera">Smooth camera</string>
     <string name="perf_smooth_camera_desc">The camera eases into turns instead of snapping, so fast mouse movement glides. Costs nothing.</string>
     <string name="perf_uncap_fps">Uncap frame rate</string>
@@ -48,7 +46,4 @@
     <string name="perf_pvp_profile">Smooth PvP profile</string>
     <string name="perf_pvp_profile_desc">Kills micro-stutter in fights - recommended. Game options apply on your next launch.</string>
     <string name="perf_pvp_applied">Smooth PvP profile on - game options apply on your next launch</string>
-    <string name="perf_fsr1">FSR1 upscaling</string>
-    <string name="perf_fsr1_desc">UltraQuality spatial upscale for a little extra headroom. Applies on your next launch.</string>
-    <string name="perf_fsr1_toast">FSR1 setting saved - applies on your next launch</string>
 </resources>

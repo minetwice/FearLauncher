@@ -22,7 +22,6 @@ import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
-import net.kdt.pojavlaunch.utils.MobileGluesConfig;
 
 import java.io.File;
 import java.util.Locale;
@@ -94,46 +93,6 @@ public class PerformanceFragment extends Fragment {
         addSwitch(rows, R.string.perf_pvp_profile, R.string.perf_pvp_profile_desc,
                 () -> LauncherPreferences.DEFAULT_PREF.getBoolean(KEY_PVP, false),
                 this::setSmoothPvpProfile);
-
-        // FSR1 spatial upscaling. Independent of the profile above; the profile turns it
-        // to UltraQuality, while this row lets the player pick Off or UltraQuality direct.
-        addSwitch(rows, R.string.perf_fsr1, R.string.perf_fsr1_desc,
-                () -> LauncherPreferences.DEFAULT_PREF.getInt("fsr1_setting", 0) == 1,
-                on -> {
-                    MobileGluesConfig.setFsr1Setting(requireContext(), on ? 1 : 0);
-                    LauncherPreferences.DEFAULT_PREF.edit()
-                            .putInt("fsr1_setting", on ? 1 : 0).apply();
-                    Toast.makeText(getContext(), R.string.perf_fsr1_toast,
-                            Toast.LENGTH_LONG).show();
-                });
-
-        // ---- renderer ---------------------------------------------------------------
-        // MobileGlues now ships inside the APK, so this is a one-tap switch rather
-        // than a download. The row only appears when the native library is actually
-        // present - RendererCompatUtil hides fear_v1 otherwise.
-        if (net.kdt.pojavlaunch.utils.RendererCompatUtil
-                .getCompatibleRenderers(requireContext()).rendererIds.contains("fear_v1")) {
-            addSwitch(rows, R.string.perf_renderer_mobileglues, R.string.perf_renderer_mobileglues_desc,
-                    () -> "fear_v1".equals(LauncherPreferences.PREF_RENDERER),
-                    on -> {
-                        if (on) {
-                            String current = LauncherPreferences.PREF_RENDERER;
-                            if (!"fear_v1".equals(current)) {
-                                LauncherPreferences.DEFAULT_PREF.edit()
-                                        .putString("renderer_before_mobileglues", current).apply();
-                            }
-                            LauncherPreferences.PREF_RENDERER = "fear_v1";
-                            LauncherPreferences.DEFAULT_PREF.edit()
-                                    .putString("renderer", "fear_v1").apply();
-                        } else {
-                            String restore = LauncherPreferences.DEFAULT_PREF
-                                    .getString("renderer_before_mobileglues", "opengles3_ltw");
-                            LauncherPreferences.PREF_RENDERER = restore;
-                            LauncherPreferences.DEFAULT_PREF.edit()
-                                    .putString("renderer", restore).apply();
-                        }
-                    });
-        }
 
         // ---- camera -----------------------------------------------------------------
         addSwitch(rows, R.string.perf_smooth_camera, R.string.perf_smooth_camera_desc,
@@ -258,9 +217,9 @@ public class PerformanceFragment extends Fragment {
                 snapshot.putBoolean(KEY_PVP, true).apply();
             }
 
-            // Force the MobileGlues renderer.
-            LauncherPreferences.PREF_RENDERER = "fear_v1";
-            pref.edit().putString("renderer", "fear_v1").apply();
+            // Force the LTW renderer (the launcher default).
+            LauncherPreferences.PREF_RENDERER = "opengles3_ltw";
+            pref.edit().putString("renderer", "opengles3_ltw").apply();
 
             // Game options, written through the launcher's own options.txt helper.
             setOption("enableVsync", "false");
@@ -278,10 +237,6 @@ public class PerformanceFragment extends Fragment {
             // must clear it too or the "uncapped" profile would still be capped.
             LauncherPreferences.PREF_VSYNC_IN_ZINK = false;
             pref.edit().putBoolean("vsync_in_zink", false).apply();
-
-            // A very mild spatial upscale for a little extra headroom.
-            MobileGluesConfig.setFsr1Setting(requireContext(), 1);
-            pref.edit().putInt("fsr1_setting", 1).apply();
 
             Toast.makeText(getContext(), R.string.perf_pvp_applied, Toast.LENGTH_LONG).show();
         } else {

@@ -29,7 +29,7 @@ public class LauncherPreferences {
     public static final String PREF_KEY_SKIP_NOTIFICATION_CHECK = "skipNotificationPermissionCheck";
 
     public static SharedPreferences DEFAULT_PREF;
-    public static String PREF_RENDERER = "fear_v1";
+    public static String PREF_RENDERER = "opengles3_ltw";
 
 	public static boolean PREF_IGNORE_NOTCH = false;
 	public static float PREF_BUTTONSIZE = 100f;
@@ -88,7 +88,7 @@ public class LauncherPreferences {
         Tools.initStorageConstants(ctx);
         boolean isDevicePowerful = isDevicePowerful(ctx);
 
-        PREF_RENDERER = DEFAULT_PREF.getString("renderer", "fear_v1");
+        PREF_RENDERER = DEFAULT_PREF.getString("renderer", "opengles3_ltw");
         // One-time fix: older builds persisted "opengles2" - the old
         // pref_video.xml defaultValue - as the renderer. That id is no longer in
         // the renderer list, so the picker showed nothing selected and the launch
@@ -98,17 +98,18 @@ public class LauncherPreferences {
             PREF_RENDERER = "opengles3_ltw";
             DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
         }
-        // One-time move to MobileGlues: it is now the launcher default and ships
-        // inside the APK, so an existing user who never picked a renderer (still on
-        // the old LTW default) gets it automatically. Only migrate when the native
-        // library is actually present, and never touch a renderer the user chose.
-        if (!DEFAULT_PREF.getBoolean("fear_renderer_mobileglues_migrated", false)) {
-            if ("opengles3_ltw".equals(PREF_RENDERER)
-                    && new File(Tools.NATIVE_LIB_DIR, "libmobileglues.so").exists()) {
-                PREF_RENDERER = "fear_v1";
+        // One-time move OFF MobileGlues: the renderer has been removed from the
+        // launcher, so an existing user still on the old fear_v1 default is moved
+        // back to LTW (the launcher default) once. The flag name is new
+        // (fear_renderer_ltw_migrated, not the old fear_renderer_mobileglues_migrated)
+        // so this actually runs for users who already carry the old flag. A renderer
+        // the user deliberately chose is not touched unless it is fear_v1 itself.
+        if (!DEFAULT_PREF.getBoolean("fear_renderer_ltw_migrated", false)) {
+            if ("fear_v1".equals(PREF_RENDERER)) {
+                PREF_RENDERER = "opengles3_ltw";
                 DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
             }
-            DEFAULT_PREF.edit().putBoolean("fear_renderer_mobileglues_migrated", true).apply();
+            DEFAULT_PREF.edit().putBoolean("fear_renderer_ltw_migrated", true).apply();
         }
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
         PREF_MOUSESCALE = DEFAULT_PREF.getInt("mousescale", 100)/100f;
