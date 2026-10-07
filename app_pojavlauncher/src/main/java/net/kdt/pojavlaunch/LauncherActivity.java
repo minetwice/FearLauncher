@@ -37,7 +37,7 @@ import net.kdt.pojavlaunch.fragments.InstallationsFragment;
 import net.kdt.pojavlaunch.fragments.FearCrashFragment;
 import net.kdt.pojavlaunch.fragments.MainMenuFragment;
 import net.kdt.pojavlaunch.fragments.MicrosoftLoginFragment;
-import net.kdt.pojavlaunch.fragments.SelectAuthFragment;
+import net.kdt.pojavlaunch.fragments.FearAuthFragment;
 import net.kdt.pojavlaunch.fragments.SearchModFragment;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.InstanceInstaller;
@@ -138,7 +138,7 @@ public class LauncherActivity extends BaseActivity {
         if (!value || manager.isStateSaved()) return false;
         Fragment fragment = manager.findFragmentById(mFragmentView.getId());
         if (!(fragment instanceof MainMenuFragment)) return false;
-        Tools.swapFragment(this, SelectAuthFragment.class, SelectAuthFragment.TAG, null);
+        Tools.swapFragment(this, FearAuthFragment.class, FearAuthFragment.TAG, null);
         return false;
     };
 

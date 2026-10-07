@@ -1941,8 +1941,9 @@ public class MainMenuFragment extends Fragment {
     private void handlePlayButton() {
         MinecraftAccount current = Accounts.getCurrent();
         if (current == null) {
-            Toast.makeText(requireContext(), "Please add an account first!", Toast.LENGTH_SHORT).show();
-            openAccountManager();
+            // No account yet: open the new account screen so the player can add one.
+            net.kdt.pojavlaunch.SoundManager.playClick();
+            Tools.swapFragment(requireActivity(), FearAuthFragment.class, FearAuthFragment.TAG, null);
             return;
         }
         Instance instance = Instances.loadSelectedInstance();
