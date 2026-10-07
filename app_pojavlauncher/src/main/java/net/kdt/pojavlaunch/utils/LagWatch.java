@@ -36,7 +36,9 @@ import java.util.Map;
  * zones straight from sysfs (which is what actually shows a device throttling itself),
  * asks Android for the thermal status and the battery temperature, and tails the game's own
  * log for the lines that name a cause - "Can't keep up", a mixin that failed to apply, an
- * out-of-memory - as well as the renderer's own per-frame marker, which gives the frame rate.
+ * out-of-memory. The frame rate is the count of frames the renderer actually presented,
+ * taken from the native present hooks; only when that is unavailable does it fall back to
+ * the renderer's own per-frame log marker, and that fallback is labelled unreliable.
  *
  * Everything lands in <gameDir>/fear_lag_report.txt when the session ends, and a partial
  * copy is written every 30 seconds so a crash or a kill still leaves usable evidence. The
@@ -57,6 +59,12 @@ public final class LagWatch {
     private static final double AUTO_SCALE_HIGH_FPS = 110.0;
     /** A session with fewer samples than this is not trusted (a crash, a 10-second test). */
     private static final int AUTO_SCALE_MIN_SAMPLES = 20;
+    /**
+     * A measured average below this means the measurement itself is broken. The old
+     * log heuristic read a chat line and reported a constant ~1 fps; the tuner must
+     * never act on a number like that again, so anything under this floor is refused.
+     */
+    private static final double AUTO_SCALE_MIN_MEASURED_FPS = 5.0;
     private static final int AUTO_SCALE_MIN = 50;
     private static final int AUTO_SCALE_MAX = 100;
     /** The value the tuner last wrote, so a hand-set scale can be told apart from ours. */
@@ -138,6 +146,30 @@ public final class LagWatch {
         return f.isFile() ? f : null;
     }
 
+    // ---- frame-rate source ------------------------------------------------------------
+
+    /** 0 = not tried yet, 1 = the native presented-frame counter works, -1 = it does not. */
+    private static volatile int sPresentedCounterState = 0;
+
+    /**
+     * The number of frames the renderer has actually presented since launch, from the
+     * native present hooks (glfwSwapBuffers / eglSwapBuffers) exposed by
+     * {@link JREUtils#getPresentedFrameCount()}. Returns -1 when that counter is not
+     * available, so the caller falls back to the (unreliable) log heuristic.
+     */
+    private static long presentedFrames() {
+        if (sPresentedCounterState < 0) return -1L;
+        try {
+            long frames = JREUtils.getPresentedFrameCount();
+            sPresentedCounterState = 1;
+            return frames;
+        } catch (Throwable t) {
+            sPresentedCounterState = -1;
+            Log.w(TAG, "presented-frame counter unavailable; the frame rate falls back to the log heuristic");
+            return -1L;
+        }
+    }
+
     // ---- the sampler ------------------------------------------------------------------
 
     /** One pass over the machine. Everything here is best-effort. */
@@ -155,6 +187,8 @@ public final class LagWatch {
         double batteryC = Double.NaN;
         int thermalStatus = -1;
         double fps = -1;
+        /** True when {@link #fps} was measured from real presented frames, not the log fallback. */
+        boolean fpsReliable;
         String frameMarker = "";
         long gcRunDelta, gcMsDelta;
         List<String> logLines = new ArrayList<>();
@@ -177,12 +211,16 @@ public final class LagWatch {
         Map<Integer, Long> lastThreadJiffies = new LinkedHashMap<>();
         long lastPartial = 0L;
         long lastGcRuns = -1L, lastGcMs = -1L;
+        long lastPresentedFrames = -1L;
         String started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date());
 
         while (sRunning) {
             Sample s = new Sample();
             try {
                 s.wallMs = System.currentTimeMillis();
+                // The previous sample's wall clock, captured before lastWall is overwritten
+                // below, so the presented-frame delta is measured over the real interval.
+                long prevWallMs = lastWall;
 
                 Runtime rt = Runtime.getRuntime();
                 s.heapUsedMb = (rt.totalMemory() - rt.freeMemory()) / (1024L * 1024L);
@@ -231,12 +269,27 @@ public final class LagWatch {
                 s.batteryC = batteryTemp(context);
                 s.thermalStatus = thermalStatus(context);
 
-                // Frame rate: the renderer prints one line per presented frame. We count
-                // the most common line shape this window, preferring a shape that looks
-                // like a known frame marker, and divide by the window length.
+                // Frame rate, the real way: count the frames the renderer actually
+                // presented since the previous sample. The native present hooks
+                // (glfwSwapBuffers / eglSwapBuffers) keep a monotonic counter that
+                // JREUtils.getPresentedFrameCount() exposes; the report's frame rate
+                // comes from that. The old log-text heuristic is only a labelled
+                // fallback when the counter is unavailable, and such a sample is
+                // marked unreliable so the auto-scale tuner refuses to act on it.
+                long presented = presentedFrames();
+                if (presented > 0 && lastPresentedFrames > 0 && prevWallMs > 0) {
+                    double dtSec = (s.wallMs - prevWallMs) / 1000.0;
+                    if (dtSec > 0) {
+                        s.fps = (presented - lastPresentedFrames) / dtSec;
+                        s.fpsReliable = true;
+                    }
+                }
+                lastPresentedFrames = presented;
+                // Always tail the log: the cause counts and the dip windows come from it
+                // regardless of how the frame rate itself was measured.
                 FrameTally tally = new FrameTally();
                 for (LogTail t : tails) t.read(counts, firstExample, tally, s.logLines);
-                if (tally.total > 0 && lastWall > 0) {
+                if (!s.fpsReliable && tally.total > 0 && prevWallMs > 0) {
                     s.fps = tally.fpsFor(SAMPLE_INTERVAL_MS / 1000.0);
                     s.frameMarker = tally.bestShape();
                 }
@@ -573,8 +626,12 @@ public final class LagWatch {
             // -- measured numbers --
             sb.append("MEASURED\n");
             sb.append("--------\n");
-            sb.append(String.format(Locale.US, "  frame rate   : %.1f avg, %.1f min, %.1f max\n",
-                    a.fpsAvg, a.fpsMin, a.fpsMax));
+            String fpsSource;
+            if (a.fpsAvg < 0) fpsSource = " (no frame rate could be measured)";
+            else if (a.fpsReliable) fpsSource = " (measured from presented frames)";
+            else fpsSource = " (unreliable: log heuristic)";
+            sb.append(String.format(Locale.US, "  frame rate   : %.1f avg, %.1f min, %.1f max%s\n",
+                    a.fpsAvg, a.fpsMin, a.fpsMax, fpsSource));
             sb.append(String.format(Locale.US, "  process CPU  : %.0f%% avg, %.0f%% peak\n", a.cpuAvg, a.cpuMax));
             sb.append(String.format(Locale.US, "  thermal      : %.1fC avg, %.1fC peak (%s)\n",
                     a.tempAvg, a.tempMax, a.tempName));
@@ -585,7 +642,8 @@ public final class LagWatch {
                     a.gcRuns, a.gcMs));
             sb.append(String.format(Locale.US, "  heap         : %.0f MB avg used of %d MB max\n", a.heapAvg, a.heapMax));
             if (!a.frameMarker.isEmpty()) {
-                sb.append("  frame marker : ").append(a.frameMarker).append('\n');
+                sb.append("  frame marker : ").append(a.frameMarker)
+                        .append(" (unreliable: log heuristic)").append('\n');
             }
             sb.append('\n');
 
@@ -594,12 +652,14 @@ public final class LagWatch {
 
             // -- the auto-tuner's decision, made once at session end --
             if (finished) {
-                String decision = adaptResolutionScale(a.fpsAvg, samples.size());
+                String decision = adaptResolutionScale(a.fpsAvg, samples.size(), a.fpsReliable);
                 sb.append("AUTO SCALE\n");
                 sb.append("----------\n");
                 sb.append("  ").append(decision != null ? decision
                         : "no change (frame rate inside the 85-110 fps band, fewer than "
-                        + AUTO_SCALE_MIN_SAMPLES + " samples, or a hand-set scale)").append('\n');
+                        + AUTO_SCALE_MIN_SAMPLES + " samples, a hand-set scale, an unreliable "
+                        + "measurement, or an average below " + (int) AUTO_SCALE_MIN_MEASURED_FPS
+                        + " fps)").append('\n');
                 sb.append('\n');
             }
 
@@ -778,14 +838,30 @@ public final class LagWatch {
      * clamped to 50..100. It refuses to fight a scale the user moved by hand: the value it last
      * wrote is kept under {@code fear_auto_scale_last}, and if the current scale is not that
      * value the user has overridden it and the tuner stays out of the way. Sessions with too
-     * few samples are ignored so a crash or a ten-second test cannot skew it. The new value is
-     * written through the same preference the dashboard slider uses, so the dashboard shows it
-     * and the user can still override it. Runs on the sampler thread and never throws.</p>
+     * few samples are ignored so a crash or a ten-second test cannot skew it. It also refuses
+     * to act on an unreliable measurement (the log fallback) or on an average below
+     * {@link #AUTO_SCALE_MIN_MEASURED_FPS} fps, which can only mean the measurement is broken -
+     * the bug where a chat line read as ~1 fps and slammed the scale down to its floor. The new
+     * value is written through the same preference the dashboard slider uses, so the dashboard
+     * shows it and the user can still override it. Runs on the sampler thread and never throws.</p>
      */
-    private static String adaptResolutionScale(double avgFps, int sampleCount) {
+    private static String adaptResolutionScale(double avgFps, int sampleCount, boolean reliable) {
         try {
+            // Never steer the render resolution from a measurement we do not trust. The
+            // old log heuristic read a chat line and reported a constant ~1 fps, which
+            // drove the scale down to its 50% floor; that must never happen again.
+            if (!reliable) {
+                Log.i(TAG, "auto-scale skipped: frame rate was not measured from presented frames");
+                return "skipped: frame rate was not measured from presented frames (unreliable)";
+            }
             if (sampleCount < AUTO_SCALE_MIN_SAMPLES) return null;
             if (avgFps <= 0) return null;
+            if (avgFps < AUTO_SCALE_MIN_MEASURED_FPS) {
+                Log.i(TAG, "auto-scale skipped: measured " + avgFps + " fps is below the "
+                        + AUTO_SCALE_MIN_MEASURED_FPS + " fps floor");
+                return String.format(Locale.US, "skipped: measured %.1f fps is below the %.0f fps floor "
+                        + "(the measurement looks broken)", avgFps, AUTO_SCALE_MIN_MEASURED_FPS);
+            }
             // Inside the dead band the scale is already close enough - leave it alone.
             if (avgFps >= AUTO_SCALE_LOW_FPS && avgFps <= AUTO_SCALE_HIGH_FPS) return null;
             SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
@@ -1076,6 +1152,8 @@ public final class LagWatch {
 
     private static final class Analysis {
         double fpsAvg = -1, fpsMin = -1, fpsMax = -1;
+        /** True when the average came from real presented frames, not the log fallback. */
+        boolean fpsReliable;
         double cpuAvg = -1, cpuMax = -1;
         double tempAvg = Double.NaN, tempMax = Double.NaN;
         String tempName = "?";
@@ -1104,8 +1182,18 @@ public final class LagWatch {
         double firstTemp = Double.NaN, lastTemp = Double.NaN;
         int throttleSamples = 0;
 
+        // Prefer real presented-frame measurements. If any sample was measured that way,
+        // aggregate only those and label the result reliable; otherwise fall back to
+        // whatever the log heuristic produced and mark it unreliable, so the report and
+        // the auto-scale tuner both know not to trust it.
+        boolean anyReliable = false;
         for (Sample s : samples) {
-            if (s.fps >= 0) { fpsSum += s.fps; fpsN++; maxFps = Math.max(maxFps, s.fps); minFps = Math.min(minFps, s.fps); }
+            if (s.fpsReliable && s.fps >= 0) { anyReliable = true; break; }
+        }
+        a.fpsReliable = anyReliable;
+
+        for (Sample s : samples) {
+            if (s.fps >= 0 && (!anyReliable || s.fpsReliable)) { fpsSum += s.fps; fpsN++; maxFps = Math.max(maxFps, s.fps); minFps = Math.min(minFps, s.fps); }
             if (s.cpuPct >= 0) { cpuSum += s.cpuPct; cpuN++; a.cpuMax = Math.max(a.cpuMax, s.cpuPct); }
             if (!Double.isNaN(s.thermalMaxC)) {
                 tSum += s.thermalMaxC; tN++;
@@ -1228,10 +1316,10 @@ public final class LagWatch {
         }
 
         if (fpsN == 0) {
-            a.findings.add("The frame rate could not be measured: no per-frame marker was found in the "
-                    + "game log for this renderer.");
-            a.recommendations.add("A native frame counter shared with the launcher, so the frame rate is "
-                    + "known for every renderer and does not depend on what the game happens to log.");
+            a.findings.add("The frame rate could not be measured: neither the presented-frame counter "
+                    + "nor a per-frame log marker was available for this renderer.");
+            a.recommendations.add("Keep the native presented-frame counter wired for every renderer, so "
+                    + "the frame rate never depends on what the game happens to log.");
         }
 
         for (String key : counts.keySet()) {

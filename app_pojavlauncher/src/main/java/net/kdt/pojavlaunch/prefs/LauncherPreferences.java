@@ -167,6 +167,29 @@ public class LauncherPreferences {
             }
             DEFAULT_PREF.edit().putBoolean("fear_gpu_scale_applied", true).apply();
         }
+        // One-time repair: the auto-scale tuner read a bogus ~1 fps frame rate (a chat
+        // line in the game log) and drove the render resolution from 90% down to 50%,
+        // its floor. The tuner now measures real presented frames and refuses to act on
+        // anything below a sane floor, so undo that single bad write once. It is only
+        // undone when the stored scale is at or below the tuner's 50% floor AND the tuner
+        // itself was the last writer (fear_auto_scale_last equals it) - a scale the user
+        // set by hand is left alone. The value it is reset to is the GPU-tier default for
+        // this device, the same helper the first-run pick uses (70% for a Mali-G6xx).
+        if (!DEFAULT_PREF.getBoolean("fear_auto_scale_bad_run_fixed", false)) {
+            int stored = DEFAULT_PREF.getInt("resolutionRatio", -1);
+            boolean tunerWroteIt = stored >= 0 && DEFAULT_PREF.contains("fear_auto_scale_last")
+                    && DEFAULT_PREF.getInt("fear_auto_scale_last", stored) == stored;
+            if (tunerWroteIt && stored <= 50) {
+                int gpuScale = gpuTierResolutionScale(GLInfoUtils.getGlInfo().renderer);
+                DEFAULT_PREF.edit()
+                        .putInt("resolutionRatio", gpuScale)
+                        .remove("fear_auto_scale_last")
+                        .apply();
+                Log.i("LauncherPreferences", "auto-scale repair: a bad ~1 fps reading had driven the "
+                        + "render resolution to " + stored + "%, reset to the GPU-tier " + gpuScale + "%");
+            }
+            DEFAULT_PREF.edit().putBoolean("fear_auto_scale_bad_run_fixed", true).apply();
+        }
         float resolutionScale = DEFAULT_PREF.getInt("resolutionRatio",
                 findBestResolution(ctx, isDevicePowerful))/100f;
         if (DEFAULT_PREF.getBoolean("performance_mode", true)) {

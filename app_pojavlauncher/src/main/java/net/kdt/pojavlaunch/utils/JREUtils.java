@@ -414,6 +414,12 @@ public class JREUtils {
     public static native int nativeFearPerfStart();
     public static native int nativeFearPinGameThreads();
 
+    /* FEARFRAMECOUNT: monotonic count of frames the renderer has actually
+     * presented (glfwSwapBuffers / eglSwapBuffers), kept by the native present
+     * hooks. The lag report's frame rate is measured from this instead of being
+     * guessed from a line of the game log. Returns 0 until the first frame. */
+    public static native long getPresentedFrameCount();
+
     public static native boolean renderAWTScreenFrame(ByteBuffer tempBuffer);
     static {
         System.loadLibrary("pojavexec");

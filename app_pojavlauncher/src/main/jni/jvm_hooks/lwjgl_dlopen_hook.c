@@ -24,6 +24,98 @@
 
 bridge_environ_t bridge_environ = {0};
 
+/* ---- FEARFRAMECOUNT / FEARBRAND ------------------------------------------------
+   Frame counting and GL branding, kept in one place.
+
+   The lag report's frame rate used to be guessed from the game log, where the
+   busiest repeating line was a chat message, so it read a constant ~1 fps and the
+   auto-scale tuner believed it. The real number is the count of frames the
+   renderer actually presented: the game resolves glfwSwapBuffers / eglSwapBuffers
+   through LWJGL's DynamicLinkLoader (ndlsym) and through glfwGetProcAddress, so
+   both present entry points are counted here. The monotonic count is handed to
+   Java through JREUtils.getPresentedFrameCount(), which the LagWatch sampler
+   polls each sample.
+
+   The same layer rewrites GL_VENDOR / GL_RENDERER so the in-game F3 debug screen
+   shows the launcher instead of the prebuilt LTW wrapper's name ("MojoLauncher").
+   Only those two strings change: GL_VERSION and GL_EXTENSIONS are returned
+   untouched, because mods and Sodium-style workarounds parse them. */
+#define FEAR_GL_VENDOR   "FearLauncher"
+#define FEAR_GL_RENDERER "FearLTW (OpenGL ES 3)"
+
+static uint64_t g_presented_frames = 0;
+
+static unsigned int (*g_real_eglSwapBuffers)(void*, void*) = NULL;
+static void (*g_real_glfwSwapBuffers)(void*) = NULL;
+static unsigned char* (*g_real_glGetString)(unsigned int) = NULL;
+static void* (*g_real_glfwGetProcAddress)(const char*) = NULL;
+
+/* Resolve a real entry point from the handle the game looked it up in, falling
+   back to the global namespace. */
+static void* fear_resolve(const void* handle, const char* name) {
+    void* sym = (handle != NULL) ? dlsym((void*) handle, name) : NULL;
+    if (sym == NULL) sym = dlsym(RTLD_DEFAULT, name);
+    return sym;
+}
+
+/* Present path: count the frame, then hand the call to the real implementation. */
+static unsigned int fear_eglSwapBuffers_hook(void* dpy, void* surface) {
+    __atomic_fetch_add(&g_presented_frames, 1, __ATOMIC_RELAXED);
+    if (g_real_eglSwapBuffers == NULL)
+        g_real_eglSwapBuffers = (unsigned int (*)(void*, void*)) fear_resolve(NULL, "eglSwapBuffers");
+    if (g_real_eglSwapBuffers == NULL) return 1; /* EGL_TRUE: never break the frame */
+    return g_real_eglSwapBuffers(dpy, surface);
+}
+
+static void fear_glfwSwapBuffers_hook(void* window) {
+    __atomic_fetch_add(&g_presented_frames, 1, __ATOMIC_RELAXED);
+    if (g_real_glfwSwapBuffers == NULL)
+        g_real_glfwSwapBuffers = (void (*)(void*)) fear_resolve(NULL, "glfwSwapBuffers");
+    if (g_real_glfwSwapBuffers != NULL) g_real_glfwSwapBuffers(window);
+}
+
+/* Branding: static buffers, so the returned pointer stays stable. */
+static unsigned char fear_gl_vendor_str[]   = FEAR_GL_VENDOR;
+static unsigned char fear_gl_renderer_str[] = FEAR_GL_RENDERER;
+
+static unsigned char* fear_glGetString_hook(unsigned int name) {
+    if (name == 0x1F00u) return fear_gl_vendor_str;   /* GL_VENDOR   */
+    if (name == 0x1F01u) return fear_gl_renderer_str; /* GL_RENDERER */
+    /* GL_VERSION (0x1F02) and GL_EXTENSIONS (0x1F03) pass through untouched. */
+    if (g_real_glGetString == NULL)
+        g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve(NULL, "glGetString");
+    if (g_real_glGetString == NULL) return NULL;
+    return g_real_glGetString(name);
+}
+
+/* LWJGL's GLFW binding resolves GL entry points through glfwGetProcAddress, so for
+   the LTW path (which gets the real libglfw loader) the branding and the present
+   count have to be applied here too. Everything other than the three names below is
+   forwarded to the real loader unchanged, so no other GL resolution changes. */
+static void* fear_glfwGetProcAddress_hook(const char* procname) {
+    if (g_real_glfwGetProcAddress == NULL) return NULL;
+    if (procname == NULL) return g_real_glfwGetProcAddress(NULL);
+    if (strcmp(procname, "glGetString") == 0) {
+        if (g_real_glGetString == NULL)
+            g_real_glGetString = (unsigned char* (*)(unsigned int)) g_real_glfwGetProcAddress(procname);
+        return (void*) fear_glGetString_hook;
+    }
+    if (strcmp(procname, "eglSwapBuffers") == 0) {
+        if (g_real_eglSwapBuffers == NULL)
+            g_real_eglSwapBuffers = (unsigned int (*)(void*, void*)) g_real_glfwGetProcAddress(procname);
+        return (void*) fear_eglSwapBuffers_hook;
+    }
+    if (strcmp(procname, "glfwSwapBuffers") == 0) return (void*) fear_glfwSwapBuffers_hook;
+    return g_real_glfwGetProcAddress(procname);
+}
+
+JNIEXPORT jlong JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_getPresentedFrameCount(JNIEnv* env, jclass clazz) {
+    (void) env;
+    (void) clazz;
+    return (jlong) __atomic_load_n(&g_presented_frames, __ATOMIC_RELAXED);
+}
+
 static int g_is_zink_cached = -1;
 
 static bool is_zink_renderer() {
@@ -465,6 +557,9 @@ static void hooked_glfwMakeContextCurrent_impl(void* window) {
 static void* hooked_glfwGetCurrentContext_impl(void) { return g_current_window; }
 
 static void hooked_glfwSwapBuffers_impl(void* window) {
+    /* Count the presented frame (zink / OSMesa path); the LTW path is counted by
+       fear_glfwSwapBuffers_hook below. */
+    __atomic_fetch_add(&g_presented_frames, 1, __ATOMIC_RELAXED);
     if (g_use_osmesa) osm_swap_buffers();
     (void)window;
 }
@@ -638,6 +733,17 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
         g_req_log_count++;
         printf("LWJGL hook: REQ %s\n", procname);
     }
+    /* FEARBRAND / FEARFRAMECOUNT: brand the GL vendor/renderer and count presented
+       frames, whichever way the game resolves these entry points. */
+    if (strcmp(procname, "glGetString") == 0) {
+        if (g_real_glGetString == NULL) {
+            if (glGetString_p) g_real_glGetString = (unsigned char* (*)(unsigned int)) glGetString_p;
+            else g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve(NULL, "glGetString");
+        }
+        return (void*) fear_glGetString_hook;
+    }
+    if (strcmp(procname, "eglSwapBuffers") == 0) return (void*) fear_eglSwapBuffers_hook;
+    if (strcmp(procname, "glfwSwapBuffers") == 0) return (void*) fear_glfwSwapBuffers_hook;
     if (strcmp(procname, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
         printf("LWJGL hook: glBlitFramebuffer -> CPU fallback (panfork)\n");
         return (void*) hooked_glBlitFramebuffer_impl;
@@ -657,7 +763,6 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
         sym = dlsym(mesa, procname);
         if (sym != NULL) return sym;
     }
-    if (strcmp(procname, "glGetString") == 0 && glGetString_p) return (void*)glGetString_p;
     if (strcmp(procname, "glFinish") == 0 && glFinish_p) return (void*)glFinish_p;
     if (strcmp(procname, "glClear") == 0 && glClear_p) return (void*)glClear_p;
     if (strcmp(procname, "glClearColor") == 0 && glClearColor_p) return (void*)glClearColor_p;
@@ -910,6 +1015,34 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
        to the display refresh either. */
     if (strcmp(symbol, "glfwSwapInterval") == 0 || strcmp(symbol, "pojavSwapInterval") == 0)
         return (jlong) hooked_glfwSwapInterval_impl;
+
+    /* FEARFRAMECOUNT: count the real present path for every renderer, so the lag
+       report measures frames the renderer actually presented. The real entry
+       point is resolved from the handle the game asked for the symbol in. */
+    if (strcmp(symbol, "eglSwapBuffers") == 0) {
+        if (g_real_eglSwapBuffers == NULL)
+            g_real_eglSwapBuffers = (unsigned int (*)(void*, void*)) fear_resolve((void*) handle, symbol);
+        return (jlong) fear_eglSwapBuffers_hook;
+    }
+    if (strcmp(symbol, "glfwSwapBuffers") == 0) {
+        if (g_real_glfwSwapBuffers == NULL)
+            g_real_glfwSwapBuffers = (void (*)(void*)) fear_resolve((void*) handle, symbol);
+        return (jlong) fear_glfwSwapBuffers_hook;
+    }
+    /* FEARBRAND: report the launcher, not the LTW wrapper, as the GL vendor. */
+    if (strcmp(symbol, "glGetString") == 0) {
+        if (g_real_glGetString == NULL)
+            g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve((void*) handle, symbol);
+        return (jlong) fear_glGetString_hook;
+    }
+    /* FEARBRAND on the glfwGetProcAddress path: wrap the real loader so GL_VENDOR /
+       GL_RENDERER are branded and the present path is counted, without changing how
+       any other GL function is resolved. */
+    if (strcmp(symbol, "glfwGetProcAddress") == 0 || strcmp(symbol, "glfwGetProcessAddress") == 0) {
+        if (g_real_glfwGetProcAddress == NULL)
+            g_real_glfwGetProcAddress = (void* (*)(const char*)) fear_resolve((void*) handle, symbol);
+        if (g_real_glfwGetProcAddress != NULL) return (jlong) fear_glfwGetProcAddress_hook;
+    }
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);
