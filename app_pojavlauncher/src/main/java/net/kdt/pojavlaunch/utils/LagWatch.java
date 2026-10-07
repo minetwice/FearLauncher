@@ -1247,7 +1247,7 @@ public final class LagWatch {
                     + "while the game was busy (" + a.throttleNote + "). This is the device protecting "
                     + "itself, and it is the most common reason a session starts smooth and turns laggy.");
             a.recommendations.add("Adaptive frame cap + resolution scaling: drop the render resolution "
-                    + "(or enable FSR1 upscaling in FearV1) as the thermal status climbs, so the frame rate "
+                    + "as the thermal status climbs, so the frame rate "
                     + "stays steady instead of falling off a cliff.");
             a.recommendations.add("A \"cool mode\" preset that lowers render distance and disables heavy "
                     + "shader effects automatically once the battery passes ~40C.");

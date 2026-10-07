@@ -2,8 +2,6 @@ package net.kdt.pojavlaunch.skins;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
@@ -484,63 +482,6 @@ public final class FearSkinSync {
         }
         Log.i(TAG, "No cape for " + username + "; leaving the character capless");
         return null;
-    }
-
-    /**
-     * Works out whether a skin was drawn for the slim (Alex) arms or the classic (Steve)
-     * ones, because the atlas does not record it.
-     *
-     * The classic arm is four pixels wide and the slim arm three, so the outer column of
-     * each arm face is painted in a classic skin and left fully transparent in a slim one.
-     * On a 64x64 atlas those unused columns are x 47 and x 55 on the right arm (its front
-     * and back faces) and x 39 and x 47 on the left arm, over rows y 20..31 and y 52..63.
-     * Reading them is the accepted test. A legacy 64x32 file predates slim entirely, so it
-     * is always classic.
-     *
-     * It is a heuristic, not metadata: an artist who deliberately erased the outer arm
-     * column will read as slim, which is why the viewer still offers the two models by hand.
-     */
-    public static boolean detectSlim(File skinFile) {
-        if (skinFile == null || !skinFile.isFile() || skinFile.length() == 0) return false;
-        Bitmap bmp = null;
-        try {
-            bmp = BitmapFactory.decodeFile(skinFile.getAbsolutePath());
-            if (bmp == null) return false;
-            int w = bmp.getWidth();
-            int h = bmp.getHeight();
-            if (w < 64 || h < 64) return false;
-            int scale = Math.max(1, w / 64);
-
-            // Right arm: the block spans x 40..55, with its front face at x 44..47 and its
-            // back face at x 52..55. A classic arm is four pixels wide and paints all four
-            // columns of each face; a slim arm is three, so it leaves the outer column of
-            // each face transparent - x 47 (front) and x 55 (back).
-            int[] rightUnused = { 47, 55 };
-            for (int x : rightUnused) {
-                for (int y = 20; y < 32; y++) {
-                    if (isOpaque(bmp, x * scale, y * scale)) return false;
-                }
-            }
-            // Left arm: the block spans x 32..47, front face x 36..39 (slim leaves x 39
-            // unused) and back face x 44..47 (slim leaves x 47 unused).
-            int[] leftUnused = { 39, 47 };
-            for (int x : leftUnused) {
-                for (int y = 52; y < 64; y++) {
-                    if (isOpaque(bmp, x * scale, y * scale)) return false;
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            Log.w(TAG, "Could not read the skin model", e);
-            return false;
-        } finally {
-            if (bmp != null) bmp.recycle();
-        }
-    }
-
-    private static boolean isOpaque(Bitmap bmp, int x, int y) {
-        if (x < 0 || y < 0 || x >= bmp.getWidth() || y >= bmp.getHeight()) return false;
-        return ((bmp.getPixel(x, y) >>> 24) != 0);
     }
 
     /** The cape file to draw in the launcher, or null when there is none on disk. */
