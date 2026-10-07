@@ -104,9 +104,21 @@ public final class CustomSkinInstaller {
     }
 
     /**
-     * Writes the CustomSkinLoader config: CraftynMC first (an offline account resolves to our
-     * skin and cape), Mojang as the fallback for everyone else, and the mod-pack-conflicting
-     * features turned off.
+     * Writes the CustomSkinLoader config.
+     *
+     * The load list is ordered so the player's own skin wins locally and everyone else
+     * resolves from CraftynMC: LocalSkin (the mirrored file, Legacy) first, then the
+     * CraftynMC CustomSkinAPI so other launcher users resolve by username, then Mojang as a
+     * fallback for players who have a real Mojang skin.
+     *
+     * The LocalSkin entry carries "model": "slim". CustomSkinLoader does NOT read the
+     * authlib "metadata.model" the launcher's own skin server advertises - it decides the
+     * model from its own source. A Legacy/LocalSkin texture has no model metadata at all, so
+     * without this the model defaults to classic (Steve), whose four-pixel-wide arms
+     * mis-sample a slim skin and paint the unused arm pixels black. The product decision is
+     * that the model is always slim for now (active_skin_is_alex is forced true everywhere),
+     * so the CSL-visible source always reports slim. "slim" is explicit; the Legacy default
+     * "auto" would instead make CSL guess the model from the artwork.
      */
     private static void writeConfig(File base) throws Exception {
         File dir = new File(base, "CustomSkinLoader");
@@ -125,7 +137,8 @@ public final class CustomSkinInstaller {
                 + "    {\n"
                 + "      \"name\": \"LocalSkin\",\n"
                 + "      \"type\": \"Legacy\",\n"
-                + "      \"root\": \"LocalSkin/\"\n"
+                + "      \"root\": \"LocalSkin/\",\n"
+                + "      \"model\": \"slim\"\n"
                 + "    },\n"
                 + "    {\n"
                 + "      \"name\": \"CraftynMC\",\n"
