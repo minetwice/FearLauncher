@@ -14,10 +14,12 @@ import android.util.Log;
 
 import net.kdt.pojavlaunch.*;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
+import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 import com.fearlauncher.fear.R;
 
@@ -147,14 +149,34 @@ public class LauncherPreferences {
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
         PREF_USE_ALTERNATE_SURFACE = DEFAULT_PREF.getBoolean("alternate_surface", isDevicePowerful);
         PREF_JAVA_SANDBOX = DEFAULT_PREF.getBoolean("java_sandbox", true);
+        // One-time: pick the render-resolution scale from the device GPU for anyone who
+        // has never touched the resolution slider, so a mid-range GPU gets a real
+        // reduction without the user having to hunt for the slider. The GL renderer
+        // string is the same source of truth the launcher already logs as
+        // "Graphics device: ..." (GLInfoUtils), not a new detection path. A value the
+        // user has already chosen is never overwritten, and the slider still wins from
+        // then on. The choice is remembered by its own one-time flag.
+        if (!DEFAULT_PREF.getBoolean("fear_gpu_scale_applied", false)) {
+            if (!DEFAULT_PREF.contains("resolutionRatio")) {
+                String gpuRenderer = GLInfoUtils.getGlInfo().renderer;
+                int gpuScale = gpuTierResolutionScale(gpuRenderer);
+                DEFAULT_PREF.edit().putInt("resolutionRatio", gpuScale).apply();
+                Log.i("LauncherPreferences", "GPU-tier resolution: renderer=\"" + gpuRenderer
+                        + "\" -> " + gpuScale + "% of the surface");
+            }
+            DEFAULT_PREF.edit().putBoolean("fear_gpu_scale_applied", true).apply();
+        }
         float resolutionScale = DEFAULT_PREF.getInt("resolutionRatio",
                 findBestResolution(ctx, isDevicePowerful))/100f;
         if (DEFAULT_PREF.getBoolean("performance_mode", true)) {
             // Performance mode draws no more pixels than a 720-class surface. The number of
             // pixels is by far the biggest lever on frame time on a phone, and this is the
             // one place the launcher can cut it without touching the game's own settings.
-            // The resolution slider still lets you go lower than the cap.
-            float cap = findBestResolution(ctx, false) / 100f;
+            // The resolution slider still lets you go lower than the cap. The GPU tier is
+            // the better signal for what the device can draw, so it raises (never lowers)
+            // that ceiling and the GPU-tier scale picked above is never capped away.
+            float cap = Math.max(findBestResolution(ctx, false),
+                    gpuTierResolutionScale(GLInfoUtils.getGlInfo().renderer)) / 100f;
             if (resolutionScale > cap) resolutionScale = cap;
         }
         PREF_SCALE_FACTOR = resolutionScale;
@@ -232,6 +254,47 @@ public class LauncherPreferences {
         // allocations the JVM heap does not cover.
         if (deviceRam < 8192) return 3072;
         return 4096;
+    }
+
+    /**
+     * Picks a render-resolution scale (as a percent of the surface) from the device's
+     * GPU, read from the GL renderer string.
+     *
+     * <p>The renderer string is the same source of truth the launcher already logs as
+     * {@code Graphics device: ...} (see {@link GLInfoUtils}), so no new detection path is
+     * introduced. A high-end GPU is left almost alone, a mid-range one gets a real
+     * reduction, and anything unrecognised gets a middle value. The result is clamped to
+     * 50..100 so a mapping mistake can never ask for an absurd surface.</p>
+     */
+    private static int gpuTierResolutionScale(String renderer) {
+        String lower = renderer == null ? "" : renderer.toLowerCase(Locale.US);
+        int scale;
+        if (lower.contains("immortalis") || lower.contains("xclipse")
+                || isAdrenoSeries(lower, '7') || isAdrenoSeries(lower, '8')) {
+            scale = 90; // high-end GPU
+        } else if (isAdrenoSeries(lower, '6')
+                || lower.contains("mali-g6")
+                || lower.contains("mali-g57") || lower.contains("mali-g68")
+                || lower.contains("mali-g77") || lower.contains("mali-g78")) {
+            scale = 70; // mid-range GPU
+        } else if (lower.contains("mali-g7")) {
+            // Mali-G7xx (G710/G715/...); G77/G78 are handled as mid-range above.
+            scale = 90; // high-end GPU
+        } else {
+            scale = 80; // unknown / everything else
+        }
+        return Math.max(50, Math.min(100, scale));
+    }
+
+    /** True when the renderer names an Adreno of the given hundreds series (e.g. '7' -> 7xx). */
+    private static boolean isAdrenoSeries(String lowerRenderer, char series) {
+        int adreno = lowerRenderer.indexOf("adreno");
+        if (adreno < 0) return false;
+        for (int i = adreno + "adreno".length(); i < lowerRenderer.length(); i++) {
+            char c = lowerRenderer.charAt(i);
+            if (Character.isDigit(c)) return c == series;
+        }
+        return false;
     }
 
     /// Find a correct resolution for the device
