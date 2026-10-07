@@ -110,6 +110,132 @@ public class FearPerformanceMode {
         MCOptionUtils.set(key, value);
     }
 
+    // ---- Graphics quality tiers ----------------------------------------------------------
+
+    /** Preference key holding the chosen graphics-quality tier ("" = none, or a tier id). */
+    public static final String PREF_QUALITY_TIER = "graphics_quality_tier";
+    /**
+     * Preference key recording which graphics profile was chosen most recently, so the
+     * profile the player picked last wins. One of "tier", "pvp" or "" (none).
+     */
+    public static final String PREF_QUALITY_OWNER = "graphics_owner";
+
+    public static final String TIER_LOW = "low";
+    public static final String TIER_BALANCED = "balanced";
+    public static final String TIER_HIGH = "high";
+
+    /**
+     * Every options.txt key any tier writes. The selector snapshots these before its first
+     * write, so "reset" puts the player back to exactly what they had.
+     *
+     * <p>{@code maxFps} and {@code enableVsync} are deliberately absent: they are owned by
+     * {@link #applyUncappedFrameRate(File)} and must never be touched by a tier, or the
+     * frame-rate work would be undone.</p>
+     */
+    public static final String[] QUALITY_KEYS = {
+            "renderDistance", "simulationDistance",
+            "graphicsMode", "fancyGraphics", "ao",
+            "entityShadows", "renderClouds", "clouds", "cloudStatus",
+            "particles", "entityDistanceScaling", "biomeBlendRadius",
+            "mipmapLevels", "anisotropicFiltering"
+    };
+
+    /**
+     * Low: the frame rate comes first. Fast graphics, no smooth lighting, no entity shadows,
+     * no clouds, minimal particles, a short render/simulation distance, no biome blend and no
+     * mipmaps - the cheapest coherent set the game understands.
+     */
+    private static final String[][] TIER_LOW_VALUES = {
+            {"renderDistance", "6"}, {"simulationDistance", "5"},
+            {"graphicsMode", "0"}, {"fancyGraphics", "false"}, {"ao", "0"},
+            {"entityShadows", "false"}, {"renderClouds", "false"}, {"clouds", "false"},
+            {"cloudStatus", "false"}, {"particles", "2"}, {"entityDistanceScaling", "0.5"},
+            {"biomeBlendRadius", "0"}, {"mipmapLevels", "0"}, {"anisotropicFiltering", "1"}
+    };
+
+    /**
+     * Balanced: the vanilla-like middle. Fancy graphics, smooth lighting, simple (fast) clouds,
+     * decreased particles, a moderate render/simulation distance, a little biome blend and
+     * mipmaps on. This is the tier shaders look best on.
+     */
+    private static final String[][] TIER_BALANCED_VALUES = {
+            {"renderDistance", "10"}, {"simulationDistance", "8"},
+            {"graphicsMode", "1"}, {"fancyGraphics", "true"}, {"ao", "2"},
+            {"entityShadows", "true"}, {"renderClouds", "fast"}, {"clouds", "true"},
+            {"cloudStatus", "true"}, {"particles", "1"}, {"entityDistanceScaling", "0.8"},
+            {"biomeBlendRadius", "2"}, {"mipmapLevels", "2"}, {"anisotropicFiltering", "2"}
+    };
+
+    /**
+     * High: genuinely pretty. Fabulous graphics, smooth lighting, fancy clouds, all particles,
+     * a long render/simulation distance, biome blend, entity shadows, mipmaps and the best
+     * anisotropic filtering the options file supports.
+     */
+    private static final String[][] TIER_HIGH_VALUES = {
+            {"renderDistance", "16"}, {"simulationDistance", "12"},
+            {"graphicsMode", "2"}, {"fancyGraphics", "true"}, {"ao", "2"},
+            {"entityShadows", "true"}, {"renderClouds", "true"}, {"clouds", "true"},
+            {"cloudStatus", "true"}, {"particles", "0"}, {"entityDistanceScaling", "1.0"},
+            {"biomeBlendRadius", "5"}, {"mipmapLevels", "4"}, {"anisotropicFiltering", "4"}
+    };
+
+    /**
+     * The graphics keys the Smooth PvP profile writes. It never writes {@code maxFps} or
+     * {@code enableVsync} through this path - those stay owned by the always-write path.
+     */
+    private static final String[][] PVP_GRAPHICS_VALUES = {
+            {"entityDistanceScaling", "0.8"}, {"particles", "2"}, {"graphicsMode", "0"},
+            {"entityShadows", "false"}, {"menuBackgroundBlurriness", "0"}
+    };
+
+    /** @return the key/value pairs a tier writes, or {@code null} for an unknown tier. */
+    public static String[][] bundleForTier(String tier) {
+        if (TIER_LOW.equals(tier)) return TIER_LOW_VALUES;
+        if (TIER_BALANCED.equals(tier)) return TIER_BALANCED_VALUES;
+        if (TIER_HIGH.equals(tier)) return TIER_HIGH_VALUES;
+        return null;
+    }
+
+    /**
+     * FEARPATCH: re-applies the player's chosen graphics profile on every launch.
+     *
+     * <p>The full performance tune ({@link #apply(File)}) also writes graphics keys, and it
+     * runs on every launch while performance mode is on. To make sure the profile the player
+     * picked <em>last</em> is what the game actually sees, this is called AFTER that tune (see
+     * MainActivity) and is the final writer of the graphics keys. If the Smooth PvP profile was
+     * chosen most recently it re-applies the profile's graphics subset; otherwise, if a tier is
+     * selected, it re-applies that tier.</p>
+     *
+     * <p>It never writes {@code maxFps} or {@code enableVsync} - those belong to
+     * {@link #applyUncappedFrameRate(File)}, so the frame-rate work is never undone. Best-effort:
+     * a failure here must never stop a launch.</p>
+     *
+     * @return true if a graphics profile was applied
+     */
+    public static boolean applyGraphicsQuality(File gamedir) {
+        try {
+            if (gamedir == null || LauncherPreferences.DEFAULT_PREF == null) return false;
+            String owner = LauncherPreferences.DEFAULT_PREF.getString(PREF_QUALITY_OWNER, "");
+            String tier = LauncherPreferences.DEFAULT_PREF.getString(PREF_QUALITY_TIER, "");
+            String[][] bundle;
+            if ("pvp".equals(owner)) {
+                bundle = PVP_GRAPHICS_VALUES;
+            } else {
+                bundle = bundleForTier(tier);
+                if (bundle == null) return false; // no graphics profile chosen - leave options alone
+            }
+            MCOptionUtils.load(gamedir.getAbsolutePath());
+            for (String[] entry : bundle) set(entry[0], entry[1]);
+            MCOptionUtils.save();
+            Log.i(TAG, "graphics profile applied (" + ("pvp".equals(owner) ? "pvp" : tier) + ")");
+            return true;
+        } catch (Throwable t) {
+            // Never let a settings tune break a launch.
+            Log.w(TAG, "graphics profile failed, ignoring", t);
+            return false;
+        }
+    }
+
     // ---- Entity Texture Features ---------------------------------------------------------
 
     /** Launcher preference marking the ETF config as already neutralised (apply once). */

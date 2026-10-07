@@ -129,6 +129,11 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_PERFORMANCE_MODE) {
             net.kdt.pojavlaunch.utils.FearPerformanceMode.apply(instance.getGameDirectory());
         }
+        // FEARPATCH: the player's graphics-quality tier (or the Smooth PvP profile's graphics
+        // subset) is re-applied AFTER the performance tune, so whichever graphics profile was
+        // picked last is the one the game actually sees. It never writes maxFps/enableVsync,
+        // so the frame-rate work above stays intact.
+        net.kdt.pojavlaunch.utils.FearPerformanceMode.applyGraphicsQuality(instance.getGameDirectory());
         // FEARPATCH: Entity Texture Features rebuilds and re-uploads entity textures during
         // play, and each upload forces a GPU sync - the main PvP stutter source in the lag
         // reports. This neutralises only the heavy ETF keys, only in a config that already

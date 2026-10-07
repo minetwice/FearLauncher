@@ -46,4 +46,14 @@
     <string name="perf_pvp_profile">Smooth PvP profile</string>
     <string name="perf_pvp_profile_desc">Kills micro-stutter in fights - recommended. Game options apply on your next launch.</string>
     <string name="perf_pvp_applied">Smooth PvP profile on - game options apply on your next launch</string>
+
+    <string name="perf_graphics_quality">Graphics quality</string>
+    <string name="perf_graphics_quality_desc">One tap sets this instance\'s own graphics options as a coherent bundle - Low for the fastest frames, High for the prettiest world. Shaders look best on Balanced or High. Applies on your next launch.</string>
+    <string name="perf_graphics_quality_desc_shaders">Iris shaders detected - they override the game\'s graphics options, so pick Balanced or High for the best look. Applies on your next launch.</string>
+    <string name="perf_quality_low">LOW</string>
+    <string name="perf_quality_balanced">BALANCED</string>
+    <string name="perf_quality_high">HIGH</string>
+    <string name="perf_quality_reset">RESET TO MY OWN SETTINGS</string>
+    <string name="perf_graphics_quality_applied">Graphics quality saved - applies on your next launch</string>
+    <string name="perf_graphics_quality_reset_done">Restored your previous graphics settings - applies on your next launch</string>
 </resources>

@@ -21,6 +21,7 @@ import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import net.kdt.pojavlaunch.utils.FearPerformanceMode;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
 
 import java.io.File;
@@ -60,6 +61,11 @@ public class PerformanceFragment extends Fragment {
             "particles", "graphicsMode", "entityShadows", "menuBackgroundBlurriness"
     };
 
+    /** Snapshot prefix for the values the graphics-quality tiers overwrite, for a clean reset. */
+    private static final String KEY_QUALITY_OPTION_PREFIX = "graphics_prev_option_";
+    /** Sentinel for an options.txt key that did not exist before a tier was chosen. */
+    private static final String QUALITY_OPTION_ABSENT = "__graphics_absent__";
+
     private File mGameDir;
 
     @Nullable
@@ -88,6 +94,18 @@ public class PerformanceFragment extends Fragment {
         summary.setText(R.string.perf_summary);
 
         LinearLayout rows = view.findViewById(R.id.perf_rows);
+
+        // ---- graphics quality ------------------------------------------------------
+        // ONE selector, three tiers. It writes the game's own graphics options as a coherent
+        // bundle into THIS instance's options.txt, so the world can look good without touching
+        // the frame-rate keys (maxFps/enableVsync stay owned by the always-write path). It does
+        // not list the individual vanilla options, and it snapshots everything it sets so
+        // "reset" puts the player back to what they had. The values take effect on the next
+        // launch, which the subtitle and the toast both say.
+        addGraphicsQualityRow(rows, R.string.perf_graphics_quality,
+                R.string.perf_quality_low, R.string.perf_quality_balanced,
+                R.string.perf_quality_high, R.string.perf_quality_reset,
+                graphicsQualityDescription());
 
         // ---- smooth PvP profile -----------------------------------------------------
         // One switch that applies the whole smooth-PvP recipe at once. It snapshots
@@ -261,6 +279,11 @@ public class PerformanceFragment extends Fragment {
             LauncherPreferences.PREF_SCALE_FACTOR = tunedScale / 100f;
             pref.edit().putInt("resolutionRatio", tunedScale).apply();
 
+            // The profile owns the graphics keys from now on, so it survives the next launch:
+            // applyGraphicsQuality() re-applies its graphics subset last. This is the "last
+            // profile picked wins" rule - the tier and this profile can never fight.
+            pref.edit().putString(FearPerformanceMode.PREF_QUALITY_OWNER, "pvp").apply();
+
             Toast.makeText(getContext(), R.string.perf_pvp_applied, Toast.LENGTH_LONG).show();
         } else {
             // Restore the renderer.
@@ -307,11 +330,166 @@ public class PerformanceFragment extends Fragment {
             cleanup.remove(KEY_PVP_SUSTAINED);
             cleanup.remove(KEY_PVP_SCALE);
             for (String key : PVP_OPTION_KEYS) cleanup.remove(KEY_PVP_OPTION_PREFIX + key);
+            // Hand the graphics keys back to the chosen tier, if there is one, so the tier (not
+            // the profile) is what gets re-applied on the next launch.
+            cleanup.putString(FearPerformanceMode.PREF_QUALITY_OWNER,
+                    pref.getString(FearPerformanceMode.PREF_QUALITY_TIER, "").isEmpty()
+                            ? "" : "tier");
             cleanup.putBoolean(KEY_PVP, false).apply();
         }
     }
 
+    // ---- graphics quality -------------------------------------------------------------
+
+    /**
+     * One titled row with a three-way Low/Balanced/High selector and a reset link.
+     *
+     * <p>Choosing a tier writes that tier's whole bundle into the instance's options.txt and
+     * remembers the choice, so the dashboard shows it selected again when rebuilt. The first
+     * time any tier is chosen it snapshots every key the tiers touch; "reset" writes those
+     * values back, so the player can always return to their own settings. Nothing here writes
+     * {@code maxFps} or {@code enableVsync}.</p>
+     */
+    private void addGraphicsQualityRow(LinearLayout parent, int titleRes, int lowRes,
+                                       int balancedRes, int highRes, int resetRes,
+                                       CharSequence desc) {
+        View row = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_perf_choice, parent, false);
+        ((TextView) row.findViewById(R.id.perf_row_title)).setText(titleRes);
+        ((TextView) row.findViewById(R.id.perf_row_desc)).setText(desc);
+        TextView low = row.findViewById(R.id.perf_choice_low);
+        TextView balanced = row.findViewById(R.id.perf_choice_balanced);
+        TextView high = row.findViewById(R.id.perf_choice_high);
+        TextView reset = row.findViewById(R.id.perf_choice_reset);
+        low.setText(lowRes);
+        balanced.setText(balancedRes);
+        high.setText(highRes);
+        reset.setText(resetRes);
+
+        final TextView[] segments = {low, balanced, high};
+        final String[] tiers = {
+                FearPerformanceMode.TIER_LOW,
+                FearPerformanceMode.TIER_BALANCED,
+                FearPerformanceMode.TIER_HIGH
+        };
+        styleQualitySegments(segments, tiers);
+        for (int i = 0; i < segments.length; i++) {
+            final String tier = tiers[i];
+            segments[i].setOnClickListener(v -> {
+                v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                setGraphicsQuality(tier);
+                styleQualitySegments(segments, tiers);
+            });
+        }
+        reset.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            resetGraphicsQuality();
+            styleQualitySegments(segments, tiers);
+        });
+        parent.addView(row);
+    }
+
+    /** Marks the currently chosen tier, so the selector reads correctly after a rebuild. */
+    private void styleQualitySegments(TextView[] segments, String[] tiers) {
+        String current = LauncherPreferences.DEFAULT_PREF
+                .getString(FearPerformanceMode.PREF_QUALITY_TIER, "");
+        for (int i = 0; i < segments.length; i++) {
+            boolean on = tiers[i].equals(current);
+            segments[i].setBackgroundResource(on
+                    ? R.drawable.tab_selected_bg : R.drawable.tab_unselected_bg);
+            segments[i].setTextColor(on
+                    ? android.graphics.Color.BLACK : android.graphics.Color.WHITE);
+        }
+    }
+
+    /**
+     * Applies a graphics-quality tier. Snapshots the values it overwrites the first time any
+     * tier is chosen, writes the tier's bundle, and remembers the choice. Game options apply
+     * on the next launch.
+     */
+    private void setGraphicsQuality(String tier) {
+        android.content.SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
+        if (tier.equals(pref.getString(FearPerformanceMode.PREF_QUALITY_TIER, ""))) return;
+        String[][] bundle = FearPerformanceMode.bundleForTier(tier);
+        if (bundle == null) return;
+
+        // Snapshot once, before the very first tier write, so a reset restores the player's own
+        // values rather than another tier's.
+        if (pref.getString(FearPerformanceMode.PREF_QUALITY_TIER, "").isEmpty()) {
+            android.content.SharedPreferences.Editor snapshot = pref.edit();
+            for (String key : FearPerformanceMode.QUALITY_KEYS) {
+                String value = MCOptionUtils.get(key);
+                snapshot.putString(KEY_QUALITY_OPTION_PREFIX + key,
+                        value == null ? QUALITY_OPTION_ABSENT : value);
+            }
+            snapshot.apply();
+        }
+
+        for (String[] entry : bundle) setOption(entry[0], entry[1]);
+
+        // The tier is now the most recently picked graphics profile, so it wins over the Smooth
+        // PvP profile on the next launch.
+        pref.edit()
+                .putString(FearPerformanceMode.PREF_QUALITY_TIER, tier)
+                .putString(FearPerformanceMode.PREF_QUALITY_OWNER, "tier")
+                .apply();
+        Toast.makeText(getContext(), R.string.perf_graphics_quality_applied,
+                Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Restores the values the tiers overwrote and clears the choice, so the player is back to
+     * their own settings. Applies on the next launch.
+     */
+    private void resetGraphicsQuality() {
+        android.content.SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
+        if (pref.getString(FearPerformanceMode.PREF_QUALITY_TIER, "").isEmpty()) return;
+
+        for (String key : FearPerformanceMode.QUALITY_KEYS) {
+            String previous = pref.getString(KEY_QUALITY_OPTION_PREFIX + key, QUALITY_OPTION_ABSENT);
+            if (!QUALITY_OPTION_ABSENT.equals(previous)) setOption(key, previous);
+        }
+
+        android.content.SharedPreferences.Editor cleanup = pref.edit();
+        for (String key : FearPerformanceMode.QUALITY_KEYS) {
+            cleanup.remove(KEY_QUALITY_OPTION_PREFIX + key);
+        }
+        cleanup.putString(FearPerformanceMode.PREF_QUALITY_TIER, "");
+        // If the Smooth PvP profile is on it stays the graphics owner; otherwise nothing is.
+        cleanup.putString(FearPerformanceMode.PREF_QUALITY_OWNER,
+                pref.getBoolean(KEY_PVP, false) ? "pvp" : "");
+        cleanup.apply();
+        Toast.makeText(getContext(), R.string.perf_graphics_quality_reset_done,
+                Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * The row description. If the instance has both Iris and a non-empty shaderpacks folder, it
+     * points the player at the tiers that suit shaders; otherwise it explains the selector.
+     */
+    private CharSequence graphicsQualityDescription() {
+        return getString(hasIrisAndShaderpacks()
+                ? R.string.perf_graphics_quality_desc_shaders
+                : R.string.perf_graphics_quality_desc);
+    }
+
+    /** @return true if the instance looks like it has Iris plus at least one shaderpack. */
+    private boolean hasIrisAndShaderpacks() {
+        if (mGameDir == null) return false;
+        File shaderpacks = new File(mGameDir, "shaderpacks");
+        String[] shaders = shaderpacks.isDirectory() ? shaderpacks.list() : null;
+        if (shaders == null || shaders.length == 0) return false;
+        File mods = new File(mGameDir, "mods");
+        String[] modFiles = mods.list();
+        if (modFiles == null) return false;
+        for (String name : modFiles) {
+            if (name.toLowerCase(Locale.ROOT).contains("iris")) return true;
+        }
+        return false;
+    }
+
     // ---- rows -----------------------------------------------------------------------
+
 
     /** One titled row with a switch on the right. */
     private void addSwitch(LinearLayout parent, int titleRes, int descRes,
