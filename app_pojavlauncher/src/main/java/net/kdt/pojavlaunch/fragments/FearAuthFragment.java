@@ -80,13 +80,24 @@ public class FearAuthFragment extends Fragment {
         bindMethod(view, R.id.auth_method_mojang, "mojang");
         bindMethod(view, R.id.auth_method_local, "local");
 
-        rebuildAccounts();
+        int accountCount = rebuildAccounts();
         showMethod("craftyn");
+        // A brand-new user has nothing to pick, so reveal the new-account
+        // container (method rail + sign-in pane) straight away instead of
+        // making them tap "+ NEW ACCOUNT" first. With accounts present we keep
+        // the old behaviour: the rail stays hidden until the add row is tapped.
+        if (accountCount == 0 && mNewContainer != null) {
+            mNewContainer.setVisibility(View.VISIBLE);
+        }
     }
 
-    /** Rebuilds the left column: one row per account, then the add-new row. */
-    private void rebuildAccounts() {
-        if (mAccountsList == null) return;
+    /**
+     * Rebuilds the left column: one row per account, then the add-new row.
+     *
+     * @return the number of existing accounts shown (0 when the list is empty).
+     */
+    private int rebuildAccounts() {
+        if (mAccountsList == null) return 0;
         mAccountsList.removeAllViews();
 
         List<MinecraftAccount> accounts = new ArrayList<>();
@@ -109,6 +120,7 @@ public class FearAuthFragment extends Fragment {
             mAccountsList.addView(hint("No accounts yet."));
         }
         mAccountsList.addView(addNewRow());
+        return accounts.size();
     }
 
     private void refreshHeader(MinecraftAccount current) {

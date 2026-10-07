@@ -8,8 +8,10 @@ apply from: rootProject.file('gradle/prefab_bypass.gradle')
 
 import de.undercouch.gradle.tasks.download.Download
 
-static def getDate() { return new Date().format('yyyyMMdd') }
+// Public release version. Bump this single value for each release.
+def FEAR_VERSION_NAME = "1.0.0"
 
+// Monotonic version code: the GitHub Actions run number in CI, a fixed floor locally.
 static def getDateSeconds() {
     if (System.getenv("GITHUB_ACTIONS") == "true") {
         return Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER"))
@@ -18,17 +20,30 @@ static def getDateSeconds() {
     }
 }
 
-def getVersionName = {
-    def currentBranch = grgit.branch.current()
-    def latestCommit = grgit.log(maxCommits: 1)
-    def dateToday = getDate()
-    if(currentBranch == null || latestCommit == null) {
-        return "LOCAL-${dateToday}"
-    }else {
-        def branchName = currentBranch.getName()
-        def commitAbbreviation = latestCommit.abbreviatedId
-        return "iris-${dateToday}-${commitAbbreviation}-${branchName}"
-    }
+// --- Release signing inputs --------------------------------------------------
+// The release keystore comes from CI (environment variables) or, for local
+// builds, from a keystore.properties file beside this script. If none of the
+// inputs are present the release variant is left unsigned instead of failing
+// the build.
+def releaseKeystoreProps = new Properties()
+def releaseKeystorePropsFile = rootProject.file("keystore.properties")
+if (releaseKeystorePropsFile.exists()) {
+    releaseKeystorePropsFile.withInputStream { releaseKeystoreProps.load(it) }
+}
+
+def releaseStoreFile = System.getenv("RELEASE_KEYSTORE_FILE") ?: releaseKeystoreProps.getProperty("storeFile")
+def releaseStorePassword = System.getenv("RELEASE_STORE_PASSWORD") ?: releaseKeystoreProps.getProperty("storePassword")
+def releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: releaseKeystoreProps.getProperty("keyAlias")
+def releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: releaseKeystoreProps.getProperty("keyPassword")
+
+def hasReleaseSigning = releaseStoreFile != null && !releaseStoreFile.isEmpty() &&
+        releaseStorePassword != null && !releaseStorePassword.isEmpty() &&
+        releaseKeyAlias != null && !releaseKeyAlias.isEmpty() &&
+        releaseKeyPassword != null && !releaseKeyPassword.isEmpty() &&
+        new File(releaseStoreFile).exists()
+
+if (!hasReleaseSigning) {
+    logger.warn("BUILD: no release signing inputs found (RELEASE_KEYSTORE_FILE / RELEASE_STORE_PASSWORD / RELEASE_KEY_ALIAS / RELEASE_KEY_PASSWORD or keystore.properties) - the release APK will be UNSIGNED.")
 }
 
 def getCFApiKey = {
@@ -78,6 +93,17 @@ android {
             keyAlias "key0"
             keyPassword System.getenv("MOJOPUB_KEYSTORE_PASSWORD")
         }
+        // Real public-release signing. Only populated when the keystore is
+        // supplied (env vars or keystore.properties); otherwise this config is
+        // left empty and the release variant stays unsigned.
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
     }
 
     defaultConfig {
@@ -85,7 +111,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 36
         versionCode getDateSeconds()
-        versionName getVersionName()
+        versionName FEAR_VERSION_NAME
         multiDexEnabled false
         resValue 'string', 'curseforge_api_key', getCFApiKey()
 
@@ -132,6 +158,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             resValue 'string', 'storageProviderAuthorities', 'com.fearlauncher.fear.scoped.gamefolder'
             resValue 'string', 'application_package', 'com.fearlauncher.fear'
+            // Sign the release only when real signing inputs exist.
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
         gplay {
             initWith release
@@ -139,7 +169,7 @@ android {
         }
         pubRelease {
             initWith release
-            signingConfig signingConfigs.customDebug
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.customDebug
             applicationIdSuffix '.pub'
             resValue 'string', 'storageProviderAuthorities', 'com.fearlauncher.fear.pub.scoped.gamefolder'
             resValue 'string', 'application_package', 'com.fearlauncher.fear.pub'

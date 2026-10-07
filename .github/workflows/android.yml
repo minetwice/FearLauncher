@@ -20,6 +20,15 @@ jobs:
       # added to the repo, the gplay AAB build and the Play upload are skipped
       # instead of failing the whole build.
       HAS_PLAY_UPLOAD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD != '' && secrets.SERVICE_JSON != '' }}
+      # Release signing for the public APK. The keystore is base64-encoded in the
+      # RELEASE_KEYSTORE_BASE64 secret and decoded to a file below; the other
+      # three are handed straight to Gradle. Until ALL four exist, CI falls back
+      # to the existing public release build so forks and local runs never fail.
+      RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      HAS_RELEASE_SIGNING: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' && secrets.RELEASE_STORE_PASSWORD != '' && secrets.RELEASE_KEY_ALIAS != '' && secrets.RELEASE_KEY_PASSWORD != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +70,11 @@ jobs:
       - name: Create out directory
         run: mkdir out
 
+      - name: Decode release keystore
+        if: env.HAS_RELEASE_SIGNING == 'true'
+        run: |
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/release.keystore"
+
       # Release + Google Play steps run only for FearLauncher itself (owner check
       # keeps forks from publishing) and only on the release branch. The Play
       # steps additionally wait for the Play secrets to exist.
@@ -82,9 +96,18 @@ jobs:
 
       - name: Build FearLauncher Nightly Release .apk
         if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH
+        env:
+          RELEASE_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
         run: |
-          gradle :app_pojavlauncher:assembleFullPubRelease
-          mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
+          if [ "$HAS_RELEASE_SIGNING" = "true" ]; then
+            echo "Release signing secrets found: building the SIGNED release APK."
+            gradle :app_pojavlauncher:assembleFullRelease
+            mv app_pojavlauncher/build/outputs/apk/full/release/app_pojavlauncher-full-release.apk out/FearLauncher-release.apk
+          else
+            echo "No release signing secrets found: publishing the existing public release build."
+            gradle :app_pojavlauncher:assembleFullPubRelease
+            mv app_pojavlauncher/build/outputs/apk/full/pubRelease/app_pojavlauncher-full-pubRelease.apk out/FearLauncher-release.apk
+          fi
 
       - name: Generate MD5 checksums
         run: |
