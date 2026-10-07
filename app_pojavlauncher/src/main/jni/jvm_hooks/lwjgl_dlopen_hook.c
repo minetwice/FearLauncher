@@ -469,8 +469,36 @@ static void hooked_glfwSwapBuffers_impl(void* window) {
     (void)window;
 }
 
+/* FEAR-FPSUNLOCK: the game asks for swap interval 1 (Minecraft's VSync option),
+   which pins presentation to the display's refresh rate - on a 60Hz surface that
+   is the "60 fps lock" the user sees even on a 120Hz panel. Force the interval
+   to 0 so the frame rate is bounded only by the GPU, following the technique
+   already used in tools/fearrender/fearpatch.py. Escape hatch: MG_FORCE_VSYNC=1
+   in the environment restores the requested interval. */
+void setNativeWindowSwapInterval(struct ANativeWindow* nativeWindow, int swapInterval);
 static void hooked_glfwSwapInterval_impl(int interval) {
-    if (g_use_osmesa) osm_swap_interval(interval);
+    if (g_use_osmesa) {
+        /* zink / OSMesa path - unchanged. */
+        osm_swap_interval(interval);
+        return;
+    }
+    /* LTW and the other GL renderers: the launcher owns the game's Surface, so
+       apply the interval straight to the ANativeWindow (no EGL needed), exactly
+       like the zink bridge does. */
+    if (interval != 0) {
+        static int fear_vsync_pref = -1;
+        if (fear_vsync_pref == -1) {
+            const char* fear_env = getenv("MG_FORCE_VSYNC");
+            fear_vsync_pref = (fear_env != NULL && strcmp(fear_env, "1") == 0) ? 1 : 0;
+        }
+        if (!fear_vsync_pref) interval = 0;
+    }
+    if (bridge_environ.pojavWindow != NULL) {
+        setNativeWindowSwapInterval(bridge_environ.pojavWindow, interval);
+    } else {
+        void (*fear_real)(int) = (void (*)(int)) glfw_real("glfwSwapInterval");
+        if (fear_real) fear_real(interval);
+    }
 }
 
 static void hooked_glfwDestroyWindow_impl(void* window) {
@@ -876,6 +904,12 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             }
         }
     }
+
+    /* FEAR-FPSUNLOCK: route the game's swap-interval lookups through the launcher
+       hook for every renderer, not just zink, so LTW's frame rate is not pinned
+       to the display refresh either. */
+    if (strcmp(symbol, "glfwSwapInterval") == 0 || strcmp(symbol, "pojavSwapInterval") == 0)
+        return (jlong) hooked_glfwSwapInterval_impl;
 
     void* sym = dlsym((void*) handle, symbol);
     if (!sym) sym = dlsym(RTLD_DEFAULT, symbol);

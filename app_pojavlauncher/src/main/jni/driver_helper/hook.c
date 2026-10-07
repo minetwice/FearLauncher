@@ -24,10 +24,44 @@ static void* ready_handle;
    symbol must exist here or the ICD preload fails. Provide a local stub
    that forwards to the real eglGetProcAddress; install_global_egl_hook
    (AWT path) may later replace the bytehook target with the real hook. */
+/* FEAR-FPSUNLOCK: force the EGL swap interval to 0 so presentation is not pinned
+   to the display's refresh rate (the "60 fps lock"); the frame rate is then
+   bounded only by the GPU. Same technique as tools/fearrender/fearpatch.py, with
+   the same escape hatch: MG_FORCE_VSYNC=1 restores the requested interval. */
+typedef void* fear_EGLDisplay;
+typedef int fear_EGLint;
+typedef unsigned int fear_EGLBoolean;
+static fear_EGLBoolean (*real_eglSwapInterval_p)(fear_EGLDisplay, fear_EGLint);
+static fear_EGLBoolean hooked_eglSwapInterval_impl(fear_EGLDisplay dpy, fear_EGLint interval) {
+    if (real_eglSwapInterval_p == NULL) {
+        real_eglSwapInterval_p = (fear_EGLBoolean (*)(fear_EGLDisplay, fear_EGLint))
+                dlsym(RTLD_DEFAULT, "eglSwapInterval");
+        if (real_eglSwapInterval_p == NULL) {
+            void* egl = dlopen("libEGL.so", RTLD_NOW);
+            if (egl == NULL) egl = dlopen("libEGL.so.1", RTLD_NOW);
+            if (egl != NULL)
+                real_eglSwapInterval_p = (fear_EGLBoolean (*)(fear_EGLDisplay, fear_EGLint))
+                        dlsym(egl, "eglSwapInterval");
+        }
+    }
+    if (interval != 0) {
+        static int fear_vsync_pref = -1;
+        if (fear_vsync_pref == -1) {
+            const char* fear_env = getenv("MG_FORCE_VSYNC");
+            fear_vsync_pref = (fear_env != NULL && strcmp(fear_env, "1") == 0) ? 1 : 0;
+        }
+        if (!fear_vsync_pref) interval = 0;
+    }
+    if (real_eglSwapInterval_p == NULL) return 0;
+    return real_eglSwapInterval_p(dpy, interval);
+}
+
 __attribute__((visibility("default"), used))
 void* eglGetProcAddress_hook(const char* procname) {
     typedef void* (*eglGPA_t)(const char*);
     static eglGPA_t real_eglGPA = NULL;
+    if (procname != NULL && strcmp(procname, "eglSwapInterval") == 0)
+        return (void*) hooked_eglSwapInterval_impl;
     if (real_eglGPA == NULL) {
         real_eglGPA = (eglGPA_t)dlsym(RTLD_DEFAULT, "eglGetProcAddress");
         if (real_eglGPA == NULL) {
