@@ -537,7 +537,7 @@ public final class Tools {
     }
 
     public static void printLauncherInfo(String gameVersion, String javaArguments, String renderer) {
-        Logger.appendToLog("Info: Launcher version: " + BuildConfig.VERSION_NAME);
+        Logger.appendToLog("Info: Launcher version: FearLauncher " + BuildConfig.VERSION_NAME);
         Logger.appendToLog("Info: Architecture: " + Architecture.archAsString(DEVICE_ARCHITECTURE));
         Logger.appendToLog("Info: Device model: " + Build.MANUFACTURER + " " +Build.MODEL);
         Logger.appendToLog("Info: API version: " + SDK_INT);

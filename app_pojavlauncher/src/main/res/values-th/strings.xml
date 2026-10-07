@@ -198,7 +198,7 @@
     <string name="pedit_java_runtime">จาวา รันไทม์</string>
     <string name="pedit_renderer">การแสดงผล</string>
     <string name="notif_channel_name">ทั่วไป</string>
-    <string name="lazy_service_default_title">เรียกใช้บริการpojavที่ใช้งานอยู่</string>
+    <string name="lazy_service_default_title">เรียกใช้บริการFearLauncherที่ใช้งานอยู่</string>
     <string name="mcl_setting_veroption_installed">ติดตั้งแล้ว</string>
     <string name="use_global_default">(ใช้การตั้งค่าหลัก)</string>
     <string name="default_control">ปุ่มควบคุมเริ่มต้น</string>
