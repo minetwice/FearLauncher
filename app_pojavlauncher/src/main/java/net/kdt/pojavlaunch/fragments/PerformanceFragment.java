@@ -47,6 +47,10 @@ public class PerformanceFragment extends Fragment {
     private static final String KEY_PVP_RENDERER = "pvp_prev_renderer";
     private static final String KEY_PVP_FORCE_VSYNC = "pvp_prev_force_vsync";
     private static final String KEY_PVP_VSYNC_IN_ZINK = "pvp_prev_vsync_in_zink";
+    /** Snapshot keys for the affinity, sustained-performance and render-scale the profile sets. */
+    private static final String KEY_PVP_AFFINITY = "pvp_prev_big_core_affinity";
+    private static final String KEY_PVP_SUSTAINED = "pvp_prev_sustained";
+    private static final String KEY_PVP_SCALE = "pvp_prev_resolution_ratio";
     private static final String KEY_PVP_OPTION_PREFIX = "pvp_prev_option_";
     /** Sentinel for an options.txt key that did not exist before the profile was enabled. */
     private static final String PVP_OPTION_ABSENT = "__pvp_absent__";
@@ -194,11 +198,12 @@ public class PerformanceFragment extends Fragment {
     /**
      * Applies or reverts the Smooth PvP profile.
      *
-     * <p>Enabling it snapshots the renderer, the seven options.txt keys it touches and
-     * the VSync preference, then applies the recipe; disabling it writes the snapshot
-     * back. The snapshot lives in the default preferences under {@code pvp_prev_*}
-     * keys, so it survives the fragment being recreated. Game options only take effect
-     * on the next launch, which the row's subtitle and toast both say.</p>
+     * <p>Enabling it snapshots the renderer, the seven options.txt keys it touches, the VSync
+     * preference, the big-core-affinity and sustained-performance switches and the render scale,
+     * then applies the recipe; disabling it writes the snapshot back. The snapshot lives in the
+     * default preferences under {@code pvp_prev_*} keys, so it survives the fragment being
+     * recreated. Game options only take effect on the next launch, which the row's subtitle and
+     * toast both say.</p>
      */
     private void setSmoothPvpProfile(boolean on) {
         android.content.SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
@@ -209,6 +214,10 @@ public class PerformanceFragment extends Fragment {
                 snapshot.putString(KEY_PVP_RENDERER, LauncherPreferences.PREF_RENDERER);
                 snapshot.putBoolean(KEY_PVP_FORCE_VSYNC, LauncherPreferences.PREF_FORCE_VSYNC);
                 snapshot.putBoolean(KEY_PVP_VSYNC_IN_ZINK, LauncherPreferences.PREF_VSYNC_IN_ZINK);
+                snapshot.putBoolean(KEY_PVP_AFFINITY, LauncherPreferences.PREF_BIG_CORE_AFFINITY);
+                snapshot.putBoolean(KEY_PVP_SUSTAINED, LauncherPreferences.PREF_SUSTAINED_PERFORMANCE);
+                snapshot.putInt(KEY_PVP_SCALE, pref.getInt("resolutionRatio",
+                        Math.round(LauncherPreferences.PREF_SCALE_FACTOR * 100f)));
                 for (String key : PVP_OPTION_KEYS) {
                     String value = MCOptionUtils.get(key);
                     snapshot.putString(KEY_PVP_OPTION_PREFIX + key,
@@ -238,6 +247,20 @@ public class PerformanceFragment extends Fragment {
             LauncherPreferences.PREF_VSYNC_IN_ZINK = false;
             pref.edit().putBoolean("vsync_in_zink", false).apply();
 
+            // The profile is a complete one-tap setup: it also turns on the big-core affinity
+            // and sustained-performance rows, and sets the render scale to the value the
+            // auto-tuner last chose (never a hardcoded one), so it rides the tuned scale
+            // instead of fighting it.
+            LauncherPreferences.PREF_BIG_CORE_AFFINITY = true;
+            pref.edit().putBoolean("bigCoreAffinity", true).apply();
+            LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = true;
+            pref.edit().putBoolean("sustainedPerformance", true).apply();
+            int tunedScale = pref.getInt("fear_auto_scale_last",
+                    Math.round(LauncherPreferences.PREF_SCALE_FACTOR * 100f));
+            tunedScale = Math.max(50, Math.min(100, tunedScale));
+            LauncherPreferences.PREF_SCALE_FACTOR = tunedScale / 100f;
+            pref.edit().putInt("resolutionRatio", tunedScale).apply();
+
             Toast.makeText(getContext(), R.string.perf_pvp_applied, Toast.LENGTH_LONG).show();
         } else {
             // Restore the renderer.
@@ -261,11 +284,28 @@ public class PerformanceFragment extends Fragment {
             LauncherPreferences.PREF_VSYNC_IN_ZINK = vsyncInZink;
             pref.edit().putBoolean("vsync_in_zink", vsyncInZink).apply();
 
+            // Restore the affinity, sustained-performance and render-scale the profile set.
+            boolean affinity = pref.getBoolean(KEY_PVP_AFFINITY,
+                    LauncherPreferences.PREF_BIG_CORE_AFFINITY);
+            LauncherPreferences.PREF_BIG_CORE_AFFINITY = affinity;
+            pref.edit().putBoolean("bigCoreAffinity", affinity).apply();
+            boolean sustained = pref.getBoolean(KEY_PVP_SUSTAINED,
+                    LauncherPreferences.PREF_SUSTAINED_PERFORMANCE);
+            LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = sustained;
+            pref.edit().putBoolean("sustainedPerformance", sustained).apply();
+            int scale = pref.getInt(KEY_PVP_SCALE,
+                    Math.round(LauncherPreferences.PREF_SCALE_FACTOR * 100f));
+            LauncherPreferences.PREF_SCALE_FACTOR = scale / 100f;
+            pref.edit().putInt("resolutionRatio", scale).apply();
+
             // Drop the snapshot and clear the flag.
             android.content.SharedPreferences.Editor cleanup = pref.edit();
             cleanup.remove(KEY_PVP_RENDERER);
             cleanup.remove(KEY_PVP_FORCE_VSYNC);
             cleanup.remove(KEY_PVP_VSYNC_IN_ZINK);
+            cleanup.remove(KEY_PVP_AFFINITY);
+            cleanup.remove(KEY_PVP_SUSTAINED);
+            cleanup.remove(KEY_PVP_SCALE);
             for (String key : PVP_OPTION_KEYS) cleanup.remove(KEY_PVP_OPTION_PREFIX + key);
             cleanup.putBoolean(KEY_PVP, false).apply();
         }

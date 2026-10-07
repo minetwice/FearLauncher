@@ -129,6 +129,11 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_PERFORMANCE_MODE) {
             net.kdt.pojavlaunch.utils.FearPerformanceMode.apply(instance.getGameDirectory());
         }
+        // FEARPATCH: Entity Texture Features rebuilds and re-uploads entity textures during
+        // play, and each upload forces a GPU sync - the main PvP stutter source in the lag
+        // reports. This neutralises only the heavy ETF keys, only in a config that already
+        // exists, and only once. A missing config is left alone (nothing is created).
+        net.kdt.pojavlaunch.utils.FearPerformanceMode.applyEntityTextureFeatures(instance.getGameDirectory());
 
         Intent gameServiceIntent = new Intent(this, GameService.class);
         // Start the service a bit early

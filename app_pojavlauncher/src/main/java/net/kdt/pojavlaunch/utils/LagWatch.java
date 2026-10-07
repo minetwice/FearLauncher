@@ -3,6 +3,7 @@ package net.kdt.pojavlaunch.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.PowerManager;
@@ -48,6 +49,18 @@ public final class LagWatch {
     private static final long SAMPLE_INTERVAL_MS = 2000L;
     private static final long PARTIAL_WRITE_EVERY_MS = 30000L;
     private static final String REPORT_NAME = "fear_lag_report.txt";
+
+    /** The frame rate the auto-tuner steers the render resolution toward. */
+    private static final double AUTO_SCALE_TARGET_FPS = 100.0;
+    /** Below this the scale is reduced; above {@link #AUTO_SCALE_HIGH_FPS} it is raised. */
+    private static final double AUTO_SCALE_LOW_FPS = 85.0;
+    private static final double AUTO_SCALE_HIGH_FPS = 110.0;
+    /** A session with fewer samples than this is not trusted (a crash, a 10-second test). */
+    private static final int AUTO_SCALE_MIN_SAMPLES = 20;
+    private static final int AUTO_SCALE_MIN = 50;
+    private static final int AUTO_SCALE_MAX = 100;
+    /** The value the tuner last wrote, so a hand-set scale can be told apart from ours. */
+    private static final String KEY_AUTO_SCALE_LAST = "fear_auto_scale_last";
 
     /** Log lines that name a known cause of stutter, with the label to file them under. */
     private static final String[][] SIGNATURES = {
@@ -579,6 +592,17 @@ public final class LagWatch {
             // -- what could be capping the frame rate, read at report time --
             appendFrameRateSources(sb, gameDir);
 
+            // -- the auto-tuner's decision, made once at session end --
+            if (finished) {
+                String decision = adaptResolutionScale(a.fpsAvg, samples.size());
+                sb.append("AUTO SCALE\n");
+                sb.append("----------\n");
+                sb.append("  ").append(decision != null ? decision
+                        : "no change (frame rate inside the 85-110 fps band, fewer than "
+                        + AUTO_SCALE_MIN_SAMPLES + " samples, or a hand-set scale)").append('\n');
+                sb.append('\n');
+            }
+
             // -- what to build next --
             sb.append("RECOMMENDED FEATURES (what to add to FearLauncher)\n");
             sb.append("-------------------------------------------------\n");
@@ -739,6 +763,60 @@ public final class LagWatch {
             return LauncherPreferences.PREF_PERFORMANCE_MODE;
         } catch (Throwable t) {
             return false;
+        }
+    }
+
+    // ---- auto scale -------------------------------------------------------------------
+
+    /**
+     * Nudges the render-resolution scale toward {@link #AUTO_SCALE_TARGET_FPS} from the session
+     * that just ended, and returns a one-line description of the decision (or null when nothing
+     * was changed).
+     *
+     * <p>The step is proportional - the scale is multiplied by {@code sqrt(avg / target)} and
+     * snapped to a 5% step - so it converges in a few sessions instead of oscillating. It is
+     * clamped to 50..100. It refuses to fight a scale the user moved by hand: the value it last
+     * wrote is kept under {@code fear_auto_scale_last}, and if the current scale is not that
+     * value the user has overridden it and the tuner stays out of the way. Sessions with too
+     * few samples are ignored so a crash or a ten-second test cannot skew it. The new value is
+     * written through the same preference the dashboard slider uses, so the dashboard shows it
+     * and the user can still override it. Runs on the sampler thread and never throws.</p>
+     */
+    private static String adaptResolutionScale(double avgFps, int sampleCount) {
+        try {
+            if (sampleCount < AUTO_SCALE_MIN_SAMPLES) return null;
+            if (avgFps <= 0) return null;
+            // Inside the dead band the scale is already close enough - leave it alone.
+            if (avgFps >= AUTO_SCALE_LOW_FPS && avgFps <= AUTO_SCALE_HIGH_FPS) return null;
+            SharedPreferences pref = LauncherPreferences.DEFAULT_PREF;
+            if (pref == null) return null;
+
+            int current = pref.getInt("resolutionRatio",
+                    Math.round(LauncherPreferences.PREF_SCALE_FACTOR * 100f));
+            // If we have adapted before and the scale is no longer what we wrote, the user
+            // changed it by hand - never fight that.
+            if (pref.contains(KEY_AUTO_SCALE_LAST)
+                    && pref.getInt(KEY_AUTO_SCALE_LAST, current) != current) return null;
+
+            double ratio = Math.sqrt(avgFps / AUTO_SCALE_TARGET_FPS);
+            int proposed = (int) (Math.round(current * ratio / 5.0) * 5);
+            proposed = Math.max(AUTO_SCALE_MIN, Math.min(AUTO_SCALE_MAX, proposed));
+            if (proposed == current) return null;
+
+            pref.edit()
+                    .putInt("resolutionRatio", proposed)
+                    .putInt(KEY_AUTO_SCALE_LAST, proposed)
+                    .apply();
+            LauncherPreferences.PREF_SCALE_FACTOR = proposed / 100f;
+
+            String line = String.format(Locale.US,
+                    "auto-scale: measured %.1f fps over %d samples; render resolution %d%% -> %d%% (target %.0f fps)",
+                    avgFps, sampleCount, current, proposed, AUTO_SCALE_TARGET_FPS);
+            Log.i(TAG, line);
+            return line;
+        } catch (Throwable t) {
+            Log.w(TAG, "auto-scale skipped", t);
+            return null;
         }
     }
 
