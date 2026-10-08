@@ -6,6 +6,7 @@
     <string name="newdl_downloading_game_files_size" formatted="false">Downloading game… (%.2f/%.2f MB, %.2f MB/s)</string>
     <string name="newdl_downloading_metadata">Downloading game metadata (%s)</string>
     <string name="newdl_extracting_native_libraries" formatted="false">Extracting native libraries (%d/%d)</string>
+    <string name="newdl_finalizing_game_files">Finalizing game files…</string>
     <string name="newdl_starting">Reading game metadata…</string>
     <string name="newerdl_downloading_files_count" formatted="false">Downloading files… (%d/%d, %.2f MB/s)</string>
     <string name="newerdl_downloading_files_size" formatted="false">Downloading files… (%.2f/%.2f MB, %.2f MB/s)</string>

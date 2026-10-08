@@ -23,7 +23,7 @@ public class CheckFileOnDiskTask extends DownloaderTask {
         boolean checkResult = checkFile();
         if(checkResult) {
             if(!mAfterDownload) mDownloader.addSize(mMetadata.size);
-            mDownloader.fileComplete();
+            mDownloader.fileComplete(mMetadata);
         }else {
             if(!mAfterDownload) mDownloader.submitFileForDownload(mMetadata);
             else throw new IOException("Failed to verify "+mMetadata.toString());

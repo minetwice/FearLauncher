@@ -24,16 +24,17 @@ public class DownloadFileTask extends DownloaderTask implements BytesCopiedListe
         try {
             if(!mMetadata.path.exists() || !rangeAllowed) {
                 mBytesDownloaded.set(0);
-                mDownloader.downloadFile(mMetadata.path, mMetadata.url, this);
+                mDownloader.downloadFileMirrored(mMetadata, this);
             } else {
                 long alreadyDownloaded = mMetadata.path.length();
                 mBytesDownloaded.set(alreadyDownloaded);
                 mDownloader.addSize(alreadyDownloaded);
-                rangeAllowed = mDownloader.tryContinueDownload(mMetadata.path, mMetadata.size, mMetadata.url, this);
+                rangeAllowed = mDownloader.tryContinueDownloadMirrored(mMetadata, this);
                 if(!rangeAllowed) performRetry(attempt, false);
             }
         }catch (IOException e) {
-            if(attempt == 5) throw e;
+            if(attempt == 5) throw new IOException("Failed to download file "
+                    + mMetadata.path.getName() + " (" + mMetadata.url + ")", e);
             performRetry(attempt, rangeAllowed);
         }
     }

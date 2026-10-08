@@ -16,12 +16,14 @@ public abstract class DownloaderTask implements Runnable {
         try {
             performTask();
         }catch (IOException e) {
-            mDownloader.taskException(e);
+            // Record the failure against the file and abort the phase, naming it, so a file that
+            // can never be produced ends the download instead of leaving the counter short.
+            mDownloader.fileFailed(mMetadata, e);
         }catch (Throwable t) {
             // A RuntimeException (or any other unchecked error) must never silently kill a worker
             // thread: if it did, the file counter would never advance and the whole download would
             // spin forever, leaving the launcher permanently "busy".
-            mDownloader.taskException(new IOException("Unhandled error in download task", t));
+            mDownloader.fileFailed(mMetadata, new IOException("Unhandled error in download task", t));
         }
     }
 

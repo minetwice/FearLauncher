@@ -90,11 +90,25 @@ public class DownloadMirror {
                 baseUrl = mirrorSettings[downloadClass];
                 break;
             case DOWNLOAD_CLASS_LIBRARIES:
-                if(!baseUrl.endsWith("libraries.minecraft.net")) break;
-                baseUrl = mirrorSettings[downloadClass];
+                if(baseUrl.endsWith("libraries.minecraft.net")) {
+                    baseUrl = mirrorSettings[DOWNLOAD_CLASS_LIBRARIES];
+                } else if(isMojangGameHost(baseUrl)) {
+                    // The client/server JAR and the log4j config are served by the mirror with their
+                    // path preserved (host replacement), e.g. launcher.mojang.com/v1/objects/... ->
+                    // bmclapi2.bangbang93.com/v1/objects/... . If the mirror does not have it or
+                    // returns the wrong bytes, the downloader falls back to the official URL.
+                    baseUrl = mirrorSettings[DOWNLOAD_CLASS_METADATA];
+                }
                 break;
         }
         return baseUrl + path;
+    }
+
+    /** Hosts that serve the game JAR and are mirrored by replacing the host, keeping the path. */
+    private static boolean isMojangGameHost(String baseUrl) {
+        return baseUrl.endsWith("piston-data.mojang.com")
+                || baseUrl.endsWith("launcher.mojang.com")
+                || baseUrl.endsWith("launchermeta.mojang.com");
     }
 
     private static int getBaseUrlTail(String wholeUrl) throws MalformedURLException{

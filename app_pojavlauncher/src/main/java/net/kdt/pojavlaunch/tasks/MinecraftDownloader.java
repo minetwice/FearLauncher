@@ -68,6 +68,9 @@ public class MinecraftDownloader extends Downloader {
 
     public MinecraftDownloader() {
         super(ProgressLayout.DOWNLOAD_MINECRAFT);
+        // This downloader has post-processing steps after the bulk download (client-JAR copy and
+        // natives extraction), so it only owns 0..DOWNLOAD_PROGRESS_BAND of the bar.
+        mDownloadProgressBand = DOWNLOAD_PROGRESS_BAND;
     }
 
     public static void prepareSubstitutionMap(AssetManager assetManager) {
@@ -148,8 +151,15 @@ public class MinecraftDownloader extends Downloader {
 
         runDownloads(mScheduledDownloadTasks);
 
+        // The bulk download is done; what remains is local post-processing (copying the client JAR
+        // for inherited versions and extracting natives). Label it and drive the top of the band so
+        // the bar cannot sit at "almost done" while that runs.
+        ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, DOWNLOAD_PROGRESS_BAND,
+                R.string.newdl_finalizing_game_files);
         ensureJarFileCopy();
         extractNatives(mVersionName);
+        ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, 100,
+                R.string.newdl_finalizing_game_files);
     }
 
     private File createGameJsonPath(String versionId) {
@@ -178,7 +188,7 @@ public class MinecraftDownloader extends Downloader {
         if(mDeclaredNatives.isEmpty()) return;
         int totalCount = mDeclaredNatives.size();
 
-        ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, 0,
+        ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, DOWNLOAD_PROGRESS_BAND,
                 R.string.newdl_extracting_native_libraries, 0, totalCount);
 
         File targetDirectory = new File(Tools.DIR_CACHE, "natives/"+versionName);
@@ -189,7 +199,9 @@ public class MinecraftDownloader extends Downloader {
             if(extractable.extractInfo == null) nativesExtractor.extractFromAar(extractable.path);
             else nativesExtractor.extractMoJson(extractable.path, extractable.extractInfo);
             extractedCount++;
-            ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, extractedCount * 100 / totalCount,
+            int progress = DOWNLOAD_PROGRESS_BAND
+                    + (int) ((extractedCount / (float) totalCount) * (100 - DOWNLOAD_PROGRESS_BAND));
+            ProgressLayout.setProgress(ProgressLayout.DOWNLOAD_MINECRAFT, progress,
                     R.string.newdl_extracting_native_libraries, extractedCount, totalCount);
         }
     }

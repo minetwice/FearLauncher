@@ -26,7 +26,7 @@ public class CompleteMetadataTask extends DownloaderTask {
         if(mMetadata.size == -1) {
             mDownloader.disableSizeCounter();
         }
-        mDownloader.fileComplete();
+        mDownloader.fileComplete(mMetadata);
     }
 
     private void getLibrarySha1Hash() {
@@ -39,7 +39,7 @@ public class CompleteMetadataTask extends DownloaderTask {
         if(LauncherPreferences.PREF_RAPID_START && mMetadata.size != -1 && mMetadata.path.length() == mMetadata.size) return;
 
         try {
-            mMetadata.sha1Hash = mDownloader.downloadString(new URL(mMetadata.url + ".sha1"));
+            mMetadata.sha1Hash = mDownloader.downloadStringMirrored(mMetadata, ".sha1");
         }catch (IOException e) {
             Log.i("CompleteMetadataTask", "Failed to get server hash for "+mMetadata.path.getName(), e);
         }
@@ -47,12 +47,8 @@ public class CompleteMetadataTask extends DownloaderTask {
 
     private void getFileSize() {
         if(mMetadata.size != -1) return;
-        try {
-            mMetadata.size = mDownloader.getFileContentLength(mMetadata.url);
-            Log.i("CompleteMetadataTask", "Got size: " + mMetadata.size +" for " + mMetadata.path.getName());
-        }catch (IOException e) {
-            Log.i("CompleteMetadataTask", "Failed to get size for " + mMetadata.path.getName(), e);
-        }
+        mMetadata.size = mDownloader.getFileContentLengthMirrored(mMetadata);
+        Log.i("CompleteMetadataTask", "Got size: " + mMetadata.size +" for " + mMetadata.path.getName());
     }
 
     protected static boolean shouldCompleteMetadata(TaskMetadata metadata) {
