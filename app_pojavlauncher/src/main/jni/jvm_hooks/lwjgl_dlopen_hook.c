@@ -139,6 +139,57 @@ static unsigned char* fear_glGetString_hook(unsigned int name) {
     return NULL;
 }
 
+/* ---- FEARMONNAME (v2.14) ------------------------------------------------------
+   Branding for the F3 debug screen's "Display: WxH (name)" line. Minecraft prints
+   the monitor name it reads from GLFW's glfwGetMonitorName. On this device that
+   name comes from the prebuilt libglfw.so built from the upstream MojoLauncher/glfw
+   fork, which reports the monitor as "MojoLauncher". This is a GLFW string query,
+   not a GL one, so it is a different code path from the FEARBRAND glGetString work
+   above - and it is the path that still leaked the upstream name.
+
+   Why the old hook did not take effect: hooked_glfwGetMonitorName_impl existed and
+   returned a fixed string, but it was wired only inside the is_zink_renderer()
+   branch of ndlsym_hook. The LTW renderer sets FEAR_RENDERER=opengles3_ltw, for
+   which is_zink_renderer() is false, so that branch never ran and the game's
+   lookup fell through to the real libglfw - which answers "MojoLauncher".
+
+   Same safety rule as FEARBRAND: the real glfwGetMonitorName is resolved by
+   performing exactly the lookup the un-hooked ndlsym / glfwGetProcAddress pass
+   through would have performed, and the hook is installed ONLY when that lookup
+   returned a real function. Every input is branded (this is the display name), the
+   result is a file-scope static buffer - never NULL, never a stack pointer - and if
+   the real function cannot be obtained the lookup falls through to the un-hooked
+   result. */
+static char fear_monitor_name_str[] = "FearLauncher";
+
+static const char* (*g_real_glfwGetMonitorName)(void*) = NULL;
+static int g_fear_monname_logged_ok = 0;
+static int g_fear_monname_logged_fail = 0;
+
+/* One-time evidence line: records whether the real glfwGetMonitorName was obtained
+   and from which path, so the branding can be confirmed on-device. */
+static void fear_monname_log(int ok, const char* path) {
+    if (ok) {
+        if (g_fear_monname_logged_ok) return;
+        g_fear_monname_logged_ok = 1;
+    } else {
+        if (g_fear_monname_logged_fail) return;
+        g_fear_monname_logged_fail = 1;
+    }
+    printf("FEARMONNAME: real glfwGetMonitorName %s (path=%s) - F3 monitor name branded \"%s\"\n",
+           ok ? "OBTAINED" : "NOT OBTAINED - falling through to the un-hooked lookup",
+           path, fear_monitor_name_str);
+}
+
+/* The branding hook. glfwGetMonitorName has one input (the monitor) and the whole
+   point is to replace the display name, so every input is branded from the
+   file-scope buffer. It is installed only when the real function was obtained, so
+   it can never hand back a pointer that was not already valid. */
+static const char* fear_glfwGetMonitorName_hook(void* monitor) {
+    (void) monitor;
+    return fear_monitor_name_str;
+}
+
 /* Present path: count the frame, then hand the call to the real implementation. */
 static unsigned int fear_eglSwapBuffers_hook(void* dpy, void* surface) {
     __atomic_fetch_add(&g_presented_frames, 1, __ATOMIC_RELAXED);
@@ -180,6 +231,22 @@ static void* fear_glfwGetProcAddress_hook(const char* procname) {
             return (void*) fear_glGetString_hook;
         }
         fear_brand_log(0, "glfwGetProcAddress");
+        return g_real_glfwGetProcAddress(procname); /* un-hooked result (may be NULL) */
+    }
+    /* FEARMONNAME on the proc-address path: same rule - resolve the real
+       glfwGetMonitorName through the real loader with the SAME argument the hook
+       was handed, and only install when that returned a real function. Otherwise
+       forward the un-hooked loader result. */
+    if (strcmp(procname, "glfwGetMonitorName") == 0) {
+        if (g_real_glfwGetMonitorName == NULL) {
+            void* fear_m = g_real_glfwGetProcAddress(procname);
+            if (fear_m != NULL) g_real_glfwGetMonitorName = (const char* (*)(void*)) fear_m;
+        }
+        if (g_real_glfwGetMonitorName != NULL) {
+            fear_monname_log(1, "glfwGetProcAddress");
+            return (void*) fear_glfwGetMonitorName_hook;
+        }
+        fear_monname_log(0, "glfwGetProcAddress");
         return g_real_glfwGetProcAddress(procname); /* un-hooked result (may be NULL) */
     }
     if (strcmp(procname, "eglSwapBuffers") == 0) {
@@ -528,7 +595,7 @@ static void hooked_glfwGetMonitorWorkarea_impl(void* m, int* x, int* y, int* w, 
 }
 
 static const char* hooked_glfwGetMonitorName_impl(void* m) {
-    (void)m; return "FearLauncher-Display";
+    (void)m; return fear_monitor_name_str;
 }
 
 static void* hooked_glfwGetWindowMonitor_impl(void* window) {
@@ -814,6 +881,22 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
     if (strncmp(procname, "gl", 2) == 0 && g_req_log_count < 1500) {
         g_req_log_count++;
         printf("LWJGL hook: REQ %s\n", procname);
+    }
+    /* FEARMONNAME (zink GL proc-address path): same rule as the other sites -
+       resolve the real glfwGetMonitorName through this loader's own lookup and
+       install the branding hook only when a real function was obtained. */
+    if (strcmp(procname, "glfwGetMonitorName") == 0) {
+        if (g_real_glfwGetMonitorName == NULL) {
+            void* fear_m = glfw_real(procname);
+            if (fear_m == NULL) fear_m = dlsym(RTLD_DEFAULT, procname);
+            if (fear_m != NULL) g_real_glfwGetMonitorName = (const char* (*)(void*)) fear_m;
+        }
+        if (g_real_glfwGetMonitorName != NULL) {
+            fear_monname_log(1, "glfwGetProcAddress");
+            return (void*) fear_glfwGetMonitorName_hook;
+        }
+        fear_monname_log(0, "glfwGetProcAddress");
+        /* no real pointer available: fall through to the un-hooked resolution */
     }
     /* FEARFRAMECOUNT: count presented frames, whichever way the game resolves the
        present entry points. */
@@ -1111,6 +1194,28 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (g_real_glfwGetProcAddress == NULL)
             g_real_glfwGetProcAddress = (void* (*)(const char*)) fear_resolve((void*) handle, symbol);
         if (g_real_glfwGetProcAddress != NULL) return (jlong) fear_glfwGetProcAddress_hook;
+    }
+
+    /* FEARMONNAME (LTW and every other non-stub renderer): brand the F3 monitor
+       name. This sits OUTSIDE the is_zink_renderer() branch on purpose - the old
+       hook lived only inside that branch, which is why the LTW device still saw
+       "MojoLauncher". The real function is resolved through the exact lookup this
+       hook would otherwise pass through - dlsym on the handle the game asked in,
+       then RTLD_DEFAULT - so it is the very pointer the game would have received
+       without the hook. Install only when that lookup succeeded; otherwise fall
+       through to the un-hooked result. */
+    if (strcmp(symbol, "glfwGetMonitorName") == 0) {
+        if (g_real_glfwGetMonitorName == NULL) {
+            void* fear_m = dlsym((void*) handle, symbol);
+            if (fear_m == NULL) fear_m = dlsym(RTLD_DEFAULT, symbol);
+            if (fear_m != NULL) g_real_glfwGetMonitorName = (const char* (*)(void*)) fear_m;
+        }
+        if (g_real_glfwGetMonitorName != NULL) {
+            fear_monname_log(1, "ndlsym");
+            return (jlong) fear_glfwGetMonitorName_hook;
+        }
+        fear_monname_log(0, "ndlsym");
+        /* no real pointer available: do not substitute anything, fall through */
     }
 
     /* FEARBRAND (LTW path): brand GL_VENDOR / GL_RENDERER. The real glGetString is
