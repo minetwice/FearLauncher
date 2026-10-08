@@ -277,8 +277,8 @@ public class Downloader {
 
     private static HttpURLConnection openConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(8000);
-        connection.setReadTimeout(30000);
+        connection.setConnectTimeout(DownloadUtils.CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(DownloadUtils.READ_TIMEOUT_MS);
         connection.setRequestProperty("User-Agent", DownloadUtils.USER_AGENT);
         connection.setRequestProperty("Connection", "keep-alive");
         connection.setDoInput(true);
@@ -379,6 +379,9 @@ public class Downloader {
             Log.w("Downloader", "Mirror download failed for " + mirror
                     + "; falling back to " + taskMetadata.url, mirrorError);
         }
+        // The mirror attempt is abandoned and the official URL restarts the file from zero, so
+        // un-count whatever the failed mirror attempt contributed before it is downloaded again.
+        if(listener != null) listener.onRestart();
         downloadFile(taskMetadata.path, taskMetadata.url, listener);
     }
 
@@ -444,7 +447,11 @@ public class Downloader {
 
     protected boolean tryContinueDownload(File file, long wantedLength, URL url, BytesCopiedListener listener) throws IOException {
         HttpURLConnection connection = openConnection(url);
-        String range = String.format(Locale.ENGLISH, "bytes=%d-%d", file.length(), wantedLength - 1);
+        // Use a closed range when the expected size is known, and an open-ended range otherwise,
+        // so a resume works even when the file size could not be discovered.
+        String range = wantedLength > file.length()
+                ? String.format(Locale.ENGLISH, "bytes=%d-%d", file.length(), wantedLength - 1)
+                : String.format(Locale.ENGLISH, "bytes=%d-", file.length());
         connection.setRequestProperty("Range", range);
         try {
             connection.connect();
@@ -463,8 +470,8 @@ public class Downloader {
 
     protected long getFileContentLength(URL url) throws IOException {
         HttpURLConnection connection = openConnection(url);
-        connection.setConnectTimeout(3000);
-        connection.setReadTimeout(3000);
+        connection.setConnectTimeout(DownloadUtils.CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(DownloadUtils.READ_TIMEOUT_MS);
         connection.setRequestMethod("HEAD");
         try {
             connection.connect();
