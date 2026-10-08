@@ -995,7 +995,7 @@ public class GLFW
     private static void fearLogMonitorNameBranding() {
         if (mFearMonitorNameLogged) return;
         mFearMonitorNameLogged = true;
-        Log.i("FearLauncher", "FEARMONNAME: Java GLFW.glfwGetMonitorName branding active - F3 monitor name is \"" + FEAR_MONITOR_NAME + "\"");
+        System.out.println("FEARMONNAME: Java GLFW.glfwGetMonitorName branding active - F3 monitor name is \"" + FEAR_MONITOR_NAME + "\"");
     }
 
     @Nullable // The normal implementation is nullable.
