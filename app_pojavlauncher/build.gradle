@@ -9,7 +9,31 @@ apply from: rootProject.file('gradle/prefab_bypass.gradle')
 import de.undercouch.gradle.tasks.download.Download
 
 // Public release version. Bump this single value for each release.
-def FEAR_VERSION_NAME = "1.0.0"
+def FEAR_VERSION_BASE = "1.0.0"
+
+// Short build identifier appended to the version string so any screenshot or log
+// identifies exactly which build is running. In CI the 7-character short commit
+// comes from GitHub Actions' GITHUB_SHA; locally it is derived from grgit - the
+// same mechanism the version string used before it was simplified. When neither
+// is available the suffix is omitted and the clean base version is used, so a
+// missing value can never fail the build. The branch name is deliberately NOT
+// part of the version string.
+def getFearShortCommit = {
+    try {
+        def sha = System.getenv("GITHUB_SHA")
+        if (sha == null || sha.trim().isEmpty()) {
+            sha = grgit.head().abbreviatedId
+        }
+        if (sha == null || sha.trim().isEmpty()) return null
+        sha = sha.trim()
+        return sha.length() > 7 ? sha.substring(0, 7) : sha
+    } catch (Exception ignored) {
+        return null
+    }
+}
+
+def fearShortCommit = getFearShortCommit()
+def FEAR_VERSION_NAME = fearShortCommit != null ? "${FEAR_VERSION_BASE}-${fearShortCommit}" : FEAR_VERSION_BASE
 
 // Monotonic version code: the GitHub Actions run number in CI, a fixed floor locally.
 static def getDateSeconds() {

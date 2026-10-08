@@ -983,10 +983,30 @@ public class GLFW
         }
     }
 
+    /**
+     * FearLauncher monitor name returned to the F3 debug screen. A fixed, non-null
+     * constant: the "Display: WxH (name)" line must always be branded, whichever
+     * path the game takes to read it.
+     */
+    private static final String FEAR_MONITOR_NAME = "FearLauncher";
+    private static boolean mFearMonitorNameLogged = false;
+
+    /** One-time evidence line so the Java monitor-name branding can be confirmed on-device. */
+    private static void fearLogMonitorNameBranding() {
+        if (mFearMonitorNameLogged) return;
+        mFearMonitorNameLogged = true;
+        Log.i("FearLauncher", "FEARMONNAME: Java GLFW.glfwGetMonitorName branding active - F3 monitor name is \"" + FEAR_MONITOR_NAME + "\"");
+    }
+
     @Nullable // The normal implementation is nullable.
     @NativeType("char const *")
     public static String glfwGetMonitorName(@NativeType("GLFWmonitor *") long monitor) {
-        return String.format(Locale.US, "Android Display (%dx%d)", mGLFWWindowWidth, mGLFWWindowHeight);
+        // FearLauncher: brand the F3 "Display: WxH (name)" line here too. The device
+        // normally gets this name from the prebuilt libglfw.so (upstream
+        // "MojoLauncher"); this Java binding is a second, independent layer so the
+        // name is branded whichever path the game takes. Never returns null.
+        fearLogMonitorNameBranding();
+        return FEAR_MONITOR_NAME;
     }
 
     public static void glfwSetMonitorUserPointer(@NativeType("GLFWmonitor *") long monitor, @NativeType("void *") long pointer) {
