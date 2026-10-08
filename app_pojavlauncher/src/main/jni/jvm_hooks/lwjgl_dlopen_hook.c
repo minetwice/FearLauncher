@@ -24,8 +24,8 @@
 
 bridge_environ_t bridge_environ = {0};
 
-/* ---- FEARFRAMECOUNT / FEARBRAND ------------------------------------------------
-   Frame counting and GL branding, kept in one place.
+/* ---- FEARFRAMECOUNT ------------------------------------------------------------
+   Presented-frame counting, kept in one place.
 
    The lag report's frame rate used to be guessed from the game log, where the
    busiest repeating line was a chat message, so it read a constant ~1 fps and the
@@ -36,26 +36,16 @@ bridge_environ_t bridge_environ = {0};
    Java through JREUtils.getPresentedFrameCount(), which the LagWatch sampler
    polls each sample.
 
-   The same layer rewrites GL_VENDOR / GL_RENDERER so the in-game F3 debug screen
-   shows the launcher instead of the prebuilt LTW wrapper's name ("MojoLauncher").
-   Only those two strings change: GL_VERSION and GL_EXTENSIONS are returned
-   untouched, because mods and Sodium-style workarounds parse them. */
-#define FEAR_GL_VENDOR   "FearLauncher"
-#define FEAR_GL_RENDERER "FearLTW (OpenGL ES 3)"
+   The GL_VENDOR / GL_RENDERER branding hook that used to live here was removed:
+   on some devices it ended up handing a NULL glGetString result to the caller and
+   crashed shader linking (SIGSEGV in __strlen_aarch64 reached from glLinkProgram).
+   glGetString is now the renderer's real entry point, untouched. */
 
 static uint64_t g_presented_frames = 0;
 
 static unsigned int (*g_real_eglSwapBuffers)(void*, void*) = NULL;
 static void (*g_real_glfwSwapBuffers)(void*) = NULL;
-static unsigned char* (*g_real_glGetString)(unsigned int) = NULL;
 static void* (*g_real_glfwGetProcAddress)(const char*) = NULL;
-
-/* Handle the game loaded its GL implementation from (libltw.so on the LTW path),
-   captured from ndlsym so the real glGetString can be resolved from it even when
-   the proc-address loader does not expose this core entry point. */
-static void* g_gl_library_handle = NULL;
-
-static void* load_libglfw(void); /* defined below; used by the glGetString resolver */
 
 /* Resolve a real entry point from the handle the game looked it up in, falling
    back to the global namespace. */
@@ -81,51 +71,10 @@ static void fear_glfwSwapBuffers_hook(void* window) {
     if (g_real_glfwSwapBuffers != NULL) g_real_glfwSwapBuffers(window);
 }
 
-/* Branding: static buffers, so the returned pointer stays stable. */
-static unsigned char fear_gl_vendor_str[]   = FEAR_GL_VENDOR;
-static unsigned char fear_gl_renderer_str[] = FEAR_GL_RENDERER;
-
-/* Resolve the real glGetString from every source the hooks in this file use: the
-   handle the game loaded its GL implementation from (libltw.so on the LTW path),
-   the OSMesa bridge table, the process-global namespace, the real glfw proc-address
-   loader, and finally the real libglfw handle. Cached after the first hit.
-   glGetString is a core entry point that proc-address loaders frequently do NOT
-   expose (and the real libglfw returns NULL for every GL name on a GLFW_NO_API
-   window), so a single source is not enough - a missed lookup here is exactly what
-   returned NULL to the caller and fed a null pointer to strlen(). */
-static unsigned char* (*fear_real_glGetString(void))(unsigned int) {
-    if (g_real_glGetString != NULL) return g_real_glGetString;
-    if (g_gl_library_handle != NULL)
-        g_real_glGetString = (unsigned char* (*)(unsigned int)) dlsym(g_gl_library_handle, "glGetString");
-    if (g_real_glGetString == NULL && glGetString_p != NULL)
-        g_real_glGetString = (unsigned char* (*)(unsigned int)) glGetString_p;
-    if (g_real_glGetString == NULL)
-        g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve(NULL, "glGetString");
-    if (g_real_glGetString == NULL && g_real_glfwGetProcAddress != NULL)
-        g_real_glGetString = (unsigned char* (*)(unsigned int)) g_real_glfwGetProcAddress("glGetString");
-    if (g_real_glGetString == NULL) {
-        void* lib = load_libglfw();
-        if (lib != NULL)
-            g_real_glGetString = (unsigned char* (*)(unsigned int)) dlsym(lib, "glGetString");
-    }
-    return g_real_glGetString;
-}
-
-static unsigned char* fear_glGetString_hook(unsigned int name) {
-    if (name == 0x1F00u) return fear_gl_vendor_str;   /* GL_VENDOR   */
-    if (name == 0x1F01u) return fear_gl_renderer_str; /* GL_RENDERER */
-    /* GL_VERSION (0x1F02), GL_SHADING_LANGUAGE_VERSION, GL_EXTENSIONS and every
-       other name are forwarded to the real driver verbatim. The hook must never
-       return NULL for a name the real driver can answer. */
-    unsigned char* (*fear_real)(unsigned int) = fear_real_glGetString();
-    if (fear_real != NULL) return fear_real(name);
-    return NULL;
-}
-
 /* LWJGL's GLFW binding resolves GL entry points through glfwGetProcAddress, so for
-   the LTW path (which gets the real libglfw loader) the branding and the present
-   count have to be applied here too. Everything other than the three names below is
-   forwarded to the real loader unchanged, so no other GL resolution changes. */
+   the LTW path (which gets the real libglfw loader) the present count has to be
+   applied here too. Everything other than the names below is forwarded to the real
+   loader unchanged, so no other GL resolution changes. */
 static void* fear_glfwGetProcAddress_hook(const char* procname) {
     if (g_real_glfwGetProcAddress == NULL) {
         /* The real loader has not been resolved yet: do not fail every lookup
@@ -133,15 +82,6 @@ static void* fear_glfwGetProcAddress_hook(const char* procname) {
         return (procname != NULL) ? fear_resolve(NULL, procname) : NULL;
     }
     if (procname == NULL) return g_real_glfwGetProcAddress(NULL);
-    if (strcmp(procname, "glGetString") == 0) {
-        if (g_real_glGetString == NULL) {
-            void* fear_p = g_real_glfwGetProcAddress(procname);
-            /* Only cache a hit: some loaders return NULL for this core entry
-               point, and caching NULL would strand the hook on a NULL return. */
-            if (fear_p != NULL) g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_p;
-        }
-        return (void*) fear_glGetString_hook;
-    }
     if (strcmp(procname, "eglSwapBuffers") == 0) {
         if (g_real_eglSwapBuffers == NULL)
             g_real_eglSwapBuffers = (unsigned int (*)(void*, void*)) g_real_glfwGetProcAddress(procname);
@@ -775,15 +715,8 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
         g_req_log_count++;
         printf("LWJGL hook: REQ %s\n", procname);
     }
-    /* FEARBRAND / FEARFRAMECOUNT: brand the GL vendor/renderer and count presented
-       frames, whichever way the game resolves these entry points. */
-    if (strcmp(procname, "glGetString") == 0) {
-        if (g_real_glGetString == NULL) {
-            if (glGetString_p) g_real_glGetString = (unsigned char* (*)(unsigned int)) glGetString_p;
-            else g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve(NULL, "glGetString");
-        }
-        return (void*) fear_glGetString_hook;
-    }
+    /* FEARFRAMECOUNT: count presented frames, whichever way the game resolves the
+       present entry points. */
     if (strcmp(procname, "eglSwapBuffers") == 0) return (void*) fear_eglSwapBuffers_hook;
     if (strcmp(procname, "glfwSwapBuffers") == 0) return (void*) fear_glfwSwapBuffers_hook;
     if (strcmp(procname, "glBlitFramebuffer") == 0 && is_panfork_renderer()) {
@@ -924,12 +857,6 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
                  jlong symbol_ptr) {
     const char* symbol = (const char*) symbol_ptr;
     if (!symbol) return 0;
-
-    /* Remember the handle the game loads its GL implementation from (libltw.so on
-       the LTW path) so the real glGetString can still be resolved from it even
-       when the proc-address loader does not expose this core entry point. */
-    if (g_gl_library_handle == NULL && strncmp(symbol, "gl", 2) == 0 && strncmp(symbol, "glfw", 4) != 0)
-        g_gl_library_handle = (void*) handle;
 
     if (is_zink_renderer()) {
         if (strcmp(symbol, "glfwInit") == 0) return (jlong) hooked_glfwInit_impl;
@@ -1077,15 +1004,9 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             g_real_glfwSwapBuffers = (void (*)(void*)) fear_resolve((void*) handle, symbol);
         return (jlong) fear_glfwSwapBuffers_hook;
     }
-    /* FEARBRAND: report the launcher, not the LTW wrapper, as the GL vendor. */
-    if (strcmp(symbol, "glGetString") == 0) {
-        if (g_real_glGetString == NULL)
-            g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_resolve((void*) handle, symbol);
-        return (jlong) fear_glGetString_hook;
-    }
-    /* FEARBRAND on the glfwGetProcAddress path: wrap the real loader so GL_VENDOR /
-       GL_RENDERER are branded and the present path is counted, without changing how
-       any other GL function is resolved. */
+    /* FEARFRAMECOUNT on the glfwGetProcAddress path: wrap the real loader so the
+       present path is counted, without changing how any other GL function is
+       resolved. */
     if (strcmp(symbol, "glfwGetProcAddress") == 0 || strcmp(symbol, "glfwGetProcessAddress") == 0) {
         if (g_real_glfwGetProcAddress == NULL)
             g_real_glfwGetProcAddress = (void* (*)(const char*)) fear_resolve((void*) handle, symbol);
