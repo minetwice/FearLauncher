@@ -56,6 +56,59 @@ static fear_EGLBoolean hooked_eglSwapInterval_impl(fear_EGLDisplay dpy, fear_EGL
     return real_eglSwapInterval_p(dpy, interval);
 }
 
+/* FEARBRAND (EGL proc-address path) ------------------------------------------------
+   The LTW renderer resolves GL entry points through eglGetProcAddress, not a plain
+   dlopen/dlsym, which is why the glGetString branding in jvm_hooks/lwjgl_dlopen_hook.c
+   (the ndlsym / glfwGetProcAddress sites) never installed there and the upstream
+   launcher name could still reach the in-game F3 screen. Brand GL_VENDOR /
+   GL_RENDERER on this path too, using the SAME install-only-if-obtained rule: the
+   real glGetString is resolved by calling the real eglGetProcAddress with the very
+   argument this hook was handed - the exact lookup the un-hooked code performs - and
+   the hook is installed ONLY when that returned a real function. Every other name is
+   forwarded to that same real pointer, and if it cannot be obtained the lookup falls
+   through to the un-hooked result, so the hook can never hand back a NULL that was
+   not already there.
+
+   The branding strings and the hook live in jvm_hooks/lwjgl_dlopen_hook.c, which is
+   built into libpojavexec.so; this file is built into liblinkerhook.so, a separate
+   shared object, so those statics are not reachable across the boundary. The minimal
+   set (two static buffers + a forwarding hook) is therefore duplicated here. */
+#define FEAR_GL_VENDOR   0x1F00u
+#define FEAR_GL_RENDERER 0x1F01u
+
+static unsigned char fear_egl_gl_vendor_str[]   = "FearLauncher";
+static unsigned char fear_egl_gl_renderer_str[] = "FearLTW (OpenGL ES 3)";
+
+static unsigned char* (*g_real_glGetString_egl)(unsigned int) = NULL;
+static int g_fear_brand_egl_logged_ok = 0;
+static int g_fear_brand_egl_logged_fail = 0;
+
+/* One-time evidence line: records whether the real glGetString was obtained via
+   eglGetProcAddress, so the branding can be confirmed on-device. */
+static void fear_brand_egl_log(int ok) {
+    if (ok) {
+        if (g_fear_brand_egl_logged_ok) return;
+        g_fear_brand_egl_logged_ok = 1;
+    } else {
+        if (g_fear_brand_egl_logged_fail) return;
+        g_fear_brand_egl_logged_fail = 1;
+    }
+    printf("FEARBRAND: real glGetString %s (path=eglGetProcAddress) - GL_VENDOR/GL_RENDERER branded, all other names forwarded through the game's own lookup\n",
+           ok ? "OBTAINED" : "NOT OBTAINED - falling through to the un-hooked lookup");
+}
+
+/* The branding hook itself. GL_VENDOR / GL_RENDERER come from the static buffers;
+   every other name is forwarded to the real pointer. It is only installed when that
+   pointer was obtained, so the fallback below is unreachable in practice and, if it
+   were reached, returns exactly what the un-hooked game would have received (NULL)
+   rather than a fabricated string. */
+static unsigned char* fear_egl_glGetString_hook(unsigned int name) {
+    if (name == FEAR_GL_VENDOR)   return fear_egl_gl_vendor_str;
+    if (name == FEAR_GL_RENDERER) return fear_egl_gl_renderer_str;
+    if (g_real_glGetString_egl != NULL) return g_real_glGetString_egl(name);
+    return NULL;
+}
+
 __attribute__((visibility("default"), used))
 void* eglGetProcAddress_hook(const char* procname) {
     typedef void* (*eglGPA_t)(const char*);
@@ -72,6 +125,22 @@ void* eglGetProcAddress_hook(const char* procname) {
         }
     }
     if (real_eglGPA == NULL) return NULL;
+    /* FEARBRAND on the EGL proc-address path: resolve the real glGetString by
+       calling the real eglGetProcAddress with the SAME argument this hook was handed
+       - the pointer the game itself would have received - and only install the hook
+       when that succeeded. Otherwise fall through to the un-hooked result. */
+    if (procname != NULL && strcmp(procname, "glGetString") == 0) {
+        if (g_real_glGetString_egl == NULL) {
+            void* fear_p = real_eglGPA(procname);
+            if (fear_p != NULL) g_real_glGetString_egl = (unsigned char* (*)(unsigned int)) fear_p;
+        }
+        if (g_real_glGetString_egl != NULL) {
+            fear_brand_egl_log(1);
+            return (void*) fear_egl_glGetString_hook;
+        }
+        fear_brand_egl_log(0);
+        return real_eglGPA(procname); /* un-hooked result (may be NULL) */
+    }
     return real_eglGPA(procname);
 }
 

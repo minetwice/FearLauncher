@@ -190,6 +190,49 @@ static const char* fear_glfwGetMonitorName_hook(void* monitor) {
     return fear_monitor_name_str;
 }
 
+/* ---- FEARGLFWVERSION (v2.15) ---------------------------------------------------
+   Branding for the GLFW version string. Minecraft/LWJGL can print GLFW's
+   glfwGetVersionString(), and this repo's libglfw.so is built from the upstream
+   MojoLauncher/glfw fork, so its version string may carry the upstream launcher name.
+   This is a GLFW string query (no arguments, returns const char*), a different shape
+   from the FEARMONNAME monitor-name hook above.
+
+   Same safety rule: the real glfwGetVersionString is resolved by performing exactly
+   the lookup the un-hooked pass-through would have performed (dlsym on the handle the
+   game asked in, then RTLD_DEFAULT; or the real glfwGetProcAddress loader on the
+   proc-address path), and the hook is installed ONLY when that lookup returned a real
+   function. The returned pointer is a file-scope static buffer - never NULL, never a
+   stack pointer. If the real function cannot be obtained the lookup falls through to
+   the un-hooked result. */
+static char fear_glfw_version_str[] = "FearLauncher GLFW";
+
+static const char* (*g_real_glfwGetVersionString)(void) = NULL;
+static int g_fear_glfwver_logged_ok = 0;
+static int g_fear_glfwver_logged_fail = 0;
+
+/* One-time evidence line: records whether the real glfwGetVersionString was obtained
+   and from which path, so the branding can be confirmed on-device. */
+static void fear_glfwver_log(int ok, const char* path) {
+    if (ok) {
+        if (g_fear_glfwver_logged_ok) return;
+        g_fear_glfwver_logged_ok = 1;
+    } else {
+        if (g_fear_glfwver_logged_fail) return;
+        g_fear_glfwver_logged_fail = 1;
+    }
+    printf("FEARGLFWVERSION: real glfwGetVersionString %s (path=%s) - GLFW version branded \"%s\"\n",
+           ok ? "OBTAINED" : "NOT OBTAINED - falling through to the un-hooked lookup",
+           path, fear_glfw_version_str);
+}
+
+/* The branding hook. glfwGetVersionString takes no arguments and the whole point is
+   to replace the reported version string, so it always returns the file-scope buffer.
+   It is installed only when the real function was obtained, so it can never hand back
+   a pointer that was not already valid. */
+static const char* fear_glfwGetVersionString_hook(void) {
+    return fear_glfw_version_str;
+}
+
 /* Present path: count the frame, then hand the call to the real implementation. */
 static unsigned int fear_eglSwapBuffers_hook(void* dpy, void* surface) {
     __atomic_fetch_add(&g_presented_frames, 1, __ATOMIC_RELAXED);
@@ -247,6 +290,22 @@ static void* fear_glfwGetProcAddress_hook(const char* procname) {
             return (void*) fear_glfwGetMonitorName_hook;
         }
         fear_monname_log(0, "glfwGetProcAddress");
+        return g_real_glfwGetProcAddress(procname); /* un-hooked result (may be NULL) */
+    }
+    /* FEARGLFWVERSION on the proc-address path: resolve the real glfwGetVersionString
+       through the real loader with the SAME argument the hook was handed, and install
+       the branding hook only when that returned a real function. Otherwise forward the
+       un-hooked loader result. */
+    if (strcmp(procname, "glfwGetVersionString") == 0) {
+        if (g_real_glfwGetVersionString == NULL) {
+            void* fear_v = g_real_glfwGetProcAddress(procname);
+            if (fear_v != NULL) g_real_glfwGetVersionString = (const char* (*)(void)) fear_v;
+        }
+        if (g_real_glfwGetVersionString != NULL) {
+            fear_glfwver_log(1, "glfwGetProcAddress");
+            return (void*) fear_glfwGetVersionString_hook;
+        }
+        fear_glfwver_log(0, "glfwGetProcAddress");
         return g_real_glfwGetProcAddress(procname); /* un-hooked result (may be NULL) */
     }
     if (strcmp(procname, "eglSwapBuffers") == 0) {
@@ -898,6 +957,22 @@ static void* hooked_glfwGetProcAddress_impl(const char* procname) {
         fear_monname_log(0, "glfwGetProcAddress");
         /* no real pointer available: fall through to the un-hooked resolution */
     }
+    /* FEARGLFWVERSION (zink proc-address path): same rule - resolve the real
+       glfwGetVersionString through this loader's own lookup and install the branding
+       hook only when a real function was obtained. */
+    if (strcmp(procname, "glfwGetVersionString") == 0) {
+        if (g_real_glfwGetVersionString == NULL) {
+            void* fear_v = glfw_real(procname);
+            if (fear_v == NULL) fear_v = dlsym(RTLD_DEFAULT, procname);
+            if (fear_v != NULL) g_real_glfwGetVersionString = (const char* (*)(void)) fear_v;
+        }
+        if (g_real_glfwGetVersionString != NULL) {
+            fear_glfwver_log(1, "glfwGetProcAddress");
+            return (void*) fear_glfwGetVersionString_hook;
+        }
+        fear_glfwver_log(0, "glfwGetProcAddress");
+        /* no real pointer available: fall through to the un-hooked resolution */
+    }
     /* FEARFRAMECOUNT: count presented frames, whichever way the game resolves the
        present entry points. */
     if (strcmp(procname, "eglSwapBuffers") == 0) return (void*) fear_eglSwapBuffers_hook;
@@ -1051,6 +1126,7 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (strcmp(symbol, "glfwGetMonitorPos") == 0) return (jlong) hooked_glfwGetMonitorPos_impl;
         if (strcmp(symbol, "glfwGetMonitorWorkarea") == 0) return (jlong) hooked_glfwGetMonitorWorkarea_impl;
         if (strcmp(symbol, "glfwGetMonitorName") == 0) return (jlong) hooked_glfwGetMonitorName_impl;
+        if (strcmp(symbol, "glfwGetVersionString") == 0) return (jlong) fear_glfwGetVersionString_hook;
         if (strcmp(symbol, "glfwGetWindowMonitor") == 0) return (jlong) hooked_glfwGetWindowMonitor_impl;
         if (strcmp(symbol, "glfwSetWindowMonitor") == 0) return (jlong) hooked_glfwSetWindowMonitor_impl;
         if (strcmp(symbol, "glfwCreateWindow") == 0) return (jlong) hooked_glfwCreateWindow_impl;
@@ -1215,6 +1291,24 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
             return (jlong) fear_glfwGetMonitorName_hook;
         }
         fear_monname_log(0, "ndlsym");
+        /* no real pointer available: do not substitute anything, fall through */
+    }
+
+    /* FEARGLFWVERSION (ndlsym path): same rule - resolve the real
+       glfwGetVersionString through the exact lookup this hook would otherwise pass
+       through (dlsym on the handle the game asked in, then RTLD_DEFAULT) and install
+       the branding hook only when that lookup succeeded. */
+    if (strcmp(symbol, "glfwGetVersionString") == 0) {
+        if (g_real_glfwGetVersionString == NULL) {
+            void* fear_v = dlsym((void*) handle, symbol);
+            if (fear_v == NULL) fear_v = dlsym(RTLD_DEFAULT, symbol);
+            if (fear_v != NULL) g_real_glfwGetVersionString = (const char* (*)(void)) fear_v;
+        }
+        if (g_real_glfwGetVersionString != NULL) {
+            fear_glfwver_log(1, "ndlsym");
+            return (jlong) fear_glfwGetVersionString_hook;
+        }
+        fear_glfwver_log(0, "ndlsym");
         /* no real pointer available: do not substitute anything, fall through */
     }
 
