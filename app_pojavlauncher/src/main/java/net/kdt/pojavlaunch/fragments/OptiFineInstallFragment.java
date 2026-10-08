@@ -52,11 +52,14 @@ public class OptiFineInstallFragment extends ModVersionListFragment<OptiFineUtil
                 instance.installer = instanceInstaller;
                 instance.sharedData = true;
             }, "OptiFine");
-            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
             instanceInstaller.start();
             listenerProxy.onDownloadFinished(null);
         }catch (Exception e) {
             listenerProxy.onDownloadError(e);
+        }finally {
+            // Always release the progress key, including when prepareForInstall/createInstaller fail,
+            // otherwise the launcher would stay "busy" forever and refuse to launch the game.
+            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
         }
     }
 

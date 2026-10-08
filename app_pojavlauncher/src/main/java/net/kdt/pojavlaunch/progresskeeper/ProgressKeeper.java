@@ -1,14 +1,22 @@
 package net.kdt.pojavlaunch.progresskeeper;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class ProgressKeeper {
     private static final HashMap<String, List<ProgressListener>> sProgressListeners = new HashMap<>();
     private static final HashMap<String, ProgressState> sProgressStates = new HashMap<>();
     private static final List<TaskCountListener> sTaskCountListeners = new ArrayList<>();
+    /** When each currently-registered progress key was started, used by the stuck-task watchdog. */
+    private static final HashMap<String, Long> sProgressStartTimes = new HashMap<>();
+    /** A progress task older than this is considered stuck and may be cleared by the watchdog. */
+    public static final long TASK_WATCHDOG_MILLIS = 20 * 60 * 1000L;
 
     public static synchronized void submitProgress(String progressRecord, int progress, int resid, Object... va) {
         ProgressState progressState = sProgressStates.get(progressRecord);
@@ -20,6 +28,8 @@ public class ProgressKeeper {
         }else if(shouldCallStarted){
             sProgressStates.put(progressRecord, (progressState = new ProgressState()));
         }
+        if(shouldCallStarted) sProgressStartTimes.put(progressRecord, System.currentTimeMillis());
+        else if(shouldCallEnded) sProgressStartTimes.remove(progressRecord);
         if(shouldCallEnded || shouldCallStarted) updateTaskCount(sProgressStates.size());
         if(progressState != null) {
             progressState.progress = progress;
@@ -47,6 +57,40 @@ public class ProgressKeeper {
 
     public static synchronized boolean hasProgressKey(String key) {
         return sProgressStates.get(key) != null;
+    }
+
+    /**
+     * @return how long (in ms) the given progress key has been registered, or -1 if it is not running.
+     */
+    public static synchronized long getProgressAge(String key) {
+        Long startedAt = sProgressStartTimes.get(key);
+        if(startedAt == null) return -1;
+        return System.currentTimeMillis() - startedAt;
+    }
+
+    /**
+     * Watchdog: drop any progress task that has been registered for longer than maxAgeMillis.
+     * A stuck download must never leave the launcher permanently "busy" and block the launch.
+     * Clearing a key also notifies its listeners, so the progress UI hides the stuck row.
+     * @param maxAgeMillis the age after which a task is considered stuck
+     * @return the list of progress keys that were cleared (empty if none were stuck)
+     */
+    public static synchronized List<String> reapStaleTasks(long maxAgeMillis) {
+        if(sProgressStartTimes.isEmpty()) return Collections.emptyList();
+        long now = System.currentTimeMillis();
+        List<String> reaped = new ArrayList<>();
+        for(Map.Entry<String, Long> entry : new ArrayList<>(sProgressStartTimes.entrySet())) {
+            long age = now - entry.getValue();
+            if(age < maxAgeMillis) continue;
+            String key = entry.getKey();
+            reaped.add(key);
+            Log.w("ProgressKeeper", "Watchdog: progress task \"" + key + "\" has been running for "
+                    + (age / 1000) + "s without finishing; clearing it so the launcher is not blocked.");
+            // Passing -1/-1 ends the record: it removes the state, decrements the task count and
+            // fires onProgressEnded() on the listeners.
+            submitProgress(key, -1, -1, (Object) null);
+        }
+        return reaped;
     }
 
     public static synchronized void addListener(String progressRecord, ProgressListener listener) {
@@ -104,6 +148,29 @@ public class ProgressKeeper {
             return false;
         };
         addTaskCountListener(listener);
+        startStallWatchdog();
+    }
+
+    /**
+     * Backstop for {@link #waitUntilDone}: if tasks are still registered after the watchdog
+     * timeout, clear the ones that look stuck so whatever was waiting on "all tasks done"
+     * (typically the game launch) can proceed instead of hanging forever.
+     */
+    private static void startStallWatchdog() {
+        Thread watchdog = new Thread(() -> {
+            try {
+                Thread.sleep(TASK_WATCHDOG_MILLIS + 5000L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            if(getTaskCount() == 0) return;
+            List<String> reaped = reapStaleTasks(TASK_WATCHDOG_MILLIS);
+            Log.w("ProgressKeeper", "Watchdog fired while waiting for tasks to finish; cleared "
+                    + reaped.size() + " stuck task(s): " + reaped);
+        }, "progress-stall-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
     }
 
     public static synchronized int getTaskCount() {

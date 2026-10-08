@@ -143,6 +143,16 @@ public class LauncherActivity extends BaseActivity {
     };
 
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
+        // Watchdog: a download that got stuck in an earlier attempt must never block the launch
+        // forever. Clear any progress key that has been registered for far too long, tell the
+        // user, and let them retry.
+        java.util.List<String> stuckTasks =
+                ProgressKeeper.reapStaleTasks(ProgressKeeper.TASK_WATCHDOG_MILLIS);
+        if (!stuckTasks.isEmpty()) {
+            Toast.makeText(this, getString(R.string.stuck_download_cleared, stuckTasks.toString()),
+                    Toast.LENGTH_LONG).show();
+            return false;
+        }
         if (mProgressLayout != null && mProgressLayout.hasProcesses()) {
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;

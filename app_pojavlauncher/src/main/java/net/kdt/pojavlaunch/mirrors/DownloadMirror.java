@@ -1,5 +1,7 @@
 package net.kdt.pojavlaunch.mirrors;
 
+import android.util.Log;
+
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.DownloadUtils;
 
@@ -28,8 +30,25 @@ public class DownloadMirror {
      * @param outputFile The output file for the download
      */
     public static void downloadFileMirrored(int downloadClass, String urlInput, File outputFile) throws IOException {
-        DownloadUtils.downloadFile(getMirrorMapping(downloadClass, urlInput),
-                    outputFile);
+        String mappedUrl = getMirrorMapping(downloadClass, urlInput);
+        if(mappedUrl.equals(urlInput)) {
+            DownloadUtils.downloadFile(urlInput, outputFile);
+            return;
+        }
+        // The mirror (e.g. BMCLAPI) may be slow or unreachable. If it fails after its own retries,
+        // fall back to the official source instead of failing the whole install.
+        try {
+            DownloadUtils.downloadFile(mappedUrl, outputFile);
+        }catch (IOException mirrorError) {
+            Log.w("DownloadMirror", "Mirror download failed for " + mappedUrl
+                    + "; falling back to " + urlInput, mirrorError);
+            try {
+                DownloadUtils.downloadFile(urlInput, outputFile);
+            }catch (IOException fallbackError) {
+                fallbackError.addSuppressed(mirrorError);
+                throw fallbackError;
+            }
+        }
     }
 
     /**

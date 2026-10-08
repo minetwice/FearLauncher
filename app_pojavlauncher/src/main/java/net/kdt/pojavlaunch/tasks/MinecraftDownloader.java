@@ -94,12 +94,15 @@ public class MinecraftDownloader extends Downloader {
                 listener.onDownloadDone(mClassPath.toArray(new File[0]));
             } catch(JsonParseException e) {
                 listener.onDownloadFailed(e); // Handled separately from the general case because it subclasses RuntimeException. Ugh.
-            } catch(RuntimeException e) {
-                throw e; // log fatal errors to Google Play
-            } catch (Exception e) {
+            } catch(Throwable e) {
+                // Always notify the listener, including for RuntimeExceptions: the caller may be
+                // blocked waiting on this callback (e.g. OptiFineDownloadTask), and silently
+                // rethrowing would hang the launcher forever.
+                Log.e("MinecraftDownloader", "Game download failed", e);
                 listener.onDownloadFailed(e);
+            } finally {
+                ProgressLayout.clearProgress(ProgressLayout.DOWNLOAD_MINECRAFT);
             }
-            ProgressLayout.clearProgress(ProgressLayout.DOWNLOAD_MINECRAFT);
         });
     }
 

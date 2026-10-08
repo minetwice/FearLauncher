@@ -21,6 +21,9 @@ import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class ApiHandler {
+    /** Timeouts so a slow or unreachable API host can never hang a metadata request forever. */
+    private static final int CONNECT_TIMEOUT_MS = 8000;
+    private static final int READ_TIMEOUT_MS = 30000;
     public final String baseUrl;
     public final Map<String, String> additionalHeaders;
 
@@ -60,6 +63,8 @@ public class ApiHandler {
         Log.d("ApiHandler", url);
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             addHeaders(conn, headers);
             InputStream inputStream = conn.getInputStream();
             String data = Tools.read(inputStream);
@@ -80,6 +85,8 @@ public class ApiHandler {
     public static String postRaw(Map<String, String> headers, String url, String body) {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");

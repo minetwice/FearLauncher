@@ -51,11 +51,14 @@ public abstract class ForgelikeInstallFragment extends ModVersionListFragment<Li
                 instance.icon = mUtils.getIconName();
                 instance.installer = instanceInstaller;
             }, selectedVersion);
-            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
             instanceInstaller.start();
             listenerProxy.onDownloadFinished(null);
         }catch (IOException e) {
             listenerProxy.onDownloadError(e);
+        }finally {
+            // Always release the progress key, including when createInstaller/createInstance fail,
+            // otherwise the launcher would stay "busy" forever and refuse to launch the game.
+            ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
         }
     }
 }

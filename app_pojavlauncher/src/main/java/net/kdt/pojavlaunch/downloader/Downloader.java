@@ -28,6 +28,14 @@ import com.fearlauncher.fear.R;
 
 public class Downloader {
     private static final double ONE_MEGABYTE = (1024d * 1024d);
+    /**
+     * If no byte is transferred and no file completes for this long, the download is declared
+     * stalled and aborted instead of spinning forever. A single socket read already gives up
+     * after {@link DownloadUtils#READ_TIMEOUT_MS}, so this is only a last-resort backstop.
+     */
+    private static final long STALL_TIMEOUT_MS = 120_000L;
+    /** Upper bound for the metadata-completion phase (HEAD/sha1 lookups); a backstop only. */
+    private static final long METADATA_TIMEOUT_MS = 300_000L;
     private static final ThreadLocal<byte[]> sThreadLocalBuffer = new ThreadLocal<>();
     private final String mProgressKey;
     private final AtomicReference<IOException> mThreadException = new AtomicReference<>();
@@ -74,9 +82,26 @@ public class Downloader {
             mVerifyService.submit(new CheckFileOnDiskTask(element, this));
         }
         double totalMegabytes = totalSize / ONE_MEGABYTE;
+        long lastProgressAt = System.currentTimeMillis();
+        long lastBytes = mInternetUsageCounter.get();
+        long lastFiles = mDownloadedFileCounter.get();
         while(mDownloadedFileCounter.get() < totalCount) {
             IOException exception = mThreadException.get();
             if(exception != null) throw exception;
+            long now = System.currentTimeMillis();
+            long bytes = mInternetUsageCounter.get();
+            long files = mDownloadedFileCounter.get();
+            if(bytes != lastBytes || files != lastFiles) {
+                lastBytes = bytes;
+                lastFiles = files;
+                lastProgressAt = now;
+            } else if(now - lastProgressAt > STALL_TIMEOUT_MS) {
+                mDownloadService.shutdownNow();
+                mVerifyService.shutdownNow();
+                throw new IOException("Download stalled: no data for " + (STALL_TIMEOUT_MS / 1000)
+                        + "s (" + files + "/" + totalCount + " files finished). "
+                        + "Check your connection or download source and try again.");
+            }
             if(sizeCounter) reportSizeProgress(totalMegabytes);
             else reportCountProgress(R.string.newerdl_downloading_files_count, totalCount);
             Thread.sleep(33);
@@ -102,9 +127,15 @@ public class Downloader {
         try (ExecutorService executorService = Executors.newFixedThreadPool(threads)) {
             for(TaskMetadata element : reducedList) executorService.submit(new CompleteMetadataTask(element, this));
             executorService.shutdown();
+            long metadataDeadline = System.currentTimeMillis() + METADATA_TIMEOUT_MS;
             while (!executorService.awaitTermination(33, TimeUnit.MILLISECONDS)) {
                 IOException exception = mThreadException.get();
                 if(exception != null) throw exception;
+                if(System.currentTimeMillis() > metadataDeadline) {
+                    executorService.shutdownNow();
+                    throw new IOException("Metadata download stalled for more than "
+                            + (METADATA_TIMEOUT_MS / 1000) + "s; aborting. Please retry.");
+                }
                 reportCountProgress(R.string.newerdl_inserting_metadata_count, reducedList.size());
             }
         }

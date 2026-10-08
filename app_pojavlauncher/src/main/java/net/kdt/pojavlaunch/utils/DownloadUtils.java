@@ -16,6 +16,15 @@ import org.apache.commons.io.*;
 public class DownloadUtils {
     public static final String USER_AGENT = Tools.APP_NAME;
 
+    /** How long we wait for the TCP connection to be established. */
+    public static final int CONNECT_TIMEOUT_MS = 8000;
+    /** How long a single socket read may stall before we give up on it. */
+    public static final int READ_TIMEOUT_MS = 30000;
+    /** How many times a whole download is attempted before it is reported as failed. */
+    public static final int MAX_DOWNLOAD_ATTEMPTS = 4;
+    /** Base delay between two attempts; grows linearly with the attempt number. */
+    private static final long RETRY_BACKOFF_MS = 700L;
+
     public static void download(String url, OutputStream os) throws IOException {
         download(new URL(url), os);
     }
@@ -27,8 +36,8 @@ public class DownloadUtils {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", USER_AGENT);
             conn.setRequestProperty("Connection", "keep-alive");
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(30000);
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.setDoInput(true);
             conn.connect();
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -51,44 +60,104 @@ public class DownloadUtils {
     }
 
     public static String downloadString(String url) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        download(url, bos);
-        bos.close();
-        return new String(bos.toByteArray(), StandardCharsets.UTF_8);
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try {
+                download(url, bos);
+                return new String(bos.toByteArray(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                lastError = e;
+                Log.w("DownloadUtils", "Download attempt " + attempt + "/" + MAX_DOWNLOAD_ATTEMPTS
+                        + " failed for " + url, e);
+                if (attempt < MAX_DOWNLOAD_ATTEMPTS) sleepQuietly(RETRY_BACKOFF_MS * attempt);
+            } finally {
+                try { bos.close(); } catch (IOException ignored) { }
+            }
+        }
+        throw new IOException("Failed to download " + url + " after "
+                + MAX_DOWNLOAD_ATTEMPTS + " attempts", lastError);
     }
 
     public static void downloadFile(String url, File out) throws IOException {
         FileUtils.ensureParentDirectory(out);
-        try (FileOutputStream fileOutputStream = new FileOutputStream(out)) {
-            download(url, fileOutputStream);
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream(out)) {
+                download(url, fileOutputStream);
+                return;
+            } catch (IOException e) {
+                lastError = e;
+                Log.w("DownloadUtils", "Download attempt " + attempt + "/" + MAX_DOWNLOAD_ATTEMPTS
+                        + " failed for " + url, e);
+                boolean ignored = out.delete(); // drop the partial file before retrying
+                if (attempt < MAX_DOWNLOAD_ATTEMPTS) sleepQuietly(RETRY_BACKOFF_MS * attempt);
+            }
         }
+        throw new IOException("Failed to download " + url + " after "
+                + MAX_DOWNLOAD_ATTEMPTS + " attempts", lastError);
     }
 
     public static void downloadFileMonitored(String urlInput, File outputFile, @Nullable byte[] buffer,
                                              Tools.DownloaderFeedback monitor) throws IOException {
         FileUtils.ensureParentDirectory(outputFile);
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++) {
+            try {
+                downloadFileMonitoredOnce(urlInput, outputFile, buffer, monitor);
+                return;
+            } catch (IOException e) {
+                lastError = e;
+                Log.w("DownloadUtils", "Download attempt " + attempt + "/" + MAX_DOWNLOAD_ATTEMPTS
+                        + " failed for " + urlInput, e);
+                boolean ignored = outputFile.delete(); // drop the partial file before retrying
+                if (attempt < MAX_DOWNLOAD_ATTEMPTS) sleepQuietly(RETRY_BACKOFF_MS * attempt);
+            }
+        }
+        throw new IOException("Failed to download " + urlInput + " after "
+                + MAX_DOWNLOAD_ATTEMPTS + " attempts", lastError);
+    }
 
+    private static void downloadFileMonitoredOnce(String urlInput, File outputFile, @Nullable byte[] buffer,
+                                                  Tools.DownloaderFeedback monitor) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlInput).openConnection();
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestProperty("Connection", "keep-alive");
-        conn.setConnectTimeout(8000);
-        conn.setReadTimeout(30000);
-        InputStream readStr = conn.getInputStream();
-        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-            int current;
-            int overall = 0;
-            int length = conn.getContentLength();
-
-            if (buffer == null) buffer = new byte[262144];
-
-            while ((current = readStr.read(buffer)) != -1) {
-                overall += current;
-                fos.write(buffer, 0, current);
-                monitor.updateProgress(overall, length);
+        conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        conn.setReadTimeout(READ_TIMEOUT_MS);
+        try {
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Server returned HTTP " + responseCode
+                        + ": " + conn.getResponseMessage());
             }
+            InputStream readStr = conn.getInputStream();
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                int current;
+                int overall = 0;
+                int length = conn.getContentLength();
+
+                if (buffer == null) buffer = new byte[262144];
+
+                while ((current = readStr.read(buffer)) != -1) {
+                    overall += current;
+                    fos.write(buffer, 0, current);
+                    monitor.updateProgress(overall, length);
+                }
+            } finally {
+                try { readStr.close(); } catch (Exception ignored) { }
+            }
+        } finally {
             conn.disconnect();
         }
+    }
 
+    private static void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     public static <T> T downloadStringCached(String url, String cacheName, ParseCallback<T> parseCallback) throws IOException, ParseException{
@@ -170,6 +239,8 @@ public class DownloadUtils {
         try {
             HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
             urlConnection.setRequestMethod("HEAD");
+            urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            urlConnection.setReadTimeout(CONNECT_TIMEOUT_MS);
             urlConnection.setDoInput(false);
             urlConnection.setDoOutput(false);
             urlConnection.connect();

@@ -37,6 +37,9 @@ public class ContextAwareDoneListener implements AsyncMinecraftDownloader.DoneLi
     @Override
     public void onDownloadDone(File[] classpath) {
         this.classpath = classpath;
+        // Watchdog: an unrelated task that got stuck must not keep the game from launching.
+        // Clear anything that has been registered far too long before waiting for the rest.
+        ProgressKeeper.reapStaleTasks(ProgressKeeper.TASK_WATCHDOG_MILLIS);
         ProgressKeeper.waitUntilDone(()->ContextExecutor.execute(this));
     }
 

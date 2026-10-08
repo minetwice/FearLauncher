@@ -5,14 +5,18 @@ import net.kdt.pojavlaunch.tasks.AsyncMinecraftDownloader;
 import net.kdt.pojavlaunch.tasks.MinecraftDownloader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OptiFineDownloadTask implements AsyncMinecraftDownloader.DoneListener {
     private static final Pattern sMcVersionPattern = Pattern.compile("([0-9]+)\\.([0-9]+)\\.?([0-9]+)?");
+    /** Upper bound on how long we wait for the Minecraft download to call us back. */
+    private static final long DOWNLOAD_WAIT_TIMEOUT_MS = 20 * 60 * 1000L;
     private final OptiFineUtils.OptiFineVersion mOptiFineVersion;
     private final Object mMinecraftDownloadLock = new Object();
     private Throwable mDownloaderThrowable;
+    private boolean mDownloadFinished;
 
     public OptiFineDownloadTask(OptiFineUtils.OptiFineVersion mOptiFineVersion) {
         this.mOptiFineVersion = mOptiFineVersion;
@@ -54,11 +58,25 @@ public class OptiFineDownloadTask implements AsyncMinecraftDownloader.DoneListen
         if(minecraftJsonVersion == null) return false;
         try {
             synchronized (mMinecraftDownloadLock) {
+                mDownloadFinished = false;
+                mDownloaderThrowable = null;
                 new MinecraftDownloader().start(null, minecraftJsonVersion, minecraftVersion, this);
-                mMinecraftDownloadLock.wait();
+                // Bounded wait: a stuck download must never block this thread forever.
+                long deadline = System.currentTimeMillis() + DOWNLOAD_WAIT_TIMEOUT_MS;
+                while(!mDownloadFinished) {
+                    long remaining = deadline - System.currentTimeMillis();
+                    if(remaining <= 0) {
+                        mDownloaderThrowable = new IOException(
+                                "Timed out after " + (DOWNLOAD_WAIT_TIMEOUT_MS / 1000)
+                                        + "s waiting for the Minecraft download to finish");
+                        break;
+                    }
+                    mMinecraftDownloadLock.wait(remaining);
+                }
             }
         }catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            mDownloaderThrowable = e;
         }
         return mDownloaderThrowable == null;
     }
@@ -67,6 +85,7 @@ public class OptiFineDownloadTask implements AsyncMinecraftDownloader.DoneListen
     public void onDownloadDone(File[] classpath) {
         synchronized (mMinecraftDownloadLock) {
             mDownloaderThrowable = null;
+            mDownloadFinished = true;
             mMinecraftDownloadLock.notifyAll();
         }
     }
@@ -75,6 +94,7 @@ public class OptiFineDownloadTask implements AsyncMinecraftDownloader.DoneListen
     public void onDownloadFailed(Throwable throwable) {
         synchronized (mMinecraftDownloadLock) {
             mDownloaderThrowable = throwable;
+            mDownloadFinished = true;
             mMinecraftDownloadLock.notifyAll();
         }
     }
