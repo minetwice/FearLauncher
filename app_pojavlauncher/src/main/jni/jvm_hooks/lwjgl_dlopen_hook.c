@@ -36,10 +36,10 @@ bridge_environ_t bridge_environ = {0};
    Java through JREUtils.getPresentedFrameCount(), which the LagWatch sampler
    polls each sample.
 
-   The GL_VENDOR / GL_RENDERER branding hook that used to live here was removed:
-   on some devices it ended up handing a NULL glGetString result to the caller and
-   crashed shader linking (SIGSEGV in __strlen_aarch64 reached from glLinkProgram).
-   glGetString is now the renderer's real entry point, untouched. */
+   The GL_VENDOR / GL_RENDERER branding (FEARBRAND) lives just below. It is
+   forwarding-safe: it never guesses where the real glGetString is, it re-runs the
+   game's own symbol lookup and only ever forwards names to the pointer the game
+   would have received anyway. See the FEARBRAND block for the full argument. */
 
 static uint64_t g_presented_frames = 0;
 
@@ -53,6 +53,90 @@ static void* fear_resolve(const void* handle, const char* name) {
     void* sym = (handle != NULL) ? dlsym((void*) handle, name) : NULL;
     if (sym == NULL) sym = dlsym(RTLD_DEFAULT, name);
     return sym;
+}
+
+/* ---- FEARBRAND (v2.13) --------------------------------------------------------
+   GL_VENDOR / GL_RENDERER branding for the in-game F3 debug screen, done in a way
+   that cannot introduce a NULL pointer. Two earlier attempts crashed LTW shader
+   linking (SIGSEGV in __strlen_aarch64 reached from glLinkProgram) because they
+   GUESSED where the real glGetString lived; when the guess missed they returned
+   NULL for names the caller then strlen()'d.
+
+   This version never guesses. The hook already sits in front of the game's own
+   symbol lookup, so it resolves the real glGetString by performing exactly the
+   lookup the un-hooked hook would have passed through - dlsym on the very handle
+   the game asked in (then RTLD_DEFAULT), or the real glfwGetProcAddress loader on
+   the proc-address path. That is, by construction, the same pointer the game would
+   have received with no hook at all.
+
+   Only GL_VENDOR and GL_RENDERER are rewritten, from file-scope static buffers so
+   the returned pointers stay valid. GL_VERSION, GL_EXTENSIONS,
+   GL_SHADING_LANGUAGE_VERSION and every other name are forwarded verbatim to that
+   same real pointer. If the real pointer cannot be obtained - i.e. the un-hooked
+   game would itself have received NULL - the hook is NOT installed and the lookup
+   falls through to the un-hooked result, so the hook can never hand back a NULL or
+   a bogus pointer that was not already there. */
+#define FEAR_GL_VENDOR   0x1F00u
+#define FEAR_GL_RENDERER 0x1F01u
+
+static unsigned char fear_gl_vendor_str[]   = "FearLauncher";
+static unsigned char fear_gl_renderer_str[] = "FearLTW (OpenGL ES 3)";
+
+/* The real glGetString the hook forwards to, plus a small per-handle cache of the
+   result of the game's own lookup (never a guessed source). */
+#define FEAR_BRAND_MAX_HANDLES 4
+static void* g_fear_gl_handles[FEAR_BRAND_MAX_HANDLES];
+static unsigned char* (*g_fear_gl_getstring[FEAR_BRAND_MAX_HANDLES])(unsigned int);
+static int g_fear_gl_handle_count = 0;
+static unsigned char* (*g_real_glGetString)(unsigned int) = NULL;
+
+static int g_fear_brand_logged_ok = 0;
+static int g_fear_brand_logged_fail = 0;
+
+/* One-time evidence line: records whether the real glGetString was obtained and
+   from which path, so this can be confirmed on-device. */
+static void fear_brand_log(int ok, const char* path) {
+    if (ok) {
+        if (g_fear_brand_logged_ok) return;
+        g_fear_brand_logged_ok = 1;
+    } else {
+        if (g_fear_brand_logged_fail) return;
+        g_fear_brand_logged_fail = 1;
+    }
+    printf("FEARBRAND: real glGetString %s (path=%s) - GL_VENDOR/GL_RENDERER branded, all other names forwarded through the game's own lookup\n",
+           ok ? "OBTAINED" : "NOT OBTAINED - falling through to the un-hooked lookup",
+           path);
+}
+
+/* Resolve the real glGetString for a specific handle using the SAME lookup the
+   un-hooked ndlsym pass-through performs: dlsym(handle, "glGetString"), then
+   RTLD_DEFAULT. The result is cached per handle; nothing is ever fabricated. */
+static unsigned char* (*fear_resolve_glGetString_handle(void* handle))(unsigned int) {
+    for (int i = 0; i < g_fear_gl_handle_count; i++) {
+        if (g_fear_gl_handles[i] == handle) return g_fear_gl_getstring[i];
+    }
+    void* sym = fear_resolve(handle, "glGetString");
+    if (sym == NULL) return NULL;
+    unsigned char* (*fn)(unsigned int) = (unsigned char* (*)(unsigned int)) sym;
+    if (g_fear_gl_handle_count < FEAR_BRAND_MAX_HANDLES) {
+        g_fear_gl_handles[g_fear_gl_handle_count] = handle;
+        g_fear_gl_getstring[g_fear_gl_handle_count] = fn;
+        g_fear_gl_handle_count++;
+    }
+    if (g_real_glGetString == NULL) g_real_glGetString = fn;
+    return fn;
+}
+
+/* The branding hook itself. GL_VENDOR / GL_RENDERER come from the static buffers;
+   every other name is forwarded to the cached real pointer. It is only installed
+   when that pointer was obtained, so the fallback below is unreachable in
+   practice and, if it were reached, returns exactly what the un-hooked game would
+   have received (NULL) rather than a fabricated string. */
+static unsigned char* fear_glGetString_hook(unsigned int name) {
+    if (name == FEAR_GL_VENDOR)   return fear_gl_vendor_str;
+    if (name == FEAR_GL_RENDERER) return fear_gl_renderer_str;
+    if (g_real_glGetString != NULL) return g_real_glGetString(name);
+    return NULL;
 }
 
 /* Present path: count the frame, then hand the call to the real implementation. */
@@ -82,6 +166,22 @@ static void* fear_glfwGetProcAddress_hook(const char* procname) {
         return (procname != NULL) ? fear_resolve(NULL, procname) : NULL;
     }
     if (procname == NULL) return g_real_glfwGetProcAddress(NULL);
+    /* FEARBRAND on the proc-address path: resolve the real glGetString by calling
+       the real loader with the SAME argument the hook was handed - the pointer the
+       game itself would have received - and only install the hook when that
+       succeeded. Otherwise fall through to the un-hooked loader result. */
+    if (strcmp(procname, "glGetString") == 0) {
+        if (g_real_glGetString == NULL) {
+            void* fear_p = g_real_glfwGetProcAddress(procname);
+            if (fear_p != NULL) g_real_glGetString = (unsigned char* (*)(unsigned int)) fear_p;
+        }
+        if (g_real_glGetString != NULL) {
+            fear_brand_log(1, "glfwGetProcAddress");
+            return (void*) fear_glGetString_hook;
+        }
+        fear_brand_log(0, "glfwGetProcAddress");
+        return g_real_glfwGetProcAddress(procname); /* un-hooked result (may be NULL) */
+    }
     if (strcmp(procname, "eglSwapBuffers") == 0) {
         if (g_real_eglSwapBuffers == NULL)
             g_real_eglSwapBuffers = (unsigned int (*)(void*, void*)) g_real_glfwGetProcAddress(procname);
@@ -1011,6 +1111,21 @@ static jlong ndlsym_hook(__attribute__((unused)) JNIEnv *env,
         if (g_real_glfwGetProcAddress == NULL)
             g_real_glfwGetProcAddress = (void* (*)(const char*)) fear_resolve((void*) handle, symbol);
         if (g_real_glfwGetProcAddress != NULL) return (jlong) fear_glfwGetProcAddress_hook;
+    }
+
+    /* FEARBRAND (LTW path): brand GL_VENDOR / GL_RENDERER. The real glGetString is
+       resolved through the exact lookup this hook would otherwise pass through -
+       dlsym on the handle the game asked in, then RTLD_DEFAULT - so it is the very
+       pointer the game would have received without the hook. Install the hook only
+       when that lookup succeeded; otherwise fall through to the un-hooked result. */
+    if (strcmp(symbol, "glGetString") == 0) {
+        unsigned char* (*fear_real)(unsigned int) = fear_resolve_glGetString_handle((void*) handle);
+        if (fear_real != NULL) {
+            fear_brand_log(1, "ndlsym");
+            return (jlong) fear_glGetString_hook;
+        }
+        fear_brand_log(0, "ndlsym");
+        /* no real pointer available: do not substitute anything, fall through */
     }
 
     void* sym = dlsym((void*) handle, symbol);
