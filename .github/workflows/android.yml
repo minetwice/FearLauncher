@@ -45,6 +45,34 @@ jobs:
           name: output-aar
           path: app_pojavlauncher/libs
 
+      # The upstream LTW renderer leaks its own launcher name into the OpenGL
+      # strings the game reads back (GL_VENDOR = "MojoLauncher", version banner
+      # "%u.%u OpenLTW (Built on: ...)"). Branding those at runtime crashed the
+      # device (SIGSEGV in __strlen_aarch64), so instead we rewrite the two
+      # string literals INSIDE the prebuilt libltw.so at build time. Both
+      # substitutions are the SAME byte length as the originals, so the .so
+      # size, layout, offsets and code are untouched - only the literal bytes
+      # change. This runs before any Gradle task packages the AAR's jni libs
+      # into the APK. See scripts/patch_ltw_branding.py.
+      - name: Patch LTW renderer branding strings (same-length, build time)
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          AARS=(app_pojavlauncher/libs/*ltw*.aar)
+          if [ ${#AARS[@]} -eq 0 ]; then
+            echo "::warning::No LTW AAR found in app_pojavlauncher/libs (the LTW download may have failed) - nothing to patch."
+            exit 0
+          fi
+          # Fails loudly ONLY on a length mismatch; a missing string is logged and skipped.
+          python3 scripts/patch_ltw_branding.py "${AARS[@]}" || exit 1
+          echo "----- strings proof from the patched AAR(s) -----"
+          for aar in "${AARS[@]}"; do
+            while IFS= read -r so; do
+              echo "PROOF ${aar} :: ${so}"
+              unzip -p "${aar}" "${so}" | strings -a | grep -aE 'MojoLauncher|OpenLTW|FearLauncher|FearLTW' | sed 's/^/    /' || true
+            done < <(unzip -Z1 "${aar}" | grep 'libltw\.so$')
+          done
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
