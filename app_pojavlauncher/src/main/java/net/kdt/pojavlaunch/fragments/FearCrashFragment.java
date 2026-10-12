@@ -86,14 +86,22 @@ public class FearCrashFragment extends Fragment {
 
         View switchRenderer = view.findViewById(R.id.crash_switch_renderer_btn);
         if (switchRenderer != null) {
-            // Only worth offering when the crash is inside the vendor driver and the run
-            // was not already on a renderer that avoids it.
-            if (report.vendorDriverCrash && isOnVendorDriver()) {
+            // Offer the switch when the crash is inside the vendor driver (the run was not
+            // already on a renderer that avoids it), or when LTW's shader wrapper gave up on
+            // a core shader - that crash cannot be avoided on LTW at all.
+            boolean offerSwitch = (report.vendorDriverCrash && isOnVendorDriver())
+                    || report.ltwShaderCrash;
+            if (offerSwitch) {
+                String target = report.ltwShaderCrash ? nonLtwRenderer() : "turnip_zink";
+                if (switchRenderer instanceof android.widget.TextView) {
+                    ((android.widget.TextView) switchRenderer).setText(
+                            getString(R.string.crash_switch_renderer_fmt, target));
+                }
                 switchRenderer.setVisibility(View.VISIBLE);
                 switchRenderer.setOnClickListener(v -> {
                     v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                     net.kdt.pojavlaunch.SoundManager.playClick();
-                    switchToMesa();
+                    switchRendererTo(target);
                     FearCrashGuard.clear(requireContext());
                     relaunch();
                 });
@@ -144,13 +152,31 @@ public class FearCrashFragment extends Fragment {
         }
     }
 
-    /** Moves the instance onto the Mesa path, where the multi-draw workaround applies. */
-    private void switchToMesa() {
+    /**
+     * The non-LTW renderer this device can actually run. Turnip/Vulkan-Zink are
+     * Adreno-only, so on Mali (and any other non-Adreno GPU) the Mali Zink path is
+     * used instead - the same rule GameRunner applies when it picks a fallback.
+     */
+    private String nonLtwRenderer() {
+        try {
+            if (!net.kdt.pojavlaunch.utils.GLInfoUtils.getGlInfo().isAdreno()) {
+                return "holy_zink_kopper";
+            }
+        } catch (Throwable ignored) { }
+        return "turnip_zink";
+    }
+
+    /**
+     * Moves the instance onto the chosen renderer. The user tapped the button, so this
+     * is never a silent switch; it only writes the instance's renderer, which the next
+     * launch reads.
+     */
+    private void switchRendererTo(String target) {
         try {
             net.kdt.pojavlaunch.instances.Instance instance =
                     net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
             if (instance != null) {
-                instance.renderer = "turnip_zink";
+                instance.renderer = target;
                 instance.write();
             }
         } catch (Throwable ignored) { }

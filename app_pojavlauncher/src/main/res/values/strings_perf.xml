@@ -56,4 +56,7 @@
     <string name="perf_quality_reset">RESET TO MY OWN SETTINGS</string>
     <string name="perf_graphics_quality_applied">Graphics quality saved - applies on your next launch</string>
     <string name="perf_graphics_quality_reset_done">Restored your previous graphics settings - applies on your next launch</string>
+
+    <!-- Crash board: the one-tap renderer switch when LTW cannot convert a core shader. -->
+    <string name="crash_switch_renderer_fmt">SWITCH TO %1$s AND LAUNCH</string>
 </resources>

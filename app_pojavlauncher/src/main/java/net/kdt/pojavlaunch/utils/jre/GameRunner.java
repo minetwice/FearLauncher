@@ -261,6 +261,10 @@ public class GameRunner {
         // Start recording the session just before the JVM comes up, so every sample
         // describes the game that is actually running.
         net.kdt.pojavlaunch.utils.LagWatch.start(activity, instance.getGameDirectory(), rendererName);
+        // A hard crash kills the process outright, so nothing downstream can react to it.
+        // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
+        // set on the next start means this run died - and the crash board can then name why.
+        net.kdt.pojavlaunch.utils.FearCrashGuard.markLaunching(activity);
         try {
             JavaRunner.nativeSetupExit(activity);
             JavaRunner.startJvm(runtime, javaArgList, launchClassPath, versionInfo.mainClass, launchArgs);

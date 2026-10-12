@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.instances.Instance;
 import net.kdt.pojavlaunch.instances.Instances;
+import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,6 +58,15 @@ public final class FearCrashGuard {
          * to run on a renderer that does not hand the draws to that driver.
          */
         public boolean vendorDriverCrash;
+        /**
+         * True when the last run died after LTW's shader wrapper could not convert a core
+         * shader. That failure leaves a NULL source reaching strlen at link time, so it is
+         * a renderer + resource-pack problem, not a mod - the way past is to switch off the
+         * LTW renderer.
+         */
+        public boolean ltwShaderCrash;
+        /** The resource packs the instance had enabled, so the crash is legible. Never null. */
+        public List<String> enabledPacks = new ArrayList<>();
     }
 
     /** Forgets the pending launch. Call once the board has been dealt with. */
@@ -84,10 +94,16 @@ public final class FearCrashGuard {
         Report report = new Report();
         File crashReport = newest(new File(Tools.DIR_HOME_CRASH));
         File instanceReport = null;
+        File gameDir = null;
+        boolean onLtw = false;
         try {
             Instance instance = Instances.loadSelectedInstance();
             if (instance != null) {
-                instanceReport = newest(new File(instance.getGameDirectory(), "crash-reports"));
+                gameDir = instance.getGameDirectory();
+                instanceReport = newest(new File(gameDir, "crash-reports"));
+                String renderer = instance.renderer;
+                if (renderer == null || renderer.isEmpty()) renderer = LauncherPreferences.PREF_RENDERER;
+                onLtw = renderer != null && renderer.contains("ltw");
             }
         } catch (Exception ignored) { }
         if (instanceReport != null && (crashReport == null
@@ -99,6 +115,25 @@ public final class FearCrashGuard {
             readCrashReport(crashReport, report);
         } else {
             readHsErr(newestHsErr(), report);
+        }
+
+        // FEARPATCH: LTW's shader wrapper failing to convert a core shader is the crash that
+        // leaves a NULL source reaching strlen. It is a renderer + resource-pack property, so
+        // it is read from the game log / lag report rather than the crash report, and the
+        // board offers a one-tap switch to a renderer that does not use the wrapper.
+        if (onLtw && gameDir != null && LagWatch.logMentionsLtwShaderFailure(gameDir)) {
+            report.ltwShaderCrash = true;
+            report.enabledPacks = LagWatch.enabledResourcePacks(gameDir);
+            report.title = "LTW could not convert a core shader";
+            StringBuilder d = new StringBuilder();
+            d.append("The LTW renderer's shader wrapper (LTWShdrWp) gave up on a core shader, then ")
+                    .append("crashed. A resource pack that replaces core shaders is what selects the ")
+                    .append("failing shader.");
+            if (!report.enabledPacks.isEmpty()) {
+                d.append("  Enabled packs: ")
+                        .append(android.text.TextUtils.join(", ", report.enabledPacks));
+            }
+            report.detail = d.toString();
         }
         return report;
     }

@@ -52,6 +52,11 @@ public final class LagWatch {
     private static final long PARTIAL_WRITE_EVERY_MS = 30000L;
     private static final String REPORT_NAME = "fear_lag_report.txt";
 
+    /** LTW's shader wrapper giving up on a core shader; the crash follows in strlen. */
+    private static final String LTW_SHADER_FAIL = "LTWShdrWp: failed to convert";
+    /** The shader converter's own error banner, printed just before the wrapper gives up. */
+    private static final String LTW_SHADER_CONV_FAILED = "Shader conversion failed";
+
     /** The frame rate the auto-tuner steers the render resolution toward. */
     private static final double AUTO_SCALE_TARGET_FPS = 100.0;
     /** Below this the scale is reduced; above {@link #AUTO_SCALE_HIGH_FPS} it is raised. */
@@ -90,6 +95,8 @@ public final class LagWatch {
             {"throttl", "the device is thermally throttling"},
             {"Could not load", "a pack or resource failed to load"},
             {"not valid", "a resource pack was rejected"},
+            {"LTWShdrWp: failed to convert", "LTW's shader wrapper could not convert a core shader (crash cause)"},
+            {"Shader conversion failed", "a core shader would not convert"},
     };
 
     /** Line shapes that are known to be printed once per presented frame. */
@@ -102,6 +109,8 @@ public final class LagWatch {
     private static File sReport;
     private static File sMirror;
     private static String sRenderer = "?";
+    /** Set when the game log shows LTW's shader wrapper giving up on a core shader. */
+    private static volatile boolean sLtwShaderFailure = false;
     /** The last "setupBridgeWindow ... surface=WxH" line the log tail has seen. */
     private static volatile String sSurfaceLine = "";
 
@@ -338,6 +347,12 @@ public final class LagWatch {
                         // Remember the last bridge-window line so the report can state
                         // the real game surface resolution instead of guessing it.
                         if (line.contains("setupBridgeWindow")) sSurfaceLine = line;
+                        // LTW's shader wrapper prints this when it cannot convert a core
+                        // shader; the process then dies with a NULL source reaching strlen
+                        // at link time. Remember it so the report can name the cause.
+                        if (line.contains(LTW_SHADER_FAIL) || line.contains(LTW_SHADER_CONV_FAILED)) {
+                            sLtwShaderFailure = true;
+                        }
                         if (dipLines != null && dipLines.size() < MAX_DIP_LOG_LINES && isDipWorthy(line)) {
                             dipLines.add(line.length() > 200 ? line.substring(0, 200) : line);
                         }
@@ -411,6 +426,91 @@ public final class LagWatch {
                 }
             }
         }
+    }
+
+    /** True when this session's log showed LTW's shader wrapper failing on a core shader. */
+    public static boolean ltwShaderFailureSeen() {
+        return sLtwShaderFailure;
+    }
+
+    /**
+     * True when the game log or the last lag report contains the LTW shader-wrapper
+     * failure. The crash board runs in a fresh process, where the in-memory flag is
+     * gone, so it asks this instead. Bounded so a huge log cannot stall the launcher;
+     * never throws.
+     */
+    public static boolean logMentionsLtwShaderFailure(File gameDir) {
+        if (gameDir == null) return false;
+        File[] candidates = {
+                new File(gameDir, "logs/latestlog.txt"),
+                new File(gameDir, "latestlog.txt"),
+                new File(gameDir, REPORT_NAME),
+        };
+        for (File f : candidates) {
+            if (fileMentionsLtwShaderFailure(f)) return true;
+        }
+        return false;
+    }
+
+    private static boolean fileMentionsLtwShaderFailure(File f) {
+        if (f == null || !f.isFile()) return false;
+        try (BufferedReader r = new BufferedReader(new FileReader(f))) {
+            String line;
+            int seen = 0;
+            while ((line = r.readLine()) != null) {
+                if (line.contains(LTW_SHADER_FAIL) || line.contains(LTW_SHADER_CONV_FAILED)) return true;
+                if (++seen > 400000) break; // a very large log: stop rather than stall the UI
+            }
+        } catch (Throwable ignored) { }
+        return false;
+    }
+
+    /**
+     * The resource packs this instance has enabled, read from the game's own options.txt
+     * (the resourcePacks list) and, when that lists nothing, the resourcepacks folder.
+     * Best effort; never throws. A pack that replaces core shaders is what makes LTW's
+     * shader wrapper try to convert the shader it cannot handle.
+     */
+    public static List<String> enabledResourcePacks(File gameDir) {
+        List<String> packs = new ArrayList<>();
+        if (gameDir == null) return packs;
+        try {
+            File options = new File(gameDir, "options.txt");
+            if (options.isFile()) {
+                try (BufferedReader r = new BufferedReader(new FileReader(options))) {
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        if (!line.startsWith("resourcePacks:")) continue;
+                        String v = line.substring("resourcePacks:".length()).trim()
+                                .replace("[", "").replace("]", "");
+                        for (String part : v.split(",")) {
+                            String p = part.trim().replace("\"", "");
+                            if (p.isEmpty() || "vanilla".equalsIgnoreCase(p)) continue;
+                            if (p.startsWith("file/")) p = p.substring("file/".length());
+                            if (!packs.contains(p)) packs.add(p);
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (Throwable ignored) { }
+        if (packs.isEmpty()) {
+            // Nothing enabled in options.txt: list what is installed instead, so the
+            // report still names the packs that could be selecting the shader.
+            try {
+                File dir = new File(gameDir, "resourcepacks");
+                File[] files = dir.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        String n = f.getName();
+                        if (n.endsWith(".zip") && !n.endsWith(".zip.disabled") && !packs.contains(n)) {
+                            packs.add(n);
+                        }
+                    }
+                }
+            } catch (Throwable ignored) { }
+        }
+        return packs;
     }
 
     // ---- the readers ------------------------------------------------------------------
@@ -689,6 +789,27 @@ public final class LagWatch {
                 }
             }
             sb.append('\n');
+
+            // -- the LTW core-shader conversion failure, named with its likely trigger --
+            if (sLtwShaderFailure) {
+                sb.append("LTW CORE SHADER CONVERSION FAILURE\n");
+                sb.append("---------------------------------\n");
+                sb.append("LTW's shader wrapper (LTWShdrWp) could not convert a core shader this session.\n");
+                sb.append("After logging \"failed to convert ... skipping\" the wrapper leaves that shader with\n");
+                sb.append("no source, and the NULL reaches strlen at link time - the SIGSEGV in\n");
+                sb.append("__strlen_aarch64 that kills the process. A resource pack that replaces core\n");
+                sb.append("shaders is what makes the failing shader get converted at all.\n");
+                List<String> packs = enabledResourcePacks(gameDir);
+                sb.append("Resource packs enabled for this instance:\n");
+                if (packs.isEmpty()) {
+                    sb.append("  (none listed in options.txt or the resourcepacks folder)\n");
+                } else {
+                    for (String p : packs) sb.append("  - ").append(p).append('\n');
+                }
+                sb.append("Fix: switch the renderer to turnip_zink or holy_zink_kopper, which do not use\n");
+                sb.append("this shader wrapper. The crash board offers this in one tap.\n");
+                sb.append('\n');
+            }
 
             // -- dip trace: what was happening at each frame-rate dip --
             writeDipTrace(sb, dips);
@@ -1327,6 +1448,16 @@ public final class LagWatch {
                 a.recommendations.add("Investigate the log matches for \"" + key
                         + "\" - see the LIKELY CAUSES section below.");
             }
+        }
+
+        // LTW's shader wrapper failing on a core shader is a renderer + resource-pack
+        // property, not a stutter cause, but it is the crash the session actually hit.
+        if (sLtwShaderFailure) {
+            a.findings.add("LTW's shader wrapper (LTWShdrWp) failed to convert a core shader; "
+                    + "the NULL it left behind crashed the process in strlen. A resource pack "
+                    + "that replaces core shaders is what selects the failing shader.");
+            a.recommendations.add("Switch the renderer away from LTW (turnip_zink or "
+                    + "holy_zink_kopper) for sessions that use resource packs replacing core shaders.");
         }
 
         return a;
