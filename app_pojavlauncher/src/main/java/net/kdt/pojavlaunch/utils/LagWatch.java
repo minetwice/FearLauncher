@@ -111,6 +111,8 @@ public final class LagWatch {
     private static String sRenderer = "?";
     /** Set when the game log shows LTW's shader wrapper giving up on a core shader. */
     private static volatile boolean sLtwShaderFailure = false;
+    /** How many core shaders LTW's wrapper gave up on this session (one per wrapper line). */
+    private static volatile int sLtwShaderFailureCount = 0;
     /** The last "setupBridgeWindow ... surface=WxH" line the log tail has seen. */
     private static volatile String sSurfaceLine = "";
 
@@ -352,6 +354,9 @@ public final class LagWatch {
                         // at link time. Remember it so the report can name the cause.
                         if (line.contains(LTW_SHADER_FAIL) || line.contains(LTW_SHADER_CONV_FAILED)) {
                             sLtwShaderFailure = true;
+                            // The wrapper line names the shader it gave up on; count those so the
+                            // report can say how many conversions failed, not just that one did.
+                            if (line.contains(LTW_SHADER_FAIL)) sLtwShaderFailureCount++;
                         }
                         if (dipLines != null && dipLines.size() < MAX_DIP_LOG_LINES && isDipWorthy(line)) {
                             dipLines.add(line.length() > 200 ? line.substring(0, 200) : line);
@@ -431,6 +436,11 @@ public final class LagWatch {
     /** True when this session's log showed LTW's shader wrapper failing on a core shader. */
     public static boolean ltwShaderFailureSeen() {
         return sLtwShaderFailure;
+    }
+
+    /** How many core shaders LTW's shader wrapper gave up on this session (0 if none). */
+    public static int ltwShaderFailureCount() {
+        return sLtwShaderFailureCount;
     }
 
     /**
@@ -791,10 +801,11 @@ public final class LagWatch {
             sb.append('\n');
 
             // -- the LTW core-shader conversion failure, named with its likely trigger --
-            if (sLtwShaderFailure) {
+            if (sLtwShaderFailure && "opengles3_ltw".equals(sRenderer)) {
                 sb.append("LTW CORE SHADER CONVERSION FAILURE\n");
                 sb.append("---------------------------------\n");
-                sb.append("LTW's shader wrapper (LTWShdrWp) could not convert a core shader this session.\n");
+                sb.append("LTW's shader wrapper (LTWShdrWp) could not convert a core shader this session (")
+                        .append(Math.max(1, sLtwShaderFailureCount)).append(" occurrence(s)).\n");
                 sb.append("After logging \"failed to convert ... skipping\" the wrapper leaves that shader with\n");
                 sb.append("no source, and the NULL reaches strlen at link time - the SIGSEGV in\n");
                 sb.append("__strlen_aarch64 that kills the process. A resource pack that replaces core\n");
@@ -1452,7 +1463,7 @@ public final class LagWatch {
 
         // LTW's shader wrapper failing on a core shader is a renderer + resource-pack
         // property, not a stutter cause, but it is the crash the session actually hit.
-        if (sLtwShaderFailure) {
+        if (sLtwShaderFailure && "opengles3_ltw".equals(sRenderer)) {
             a.findings.add("LTW's shader wrapper (LTWShdrWp) failed to convert a core shader; "
                     + "the NULL it left behind crashed the process in strlen. A resource pack "
                     + "that replaces core shaders is what selects the failing shader.");

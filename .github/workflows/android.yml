@@ -35,6 +35,16 @@ jobs:
         with:
           submodules: true
 
+      # DELIVERABLE A (investigated, no swap shipped): no newer LTW build exists that can
+      # translate the running Minecraft version's core shaders. The newest successful LTW
+      # artifact is run 37606468848 (MojoLauncher/LTW @ master, commit 1aff194, built
+      # 2026-10-07) - which is already what this floating "latest successful" download
+      # fetches. Its source still leaves the fragment shader with a NULL source when the
+      # bundled GLSL translator fails on a core shader (shader_wrapper.c prints
+      # "failed to convert&optimize ... skipping" and never calls glShaderSource; the NULL
+      # then reaches strlen at link). So it cannot fix the LTWShdrWp crash, and an
+      # unverified swap is not shipped. The launcher-side fallback (crash board + lag
+      # report) handles the failure instead.
       - name: Get LTW (Lightweight Java Launcher Library)
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true

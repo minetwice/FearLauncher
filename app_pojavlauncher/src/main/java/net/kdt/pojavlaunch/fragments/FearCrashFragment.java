@@ -103,6 +103,9 @@ public class FearCrashFragment extends Fragment {
                     net.kdt.pojavlaunch.SoundManager.playClick();
                     switchRendererTo(target);
                     FearCrashGuard.clear(requireContext());
+                    android.widget.Toast.makeText(requireContext(),
+                            getString(R.string.crash_renderer_switched_fmt, target),
+                            android.widget.Toast.LENGTH_LONG).show();
                     relaunch();
                 });
             } else {
@@ -179,6 +182,13 @@ public class FearCrashFragment extends Fragment {
                 instance.renderer = target;
                 instance.write();
             }
+        } catch (Throwable ignored) { }
+        // The launcher reads the selected renderer from the "renderer" preference key
+        // (LauncherPreferences.PREF_RENDERER), so keep it in step with the instance as well.
+        try {
+            net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER = target;
+            net.kdt.pojavlaunch.prefs.LauncherPreferences.DEFAULT_PREF.edit()
+                    .putString("renderer", target).apply();
         } catch (Throwable ignored) { }
     }
 

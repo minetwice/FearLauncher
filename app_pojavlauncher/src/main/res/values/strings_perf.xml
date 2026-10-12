@@ -59,4 +59,5 @@
 
     <!-- Crash board: the one-tap renderer switch when LTW cannot convert a core shader. -->
     <string name="crash_switch_renderer_fmt">SWITCH TO %1$s AND LAUNCH</string>
+    <string name="crash_renderer_switched_fmt">Renderer switched to %1$s - it applies on the next launch</string>
 </resources>
