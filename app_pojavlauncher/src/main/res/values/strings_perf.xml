@@ -60,4 +60,15 @@
     <!-- Crash board: the one-tap renderer switch when LTW cannot convert a core shader. -->
     <string name="crash_switch_renderer_fmt">SWITCH TO %1$s AND LAUNCH</string>
     <string name="crash_renderer_switched_fmt">Renderer switched to %1$s - it applies on the next launch</string>
+
+    <!-- LTW shader fallback: the automatic move off LTW, its one-time notice, and the undo. -->
+    <string name="ltw_fallback_dialog_title_fmt">Renderer switched to %1$s</string>
+    <string name="ltw_fallback_dialog_msg">The %1$s renderer could not translate a shader your resource packs replace, and that crashes the game. The launcher has switched this instance to %2$s for your next launch - it does not use that shader wrapper.\n\nResource packs seen: %3$s\n\nKeep %2$s, or switch back to %1$s.</string>
+    <string name="ltw_fallback_packs_none">none listed</string>
+    <string name="ltw_fallback_keep_fmt">KEEP %1$s</string>
+    <string name="ltw_fallback_undo_fmt">SWITCH BACK TO %1$s</string>
+    <string name="perf_ltw_fallback_title_fmt">Renderer moved to %1$s</string>
+    <string name="perf_ltw_fallback_desc_fmt">The %1$s renderer could not translate a core shader your resource packs replace, which crashes the game. This instance was switched to %2$s for the next launch. Switch back if you want %1$s again.</string>
+    <string name="perf_ltw_fallback_undo_fmt">SWITCH BACK TO %1$s</string>
+    <string name="perf_ltw_fallback_undone_fmt">Switched back to %1$s - applies on the next launch</string>
 </resources>

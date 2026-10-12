@@ -462,6 +462,30 @@ public final class LagWatch {
         return false;
     }
 
+    /**
+     * The newest modification time among the log/report files that actually carry the
+     * LTW shader-wrapper failure, or 0 when none does. The automatic renderer fallback
+     * uses this as an episode stamp: a newer time than the one it last acted on means
+     * the user hit the crash again, so the switch is re-applied; an equal or older time
+     * means the same failure it already handled, which it leaves alone. Never throws.
+     */
+    public static long ltwShaderFailureStamp(File gameDir) {
+        if (gameDir == null) return 0L;
+        File[] candidates = {
+                new File(gameDir, "logs/latestlog.txt"),
+                new File(gameDir, "latestlog.txt"),
+                new File(gameDir, REPORT_NAME),
+        };
+        long newest = 0L;
+        for (File f : candidates) {
+            if (f == null || !f.isFile()) continue;
+            if (!fileMentionsLtwShaderFailure(f)) continue;
+            long modified = f.lastModified();
+            if (modified > newest) newest = modified;
+        }
+        return newest;
+    }
+
     private static boolean fileMentionsLtwShaderFailure(File f) {
         if (f == null || !f.isFile()) return false;
         try (BufferedReader r = new BufferedReader(new FileReader(f))) {
@@ -817,8 +841,10 @@ public final class LagWatch {
                 } else {
                     for (String p : packs) sb.append("  - ").append(p).append('\n');
                 }
-                sb.append("Fix: switch the renderer to turnip_zink or holy_zink_kopper, which do not use\n");
-                sb.append("this shader wrapper. The crash board offers this in one tap.\n");
+                sb.append("Fix: switch the renderer to turnip_zink (Mesa turnip) or holy_zink_kopper\n");
+                sb.append("(Quasar), which do not use this shader wrapper. The crash board offers this in\n");
+                sb.append("one tap, and the launcher also moves this instance off LTW automatically on the\n");
+                sb.append("next start and shows a notice that can be undone from the dashboard.\n");
                 sb.append('\n');
             }
 

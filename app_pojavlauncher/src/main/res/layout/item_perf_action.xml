@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One titled dashboard row with a single action button, used for the LTW renderer
+     fallback's "switch back" entry. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/premium_glass_black_bg"
+    android:padding="@dimen/_12sdp"
+    android:layout_marginBottom="@dimen/_6sdp">
+
+    <TextView
+        android:id="@+id/perf_row_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/_11ssp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/perf_row_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#8A93A0"
+        android:textSize="@dimen/_8ssp" />
+
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/perf_row_action"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_38sdp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:textColor="#000000"
+        android:textSize="@dimen/_9ssp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:background="@drawable/theme_button_bg" />
+</LinearLayout>

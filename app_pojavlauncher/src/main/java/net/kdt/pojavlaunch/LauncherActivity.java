@@ -283,6 +283,12 @@ public class LauncherActivity extends BaseActivity {
             }
         }
 
+        // If the last session's log shows LTW's shader wrapper failing to convert a core
+        // shader, move this instance off LTW automatically (for the next launch) and show a
+        // dismissible notice. Run off the main thread: it reads the game log and commits a
+        // preference, and the switch must never happen mid-session.
+        net.kdt.pojavlaunch.utils.LtwShaderFallback.applyInBackground(this);
+
         // Asked once, up front, because the file manager and half the launcher are useless
         // without it and the grant only lives in a settings screen.
         maybeAskForFileAccess();

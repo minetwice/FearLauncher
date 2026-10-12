@@ -95,6 +95,12 @@ public class PerformanceFragment extends Fragment {
 
         LinearLayout rows = view.findViewById(R.id.perf_rows);
 
+        // ---- LTW renderer fallback (the automatic move off LTW) ---------------------
+        // Shown only while an automatic switch is live, so it is the durable, dismissible
+        // "switch back to LTW" entry. Placed first because it explains why the game is
+        // suddenly running on a different renderer.
+        addLtwFallbackRow(rows);
+
         // ---- graphics quality ------------------------------------------------------
         // ONE selector, three tiers. It writes the game's own graphics options as a coherent
         // bundle into THIS instance's options.txt, so the world can look good without touching
@@ -490,6 +496,40 @@ public class PerformanceFragment extends Fragment {
 
     // ---- rows -----------------------------------------------------------------------
 
+
+    /**
+     * The dashboard row for the automatic LTW renderer fallback, shown only while a switch is
+     * live. Tapping it puts the instance back on the renderer it was moved away from. Named
+     * with the same labels the renderer picker uses.
+     */
+    private void addLtwFallbackRow(LinearLayout parent) {
+        if (!net.kdt.pojavlaunch.utils.LtwShaderFallback.isActive(requireContext())) return;
+        String from = net.kdt.pojavlaunch.utils.LtwShaderFallback.activeFrom(requireContext());
+        String to = net.kdt.pojavlaunch.utils.LtwShaderFallback.activeTo(requireContext());
+        if (from.isEmpty() || to.isEmpty()) return;
+        final String fromLabel = net.kdt.pojavlaunch.utils.LtwShaderFallback
+                .displayName(requireContext(), from);
+        String toLabel = net.kdt.pojavlaunch.utils.LtwShaderFallback
+                .displayName(requireContext(), to);
+
+        View row = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_perf_action, parent, false);
+        ((TextView) row.findViewById(R.id.perf_row_title)).setText(
+                getString(R.string.perf_ltw_fallback_title_fmt, toLabel));
+        ((TextView) row.findViewById(R.id.perf_row_desc)).setText(
+                getString(R.string.perf_ltw_fallback_desc_fmt, fromLabel, toLabel));
+        TextView action = row.findViewById(R.id.perf_row_action);
+        action.setText(getString(R.string.perf_ltw_fallback_undo_fmt, fromLabel));
+        action.setOnClickListener(v -> {
+            v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            net.kdt.pojavlaunch.utils.LtwShaderFallback.undo(requireContext());
+            Toast.makeText(getContext(),
+                    getString(R.string.perf_ltw_fallback_undone_fmt, fromLabel),
+                    Toast.LENGTH_LONG).show();
+            row.setVisibility(View.GONE);
+        });
+        parent.addView(row);
+    }
 
     /** One titled row with a switch on the right. */
     private void addSwitch(LinearLayout parent, int titleRes, int descRes,
