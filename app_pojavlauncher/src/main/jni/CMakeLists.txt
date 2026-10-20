@@ -58,6 +58,15 @@ add_library(awt_xawt SHARED
 )
 target_link_libraries(awt_xawt PRIVATE awt_headless)
 
+# libflite.so - a do-nothing narrator stub, so the JVM's
+# System.loadLibrary("flite") succeeds instead of throwing UnsatisfiedLinkError
+# at every launch. See narrator_stub.c for the full reasoning.
+add_library(flite SHARED
+        narrator_stub.c
+)
+target_include_directories(flite PRIVATE .)
+target_link_libraries(flite PRIVATE log)
+
 # fear_mali_compat - Vulkan layer that makes Mesa's Zink work on ARM Mali GPUs.
 # Reports the Zink-required features the Mali vendor driver lacks and strips
 # them again before vkCreateDevice. See mali_compat/README.md.

@@ -127,20 +127,47 @@ public class JREUtils {
                 envMap.put("MESA_GLSL_CACHE_DISABLE", "false");
                 envMap.put("FEAR_RENDERER", renderer);
                 if (!GLInfoUtils.getGlInfo().isAdreno()) {
-                    envMap.put("ZINK_DEBUG", "noreorder,sync");
-                    envMap.put("GALLIUM_THREAD", "0");
-                    envMap.put("mesa_glthread", "false");
+                    // Quasar performance profile (Mali).
+                    //
+                    // The old block was tuned purely for correctness and gave away a
+                    // lot of frame rate for nothing you can see on screen:
+                    //
+                    //   ZINK_DEBUG=sync       serialises every batch. It is a stall,
+                    //                         not a fix, and it is the single biggest
+                    //                         reason Quasar crawled at ~20 fps.
+                    //   GALLIUM_THREAD=0 and
+                    //   mesa_glthread=false   kept all GL submission on the render
+                    //                         thread, so a heavy frame also stalled
+                    //                         camera movement.
+                    //
+                    // Threading is back on, descriptor updates are lazy (far fewer
+                    // descriptor sets rewritten per draw) and GL error checking is
+                    // off. None of that changes what a frame looks like.
+                    //
+                    // The Mali workarounds that actually stop crashes stay on:
+                    // bindless, coherent-memory handling and the compute-upload path.
+                    // Multi-draw is left to the driver again - this is a G615, well
+                    // past the pre-G710 parts that could not do it, and allowing it
+                    // is what lets Sodium's batched terrain draw at speed.
+                    envMap.put("ZINK_DEBUG", "noreorder");
+                    envMap.put("ZINK_DESCRIPTORS", "lazy");
+                    envMap.put("GALLIUM_THREAD", "1");
+                    envMap.put("mesa_glthread", "true");
+                    envMap.put("MESA_NO_ERROR", "1");
                     envMap.put("ZINK_MALI_NOBINDLESS", "1");
                     envMap.put("ZINK_MALI_NOCOHERENT", "1");
                     envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
                     envMap.put("ZINK_MALI_NOREUSE", "1");
-                    // FEARPATCH: Mali pre-G710 cannot do multi-draw (drawCount>1),
-                    // which crashes the driver during Sodium's batched terrain
-                    // draws. Force Zink to emit single draws instead.
-                    envMap.put("ZINK_MALI_NOMULTIDRAW", "1");
                 } else {
-                    envMap.put("mesa_glthread", "false");
+                    // The same threading and descriptor wins on Adreno, which needs
+                    // none of the Mali workarounds.
+                    envMap.put("mesa_glthread", "true");
+                    envMap.put("ZINK_DESCRIPTORS", "lazy");
+                    envMap.put("MESA_NO_ERROR", "1");
                 }
+                // Pin the game's hot threads onto the big cores, the same way the
+                // LTW profile does - it is most of why LTW feels smoother.
+                envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
                 break;
             case "turnip_zink":
             case "vulkan_zink":
