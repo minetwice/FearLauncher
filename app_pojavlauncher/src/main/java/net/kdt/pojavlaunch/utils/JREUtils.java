@@ -239,6 +239,12 @@ public class JREUtils {
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
+        // Keep the shader cache in one file and give it room to actually hold a modpack's
+        // shaders. The default evicts aggressively, and every eviction is a shader that
+        // has to be recompiled mid-game - which is felt as a stutter, not as a lower
+        // average. The single-file form is also much quicker to open and index.
+        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", "1G");
+        envMap.put("MESA_DISK_CACHE_SINGLE_FILE", "1");
         envMap.put("XDG_CACHE_HOME", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("XDG_CONFIG_HOME", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("HOME", Tools.DIR_CACHE.getAbsolutePath());

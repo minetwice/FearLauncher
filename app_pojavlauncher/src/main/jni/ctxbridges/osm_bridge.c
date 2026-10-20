@@ -496,13 +496,19 @@ void osm_make_current(osm_render_window_t* bundle) {
     /* Always ensure we have a color buffer + bound context */
     int w, h;
     osm_resolve_size(&w, &h);
-    fprintf(stderr, "OSMDIAG: make_current resolved %dx%d\n", w, h);
     if (osm_ensure_color_buffer(bundle, w, h) == 0)
         osm_bind_color(bundle);
     else if (OSMesaMakeCurrent_p)
         OSMesaMakeCurrent_p(bundle->context, NULL, GL_UNSIGNED_BYTE, 0, 0);
-    osm_diag_sample("make_current");
+    /* make_current is on the per-frame path, and the two diagnostics that used to run
+       here were unconditional: two stderr formats, two syscalls and two framebuffer
+       pixel reads on every single frame, all of it landing in the game log and turning
+       it into megabytes of noise. That is pure frame time spent on a debug print, so
+       both are now behind MC20_DIAG, and throttled when that switch is on. */
     if (getenv("MC20_DIAG") != NULL) {
+        if ((g_diag_swaps % 500) == 0)
+            fprintf(stderr, "OSMDIAG: make_current resolved %dx%d\n", w, h);
+        osm_diag_sample("make_current");
         osm_diag_tri_test();
         osm_diag_shader_fbo_test();
     }

@@ -75,6 +75,15 @@ public final class FearEngine {
     private static final int SAG_TICKS = 2;
     /** Consecutive comfortable windows before a step up. */
     private static final int HEADROOM_TICKS = 4;
+    /** Below this fraction of the target, one window is enough to act. */
+    private static final float DESPERATE = 0.60f;
+
+    /** The scale the launcher chose for this device, remembered so the engine can learn
+     *  within a stable range instead of ratcheting its own ceiling down every session. */
+    private static final String KEY_CEILING = "fear_engine_ceiling";
+    /** Where the last session settled, so the next one starts there. */
+    private static final String KEY_LEARNED = "fear_engine_learned_scale";
+    private static volatile float sLastScale = 0f;
 
     private static volatile boolean sRunning;
     private static Thread sThread;
@@ -127,6 +136,15 @@ public final class FearEngine {
                 t.join(2000);
             } catch (InterruptedException ignored) { }
         }
+        // Remember where the session settled so the next one starts there.
+        try {
+            float scale = sLastScale;
+            SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
+            if (scale > 0f && prefs != null) {
+                prefs.edit().putInt(KEY_LEARNED, Math.round(scale * 100f)).apply();
+                appendTrace(String.format(Locale.US, "governor: session settled at %.0f%%\n", scale * 100));
+            }
+        } catch (Throwable ignored) { }
     }
 
     // ---- the governor -----------------------------------------------------------------
@@ -134,10 +152,39 @@ public final class FearEngine {
     private static void govern(Context context, DeviceProfile profile) {
         // The ceiling is whatever the launcher had already chosen for this device, so the
         // engine can never draw more pixels than the user or the GPU tier asked for.
+        SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
+        // The ceiling is the scale the launcher chose for this device, recorded once and
+        // then left alone. Using the live preference instead would ratchet the ceiling
+        // down every session: the engine writes its result back to that preference, so
+        // after one hard session the device would be permanently stuck at the low scale
+        // with no way back up.
         float ceiling = LauncherPreferences.PREF_SCALE_FACTOR;
         if (ceiling <= 0f) ceiling = 0.7f;
+        if (prefs != null) {
+            int stored = prefs.getInt(KEY_CEILING, -1);
+            if (stored > 0) ceiling = stored / 100f;
+            else prefs.edit().putInt(KEY_CEILING, Math.round(ceiling * 100f)).apply();
+        }
         float floor = Math.max(FLOOR_SCALE, ceiling - 0.30f);
-        float scale = clamp(ceiling, floor, ceiling);
+
+        // Start where the last session settled rather than at the ceiling, so a device
+        // that cannot hold the target does not spend the first minutes of every session
+        // relearning it. Clamped to this session's range, so a changed GPU tier or a
+        // hand-set scale overrides it.
+        float scale = ceiling;
+        if (prefs != null) {
+            int learned = prefs.getInt(KEY_LEARNED, -1);
+            if (learned > 0) {
+                float want = clamp(learned / 100f, floor, ceiling);
+                if (want < ceiling - 0.001f) {
+                    scale = want;
+                    applyScale(scale);
+                    appendTrace(String.format(Locale.US,
+                            "governor: starting at the learned %.0f%% (ceiling %.0f%%)\n",
+                            scale * 100, ceiling * 100));
+                }
+            }
+        }
 
         double target = profile.targetFps;
         long lastFrames = -1L;
@@ -194,8 +241,12 @@ public final class FearEngine {
                 } else if (fps < target * SAG) {
                     sagTicks++;
                     headroomTicks = 0;
-                    if (sagTicks >= SAG_TICKS && scale > floor) {
-                        float next = Math.max(floor, scale - STEP);
+                    // Far below target: do not wait out the hysteresis, drop twice at once.
+                    // Two seconds of single-step waiting is two seconds the session spends
+                    // unplayable, and the first correction is always the most valuable.
+                    boolean desperate = fps < target * DESPERATE;
+                    if ((sagTicks >= SAG_TICKS || desperate) && scale > floor) {
+                        float next = Math.max(floor, scale - (desperate ? STEP * 2f : STEP));
                         appendTrace(String.format(Locale.US,
                                 "governor: %.0f fps under %.0f, scale %.0f%% -> %.0f%%\n",
                                 fps, target * SAG, scale * 100, next * 100));
@@ -253,6 +304,7 @@ public final class FearEngine {
     /** Moves the render resolution, live. */
     private static void applyScale(float scale) {
         try {
+            sLastScale = scale;
             LauncherPreferences.PREF_SCALE_FACTOR = scale;
             SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
             if (prefs != null) {
