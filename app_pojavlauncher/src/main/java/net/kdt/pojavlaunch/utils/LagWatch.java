@@ -288,7 +288,7 @@ public final class LagWatch {
                 // fallback when the counter is unavailable, and such a sample is
                 // marked unreliable so the auto-scale tuner refuses to act on it.
                 long presented = presentedFrames();
-                if (presented > 0 && lastPresentedFrames > 0 && prevWallMs > 0) {
+                if (presented >= 0 && lastPresentedFrames >= 0 && prevWallMs > 0) {
                     double dtSec = (s.wallMs - prevWallMs) / 1000.0;
                     if (dtSec > 0) {
                         s.fps = (presented - lastPresentedFrames) / dtSec;
@@ -300,7 +300,12 @@ public final class LagWatch {
                 // regardless of how the frame rate itself was measured.
                 FrameTally tally = new FrameTally();
                 for (LogTail t : tails) t.read(counts, firstExample, tally, s.logLines);
-                if (!s.fpsReliable && tally.total > 0 && prevWallMs > 0) {
+                // The log heuristic is the LAST resort, used only when the native counter
+                // is missing entirely. A counter that works but reads zero means the game
+                // has not presented a frame yet - it is still starting up, or it died on
+                // the way in. Guessing a frame rate from log text there is what turned a
+                // startup session into a report full of "1 fps" and invented stutter.
+                if (presented < 0 && tally.total > 0 && prevWallMs > 0) {
                     s.fps = tally.fpsFor(SAMPLE_INTERVAL_MS / 1000.0);
                     s.frameMarker = tally.bestShape();
                 }
@@ -373,9 +378,16 @@ public final class LagWatch {
         private final Map<String, Integer> shapes = new LinkedHashMap<>();
         int total;
 
+        /** Minecraft's own log lines carry a "[HH:mm:ss] [thread/LEVEL]:" stamp. A real
+         *  per-frame marker is printed straight to stdout by the renderer and has no such
+         *  prefix, so anything stamped is chatter and must never be mistaken for a frame. */
+        private static final java.util.regex.Pattern LOG4J_LINE =
+                java.util.regex.Pattern.compile("^\\[\\d{2}:\\d{2}:\\d{2}\\].*");
+
         void add(String line) {
             if (line == null || line.isEmpty()) return;
             total++;
+            if (LOG4J_LINE.matcher(line).matches()) return;
             String shape = shape(line);
             Integer c = shapes.get(shape);
             shapes.put(shape, c == null ? 1 : c + 1);
@@ -407,8 +419,12 @@ public final class LagWatch {
                     best = e.getKey();
                 }
             }
-            return best == null ? "" : best;
+            // A line that shows up a handful of times in a window is not a frame rate.
+            if (best == null || shapes.get(best) < MIN_MARKER_COUNT) return "";
+            return best;
         }
+
+        private static final int MIN_MARKER_COUNT = 10;
 
         double fpsFor(double seconds) {
             String best = bestShape();
@@ -1388,6 +1404,15 @@ public final class LagWatch {
         a.fpsAvg = fpsN > 0 ? fpsSum / fpsN : -1;
         a.fpsMin = fpsN > 0 ? minFps : -1;
         a.fpsMax = fpsN > 0 ? maxFps : -1;
+
+        if (a.fpsReliable && fpsN > 0 && maxFps <= 0) {
+            a.findings.add("The game never presented a single frame: the native counter stayed at "
+                    + "zero for the whole session, so it never reached gameplay - it was still "
+                    + "starting up, or it crashed on the way in. A session like this says nothing "
+                    + "about performance, however bad the numbers below look.");
+            a.recommendations.add("A launch-health check that tells a session which died before the "
+                    + "first frame apart from a session that actually ran and was slow.");
+        }
         a.cpuAvg = cpuN > 0 ? cpuSum / cpuN : -1;
         a.tempAvg = tN > 0 ? tSum / tN : Double.NaN;
         a.battAvg = bN > 0 ? bSum / bN : Double.NaN;
