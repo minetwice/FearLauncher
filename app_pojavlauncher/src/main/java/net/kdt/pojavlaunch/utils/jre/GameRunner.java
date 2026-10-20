@@ -261,6 +261,9 @@ public class GameRunner {
         // Start recording the session just before the JVM comes up, so every sample
         // describes the game that is actually running.
         net.kdt.pojavlaunch.utils.LagWatch.start(activity, instance.getGameDirectory(), rendererName);
+        // FearEngine decides the driver/renderer plan for this device and, once the game
+        // is drawing, moves the render resolution to hold the frame rate near its target.
+        net.kdt.pojavlaunch.engine.FearEngine.start(activity, instance.getGameDirectory(), rendererName);
         // A hard crash kills the process outright, so nothing downstream can react to it.
         // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
         // set on the next start means this run died - and the crash board can then name why.

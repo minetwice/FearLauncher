@@ -112,6 +112,10 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         mRefreshOnly = isAlreadyRunning;
         mSurface = mSurfaceProvider.create(getContext(), this);
         ((ViewGroup) getParent()).addView(mSurface);
+        // Hand the surface to the engine: it is the only thing that can resize the
+        // render target while the game is running, which is how the governor holds the
+        // frame rate near its target.
+        net.kdt.pojavlaunch.engine.FearEngine.attachSurface(this);
     }
 
     /**
