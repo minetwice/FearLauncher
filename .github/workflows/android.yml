@@ -35,17 +35,42 @@ jobs:
         with:
           submodules: true
 
-      # DELIVERABLE A (investigated, no swap shipped): no newer LTW build exists that can
-      # translate the running Minecraft version's core shaders. The newest successful LTW
-      # artifact is run 37606468848 (MojoLauncher/LTW @ master, commit 1aff194, built
-      # 2026-10-07) - which is already what this floating "latest successful" download
-      # fetches. Its source still leaves the fragment shader with a NULL source when the
-      # bundled GLSL translator fails on a core shader (shader_wrapper.c prints
-      # "failed to convert&optimize ... skipping" and never calls glShaderSource; the NULL
-      # then reaches strlen at link). So it cannot fix the LTWShdrWp crash, and an
-      # unverified swap is not shipped. The launcher-side fallback (crash board + lag
-      # report) handles the failure instead.
-      - name: Get LTW (Lightweight Java Launcher Library)
+      # LTW is built from its own source here, with ltw-overlay/ applied on top, rather
+      # than downloading whatever the upstream CI last produced. The overlay fixes a real
+      # crash: when LTW's bundled GLSL translator fails on a core shader it used to free
+      # shader_info->source, skip the real glShaderSource call entirely, and leave a
+      # dangling pointer that the next glLinkProgram walked with strlen(). Upstream's
+      # newest build still has it, so no download can fix it - only a source build can.
+      # The overlay also adds an in-process translation cache.
+      #
+      # JDK 11 first: the LTW project is on AGP 7.4.1, which is happiest on 11. The
+      # launcher's own JDK 17 setup comes later and takes over again.
+      - name: Set up JDK 11 (for the LTW build)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Build LTW from source (with our overlay)
+        id: ltw_source
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p app_pojavlauncher/libs
+          git clone https://github.com/MojoLauncher/LTW.git "$RUNNER_TEMP/ltw" || exit 1
+          cd "$RUNNER_TEMP/ltw"
+          git checkout 2f4dbaaa2494a9fe73d78dda859301b5c060fdd3 || exit 1
+          cp "$GITHUB_WORKSPACE/ltw-overlay/shader_wrapper.c" ltw/src/main/tinywrapper/shader_wrapper.c
+          grep -q FEARLAUNCHER ltw/src/main/tinywrapper/shader_wrapper.c || exit 1
+          chmod +x gradlew
+          ./gradlew --no-daemon :ltw:assembleRelease || exit 1
+          cp ltw/build/outputs/aar/ltw-release.aar "$GITHUB_WORKSPACE/app_pojavlauncher/libs/ltw-release.aar"
+          ls -l "$GITHUB_WORKSPACE/app_pojavlauncher/libs/"
+
+      # If the source build could not run, fall back to the upstream artifact so the APK
+      # still builds - it simply ships without the crash fix.
+      - name: Get LTW (fallback - upstream prebuilt)
+        if: steps.ltw_source.outcome != 'success'
         uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
