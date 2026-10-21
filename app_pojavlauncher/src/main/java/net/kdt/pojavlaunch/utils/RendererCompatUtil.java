@@ -57,6 +57,12 @@ public class RendererCompatUtil {
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
+            // Fear Monster is only offered when an engine build is actually installed.
+            // The engine is version-specific, so a build has to exist before the entry
+            // means anything - and until one ships, it never appears at all. That is what
+            // keeps a half-wired path unselectable: a user cannot pick a renderer that
+            // would fail on selection.
+            if(rendererId.equals("fear_monster") && !appHasFearMonsterBuild()) continue;
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
@@ -79,6 +85,21 @@ public class RendererCompatUtil {
                 rendererNames.toArray(new String[0]));
 
         return sCompatibleRenderers;
+    }
+
+    /** True when at least one Fear Monster engine build is installed. */
+    private static boolean appHasFearMonsterBuild() {
+        try {
+            File root = new File(Tools.DIR_DATA, "fear_monster");
+            File[] versions = root.listFiles();
+            if (versions == null) return false;
+            for (File v : versions) {
+                if (!v.isDirectory()) continue;
+                File[] jars = v.listFiles((d, name) -> name.endsWith(".jar"));
+                if (jars != null && jars.length > 0) return true;
+            }
+        } catch (Throwable ignored) { }
+        return false;
     }
 
     /** Checks if the renderer Id is compatible with the current device */

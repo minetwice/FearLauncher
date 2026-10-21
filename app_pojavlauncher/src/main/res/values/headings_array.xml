@@ -4,6 +4,7 @@
         <item>Mesa turnip</item>
         <item>Quasar</item>
         <item>@string/mcl_setting_renderer_ltw</item>
+        <item>Fear Monster (Vulkan)</item>
     </string-array>
 
     <string-array name="menu_customcontrol">
@@ -38,6 +39,7 @@
         <item>turnip_zink</item> <!-- Turnip Zink: OSMesa-based Zink (GL→Vulkan via Mesa) -->
         <item>holy_zink_kopper</item> <!-- HolyZink: Mesa Zink+Kopper over system Vulkan -->
         <item>opengles3_ltw</item> <!-- LTW: OpenGL ES 3 (requires libltw.so) -->
+        <item>fear_monster</item> <!-- Fear Monster: the direct-Vulkan engine. Only offered when an engine build is installed - see RendererCompatUtil. -->
     </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>
