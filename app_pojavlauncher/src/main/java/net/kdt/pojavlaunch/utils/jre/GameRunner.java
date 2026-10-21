@@ -307,6 +307,34 @@ public class GameRunner {
         } catch (Throwable t) {
             Log.w("GameRunner", "Fear Monster injection skipped", t);
         }
+        // Fear Monster: hand the engine what it needs to come up on the Vulkan path.
+        // Two things the launcher owns and the engine cannot get itself: a reachable
+        // Vulkan device, and the window to build a VkSurfaceKHR from.
+        //
+        // Nothing here runs unless the renderer is fear_monster, and that cannot be
+        // selected until an engine build ships, so this is inert today and becomes live
+        // the moment the path is testable. Both steps are wrapped: a failure here leaves
+        // the launch to carry on rather than taking it down.
+        if (net.kdt.pojavlaunch.engine.FearMonster.RENDERER_ID.equals(rendererName)) {
+            try {
+                // The window accessor lives in pojavexec, which is already loaded.
+                long window = JREUtils.nativeFearMonsterWindow();
+                javaArgList.add("-Dfear.monster.window=" + window);
+                Log.i("GameRunner", "Fear Monster: window handed to the engine (" + window + ")");
+            } catch (Throwable t) {
+                Log.w("GameRunner", "Fear Monster: window handoff failed", t);
+            }
+            try {
+                // Loaded here rather than in a static initialiser on purpose: if the shim
+                // is missing, only this path is affected, and only when it is actually
+                // being used.
+                System.loadLibrary("fearmonster_vk");
+                boolean opened = JREUtils.nativeFearMonsterLoadVulkan(null);
+                Log.i("GameRunner", "Fear Monster: Vulkan loader opened = " + opened);
+            } catch (Throwable t) {
+                Log.w("GameRunner", "Fear Monster: Vulkan loader could not be opened", t);
+            }
+        }
         // A hard crash kills the process outright, so nothing downstream can react to it.
         // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
         // set on the next start means this run died - and the crash board can then name why.
