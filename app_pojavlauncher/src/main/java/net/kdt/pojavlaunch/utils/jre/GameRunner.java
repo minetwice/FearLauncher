@@ -282,6 +282,10 @@ public class GameRunner {
         // FearEngine decides the driver/renderer plan for this device and, once the game
         // is drawing, moves the render resolution to hold the frame rate near its target.
         net.kdt.pojavlaunch.engine.FearEngine.start(activity, instance.getGameDirectory(), rendererName);
+        // Fear Monster is a separate engine, not a renderer: it decides per Minecraft
+        // version whether a direct-Vulkan build exists. Off, or without a build for this
+        // version, it does nothing and the renderer above runs exactly as it does today.
+        net.kdt.pojavlaunch.engine.FearMonster.prepare(activity, instance.getGameDirectory(), versionId, rendererName);
         // A hard crash kills the process outright, so nothing downstream can react to it.
         // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
         // set on the next start means this run died - and the crash board can then name why.

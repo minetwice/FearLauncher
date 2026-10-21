@@ -45,6 +45,8 @@ public class LauncherPreferences {
     public static int PREF_RAM_ALLOCATION;
     public static String PREF_DEFAULT_RUNTIME;
     public static boolean PREF_SUSTAINED_PERFORMANCE = false;
+    /** Fear Monster: the direct-Vulkan engine, on by default. */
+    public static boolean PREF_FEAR_MONSTER = true;
     public static boolean PREF_VIRTUAL_MOUSE_START = false;
     public static boolean PREF_USE_ALTERNATE_SURFACE = true;
     public static boolean PREF_JAVA_SANDBOX = true;
@@ -147,6 +149,7 @@ public class LauncherPreferences {
         }
         PREF_CUSTOM_JAVA_ARGS = DEFAULT_PREF.getString("javaArgs", "");
         PREF_SUSTAINED_PERFORMANCE = DEFAULT_PREF.getBoolean("sustainedPerformance", isDevicePowerful);
+        PREF_FEAR_MONSTER = DEFAULT_PREF.getBoolean("fear_monster", true);
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
         PREF_USE_ALTERNATE_SURFACE = DEFAULT_PREF.getBoolean("alternate_surface", isDevicePowerful);
         PREF_JAVA_SANDBOX = DEFAULT_PREF.getBoolean("java_sandbox", true);

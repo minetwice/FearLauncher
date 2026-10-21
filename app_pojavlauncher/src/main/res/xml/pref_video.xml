@@ -13,6 +13,12 @@
             app2:useSimpleSummaryProvider="true"/>
 
         <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="fear_monster"
+            android:summary="Renders Minecraft straight to Vulkan for the selected version, when a matching engine build is available. Turn it off, or run a version without a build, and nothing changes - your renderer works exactly as before."
+            android:title="Fear Monster engine (Vulkan)"/>
+
+        <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="ignoreNotch"
             android:summary="@string/mcl_setting_subtitle_ignore_notch"
