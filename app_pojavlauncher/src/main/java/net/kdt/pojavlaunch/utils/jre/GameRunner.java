@@ -268,7 +268,13 @@ public class GameRunner {
         // "Failed to locate library: libGL.so".
         boolean isZinkRenderer = rendererName.equals("turnip_zink") || rendererName.equals("vulkan_zink")
                 || rendererName.equals("holy_zink_kopper") || rendererName.equals("panvk_zink");
-        javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (isZinkRenderer ? "libmh_drive_vulkan_mesa.so" : rendererLibrary));
+        // Fear Monster does not go through LWJGL's OpenGL at all - the engine renders to
+        // Vulkan itself - so the GL library name must not be set on that path. It would
+        // be set to the Vulkan loader, which is what loadGraphicsLibrary returns there,
+        // and LWJGL would then try to open OpenGL from libvulkan.so and fail.
+        if (!"fear_monster".equals(rendererName)) {
+            javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (isZinkRenderer ? "libmh_drive_vulkan_mesa.so" : rendererLibrary));
+        }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
@@ -286,22 +292,6 @@ public class GameRunner {
         // version whether a direct-Vulkan build exists. Off, or without a build for this
         // version, it does nothing and the renderer above runs exactly as it does today.
         net.kdt.pojavlaunch.engine.FearMonster.prepare(activity, instance.getGameDirectory(), versionId, rendererName);
-        // Fear Monster injection. The engine is a mod at its core - it has to hook the
-        // game's own classes - but the user never installs it: the launcher hands Fabric
-        // the jar directly, so it loads like a built-in component and never appears in
-        // the instance's mods folder. Nothing is added unless the engine is switched on
-        // AND a build exists for this Minecraft version AND the direct-Vulkan path is
-        // the one in use, so a session on any other renderer is byte-for-byte what it is
-        // today. The render path itself is the next step; until it lands, shouldInject
-        // is false for every renderer.
-        try {
-            if (net.kdt.pojavlaunch.engine.FearMonster.shouldInject(versionId, rendererName)) {
-                javaArgList.add("-Dfabric.addMods="
-                        + net.kdt.pojavlaunch.engine.FearMonster.buildFor(versionId).getAbsolutePath());
-            }
-        } catch (Throwable t) {
-            Log.w("GameRunner", "Fear Monster injection skipped", t);
-        }
         // A hard crash kills the process outright, so nothing downstream can react to it.
         // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
         // set on the next start means this run died - and the crash board can then name why.
