@@ -22,11 +22,13 @@ jobs:
       - name: Checkout launcher (for the overlay)
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      # JDK 21, not 17: fabric-loom, the build plugin the engine uses, refuses to
+      # resolve on a 17 JVM - "Dependency requires at least JVM runtime version 21".
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Clone the engine source
         run: |
