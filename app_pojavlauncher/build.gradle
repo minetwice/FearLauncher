@@ -384,6 +384,12 @@ afterEvaluate {
 }
 
 dependencies {
+    // The Discord Social SDK, for the launcher's presence. Fetched into libs/ by the CI
+    // workflow before the build runs, because Discord hands it out from the developer
+    // portal rather than from a public URL, so it cannot be committed the usual way.
+    implementation files('libs/discord_partner_sdk.aar')
+    // The SDK's OAuth flow opens a browser; the SDK expects this to be present.
+    implementation 'androidx.browser:browser:1.8.0'
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'commons-codec:commons-codec:1.19.0'
     implementation 'androidx.preference:preference:1.2.1'
