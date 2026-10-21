@@ -19,6 +19,12 @@
             android:title="Fear Monster engine (Vulkan)"/>
 
         <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="fear_discord_presence"
+            android:summary="Shows on your Discord profile what you are playing: Fear Launcher, with For monsters underneath. Needs the Discord app installed and signed in. Turn it off and nothing is shared."
+            android:title="Discord presence"/>
+
+        <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="ignoreNotch"
             android:summary="@string/mcl_setting_subtitle_ignore_notch"
