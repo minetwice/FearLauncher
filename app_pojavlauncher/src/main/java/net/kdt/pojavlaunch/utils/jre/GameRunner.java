@@ -70,6 +70,13 @@ public class GameRunner {
     private static String pickRendererForDevice(String requested) {
         try {
             GLInfoUtils.GLInfo info = GLInfoUtils.getGlInfo();
+            // A device that cannot do OpenGL ES 3 cannot run any of the Mesa/Zink or LTW
+            // paths, whatever was requested. gl4es is the only one that will work there,
+            // so send it straight to that instead of to a renderer that is certain to fail.
+            if (JREUtils.getDetectedVersion() < 3) {
+                Log.i("GameRunner", "FEARPATCH: OpenGL ES 2 device -> using opengles2 (gl4es) instead of " + requested);
+                return "opengles2";
+            }
             if (!info.isAdreno() && (requested == null
                     || requested.equals("turnip_zink")
                     || requested.equals("vulkan_zink"))) {

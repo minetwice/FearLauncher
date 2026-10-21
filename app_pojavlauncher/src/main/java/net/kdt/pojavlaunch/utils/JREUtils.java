@@ -236,6 +236,23 @@ public class JREUtils {
             envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
         }
 
+        if ("opengles2".equals(renderer)) {
+            // The low-end profile. gl4es turns desktop OpenGL into OpenGL ES 2, which is
+            // what lets this launcher run on phones with no Vulkan and no OpenGL ES 3 at
+            // all. On hardware that weak the translation cost is the whole budget, so
+            // everything here is about making that translation cheap: no per-call GL error
+            // checks, GL submission kept off the render thread, and the hot threads pinned
+            // to whatever fast cores the device has.
+            Logger.appendToLog("[GLES2] Applying the low-end profile (gl4es)...");
+            envMap.put("LIBGL_ES", "2");
+            envMap.put("FEAR_RENDERER", "opengles2");
+            envMap.put("LIBGL_NOERROR", "1");
+            envMap.put("MESA_NO_ERROR", "1");
+            envMap.put("mesa_glthread", "true");
+            envMap.put("LIBGL_NORMALIZE", "1");
+            envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
+        }
+
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -395,6 +412,12 @@ public class JREUtils {
                 bypassNamespace = true;
                 glesVersion = 3;
                 if(preloadVk) preloadVulkan();
+                break;
+            case "opengles2":
+                Logger.appendToLog("[GLES2] Loading gl4es (desktop GL -> OpenGL ES 2)...");
+                renderLibrary = "libgl4es_114.so";
+                useGles = true;
+                glesVersion = 2;
                 break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";

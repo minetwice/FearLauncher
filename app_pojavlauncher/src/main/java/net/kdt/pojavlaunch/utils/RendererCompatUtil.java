@@ -39,6 +39,11 @@ public class RendererCompatUtil {
         boolean deviceHasOpenGLES3 = JREUtils.getDetectedVersion() >= 3;
         // LTW is an optional dependency
         boolean appHasLtw = new File(Tools.NATIVE_LIB_DIR, "libltw.so").exists();
+        // gl4es is the universal fallback. It turns desktop GL into OpenGL ES 2, which
+        // every Android GPU can do, so it is what keeps a phone with no Vulkan and no
+        // OpenGL ES 3 - the cheap end of the market this launcher is meant to run on -
+        // from ending up with no selectable renderer at all.
+        boolean appHasGl4es = new File(Tools.NATIVE_LIB_DIR, "libgl4es_114.so").exists();
         List<String> rendererIds = new ArrayList<>(defaultRenderers.length);
         List<String> rendererNames = new ArrayList<>(defaultRendererNames.length);
         for(int i = 0; i < defaultRenderers.length; i++) {
@@ -48,6 +53,7 @@ public class RendererCompatUtil {
                 rendererNames.add(defaultRendererNames[i]);
                 continue;
             }
+            if(rendererId.equals("opengles2") && !appHasGl4es) continue;
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
