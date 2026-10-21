@@ -9,15 +9,20 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.MinecraftGLSurface;
+import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
+
+import net.kdt.pojavlaunch.utils.MCOptionUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -65,8 +70,20 @@ public final class FearEngine {
     private static final long TICK_MS = 2000L;
     /** Never draw less than this fraction of the surface. */
     private static final float FLOOR_SCALE = 0.50f;
-    /** One resolution step. */
-    private static final float STEP = 0.05f;
+    /** One resolution step. A resolution change is a surface resize and a resize is a
+     *  hitch, so the governor makes few, decisive moves instead of many small ones. */
+    private static final float STEP = 0.10f;
+    /** Never change the resolution twice inside this window. The change itself costs a
+     *  hitch, and oscillating around the target is worse than sitting slightly off it. */
+    private static final long MIN_CHANGE_INTERVAL_MS = 20000L;
+    /** No resolution increase this early: the world is still loading and would read as a
+     *  sag that is not there. */
+    private static final long WARMUP_MS = 45000L;
+    /** A session counts as jittery when its slowest windows fall this far below its own
+     *  median. Jitter, not the average, is what "not smooth" means. */
+    private static final double JITTER_RATIO = 0.75;
+    /** Where the frame rate this device can actually hold is remembered. */
+    private static final String KEY_FRAME_CAP = "fear_engine_frame_cap";
     /** Below this fraction of the target the session is treated as struggling. */
     private static final float SAG = 0.85f;
     /** Above this fraction of the target there is headroom to spend. */
@@ -84,6 +101,10 @@ public final class FearEngine {
     /** Where the last session settled, so the next one starts there. */
     private static final String KEY_LEARNED = "fear_engine_learned_scale";
     private static volatile float sLastScale = 0f;
+    private static volatile double sLastStableFps = -1;
+    private static volatile boolean sLastJittery = false;
+    private static volatile double sLastRefresh = 60;
+    private static volatile File sGameDir;
 
     private static volatile boolean sRunning;
     private static Thread sThread;
@@ -104,6 +125,7 @@ public final class FearEngine {
         try {
             sRenderer = renderer == null ? "?" : renderer;
             sTrace = gameDir == null ? null : new File(gameDir, TRACE_NAME);
+            sGameDir = gameDir;
             SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
             if (prefs != null && !prefs.getBoolean("fear_engine", true)) {
                 Log.i(TAG, "engine disabled by preference");
@@ -143,6 +165,17 @@ public final class FearEngine {
             if (scale > 0f && prefs != null) {
                 prefs.edit().putInt(KEY_LEARNED, Math.round(scale * 100f)).apply();
                 appendTrace(String.format(Locale.US, "governor: session settled at %.0f%%\n", scale * 100));
+            }
+            // Only record a frame cap when the session was actually jittery AND could not
+            // reach the panel rate. Capping a session that was already smooth would just
+            // take frame rate away for nothing.
+            double stable = sLastStableFps;
+            if (sLastJittery && stable > 0 && prefs != null && stable < sLastRefresh * 0.95) {
+                int cap = Math.max(30, (int)(Math.floor(stable / 5.0) * 5));
+                prefs.edit().putInt(KEY_FRAME_CAP, cap).apply();
+                appendTrace(String.format(Locale.US,
+                        "governor: session was jittery around %.0f fps - next launch will pace the "
+                                + "game to %d fps for even frame times\n", stable, cap));
             }
         } catch (Throwable ignored) { }
     }
@@ -196,6 +229,30 @@ public final class FearEngine {
                 "governor: target %.0f fps, scale %.0f%%..%.0f%%, starting at %.0f%%\n",
                 target, floor * 100, ceiling * 100, scale * 100));
 
+        // Smoothness first. If an earlier session showed this device cannot hold the panel
+        // rate, ask the game to target the rate it CAN hold. An even 45 fps feels far
+        // smoother than a jittery 55-70, and that jitter is exactly what "not smooth"
+        // means - the average can look fine while the game still feels wrong.
+        try {
+            if (prefs != null) {
+                int cap = prefs.getInt(KEY_FRAME_CAP, -1);
+                if (cap >= 30 && cap < Math.round(profile.refreshHz)) {
+                    MCOptionUtils.load(sGameDir == null ? Tools.DIR_GAME_HOME : sGameDir.getAbsolutePath());
+                    MCOptionUtils.set("maxFps", String.valueOf(cap));
+                    MCOptionUtils.save();
+                    appendTrace(String.format(Locale.US,
+                            "governor: pacing the game to %d fps (panel %.0f Hz, learned from an "
+                                    + "earlier session)\n", cap, profile.refreshHz));
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "could not apply the learned frame cap", t);
+        }
+
+        long sessionStartMs = System.currentTimeMillis();
+        long lastChangeMs = 0L;
+        List<Double> recent = new ArrayList<>();
+
         while (sRunning) {
             try {
                 long frames = presentedFrames();
@@ -225,9 +282,15 @@ public final class FearEngine {
                     continue;
                 }
 
+                recent.add(fps);
+                if (recent.size() > 90) recent.remove(0);
+
+                // A change is only allowed once the last one has had time to settle.
+                boolean canChange = (now - lastChangeMs) >= MIN_CHANGE_INTERVAL_MS;
+
                 if (thermal >= 3) {
-                    // The device is throttling itself. Give it fewer pixels immediately -
-                    // waiting for the frame rate to sag first only makes the heat worse.
+                    // The device is throttling itself. Heat is the one case that overrides the
+                    // cooldown - waiting for the frame rate to sag first only makes it worse.
                     if (scale > floor) {
                         float next = Math.max(floor, scale - STEP);
                         appendTrace(String.format(Locale.US,
@@ -235,6 +298,7 @@ public final class FearEngine {
                                 thermal, scale * 100, next * 100));
                         scale = next;
                         applyScale(scale);
+                        lastChangeMs = now;
                     }
                     sagTicks = 0;
                     headroomTicks = 0;
@@ -245,25 +309,35 @@ public final class FearEngine {
                     // Two seconds of single-step waiting is two seconds the session spends
                     // unplayable, and the first correction is always the most valuable.
                     boolean desperate = fps < target * DESPERATE;
-                    if ((sagTicks >= SAG_TICKS || desperate) && scale > floor) {
+                    if ((sagTicks >= SAG_TICKS || desperate) && scale > floor
+                            && (canChange || desperate)) {
                         float next = Math.max(floor, scale - (desperate ? STEP * 2f : STEP));
                         appendTrace(String.format(Locale.US,
                                 "governor: %.0f fps under %.0f, scale %.0f%% -> %.0f%%\n",
                                 fps, target * SAG, scale * 100, next * 100));
                         scale = next;
                         applyScale(scale);
+                        lastChangeMs = now;
                         sagTicks = 0;
                     }
                 } else if (fps > target * HEADROOM) {
                     headroomTicks++;
                     sagTicks = 0;
-                    if (headroomTicks >= HEADROOM_TICKS && scale < ceiling && thermal <= 1) {
+                    // Spending pixels again is the one move that can make a smooth session
+                    // stutter, so it waits for the cooldown, for the warm-up to pass, and
+                    // for the frame rate to actually be steady. Sitting a little below the
+                    // ceiling is cheap; a hitch is not.
+                    boolean settled = (now - sessionStartMs) > WARMUP_MS;
+                    boolean steady = isSteady(recent);
+                    if (headroomTicks >= HEADROOM_TICKS && scale < ceiling && thermal <= 1
+                            && canChange && settled && steady) {
                         float next = Math.min(ceiling, scale + STEP);
                         appendTrace(String.format(Locale.US,
                                 "governor: %.0f fps with headroom, scale %.0f%% -> %.0f%%\n",
                                 fps, scale * 100, next * 100));
                         scale = next;
                         applyScale(scale);
+                        lastChangeMs = now;
                         headroomTicks = 0;
                     }
                 } else {
@@ -281,6 +355,37 @@ public final class FearEngine {
                 break;
             }
         }
+
+        // Session over. Remember how steady it was, so the next launch can pace the game
+        // to a rate this device can actually hold instead of chasing one it cannot.
+        if (recent.size() >= 8) {
+            double med = median(recent);
+            double min = Double.MAX_VALUE;
+            for (double v : recent) min = Math.min(min, v);
+            sLastStableFps = med;
+            sLastJittery = med > 0 && min < med * JITTER_RATIO;
+            sLastRefresh = profile.refreshHz;
+        }
+    }
+
+    private static double median(List<Double> values) {
+        if (values.isEmpty()) return -1;
+        List<Double> copy = new ArrayList<>(values);
+        copy.sort(null);
+        int n = copy.size();
+        if (n % 2 == 1) return copy.get(n / 2);
+        return (copy.get(n / 2 - 1) + copy.get(n / 2)) / 2.0;
+    }
+
+    /** True when the recent frame rate has no deep dips - the precondition for spending
+     *  pixels on quality without introducing a hitch. */
+    private static boolean isSteady(List<Double> values) {
+        if (values.size() < 8) return false;
+        double med = median(values);
+        if (med <= 0) return false;
+        double min = Double.MAX_VALUE;
+        for (double v : values) min = Math.min(min, v);
+        return min >= med * JITTER_RATIO;
     }
 
     private static long presentedFrames() {
