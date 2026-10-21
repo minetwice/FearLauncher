@@ -140,11 +140,13 @@ android {
         resValue 'string', 'curseforge_api_key', getCFApiKey()
 
         ndk {
-            // 32-bit devices matter as much as 64-bit ones, and until now the APK was
-            // arm64-only - the prebuilt armeabi-v7a libraries were sitting in jniLibs
-            // with no way to reach a phone. Shipping both ABIs is what makes the
-            // launcher installable and usable on the cheaper half of the market.
-            abiFilters 'arm64-v8a', 'armeabi-v7a'
+            // Every ABI the launcher can run on, not just 64-bit ARM. The device shows
+            // "this app is not compatible" whenever its own ABI is missing from the APK,
+            // so the list has to cover the whole family: 64-bit and 32-bit ARM for phones,
+            // and x86/x86_64 for tablets, Chromebooks and emulators. The prebuilt
+            // libraries for all four have been in jniLibs the whole time - they simply
+            // were not packaged. A launcher that cannot be installed is not a launcher.
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
         }
     }
 
