@@ -3,6 +3,8 @@
 // Zink/OSMesa renders into a tightly-packed RGBA buffer we allocate;
 // each swap copies rows into the locked ANativeWindow (handles stride).
 //
+#include <jni.h>
+#include <stdint.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
@@ -694,4 +696,22 @@ void osm_swap_interval(int swapInterval) {
         && bridge_environ.mainWindowBundle->nativeSurface != NULL) {
         setNativeWindowSwapInterval(bridge_environ.mainWindowBundle->nativeSurface, swapInterval);
     }
+}
+
+
+/* ---------------------------------------------------------------------------------
+ * Fear Monster: window handoff for the direct-Vulkan path.
+ *
+ * The engine renders straight to Vulkan and has to build a VkSurfaceKHR from the
+ * window the launcher is presenting into. This exposes that window and nothing
+ * else: a read-only accessor that touches no state, changes no behaviour, and is
+ * called by no GL path. Only the direct-Vulkan render path uses it.
+ *
+ * It lives here, rather than in the Vulkan shim, because this is where the window
+ * already is - the bridge owns it for every renderer, so exposing it costs nothing.
+ * --------------------------------------------------------------------------------- */
+JNIEXPORT jlong JNICALL
+Java_net_kdt_pojavlaunch_utils_JREUtils_nativeFearMonsterWindow(JNIEnv* env, jclass clazz) {
+    (void)env; (void)clazz;
+    return (jlong)(intptr_t)bridge_environ.pojavWindow;
 }
