@@ -108,6 +108,18 @@ jobs:
             done < <(unzip -Z1 "${aar}" | grep 'libltw\.so$')
           done
 
+      # The Discord Social SDK is handed out from Discord's developer portal rather than
+      # from a public URL, so it cannot be committed to the repo the usual way. It is
+      # attached to the nightly release instead, which gives it a stable public URL, and
+      # fetched here before the build - the same pattern the other large binaries use.
+      - name: Fetch the Discord Social SDK
+        run: |
+          set -euo pipefail
+          mkdir -p app_pojavlauncher/libs
+          curl -fL --retry 3 -o app_pojavlauncher/libs/discord_partner_sdk.aar \
+            https://github.com/minetwice/FearLauncher/releases/download/nightly/discord_partner_sdk.aar
+          ls -l app_pojavlauncher/libs/
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
