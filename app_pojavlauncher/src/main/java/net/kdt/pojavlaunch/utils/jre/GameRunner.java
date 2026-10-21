@@ -247,6 +247,17 @@ public class GameRunner {
             rendererName = fallback;
             rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
         }
+        if (rendererLibrary == null) {
+            // Last resort, and deliberately invisible to the user. gl4es turns desktop GL
+            // into OpenGL ES 2, which every Android GPU can do. Without it, a phone that
+            // can run neither the renderer the user picked nor the device-preferred one
+            // has no way to start the game at all. Nobody selects this - it is only ever
+            // reached after everything else has already failed, so every device keeps the
+            // same renderer list and the same defaults, and simply still works.
+            Log.i("GameRunner", "Renderer still failed to load, trying the universal GLES2 path");
+            rendererName = "opengles2";
+            rendererLibrary = JREUtils.loadGraphicsLibrary(rendererName);
+        }
         if(rendererLibrary == null) {
             if(showDialog(activity, R.string.gr_err_renderer_load_Failed)) return;
             System.exit(0);
