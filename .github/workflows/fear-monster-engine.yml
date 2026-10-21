@@ -50,13 +50,15 @@ jobs:
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           chmod +x gradlew
-          ./gradlew --no-daemon build || exit 1
-          find . -name '*.jar' -not -path '*/gradle/*' -printf '%p %s bytes\n' | head -20
+          ./gradlew --no-daemon build
+          # No "| head" here: the build has already succeeded by this point, and a
+          # closed pipe from head made find exit non-zero, which failed the step on an
+          # otherwise perfectly good build.
+          ls -l build/libs/
 
       - name: Upload the engine jar
         uses: actions/upload-artifact@v4
         with:
           name: fear-monster-engine
-          path: |
-            /home/runner/work/_temp/engine/build/libs/*.jar
+          path: /home/runner/work/_temp/engine/build/libs/*.jar
           if-no-files-found: warn
