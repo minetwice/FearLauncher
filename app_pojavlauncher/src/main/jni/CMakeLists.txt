@@ -67,6 +67,14 @@ add_library(flite SHARED
 target_include_directories(flite PRIVATE .)
 target_link_libraries(flite PRIVATE log)
 
+# Fear Monster: the direct-Vulkan path's native shim. Built as its own library and
+# loaded by nothing yet - see fear_monster_vk.c for why that is deliberate.
+add_library(fearmonster_vk SHARED
+        fear_monster_vk.c
+)
+target_include_directories(fearmonster_vk PRIVATE .)
+target_link_libraries(fearmonster_vk PRIVATE log dl)
+
 # fear_mali_compat - Vulkan layer that makes Mesa's Zink work on ARM Mali GPUs.
 # Reports the Zink-required features the Mali vendor driver lacks and strips
 # them again before vkCreateDevice. See mali_compat/README.md.

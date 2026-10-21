@@ -253,23 +253,6 @@ public class JREUtils {
             envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
         }
 
-        if ("fear_monster".equals(renderer)) {
-            // The direct-Vulkan profile. None of the GL tuning applies here - there is no
-            // translation layer to tune, which is the entire point of this path. What the
-            // launcher contributes is a reachable Vulkan device: the loader is what the
-            // engine and LWJGL's Vulkan bindings open, and the ICD choice mirrors the
-            // renderer logic (Mesa Turnip on Adreno, the vendor driver everywhere else).
-            Logger.appendToLog("[FearMonster] Applying the direct-Vulkan profile...");
-            envMap.put("FEAR_RENDERER", "fear_monster");
-            envMap.put("FEAR_MONSTER_ENGINE", "1");
-            envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
-            envMap.put("MESA_NO_ERROR", "1");
-            if (GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
-                setUseTurnip(true);
-                Logger.appendToLog("[FearMonster] Adreno: requesting the Mesa Turnip Vulkan ICD");
-            }
-        }
-
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
@@ -436,19 +419,6 @@ public class JREUtils {
                 useGles = true;
                 glesVersion = 2;
                 break;
-            case "fear_monster":
-                // The direct-Vulkan path. Nothing here translates OpenGL: the engine
-                // renders straight to Vulkan, so the launcher's whole job is to make a
-                // Vulkan device reachable. There is no GL library to load, which is why
-                // the "render library" is the Vulkan loader itself and the GLES switches
-                // are left off. Handing the engine the window's Vulkan surface is the
-                // remaining native work; until that lands this case is unreachable,
-                // because no renderer id selects it.
-                Logger.appendToLog("[FearMonster] Direct-Vulkan path: no GL layer, the engine owns the frame");
-                renderLibrary = "libvulkan.so";
-                useGles = false;
-                glesVersion = 3;
-                break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
                 useGles = true;
@@ -480,6 +450,14 @@ public class JREUtils {
     public static native void setLdLibraryPath(String ldLibraryPath);
     public static native boolean configureRenderspec(String eglPath, boolean useLoaderBypass, boolean useGles, int glesVersion);
     public static native void preloadVulkan();
+
+    /**
+     * Fear Monster: opens the Vulkan loader for the direct-Vulkan path. Declared here
+     * but deliberately not called yet - the render path that would use it is not
+     * reachable, and nothing loads fearmonster_vk, so this cannot affect a session on
+     * any other renderer.
+     */
+    public static native boolean nativeFearMonsterLoadVulkan(String path);
     public static native void setUseTurnip(boolean enable);
     public static native void setUsePanvk(boolean enable);
 
