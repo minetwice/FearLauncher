@@ -146,7 +146,12 @@ android {
             // and x86/x86_64 for tablets, Chromebooks and emulators. The prebuilt
             // libraries for all four have been in jniLibs the whole time - they simply
             // were not packaged. A launcher that cannot be installed is not a launcher.
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+            // 32-bit x86 is deliberately absent: the shadowhook dependency the launcher
+            // builds against publishes no x86 build at all, so CMake cannot even
+            // configure for it. Nothing real is lost - there are no x86-only Android
+            // phones, only ancient emulators. x86_64 stays, which is what Chromebooks
+            // and current emulators actually use.
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
         }
     }
 
