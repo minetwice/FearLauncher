@@ -399,9 +399,12 @@ public final class FearEngine {
                 if (dm != null && p.refreshHz <= 0) p.refreshHz = 60;
             } catch (Throwable ignored) { }
 
-            // The target is the panel refresh, but never above 60 on this class of device:
-            // past that the extra frames cost heat that ends up costing more than they give.
-            p.targetFps = Math.max(30, Math.min(60, p.refreshHz));
+            // The target is whatever the panel can actually show, not a hardcoded 60. On a
+            // 120 Hz panel the governor should aim at 120 rather than fighting the user's
+            // own display; on a 60 Hz panel nothing changes. The engine never caps the
+            // game's own maxFps - that stays at the game's ceiling. This only decides
+            // where the governor stops spending pixels on the target.
+            p.targetFps = Math.max(30, Math.min(120, p.refreshHz));
 
             if (p.cores >= 8 && p.ramMb >= 6000) p.tier = "high";
             else if (p.cores <= 4 || p.ramMb < 3000) p.tier = "low";
