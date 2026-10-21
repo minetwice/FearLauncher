@@ -286,6 +286,22 @@ public class GameRunner {
         // version whether a direct-Vulkan build exists. Off, or without a build for this
         // version, it does nothing and the renderer above runs exactly as it does today.
         net.kdt.pojavlaunch.engine.FearMonster.prepare(activity, instance.getGameDirectory(), versionId, rendererName);
+        // Fear Monster injection. The engine is a mod at its core - it has to hook the
+        // game's own classes - but the user never installs it: the launcher hands Fabric
+        // the jar directly, so it loads like a built-in component and never appears in
+        // the instance's mods folder. Nothing is added unless the engine is switched on
+        // AND a build exists for this Minecraft version AND the direct-Vulkan path is
+        // the one in use, so a session on any other renderer is byte-for-byte what it is
+        // today. The render path itself is the next step; until it lands, shouldInject
+        // is false for every renderer.
+        try {
+            if (net.kdt.pojavlaunch.engine.FearMonster.shouldInject(versionId, rendererName)) {
+                javaArgList.add("-Dfabric.addMods="
+                        + net.kdt.pojavlaunch.engine.FearMonster.buildFor(versionId).getAbsolutePath());
+            }
+        } catch (Throwable t) {
+            Log.w("GameRunner", "Fear Monster injection skipped", t);
+        }
         // A hard crash kills the process outright, so nothing downstream can react to it.
         // Flag the launch now; MainActivity clears the flag on a clean exit, so a flag still
         // set on the next start means this run died - and the crash board can then name why.

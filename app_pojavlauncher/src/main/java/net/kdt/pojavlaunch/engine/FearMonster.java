@@ -19,20 +19,21 @@ import java.io.File;
  * folder - the launcher knows which version is being launched and can pick the matching
  * build itself, so nobody has to match versions by hand or even know the engine exists.
  *
- * <p>This class is the decision point. It answers three questions for a launch:
- * whether the engine is switched on, whether a build exists for the Minecraft version
- * about to start, and therefore whether the engine runs at all this time.
+ * <p>This class is the decision point, and now the injection point. It answers three
+ * questions for a launch: whether the engine is switched on, whether a build exists for
+ * the Minecraft version about to start, and therefore whether the engine is handed to the
+ * game at all.
  *
  * <p>Everything here is inert by design. When the engine is off, or when no build matches
- * the version, this class does nothing at all and the session runs on the renderer the
- * user picked - Zink, Quasar, LTW - exactly as it does today. Nothing in this file can
+ * the version, this class does nothing and the session runs on the renderer the user
+ * picked - Zink, Quasar, GLES2, LTW - exactly as it does today. Nothing in this file can
  * change how an existing renderer behaves; it only ever decides whether a separate engine
  * is used, and by default it decides not to.
  *
- * <p>The engine builds themselves, their injection into the game, and the direct-Vulkan
- * render path are the following steps. Until a build is present under
- * {@code <data>/fear_monster/<minecraft version>/}, this class finds nothing and every
- * session stays on its renderer.
+ * <p>The engine is handed over with {@code -Dfabric.addMods}, so Fabric loads it as a
+ * built-in component: it never lands in the instance's mods folder and the user never
+ * manages it. That argument is only produced when the direct-Vulkan render path is the
+ * one in use - which is the next step - so today this injects nothing on any renderer.
  */
 public final class FearMonster {
 
@@ -40,6 +41,10 @@ public final class FearMonster {
 
     /** Where the engine builds live, one directory per Minecraft version. */
     private static final String ENGINE_ROOT = "fear_monster";
+
+    /** The renderer id that means "the engine owns the frame". Until that path exists,
+     *  nothing is ever injected. */
+    public static final String RENDERER_ID = "fear_monster";
 
     private FearMonster() {}
 
@@ -68,6 +73,22 @@ public final class FearMonster {
     }
 
     /**
+     * Whether the engine should be handed to the game this launch. All three conditions
+     * have to hold: switched on, a build for this Minecraft version, and the direct-Vulkan
+     * render path in use. The last one does not exist yet, so this is false everywhere
+     * today - which is the point: it cannot disturb a working session.
+     */
+    public static boolean shouldInject(String mcVersion, String renderer) {
+        try {
+            return isEnabled()
+                    && RENDERER_ID.equals(renderer)
+                    && buildFor(mcVersion) != null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
      * Decides, once per launch, whether the engine runs for this session. Never throws,
      * and never touches the chosen renderer - it only reports what it found.
      */
@@ -79,14 +100,17 @@ public final class FearMonster {
             }
             File build = buildFor(mcVersion);
             if (build == null) {
-                // The common case until the engine builds ship: say so plainly and leave
-                // everything alone. The renderer the user picked is untouched.
                 Log.i(TAG, "no Fear Monster build for Minecraft " + mcVersion
                         + "; this session runs on " + renderer + " as usual");
                 return;
             }
-            Log.i(TAG, "Fear Monster build " + build.getName() + " available for Minecraft "
-                    + mcVersion + " (renderer " + renderer + " is left untouched either way)");
+            if (!RENDERER_ID.equals(renderer)) {
+                Log.i(TAG, "Fear Monster build " + build.getName() + " is present for Minecraft "
+                        + mcVersion + ", but this session uses " + renderer
+                        + "; the engine stays out of the way");
+                return;
+            }
+            Log.i(TAG, "Fear Monster build " + build.getName() + " will drive Minecraft " + mcVersion);
         } catch (Throwable t) {
             Log.w(TAG, "engine check failed; the session runs on its renderer as usual", t);
         }
