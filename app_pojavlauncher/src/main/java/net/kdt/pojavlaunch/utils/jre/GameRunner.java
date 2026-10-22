@@ -313,7 +313,10 @@ public class GameRunner {
         // SDK wiring does the sending; the values come from FearPresence so the wording
         // lives in one place.
         try {
-            net.kdt.pojavlaunch.presence.FearPresence.setPlaying(null, versionId);
+            // The instance's own name, so the status says which profile is being played
+            // rather than just the Minecraft version. Both are passed: FearPresence falls
+            // back to the version when an instance has no name.
+            net.kdt.pojavlaunch.presence.FearPresence.setPlaying(instance.name, versionId);
         } catch (Throwable t) {
             Log.w("GameRunner", "Discord presence skipped", t);
         }
