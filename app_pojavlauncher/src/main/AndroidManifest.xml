@@ -59,7 +59,7 @@
             android:label="Fear Launcher"
             android:launchMode="singleTop"
             android:screenOrientation="landscape"
-            android:resizeableActivity="false">
+            android:resizeableActivity="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -77,7 +77,7 @@
             android:label="Fear Launcher"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="landscape"
-            android:resizeableActivity="false"/>
+            android:resizeableActivity="true"/>
 
         <!-- CONTROL IMPORT ACTIVITY -->
         <activity
