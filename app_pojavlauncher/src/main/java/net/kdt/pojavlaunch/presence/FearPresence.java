@@ -1,5 +1,6 @@
 package net.kdt.pojavlaunch.presence;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -60,6 +61,9 @@ public final class FearPresence {
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
 
+    /** Last status written to the log, so the watcher only reports changes. */
+    private static int sLastLoggedStatus = -2;
+
     static {
         try {
             // The wrapper lives in pojavexec, the launcher's own native library, which is
@@ -115,17 +119,43 @@ public final class FearPresence {
     }
 
     /**
+     * The SDK has two entry points and needs both: setEngineActivity, which the launcher
+     * calls when the dashboard opens, and initialize(Context), which is what hands the
+     * native client the Android context it needs to find and bind the Discord app's RPC
+     * service. Only the first was being called, so Connect() had nothing to connect to and
+     * the client sat at status 0 (disconnected) forever.
+     *
+     * The context comes from the engine activity that is already set, so this needs no new
+     * plumbing.
+     */
+    private static void ensureSdkContext() {
+        try {
+            android.app.Activity engineActivity =
+                    com.discord.socialsdk.DiscordSocialSdkInit.getEngineActivity();
+            if (engineActivity == null) {
+                say("no engine activity yet; the SDK has no context to connect with");
+                return;
+            }
+            com.discord.socialsdk.DiscordSocialSdkInit.initialize(engineActivity.getApplicationContext());
+        } catch (Throwable t) {
+            say("could not give the SDK its context", t);
+        }
+    }
+
+    /**
      * Starts the Discord client the first time it is needed, rather than from an
      * activity, so there is no extra lifecycle to keep in step.
      */
     private static boolean ensureStarted() {
         if (sStarted) return true;
         try {
+            ensureSdkContext();
             sStarted = nativeStart(APPLICATION_ID);
             if (!sStarted) {
                 say("Discord client did not start; presence stays off");
             } else {
                 say("Discord client started; status " + describeStatus());
+                watchStatus();
             }
             return sStarted;
         } catch (Throwable t) {
@@ -153,6 +183,35 @@ public final class FearPresence {
             return s + " (" + meaning + ")";
         } catch (Throwable t) {
             return "unavailable";
+        }
+    }
+
+    /**
+     * Watches the connection for half a minute and writes every change to the launcher's
+     * log. The native side reports the same transitions, but only to logcat, so without
+     * this the file cannot show whether the client climbed to ready (3) or stopped before
+     * it - which is the difference between "working" and "needs the Discord app".
+     */
+    private static void watchStatus() {
+        try {
+            final java.util.concurrent.ScheduledExecutorService watcher =
+                    java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                        Thread t = new Thread(r, "fear-presence-status");
+                        t.setDaemon(true);
+                        return t;
+                    });
+            watcher.scheduleAtFixedRate(() -> {
+                try {
+                    int s = nativeStatus();
+                    if (s != sLastLoggedStatus) {
+                        sLastLoggedStatus = s;
+                        say("Discord status now " + describeStatus());
+                    }
+                } catch (Throwable ignored) { }
+            }, 0, 3, java.util.concurrent.TimeUnit.SECONDS);
+            watcher.schedule(watcher::shutdown, 30, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Throwable t) {
+            say("could not start the status watcher", t);
         }
     }
 
