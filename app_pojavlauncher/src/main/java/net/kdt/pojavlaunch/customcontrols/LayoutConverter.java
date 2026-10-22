@@ -47,6 +47,14 @@ public class LayoutConverter {
                 else if (version == 8) {
                     return Tools.GLOBAL_GSON.fromJson(jsonLayoutData, CustomControls.class);
                 }
+                // Anything newer than 8 is read the same way 8 is. A layout has only ever
+                // gained fields, and Gson ignores the ones it does not recognise, so a file
+                // from a newer build loads with whatever this build understands. Refusing it
+                // outright - which is what used to happen, as "Unsupported control layout
+                // version" - helps nobody: the layout is not unreadable, it is just newer.
+                if (version > 8) {
+                    return Tools.GLOBAL_GSON.fromJson(jsonLayoutData, CustomControls.class);
+                }
             }
             return null;
         } catch (JSONException e) {
