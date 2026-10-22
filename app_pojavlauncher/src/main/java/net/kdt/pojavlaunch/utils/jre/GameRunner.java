@@ -356,6 +356,13 @@ public class GameRunner {
             LifecycleAwareAlertDialog.DialogCreator dialogCreator = (dialog, builder) ->
                 builder.setMessage(e.toString(activity)).setPositiveButton(android.R.string.ok, (d, w)->{});
             if(LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator)) { return; }
+        } finally {
+            // The game has exited. Take the presence down with it rather than leaving it on
+            // Discord until the process happens to die - a status that outlives the game is
+            // worse than no status at all.
+            try {
+                net.kdt.pojavlaunch.presence.FearPresence.clear();
+            } catch (Throwable ignored) { }
         }
         Tools.fullyExit();
     }
