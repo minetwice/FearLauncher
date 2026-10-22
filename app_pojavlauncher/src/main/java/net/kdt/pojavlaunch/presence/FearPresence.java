@@ -33,6 +33,10 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * Nothing here reaches Discord unless the SDK was linked into the build and the client
  * starts; when either fails it logs and presence stays off, because a social feature must
  * never be a reason a launch does not happen.
+ *
+ * <p>Every message here goes to the launcher's own log as well as to logcat. The launcher's
+ * log is the file anyone can actually read off a phone, and the question that matters -
+ * did the client connect? - has to be answerable from it.
  */
 public final class FearPresence {
 
@@ -62,7 +66,7 @@ public final class FearPresence {
             // already the one every other native call in the launcher goes through.
             System.loadLibrary("pojavexec");
         } catch (Throwable t) {
-            Log.w(TAG, "could not load pojavexec; presence will stay off", t);
+            say("could not load pojavexec; presence will stay off", t);
         }
     }
 
@@ -71,6 +75,20 @@ public final class FearPresence {
     private static native boolean nativeStart(String appId);
     private static native void nativeSetPlaying(String details, String state);
     private static native void nativeClear();
+
+    /**
+     * Reports a message to both logcat and the launcher's log file. The second one is the
+     * point: it is the only log a user can hand over, so anything worth knowing has to be
+     * in it.
+     */
+    private static void say(String message, Throwable t) {
+        try { Log.i(TAG, message, t); } catch (Throwable ignored) { }
+        try { net.kdt.pojavlaunch.Logger.appendToLog("[Discord] " + message); } catch (Throwable ignored) { }
+    }
+
+    private static void say(String message) {
+        say(message, null);
+    }
 
     /** True when the user wants their presence shown. On by default. */
     public static boolean isEnabled() {
@@ -103,10 +121,10 @@ public final class FearPresence {
         if (sStarted) return true;
         try {
             sStarted = nativeStart(APPLICATION_ID);
-            if (!sStarted) Log.i(TAG, "Discord client did not start; presence stays off");
+            if (!sStarted) say("Discord client did not start; presence stays off");
             return sStarted;
         } catch (Throwable t) {
-            Log.w(TAG, "could not start the Discord client", t);
+            say("could not start the Discord client", t);
             return false;
         }
     }
@@ -114,14 +132,14 @@ public final class FearPresence {
     private static void publish(String state) {
         try {
             if (!isEnabled()) {
-                Log.i(TAG, "presence is off in settings; nothing is published");
+                say("presence is off in settings; nothing is published");
                 return;
             }
             if (!ensureStarted()) return;
             nativeSetPlaying(DETAILS, state);
-            Log.i(TAG, "presence sent: details=\"" + DETAILS + "\" state=\"" + state + "\"");
+            say("presence sent: details=\"" + DETAILS + "\" state=\"" + state + "\"");
         } catch (Throwable t) {
-            Log.w(TAG, "presence update skipped", t);
+            say("presence update skipped", t);
         }
     }
 
