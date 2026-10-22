@@ -85,7 +85,19 @@ public class Instances {
         List<DisplayInstance> instances = loadInstances(DisplayInstance.class, selectionIndex);
         if(instances.isEmpty()) {
             createFirstTimeInstance();
-            return loadDisplay();
+            // Re-read once instead of calling loadDisplay() again. That recursion was the
+            // hang: when the instance directory is not writable - which on Android 11+ means
+            // "All files access" has not been granted - createFirstTimeInstance() cannot
+            // create anything, the list comes back empty, and the method called itself
+            // forever. The version list never loaded and account creation sat behind it,
+            // which is what people saw as the launcher getting stuck.
+            instances = loadInstances(DisplayInstance.class, selectionIndex);
+            if(instances.isEmpty()) {
+                throw new IOException("Cannot create the first instance: the instance directory "
+                        + sInstancePath.getAbsolutePath() + " is not writable. On Android 11 and "
+                        + "newer this means Fear Launcher has not been granted \"All files access\" "
+                        + "- open system settings, find Fear Launcher, allow file access, and try again.");
+            }
         }else if(selectionIndex[0] == -1) {
             setSelectedInstance(instances.get(0));
             selectionIndex[0] = 0;
