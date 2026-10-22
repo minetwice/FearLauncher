@@ -2,6 +2,21 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("FearLauncher")
 
+# The Discord Social SDK, for the launcher's presence. It ships as a Prefab package
+# inside the AAR that the CI workflow fetches into libs/ before the build, so Gradle is
+# what makes it visible to CMake.
+#
+# QUIET rather than REQUIRED on purpose. If the package is not exposed, that is a
+# packaging problem on our side, not a reason to fail the build - the status line below
+# then says plainly whether it was found, and presence stays unavailable rather than the
+# launcher failing to compile.
+find_package(discord_partner_sdk CONFIG QUIET)
+if(discord_partner_sdk_FOUND)
+    message(STATUS "Fear presence: Discord Social SDK found, linking it")
+else()
+    message(STATUS "Fear presence: Discord Social SDK NOT found; presence will be unavailable")
+endif()
+
 add_library(pojavexec SHARED
         affinity.c
         fear_perf.c
@@ -28,6 +43,9 @@ find_package(bytehook CONFIG REQUIRED)
 
 target_include_directories(pojavexec PRIVATE .)
 target_link_libraries(pojavexec PRIVATE log android)
+if(discord_partner_sdk_FOUND)
+    target_link_libraries(pojavexec PRIVATE discord_partner_sdk::discord_partner_sdk)
+endif()
 
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
