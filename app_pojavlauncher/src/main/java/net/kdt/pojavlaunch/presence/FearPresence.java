@@ -17,6 +17,10 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * The launcher sets the second and third; the first comes from the registered
  * application, so it is whatever the application is named on Discord.
  *
+ * <p>The third line follows what the player is actually doing: the instance name while a
+ * game runs, "In the launcher" while they are on the launcher itself - including after a
+ * game has just ended, because that is where they land.
+ *
  * <p>This takes the official route. Discord's Social SDK supports Rich Presence on
  * Android, so the launcher registers as an application and talks to the Discord app
  * installed on the phone. It deliberately does not use the user-token gateway approach
@@ -42,6 +46,9 @@ public final class FearPresence {
 
     /** The second line, always this. */
     public static final String DETAILS = "For monsters";
+
+    /** The third line while the player is on the launcher rather than in a game. */
+    public static final String STATE_DASHBOARD = "In the launcher";
 
     /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";
@@ -76,8 +83,9 @@ public final class FearPresence {
     }
 
     /**
-     * The third line: what is actually being played. Kept short, because Discord shows
-     * it next to the party count and truncates anything long.
+     * The third line while a game runs: the instance name, falling back to the Minecraft
+     * version. Kept short, because Discord shows it next to the party count and truncates
+     * anything long.
      */
     public static String stateFor(String instanceName, String mcVersion) {
         try {
@@ -103,15 +111,13 @@ public final class FearPresence {
         }
     }
 
-    /** Publishes what is being played. Never throws. */
-    public static void setPlaying(String instanceName, String mcVersion) {
+    private static void publish(String state) {
         try {
             if (!isEnabled()) {
                 Log.i(TAG, "presence is off in settings; nothing is published");
                 return;
             }
             if (!ensureStarted()) return;
-            String state = stateFor(instanceName, mcVersion);
             nativeSetPlaying(DETAILS, state);
             Log.i(TAG, "presence sent: details=\"" + DETAILS + "\" state=\"" + state + "\"");
         } catch (Throwable t) {
@@ -119,12 +125,25 @@ public final class FearPresence {
         }
     }
 
-    /** Clears the presence when the game stops. Never throws. */
+    /** What is being played. Never throws. */
+    public static void setPlaying(String instanceName, String mcVersion) {
+        publish(stateFor(instanceName, mcVersion));
+    }
+
+    /**
+     * The launcher itself, for when no game is running. This is also where a finished
+     * session lands: exiting a game puts the player back on the launcher, so the status
+     * should say that rather than disappearing.
+     */
+    public static void setDashboard() {
+        publish(STATE_DASHBOARD);
+    }
+
+    /**
+     * Called when a game stops. Kept for the callers that already use it, and it now
+     * shows the launcher rather than wiping the status.
+     */
     public static void clear() {
-        try {
-            if (!sStarted) return;
-            nativeClear();
-            Log.i(TAG, "presence cleared");
-        } catch (Throwable ignored) { }
+        setDashboard();
     }
 }
