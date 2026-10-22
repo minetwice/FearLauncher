@@ -189,6 +189,16 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         // rather than letting the failure surface later as a version list that never
         // loads and an account that cannot be created.
         net.kdt.pojavlaunch.utils.FearStoragePermission.ensure(this);
+
+        // The Discord Social SDK needs the activity before anything can talk to Discord.
+        // Wrapped on purpose: presence is optional, and a social feature that fails to
+        // initialise must never be a reason the launcher does not start.
+        try {
+            com.discord.socialsdk.DiscordSocialSdkInit.setEngineActivity(this);
+            Log.i("MainActivity", "Discord SDK: engine activity set");
+        } catch (Throwable t) {
+            Log.w("MainActivity", "Discord SDK init unavailable; presence will stay off", t);
+        }
         bindValues();
         mControlLayout.setMenuListener(this);
 
