@@ -75,6 +75,7 @@ public final class FearPresence {
     private static native boolean nativeStart(String appId);
     private static native void nativeSetPlaying(String details, String state);
     private static native void nativeClear();
+    private static native int nativeStatus();
 
     /**
      * Reports a message to both logcat and the launcher's log file. The second one is the
@@ -121,11 +122,37 @@ public final class FearPresence {
         if (sStarted) return true;
         try {
             sStarted = nativeStart(APPLICATION_ID);
-            if (!sStarted) say("Discord client did not start; presence stays off");
+            if (!sStarted) {
+                say("Discord client did not start; presence stays off");
+            } else {
+                say("Discord client started; status " + describeStatus());
+            }
             return sStarted;
         } catch (Throwable t) {
             say("could not start the Discord client", t);
             return false;
+        }
+    }
+
+    /** The status as a number plus what it means, for the log. */
+    private static String describeStatus() {
+        try {
+            int s = nativeStatus();
+            String meaning;
+            switch (s) {
+                case 0: meaning = "disconnected"; break;
+                case 1: meaning = "connecting"; break;
+                case 2: meaning = "connected"; break;
+                case 3: meaning = "ready"; break;
+                case 4: meaning = "reconnecting"; break;
+                case 5: meaning = "disconnecting"; break;
+                case 6: meaning = "http wait"; break;
+                case -1: meaning = "SDK not linked into this build"; break;
+                default: meaning = "unknown"; break;
+            }
+            return s + " (" + meaning + ")";
+        } catch (Throwable t) {
+            return "unavailable";
         }
     }
 
@@ -137,7 +164,8 @@ public final class FearPresence {
             }
             if (!ensureStarted()) return;
             nativeSetPlaying(DETAILS, state);
-            say("presence sent: details=\"" + DETAILS + "\" state=\"" + state + "\"");
+            say("presence sent: details=\"" + DETAILS + "\" state=\"" + state
+                    + "\" status " + describeStatus());
         } catch (Throwable t) {
             say("presence update skipped", t);
         }

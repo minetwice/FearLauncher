@@ -155,6 +155,27 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
 #endif
 }
 
+/*
+ * The current status as a number, so the Java side can put it in the launcher's log. The
+ * native side logs the same thing, but through __android_log_print, which goes to logcat
+ * and never reaches the file a user can hand over. -1 means the SDK is not in this build
+ * at all, which is a different problem from "not connected yet".
+ */
+JNIEXPORT jint JNICALL
+Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStatus(JNIEnv* env, jclass clazz) {
+#ifdef FEAR_PRESENCE_HAVE_SDK
+    (void) env; (void) clazz;
+    jint out;
+    pthread_mutex_lock(&g_lock);
+    out = (jint) g_status;
+    pthread_mutex_unlock(&g_lock);
+    return out;
+#else
+    (void) env; (void) clazz;
+    return -1;
+#endif
+}
+
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_presence_FearPresence_nativeSetPlaying(JNIEnv* env, jclass clazz,
                                                                jstring details, jstring state) {
