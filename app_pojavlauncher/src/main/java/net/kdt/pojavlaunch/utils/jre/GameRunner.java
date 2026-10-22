@@ -307,6 +307,16 @@ public class GameRunner {
         } catch (Throwable t) {
             Log.w("GameRunner", "Fear Monster injection skipped", t);
         }
+
+        // Discord presence: say what is being played while the game runs. Assembled here
+        // because this is the one place that knows both the instance and the version. The
+        // SDK wiring does the sending; the values come from FearPresence so the wording
+        // lives in one place.
+        try {
+            net.kdt.pojavlaunch.presence.FearPresence.setPlaying(null, versionId);
+        } catch (Throwable t) {
+            Log.w("GameRunner", "Discord presence skipped", t);
+        }
         // Fear Monster: hand the engine what it needs to come up on the Vulkan path.
         // Two things the launcher owns and the engine cannot get itself: a reachable
         // Vulkan device, and the window to build a VkSurfaceKHR from.
