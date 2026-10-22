@@ -7,14 +7,19 @@ project("FearLauncher")
 # what makes it visible to CMake.
 #
 # QUIET rather than REQUIRED on purpose. If the package is not exposed, that is a
-# packaging problem on our side, not a reason to fail the build - the status line below
-# then says plainly whether it was found, and presence stays unavailable rather than the
+# packaging problem on our side, not a reason to fail the build - the line below then
+# says plainly whether it was found, and presence stays unavailable rather than the
 # launcher failing to compile.
+#
+# WARNING rather than STATUS for the same reason: AGP does not echo CMake STATUS
+# messages at the default log level, so a STATUS line here is invisible in CI and the
+# question "was it actually found?" goes unanswered. A warning is printed, which is the
+# whole point of the line.
 find_package(discord_partner_sdk CONFIG QUIET)
 if(discord_partner_sdk_FOUND)
-    message(STATUS "Fear presence: Discord Social SDK found, linking it")
+    message(WARNING "Fear presence: Discord Social SDK found, linking it")
 else()
-    message(STATUS "Fear presence: Discord Social SDK NOT found; presence will be unavailable")
+    message(WARNING "Fear presence: Discord Social SDK NOT found; presence will be unavailable")
 endif()
 
 add_library(pojavexec SHARED
