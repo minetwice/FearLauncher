@@ -184,6 +184,11 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     protected void initLayout(int resId) {
         setContentView(resId);
+
+        // Ask for file access before the rest of the UI loads, and do it as a prompt
+        // rather than letting the failure surface later as a version list that never
+        // loads and an account that cannot be created.
+        net.kdt.pojavlaunch.utils.FearStoragePermission.ensure(this);
         bindValues();
         mControlLayout.setMenuListener(this);
 
