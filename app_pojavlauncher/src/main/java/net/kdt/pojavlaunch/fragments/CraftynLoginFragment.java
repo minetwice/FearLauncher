@@ -76,6 +76,12 @@ public class CraftynLoginFragment extends Fragment {
     private boolean mUsernameChecked = false;
     private boolean mUsernameAvailable = false;
 
+    /**
+     * The admin security code, once the server has asked for one. Held only for the retry
+     * that follows the prompt, and never stored anywhere.
+     */
+    private String mSecurityCode = null;
+
     public CraftynLoginFragment() {
         super(R.layout.fragment_craftyn_login);
     }
@@ -216,6 +222,47 @@ public class CraftynLoginFragment extends Fragment {
         });
     }
 
+    private static String readFully(InputStream is) {
+        if (is == null) return "";
+        try (InputStream in = is; ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[1024];
+            int read;
+            while ((read = in.read(buf)) != -1) bos.write(buf, 0, read);
+            return new String(bos.toByteArray(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * Asks for the admin security code. This is only ever reached when the server has
+     * already confirmed the username and password were right and told us it wants a code,
+     * so the prompt cannot appear for someone who has no code to give.
+     */
+    private void promptForSecurityCode(String message) {
+        if (!isAdded()) return;
+        // Put the form back first, so the dialog has something to return to.
+        mStageContainer.setVisibility(View.GONE);
+        mFormWrapper.setVisibility(View.VISIBLE);
+        mStatusDetail.setTextColor(Color.parseColor("#B3FFFFFF"));
+
+        EditText input = new EditText(requireContext());
+        input.setHint("Admin security code");
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Security code required")
+                .setMessage(message)
+                .setView(input)
+                .setCancelable(false)
+                .setPositiveButton("Verify", (dialog, which) -> {
+                    mSecurityCode = input.getText().toString().trim();
+                    executeAuthAction();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> mSecurityCode = null)
+                .show();
+    }
+
     private void executeAuthAction() {
         String username = mUsernameInput.getText().toString().trim();
         String password = mPasswordInput.getText().toString();
@@ -255,6 +302,9 @@ public class CraftynLoginFragment extends Fragment {
                 JsonObject json = new JsonObject();
                 json.addProperty("username", username);
                 json.addProperty("password", password);
+                if (mSecurityCode != null && !mSecurityCode.isEmpty()) {
+                    json.addProperty("securityCode", mSecurityCode);
+                }
 
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(json.toString().getBytes(StandardCharsets.UTF_8));
@@ -316,6 +366,22 @@ public class CraftynLoginFragment extends Fragment {
                         });
                     }
                 } else {
+                    // Read what the server actually said. An admin account is refused with
+                    // codeRequired, which means the credentials were right and the only thing
+                    // missing is the code - so it is asked for, and the login is retried with
+                    // it. Everything else still fails the way it always did.
+                    String errBody = readFully(conn.getErrorStream());
+                    JsonObject err = null;
+                    try { err = Tools.GLOBAL_GSON.fromJson(errBody, JsonObject.class); } catch (Exception ignored) { }
+                    boolean codeRequired = err != null && err.has("codeRequired")
+                            && err.get("codeRequired").getAsBoolean();
+                    if (codeRequired) {
+                        final String errMessage = err.has("error")
+                                ? err.get("error").getAsString()
+                                : "Security code required.";
+                        mHandler.post(() -> promptForSecurityCode(errMessage));
+                        return;
+                    }
                     throw new Exception("Server response failed: " + respCode);
                 }
             } catch (Exception e) {
