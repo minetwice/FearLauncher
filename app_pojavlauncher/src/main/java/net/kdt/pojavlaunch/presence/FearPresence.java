@@ -24,9 +24,11 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * and works against Discord's terms, and that is not something to put in front of
  * people who trust the launcher with their game.
  *
- * <p>The SDK is native and is not wired up yet, so nothing here reaches Discord today.
- * What is here is the payload and the switch: the exact values Discord will be told,
- * and the user's choice about whether to tell it.
+ * <p>The publishing call itself is native: the SDK exposes presence in C, not in Java, so
+ * the values assembled here are handed to fear_presence.c, which owns the Discord client.
+ * Nothing here reaches Discord unless the SDK was linked into the build and the client
+ * starts; when either fails it logs and presence stays off, because a social feature must
+ * never be a reason a launch does not happen.
  */
 public final class FearPresence {
 
@@ -44,7 +46,24 @@ public final class FearPresence {
     /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";
 
+    /** True once the native client has started, so it is started only once. */
+    private static boolean sStarted = false;
+
+    static {
+        try {
+            // The wrapper lives in pojavexec, the launcher's own native library, which is
+            // already the one every other native call in the launcher goes through.
+            System.loadLibrary("pojavexec");
+        } catch (Throwable t) {
+            Log.w(TAG, "could not load pojavexec; presence will stay off", t);
+        }
+    }
+
     private FearPresence() {}
+
+    private static native boolean nativeStart(String appId);
+    private static native void nativeSetPlaying(String details, String state);
+    private static native void nativeClear();
 
     /** True when the user wants their presence shown. On by default. */
     public static boolean isEnabled() {
@@ -69,28 +88,43 @@ public final class FearPresence {
     }
 
     /**
-     * Publishes the presence. Inert until the Social SDK is wired up: the values are
-     * assembled and logged so the wiring has something exact to send, and nothing
-     * leaves the device.
+     * Starts the Discord client the first time it is needed, rather than from an
+     * activity, so there is no extra lifecycle to keep in step.
      */
+    private static boolean ensureStarted() {
+        if (sStarted) return true;
+        try {
+            sStarted = nativeStart(APPLICATION_ID);
+            if (!sStarted) Log.i(TAG, "Discord client did not start; presence stays off");
+            return sStarted;
+        } catch (Throwable t) {
+            Log.w(TAG, "could not start the Discord client", t);
+            return false;
+        }
+    }
+
+    /** Publishes what is being played. Never throws. */
     public static void setPlaying(String instanceName, String mcVersion) {
         try {
             if (!isEnabled()) {
                 Log.i(TAG, "presence is off in settings; nothing is published");
                 return;
             }
-            Log.i(TAG, "presence payload ready: app=" + APPLICATION_ID
-                    + " details=\"" + DETAILS + "\" state=\"" + stateFor(instanceName, mcVersion) + "\""
-                    + " (the Social SDK wiring is the next step; nothing is sent yet)");
+            if (!ensureStarted()) return;
+            String state = stateFor(instanceName, mcVersion);
+            nativeSetPlaying(DETAILS, state);
+            Log.i(TAG, "presence sent: details=\"" + DETAILS + "\" state=\"" + state + "\"");
         } catch (Throwable t) {
             Log.w(TAG, "presence update skipped", t);
         }
     }
 
-    /** Clears the presence when the game stops. Inert for the same reason. */
+    /** Clears the presence when the game stops. Never throws. */
     public static void clear() {
         try {
-            Log.i(TAG, "presence clear requested (the Social SDK wiring is the next step)");
+            if (!sStarted) return;
+            nativeClear();
+            Log.i(TAG, "presence cleared");
         } catch (Throwable ignored) { }
     }
 }
