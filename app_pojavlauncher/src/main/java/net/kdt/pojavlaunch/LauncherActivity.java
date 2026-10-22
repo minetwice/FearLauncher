@@ -255,6 +255,18 @@ public class LauncherActivity extends BaseActivity {
         mPendingCrashReport = net.kdt.pojavlaunch.utils.FearCrashGuard.detect(this) != null;
         setContentView(R.layout.activity_pojav_launcher);
 
+        // Discord. The SDK needs an activity, and the dashboard is where the launcher
+        // spends most of its time, so the client is created here rather than only when a
+        // game starts - which is why nothing ever showed while sitting on the launcher.
+        // Wrapped, like every other presence call: it is optional and must never be a
+        // reason the launcher misbehaves.
+        try {
+            com.discord.socialsdk.DiscordSocialSdkInit.setEngineActivity(this);
+            android.util.Log.i("LauncherActivity", "Discord SDK: engine activity set");
+        } catch (Throwable t) {
+            android.util.Log.w("LauncherActivity", "Discord SDK init unavailable; presence will stay off", t);
+        }
+
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
             Os.setenv("TMPDIR", Tools.DIR_CACHE.getAbsolutePath(), true);
@@ -368,6 +380,9 @@ public class LauncherActivity extends BaseActivity {
         ContextExecutor.setActivity(this);
         InstanceInstaller.postInstallCheck(this);
         SoundManager.startMusic(this);
+        // The dashboard is the answer to "what is the player doing" whenever no game is
+        // running - including right after one ends, since that is where they land.
+        net.kdt.pojavlaunch.presence.FearPresence.setDashboard();
     }
 
     @Override
