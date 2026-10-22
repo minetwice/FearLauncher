@@ -1,6 +1,5 @@
 package net.kdt.pojavlaunch.presence;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -38,6 +37,10 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * <p>Every message here goes to the launcher's own log as well as to logcat. The launcher's
  * log is the file anyone can actually read off a phone, and the question that matters -
  * did the client connect? - has to be answerable from it.
+ *
+ * <p>The SDK's context comes from setEngineActivity, which the dashboard calls when it
+ * opens: its bytecode calls nativeSetContext itself. There is no second initialisation step
+ * to perform, and an attempt to add one failed to compile.
  */
 public final class FearPresence {
 
@@ -119,37 +122,12 @@ public final class FearPresence {
     }
 
     /**
-     * The SDK has two entry points and needs both: setEngineActivity, which the launcher
-     * calls when the dashboard opens, and initialize(Context), which is what hands the
-     * native client the Android context it needs to find and bind the Discord app's RPC
-     * service. Only the first was being called, so Connect() had nothing to connect to and
-     * the client sat at status 0 (disconnected) forever.
-     *
-     * The context comes from the engine activity that is already set, so this needs no new
-     * plumbing.
-     */
-    private static void ensureSdkContext() {
-        try {
-            android.app.Activity engineActivity =
-                    com.discord.socialsdk.DiscordSocialSdkInit.getEngineActivity();
-            if (engineActivity == null) {
-                say("no engine activity yet; the SDK has no context to connect with");
-                return;
-            }
-            com.discord.socialsdk.DiscordSocialSdkInit.initialize(engineActivity.getApplicationContext());
-        } catch (Throwable t) {
-            say("could not give the SDK its context", t);
-        }
-    }
-
-    /**
      * Starts the Discord client the first time it is needed, rather than from an
      * activity, so there is no extra lifecycle to keep in step.
      */
     private static boolean ensureStarted() {
         if (sStarted) return true;
         try {
-            ensureSdkContext();
             sStarted = nativeStart(APPLICATION_ID);
             if (!sStarted) {
                 say("Discord client did not start; presence stays off");
@@ -190,7 +168,7 @@ public final class FearPresence {
      * Watches the connection for half a minute and writes every change to the launcher's
      * log. The native side reports the same transitions, but only to logcat, so without
      * this the file cannot show whether the client climbed to ready (3) or stopped before
-     * it - which is the difference between "working" and "needs the Discord app".
+     * it - which is the difference between "working" and "something still missing".
      */
     private static void watchStatus() {
         try {
