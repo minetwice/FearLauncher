@@ -10,6 +10,12 @@
  * lives behind cdiscord.h, which ships inside the same AAR as a Prefab package. So the
  * wrapper is C, and CMake links it against the package.
  *
+ * The client connects asynchronously, and the SDK's own documentation says most calls
+ * cannot be used until it reports Ready. Publishing before that is silently dropped, which
+ * is exactly what happened the first time round: everything was wired correctly and
+ * nothing arrived. So a publish before Ready is remembered, and the status callback sends
+ * it the moment the client is ready.
+ *
  * Guarded by FEAR_PRESENCE_HAVE_SDK, which CMake defines only when the package was
  * found. The JNI entry points exist either way: if the SDK is missing, the Java side gets
  * a clean false and a log line rather than UnsatisfiedLinkError, and the build still
@@ -49,6 +55,7 @@ static void copy_into(JNIEnv* env, jstring src, char* dst, size_t cap) {
 #ifdef FEAR_PRESENCE_HAVE_SDK
 
 static Discord_Client* g_client = NULL;
+static Discord_Client_Status g_status = Discord_Client_Status_Disconnected;
 static pthread_t g_pump;
 static volatile int g_pump_running = 0;
 
@@ -73,6 +80,13 @@ static void* pump_thread(void* unused) {
 
 static void publish_locked(void) {
     if (g_client == NULL) return;
+    if (g_status != Discord_Client_Status_Ready) {
+        /* Not listening yet. Remember that something wants to be shown - the status
+         * callback publishes it the moment the client reports Ready. */
+        LOGI("presence deferred: client is not ready yet (status %d, ready is %d)",
+             (int) g_status, (int) Discord_Client_Status_Ready);
+        return;
+    }
     Discord_Activity* activity = (Discord_Activity*) Discord_Alloc(sizeof(Discord_Activity));
     if (activity == NULL) {
         LOGW("could not allocate an activity");
@@ -86,6 +100,18 @@ static void publish_locked(void) {
     Discord_Activity_SetState(activity, &state);
     Discord_Client_UpdateRichPresence(g_client, activity, NULL, NULL, NULL);
     LOGI("presence published: details=\"%s\" state=\"%s\"", g_details, g_state);
+}
+
+/* The log line that answers "did it connect?": the status is a number, and Ready is 3. */
+static void on_status_changed(Discord_Client_Status status, Discord_Client_Error error,
+                              int32_t errorDetail, void* userData) {
+    (void) error; (void) errorDetail; (void) userData;
+    pthread_mutex_lock(&g_lock);
+    g_status = status;
+    LOGI("Discord status changed: %d (0 disconnected, 1 connecting, 2 connected, 3 ready)",
+         (int) status);
+    if (status == Discord_Client_Status_Ready) publish_locked();
+    pthread_mutex_unlock(&g_lock);
 }
 
 #endif /* FEAR_PRESENCE_HAVE_SDK */
@@ -114,6 +140,8 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
     }
     Discord_Client_Init(g_client);
     Discord_Client_SetApplicationId(g_client, app);
+    /* Registered before Connect, so no status change can be missed. */
+    Discord_Client_SetStatusChangedCallback(g_client, on_status_changed, NULL, NULL);
     Discord_Client_Connect(g_client);
     g_pump_running = 1;
     pthread_create(&g_pump, NULL, pump_thread, NULL);
