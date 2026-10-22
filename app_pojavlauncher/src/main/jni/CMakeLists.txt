@@ -50,7 +50,13 @@ target_include_directories(pojavexec PRIVATE .)
 target_link_libraries(pojavexec PRIVATE log android)
 if(discord_partner_sdk_FOUND)
     target_link_libraries(pojavexec PRIVATE discord_partner_sdk::discord_partner_sdk)
+    # The presence wrapper compiles against cdiscord.h from the package, so it is built
+    # only when the package is present. Without it the same file still compiles - it just
+    # logs instead of calling anything - so the JNI entry points always exist and the Java
+    # side can never hit UnsatisfiedLinkError.
+    target_compile_definitions(pojavexec PRIVATE FEAR_PRESENCE_HAVE_SDK=1)
 endif()
+target_sources(pojavexec PRIVATE fear_presence.c)
 
 if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
     target_sources(pojavexec PRIVATE driver_helper/arm64_func_locator.c)
