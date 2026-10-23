@@ -124,9 +124,25 @@ jobs:
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
-          JAR=$(ls build/libs/*.jar | head -1)
+          # The remapped jar, never the dev one. A Fabric mod build produces both, and the
+          # dev jar is not usable in production: its fabric.mod.json still carries the
+          # ${version} placeholder and its access widener is in the named namespace, which
+          # Fabric refuses with "Namespace (named) does not match current runtime namespace
+          # (intermediary)". ls sorts vulkanmod-<version>-dev.jar before
+          # vulkanmod-<version>.jar, so taking the first jar silently published the
+          # unusable one under the name the launcher installs.
+          JAR=$(ls build/libs/*.jar | grep -v -- '-dev' | grep -v -- '-sources' | head -1)
           if [ -z "$JAR" ]; then
-            echo "no jar was produced"
+            echo "no remapped jar was produced:"
+            ls -la build/libs/ || true
+            exit 1
+          fi
+          # Prove it is the remapped one before publishing. The placeholder is the tell: it
+          # is replaced during resource processing, so a jar that still has it is the dev
+          # jar, and shipping that is worse than a red run - it installs, and then cannot
+          # load.
+          if unzip -p "$JAR" fabric.mod.json | grep -q '\${version}'; then
+            echo "the jar still carries \${version}; this is the dev jar, not the remapped one"
             ls -la build/libs/ || true
             exit 1
           fi
