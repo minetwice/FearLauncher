@@ -307,7 +307,7 @@ public class JREUtils {
             setUseTurnip(true);
         } else if (GLInfoUtils.getGlInfo().isArm() && ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer))) {
             setUsePanvk(true);
-            Logger.appendToLog("[PanVK] Mali detected — using PanVK ICD under Zink");
+            Logger.appendToLog("[PanVK] Mali detected \u2014 using PanVK ICD under Zink");
         }
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             envMap.put("FD_MESA_DEBUG", "sysmem");
@@ -443,13 +443,22 @@ public class JREUtils {
                 // the "render library" is the Vulkan loader itself and the GLES switches
                 // are left off.
                 Logger.appendToLog("[FearMonster] Direct-Vulkan path: no GL layer, the engine owns the frame");
-                // Deliberately no configureRenderspec() here, unlike every other case.
-                // That call builds an EGL/GL context, and on this path there is no GL
-                // context to build - the engine opens Vulkan itself. Returning the loader
-                // directly lets the launch proceed without pretending a GL driver was
-                // configured. This is the "no-GL render spec": the spec is that there is
-                // none.
-                return "libvulkan.so";
+                // The render spec still has to be set up, and this corrects a mistake of
+                // mine. It was skipped on the reasoning that "there is no GL context to
+                // build" - but the spec is not only a GL context. It is also the window
+                // plumbing the real libglfw needs, and without it glfwCreateWindow
+                // dereferences a null pointer and the process dies on launch, which is
+                // exactly what the crash report shows: pc=0 inside libglfw.so, reached
+                // from glfwCreateWindow, reached from Minecraft's own window setup.
+                //
+                // Every other renderer sets the spec up and every other renderer creates a
+                // window fine; this was the only case that did not, and the only one that
+                // crashed there. So it is set up the way the working GLES3 path sets it up
+                // - LTW's EGL - and the one difference is the library handed back below.
+                renderLibrary = "libltw.so";
+                useGles = true;
+                glesVersion = 3;
+                break;
             case "opengles3_ltw":
                 renderLibrary = "libltw.so";
                 useGles = true;
@@ -471,6 +480,11 @@ public class JREUtils {
             Log.e("RENDER_LIBRARY","Failed to load renderer " + renderLibrary );
             return null;
         }
+        // Fear Monster: the window is set up above, exactly as the GL paths do it, but the
+        // library LWJGL is told to use is the Vulkan loader. This path must not ask LWJGL
+        // for OpenGL at all - the engine renders straight to Vulkan - and that is the only
+        // thing that distinguishes it from the renderer it borrows the setup from.
+        if ("fear_monster".equals(renderer)) return "libvulkan.so";
         return renderLibrary;
     }
 
