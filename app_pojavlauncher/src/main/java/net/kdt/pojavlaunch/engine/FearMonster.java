@@ -185,16 +185,17 @@ public final class FearMonster {
                 trace("no version selected; nothing is fetched");
                 return;
             }
-            if (buildFor(versionId) != null) {
-                trace("a build is already installed for " + versionId);
-                return;
-            }
+            // No "a build is already installed, stop" here on purpose. An installed build can
+            // be out of date, and the published one is rebuilt whenever the engine changes -
+            // which is exactly when it matters, because a stale engine is one that installs
+            // and then cannot load. The check happens in the background instead: one HEAD
+            // request, and the download only when the sizes differ.
             if (sFetching) {
                 trace("a fetch is already running");
                 return;
             }
             sFetching = true;
-            trace("fetching a build for " + versionId);
+            trace("checking the build for " + versionId);
             PojavApplication.sExecutorService.execute(() -> {
                 try {
                     fetch(versionId);
@@ -225,6 +226,21 @@ public final class FearMonster {
         }
 
         String url = String.format(Locale.US, BUILD_URL, mcVersion);
+        File out = new File(dir, BUILD_FILE);
+
+        // Already current? One HEAD request answers it. A published engine is replaced
+        // whenever the engine changes, so comparing against what is installed is what lets
+        // a fixed engine actually reach a device that already has an older one.
+        long remote = remoteSize(url);
+        if (out.isFile() && remote > 0 && out.length() == remote) {
+            trace("the build for Minecraft " + mcVersion + " is current (" + remote + " bytes)");
+            return;
+        }
+        if (out.isFile()) {
+            trace("the build for Minecraft " + mcVersion + " differs: installed " + out.length()
+                    + " bytes, published " + remote + " bytes; fetching it again");
+        }
+
         File part = new File(dir, BUILD_FILE + ".part");
         trace("downloading " + url);
         int code = download(url, part);
@@ -235,7 +251,6 @@ public final class FearMonster {
 
         // Renamed into place only once it is whole, so a half-written file is never left
         // where the launcher would pick it up as a build.
-        File out = new File(dir, BUILD_FILE);
         if (out.exists()) out.delete();
         if (!part.renameTo(out)) {
             trace("could not move the build into place");
@@ -245,6 +260,30 @@ public final class FearMonster {
 
         trace("installed " + out + " for Minecraft " + mcVersion + " (" + out.length() + " bytes)");
         RendererCompatUtil.releaseRenderersCache();
+    }
+
+    /**
+     * The size the published build reports, or -1 when it could not be asked.
+     *
+     * Used only to tell whether what is installed is still what is published. A failure
+     * returns -1, which the caller treats as "unknown" and therefore as "fetch it", because
+     * downloading a current file again is harmless while keeping a stale one is not.
+     */
+    private static long remoteSize(String url) {
+        java.net.HttpURLConnection connection = null;
+        try {
+            connection = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(true);
+            if (connection.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) return -1;
+            return connection.getContentLengthLong();
+        } catch (Throwable t) {
+            return -1;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
     }
 
     /** Streams a URL to a file. Returns the HTTP result, or -1 when it never got one. */
