@@ -365,7 +365,55 @@ public class JavaRunner {
         relocateLdLibPath(vmPath, null);
 
         startFearNativePerfWatcher();
-        nativeLoadJVM(vmPath.getAbsolutePath(), runtimeArgs.toArray(new String[0]), mainClass, applicationArgs.toArray(new String[0]), hasJavaAgent);
+        // FEARDIAG: when the JVM refuses to start, the launcher's own log is the only place
+        // that can say why. The game's log does not exist yet, and there is no crash report,
+        // because a refusal is clean - the VM declines and returns, it does not fall over.
+        // So what it is about to be handed is written down first, and then the refusal.
+        logJvmLaunch(vmPath, runtimeArgs);
+        try {
+            nativeLoadJVM(vmPath.getAbsolutePath(), runtimeArgs.toArray(new String[0]), mainClass, applicationArgs.toArray(new String[0]), hasJavaAgent);
+        } catch (VMLoadException e) {
+            net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] the JVM refused to start: " + e.getMessage());
+            Throwable cause = e.getCause();
+            if (cause != null) net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] caused by: " + cause);
+            throw e;
+        }
+    }
+
+    /**
+     * FEARDIAG: records what a JVM launch depends on, so a refusal can be diagnosed from the
+     * launcher's own log rather than from a screenshot.
+     *
+     * Only property NAMES are written, never values - one of them carries a key and another a
+     * path list, and a diagnostic is not a place for those to end up. The two things that
+     * actually decide whether a VM starts are written with their existence and size: the
+     * libjvm.so it is pointed at, and every -javaagent: jar it is asked to load. A missing or
+     * unreadable one is the classic reason a VM refuses, and either is visible here.
+     */
+    private static void logJvmLaunch(File vmPath, List<String> runtimeArgs) {
+        try {
+            net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] libjvm: " + vmPath.getAbsolutePath()
+                    + " exists=" + vmPath.isFile()
+                    + (vmPath.isFile() ? " size=" + vmPath.length() : ""));
+            for (String arg : runtimeArgs) {
+                if (arg.startsWith("-javaagent:")) {
+                    String path = arg.substring("-javaagent:".length());
+                    int eq = path.indexOf('=');
+                    if (eq >= 0) path = path.substring(0, eq);
+                    File jar = new File(path);
+                    net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] javaagent: " + path
+                            + " exists=" + jar.isFile()
+                            + (jar.isFile() ? " size=" + jar.length() : ""));
+                } else if (arg.startsWith("-D")) {
+                    int eq = arg.indexOf('=');
+                    net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] arg: " + (eq >= 0 ? arg.substring(0, eq) : arg));
+                } else if (arg.startsWith("-X")) {
+                    net.kdt.pojavlaunch.Logger.appendToLog("[FearJVM] arg: " + arg);
+                }
+            }
+        } catch (Throwable ignored) {
+            // A diagnostic must never be the reason a launch fails.
+        }
     }
 
     /* FEARPATCH: the JVM is created in this same process, so a lightweight
