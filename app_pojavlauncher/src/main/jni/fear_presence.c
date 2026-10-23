@@ -10,13 +10,12 @@
  * just the Discord app installed on the phone. Discord's documentation for that route says
  * to set the application id, build the activity and call UpdateRichPresence.
  *
+ * An activity has four parts that matter here: its name, its type, its details and its
+ * state. The name is the line that reads "Playing ...", so it has to be set - without it
+ * Discord falls back to a generic label, which is what "Game" was.
+ *
  * The callbacks are pumped from a thread of this file's own making, attached to the JVM
- * with AttachCurrentThread. Not the main looper: RunCallbacks blocks while it works, and on
- * the main thread that freezes the launcher. Not a bare pthread either - but the crash that
- * looked like a threading problem was not one: the same pc=0 happened on the main thread,
- * and the cause was the SDK's library being pulled in as a dependency of pojavexec, which
- * skips its JNI_OnLoad. FearPresence loads it explicitly first, and this thread is simply
- * kept off the UI.
+ * with AttachCurrentThread, and kept off the main thread because RunCallbacks blocks.
  *
  * Guarded by FEAR_PRESENCE_HAVE_SDK, which CMake defines only when the package was
  * found. The JNI entry points exist either way, so the Java side gets a clean false and a
@@ -40,6 +39,7 @@
 
 /* Kept here rather than in Java so the strings handed to the SDK stay alive for as long
  * as the SDK may hold on to them. */
+static char g_name[64] = "Fear Launcher";
 static char g_details[128] = "For monsters";
 static char g_state[256] = "";
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -104,14 +104,19 @@ static void publish_locked(void) {
         return;
     }
     Discord_Activity_Init(activity);
+    /* The name is the first line. Without it Discord shows a generic label - "Game".
+     * Note the signature: SetName takes the string by value, while SetDetails and SetState
+     * take a pointer. */
+    Discord_String name = str_ref(g_name);
+    Discord_Activity_SetName(activity, name);
     Discord_Activity_SetType(activity, Discord_ActivityTypes_Playing);
     Discord_String details = str_ref(g_details);
     Discord_String state = str_ref(g_state);
     Discord_Activity_SetDetails(activity, &details);
     Discord_Activity_SetState(activity, &state);
     Discord_Client_UpdateRichPresence(g_client, activity, NULL, NULL, NULL);
-    LOGI("presence sent to the SDK: details=\"%s\" state=\"%s\" (client status %d)",
-         g_details, g_state, (int) g_status);
+    LOGI("presence sent to the SDK: name=\"%s\" details=\"%s\" state=\"%s\" (client status %d)",
+         g_name, g_details, g_state, (int) g_status);
 }
 
 /* Logged so the launcher's log can show whether the client ever left disconnected. */
