@@ -10,12 +10,12 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  *
  * <p>Discord renders an activity as three lines:
  * <pre>
- *   Playing "Fear Launcher"     <- the application's name, from the Discord developer portal
- *   For monsters                <- the activity's details
- *   &lt;what is being played&gt;      <- the activity's state
+ *   Playing "Fear Launcher"     <- the activity's name
+ *   Powered by fear             <- the activity's details
+ *   &lt;instance&gt; / Monster mode  <- the activity's state
  * </pre>
- * The launcher sets the second and third. The first is the registered application's name,
- * so it is whatever the application is called on Discord, not something this code chooses.
+ * The name and the details are fixed; the state follows what the player is doing, so a
+ * friend can see which instance is being played.
  *
  * <p>This takes the official route. Discord's Social SDK supports Rich Presence on
  * Android, so the launcher registers as an application and talks to the Discord app
@@ -43,10 +43,10 @@ public final class FearPresence {
     public static final String APPLICATION_ID = "1562555784322351234";
 
     /** The second line, always this. */
-    public static final String DETAILS = "For monsters";
+    public static final String DETAILS = "Powered by fear";
 
     /** The third line while the player is on the launcher rather than in a game. */
-    public static final String STATE_DASHBOARD = "In the launcher";
+    public static final String STATE_DASHBOARD = "Monster mode";
 
     /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";

@@ -1,5 +1,5 @@
 /*
- * Fear Monster presence: the call that actually publishes "For monsters" on Discord.
+ * Fear Monster presence: the call that actually publishes the status on Discord.
  *
  * The Discord Social SDK exposes presence in C, not in Java. Its Java layer
  * (DiscordRpcClient, NativeCalls) covers the RPC transport and audio; the rich-presence
@@ -40,7 +40,7 @@
 /* Kept here rather than in Java so the strings handed to the SDK stay alive for as long
  * as the SDK may hold on to them. */
 static char g_name[64] = "Fear Launcher";
-static char g_details[128] = "For monsters";
+static char g_details[128] = "Powered by fear";
 static char g_state[256] = "";
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
