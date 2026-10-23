@@ -57,12 +57,16 @@ public class RendererCompatUtil {
             if(rendererId.contains("vulkan") && !deviceHasVulkan) continue;
             if(rendererId.contains("zink") && !deviceCompatibleMesa) continue;
             if(rendererId.contains("ltw") && (!deviceHasOpenGLES3 || !appHasLtw)) continue;
-            // Fear Monster is only offered when an engine build is actually installed.
-            // The engine is version-specific, so a build has to exist before the entry
-            // means anything - and until one ships, it never appears at all. That is what
-            // keeps a half-wired path unselectable: a user cannot pick a renderer that
-            // would fail on selection.
-            if(rendererId.equals("fear_monster") && !appHasFearMonsterBuild()) continue;
+            // Fear Monster is only offered when an engine build exists FOR THE VERSION
+            // THAT IS GOING TO BE LAUNCHED.
+            //
+            // Not "a build exists somewhere": the engine hooks Minecraft's own classes,
+            // so it is built per version and a build for one version says nothing about
+            // another. Offering the entry on the strength of any build let it be selected
+            // for a version with no engine - and this path deliberately has no GL layer,
+            // so the session then had no renderer at all and died on launch looking for
+            // liblwjgl.so. That is a crash, not a renderer that merely does not work.
+            if(rendererId.equals("fear_monster") && !engineCanServeCurrentVersion()) continue;
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
@@ -87,8 +91,26 @@ public class RendererCompatUtil {
         return sCompatibleRenderers;
     }
 
-    /** True when at least one Fear Monster engine build is installed. */
-    private static boolean appHasFearMonsterBuild() {
+    /**
+     * True when the engine has a build for the version that is about to be launched.
+     *
+     * The engine is built per Minecraft version, so this is the only honest question to
+     * ask before offering it. When no instance is selected there is nothing more specific
+     * to go on, and any installed build will do.
+     */
+    private static boolean engineCanServeCurrentVersion() {
+        try {
+            net.kdt.pojavlaunch.instances.Instance selected =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            if (selected != null && selected.versionId != null && !selected.versionId.isEmpty()) {
+                return net.kdt.pojavlaunch.engine.FearMonster.buildFor(selected.versionId) != null;
+            }
+        } catch (Throwable ignored) { }
+        return appHasAnyFearMonsterBuild();
+    }
+
+    /** True when at least one Fear Monster engine build is installed anywhere. */
+    private static boolean appHasAnyFearMonsterBuild() {
         try {
             File root = new File(Tools.DIR_DATA, "fear_monster");
             File[] versions = root.listFiles();
