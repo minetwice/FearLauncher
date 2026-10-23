@@ -28,9 +28,12 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * main looper. That is not a style choice: the SDK caches a JNIEnv when its library loads,
  * on the main thread, and RunCallbacks uses it. Pumping from the main thread reuses a valid
  * environment; pumping from any other thread makes the SDK jump through a null pointer
- * (pc=0 inside libdiscord_partner_sdk.so) and takes the game down. The cost of doing it
- * this way is that RunCallbacks blocks while it works, so the UI can stutter - a nuisance
- * next to a crash.
+ * (pc=0 inside libdiscord_partner_sdk.so) and takes the game down.
+ *
+ * <p>The cost is that RunCallbacks blocks while it works, so the UI can freeze and Android
+ * reports the app as not responding. The pump therefore runs as rarely as the SDK tolerates
+ * rather than as often as it could. The real fix is to load the SDK's library on a thread of
+ * our own and pump there, which needs the load order untangled first - see the pump comment.
  */
 public final class FearPresence {
 
@@ -54,8 +57,13 @@ public final class FearPresence {
     /** On unless the user turns it off. */
     private static final boolean ENABLED_BY_DEFAULT = true;
 
-    /** How often the SDK's callbacks are pumped. Its documentation asks for the main loop. */
-    private static final long PUMP_INTERVAL_MS = 100L;
+    /**
+     * How often the SDK's callbacks are pumped. Slow on purpose: every pump blocks the main
+     * thread for as long as RunCallbacks takes, so this is traded against the freeze. The
+     * SDK only asks for its callbacks to run "periodically", and 750ms is comfortably inside
+     * that while cutting the blocking by roughly eight times.
+     */
+    private static final long PUMP_INTERVAL_MS = 750L;
 
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
@@ -68,6 +76,10 @@ public final class FearPresence {
             // The SDK's own library is loaded FIRST, explicitly. pojavexec links it, so
             // loading pojavexec first would pull it in as a dependency, and Android only
             // calls JNI_OnLoad for libraries loaded through System.loadLibrary.
+            //
+            // This is also what pins the callbacks to the main thread: the load happens
+            // here, on whichever thread first touches this class, and the SDK caches that
+            // thread's JNIEnv for use in RunCallbacks. Untangling it is the next step.
             System.loadLibrary("discord_partner_sdk");
         } catch (Throwable t) {
             say("could not load the Discord SDK library; presence will stay off", t);
@@ -123,6 +135,10 @@ public final class FearPresence {
      * Drives the SDK's callbacks from the main looper. The SDK uses a JNIEnv cached when its
      * library loaded - the main thread - so this is where the callbacks have to run. From
      * any other thread the SDK jumps through a null pointer and takes the game down.
+     *
+     * The interval is deliberately slow; see PUMP_INTERVAL_MS. Making the UI responsive
+     * again means getting the load - and therefore the cached environment - onto a thread of
+     * our own, not pumping from a foreign one.
      */
     private static void startPump() {
         try {
