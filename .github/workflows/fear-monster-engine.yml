@@ -121,16 +121,22 @@ jobs:
       # xCollateral/VulkanMod, where this token has no rights. Naming our own repository
       # explicitly is what makes the upload land.
       #
-      # The jar is chosen by what it is, not by where it is. build/libs holds
-      # VulkanMod-<version>-dev-sources.jar and VulkanMod-<version>-dev.jar and nothing else,
-      # and taking the first jar that ls returned published the 563281-byte sources jar under
-      # the engine's name - which is why Fabric was reading a named access widener. So every
-      # jar under build/ is considered and the one published is the one whose access widener
-      # is not in the named namespace. Both dev jars fail that test, so neither can be picked
-      # by accident again.
+      # Two things have to be true of the jar that is published, and both have been got
+      # wrong in different ways:
       #
-      # Everything it decides goes to build/libs/publish-report.txt, which the artifact step
-      # picks up: the run log is not always reachable from where this is being worked on.
+      #   It has to BE the engine. build/ holds more than the engine - loom extracts the
+      #   Fabric API modules the engine bundles, and those are remapped too. Picking by
+      #   widener alone published fabric-resource-loader-v1 as the engine, and the game
+      #   then died on a missing fabric-api-base. The mod's own id is the only thing that
+      #   settles it.
+      #
+      #   It has to be remapped. The dev jar's access widener is in the named namespace,
+      #   which Fabric refuses in production; build/libs holds the dev jar and the sources
+      #   jar and nothing else, so taking the first jar published a sources jar whose
+      #   fabric.mod.json was the unprocessed one.
+      #
+      # Everything considered is written to build/libs/publish-report.txt, which the artifact
+      # step picks up: the run log is not always reachable from where this is being worked on.
       - name: Publish the engine to the nightly release
         run: |
           set -uo pipefail
@@ -142,17 +148,15 @@ jobs:
             find build -name '*.jar' -printf '%s\t%p\n' 2>/dev/null | sort -rn || true
           } | tee -a "$REPORT"
 
-          # Ask each candidate what its access widener says. The remapped jar's is in the
-          # intermediary namespace; the dev jar's and the sources jar's are named, and
-          # Fabric refuses a named one in production with "Namespace (named) does not match
-          # current runtime namespace (intermediary)".
           JAR=""
           for cand in $(find build -name '*.jar' 2>/dev/null); do
             case "$cand" in *-sources.jar) continue;; esac
-            AW=$(unzip -p "$cand" fabric.mod.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
+            MODJSON=$(unzip -p "$cand" fabric.mod.json 2>/dev/null || true)
+            ID=$(printf '%s' "$MODJSON" | python3 -c "import sys,json;print(json.load(sys.stdin).get('id',''))" 2>/dev/null || true)
+            AW=$(printf '%s' "$MODJSON" | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
             HDR=$(unzip -p "$cand" "$AW" 2>/dev/null | head -1 || true)
-            echo "candidate $cand -> widener '$AW' header '$HDR'" | tee -a "$REPORT"
-            if [ -z "$AW" ]; then
+            echo "candidate $cand -> id '$ID' widener '$AW' header '$HDR'" | tee -a "$REPORT"
+            if [ "$ID" != "vulkanmod" ]; then
               continue
             fi
             case "$HDR" in
@@ -163,7 +167,7 @@ jobs:
           done
 
           if [ -z "$JAR" ]; then
-            echo "no jar with an intermediary access widener was produced" | tee -a "$REPORT"
+            echo "no vulkanmod jar with an intermediary access widener was produced" | tee -a "$REPORT"
             exit 1
           fi
           echo "publishing $JAR" | tee -a "$REPORT"
