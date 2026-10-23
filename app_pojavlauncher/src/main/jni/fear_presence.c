@@ -6,15 +6,16 @@
  * that tells Discord.
  *
  * The Discord Social SDK exposes presence in C, not in Java. Its Java layer
- * (DiscordRpcClient, NativeCalls) covers connecting and audio; the rich-presence call
- * lives behind cdiscord.h, which ships inside the same AAR as a Prefab package. So the
- * wrapper is C, and CMake links it against the package.
+ * (DiscordRpcClient, NativeCalls) covers the RPC transport and audio; the rich-presence
+ * call lives behind cdiscord.h, which ships inside the same AAR as a Prefab package. So
+ * the wrapper is C, and CMake links it against the package.
  *
- * The client connects asynchronously, and the SDK's own documentation says most calls
- * cannot be used until it reports Ready. Publishing before that is silently dropped, which
- * is exactly what happened the first time round: everything was wired correctly and
- * nothing arrived. So a publish before Ready is remembered, and the status callback sends
- * it the moment the client is ready.
+ * This launcher uses Rich Presence WITHOUT authentication - no account linking, no token,
+ * just the Discord app installed on the phone. Discord's documentation for that route says
+ * to set the application id, build the activity and call UpdateRichPresence; it does not
+ * call Connect(), and it does not wait for a Ready state, because that state belongs to the
+ * authenticated client. Gating on Ready here meant every update was dropped while the
+ * status sat at disconnected forever, which is exactly what the log showed.
  *
  * Guarded by FEAR_PRESENCE_HAVE_SDK, which CMake defines only when the package was
  * found. The JNI entry points exist either way: if the SDK is missing, the Java side gets
@@ -78,15 +79,13 @@ static void* pump_thread(void* unused) {
     return NULL;
 }
 
+/*
+ * Sends the activity. Deliberately not gated on the client's status: this launcher uses the
+ * unauthenticated RPC route, where the SDK talks to the installed Discord app directly and
+ * the authenticated Ready state never arrives. Waiting for it meant nothing was ever sent.
+ */
 static void publish_locked(void) {
     if (g_client == NULL) return;
-    if (g_status != Discord_Client_Status_Ready) {
-        /* Not listening yet. Remember that something wants to be shown - the status
-         * callback publishes it the moment the client reports Ready. */
-        LOGI("presence deferred: client is not ready yet (status %d, ready is %d)",
-             (int) g_status, (int) Discord_Client_Status_Ready);
-        return;
-    }
     Discord_Activity* activity = (Discord_Activity*) Discord_Alloc(sizeof(Discord_Activity));
     if (activity == NULL) {
         LOGW("could not allocate an activity");
@@ -99,10 +98,11 @@ static void publish_locked(void) {
     Discord_Activity_SetDetails(activity, &details);
     Discord_Activity_SetState(activity, &state);
     Discord_Client_UpdateRichPresence(g_client, activity, NULL, NULL, NULL);
-    LOGI("presence published: details=\"%s\" state=\"%s\"", g_details, g_state);
+    LOGI("presence sent to the SDK: details=\"%s\" state=\"%s\" (client status %d)",
+         g_details, g_state, (int) g_status);
 }
 
-/* The log line that answers "did it connect?": the status is a number, and Ready is 3. */
+/* Logged so the launcher's log can show whether the client ever left disconnected. */
 static void on_status_changed(Discord_Client_Status status, Discord_Client_Error error,
                               int32_t errorDetail, void* userData) {
     (void) error; (void) errorDetail; (void) userData;
@@ -110,6 +110,7 @@ static void on_status_changed(Discord_Client_Status status, Discord_Client_Error
     g_status = status;
     LOGI("Discord status changed: %d (0 disconnected, 1 connecting, 2 connected, 3 ready)",
          (int) status);
+    /* If the authenticated client does reach Ready, refresh the activity there too. */
     if (status == Discord_Client_Status_Ready) publish_locked();
     pthread_mutex_unlock(&g_lock);
 }
