@@ -124,28 +124,44 @@ jobs:
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
+          echo "--- build/libs ---"
+          ls -l build/libs/
+
           # The remapped jar, never the dev one. A Fabric mod build produces both, and the
-          # dev jar is not usable in production: its fabric.mod.json still carries the
-          # ${version} placeholder and its access widener is in the named namespace, which
-          # Fabric refuses with "Namespace (named) does not match current runtime namespace
-          # (intermediary)". ls sorts vulkanmod-<version>-dev.jar before
-          # vulkanmod-<version>.jar, so taking the first jar silently published the
-          # unusable one under the name the launcher installs.
+          # dev jar is not usable in production: its access widener is in the named
+          # namespace, which Fabric refuses with "Namespace (named) does not match current
+          # runtime namespace (intermediary)". ls sorts vulkanmod-<version>-dev.jar before
+          # vulkanmod-<version>.jar, so taking the first jar published the unusable one.
           JAR=$(ls build/libs/*.jar | grep -v -- '-dev' | grep -v -- '-sources' | head -1)
           if [ -z "$JAR" ]; then
-            echo "no remapped jar was produced:"
-            ls -la build/libs/ || true
+            echo "no remapped jar was produced"
             exit 1
           fi
-          # Prove it is the remapped one before publishing. The placeholder is the tell: it
-          # is replaced during resource processing, so a jar that still has it is the dev
-          # jar, and shipping that is worse than a red run - it installs, and then cannot
-          # load.
-          if unzip -p "$JAR" fabric.mod.json | grep -q '\${version}'; then
-            echo "the jar still carries \${version}; this is the dev jar, not the remapped one"
-            ls -la build/libs/ || true
-            exit 1
+          echo "publishing $JAR"
+
+          # Prove it is the remapped one before publishing, by the one thing that actually
+          # differs between the two jars: the namespace of the access widener. Fabric reads
+          # "named" in a development environment and refuses it in production, so a jar
+          # carrying a named widener installs and then cannot load.
+          #
+          # Note that ${version} in fabric.mod.json is NOT a tell - it is present in the
+          # remapped jar as well, which is why Fabric warns "Mod vulkanmod uses the version
+          # ${version}" in ordinary use. An earlier version of this guard checked for it and
+          # rejected a good build.
+          AW=$(unzip -p "$JAR" fabric.mod.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
+          if [ -n "$AW" ]; then
+            HDR=$(unzip -p "$JAR" "$AW" 2>/dev/null | head -1 || true)
+            echo "access widener $AW header: $HDR"
+            case "$HDR" in
+              *named*)
+                echo "the access widener is in the named namespace; this is the dev jar"
+                exit 1
+                ;;
+            esac
+          else
+            echo "this jar declares no access widener"
           fi
+
           NAME="fear-monster-engine-${MC_VERSION}.jar"
           cp "$JAR" "/tmp/$NAME"
           gh release upload nightly "/tmp/$NAME" --clobber --repo "$GITHUB_REPOSITORY"
