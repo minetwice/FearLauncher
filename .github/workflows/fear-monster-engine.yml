@@ -1,9 +1,9 @@
 name: Fear Monster engine
 
-# Builds the direct-Vulkan engine from source with our overlay applied, and uploads
-# the jar as an artifact. Deliberately NOT wired into the app build: this workflow
-# only reports whether the engine builds, so a failure here can never break the
-# launcher release.
+# Builds the direct-Vulkan engine from source with our overlay applied, and publishes the
+# jar to the nightly release, named for the Minecraft version it serves. Deliberately NOT
+# wired into the app build: this workflow only reports whether the engine builds, so a
+# failure here can never break the launcher release.
 #
 # It runs when the overlay changes, and on demand.
 
@@ -13,6 +13,10 @@ on:
     paths:
       - 'fear-monster/**'
       - '.github/workflows/fear-monster-engine.yml'
+
+# Uploading a release asset needs contents: write, which the default token does not have.
+permissions:
+  contents: write
 
 jobs:
   build-engine:
@@ -92,7 +96,44 @@ jobs:
           # otherwise perfectly good build.
           ls -l build/libs/
 
-      - name: Upload the engine jar
+      # The engine hooks Minecraft's own classes, so a build serves exactly one Minecraft
+      # version and has to be named for it. Read it from the engine's own build files
+      # rather than being told: a build published under the wrong version is an engine
+      # that cannot load, which is worse than a red run.
+      - name: Work out which Minecraft version this engine serves
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          MC=$(grep -iE '^[[:space:]]*minecraft(_version)?[[:space:]]*=' gradle.properties 2>/dev/null | head -1 | cut -d= -f2 | tr -d ' \r')
+          if [ -z "$MC" ]; then
+            echo "could not read the Minecraft version out of gradle.properties:"
+            cat gradle.properties || true
+            exit 1
+          fi
+          echo "MC_VERSION=$MC" >> "$GITHUB_ENV"
+          echo "engine serves Minecraft $MC"
+
+      # The nightly release is where the launcher looks, and where the Discord SDK already
+      # lives. --clobber so a rebuild replaces the previous asset instead of failing on a
+      # name that already exists.
+      - name: Publish the engine to the nightly release
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          JAR=$(ls build/libs/*.jar | head -1)
+          if [ -z "$JAR" ]; then
+            echo "no jar was produced"
+            ls -la build/libs/ || true
+            exit 1
+          fi
+          NAME="fear-monster-engine-${MC_VERSION}.jar"
+          cp "$JAR" "/tmp/$NAME"
+          gh release upload nightly "/tmp/$NAME" --clobber
+          echo "published $NAME ($(stat -c%s "/tmp/$NAME") bytes)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload the engine jar as an artifact too
         uses: actions/upload-artifact@v4
         with:
           name: fear-monster-engine
