@@ -255,11 +255,17 @@ public class LauncherActivity extends BaseActivity {
         mPendingCrashReport = net.kdt.pojavlaunch.utils.FearCrashGuard.detect(this) != null;
         setContentView(R.layout.activity_pojav_launcher);
 
-        // NOTE: the Discord SDK is deliberately NOT touched here. Starting the client from
-        // the dashboard took the launcher down on open - a native crash, which no try/catch
-        // can catch - and a launcher that cannot open is worse than one without a presence
-        // status. The presence is published from the game path instead, where the logs show
-        // it working.
+        // Discord. The SDK needs an activity, and the dashboard is where the launcher spends
+        // most of its time, so the client is created here rather than only when a game starts.
+        // Wrapped like every other presence call. This was reverted once because it took the
+        // launcher down on open; that turned out to be the callback pump running on a thread
+        // with no JVM attachment, which is fixed, so the calls are back.
+        try {
+            com.discord.socialsdk.DiscordSocialSdkInit.setEngineActivity(this);
+            android.util.Log.i("LauncherActivity", "Discord SDK: engine activity set");
+        } catch (Throwable t) {
+            android.util.Log.w("LauncherActivity", "Discord SDK init unavailable; presence will stay off", t);
+        }
 
         try {
             Os.setenv("POJAV_NATIVEDIR", Tools.NATIVE_LIB_DIR, true);
@@ -374,8 +380,18 @@ public class LauncherActivity extends BaseActivity {
         ContextExecutor.setActivity(this);
         InstanceInstaller.postInstallCheck(this);
         SoundManager.startMusic(this);
-        // The dashboard Discord call was removed here as well: it started the client, which
-        // crashed the launcher on open.
+
+        // The dashboard is the answer to "what is the player doing" whenever no game is
+        // running - including right after one ends, since that is where they land. Posted
+        // with a delay rather than called inline, so the launcher is fully on screen before
+        // the SDK is touched at all.
+        try {
+            getWindow().getDecorView().postDelayed(() -> {
+                try {
+                    net.kdt.pojavlaunch.presence.FearPresence.setDashboard();
+                } catch (Throwable ignored) { }
+            }, 1500L);
+        } catch (Throwable ignored) { }
     }
 
     @Override
