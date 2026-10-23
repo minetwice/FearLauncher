@@ -562,7 +562,7 @@ public class LauncherActivity extends BaseActivity {
             menu.add(0, R.id.nav_installations, 1, "Installations")
                     .setIcon(R.drawable.ic_px_java);
             menu.add(0, R.id.nav_mods, 2, "Mods")
-                    .setIcon(R.id.ic_px_file_dl);
+                    .setIcon(R.drawable.ic_px_file_dl);
             // "Account" item REMOVED – no more nav_account
             menu.add(0, R.id.nav_skins, 3, "Skins")
                     .setIcon(R.drawable.ic_px_edit);
