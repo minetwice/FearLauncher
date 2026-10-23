@@ -30,6 +30,7 @@ import com.kdt.mcgui.ProgressLayout;
 
 import com.fearlauncher.fear.R;
 import net.kdt.pojavlaunch.authenticator.accounts.Accounts;
+import net.kdt.pojavlaunch.engine.FearMonster;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.extra.ExtraListener;
@@ -248,6 +249,25 @@ public class LauncherActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Starts the engine fetch for the version that is selected.
+     *
+     * Runs when the dashboard is created, which is early enough for the download to finish
+     * before anyone opens the renderer list - and that matters, because the Fear Monster
+     * entry is only offered once a build exists, so fetching on selection would be too late
+     * to offer it. Safe to call unconditionally: it returns immediately when the engine is
+     * off, when a build is already installed, or when a fetch is already running.
+     */
+    private void startEngineFetch() {
+        try {
+            Instance selected = Instances.loadSelectedInstance();
+            if (selected == null) return;
+            FearMonster.ensureBuildAsync(selected.versionId);
+        } catch (Throwable t) {
+            android.util.Log.w("LauncherActivity", "engine fetch could not be started", t);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -298,6 +318,10 @@ public class LauncherActivity extends BaseActivity {
         // Asked once, up front, because the file manager and half the launcher are useless
         // without it and the grant only lives in a settings screen.
         maybeAskForFileAccess();
+
+        // Fear Monster installs its own build, so the one for the selected version is
+        // fetched here. Background, setting-gated, and inert on every other renderer.
+        startEngineFetch();
 
         mRequestPermissionLauncher = this.registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
