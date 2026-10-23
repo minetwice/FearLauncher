@@ -45,6 +45,42 @@ jobs:
           fi
           ls -la "$RUNNER_TEMP/engine"
 
+      # The engine's surface has to come from vkCreateAndroidSurfaceKHR on this platform,
+      # and its instance has to ask for VK_KHR_android_surface. Two lines in Vulkan.java
+      # carry both.
+      #
+      # This step fails if either line is not found. Upstream moves; a patch that quietly
+      # stops applying would produce a jar that builds, looks right, and does nothing.
+      - name: Point the engine at the Android surface
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=src/main/java/net/vulkanmod/vulkan/Vulkan.java
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          subs = [
+              (
+                  "glfwCreateWindowSurface(Instance.instance, window, null, pSurface)",
+                  "FearAndroidSurface.createSurface(Instance.instance.address(), pSurface)",
+              ),
+              (
+                  "List<String> otherExtensions = new ArrayList<>();",
+                  "List<String> otherExtensions = new ArrayList<>();\n"
+                  "            otherExtensions.add(\"VK_KHR_android_surface\");",
+              ),
+          ]
+          for old, new in subs:
+              if old not in src:
+                  sys.exit("patch target not found in " + path + ": " + old)
+              src = src.replace(old, new, 1)
+          open(path, "w").write(src)
+          print("patched " + path)
+          PY
+          echo "--- what the patch produced ---"
+          grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F"
+
       - name: Build the engine
         run: |
           set -uo pipefail
