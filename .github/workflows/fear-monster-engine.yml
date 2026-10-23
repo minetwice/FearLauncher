@@ -114,8 +114,12 @@ jobs:
           echo "engine serves Minecraft $MC"
 
       # The nightly release is where the launcher looks, and where the Discord SDK already
-      # lives. --clobber so a rebuild replaces the previous asset instead of failing on a
-      # name that already exists.
+      # lives.
+      #
+      # --repo is not optional: this step runs from the engine checkout, and gh resolves
+      # the repository from the git remote in the working directory - which is
+      # xCollateral/VulkanMod, where this token has no rights. Naming our own repository
+      # explicitly is what makes the upload land.
       - name: Publish the engine to the nightly release
         run: |
           set -uo pipefail
@@ -128,12 +132,15 @@ jobs:
           fi
           NAME="fear-monster-engine-${MC_VERSION}.jar"
           cp "$JAR" "/tmp/$NAME"
-          gh release upload nightly "/tmp/$NAME" --clobber
-          echo "published $NAME ($(stat -c%s "/tmp/$NAME") bytes)"
+          gh release upload nightly "/tmp/$NAME" --clobber --repo "$GITHUB_REPOSITORY"
+          echo "published $NAME ($(stat -c%s "/tmp/$NAME") bytes) to $GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # always(): a failed publish must not also throw the build away, which is what
+      # happened when this step was skipped because the one before it failed.
       - name: Upload the engine jar as an artifact too
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fear-monster-engine
