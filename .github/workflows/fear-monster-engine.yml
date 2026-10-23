@@ -85,17 +85,16 @@ jobs:
           echo "--- what the patch produced ---"
           grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F"
 
-      # remapJar is asked for by name. "build" may not depend on it, in which case
-      # build/libs holds only the dev jar - unremapped, with its access widener in the
-      # named namespace, which Fabric refuses in production. That jar builds, installs and
-      # then cannot load, so it is the one artefact this workflow must never publish.
+      # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
+      # is the one whose access widener is named, which Fabric refuses in production.
       - name: Build the engine
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           chmod +x gradlew
           ./gradlew --no-daemon build remapJar
-          ls -l build/libs/
+          echo "--- every jar the build produced ---"
+          find build -name '*.jar' -printf '%s\t%p\n' | sort -rn
 
       # The engine hooks Minecraft's own classes, so a build serves exactly one Minecraft
       # version and has to be named for it. Read it from the engine's own build files
@@ -122,44 +121,52 @@ jobs:
       # xCollateral/VulkanMod, where this token has no rights. Naming our own repository
       # explicitly is what makes the upload land.
       #
-      # Everything it decides is also written to build/libs/publish-report.txt, which the
-      # artifact step picks up. The run log is not always reachable, and a step that fails
-      # without saying why is how three attempts in a row were wasted on guesses.
+      # The jar is chosen by what it is, not by where it is. build/libs holds
+      # VulkanMod-<version>-dev-sources.jar and VulkanMod-<version>-dev.jar and nothing else,
+      # and taking the first jar that ls returned published the 563281-byte sources jar under
+      # the engine's name - which is why Fabric was reading a named access widener. So every
+      # jar under build/ is considered and the one published is the one whose access widener
+      # is not in the named namespace. Both dev jars fail that test, so neither can be picked
+      # by accident again.
+      #
+      # Everything it decides goes to build/libs/publish-report.txt, which the artifact step
+      # picks up: the run log is not always reachable from where this is being worked on.
       - name: Publish the engine to the nightly release
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           REPORT=build/libs/publish-report.txt
+          : > "$REPORT"
           {
-            echo "--- build/libs ---"
-            ls -l build/libs/ || true
-          } | tee "$REPORT"
+            echo "--- every jar under build/ ---"
+            find build -name '*.jar' -printf '%s\t%p\n' 2>/dev/null | sort -rn || true
+          } | tee -a "$REPORT"
 
-          # The remapped jar, never the dev one.
-          JAR=$(ls build/libs/*.jar 2>/dev/null | grep -v -- '-dev' | grep -v -- '-sources' | head -1)
+          # Ask each candidate what its access widener says. The remapped jar's is in the
+          # intermediary namespace; the dev jar's and the sources jar's are named, and
+          # Fabric refuses a named one in production with "Namespace (named) does not match
+          # current runtime namespace (intermediary)".
+          JAR=""
+          for cand in $(find build -name '*.jar' 2>/dev/null); do
+            case "$cand" in *-sources.jar) continue;; esac
+            AW=$(unzip -p "$cand" fabric.mod.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
+            HDR=$(unzip -p "$cand" "$AW" 2>/dev/null | head -1 || true)
+            echo "candidate $cand -> widener '$AW' header '$HDR'" | tee -a "$REPORT"
+            if [ -z "$AW" ]; then
+              continue
+            fi
+            case "$HDR" in
+              *named*) continue;;
+            esac
+            JAR="$cand"
+            break
+          done
+
           if [ -z "$JAR" ]; then
-            echo "no remapped jar was produced - build/libs holds only dev or sources jars" | tee -a "$REPORT"
+            echo "no jar with an intermediary access widener was produced" | tee -a "$REPORT"
             exit 1
           fi
           echo "publishing $JAR" | tee -a "$REPORT"
-
-          # The one thing that actually differs between the two jars: the namespace of the
-          # access widener. Fabric reads "named" in a development environment and refuses it
-          # in production. Note that ${version} in fabric.mod.json is NOT a tell - it is
-          # present in the remapped jar too, which is why Fabric warns "Mod vulkanmod uses
-          # the version ${version}" in ordinary use.
-          AW=$(unzip -p "$JAR" fabric.mod.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
-          echo "access widener declared: '${AW}'" | tee -a "$REPORT"
-          if [ -n "$AW" ]; then
-            HDR=$(unzip -p "$JAR" "$AW" 2>/dev/null | head -1 || true)
-            echo "access widener header: '$HDR'" | tee -a "$REPORT"
-            case "$HDR" in
-              *named*)
-                echo "the access widener is in the named namespace; this is the dev jar" | tee -a "$REPORT"
-                exit 1
-                ;;
-            esac
-          fi
 
           NAME="fear-monster-engine-${MC_VERSION}.jar"
           cp "$JAR" "/tmp/$NAME"
@@ -170,7 +177,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # always(): a failed publish must not also throw the build away - and the whole
-      # build/libs directory is taken now, so the publish report travels with it.
+      # build/libs directory is taken, so the publish report travels with it.
       - name: Upload the engine jars and the publish report as an artifact
         if: always()
         uses: actions/upload-artifact@v4
