@@ -12,6 +12,10 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.utils.RendererCompatUtil;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Fear Monster - the direct-Vulkan engine, delivered as a launcher function instead of a mod.
@@ -32,6 +36,11 @@ import java.io.File;
  * picked - Zink, Quasar, GLES2, LTW - exactly as it does today. Nothing in this file can
  * change how an existing renderer behaves; it only ever decides whether a separate engine
  * is used, and by default it decides not to.
+ *
+ * <p>What it did is written to <data>/fear_monster/trace.txt. Log.i only reaches logcat,
+ * and the launcher's own log file does not exist until a game has started - so a fetch that
+ * runs when the dashboard opens would otherwise leave no trace anyone could read off a
+ * phone, and "did the build arrive?" would be unanswerable from the device.
  */
 public final class FearMonster {
 
@@ -42,6 +51,12 @@ public final class FearMonster {
 
     /** The file a build is installed as, inside that directory. */
     private static final String BUILD_FILE = "engine.jar";
+
+    /** What the engine did, for whoever has to work out why it did not. */
+    private static final String TRACE_FILE = "trace.txt";
+
+    /** Keep the trace from growing without bound; it is a diagnostic, not a record. */
+    private static final long TRACE_LIMIT = 64 * 1024;
 
     /**
      * Where the engine builds are published. The name carries the Minecraft version the
@@ -59,6 +74,32 @@ public final class FearMonster {
     private static volatile boolean sFetching = false;
 
     private FearMonster() {}
+
+    /** The directory builds and the trace live in. */
+    private static File rootDir() {
+        return new File(Tools.DIR_DATA, ENGINE_ROOT);
+    }
+
+    /**
+     * Records one line of what the engine did, for whoever has to read it off the device.
+     * Never throws and never blocks anything: a diagnostic that can break the thing it is
+     * describing is worse than no diagnostic.
+     */
+    private static void trace(String line) {
+        try {
+            Log.i(TAG, line);
+        } catch (Throwable ignored) { }
+        try {
+            File root = rootDir();
+            if (!root.isDirectory() && !root.mkdirs()) return;
+            File file = new File(root, TRACE_FILE);
+            if (file.length() > TRACE_LIMIT) file.delete();
+            String stamp = new SimpleDateFormat("HH:mm:ss", Locale.US).format(new Date());
+            try (FileWriter w = new FileWriter(file, true)) {
+                w.write(stamp + "  " + line + "\n");
+            }
+        } catch (Throwable ignored) { }
+    }
 
     /** True when the user has the engine switched on. On by default. */
     public static boolean isEnabled() {
@@ -79,7 +120,7 @@ public final class FearMonster {
     public static File buildFor(String versionId) {
         if (versionId == null || versionId.isEmpty()) return null;
         try {
-            File dir = new File(Tools.DIR_DATA, ENGINE_ROOT + "/" + versionId);
+            File dir = new File(rootDir(), versionId);
             if (!dir.isDirectory()) return null;
             File[] jars = dir.listFiles((d, name) -> name.endsWith(".jar"));
             if (jars == null || jars.length == 0) return null;
@@ -109,11 +150,16 @@ public final class FearMonster {
                 }
                 if (root != null && root.has("inheritsFrom") && !root.get("inheritsFrom").isJsonNull()) {
                     String parent = root.get("inheritsFrom").getAsString();
-                    if (parent != null && !parent.isEmpty()) return parent;
+                    if (parent != null && !parent.isEmpty()) {
+                        trace("version " + versionId + " inherits from Minecraft " + parent);
+                        return parent;
+                    }
                 }
             }
+            trace("no version json at " + json + "; using the version id as the Minecraft version");
         } catch (Throwable t) {
             Log.w(TAG, "could not read the Minecraft version behind " + versionId, t);
+            trace("could not read " + json + ": " + t);
         }
         return versionId;
     }
@@ -131,57 +177,78 @@ public final class FearMonster {
      */
     public static void ensureBuildAsync(String versionId) {
         try {
-            if (!isEnabled()) return;
-            if (versionId == null || versionId.isEmpty()) return;
-            if (sFetching) return;
-            if (buildFor(versionId) != null) return;
+            if (!isEnabled()) {
+                trace("engine is off in settings; nothing is fetched");
+                return;
+            }
+            if (versionId == null || versionId.isEmpty()) {
+                trace("no version selected; nothing is fetched");
+                return;
+            }
+            if (buildFor(versionId) != null) {
+                trace("a build is already installed for " + versionId);
+                return;
+            }
+            if (sFetching) {
+                trace("a fetch is already running");
+                return;
+            }
             sFetching = true;
+            trace("fetching a build for " + versionId);
             PojavApplication.sExecutorService.execute(() -> {
                 try {
                     fetch(versionId);
                 } catch (Throwable t) {
                     Log.w(TAG, "could not fetch the engine build for " + versionId, t);
+                    trace("fetch failed: " + t);
                 } finally {
                     sFetching = false;
                 }
             });
         } catch (Throwable t) {
             Log.w(TAG, "engine fetch could not be started", t);
+            trace("fetch could not be started: " + t);
         }
     }
 
     private static void fetch(String versionId) {
         String mcVersion = mcVersionFor(versionId);
-        if (mcVersion == null) return;
-
-        File dir = new File(Tools.DIR_DATA, ENGINE_ROOT + "/" + versionId);
-        if (!dir.isDirectory() && !dir.mkdirs()) {
-            Log.w(TAG, "could not create " + dir);
+        if (mcVersion == null) {
+            trace("no Minecraft version resolved; nothing fetched");
             return;
         }
 
-        String url = String.format(java.util.Locale.US, BUILD_URL, mcVersion);
+        File dir = new File(rootDir(), versionId);
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            trace("could not create " + dir);
+            return;
+        }
+
+        String url = String.format(Locale.US, BUILD_URL, mcVersion);
         File part = new File(dir, BUILD_FILE + ".part");
-        Log.i(TAG, "fetching the engine for Minecraft " + mcVersion + " from " + url);
-        if (!download(url, part)) return;
+        trace("downloading " + url);
+        int code = download(url, part);
+        if (code != 200) {
+            trace("download failed: HTTP " + code);
+            return;
+        }
 
         // Renamed into place only once it is whole, so a half-written file is never left
         // where the launcher would pick it up as a build.
         File out = new File(dir, BUILD_FILE);
         if (out.exists()) out.delete();
         if (!part.renameTo(out)) {
-            Log.w(TAG, "could not move the engine build into place");
+            trace("could not move the build into place");
             part.delete();
             return;
         }
 
-        Log.i(TAG, "engine installed for Minecraft " + mcVersion + " at " + out
-                + " (" + out.length() + " bytes)");
+        trace("installed " + out + " for Minecraft " + mcVersion + " (" + out.length() + " bytes)");
         RendererCompatUtil.releaseRenderersCache();
     }
 
-    /** Streams a URL to a file. Returns true only when the file is complete. */
-    private static boolean download(String url, File out) {
+    /** Streams a URL to a file. Returns the HTTP result, or -1 when it never got one. */
+    private static int download(String url, File out) {
         java.net.HttpURLConnection connection = null;
         try {
             connection = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
@@ -191,10 +258,7 @@ public final class FearMonster {
             // redirect page rather than the jar.
             connection.setInstanceFollowRedirects(true);
             int code = connection.getResponseCode();
-            if (code != java.net.HttpURLConnection.HTTP_OK) {
-                Log.w(TAG, "engine download failed: HTTP " + code);
-                return false;
-            }
+            if (code != java.net.HttpURLConnection.HTTP_OK) return code;
             try (java.io.InputStream in = connection.getInputStream();
                  java.io.OutputStream os = new java.io.FileOutputStream(out)) {
                 byte[] buffer = new byte[16384];
@@ -202,14 +266,15 @@ public final class FearMonster {
                 while ((read = in.read(buffer)) != -1) os.write(buffer, 0, read);
             }
             if (out.length() == 0) {
-                Log.w(TAG, "engine download produced an empty file");
+                trace("the download produced an empty file");
                 out.delete();
-                return false;
+                return -1;
             }
-            return true;
+            return code;
         } catch (Throwable t) {
             Log.w(TAG, "engine download failed", t);
-            return false;
+            trace("download threw: " + t);
+            return -1;
         } finally {
             if (connection != null) connection.disconnect();
         }
@@ -237,24 +302,24 @@ public final class FearMonster {
     public static void prepare(Context context, File gameDir, String versionId, String renderer) {
         try {
             if (!isEnabled()) {
-                Log.i(TAG, "engine is off in settings; this session runs on " + renderer + " as usual");
+                trace("engine is off in settings; this session runs on " + renderer + " as usual");
                 return;
             }
             File build = buildFor(versionId);
             if (build == null) {
-                Log.i(TAG, "no Fear Monster build for " + versionId
-                        + "; this session runs on " + renderer + " as usual");
+                trace("no build for " + versionId + "; this session runs on " + renderer
+                        + " as usual - pick the Fear Monster renderer only after one arrives");
                 return;
             }
             if (!RENDERER_ID.equals(renderer)) {
-                Log.i(TAG, "Fear Monster build " + build.getName() + " is present for " + versionId
-                        + ", but this session uses " + renderer
-                        + "; the engine stays out of the way");
+                trace("a build is installed for " + versionId + " but this session uses "
+                        + renderer + "; the engine stays out of the way");
                 return;
             }
-            Log.i(TAG, "Fear Monster build " + build.getName() + " will drive " + versionId);
+            trace("the engine will drive " + versionId + " using " + build.getName());
         } catch (Throwable t) {
             Log.w(TAG, "engine check failed; the session runs on its renderer as usual", t);
+            trace("engine check failed: " + t);
         }
     }
 }
