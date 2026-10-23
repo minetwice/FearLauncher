@@ -1,8 +1,6 @@
 package net.kdt.pojavlaunch.presence;
 
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -12,12 +10,12 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  *
  * <p>Discord renders an activity as three lines:
  * <pre>
- *   Playing "Fear Launcher"     <- the application's name, set on Discord's side
+ *   Playing "Fear Launcher"     <- the application's name, from the Discord developer portal
  *   For monsters                <- the activity's details
  *   &lt;what is being played&gt;      <- the activity's state
  * </pre>
- * The launcher sets the second and third; the first comes from the registered
- * application, so it is whatever the application is named on Discord.
+ * The launcher sets the second and third. The first is the registered application's name,
+ * so it is whatever the application is called on Discord, not something this code chooses.
  *
  * <p>This takes the official route. Discord's Social SDK supports Rich Presence on
  * Android, so the launcher registers as an application and talks to the Discord app
@@ -27,10 +25,8 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * people who trust the launcher with their game.
  *
  * <p>The publishing call itself is native: the SDK exposes presence in C, not in Java. The
- * SDK's callbacks are pumped from here, on the main looper, because that is what its
- * documentation says to do - and because driving them from a bare thread crashed the
- * process: that thread is not attached to the JVM, so the JNI the SDK performs while
- * connecting jumped through a null pointer.
+ * SDK's callbacks are pumped from a thread in fear_presence.c, attached to the JVM and kept
+ * off the UI thread.
  *
  * <p>Every message here goes to the launcher's own log as well as to logcat. The launcher's
  * log is the file anyone can actually read off a phone, and the question that matters -
@@ -55,9 +51,6 @@ public final class FearPresence {
     /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";
 
-    /** How often the SDK's callbacks are pumped. Its documentation asks for the main loop. */
-    private static final long PUMP_INTERVAL_MS = 100L;
-
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
 
@@ -65,6 +58,19 @@ public final class FearPresence {
     private static int sLastLoggedStatus = -2;
 
     static {
+        try {
+            // The SDK's own library is loaded FIRST, explicitly, and that order matters.
+            // pojavexec links it, so loading pojavexec first pulls the SDK in as a
+            // dependency - and Android only calls JNI_OnLoad for libraries loaded through
+            // System.loadLibrary, never for dependencies. Its JNI plumbing would then stay
+            // uninitialised and its first call back into Java would jump through a null
+            // pointer, which is exactly the pc=0 crash that was seen. Loading it by name
+            // here means JNI_OnLoad runs; the later load from the SDK's own init class is
+            // then a harmless no-op.
+            System.loadLibrary("discord_partner_sdk");
+        } catch (Throwable t) {
+            say("could not load the Discord SDK library; presence will stay off", t);
+        }
         try {
             // The wrapper lives in pojavexec, the launcher's own native library, which is
             // already the one every other native call in the launcher goes through.
@@ -120,28 +126,6 @@ public final class FearPresence {
     }
 
     /**
-     * Drives the SDK's callbacks from the main looper. The documentation asks for the main
-     * loop, and it is not optional: the SDK's callbacks make JNI calls back into the app,
-     * which a thread with no JVM attachment cannot do.
-     */
-    private static void startPump() {
-        try {
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    try { nativePump(); } catch (Throwable ignored) { }
-                    // Keeps running for the life of the process: the SDK needs its callbacks
-                    // driven continuously, not just while something is being published.
-                    handler.postDelayed(this, PUMP_INTERVAL_MS);
-                }
-            }, PUMP_INTERVAL_MS);
-        } catch (Throwable t) {
-            say("could not start the callback pump", t);
-        }
-    }
-
-    /**
      * Starts the Discord client the first time it is needed, rather than from an
      * activity, so there is no extra lifecycle to keep in step.
      */
@@ -153,7 +137,6 @@ public final class FearPresence {
                 say("Discord client did not start; presence stays off");
             } else {
                 say("Discord client started; status " + describeStatus());
-                startPump();
                 watchStatus();
             }
             return sStarted;

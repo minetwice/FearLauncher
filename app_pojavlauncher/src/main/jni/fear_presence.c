@@ -8,15 +8,15 @@
  *
  * This launcher uses Rich Presence WITHOUT authentication - no account linking, no token,
  * just the Discord app installed on the phone. Discord's documentation for that route says
- * to set the application id, build the activity and call UpdateRichPresence; it does not
- * wait for a Ready state, because that state belongs to the authenticated client.
+ * to set the application id, build the activity and call UpdateRichPresence.
  *
- * RunCallbacks is NOT driven from a thread here. It is exposed as nativePump() and called
- * from the Java side on the main looper, because the SDK's documentation says to run the
- * callbacks in the application's main loop. Driving them from a bare pthread crashed the
- * process: that thread is not attached to the JVM, so the JNI the SDK performs while
- * connecting had no environment and jumped through a null pointer (pc=0, inside
- * libdiscord_partner_sdk.so).
+ * The callbacks are pumped from a thread of this file's own making, attached to the JVM
+ * with AttachCurrentThread. Not the main looper: RunCallbacks blocks while it works, and on
+ * the main thread that freezes the launcher. Not a bare pthread either - but the crash that
+ * looked like a threading problem was not one: the same pc=0 happened on the main thread,
+ * and the cause was the SDK's library being pulled in as a dependency of pojavexec, which
+ * skips its JNI_OnLoad. FearPresence loads it explicitly first, and this thread is simply
+ * kept off the UI.
  *
  * Guarded by FEAR_PRESENCE_HAVE_SDK, which CMake defines only when the package was
  * found. The JNI entry points exist either way, so the Java side gets a clean false and a
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <android/log.h>
 
 #define LOG_TAG "FearPresence"
@@ -56,6 +57,9 @@ static void copy_into(JNIEnv* env, jstring src, char* dst, size_t cap) {
 
 static Discord_Client* g_client = NULL;
 static Discord_Client_Status g_status = Discord_Client_Status_Disconnected;
+static JavaVM* g_vm = NULL;
+static pthread_t g_pump;
+static volatile int g_pump_running = 0;
 
 /* The SDK takes strings as a buffer plus a length, not a C string. */
 static Discord_String str_ref(char* s) {
@@ -63,6 +67,28 @@ static Discord_String str_ref(char* s) {
     out.ptr = (uint8_t*) s;
     out.size = s ? strlen(s) : 0;
     return out;
+}
+
+/*
+ * Drives the SDK's callbacks. The thread is attached to the JVM first, because those
+ * callbacks make JNI calls back into the app and an unattached thread has no environment.
+ * It is deliberately not the main thread: RunCallbacks blocks while it works, and on the
+ * main thread that stops the launcher responding.
+ */
+static void* pump_thread(void* unused) {
+    (void) unused;
+    JNIEnv* env = NULL;
+    if (g_vm != NULL) {
+        (*g_vm)->AttachCurrentThread(g_vm, &env, NULL);
+    }
+    while (g_pump_running) {
+        Discord_RunCallbacks();
+        usleep(100 * 1000);
+    }
+    if (g_vm != NULL) {
+        (*g_vm)->DetachCurrentThread(g_vm);
+    }
+    return NULL;
 }
 
 /*
@@ -110,6 +136,9 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
         pthread_mutex_unlock(&g_lock);
         return JNI_TRUE;
     }
+    if (g_vm == NULL) {
+        (*env)->GetJavaVM(env, &g_vm);
+    }
     const char* id = appId ? (*env)->GetStringUTFChars(env, appId, NULL) : NULL;
     uint64_t app = id ? (uint64_t) strtoull(id, NULL, 10) : 0;
     if (id) (*env)->ReleaseStringUTFChars(env, appId, id);
@@ -128,6 +157,8 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
     Discord_Client_SetApplicationId(g_client, app);
     Discord_Client_SetStatusChangedCallback(g_client, on_status_changed, NULL, NULL);
     Discord_Client_Connect(g_client);
+    g_pump_running = 1;
+    pthread_create(&g_pump, NULL, pump_thread, NULL);
     pthread_mutex_unlock(&g_lock);
     LOGI("Discord RPC client started for application %llu", (unsigned long long) app);
     return JNI_TRUE;
@@ -139,9 +170,9 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
 }
 
 /*
- * Runs the SDK's pending callbacks once. Called from Java on the main looper, which is
- * what the SDK documents: its callbacks perform JNI back into the app, and that needs a
- * thread attached to the JVM. A bare pthread is not, and crashed the process with pc=0.
+ * Runs the SDK's pending callbacks once. Kept for completeness; the pump thread is what
+ * actually drives them, because doing this on the main looper stops the launcher
+ * responding while RunCallbacks works.
  */
 JNIEXPORT void JNICALL
 Java_net_kdt_pojavlaunch_presence_FearPresence_nativePump(JNIEnv* env, jclass clazz) {
