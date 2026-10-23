@@ -1,10 +1,6 @@
 /*
  * Fear Monster presence: the call that actually publishes "For monsters" on Discord.
  *
- * FearPresence.setPlaying() used to log and stop there, which is why no status ever
- * appeared: the payload existed but nothing ever told Discord about it. This is the piece
- * that tells Discord.
- *
  * The Discord Social SDK exposes presence in C, not in Java. Its Java layer
  * (DiscordRpcClient, NativeCalls) covers the RPC transport and audio; the rich-presence
  * call lives behind cdiscord.h, which ships inside the same AAR as a Prefab package. So
@@ -13,21 +9,24 @@
  * This launcher uses Rich Presence WITHOUT authentication - no account linking, no token,
  * just the Discord app installed on the phone. Discord's documentation for that route says
  * to set the application id, build the activity and call UpdateRichPresence; it does not
- * call Connect(), and it does not wait for a Ready state, because that state belongs to the
- * authenticated client. Gating on Ready here meant every update was dropped while the
- * status sat at disconnected forever, which is exactly what the log showed.
+ * wait for a Ready state, because that state belongs to the authenticated client.
+ *
+ * RunCallbacks is NOT driven from a thread here. It is exposed as nativePump() and called
+ * from the Java side on the main looper, because the SDK's documentation says to run the
+ * callbacks in the application's main loop. Driving them from a bare pthread crashed the
+ * process: that thread is not attached to the JVM, so the JNI the SDK performs while
+ * connecting had no environment and jumped through a null pointer (pc=0, inside
+ * libdiscord_partner_sdk.so).
  *
  * Guarded by FEAR_PRESENCE_HAVE_SDK, which CMake defines only when the package was
- * found. The JNI entry points exist either way: if the SDK is missing, the Java side gets
- * a clean false and a log line rather than UnsatisfiedLinkError, and the build still
- * succeeds. Presence is optional and must never be the reason the launcher does not run.
+ * found. The JNI entry points exist either way, so the Java side gets a clean false and a
+ * log line rather than UnsatisfiedLinkError, and the build still succeeds.
  */
 #include <jni.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <android/log.h>
 
 #define LOG_TAG "FearPresence"
@@ -57,8 +56,6 @@ static void copy_into(JNIEnv* env, jstring src, char* dst, size_t cap) {
 
 static Discord_Client* g_client = NULL;
 static Discord_Client_Status g_status = Discord_Client_Status_Disconnected;
-static pthread_t g_pump;
-static volatile int g_pump_running = 0;
 
 /* The SDK takes strings as a buffer plus a length, not a C string. */
 static Discord_String str_ref(char* s) {
@@ -68,21 +65,10 @@ static Discord_String str_ref(char* s) {
     return out;
 }
 
-/* The SDK does nothing until RunCallbacks() is pumped, and it has to be pumped from a
- * thread that keeps running. This one lives as long as the client does. */
-static void* pump_thread(void* unused) {
-    (void) unused;
-    while (g_pump_running) {
-        Discord_RunCallbacks();
-        usleep(100 * 1000);
-    }
-    return NULL;
-}
-
 /*
  * Sends the activity. Deliberately not gated on the client's status: this launcher uses the
  * unauthenticated RPC route, where the SDK talks to the installed Discord app directly and
- * the authenticated Ready state never arrives. Waiting for it meant nothing was ever sent.
+ * the authenticated Ready state is not what drives it.
  */
 static void publish_locked(void) {
     if (g_client == NULL) return;
@@ -110,7 +96,6 @@ static void on_status_changed(Discord_Client_Status status, Discord_Client_Error
     g_status = status;
     LOGI("Discord status changed: %d (0 disconnected, 1 connecting, 2 connected, 3 ready)",
          (int) status);
-    /* If the authenticated client does reach Ready, refresh the activity there too. */
     if (status == Discord_Client_Status_Ready) publish_locked();
     pthread_mutex_unlock(&g_lock);
 }
@@ -141,11 +126,8 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
     }
     Discord_Client_Init(g_client);
     Discord_Client_SetApplicationId(g_client, app);
-    /* Registered before Connect, so no status change can be missed. */
     Discord_Client_SetStatusChangedCallback(g_client, on_status_changed, NULL, NULL);
     Discord_Client_Connect(g_client);
-    g_pump_running = 1;
-    pthread_create(&g_pump, NULL, pump_thread, NULL);
     pthread_mutex_unlock(&g_lock);
     LOGI("Discord RPC client started for application %llu", (unsigned long long) app);
     return JNI_TRUE;
@@ -157,10 +139,25 @@ Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStart(JNIEnv* env, jclass c
 }
 
 /*
- * The current status as a number, so the Java side can put it in the launcher's log. The
- * native side logs the same thing, but through __android_log_print, which goes to logcat
- * and never reaches the file a user can hand over. -1 means the SDK is not in this build
- * at all, which is a different problem from "not connected yet".
+ * Runs the SDK's pending callbacks once. Called from Java on the main looper, which is
+ * what the SDK documents: its callbacks perform JNI back into the app, and that needs a
+ * thread attached to the JVM. A bare pthread is not, and crashed the process with pc=0.
+ */
+JNIEXPORT void JNICALL
+Java_net_kdt_pojavlaunch_presence_FearPresence_nativePump(JNIEnv* env, jclass clazz) {
+#ifdef FEAR_PRESENCE_HAVE_SDK
+    (void) env; (void) clazz;
+    if (g_client == NULL) return;
+    Discord_RunCallbacks();
+#else
+    (void) env; (void) clazz;
+#endif
+}
+
+/*
+ * The current status as a number, so the Java side can put it in the launcher's log. -1
+ * means the SDK is not in this build at all, which is a different problem from "not
+ * connected yet".
  */
 JNIEXPORT jint JNICALL
 Java_net_kdt_pojavlaunch_presence_FearPresence_nativeStatus(JNIEnv* env, jclass clazz) {

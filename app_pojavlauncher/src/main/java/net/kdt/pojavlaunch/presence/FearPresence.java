@@ -1,6 +1,8 @@
 package net.kdt.pojavlaunch.presence;
 
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -17,10 +19,6 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * The launcher sets the second and third; the first comes from the registered
  * application, so it is whatever the application is named on Discord.
  *
- * <p>The third line follows what the player is actually doing: the instance name while a
- * game runs, "In the launcher" while they are on the launcher itself - including after a
- * game has just ended, because that is where they land.
- *
  * <p>This takes the official route. Discord's Social SDK supports Rich Presence on
  * Android, so the launcher registers as an application and talks to the Discord app
  * installed on the phone. It deliberately does not use the user-token gateway approach
@@ -28,19 +26,15 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * and works against Discord's terms, and that is not something to put in front of
  * people who trust the launcher with their game.
  *
- * <p>The publishing call itself is native: the SDK exposes presence in C, not in Java, so
- * the values assembled here are handed to fear_presence.c, which owns the Discord client.
- * Nothing here reaches Discord unless the SDK was linked into the build and the client
- * starts; when either fails it logs and presence stays off, because a social feature must
- * never be a reason a launch does not happen.
+ * <p>The publishing call itself is native: the SDK exposes presence in C, not in Java. The
+ * SDK's callbacks are pumped from here, on the main looper, because that is what its
+ * documentation says to do - and because driving them from a bare thread crashed the
+ * process: that thread is not attached to the JVM, so the JNI the SDK performs while
+ * connecting jumped through a null pointer.
  *
  * <p>Every message here goes to the launcher's own log as well as to logcat. The launcher's
  * log is the file anyone can actually read off a phone, and the question that matters -
- * did the client connect? - has to be answerable from it.
- *
- * <p>The SDK's context comes from setEngineActivity, which the dashboard calls when it
- * opens: its bytecode calls nativeSetContext itself. There is no second initialisation step
- * to perform, and an attempt to add one failed to compile.
+ * how far the connection gets - has to be answerable from it.
  */
 public final class FearPresence {
 
@@ -61,6 +55,9 @@ public final class FearPresence {
     /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";
 
+    /** How often the SDK's callbacks are pumped. Its documentation asks for the main loop. */
+    private static final long PUMP_INTERVAL_MS = 100L;
+
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
 
@@ -80,6 +77,7 @@ public final class FearPresence {
     private FearPresence() {}
 
     private static native boolean nativeStart(String appId);
+    private static native void nativePump();
     private static native void nativeSetPlaying(String details, String state);
     private static native void nativeClear();
     private static native int nativeStatus();
@@ -122,6 +120,28 @@ public final class FearPresence {
     }
 
     /**
+     * Drives the SDK's callbacks from the main looper. The documentation asks for the main
+     * loop, and it is not optional: the SDK's callbacks make JNI calls back into the app,
+     * which a thread with no JVM attachment cannot do.
+     */
+    private static void startPump() {
+        try {
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try { nativePump(); } catch (Throwable ignored) { }
+                    // Keeps running for the life of the process: the SDK needs its callbacks
+                    // driven continuously, not just while something is being published.
+                    handler.postDelayed(this, PUMP_INTERVAL_MS);
+                }
+            }, PUMP_INTERVAL_MS);
+        } catch (Throwable t) {
+            say("could not start the callback pump", t);
+        }
+    }
+
+    /**
      * Starts the Discord client the first time it is needed, rather than from an
      * activity, so there is no extra lifecycle to keep in step.
      */
@@ -133,6 +153,7 @@ public final class FearPresence {
                 say("Discord client did not start; presence stays off");
             } else {
                 say("Discord client started; status " + describeStatus());
+                startPump();
                 watchStatus();
             }
             return sStarted;
@@ -166,9 +187,7 @@ public final class FearPresence {
 
     /**
      * Watches the connection for half a minute and writes every change to the launcher's
-     * log. The native side reports the same transitions, but only to logcat, so without
-     * this the file cannot show whether the client climbed to ready (3) or stopped before
-     * it - which is the difference between "working" and "something still missing".
+     * log, so the file shows how far the client actually gets.
      */
     private static void watchStatus() {
         try {
