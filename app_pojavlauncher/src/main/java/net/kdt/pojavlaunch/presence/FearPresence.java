@@ -14,8 +14,6 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  *   Powered by fear             <- the activity's details
  *   &lt;instance&gt; / Monster mode  <- the activity's state
  * </pre>
- * The name and the details are fixed; the state follows what the player is doing, so a
- * friend can see which instance is being played.
  *
  * <p>This takes the official route. Discord's Social SDK supports Rich Presence on
  * Android, so the launcher registers as an application and talks to the Discord app
@@ -24,13 +22,17 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * and works against Discord's terms, and that is not something to put in front of
  * people who trust the launcher with their game.
  *
- * <p>The publishing call itself is native: the SDK exposes presence in C, not in Java. The
- * SDK's callbacks are pumped from a thread in fear_presence.c, attached to the JVM and kept
- * off the UI thread.
+ * <p><b>Off by default.</b> With it on, the game crashes: the SDK jumps through a null
+ * function pointer (pc=0, inside libdiscord_partner_sdk.so) the moment the client starts
+ * connecting. That happened on a bare thread, on the main thread, and on a thread properly
+ * attached to the JVM, and it survived loading the SDK library explicitly so its JNI_OnLoad
+ * runs - so the cause is none of those. The remaining explanation is that the SDK expects
+ * the app to establish its Java RPC transport before connecting, but that is a guess, and
+ * guesses have been wrong here more than once.
  *
- * <p>Every message here goes to the launcher's own log as well as to logcat. The launcher's
- * log is the file anyone can actually read off a phone, and the question that matters -
- * how far the connection gets - has to be answerable from it.
+ * <p>Running Minecraft is the launcher's whole job and a presence status is a nice-to-have,
+ * so this stays off until the crash is understood. The switch is in settings for anyone who
+ * wants to help chase it with logcat.
  */
 public final class FearPresence {
 
@@ -48,8 +50,14 @@ public final class FearPresence {
     /** The third line while the player is on the launcher rather than in a game. */
     public static final String STATE_DASHBOARD = "Monster mode";
 
-    /** Preference key for the switch. On by default. */
+    /** Preference key for the switch. */
     public static final String PREF_KEY = "fear_discord_presence";
+
+    /**
+     * Whether the feature runs at all unless the user turns it on. False, because the SDK
+     * crashes the game when it connects - see the class comment.
+     */
+    private static final boolean ENABLED_BY_DEFAULT = false;
 
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
@@ -59,21 +67,15 @@ public final class FearPresence {
 
     static {
         try {
-            // The SDK's own library is loaded FIRST, explicitly, and that order matters.
-            // pojavexec links it, so loading pojavexec first pulls the SDK in as a
-            // dependency - and Android only calls JNI_OnLoad for libraries loaded through
-            // System.loadLibrary, never for dependencies. Its JNI plumbing would then stay
-            // uninitialised and its first call back into Java would jump through a null
-            // pointer, which is exactly the pc=0 crash that was seen. Loading it by name
-            // here means JNI_OnLoad runs; the later load from the SDK's own init class is
-            // then a harmless no-op.
+            // The SDK's own library is loaded FIRST, explicitly. pojavexec links it, so
+            // loading pojavexec first would pull it in as a dependency, and Android only
+            // calls JNI_OnLoad for libraries loaded through System.loadLibrary. This is
+            // correct in itself even though it did not turn out to be the crash.
             System.loadLibrary("discord_partner_sdk");
         } catch (Throwable t) {
             say("could not load the Discord SDK library; presence will stay off", t);
         }
         try {
-            // The wrapper lives in pojavexec, the launcher's own native library, which is
-            // already the one every other native call in the launcher goes through.
             System.loadLibrary("pojavexec");
         } catch (Throwable t) {
             say("could not load pojavexec; presence will stay off", t);
@@ -88,11 +90,6 @@ public final class FearPresence {
     private static native void nativeClear();
     private static native int nativeStatus();
 
-    /**
-     * Reports a message to both logcat and the launcher's log file. The second one is the
-     * point: it is the only log a user can hand over, so anything worth knowing has to be
-     * in it.
-     */
     private static void say(String message, Throwable t) {
         try { Log.i(TAG, message, t); } catch (Throwable ignored) { }
         try { net.kdt.pojavlaunch.Logger.appendToLog("[Discord] " + message); } catch (Throwable ignored) { }
@@ -102,13 +99,13 @@ public final class FearPresence {
         say(message, null);
     }
 
-    /** True when the user wants their presence shown. On by default. */
+    /** True when the user has turned the presence on. Off unless they have. */
     public static boolean isEnabled() {
         try {
             SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
-            return prefs == null || prefs.getBoolean(PREF_KEY, true);
+            return prefs != null && prefs.getBoolean(PREF_KEY, ENABLED_BY_DEFAULT);
         } catch (Throwable t) {
-            return true;
+            return ENABLED_BY_DEFAULT;
         }
     }
 
@@ -125,10 +122,6 @@ public final class FearPresence {
         return "Minecraft";
     }
 
-    /**
-     * Starts the Discord client the first time it is needed, rather than from an
-     * activity, so there is no extra lifecycle to keep in step.
-     */
     private static boolean ensureStarted() {
         if (sStarted) return true;
         try {
@@ -146,7 +139,6 @@ public final class FearPresence {
         }
     }
 
-    /** The status as a number plus what it means, for the log. */
     private static String describeStatus() {
         try {
             int s = nativeStatus();
@@ -168,10 +160,6 @@ public final class FearPresence {
         }
     }
 
-    /**
-     * Watches the connection for half a minute and writes every change to the launcher's
-     * log, so the file shows how far the client actually gets.
-     */
     private static void watchStatus() {
         try {
             final java.util.concurrent.ScheduledExecutorService watcher =
@@ -197,10 +185,7 @@ public final class FearPresence {
 
     private static void publish(String state) {
         try {
-            if (!isEnabled()) {
-                say("presence is off in settings; nothing is published");
-                return;
-            }
+            if (!isEnabled()) return;
             if (!ensureStarted()) return;
             nativeSetPlaying(DETAILS, state);
             say("presence sent: details=\"" + DETAILS + "\" state=\"" + state
@@ -225,8 +210,8 @@ public final class FearPresence {
     }
 
     /**
-     * Called when a game stops. Kept for the callers that already use it, and it now
-     * shows the launcher rather than wiping the status.
+     * Called when a game stops. Kept for the callers that already use it, and it shows the
+     * launcher rather than wiping the status.
      */
     public static void clear() {
         setDashboard();
