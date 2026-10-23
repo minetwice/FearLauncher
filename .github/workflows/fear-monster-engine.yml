@@ -85,15 +85,16 @@ jobs:
           echo "--- what the patch produced ---"
           grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F"
 
+      # remapJar is asked for by name. "build" may not depend on it, in which case
+      # build/libs holds only the dev jar - unremapped, with its access widener in the
+      # named namespace, which Fabric refuses in production. That jar builds, installs and
+      # then cannot load, so it is the one artefact this workflow must never publish.
       - name: Build the engine
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           chmod +x gradlew
-          ./gradlew --no-daemon build
-          # No "| head" here: the build has already succeeded by this point, and a
-          # closed pipe from head made find exit non-zero, which failed the step on an
-          # otherwise perfectly good build.
+          ./gradlew --no-daemon build remapJar
           ls -l build/libs/
 
       # The engine hooks Minecraft's own classes, so a build serves exactly one Minecraft
@@ -120,61 +121,60 @@ jobs:
       # the repository from the git remote in the working directory - which is
       # xCollateral/VulkanMod, where this token has no rights. Naming our own repository
       # explicitly is what makes the upload land.
+      #
+      # Everything it decides is also written to build/libs/publish-report.txt, which the
+      # artifact step picks up. The run log is not always reachable, and a step that fails
+      # without saying why is how three attempts in a row were wasted on guesses.
       - name: Publish the engine to the nightly release
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
-          echo "--- build/libs ---"
-          ls -l build/libs/
+          REPORT=build/libs/publish-report.txt
+          {
+            echo "--- build/libs ---"
+            ls -l build/libs/ || true
+          } | tee "$REPORT"
 
-          # The remapped jar, never the dev one. A Fabric mod build produces both, and the
-          # dev jar is not usable in production: its access widener is in the named
-          # namespace, which Fabric refuses with "Namespace (named) does not match current
-          # runtime namespace (intermediary)". ls sorts vulkanmod-<version>-dev.jar before
-          # vulkanmod-<version>.jar, so taking the first jar published the unusable one.
-          JAR=$(ls build/libs/*.jar | grep -v -- '-dev' | grep -v -- '-sources' | head -1)
+          # The remapped jar, never the dev one.
+          JAR=$(ls build/libs/*.jar 2>/dev/null | grep -v -- '-dev' | grep -v -- '-sources' | head -1)
           if [ -z "$JAR" ]; then
-            echo "no remapped jar was produced"
+            echo "no remapped jar was produced - build/libs holds only dev or sources jars" | tee -a "$REPORT"
             exit 1
           fi
-          echo "publishing $JAR"
+          echo "publishing $JAR" | tee -a "$REPORT"
 
-          # Prove it is the remapped one before publishing, by the one thing that actually
-          # differs between the two jars: the namespace of the access widener. Fabric reads
-          # "named" in a development environment and refuses it in production, so a jar
-          # carrying a named widener installs and then cannot load.
-          #
-          # Note that ${version} in fabric.mod.json is NOT a tell - it is present in the
-          # remapped jar as well, which is why Fabric warns "Mod vulkanmod uses the version
-          # ${version}" in ordinary use. An earlier version of this guard checked for it and
-          # rejected a good build.
+          # The one thing that actually differs between the two jars: the namespace of the
+          # access widener. Fabric reads "named" in a development environment and refuses it
+          # in production. Note that ${version} in fabric.mod.json is NOT a tell - it is
+          # present in the remapped jar too, which is why Fabric warns "Mod vulkanmod uses
+          # the version ${version}" in ordinary use.
           AW=$(unzip -p "$JAR" fabric.mod.json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('accessWidener',''))" 2>/dev/null || true)
+          echo "access widener declared: '${AW}'" | tee -a "$REPORT"
           if [ -n "$AW" ]; then
             HDR=$(unzip -p "$JAR" "$AW" 2>/dev/null | head -1 || true)
-            echo "access widener $AW header: $HDR"
+            echo "access widener header: '$HDR'" | tee -a "$REPORT"
             case "$HDR" in
               *named*)
-                echo "the access widener is in the named namespace; this is the dev jar"
+                echo "the access widener is in the named namespace; this is the dev jar" | tee -a "$REPORT"
                 exit 1
                 ;;
             esac
-          else
-            echo "this jar declares no access widener"
           fi
 
           NAME="fear-monster-engine-${MC_VERSION}.jar"
           cp "$JAR" "/tmp/$NAME"
+          echo "uploading $NAME ($(stat -c%s "/tmp/$NAME") bytes) to $GITHUB_REPOSITORY" | tee -a "$REPORT"
           gh release upload nightly "/tmp/$NAME" --clobber --repo "$GITHUB_REPOSITORY"
-          echo "published $NAME ($(stat -c%s "/tmp/$NAME") bytes) to $GITHUB_REPOSITORY"
+          echo "published $NAME" | tee -a "$REPORT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # always(): a failed publish must not also throw the build away, which is what
-      # happened when this step was skipped because the one before it failed.
-      - name: Upload the engine jar as an artifact too
+      # always(): a failed publish must not also throw the build away - and the whole
+      # build/libs directory is taken now, so the publish report travels with it.
+      - name: Upload the engine jars and the publish report as an artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fear-monster-engine
-          path: /home/runner/work/_temp/engine/build/libs/*.jar
+          path: /home/runner/work/_temp/engine/build/libs/
           if-no-files-found: warn
