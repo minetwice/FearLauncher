@@ -1,6 +1,8 @@
 package net.kdt.pojavlaunch.presence;
 
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -22,17 +24,13 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * and works against Discord's terms, and that is not something to put in front of
  * people who trust the launcher with their game.
  *
- * <p><b>Off by default.</b> With it on, the game crashes: the SDK jumps through a null
- * function pointer (pc=0, inside libdiscord_partner_sdk.so) the moment the client starts
- * connecting. That happened on a bare thread, on the main thread, and on a thread properly
- * attached to the JVM, and it survived loading the SDK library explicitly so its JNI_OnLoad
- * runs - so the cause is none of those. The remaining explanation is that the SDK expects
- * the app to establish its Java RPC transport before connecting, but that is a guess, and
- * guesses have been wrong here more than once.
- *
- * <p>Running Minecraft is the launcher's whole job and a presence status is a nice-to-have,
- * so this stays off until the crash is understood. The switch is in settings for anyone who
- * wants to help chase it with logcat.
+ * <p>The publishing call is native, and the SDK's callbacks are pumped from here on the
+ * main looper. That is not a style choice: the SDK caches a JNIEnv when its library loads,
+ * on the main thread, and RunCallbacks uses it. Pumping from the main thread reuses a valid
+ * environment; pumping from any other thread makes the SDK jump through a null pointer
+ * (pc=0 inside libdiscord_partner_sdk.so) and takes the game down. The cost of doing it
+ * this way is that RunCallbacks blocks while it works, so the UI can stutter - a nuisance
+ * next to a crash.
  */
 public final class FearPresence {
 
@@ -50,14 +48,14 @@ public final class FearPresence {
     /** The third line while the player is on the launcher rather than in a game. */
     public static final String STATE_DASHBOARD = "Monster mode";
 
-    /** Preference key for the switch. */
+    /** Preference key for the switch. On by default. */
     public static final String PREF_KEY = "fear_discord_presence";
 
-    /**
-     * Whether the feature runs at all unless the user turns it on. False, because the SDK
-     * crashes the game when it connects - see the class comment.
-     */
-    private static final boolean ENABLED_BY_DEFAULT = false;
+    /** On unless the user turns it off. */
+    private static final boolean ENABLED_BY_DEFAULT = true;
+
+    /** How often the SDK's callbacks are pumped. Its documentation asks for the main loop. */
+    private static final long PUMP_INTERVAL_MS = 100L;
 
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
@@ -69,8 +67,7 @@ public final class FearPresence {
         try {
             // The SDK's own library is loaded FIRST, explicitly. pojavexec links it, so
             // loading pojavexec first would pull it in as a dependency, and Android only
-            // calls JNI_OnLoad for libraries loaded through System.loadLibrary. This is
-            // correct in itself even though it did not turn out to be the crash.
+            // calls JNI_OnLoad for libraries loaded through System.loadLibrary.
             System.loadLibrary("discord_partner_sdk");
         } catch (Throwable t) {
             say("could not load the Discord SDK library; presence will stay off", t);
@@ -99,11 +96,11 @@ public final class FearPresence {
         say(message, null);
     }
 
-    /** True when the user has turned the presence on. Off unless they have. */
+    /** True when the user wants their presence shown. On by default. */
     public static boolean isEnabled() {
         try {
             SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
-            return prefs != null && prefs.getBoolean(PREF_KEY, ENABLED_BY_DEFAULT);
+            return prefs == null || prefs.getBoolean(PREF_KEY, ENABLED_BY_DEFAULT);
         } catch (Throwable t) {
             return ENABLED_BY_DEFAULT;
         }
@@ -122,6 +119,26 @@ public final class FearPresence {
         return "Minecraft";
     }
 
+    /**
+     * Drives the SDK's callbacks from the main looper. The SDK uses a JNIEnv cached when its
+     * library loaded - the main thread - so this is where the callbacks have to run. From
+     * any other thread the SDK jumps through a null pointer and takes the game down.
+     */
+    private static void startPump() {
+        try {
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try { nativePump(); } catch (Throwable ignored) { }
+                    handler.postDelayed(this, PUMP_INTERVAL_MS);
+                }
+            }, PUMP_INTERVAL_MS);
+        } catch (Throwable t) {
+            say("could not start the callback pump", t);
+        }
+    }
+
     private static boolean ensureStarted() {
         if (sStarted) return true;
         try {
@@ -130,6 +147,7 @@ public final class FearPresence {
                 say("Discord client did not start; presence stays off");
             } else {
                 say("Discord client started; status " + describeStatus());
+                startPump();
                 watchStatus();
             }
             return sStarted;
