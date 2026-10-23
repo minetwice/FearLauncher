@@ -1,8 +1,6 @@
 package net.kdt.pojavlaunch.presence;
 
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -24,16 +22,25 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
  * and works against Discord's terms, and that is not something to put in front of
  * people who trust the launcher with their game.
  *
- * <p>The publishing call is native, and the SDK's callbacks are pumped from here on the
- * main looper. That is not a style choice: the SDK caches a JNIEnv when its library loads,
- * on the main thread, and RunCallbacks uses it. Pumping from the main thread reuses a valid
- * environment; pumping from any other thread makes the SDK jump through a null pointer
- * (pc=0 inside libdiscord_partner_sdk.so) and takes the game down.
+ * <p><b>The SDK's callbacks are deliberately not pumped.</b> Pumping them - calling
+ * Discord_RunCallbacks periodically, as the SDK's documentation asks - crashes the process.
+ * The hs_err backtrace shows it plainly:
+ * <pre>
+ *   C  [libdiscord_partner_sdk.so+0x245080]
+ *   C  [libdiscord_partner_sdk.so+0x22425c]  Discord_RunCallbacks+0x70
+ *   C  [libpojavexec.so+0x1a8e8]  Java_..._nativePump+0x2c
+ *   siginfo: SIGSEGV, si_addr: 0x0000000000000000
+ * </pre>
+ * RunCallbacks dereferences a null pointer on its own, on whatever thread calls it - which
+ * is why moving it between threads never helped, and why the load-order and JNI-environment
+ * explanations were all wrong.
  *
- * <p>The cost is that RunCallbacks blocks while it works, so the UI can freeze and Android
- * reports the app as not responding. The pump therefore runs as rarely as the SDK tolerates
- * rather than as often as it could. The real fix is to load the SDK's library on a thread of
- * our own and pump there, which needs the load order untangled first - see the pump comment.
+ * <p>The activity itself is published before any of that and Discord displays it, so the
+ * presence works without the pump. The pump is what comes after, and the pump is what dies.
+ *
+ * <p>If the status turns out to need RunCallbacks to update, the next step is the SDK's Java
+ * RPC transport (DiscordRpcClient), which the SDK expects the app to establish and which this
+ * launcher never has.
  */
 public final class FearPresence {
 
@@ -57,14 +64,6 @@ public final class FearPresence {
     /** On unless the user turns it off. */
     private static final boolean ENABLED_BY_DEFAULT = true;
 
-    /**
-     * How often the SDK's callbacks are pumped. Slow on purpose: every pump blocks the main
-     * thread for as long as RunCallbacks takes, so this is traded against the freeze. The
-     * SDK only asks for its callbacks to run "periodically", and 750ms is comfortably inside
-     * that while cutting the blocking by roughly eight times.
-     */
-    private static final long PUMP_INTERVAL_MS = 750L;
-
     /** True once the native client has started, so it is started only once. */
     private static boolean sStarted = false;
 
@@ -76,10 +75,6 @@ public final class FearPresence {
             // The SDK's own library is loaded FIRST, explicitly. pojavexec links it, so
             // loading pojavexec first would pull it in as a dependency, and Android only
             // calls JNI_OnLoad for libraries loaded through System.loadLibrary.
-            //
-            // This is also what pins the callbacks to the main thread: the load happens
-            // here, on whichever thread first touches this class, and the SDK caches that
-            // thread's JNIEnv for use in RunCallbacks. Untangling it is the next step.
             System.loadLibrary("discord_partner_sdk");
         } catch (Throwable t) {
             say("could not load the Discord SDK library; presence will stay off", t);
@@ -94,7 +89,6 @@ public final class FearPresence {
     private FearPresence() {}
 
     private static native boolean nativeStart(String appId);
-    private static native void nativePump();
     private static native void nativeSetPlaying(String details, String state);
     private static native void nativeClear();
     private static native int nativeStatus();
@@ -131,30 +125,6 @@ public final class FearPresence {
         return "Minecraft";
     }
 
-    /**
-     * Drives the SDK's callbacks from the main looper. The SDK uses a JNIEnv cached when its
-     * library loaded - the main thread - so this is where the callbacks have to run. From
-     * any other thread the SDK jumps through a null pointer and takes the game down.
-     *
-     * The interval is deliberately slow; see PUMP_INTERVAL_MS. Making the UI responsive
-     * again means getting the load - and therefore the cached environment - onto a thread of
-     * our own, not pumping from a foreign one.
-     */
-    private static void startPump() {
-        try {
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    try { nativePump(); } catch (Throwable ignored) { }
-                    handler.postDelayed(this, PUMP_INTERVAL_MS);
-                }
-            }, PUMP_INTERVAL_MS);
-        } catch (Throwable t) {
-            say("could not start the callback pump", t);
-        }
-    }
-
     private static boolean ensureStarted() {
         if (sStarted) return true;
         try {
@@ -163,7 +133,8 @@ public final class FearPresence {
                 say("Discord client did not start; presence stays off");
             } else {
                 say("Discord client started; status " + describeStatus());
-                startPump();
+                // Deliberately no pump: Discord_RunCallbacks crashes the process. See the
+                // class comment for the backtrace.
                 watchStatus();
             }
             return sStarted;
@@ -194,6 +165,11 @@ public final class FearPresence {
         }
     }
 
+    /**
+     * Watches the connection for half a minute and writes every change to the launcher's
+     * log, so the file shows how far the client actually gets. This reads an int and cannot
+     * be what crashes - the backtrace points at RunCallbacks, not at this.
+     */
     private static void watchStatus() {
         try {
             final java.util.concurrent.ScheduledExecutorService watcher =
