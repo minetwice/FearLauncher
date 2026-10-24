@@ -49,19 +49,26 @@ jobs:
           fi
           ls -la "$RUNNER_TEMP/engine"
 
-      # VulkanMod bundles LWJGL's native libraries for desktops - windows, linux-x64 and
-      # macos - and this launcher runs on 64-bit ARM, which is not among them. lwjgl-vma,
-      # lwjgl-shaderc and lwjgl-spvc are all loaded as the engine starts, so without their
-      # arm64 natives it dies the moment it creates its allocator:
+      # The engine must use the launcher's LWJGL, not its own.
       #
-      #   UnsatisfiedLinkError: Failed to locate library: liblwjgl_vma.so
-      #   [LWJGL] Platform/architecture mismatch detected for module: org.lwjgl.vma
-      #     Platforms available on classpath: linux/x64 macos/x64 macos/arm64 windows/x64
+      # VulkanMod bundles LWJGL's desktop natives - windows, linux-x64, macos - and the one
+      # it now bundles for linux-arm64 is a glibc build as well: it needs libstdc++.so.6,
+      # which Android does not have, so it cannot be loaded at all:
       #
-      # The arm64 Linux variant is added to the same include list the others use. Fails
-      # loudly if the anchors move: a quietly unapplied patch here is an engine that
-      # builds, installs, starts, and then dies looking for a library that was never in it.
-      - name: Bundle the arm64 natives the engine loads at startup
+      #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
+      #     dlopen failed: library "libstdc++.so.6" not found
+      #
+      # The launcher already has the right ones. zalith-lwjgl builds its game LWJGL from
+      # ZalithLauncher2's Android builds and puts lwjgl-vma, lwjgl-shaderc, lwjgl-spvc and
+      # lwjgl-vulkan on the game classpath as their own jars, built for Android. Bundling
+      # VulkanMod's copies only shadows them.
+      #
+      # So include() is dropped and the plain dependency kept: the engine still compiles
+      # against the same API, nothing is bundled, and at runtime it uses the host's build.
+      # Line-based rather than anchored on exact indentation - a patch that silently stops
+      # applying here produces an engine that builds, installs, finds the device, and then
+      # dies on a native that was never loadable.
+      - name: Use the launcher's LWJGL instead of VulkanMod's desktop copies
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
@@ -70,27 +77,38 @@ jobs:
           import sys
           path = sys.argv[1]
           src = open(path).read()
-          subs = [
-              (
-                  'project.ext.macosArmNatives = "natives-macos-arm64"',
-                  'project.ext.macosArmNatives = "natives-macos-arm64"\n'
-                  'project.ext.linuxArmNatives = "natives-linux-arm64"',
-              ),
-              (
-                  'include(runtimeOnly("$name:$lwjglVersion:$macosArmNatives"))',
-                  'include(runtimeOnly("$name:$lwjglVersion:$macosArmNatives"))\n'
-                  '\t\tinclude(runtimeOnly("$name:$lwjglVersion:$linuxArmNatives"))',
-              ),
-          ]
-          for old, new in subs:
-              if old not in src:
-                  sys.exit("patch target not found in " + path + ": " + old)
-              src = src.replace(old, new, 1)
-          open(path, "w").write(src)
-          print("patched " + path)
+          lines = src.split('\n')
+          out = []
+          removed = []
+          for ln in lines:
+              s = ln.strip()
+              if s.startswith('include(implementation("org.lwjgl:lwjgl-vulkan'):
+                  removed.append(s)
+                  continue
+              if s.startswith('include(runtimeOnly("org.lwjgl:lwjgl-vulkan'):
+                  removed.append(s)
+                  continue
+              if s.startswith('includeNatives('):
+                  removed.append(s)
+                  continue
+              if s.startswith('include(runtimeOnly("$name:'):
+                  removed.append(s)
+                  continue
+              if s.startswith('include(implementation("$name:'):
+                  removed.append(s)
+                  out.append('\timplementation("$name:$lwjglVersion")')
+                  continue
+              out.append(ln)
+          if len(removed) < 8:
+              sys.exit("expected the native includes in " + path + ", found only "
+                       + str(len(removed)) + ": " + "; ".join(removed))
+          open(path, 'w').write('\n'.join(out))
+          print("removed " + str(len(removed)) + " include lines")
+          for r in removed:
+              print("  - " + r)
           PY
-          echo "--- what the patch produced ---"
-          grep -n "linuxArmNatives" "$F"
+          echo "--- lwjgl lines left in build.gradle ---"
+          grep -n "lwjgl" "$F" | head -30
 
       # The engine's surface has to come from vkCreateAndroidSurfaceKHR on this platform,
       # and its instance has to ask for VK_KHR_android_surface. Two lines in Vulkan.java
