@@ -41,6 +41,7 @@ jobs:
           cd "$RUNNER_TEMP/engine"
           mkdir -p build/libs
           echo "engine commit: $(git rev-parse HEAD)"
+          grep -iE 'lwjgl' gradle.properties build.gradle | head -5
 
       - name: Apply our overlay
         run: |
@@ -50,42 +51,26 @@ jobs:
           fi
           ls -la "$RUNNER_TEMP/engine"
 
-      # The engine must link against the launcher's Android LWJGL, not Maven's desktop one.
-      #
-      # VulkanMod needs lwjgl-vulkan, lwjgl-vma, lwjgl-shaderc and lwjgl-spvc to compile and
-      # to run. Maven's builds of them carry glibc natives -
+      # The engine's own Maven dependencies stay - 3.3.3, the version its source is written
+      # against - and so does include(), which is what puts them in the jar. Only the
+      # runtimeOnly natives includes go, because LWJGL's linux natives are glibc builds and
+      # cannot load on Android at all:
       #
       #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
       #     dlopen failed: library "libstdc++.so.6" not found
       #
-      # - and dropping them entirely is worse, because then the classes are missing:
+      # Giving it the launcher's 3.4.1 jars instead is worse, and was tried: 3.4 changed the
+      # callback API, so the engine stops compiling -
       #
-      #   NoClassDefFoundError: org/lwjgl/vulkan/VK10
+      #   ShaderIncluder is not abstract and does not override getCallInterface() in CallbackI
       #
-      # The launcher's own copies are Android builds and are already in this repository, at
-      # zalith-lwjgl/libs/3.4.1/ - that is where zalith-lwjgl takes the jars it puts on the
-      # game classpath. So they are copied into the engine checkout and the build includes
-      # those files instead of the coordinates. Fails loudly if any is missing: a silent
-      # fallback to Maven would put the glibc natives straight back.
+      # - and giving it nothing at all leaves org/lwjgl/vulkan/VK10 missing at runtime.
       #
-      # include(implementation(files(...))) and not include(files(...)): include() takes a
-      # dependency, and a FileCollection is not one.
-      - name: Use the launcher's Android LWJGL
+      # So: bindings from Maven, natives from the launcher. The natives are the next step and
+      # belong in the APK, not in this jar.
+      - name: Drop the desktop natives, keep the bindings
         run: |
           set -uo pipefail
-          SRC="$GITHUB_WORKSPACE/zalith-lwjgl/libs/3.4.1"
-          DST="$RUNNER_TEMP/engine/fear-libs"
-          mkdir -p "$DST"
-          for j in lwjgl-vulkan lwjgl-vma lwjgl-shaderc lwjgl-spvc; do
-            if [ ! -f "$SRC/$j.jar" ]; then
-              echo "missing $SRC/$j.jar"
-              ls -l "$SRC" || true
-              exit 1
-            fi
-            cp "$SRC/$j.jar" "$DST/$j.jar"
-          done
-          ls -l "$DST"
-
           cd "$RUNNER_TEMP/engine"
           F=build.gradle
           python3 - "$F" <<'PY'
@@ -94,35 +79,27 @@ jobs:
           src = open(path).read()
           lines = src.split('\n')
           out = []
-          changed = []
+          dropped = []
           for ln in lines:
               s = ln.strip()
-              if s.startswith('include(implementation("$name:'):
-                  changed.append('REPLACED  ' + s)
-                  out.append('\t\tinclude(implementation(files("fear-libs/" + name.substring(name.lastIndexOf(\':\') + 1) + ".jar")))')
-                  continue
-              if s.startswith('include(implementation("org.lwjgl:lwjgl-vulkan'):
-                  changed.append('REPLACED  ' + s)
-                  out.append('\tinclude(implementation(files("fear-libs/lwjgl-vulkan.jar")))')
-                  continue
               if s.startswith('include(runtimeOnly("$name:'):
-                  changed.append('DROPPED   ' + s)
+                  dropped.append(s)
                   continue
               if s.startswith('include(runtimeOnly("org.lwjgl:lwjgl-vulkan'):
-                  changed.append('DROPPED   ' + s)
+                  dropped.append(s)
                   continue
               out.append(ln)
-          report = ['--- changed ' + str(len(changed)) + ' lines ---']
-          report += ['  ' + c for c in changed]
-          report += ['--- the closure and calls that remain ---']
+          report = ['--- dropped ' + str(len(dropped)) + ' native includes ---']
+          report += ['  - ' + d for d in dropped]
+          report += ['--- the dependency block that remains ---']
           res = '\n'.join(out)
-          i = res.find('ext.includeNatives')
+          i = res.find('include(implementation("org.lwjgl:lwjgl-vulkan')
           if i >= 0:
-              report += (res[i:i + 400]).split('\n')
+              report += (res[i:i + 500]).split('\n')
           open('build/libs/patch-report.txt', 'w').write('\n'.join(report) + '\n')
           print('\n'.join(report))
-          if len(changed) != 8:
-              sys.exit("expected 8 changes in " + path + ", made " + str(len(changed)))
+          if len(dropped) != 6:
+              sys.exit("expected 6 native includes in " + path + ", dropped " + str(len(dropped)))
           open(path, 'w').write('\n'.join(out))
           PY
 
