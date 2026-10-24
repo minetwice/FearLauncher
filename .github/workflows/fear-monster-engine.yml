@@ -67,6 +67,9 @@ jobs:
       # game classpath. So they are copied into the engine checkout and the build includes
       # those files instead of the coordinates. Fails loudly if any is missing: a silent
       # fallback to Maven would put the glibc natives straight back.
+      #
+      # include(implementation(files(...))) and not include(files(...)): include() takes a
+      # dependency, and a FileCollection is not one.
       - name: Use the launcher's Android LWJGL
         run: |
           set -uo pipefail
@@ -96,11 +99,11 @@ jobs:
               s = ln.strip()
               if s.startswith('include(implementation("$name:'):
                   changed.append('REPLACED  ' + s)
-                  out.append('\t\tinclude(files("fear-libs/" + name.substring(name.lastIndexOf(\':\') + 1) + ".jar"))')
+                  out.append('\t\tinclude(implementation(files("fear-libs/" + name.substring(name.lastIndexOf(\':\') + 1) + ".jar")))')
                   continue
               if s.startswith('include(implementation("org.lwjgl:lwjgl-vulkan'):
                   changed.append('REPLACED  ' + s)
-                  out.append('\tinclude(files("fear-libs/lwjgl-vulkan.jar"))')
+                  out.append('\tinclude(implementation(files("fear-libs/lwjgl-vulkan.jar")))')
                   continue
               if s.startswith('include(runtimeOnly("$name:'):
                   changed.append('DROPPED   ' + s)
