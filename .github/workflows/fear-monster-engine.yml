@@ -61,12 +61,13 @@ jobs:
       #
       # The launcher already has the right ones. zalith-lwjgl builds its game LWJGL from
       # ZalithLauncher2's Android builds and puts lwjgl-vma, lwjgl-shaderc, lwjgl-spvc and
-      # lwjgl-vulkan on the game classpath as their own jars, built for Android. Bundling
-      # VulkanMod's copies only shadows them.
+      # lwjgl-vulkan on the game classpath as their own jars, built for Android.
       #
-      # So include() is dropped and the plain dependency kept: the engine still compiles
-      # against the same API, nothing is bundled, and at runtime it uses the host's build.
-      # Line-based rather than anchored on exact indentation.
+      # So include() becomes a plain implementation() inside the closure - the engine still
+      # compiles against the same API - and the runtimeOnly natives includes are dropped.
+      # The includeNatives(...) CALLS stay: they are what makes the closure body run at all,
+      # and removing them along with the includes left the engine with no compile dependency
+      # and no way to build.
       - name: Use the launcher's LWJGL instead of VulkanMod's desktop copies
         run: |
           set -uo pipefail
@@ -78,34 +79,36 @@ jobs:
           src = open(path).read()
           lines = src.split('\n')
           out = []
-          removed = []
+          changed = []
           for ln in lines:
               s = ln.strip()
+              if s.startswith('include(implementation("$name:'):
+                  changed.append('REPLACED  ' + s)
+                  out.append('\t\timplementation("$name:$lwjglVersion")')
+                  continue
               if s.startswith('include(implementation("org.lwjgl:lwjgl-vulkan'):
-                  removed.append(s)
-                  continue
-              if s.startswith('include(runtimeOnly("org.lwjgl:lwjgl-vulkan'):
-                  removed.append(s)
-                  continue
-              if s.startswith('includeNatives('):
-                  removed.append(s)
+                  changed.append('REPLACED  ' + s)
+                  out.append('\timplementation("org.lwjgl:lwjgl-vulkan:$lwjglVersion")')
                   continue
               if s.startswith('include(runtimeOnly("$name:'):
-                  removed.append(s)
+                  changed.append('DROPPED   ' + s)
                   continue
-              if s.startswith('include(implementation("$name:'):
-                  removed.append(s)
-                  out.append('\timplementation("$name:$lwjglVersion")')
+              if s.startswith('include(runtimeOnly("org.lwjgl:lwjgl-vulkan'):
+                  changed.append('DROPPED   ' + s)
                   continue
               out.append(ln)
-          report = ['--- removed ' + str(len(removed)) + ' include lines ---']
-          report += ['  - ' + r for r in removed]
+          report = ['--- changed ' + str(len(changed)) + ' lines ---']
+          report += ['  ' + c for c in changed]
+          report += ['--- the closure and calls that remain ---']
+          res = '\n'.join(out)
+          i = res.find('ext.includeNatives')
+          if i >= 0:
+              report += (res[i:i + 400]).split('\n')
           open('build/libs/patch-report.txt', 'w').write('\n'.join(report) + '\n')
-          if len(removed) < 8:
-              print('\n'.join(report))
-              sys.exit("expected the native includes in " + path + ", found only " + str(len(removed)))
-          open(path, 'w').write('\n'.join(out))
           print('\n'.join(report))
+          if len(changed) != 8:
+              sys.exit("expected 8 changes in " + path + ", made " + str(len(changed)))
+          open(path, 'w').write('\n'.join(out))
           PY
           echo "--- lwjgl lines left in build.gradle ---"
           grep -n "lwjgl" "$F" || true
@@ -149,9 +152,8 @@ jobs:
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
       #
-      # The output goes to build/libs/gradle-build.txt as well as the console. A failure in
-      # this step is otherwise invisible from here, and three attempts have already been
-      # spent guessing at what it might have been.
+      # The output goes to build/libs/gradle-build.txt as well as the console, so a failure
+      # here is readable from the artifact rather than only from a run log.
       - name: Build the engine
         run: |
           set -uo pipefail
@@ -201,7 +203,7 @@ jobs:
       #   fabric.mod.json was the unprocessed one.
       #
       # Everything considered is written to build/libs/publish-report.txt, which the artifact
-      # step picks up: the run log is not always reachable from where this is being worked on.
+      # step picks up.
       - name: Publish the engine to the nightly release
         run: |
           set -uo pipefail
