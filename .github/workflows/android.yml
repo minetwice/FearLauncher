@@ -120,38 +120,62 @@ jobs:
             https://github.com/minetwice/FearLauncher/releases/download/nightly/discord_partner_sdk.aar
           ls -l app_pojavlauncher/libs/
 
-      # The Android builds of LWJGL's lwjgl-vma, lwjgl-shaderc and lwjgl-spvc natives.
+      # The Android builds of LWJGL's lwjgl-vma, lwjgl-shaderc and lwjgl-spvc natives, which
+      # are the three the engine loads as it starts. LWJGL's own natives for them are glibc
+      # builds that cannot load on Android at all, and the launcher's own LWJGL is a 3.4.1
+      # build that does not ship them, so nothing on the device could satisfy
+      # liblwjgl_vma.so.
       #
-      # The engine is built against LWJGL 3.3.3 and loads all three as it starts. LWJGL's own
-      # natives for them are desktop builds whose binaries need libstdc++.so.6, which Android
-      # does not have, so they cannot be loaded here at all:
+      # The AAR is from the AngelAuraMC/lwjgl3 fork (LWJGL itself is BSD-3-Clause and the
+      # fork is public), republished by CopperLauncher, whose launcher enables exactly these
+      # bindings for VulkanMod. Pinned to a commit, not a branch.
       #
-      #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
-      #     dlopen failed: library "libstdc++.so.6" not found
+      # Only those three are kept. The AAR carries the whole of LWJGL for Android, and
+      # Android puts every .so from an AAR into lib/<abi>/ - so shipping all of it put a
+      # 3.3.3 liblwjgl.so in front of the launcher's 3.4.1 one and the JVM died before the
+      # game started:
       #
-      # and the launcher's own LWJGL is a 3.4.1 build that does not ship them either, so
-      # nothing on the device can satisfy liblwjgl_vma.so:
+      #   UnsatisfiedLinkError: 'int org.lwjgl.DefaultSysImplementation.getPointerSize()'
+      #     at org.lwjgl.DesktopSysImplementation.getPointerSize
+      #     at org.lwjgl.Sys.<clinit>
       #
-      #   UnsatisfiedLinkError: Failed to locate library: liblwjgl_vma.so
-      #
-      # This is the Android build of the same modules, produced by the AngelAuraMC/lwjgl3 fork
-      # (LWJGL itself is BSD-3-Clause and the fork is public) and republished by CopperLauncher,
-      # whose launcher enables exactly these bindings for VulkanMod. build.gradle already picks
-      # up every .aar in libs/, so dropping it there is all it takes: Android then packs the
-      # .so files into lib/<abi>/ and LWJGL finds them through java.library.path.
-      #
-      # Pinned to a commit rather than a branch, so nothing upstream can change what ships.
+      # Stripping it here also settles the extraction side: FearMonster copies whatever is
+      # under components/lwjgl-3.3.3-natives/<abi>/ into java.library.path, so three files
+      # in the assets means three files on the path.
       - name: Fetch the Android LWJGL natives
         run: |
           set -euo pipefail
           mkdir -p app_pojavlauncher/libs
           curl -fL --retry 3 -o app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar \
             https://raw.githubusercontent.com/CopperLauncher/Copper-Android/259b7d6ddc6530476afed8e38f80533499b575d8/app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar
+          python3 - <<'PY'
+          import os, zipfile
+          src = 'app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar'
+          keep = ('liblwjgl_vma.so', 'libshaderc.so', 'liblwjgl_spvc.so')
+          tmp = src + '.tmp'
+          dropped = []
+          with zipfile.ZipFile(src) as zin, zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as zout:
+              for item in zin.infolist():
+                  if item.filename.endswith('.so') and not item.filename.endswith(keep):
+                      dropped.append(item.filename)
+                      continue
+                  zout.writestr(item, zin.read(item.filename))
+          os.replace(tmp, src)
+          print('dropped', len(dropped), 'libraries:')
+          for d in dropped:
+              print('  -', d)
+          print('kept only:', ', '.join(keep))
+          PY
           ls -l app_pojavlauncher/libs/
           # Fail loudly if the natives the engine loads are not in it: an AAR without them
           # builds fine and leaves the engine dying on a library that was never there.
           unzip -l app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar | grep -E "liblwjgl_(vma|shaderc|spvc)\.so" || {
             echo "the AAR does not contain liblwjgl_vma/shaderc/spvc"; exit 1; }
+          # And fail loudly if anything else survived, because that is the bug this step exists
+          # to prevent.
+          if unzip -l app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar | grep -E '\.so$' | grep -vE "liblwjgl_(vma|shaderc|spvc)\.so"; then
+            echo "a library the launcher should not ship survived the strip"; exit 1
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
