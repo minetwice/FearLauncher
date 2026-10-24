@@ -39,6 +39,7 @@ jobs:
           set -uo pipefail
           git clone --depth 1 --branch dev https://github.com/xCollateral/VulkanMod.git "$RUNNER_TEMP/engine"
           cd "$RUNNER_TEMP/engine"
+          mkdir -p build/libs
           echo "engine commit: $(git rev-parse HEAD)"
 
       - name: Apply our overlay
@@ -52,8 +53,8 @@ jobs:
       # The engine must use the launcher's LWJGL, not its own.
       #
       # VulkanMod bundles LWJGL's desktop natives - windows, linux-x64, macos - and the one
-      # it now bundles for linux-arm64 is a glibc build as well: it needs libstdc++.so.6,
-      # which Android does not have, so it cannot be loaded at all:
+      # it bundles for linux-arm64 is a glibc build as well: it needs libstdc++.so.6, which
+      # Android does not have, so it cannot be loaded at all:
       #
       #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
       #     dlopen failed: library "libstdc++.so.6" not found
@@ -65,9 +66,7 @@ jobs:
       #
       # So include() is dropped and the plain dependency kept: the engine still compiles
       # against the same API, nothing is bundled, and at runtime it uses the host's build.
-      # Line-based rather than anchored on exact indentation - a patch that silently stops
-      # applying here produces an engine that builds, installs, finds the device, and then
-      # dies on a native that was never loadable.
+      # Line-based rather than anchored on exact indentation.
       - name: Use the launcher's LWJGL instead of VulkanMod's desktop copies
         run: |
           set -uo pipefail
@@ -99,16 +98,17 @@ jobs:
                   out.append('\timplementation("$name:$lwjglVersion")')
                   continue
               out.append(ln)
+          report = ['--- removed ' + str(len(removed)) + ' include lines ---']
+          report += ['  - ' + r for r in removed]
+          open('build/libs/patch-report.txt', 'w').write('\n'.join(report) + '\n')
           if len(removed) < 8:
-              sys.exit("expected the native includes in " + path + ", found only "
-                       + str(len(removed)) + ": " + "; ".join(removed))
+              print('\n'.join(report))
+              sys.exit("expected the native includes in " + path + ", found only " + str(len(removed)))
           open(path, 'w').write('\n'.join(out))
-          print("removed " + str(len(removed)) + " include lines")
-          for r in removed:
-              print("  - " + r)
+          print('\n'.join(report))
           PY
           echo "--- lwjgl lines left in build.gradle ---"
-          grep -n "lwjgl" "$F" | head -30
+          grep -n "lwjgl" "$F" || true
 
       # The engine's surface has to come from vkCreateAndroidSurfaceKHR on this platform,
       # and its instance has to ask for VK_KHR_android_surface. Two lines in Vulkan.java
@@ -144,16 +144,20 @@ jobs:
           print("patched " + path)
           PY
           echo "--- what the patch produced ---"
-          grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F"
+          grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F" || true
 
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
+      #
+      # The output goes to build/libs/gradle-build.txt as well as the console. A failure in
+      # this step is otherwise invisible from here, and three attempts have already been
+      # spent guessing at what it might have been.
       - name: Build the engine
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           chmod +x gradlew
-          ./gradlew --no-daemon build remapJar
+          ./gradlew --no-daemon build remapJar 2>&1 | tee build/libs/gradle-build.txt
           echo "--- every jar the build produced ---"
           find build -name '*.jar' -printf '%s\t%p\n' | sort -rn
 
@@ -242,8 +246,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # always(): a failed publish must not also throw the build away - and the whole
-      # build/libs directory is taken, so the publish report travels with it.
-      - name: Upload the engine jars and the publish report as an artifact
+      # build/libs directory is taken, so the reports and the gradle output travel with it.
+      - name: Upload the engine jars, the reports and the build log as an artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
