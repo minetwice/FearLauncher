@@ -49,6 +49,49 @@ jobs:
           fi
           ls -la "$RUNNER_TEMP/engine"
 
+      # VulkanMod bundles LWJGL's native libraries for desktops - windows, linux-x64 and
+      # macos - and this launcher runs on 64-bit ARM, which is not among them. lwjgl-vma,
+      # lwjgl-shaderc and lwjgl-spvc are all loaded as the engine starts, so without their
+      # arm64 natives it dies the moment it creates its allocator:
+      #
+      #   UnsatisfiedLinkError: Failed to locate library: liblwjgl_vma.so
+      #   [LWJGL] Platform/architecture mismatch detected for module: org.lwjgl.vma
+      #     Platforms available on classpath: linux/x64 macos/x64 macos/arm64 windows/x64
+      #
+      # The arm64 Linux variant is added to the same include list the others use. Fails
+      # loudly if the anchors move: a quietly unapplied patch here is an engine that
+      # builds, installs, starts, and then dies looking for a library that was never in it.
+      - name: Bundle the arm64 natives the engine loads at startup
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=build.gradle
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          subs = [
+              (
+                  'project.ext.macosArmNatives = "natives-macos-arm64"',
+                  'project.ext.macosArmNatives = "natives-macos-arm64"\n'
+                  'project.ext.linuxArmNatives = "natives-linux-arm64"',
+              ),
+              (
+                  'include(runtimeOnly("$name:$lwjglVersion:$macosArmNatives"))',
+                  'include(runtimeOnly("$name:$lwjglVersion:$macosArmNatives"))\n'
+                  '\t\tinclude(runtimeOnly("$name:$lwjglVersion:$linuxArmNatives"))',
+              ),
+          ]
+          for old, new in subs:
+              if old not in src:
+                  sys.exit("patch target not found in " + path + ": " + old)
+              src = src.replace(old, new, 1)
+          open(path, "w").write(src)
+          print("patched " + path)
+          PY
+          echo "--- what the patch produced ---"
+          grep -n "linuxArmNatives" "$F"
+
       # The engine's surface has to come from vkCreateAndroidSurfaceKHR on this platform,
       # and its instance has to ask for VK_KHR_android_surface. Two lines in Vulkan.java
       # carry both.
