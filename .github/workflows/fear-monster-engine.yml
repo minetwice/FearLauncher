@@ -50,27 +50,39 @@ jobs:
           fi
           ls -la "$RUNNER_TEMP/engine"
 
-      # The engine must use the launcher's LWJGL, not its own.
+      # The engine must link against the launcher's Android LWJGL, not Maven's desktop one.
       #
-      # VulkanMod bundles LWJGL's desktop natives - windows, linux-x64, macos - and the one
-      # it bundles for linux-arm64 is a glibc build as well: it needs libstdc++.so.6, which
-      # Android does not have, so it cannot be loaded at all:
+      # VulkanMod needs lwjgl-vulkan, lwjgl-vma, lwjgl-shaderc and lwjgl-spvc to compile and
+      # to run. Maven's builds of them carry glibc natives -
       #
       #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
       #     dlopen failed: library "libstdc++.so.6" not found
       #
-      # The launcher already has the right ones. zalith-lwjgl builds its game LWJGL from
-      # ZalithLauncher2's Android builds and puts lwjgl-vma, lwjgl-shaderc, lwjgl-spvc and
-      # lwjgl-vulkan on the game classpath as their own jars, built for Android.
+      # - and dropping them entirely is worse, because then the classes are missing:
       #
-      # So include() becomes a plain implementation() inside the closure - the engine still
-      # compiles against the same API - and the runtimeOnly natives includes are dropped.
-      # The includeNatives(...) CALLS stay: they are what makes the closure body run at all,
-      # and removing them along with the includes left the engine with no compile dependency
-      # and no way to build.
-      - name: Use the launcher's LWJGL instead of VulkanMod's desktop copies
+      #   NoClassDefFoundError: org/lwjgl/vulkan/VK10
+      #
+      # The launcher's own copies are Android builds and are already in this repository, at
+      # zalith-lwjgl/libs/3.4.1/ - that is where zalith-lwjgl takes the jars it puts on the
+      # game classpath. So they are copied into the engine checkout and the build includes
+      # those files instead of the coordinates. Fails loudly if any is missing: a silent
+      # fallback to Maven would put the glibc natives straight back.
+      - name: Use the launcher's Android LWJGL
         run: |
           set -uo pipefail
+          SRC="$GITHUB_WORKSPACE/zalith-lwjgl/libs/3.4.1"
+          DST="$RUNNER_TEMP/engine/fear-libs"
+          mkdir -p "$DST"
+          for j in lwjgl-vulkan lwjgl-vma lwjgl-shaderc lwjgl-spvc; do
+            if [ ! -f "$SRC/$j.jar" ]; then
+              echo "missing $SRC/$j.jar"
+              ls -l "$SRC" || true
+              exit 1
+            fi
+            cp "$SRC/$j.jar" "$DST/$j.jar"
+          done
+          ls -l "$DST"
+
           cd "$RUNNER_TEMP/engine"
           F=build.gradle
           python3 - "$F" <<'PY'
@@ -84,11 +96,11 @@ jobs:
               s = ln.strip()
               if s.startswith('include(implementation("$name:'):
                   changed.append('REPLACED  ' + s)
-                  out.append('\t\timplementation("$name:$lwjglVersion")')
+                  out.append('\t\tinclude(files("fear-libs/" + name.substring(name.lastIndexOf(\':\') + 1) + ".jar"))')
                   continue
               if s.startswith('include(implementation("org.lwjgl:lwjgl-vulkan'):
                   changed.append('REPLACED  ' + s)
-                  out.append('\timplementation("org.lwjgl:lwjgl-vulkan:$lwjglVersion")')
+                  out.append('\tinclude(files("fear-libs/lwjgl-vulkan.jar"))')
                   continue
               if s.startswith('include(runtimeOnly("$name:'):
                   changed.append('DROPPED   ' + s)
@@ -110,8 +122,6 @@ jobs:
               sys.exit("expected 8 changes in " + path + ", made " + str(len(changed)))
           open(path, 'w').write('\n'.join(out))
           PY
-          echo "--- lwjgl lines left in build.gradle ---"
-          grep -n "lwjgl" "$F" || true
 
       # The engine's surface has to come from vkCreateAndroidSurfaceKHR on this platform,
       # and its instance has to ask for VK_KHR_android_surface. Two lines in Vulkan.java
