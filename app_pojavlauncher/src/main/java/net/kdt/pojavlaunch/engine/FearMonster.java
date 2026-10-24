@@ -67,6 +67,20 @@ public final class FearMonster {
             "https://github.com/minetwice/FearLauncher/releases/download/nightly/"
                     + "fear-monster-engine-%s.jar";
 
+    /**
+     * The three libraries the engine and the JVM need, and where the Android builds of them
+     * come from. libfreetype.so is here because the JVM's own libfontmanager.so links against
+     * it; the other two because the engine loads them as it starts.
+     */
+    private static final String NATIVE_VMA = "liblwjgl_vma.so";
+    private static final java.util.List<String> NATIVE_FILES = java.util.Arrays.asList(
+            NATIVE_VMA, "libshaderc.so", "libfreetype.so");
+    private static final String NATIVE_ASSET_DIR = "components/lwjgl-3.3.3-natives";
+    private static final String NATIVE_URL =
+            "https://raw.githubusercontent.com/CopperLauncher/Copper-Android/"
+                    + "259b7d6ddc6530476afed8e38f80533499b575d8/app_pojavlauncher/libs/"
+                    + "lwjgl-3.3.3-natives-release.aar";
+
     /** The renderer id that means "the engine owns the frame". */
     public static final String RENDERER_ID = "fear_monster";
 
@@ -214,57 +228,122 @@ public final class FearMonster {
     }
 
     /**
-     * Copies the engine's LWJGL natives out of the APK's assets, into the directory the
-     * launcher already puts on java.library.path.
-     *
-     * <p>The natives reach the APK as assets, under components/lwjgl-3.3.3-natives/&lt;abi&gt;/,
-     * and Android only moves libraries from jni/&lt;abi&gt;/ into lib/&lt;abi&gt;/ - so as things
-     * stand nothing extracts them and the engine cannot find its allocator at all:
-     *
-     * <pre>UnsatisfiedLinkError: Failed to locate library: liblwjgl_vma.so</pre>
+     * Makes sure the LWJGL natives are where the JVM and the engine look for them.
      *
      * <p>The launcher's java.library.path already contains &lt;cache&gt;/natives/&lt;version id&gt;, so
-     * a copy into there is the whole of it. This is the same thing PojavLauncher and
-     * CopperLauncher do with their own copies of these files, for the same reason.
+     * writing them there is the whole of it. If the APK ships them under
+     * components/lwjgl-3.3.3-natives/&lt;abi&gt;/ they are copied from there; if it does not, they
+     * are fetched. This is the same thing PojavLauncher and CopperLauncher do with their own
+     * copies of these files, for the same reason.
      */
     public static void extractNatives(String versionId) {
         try {
             if (versionId == null || versionId.isEmpty()) return;
             android.content.Context context =
                     net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
-            if (context == null) {
-                trace("no application context; LWJGL natives not extracted");
-                return;
-            }
             File dir = new File(Tools.DIR_CACHE, "natives/" + versionId);
             if (!dir.isDirectory() && !dir.mkdirs()) {
                 trace("could not create " + dir);
                 return;
             }
-            String assetDir = "components/lwjgl-3.3.3-natives/" + abiDir();
-            String[] names = context.getAssets().list(assetDir);
-            if (names == null || names.length == 0) {
-                trace("no LWJGL natives in the APK under " + assetDir);
-                return;
+            int copied = copyNativesFromAssets(context, dir);
+            // The APK may not carry them at all - the build that packages this launcher has
+            // changed more than once over what to put in jniLibs. When they are missing, they
+            // are fetched, the same way the engine jar is: one download, and the directory
+            // they land in is already on java.library.path.
+            if (!new File(dir, NATIVE_VMA).isFile()) {
+                copied += fetchNatives(dir);
             }
+            trace("LWJGL natives: " + copied + " written to " + dir);
+        } catch (Throwable t) {
+            Log.w(TAG, "could not prepare the LWJGL natives", t);
+            trace("could not prepare the LWJGL natives: " + t);
+        }
+    }
+
+    /** Copies whatever the APK ships under the natives asset directory. Returns how many. */
+    private static int copyNativesFromAssets(android.content.Context context, File dir) {
+        try {
+            if (context == null) return 0;
+            String assetDir = NATIVE_ASSET_DIR + "/" + abiDir();
+            String[] names = context.getAssets().list(assetDir);
+            if (names == null || names.length == 0) return 0;
             int copied = 0;
             for (String name : names) {
                 File out = new File(dir, name);
                 if (out.isFile() && out.length() > 0) continue;
                 try (java.io.InputStream in = context.getAssets().open(assetDir + "/" + name);
                      java.io.OutputStream os = new java.io.FileOutputStream(out)) {
-                    byte[] buffer = new byte[16384];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) os.write(buffer, 0, read);
+                    copy(in, os);
                 }
                 copied++;
             }
-            trace("LWJGL natives: " + names.length + " in the APK, " + copied
-                    + " copied to " + dir);
+            return copied;
         } catch (Throwable t) {
-            Log.w(TAG, "could not extract the LWJGL natives", t);
-            trace("could not extract the LWJGL natives: " + t);
+            trace("assets had no usable natives: " + t);
+            return 0;
         }
+    }
+
+    /**
+     * Fetches the three libraries and writes them into {@code dir}, which is on
+     * java.library.path.
+     *
+     * <p>They come out of the Android build of LWJGL's lwjgl-vma and lwjgl-shaderc, plus
+     * libfreetype, packed by the AngelAuraMC/lwjgl3 fork and republished by CopperLauncher.
+     * LWJGL's own natives for these are glibc builds that cannot load on Android at all, and
+     * the launcher's own LWJGL does not ship them, so nothing on the device can satisfy
+     * liblwjgl_vma.so without this.
+     *
+     * <p>The whole archive is fetched and the three are taken out of it. It is larger than
+     * the three files, but it is one request against a stable public URL, it needs no build
+     * step, and it cannot silently ship a library the launcher already has - which is what
+     * broke the JVM twice while this was being done at packaging time.
+     */
+    private static int fetchNatives(File dir) {
+        File archive = new File(dir, "natives.aar");
+        try {
+            trace("fetching the Android LWJGL natives");
+            if (download(NATIVE_URL, archive) != 200) {
+                trace("could not download " + NATIVE_URL);
+                archive.delete();
+                return 0;
+            }
+            String abi = abiDir();
+            int written = 0;
+            try (java.util.zip.ZipInputStream zip =
+                         new java.util.zip.ZipInputStream(new java.io.FileInputStream(archive))) {
+                java.util.zip.ZipEntry entry;
+                while ((entry = zip.getNextEntry()) != null) {
+                    String name = entry.getName();
+                    if (entry.isDirectory()) continue;
+                    String base = name.substring(name.lastIndexOf('/') + 1);
+                    if (!NATIVE_FILES.contains(base)) continue;
+                    // .../<abi>/<name>; take the ABI this device actually runs.
+                    if (!name.contains("/" + abi + "/")) continue;
+                    File out = new File(dir, base);
+                    try (java.io.OutputStream os = new java.io.FileOutputStream(out)) {
+                        copy(zip, os);
+                    }
+                    written++;
+                    trace("  wrote " + out.getName() + " (" + out.length() + " bytes)");
+                }
+            }
+            archive.delete();
+            return written;
+        } catch (Throwable t) {
+            Log.w(TAG, "could not fetch the LWJGL natives", t);
+            trace("could not fetch the LWJGL natives: " + t);
+            archive.delete();
+            return 0;
+        }
+    }
+
+    /** Streams one stream into another. */
+    private static void copy(java.io.InputStream in, java.io.OutputStream os) throws java.io.IOException {
+        byte[] buffer = new byte[16384];
+        int read;
+        while ((read = in.read(buffer)) != -1) os.write(buffer, 0, read);
     }
 
     /** The ABI whose natives this device needs. */
