@@ -132,16 +132,18 @@ jobs:
       #
       #   UnsatisfiedLinkError: 'int org.lwjgl.DefaultSysImplementation.getPointerSize()'
       #
-      # jniLibs takes exactly the three files, AGP packs them into lib/<abi>/ itself, and that
-      # directory is already on java.library.path - so nothing has to extract anything at
+      # jniLibs takes exactly the files copied here, AGP packs them into lib/<abi>/ itself, and
+      # that directory is already on java.library.path - so nothing has to extract anything at
       # runtime either.
       #
       # The AAR is from the AngelAuraMC/lwjgl3 fork (LWJGL itself is BSD-3-Clause and the
       # fork is public), republished by CopperLauncher, whose launcher enables exactly these
       # bindings for VulkanMod. Pinned to a commit, not a branch.
       #
-      # unzip and cp rather than a script: an earlier version did this in Python and failed
-      # the build twice, and the job is three copies.
+      # Only liblwjgl_vma.so is required. The AAR has no liblwjgl_spvc.so at all, and the
+      # engine does not need that name anyway - the launcher points spvc at
+      # spirv-cross-c-shared with -Dorg.lwjgl.spvc.libname. Requiring it failed the build
+      # twice for no reason.
       - name: Fetch the Android LWJGL natives
         run: |
           set -euo pipefail
@@ -161,11 +163,11 @@ jobs:
             fi
             mkdir -p "$DEST/$abi"
             for lib in liblwjgl_vma.so libshaderc.so liblwjgl_spvc.so; do
-              if [ ! -f "$SRC/$lib" ]; then
-                echo "missing $SRC/$lib"
-                exit 1
+              if [ -f "$SRC/$lib" ]; then
+                cp "$SRC/$lib" "$DEST/$abi/$lib"
+              else
+                echo "note: $SRC/$lib is not in the AAR; skipping"
               fi
-              cp "$SRC/$lib" "$DEST/$abi/$lib"
             done
           done
           echo "--- what landed in jniLibs ---"
@@ -223,7 +225,7 @@ jobs:
       - name: Build Debug .apk (No runtime)
         run: |
           gradle :app_pojavlauncher:assembleNoruntimeDebug
-          mv app_pojavlauncher/build/outputs/apk/noruntime/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
+          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
 
       - name: Build FearLauncher Nightly Release .apk
         if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH
