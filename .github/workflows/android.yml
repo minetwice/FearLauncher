@@ -132,48 +132,48 @@ jobs:
       #
       #   UnsatisfiedLinkError: 'int org.lwjgl.DefaultSysImplementation.getPointerSize()'
       #
-      # Rewriting the AAR to keep three libraries was tried and failed the build, and it is
-      # the wrong shape anyway: jniLibs takes exactly the three files, AGP packs them into
-      # lib/<abi>/ itself, and that directory is already on java.library.path - so nothing has
-      # to extract anything at runtime either.
+      # jniLibs takes exactly the three files, AGP packs them into lib/<abi>/ itself, and that
+      # directory is already on java.library.path - so nothing has to extract anything at
+      # runtime either.
       #
       # The AAR is from the AngelAuraMC/lwjgl3 fork (LWJGL itself is BSD-3-Clause and the
       # fork is public), republished by CopperLauncher, whose launcher enables exactly these
       # bindings for VulkanMod. Pinned to a commit, not a branch.
+      #
+      # unzip and cp rather than a script: an earlier version did this in Python and failed
+      # the build twice, and the job is three copies.
       - name: Fetch the Android LWJGL natives
         run: |
           set -euo pipefail
           curl -fL --retry 3 -o /tmp/lwjgl-natives.aar \
             https://raw.githubusercontent.com/CopperLauncher/Copper-Android/259b7d6ddc6530476afed8e38f80533499b575d8/app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar
-          python3 - <<'PY'
-          import os, zipfile
-          src = '/tmp/lwjgl-natives.aar'
-          keep = ('liblwjgl_vma.so', 'libshaderc.so', 'liblwjgl_spvc.so')
-          root = 'app_pojavlauncher/src/main/jniLibs'
-          written = []
-          with zipfile.ZipFile(src) as z:
-              for name in z.namelist():
-                  base = name.rsplit('/', 1)[-1]
-                  if base not in keep:
-                      continue
-                  abi = name.split('/')[-2]
-                  out = os.path.join(root, abi, base)
-                  os.makedirs(os.path.dirname(out), exist_ok=True)
-                  with z.open(name) as fin, open(out, 'wb') as fout:
-                      fout.write(fin.read())
-                  written.append(out)
-          print('wrote', len(written), 'libraries:')
-          for w in written:
-              print('  ', w)
-          if len(written) < 3:
-              raise SystemExit('expected at least the three natives, wrote ' + str(len(written)))
-          PY
+          rm -rf /tmp/lwjglx
+          mkdir -p /tmp/lwjglx
+          unzip -q /tmp/lwjgl-natives.aar -d /tmp/lwjglx
+          echo "--- what the AAR carries ---"
+          ls -l /tmp/lwjglx/assets/components/lwjgl-3.3.3-natives/ || true
+          DEST="$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs"
+          rm -rf "$DEST"
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            SRC="/tmp/lwjglx/assets/components/lwjgl-3.3.3-natives/$abi"
+            if [ ! -d "$SRC" ]; then
+              continue
+            fi
+            mkdir -p "$DEST/$abi"
+            for lib in liblwjgl_vma.so libshaderc.so liblwjgl_spvc.so; do
+              if [ ! -f "$SRC/$lib" ]; then
+                echo "missing $SRC/$lib"
+                exit 1
+              fi
+              cp "$SRC/$lib" "$DEST/$abi/$lib"
+            done
+          done
           echo "--- what landed in jniLibs ---"
-          find app_pojavlauncher/src/main/jniLibs -type f -printf '%s\t%p\n' | sort -k2
-          # Only the three names may be here. Anything else is a library the launcher already
-          # has, and shipping it again is what broke the JVM.
-          if find app_pojavlauncher/src/main/jniLibs -type f ! -name 'liblwjgl_vma.so' ! -name 'libshaderc.so' ! -name 'liblwjgl_spvc.so' | grep -q .; then
-            echo "a library the launcher should not ship landed in jniLibs"; exit 1
+          find "$DEST" -type f -printf '%s  %p\n' | sort -k2
+          # Fail loudly rather than build an APK without them.
+          if [ -z "$(find "$DEST" -type f -name 'liblwjgl_vma.so' -print -quit)" ]; then
+            echo "no liblwjgl_vma.so was placed in jniLibs"
+            exit 1
           fi
 
       - name: Set up JDK 17
