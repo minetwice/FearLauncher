@@ -120,81 +120,20 @@ jobs:
             https://github.com/minetwice/FearLauncher/releases/download/nightly/discord_partner_sdk.aar
           ls -l app_pojavlauncher/libs/
 
-      # The Android builds of LWJGL's lwjgl-vma and lwjgl-shaderc natives, which are the two
-      # the engine loads as it starts, plus libfreetype.so, which the JVM itself needs.
+      # The engine's LWJGL natives are NOT placed here any more.
       #
-      # LWJGL's own natives for those two are glibc builds that cannot load on Android at all,
-      # and the launcher's own LWJGL is a 3.4.1 build that does not ship them, so nothing on
-      # the device could satisfy liblwjgl_vma.so.
+      # Four attempts at packaging them - the whole AAR, a rewritten AAR, jniLibs with three
+      # files, jniLibs with three files plus libfreetype - each failed somewhere different,
+      # and two of them left the launcher unable to start the JVM at all. The last one broke
+      # the noruntime build, which has nothing to do with the engine.
       #
-      # They go into jniLibs, not into libs as an AAR. An AAR puts every .so it contains into
-      # lib/<abi>/, and this one carries the whole of LWJGL for Android - so shipping it whole
-      # put a 3.3.3 liblwjgl.so in front of the launcher's 3.4.1 one and the JVM died before
-      # the game started:
+      # The launcher fetches them itself now, at startup, the same way it fetches the engine
+      # jar: FearMonster takes liblwjgl_vma.so, libshaderc.so and libfreetype.so out of the
+      # Android LWJGL archive and writes them to <cache>/natives/<version id>, which is
+      # already on java.library.path. See FearMonster.extractNatives.
       #
-      #   UnsatisfiedLinkError: 'int org.lwjgl.DefaultSysImplementation.getPointerSize()'
-      #
-      # jniLibs takes exactly the files copied here, AGP packs them into lib/<abi>/ itself, and
-      # that directory is already on java.library.path - so nothing has to extract anything at
-      # runtime either.
-      #
-      # libfreetype.so is copied because the JVM's own libfontmanager.so links against it, and
-      # it used to arrive with the whole AAR:
-      #
-      #   UnsatisfiedLinkError: .../runtimes/Internal-21/lib/libfontmanager.so:
-      #     dlopen failed: library "libfreetype.so" not found
-      #
-      # Nothing is deleted from jniLibs - only copied into - so a library that was already
-      # there cannot disappear without a word.
-      #
-      # The AAR is from the AngelAuraMC/lwjgl3 fork (LWJGL itself is BSD-3-Clause and the
-      # fork is public), republished by CopperLauncher, whose launcher enables exactly these
-      # bindings for VulkanMod. Pinned to a commit, not a branch.
-      #
-      # Only liblwjgl_vma.so is required. The AAR has no liblwjgl_spvc.so at all, and the
-      # engine does not need that name anyway - the launcher points spvc at
-      # spirv-cross-c-shared with -Dorg.lwjgl.spvc.libname.
-      - name: Fetch the Android LWJGL natives
-        run: |
-          set -euo pipefail
-          curl -fL --retry 3 -o /tmp/lwjgl-natives.aar \
-            https://raw.githubusercontent.com/CopperLauncher/Copper-Android/259b7d6ddc6530476afed8e38f80533499b575d8/app_pojavlauncher/libs/lwjgl-3.3.3-natives-release.aar
-          rm -rf /tmp/lwjglx
-          mkdir -p /tmp/lwjglx
-          unzip -q /tmp/lwjgl-natives.aar -d /tmp/lwjglx
-          echo "--- what the AAR carries ---"
-          ls -l /tmp/lwjglx/assets/components/lwjgl-3.3.3-natives/ || true
-          DEST="$GITHUB_WORKSPACE/app_pojavlauncher/src/main/jniLibs"
-          mkdir -p "$DEST"
-          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            SRC="/tmp/lwjglx/assets/components/lwjgl-3.3.3-natives/$abi"
-            if [ ! -d "$SRC" ]; then
-              continue
-            fi
-            mkdir -p "$DEST/$abi"
-            # libfreetype.so is here because the JVM's own libfontmanager.so needs it:
-            #
-            #   UnsatisfiedLinkError: .../runtimes/Internal-21/lib/libfontmanager.so:
-            #     dlopen failed: library "libfreetype.so" not found
-            #
-            # It used to arrive with the whole AAR. Copying only the engine's natives took it
-            # away and stopped the JVM before the game could start, which is a worse outcome
-            # than the problem the strip was fixing.
-            for lib in liblwjgl_vma.so libshaderc.so liblwjgl_spvc.so libfreetype.so; do
-              if [ -f "$SRC/$lib" ]; then
-                cp "$SRC/$lib" "$DEST/$abi/$lib"
-              else
-                echo "note: $SRC/$lib is not in the AAR; skipping"
-              fi
-            done
-          done
-          echo "--- what landed in jniLibs ---"
-          find "$DEST" -type f -printf '%s  %p\n' | sort -k2
-          # Fail loudly rather than build an APK without them.
-          if [ -z "$(find "$DEST" -type f -name 'liblwjgl_vma.so' -print -quit)" ]; then
-            echo "no liblwjgl_vma.so was placed in jniLibs"
-            exit 1
-          fi
+      # That keeps this file out of it entirely, and a mistake is a line in trace.txt on the
+      # device rather than a red build and a guess.
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -243,7 +182,7 @@ jobs:
       - name: Build Debug .apk (No runtime)
         run: |
           gradle :app_pojavlauncher:assembleNoruntimeDebug
-          mv app_pojavlauncher/build/outputs/apk/noruntime/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
+          mv app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk out/FearLauncher-debug-noruntime.apk
 
       - name: Build FearLauncher Nightly Release .apk
         if: github.repository_owner == 'minetwice' && github.ref_name == env.FEARLAUNCHER_RELEASE_BRANCH
