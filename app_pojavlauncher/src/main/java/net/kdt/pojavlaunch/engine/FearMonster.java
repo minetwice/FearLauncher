@@ -181,6 +181,7 @@ public final class FearMonster {
                 trace("engine is off in settings; nothing is fetched");
                 return;
             }
+            extractNatives(versionId);
             if (versionId == null || versionId.isEmpty()) {
                 trace("no version selected; nothing is fetched");
                 return;
@@ -210,6 +211,71 @@ public final class FearMonster {
             Log.w(TAG, "engine fetch could not be started", t);
             trace("fetch could not be started: " + t);
         }
+    }
+
+    /**
+     * Copies the engine's LWJGL natives out of the APK's assets, into the directory the
+     * launcher already puts on java.library.path.
+     *
+     * <p>The natives reach the APK as assets, under components/lwjgl-3.3.3-natives/&lt;abi&gt;/,
+     * and Android only moves libraries from jni/&lt;abi&gt;/ into lib/&lt;abi&gt;/ - so as things
+     * stand nothing extracts them and the engine cannot find its allocator at all:
+     *
+     * <pre>UnsatisfiedLinkError: Failed to locate library: liblwjgl_vma.so</pre>
+     *
+     * <p>The launcher's java.library.path already contains &lt;cache&gt;/natives/&lt;version id&gt;, so
+     * a copy into there is the whole of it. This is the same thing PojavLauncher and
+     * CopperLauncher do with their own copies of these files, for the same reason.
+     */
+    public static void extractNatives(String versionId) {
+        try {
+            if (versionId == null || versionId.isEmpty()) return;
+            android.content.Context context =
+                    net.kdt.pojavlaunch.lifecycle.ContextExecutor.getApplication();
+            if (context == null) {
+                trace("no application context; LWJGL natives not extracted");
+                return;
+            }
+            File dir = new File(Tools.DIR_CACHE, "natives/" + versionId);
+            if (!dir.isDirectory() && !dir.mkdirs()) {
+                trace("could not create " + dir);
+                return;
+            }
+            String assetDir = "components/lwjgl-3.3.3-natives/" + abiDir();
+            String[] names = context.getAssets().list(assetDir);
+            if (names == null || names.length == 0) {
+                trace("no LWJGL natives in the APK under " + assetDir);
+                return;
+            }
+            int copied = 0;
+            for (String name : names) {
+                File out = new File(dir, name);
+                if (out.isFile() && out.length() > 0) continue;
+                try (java.io.InputStream in = context.getAssets().open(assetDir + "/" + name);
+                     java.io.OutputStream os = new java.io.FileOutputStream(out)) {
+                    byte[] buffer = new byte[16384];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) os.write(buffer, 0, read);
+                }
+                copied++;
+            }
+            trace("LWJGL natives: " + names.length + " in the APK, " + copied
+                    + " copied to " + dir);
+        } catch (Throwable t) {
+            Log.w(TAG, "could not extract the LWJGL natives", t);
+            trace("could not extract the LWJGL natives: " + t);
+        }
+    }
+
+    /** The ABI whose natives this device needs. */
+    private static String abiDir() {
+        try {
+            String[] abis = android.os.Build.SUPPORTED_ABIS;
+            if (abis != null && abis.length > 0 && abis[0] != null && !abis[0].isEmpty()) {
+                return abis[0];
+            }
+        } catch (Throwable ignored) { }
+        return "arm64-v8a";
     }
 
     private static void fetch(String versionId) {
