@@ -129,12 +129,14 @@ jobs:
       #
       # destroySyncObjects loops over swapChain.getImagesNum(), but recreateSwapChain()
       # calls swapChain.recreate() first, so that count is the NEW one while
-      # renderFinishedSemaphores still holds the OLD one. It only bites when the swapchain is
-      # rebuilt - which on Android is the first frame, because the surface arrives after the
-      # swapchain was first built.
+      # renderFinishedSemaphores still holds the OLD one - and the loop walks off the end by
+      # exactly the difference. It only bites when the swapchain is rebuilt, which on Android
+      # is the first frame, because the surface arrives after the swapchain was first built.
       #
-      # The loops ask each list for its own size instead, and the two lists built with
-      # framesNum are split apart because framesNum is reassigned a few lines later.
+      # One line, so the patch is a single literal and there is nothing for the YAML to
+      # misread: an earlier version of this step carried the whole method in a multi-line
+      # literal whose lines were indented less than the block scalar, which ended the block
+      # early and left the workflow unparseable - the run had no jobs at all.
       - name: Fix the swapchain teardown
         run: |
           set -uo pipefail
@@ -144,46 +146,16 @@ jobs:
           import sys
           path = sys.argv[1]
           src = open(path).read()
-          old = '''    private void destroySyncObjects() {
-        for (int i = 0; i < framesNum; ++i) {
-            vkDestroyFence(device, inFlightFences.get(i), null);
-            vkDestroySemaphore(device, imageAvailableSemaphores.get(i), null);
-        }
-
-        for (int i = 0; i < swapChain.getImagesNum(); ++i) {
-            vkDestroySemaphore(device, renderFinishedSemaphores.get(i), null);
-        }
-    }'''
-          new = '''    private void destroySyncObjects() {
-        // FEAR: ask each list for its own size, not the swapchain for its image count.
-        // recreateSwapChain() calls swapChain.recreate() before it calls this, so
-        // getImagesNum() is the NEW count while renderFinishedSemaphores still holds the
-        // old one, and the loop walks off the end by the difference:
-        //
-        //   IndexOutOfBoundsException: Index 8 out of bounds for length 8
-        //
-        // This fires on the first frame whenever the swapchain is rebuilt, which on
-        // Android is always: the surface arrives after the swapchain was first built.
-        for (int i = 0; i < inFlightFences.size(); ++i) {
-            vkDestroyFence(device, inFlightFences.get(i), null);
-        }
-
-        for (int i = 0; i < imageAvailableSemaphores.size(); ++i) {
-            vkDestroySemaphore(device, imageAvailableSemaphores.get(i), null);
-        }
-
-        for (int i = 0; i < renderFinishedSemaphores.size(); ++i) {
-            vkDestroySemaphore(device, renderFinishedSemaphores.get(i), null);
-        }
-    }'''
+          old = 'for (int i = 0; i < swapChain.getImagesNum(); ++i) {'
+          new = 'for (int i = 0; i < renderFinishedSemaphores.size(); ++i) {'
           if old not in src:
-              sys.exit("destroySyncObjects does not look like this any more in " + path)
+              sys.exit("the swapchain teardown loop is not in " + path + " any more")
           src = src.replace(old, new, 1)
           open(path, "w").write(src)
-          print("patched destroySyncObjects in " + path)
+          print("patched the swapchain teardown in " + path)
           PY
           echo "--- what the patch produced ---"
-          grep -n -A 3 "for (int i = 0; i < renderFinishedSemaphores.size" "$F" || true
+          grep -n "renderFinishedSemaphores.size()" "$F" || true
 
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
