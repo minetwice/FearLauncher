@@ -41,7 +41,6 @@ jobs:
           cd "$RUNNER_TEMP/engine"
           mkdir -p build/libs
           echo "engine commit: $(git rev-parse HEAD)"
-          grep -iE 'lwjgl' gradle.properties build.gradle | head -5
 
       - name: Apply our overlay
         run: |
@@ -54,20 +53,7 @@ jobs:
       # The engine's own Maven dependencies stay - 3.3.3, the version its source is written
       # against - and so does include(), which is what puts them in the jar. Only the
       # runtimeOnly natives includes go, because LWJGL's linux natives are glibc builds and
-      # cannot load on Android at all:
-      #
-      #   UnsatisfiedLinkError: .../liblwjgl_vma.so:
-      #     dlopen failed: library "libstdc++.so.6" not found
-      #
-      # Giving it the launcher's 3.4.1 jars instead is worse, and was tried: 3.4 changed the
-      # callback API, so the engine stops compiling -
-      #
-      #   ShaderIncluder is not abstract and does not override getCallInterface() in CallbackI
-      #
-      # - and giving it nothing at all leaves org/lwjgl/vulkan/VK10 missing at runtime.
-      #
-      # So: bindings from Maven, natives from the launcher. The natives are the next step and
-      # belong in the APK, not in this jar.
+      # cannot load on Android at all. The natives are the launcher's job and ship in the APK.
       - name: Drop the desktop natives, keep the bindings
         run: |
           set -uo pipefail
@@ -91,11 +77,6 @@ jobs:
               out.append(ln)
           report = ['--- dropped ' + str(len(dropped)) + ' native includes ---']
           report += ['  - ' + d for d in dropped]
-          report += ['--- the dependency block that remains ---']
-          res = '\n'.join(out)
-          i = res.find('include(implementation("org.lwjgl:lwjgl-vulkan')
-          if i >= 0:
-              report += (res[i:i + 500]).split('\n')
           open('build/libs/patch-report.txt', 'w').write('\n'.join(report) + '\n')
           print('\n'.join(report))
           if len(dropped) != 6:
@@ -139,11 +120,73 @@ jobs:
           echo "--- what the patch produced ---"
           grep -n "FearAndroidSurface\|VK_KHR_android_surface" "$F" || true
 
+      # The first frame died in the swapchain teardown:
+      #
+      #   IndexOutOfBoundsException: Index 8 out of bounds for length 8
+      #     at Renderer.destroySyncObjects(Renderer.java:626)
+      #     at Renderer.recreateSwapChain(Renderer.java:580)
+      #     at Renderer.beginFrame(Renderer.java:238)
+      #
+      # destroySyncObjects loops over swapChain.getImagesNum(), but recreateSwapChain()
+      # calls swapChain.recreate() first, so that count is the NEW one while
+      # renderFinishedSemaphores still holds the OLD one. It only bites when the swapchain is
+      # rebuilt - which on Android is the first frame, because the surface arrives after the
+      # swapchain was first built.
+      #
+      # The loops ask each list for its own size instead, and the two lists built with
+      # framesNum are split apart because framesNum is reassigned a few lines later.
+      - name: Fix the swapchain teardown
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=src/main/java/net/vulkanmod/vulkan/Renderer.java
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          old = '''    private void destroySyncObjects() {
+        for (int i = 0; i < framesNum; ++i) {
+            vkDestroyFence(device, inFlightFences.get(i), null);
+            vkDestroySemaphore(device, imageAvailableSemaphores.get(i), null);
+        }
+
+        for (int i = 0; i < swapChain.getImagesNum(); ++i) {
+            vkDestroySemaphore(device, renderFinishedSemaphores.get(i), null);
+        }
+    }'''
+          new = '''    private void destroySyncObjects() {
+        // FEAR: ask each list for its own size, not the swapchain for its image count.
+        // recreateSwapChain() calls swapChain.recreate() before it calls this, so
+        // getImagesNum() is the NEW count while renderFinishedSemaphores still holds the
+        // old one, and the loop walks off the end by the difference:
+        //
+        //   IndexOutOfBoundsException: Index 8 out of bounds for length 8
+        //
+        // This fires on the first frame whenever the swapchain is rebuilt, which on
+        // Android is always: the surface arrives after the swapchain was first built.
+        for (int i = 0; i < inFlightFences.size(); ++i) {
+            vkDestroyFence(device, inFlightFences.get(i), null);
+        }
+
+        for (int i = 0; i < imageAvailableSemaphores.size(); ++i) {
+            vkDestroySemaphore(device, imageAvailableSemaphores.get(i), null);
+        }
+
+        for (int i = 0; i < renderFinishedSemaphores.size(); ++i) {
+            vkDestroySemaphore(device, renderFinishedSemaphores.get(i), null);
+        }
+    }'''
+          if old not in src:
+              sys.exit("destroySyncObjects does not look like this any more in " + path)
+          src = src.replace(old, new, 1)
+          open(path, "w").write(src)
+          print("patched destroySyncObjects in " + path)
+          PY
+          echo "--- what the patch produced ---"
+          grep -n -A 3 "for (int i = 0; i < renderFinishedSemaphores.size" "$F" || true
+
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
-      #
-      # The output goes to build/libs/gradle-build.txt as well as the console, so a failure
-      # here is readable from the artifact rather than only from a run log.
       - name: Build the engine
         run: |
           set -uo pipefail
