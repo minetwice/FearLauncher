@@ -522,16 +522,14 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            osm_bridge frame dump (FEAR_DUMP_FRAME=<seconds> via holy_zink.txt)
            can write holy_frame.raw next to latestlog for offline analysis. */
         try { android.system.Os.setenv("FEAR_GAME_DIR", Tools.DIR_GAME_HOME, true); } catch (Throwable ignored) {}
-        /* FEARWIRE-HARDROTATE (v10.18): the engine rotates through
-           overrideWidth/overrideHeight, so the bridge's own counter-rotation has to be OFF.
-           Its default is 90 - JREUtils.sFearRotateDir is initialised to 90 and only ever
-           overwritten from holy_rotate.txt - which is why the UI stayed a quarter turn out
-           even after the dimensions were swapped: two rotations were being applied, and
-           removing holy_rotate.txt only removed the second one. */
-        if ("fear_monster".equals(fearRenderer5)) {
-            net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir = 0;
-            System.out.println("FEARWIRE v10.18: fear_monster -> sFearRotateDir=0, the engine rotates");
-        }
+        /* FEARWIRE-HARDROTATE (v10.20): fear_monster is handled exactly like
+           holy_zink_kopper now, because holy_zink_kopper is the one that works.
+           That means: holyRotate on, the dimensions left alone, and sFearRotateDir left to
+           holy_rotate.txt rather than forced.
+           v10.18 forced it to 0 and that was the mistake - it overrode holy_rotate.txt, so
+           the one setting that makes holy_zink_kopper work could never reach fear_monster,
+           and every combination tried after that was really the same combination.
+           v10.19's swap stays off for the same reason: holy_zink_kopper does not swap. */
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {
