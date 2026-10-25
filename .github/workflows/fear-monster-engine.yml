@@ -169,15 +169,30 @@ jobs:
           PY
           echo "--- what the patch produced ---"
           grep -n "inFlightFences.size()\|renderFinishedSemaphores.size()" "$F" || true
+          # Both loops must be gone from the source. A half-applied patch here produced a jar
+          # that built, published, installed, and crashed on the first frame exactly as
+          # before - which cost a day of device testing to notice.
+          for bad in 'i < framesNum; ++i' 'i < swapChain.getImagesNum(); ++i'; do
+            if grep -q "$bad" "$F"; then
+              echo "the teardown loop is still there: $bad"
+              exit 1
+            fi
+          done
 
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
+      #
+      # clean first, and that is not tidiness: fabric-loom keeps its own build output, and a
+      # run without it repackaged a previously compiled Renderer.class. The source had the
+      # teardown fix and the jar did not, so the engine published, installed, and crashed on
+      # the first frame exactly as it had before. The jar size not moving is what gave it
+      # away.
       - name: Build the engine
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
           chmod +x gradlew
-          ./gradlew --no-daemon build remapJar 2>&1 | tee build/libs/gradle-build.txt
+          ./gradlew --no-daemon clean build remapJar 2>&1 | tee build/libs/gradle-build.txt
           echo "--- every jar the build produced ---"
           find build -name '*.jar' -printf '%s\t%p\n' | sort -rn
 
