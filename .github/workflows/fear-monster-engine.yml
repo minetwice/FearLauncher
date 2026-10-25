@@ -136,11 +136,6 @@ jobs:
       # The first loop used framesNum, which survives the reassignment a few lines later but
       # not the case that actually fires: the first recreateSwapChain runs before
       # createSyncObjects has ever run, so both lists are empty while framesNum is not.
-      #
-      # One line each, so the patch is two literals and there is nothing for the YAML to
-      # misread: an earlier version of this step carried a whole method in a multi-line
-      # literal whose lines were indented less than the block scalar, which ended the block
-      # early and left the workflow unparseable - the run had no jobs at all.
       - name: Fix the swapchain teardown
         run: |
           set -uo pipefail
@@ -150,7 +145,17 @@ jobs:
           import sys
           path = sys.argv[1]
           src = open(path).read()
-          subs = [
+          # Scoped to destroySyncObjects, and that is the whole point of this version.
+          #
+          # for (int i = 0; i < swapChain.getImagesNum(); ++i) appears twice in this file -
+          # once here and once in beginFrame - and replacing the first match edited the
+          # beginFrame one. The source then looked patched, the jar was built and published,
+          # and the engine went on crashing on the first frame exactly as before. The jar
+          # size never moving is what finally gave it away.
+          start = src.index('private void destroySyncObjects()')
+          end = src.index('public void addOnResizeCallback', start)
+          body = src[start:end]
+          for a, b in (
               (
                   'for (int i = 0; i < framesNum; ++i) {',
                   'for (int i = 0; i < inFlightFences.size(); ++i) {',
@@ -159,25 +164,33 @@ jobs:
                   'for (int i = 0; i < swapChain.getImagesNum(); ++i) {',
                   'for (int i = 0; i < renderFinishedSemaphores.size(); ++i) {',
               ),
-          ]
-          for a, b in subs:
-              if a not in src:
+          ):
+              if a not in body:
                   sys.exit("teardown loop not found in " + path + ": " + a)
-              src = src.replace(a, b, 1)
+              body = body.replace(a, b)
+          src = src[:start] + body + src[end:]
           open(path, "w").write(src)
-          print("patched the swapchain teardown in " + path)
+          print("patched destroySyncObjects in " + path)
           PY
           echo "--- what the patch produced ---"
           grep -n "inFlightFences.size()\|renderFinishedSemaphores.size()" "$F" || true
-          # Both loops must be gone from the source. A half-applied patch here produced a jar
-          # that built, published, installed, and crashed on the first frame exactly as
-          # before - which cost a day of device testing to notice.
-          for bad in 'i < framesNum; ++i' 'i < swapChain.getImagesNum(); ++i'; do
-            if grep -q "$bad" "$F"; then
-              echo "the teardown loop is still there: $bad"
-              exit 1
-            fi
-          done
+          # Verified inside the method, not across the whole file: the header
+          # 'i < swapChain.getImagesNum(); ++i' legitimately remains in beginFrame, and
+          # grepping the file for it fails a build that is in fact correct.
+          python3 - "$F" <<'PY'
+          import sys
+          src = open(sys.argv[1]).read()
+          start = src.index('private void destroySyncObjects()')
+          end = src.index('public void addOnResizeCallback', start)
+          body = src[start:end]
+          for bad in ('i < framesNum; ++i', 'i < swapChain.getImagesNum(); ++i'):
+              if bad in body:
+                  sys.exit("the teardown loop is still there: " + bad)
+          for good in ('inFlightFences.size()', 'renderFinishedSemaphores.size()'):
+              if good not in body:
+                  sys.exit("the teardown loop was not rewritten: " + good)
+          print("destroySyncObjects verified")
+          PY
 
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
