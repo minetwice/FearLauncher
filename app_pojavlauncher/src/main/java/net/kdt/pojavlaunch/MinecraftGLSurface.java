@@ -330,7 +330,8 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             GLFW.cursorY = ny;
             return;
         }
-        switch (fearInputRot()) {
+        int rot = fearInputRot();
+        switch (rot) {
             case 90:
                 GLFW.cursorX = ny;
                 GLFW.cursorY = 1f - nx;
@@ -348,6 +349,51 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                 GLFW.cursorY = ny;
                 break;
         }
+        fearMouseLog(rot, px, py, nx, ny);
+    }
+
+    /**
+     * FEARWIRE-MOUSELOG (v10.22): writes down where a touch was, and where it went.
+     *
+     * <p>Input is the last thing that does not line up, and it has been guessed at twice
+     * already. Rather than guess again, every pointer event is recorded with all four
+     * numbers that matter: the raw position on the view, the view's size, the normalised
+     * position, and the position actually handed to Minecraft after the rotation. Put the
+     * two ends side by side and the offset is arithmetic, not opinion.
+     *
+     * <p>View size and window size are both written, because they are the other thing that
+     * can disagree: the pointer is normalised against the view and Minecraft interprets it
+     * against its window, so if those two are not the same size the pointer is scaled wrong
+     * as well as turned.
+     *
+     * <p>fear_mouse.txt is truncated at the start of a session by fearMouseReset(), and
+     * capped at 256 KB, so it only ever holds this run. Nothing here changes behaviour.
+     */
+    private void fearMouseLog(int rot, float px, float py, float nx, float ny) {
+        try {
+            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_mouse.txt");
+            if (f.length() > 256 * 1024) return;
+            String line = String.format(java.util.Locale.US,
+                    "view=%dx%d screen=(%.0f,%.0f) norm=(%.4f,%.4f) rot=%d sent=(%.4f,%.4f) window=%dx%d%n",
+                    getWidth(), getHeight(), px, py, nx, ny, rot,
+                    GLFW.cursorX, GLFW.cursorY, windowWidth, windowHeight);
+            try (java.io.FileWriter w = new java.io.FileWriter(f, true)) {
+                w.write(line);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    /** Start fear_mouse.txt fresh, so it only ever holds the run that is happening. */
+    private void fearMouseReset() {
+        try {
+            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_mouse.txt");
+            if (f.isFile()) f.delete();
+            String head = String.format(java.util.Locale.US,
+                    "=== FearMouse === renderer=%s inputRot=%d%n", fearRNow(), fearInputRot());
+            try (java.io.FileWriter w = new java.io.FileWriter(f, false)) {
+                w.write(head);
+            }
+        } catch (Throwable ignored) {}
     }
 
     /** The pointer rotation to apply, from fear_input.txt. Default 90. */
@@ -493,6 +539,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         MCOptionUtils.set("overrideHeight", String.valueOf(fearSwap ? windowWidth : windowHeight));
         MCOptionUtils.save();
         getMcScale();
+        fearMouseReset();
         fearDiag(holyZink, fearSwap);
 
         new Thread(() -> {
