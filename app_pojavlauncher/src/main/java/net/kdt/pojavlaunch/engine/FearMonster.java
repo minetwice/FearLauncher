@@ -195,11 +195,17 @@ public final class FearMonster {
                 trace("engine is off in settings; nothing is fetched");
                 return;
             }
-            extractNatives(versionId);
             if (versionId == null || versionId.isEmpty()) {
                 trace("no version selected; nothing is fetched");
                 return;
             }
+            // Off the main thread, and this is not optional: the natives are downloaded when
+            // the APK does not already carry them, and Android refuses network access on the
+            // main thread. Doing it here on the calling thread threw
+            // NetworkOnMainThreadException, which the catch below swallowed into the trace,
+            // and the engine then died on liblwjgl_vma.so with nothing to show for it.
+            final String nativesFor = versionId;
+            PojavApplication.sExecutorService.execute(() -> extractNatives(nativesFor));
             // No "a build is already installed, stop" here on purpose. An installed build can
             // be out of date, and the published one is rebuilt whenever the engine changes -
             // which is exactly when it matters, because a stale engine is one that installs
