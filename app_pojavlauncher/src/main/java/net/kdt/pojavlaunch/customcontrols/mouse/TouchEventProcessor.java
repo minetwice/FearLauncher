@@ -2,6 +2,8 @@ package net.kdt.pojavlaunch.customcontrols.mouse;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -10,6 +12,8 @@ import git.artdeell.dnbootstrap.glfw.GLFW;
 
 public abstract class TouchEventProcessor {
     private final View mHostView;
+    private boolean fearUiDumped = false;
+
     public TouchEventProcessor(View hostView) {
         mHostView = hostView;
     }
@@ -27,6 +31,10 @@ public abstract class TouchEventProcessor {
      * (0/90/180/270, default 90), only for fear_monster.
      */
     protected void sendTouchCoordinates(float x, float y) {
+        if (!fearUiDumped) {
+            fearUiDumped = true;
+            fearDumpUi();
+        }
         float nx = x / mHostView.getWidth();
         float ny = y / mHostView.getHeight();
         int rot = fearIsMonster() ? fearInputRot() : 0;
@@ -50,12 +58,76 @@ public abstract class TouchEventProcessor {
             }
         }
         /* Written on every event, not only when the rotation ran. A skipped rotation and a
-           missing pointer event both left an empty file, which made the last two runs
-           impossible to tell apart. */
+           missing pointer event both left an empty file, which made two runs impossible to
+           tell apart. */
         fearMouseLog(rot, x, y, nx, ny);
         GLFW.cursorX = nx;
         GLFW.cursorY = ny;
         GLFW.sendMousePos();
+    }
+
+    /**
+     * FEARWIRE-UIDUMP (v10.25): every view on screen, with the box it occupies.
+     *
+     * <p>Bounds are in screen pixels - the same space fear_mouse.txt records the pointer in -
+     * so a click and a box can be lined up directly, with no arithmetic in between. Only the
+     * first event of a launch triggers it: the tree does not move while the game runs, and a
+     * dump per touch would bury the pointer log it is meant to be read beside.
+     */
+    private void fearDumpUi() {
+        try {
+            View root = mHostView.getRootView();
+            StringBuilder b = new StringBuilder();
+            b.append("=== FearUI === root=").append(root.getClass().getName())
+                    .append(" size=").append(root.getWidth()).append("x").append(root.getHeight())
+                    .append("\n");
+            fearWalk(root, 0, b);
+            b.append("================\n");
+            String text = b.toString();
+            try (java.io.FileWriter w = new java.io.FileWriter(
+                    new java.io.File(Tools.DIR_GAME_HOME, "fear_ui.txt"), false)) {
+                w.write(text);
+            }
+            System.out.println(text);
+        } catch (Throwable t) {
+            System.out.println("[FearUI] failed: " + t);
+        }
+    }
+
+    private void fearWalk(View v, int depth, StringBuilder b) {
+        if (v == null || depth > 24) return;
+        try {
+            if (v.getVisibility() == View.VISIBLE) {
+                int[] loc = new int[2];
+                v.getLocationOnScreen(loc);
+                b.append("[FearUI] ");
+                for (int i = 0; i < depth; i++) b.append("  ");
+                b.append(v.getClass().getSimpleName());
+                if (v.getId() != View.NO_ID) {
+                    try {
+                        b.append(" id=").append(v.getResources().getResourceEntryName(v.getId()));
+                    } catch (Throwable ignored) {
+                        b.append(" id=").append(v.getId());
+                    }
+                }
+                b.append(" (").append(loc[0]).append(",").append(loc[1]).append(")-(")
+                        .append(loc[0] + v.getWidth()).append(",").append(loc[1] + v.getHeight())
+                        .append(") clickable=").append(v.isClickable());
+                if (v instanceof TextView) {
+                    CharSequence t = ((TextView) v).getText();
+                    if (t != null && t.length() > 0) {
+                        String s = t.toString().replace('\n', ' ');
+                        if (s.length() > 40) s = s.substring(0, 40);
+                        b.append(" text=\"").append(s).append("\"");
+                    }
+                }
+                b.append("\n");
+            }
+            if (v instanceof ViewGroup) {
+                ViewGroup g = (ViewGroup) v;
+                for (int i = 0; i < g.getChildCount(); i++) fearWalk(g.getChildAt(i), depth + 1, b);
+            }
+        } catch (Throwable ignored) {}
     }
 
     /**
