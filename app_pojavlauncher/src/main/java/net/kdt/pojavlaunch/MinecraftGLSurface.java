@@ -644,11 +644,23 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            and every combination tried after that was really the same combination.
            v10.19's swap stays off for the same reason: holy_zink_kopper does not swap. */
         GLFW.nativeSurfaceCreated(surface);
-        // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
-        try {
-            net.kdt.pojavlaunch.utils.JREUtils.setupBridgeWindow(surface);
-        } catch (Throwable t) {
-            android.util.Log.w("MinecraftGLSurface", "Bridge window setup failed", t);
+        /* FEARWIRE-NOEGL (v10.24): the engine presents through Vulkan on this window, and
+           setupBridgeWindow() creates an EGL surface on the very same ANativeWindow for the
+           zink renderers. A window can only be held by one of them: with EGL attached first,
+           the engine's vkCreateAndroidSurfaceKHR failed and the game died before the title
+           screen with
+
+             java.lang.RuntimeException: Failed to create window surface: -1000000001
+
+           which is VK_ERROR_NATIVE_WINDOW_IN_USE_KHR. It went unnoticed until the cutout
+           change, which causes the surface to be recreated and brought the old EGL surface
+           back into play. So the bridge window is skipped for this renderer only. */
+        if (!"fear_monster".equals(fearRenderer5)) {
+            try {
+                net.kdt.pojavlaunch.utils.JREUtils.setupBridgeWindow(surface);
+            } catch (Throwable t) {
+                android.util.Log.w("MinecraftGLSurface", "Bridge window setup failed", t);
+            }
         }
         if(mRefreshOnly) return;
         realStart();
