@@ -308,6 +308,63 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         mSurfaceProvider.updateSize();
     }
 
+    /** The renderer this launch will use, or "" when it cannot be worked out. */
+    private String fearRNow() {
+        try {
+            net.kdt.pojavlaunch.instances.Instance sel =
+                    net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
+            String r = sel != null ? sel.getLaunchRenderer()
+                    : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
+            return r == null ? "" : r;
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    /**
+     * FEARWIRE-DIAG (v10.17): writes down everything the rotation depends on, in one place.
+     *
+     * <p>The rotation has been guessed at three times and missed three times, because none
+     * of the values it depends on were ever visible from a device. Everything that could
+     * move the UI is printed here - to latestlog, and to fear_diag.txt in the game
+     * directory so it survives a log that gets rotated away. Nothing in here changes
+     * behaviour: it only reports.
+     */
+    private void fearDiag(boolean holyRotate, boolean swap) {
+        try {
+            java.io.File t = new java.io.File(Tools.DIR_GAME_HOME, "holy_rotate.txt");
+            StringBuilder b = new StringBuilder();
+            b.append("=== FearDiag ===\n");
+            b.append("renderer=").append(fearRNow()).append("\n");
+            b.append("gameDir=").append(Tools.DIR_GAME_HOME).append("\n");
+            b.append("surface=").append(windowWidth).append("x").append(windowHeight).append("\n");
+            b.append("holyRotate=").append(holyRotate).append("\n");
+            b.append("dimsSwapped=").append(swap).append("\n");
+            b.append("overrideWidth=").append(fearSwapValue(swap, true)).append("\n");
+            b.append("overrideHeight=").append(fearSwapValue(swap, false)).append("\n");
+            b.append("FEAR_ROTATE_T=").append(String.valueOf(System.getenv("FEAR_ROTATE_T"))).append("\n");
+            b.append("sFearRotateDir=").append(net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir).append("\n");
+            b.append("FEAR_RENDERER=").append(String.valueOf(System.getenv("FEAR_RENDERER"))).append("\n");
+            b.append("holy_rotate.txt=").append(t.getAbsolutePath())
+                    .append(" exists=").append(t.isFile()).append("\n");
+            b.append("================");
+            String text = b.toString();
+            System.out.println(text);
+            try (java.io.FileWriter w = new java.io.FileWriter(
+                    new java.io.File(Tools.DIR_GAME_HOME, "fear_diag.txt"), false)) {
+                w.write(text + "\n");
+            } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            System.out.println("[FearDiag] failed: " + t);
+        }
+    }
+
+    /** The value that was written for overrideWidth/overrideHeight, for the log. */
+    private int fearSwapValue(boolean swap, boolean width) {
+        if (swap) return width ? windowHeight : windowWidth;
+        return width ? windowWidth : windowHeight;
+    }
+
     private void realStart(){
         // Initial size set. Request immedate refresh, otherwise the initial width and height for the game
         // may be broken/unknown.
@@ -337,10 +394,18 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            for that - it hands MC the swapped dimensions and enables the dnbglfw input
            remap - and it was being computed and then thrown away. */
         GLFW.holyRotate = holyZink;
-        MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): landscape, like turnip */
-        MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
+        /* FEARWIRE-HARDROTATE (v10.17): the engine needs the dimensions SWAPPED, and
+           holyRotate alone was not doing it - the UI stayed a quarter turn out with it on.
+           The override below is what Minecraft actually reads for its window, so the swap
+           is applied here, to the values it is given, rather than hoped for downstream.
+           The world already renders landscape; this is only the UI's idea of the window,
+           which is what lays out the title screen, its buttons and the HUD. */
+        boolean fearSwap = "fear_monster".equals(fearRNow());
+        MCOptionUtils.set("overrideWidth", String.valueOf(fearSwap ? windowHeight : windowWidth));
+        MCOptionUtils.set("overrideHeight", String.valueOf(fearSwap ? windowWidth : windowHeight));
         MCOptionUtils.save();
         getMcScale();
+        fearDiag(holyZink, fearSwap);
 
         new Thread(() -> {
             try {
