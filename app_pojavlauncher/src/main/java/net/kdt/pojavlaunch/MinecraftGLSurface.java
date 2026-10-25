@@ -327,9 +327,16 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                when instance.renderer is empty). */
             String fearR = sel != null ? sel.getLaunchRenderer()
                     : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
-            holyZink = "holy_zink_kopper".equals(fearR);
+            holyZink = "holy_zink_kopper".equals(fearR) || "fear_monster".equals(fearR);
         } catch (Throwable ignored) {}
-        GLFW.holyRotate = false; /* FEARWIRE-HOLYZINK-OSMESA (v10.13): the OSMesa bridge presents rotation-free - no remap */
+        /* FEARWIRE-HOLYZINK-ROTATE9: fear_monster needs this too, and it was the one
+           renderer left out. Its surface is landscape (2584x1220) but the ANativeWindow
+           reports the display's natural, portrait size, so Minecraft laid the UI out for a
+           tall window and everything came out rotated a quarter turn:
+           the title screen, its buttons, the whole HUD. holyRotate is exactly the switch
+           for that - it hands MC the swapped dimensions and enables the dnbglfw input
+           remap - and it was being computed and then thrown away. */
+        GLFW.holyRotate = holyZink;
         MCOptionUtils.set("overrideWidth", String.valueOf(windowWidth)); /* FEARWIRE-HOLYZINK-OSMESA (v10.13): landscape, like turnip */
         MCOptionUtils.set("overrideHeight", String.valueOf(windowHeight));
         MCOptionUtils.save();
