@@ -142,8 +142,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             // Mouse found
             // Avoid going through the JNI each time.
             if(GLFW.isGrabbing()) return false;
-            GLFW.cursorX = e.getX(i) / getWidth();
-            GLFW.cursorY = e.getY(i) / getHeight();
+            fearCursor(e.getX(i), e.getY(i));
             GLFW.sendMousePos();
             return true; //mouse event handled successfully
         }
@@ -191,8 +190,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
 
         switch(event.getActionMasked()) {
             case MotionEvent.ACTION_HOVER_MOVE:
-                GLFW.cursorX = (event.getX(mouseCursorIndex) / getWidth());
-                GLFW.cursorY = (event.getY(mouseCursorIndex) / getHeight());
+                fearCursor(event.getX(mouseCursorIndex), event.getY(mouseCursorIndex));
                 GLFW.sendMousePos();
                 return true;
             case MotionEvent.ACTION_SCROLL:
@@ -308,6 +306,70 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         mSurfaceProvider.updateSize();
     }
 
+    /**
+     * FEARWIRE-INPUTROT (v10.21): puts a touch where the picture is.
+     *
+     * <p>The engine presents without pre-rotation now, so the Android compositor rotates the
+     * image a quarter turn. The picture is therefore upright, but Minecraft still believes it
+     * is drawing into a window that has not been turned, and it maps the pointer against that
+     * window. A tap lands where the UI is not - the buttons look live and do nothing, which
+     * is exactly what a ghost looks like.
+     *
+     * <p>So the pointer is turned back before it is handed over. The angle is read from
+     * fear_input.txt in the game dir (0/90/180/270, default 90) so it can be tried on the
+     * device without a rebuild, the same way holy_rotate.txt and fear_swap.txt are.
+     *
+     * <p>Every other renderer is untouched: their pointer goes through unchanged, exactly as
+     * it always has.
+     */
+    private void fearCursor(float px, float py) {
+        float nx = px / getWidth();
+        float ny = py / getHeight();
+        if (!"fear_monster".equals(fearRNow())) {
+            GLFW.cursorX = nx;
+            GLFW.cursorY = ny;
+            return;
+        }
+        switch (fearInputRot()) {
+            case 90:
+                GLFW.cursorX = ny;
+                GLFW.cursorY = 1f - nx;
+                break;
+            case 180:
+                GLFW.cursorX = 1f - nx;
+                GLFW.cursorY = 1f - ny;
+                break;
+            case 270:
+                GLFW.cursorX = 1f - ny;
+                GLFW.cursorY = nx;
+                break;
+            default:
+                GLFW.cursorX = nx;
+                GLFW.cursorY = ny;
+                break;
+        }
+    }
+
+    /** The pointer rotation to apply, from fear_input.txt. Default 90. */
+    private int fearInputRot() {
+        try {
+            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_input.txt");
+            if (f.isFile()) {
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(f)) {
+                    byte[] buf = new byte[16];
+                    int n;
+                    while ((n = fis.read(buf)) > 0) bos.write(buf, 0, n);
+                }
+                String v = bos.toString().trim();
+                if ("0".equals(v)) return 0;
+                if ("180".equals(v)) return 180;
+                if ("270".equals(v)) return 270;
+            }
+        } catch (Throwable ignored) {}
+        return 90;
+    }
+
     /** The renderer this launch will use, or "" when it cannot be worked out. */
     private String fearRNow() {
         try {
@@ -350,6 +412,10 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             java.io.File sw = new java.io.File(Tools.DIR_GAME_HOME, "fear_swap.txt");
             b.append("fear_swap.txt=").append(sw.getAbsolutePath())
                     .append(" exists=").append(sw.isFile()).append("\n");
+            java.io.File ir = new java.io.File(Tools.DIR_GAME_HOME, "fear_input.txt");
+            b.append("fear_input.txt=").append(ir.getAbsolutePath())
+                    .append(" exists=").append(ir.isFile())
+                    .append(" rot=").append(fearInputRot()).append("\n");
             b.append("================");
             String text = b.toString();
             System.out.println(text);
