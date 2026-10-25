@@ -347,6 +347,9 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             b.append("FEAR_RENDERER=").append(String.valueOf(System.getenv("FEAR_RENDERER"))).append("\n");
             b.append("holy_rotate.txt=").append(t.getAbsolutePath())
                     .append(" exists=").append(t.isFile()).append("\n");
+            java.io.File sw = new java.io.File(Tools.DIR_GAME_HOME, "fear_swap.txt");
+            b.append("fear_swap.txt=").append(sw.getAbsolutePath())
+                    .append(" exists=").append(sw.isFile()).append("\n");
             b.append("================");
             String text = b.toString();
             System.out.println(text);
@@ -394,13 +397,32 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            for that - it hands MC the swapped dimensions and enables the dnbglfw input
            remap - and it was being computed and then thrown away. */
         GLFW.holyRotate = holyZink;
-        /* FEARWIRE-HARDROTATE (v10.17): the engine needs the dimensions SWAPPED, and
-           holyRotate alone was not doing it - the UI stayed a quarter turn out with it on.
-           The override below is what Minecraft actually reads for its window, so the swap
-           is applied here, to the values it is given, rather than hoped for downstream.
-           The world already renders landscape; this is only the UI's idea of the window,
-           which is what lays out the title screen, its buttons and the HUD. */
-        boolean fearSwap = "fear_monster".equals(fearRNow());
+        /* FEARWIRE-HARDROTATE (v10.19): the swap is OFF for fear_monster now, and this is
+           the one combination the diagnostic has not been through. It has shown, on a
+           device, that the UI is a quarter turn out in all three states tried so far:
+           no swap with sFearRotateDir=90, swap with 90, and swap with 0. The first had the
+           bridge rotating it, the others had this swap rotating it - two different causes,
+           each enough on its own. With the bridge's rotation off (v10.18) and this off too,
+           nothing should be turning it.
+           And it is tunable, because rebuilding to test each combination has cost enough
+           launches: fear_swap.txt in the game dir, containing 0 or 1, overrides this. */
+        boolean fearSwap = false;
+        if ("fear_monster".equals(fearRNow())) {
+            try {
+                java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_swap.txt");
+                if (f.isFile()) {
+                    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                    try (java.io.FileInputStream fis = new java.io.FileInputStream(f)) {
+                        byte[] buf = new byte[16];
+                        int n;
+                        while ((n = fis.read(buf)) > 0) bos.write(buf, 0, n);
+                    }
+                    String v = bos.toString().trim();
+                    if (!v.isEmpty()) fearSwap = "1".equals(v);
+                    System.out.println("FEARWIRE v10.19: fear_swap.txt -> fearSwap=" + fearSwap);
+                }
+            } catch (Throwable ignored) {}
+        }
         MCOptionUtils.set("overrideWidth", String.valueOf(fearSwap ? windowHeight : windowWidth));
         MCOptionUtils.set("overrideHeight", String.valueOf(fearSwap ? windowWidth : windowHeight));
         MCOptionUtils.save();
