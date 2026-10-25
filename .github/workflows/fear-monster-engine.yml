@@ -136,6 +136,9 @@ jobs:
       # The first loop used framesNum, which survives the reassignment a few lines later but
       # not the case that actually fires: the first recreateSwapChain runs before
       # createSyncObjects has ever run, so both lists are empty while framesNum is not.
+      #
+      # Scoped to destroySyncObjects: the same header appears again in beginFrame, and
+      # replacing the first match edited that one instead.
       - name: Fix the swapchain teardown
         run: |
           set -uo pipefail
@@ -145,13 +148,6 @@ jobs:
           import sys
           path = sys.argv[1]
           src = open(path).read()
-          # Scoped to destroySyncObjects, and that is the whole point of this version.
-          #
-          # for (int i = 0; i < swapChain.getImagesNum(); ++i) appears twice in this file -
-          # once here and once in beginFrame - and replacing the first match edited the
-          # beginFrame one. The source then looked patched, the jar was built and published,
-          # and the engine went on crashing on the first frame exactly as before. The jar
-          # size never moving is what finally gave it away.
           start = src.index('private void destroySyncObjects()')
           end = src.index('public void addOnResizeCallback', start)
           body = src[start:end]
@@ -174,9 +170,6 @@ jobs:
           PY
           echo "--- what the patch produced ---"
           grep -n "inFlightFences.size()\|renderFinishedSemaphores.size()" "$F" || true
-          # Verified inside the method, not across the whole file: the header
-          # 'i < swapChain.getImagesNum(); ++i' legitimately remains in beginFrame, and
-          # grepping the file for it fails a build that is in fact correct.
           python3 - "$F" <<'PY'
           import sys
           src = open(sys.argv[1]).read()
@@ -191,6 +184,55 @@ jobs:
                   sys.exit("the teardown loop was not rewritten: " + good)
           print("destroySyncObjects verified")
           PY
+
+      # The engine rotates the image a second time, and this is the fix.
+      #
+      # The GL renderers present correctly here. OSMesa, which is what the working path
+      # uses, does this:
+      #
+      #   ANativeWindow_setBuffersGeometry(surface, 0, 0, WINDOW_FORMAT_RGBA_8888);
+      #   w = ANativeWindow_getWidth(...); h = ANativeWindow_getHeight(...);
+      #   osm_blit_to_native(...);   /* rows copied straight in, no rotation anywhere */
+      #
+      # It renders into the surface's own size and hands the image over untouched; the Android
+      # compositor does the rotating. That is the "no pre-rotation" path in Google's Vulkan
+      # guidance: swapchain dimensions match the surface, preTransform stays IDENTITY, and the
+      # compositor rotates. The other path - pre-rotation - keeps the swapchain at its
+      # identity dimensions, sets preTransform to currentTransform, AND rotates the MVP
+      # matrix in the app.
+      #
+      # VulkanMod does the first half of pre-rotation and not the second: it sets
+      # preTransform to currentTransform, with an extent that is the window's rather than the
+      # identity one, and rotates nothing else. So the presentation engine turns the image
+      # while the UI was laid out before that turn.
+      #
+      # IDENTITY, then, exactly as the GL path does it. Android reports every transform as
+      # supported, so it is always accepted. The literal is used instead of the constant so
+      # this cannot fail to compile over an import.
+      - name: Present without pre-rotation, the way the GL renderers do
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=src/main/java/net/vulkanmod/vulkan/framebuffer/SwapChain.java
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          old = 'createInfo.preTransform(surfaceProperties.capabilities.currentTransform());'
+          new = ('createInfo.preTransform(0x00000001); /* FEAR: VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR -'
+                 ' no pre-rotation, the compositor rotates, exactly as the GL renderers do */')
+          if old not in src:
+              sys.exit("the preTransform line is not in " + path + " any more")
+          src = src.replace(old, new, 1)
+          open(path, "w").write(src)
+          print("patched preTransform in " + path)
+          PY
+          echo "--- what the patch produced ---"
+          grep -n "preTransform" "$F" || true
+          if grep -q 'currentTransform()' "$F"; then
+            echo "the preTransform line is still asking for currentTransform"
+            exit 1
+          fi
 
       # remapJar is asked for by name: "build" may not depend on it, and the unremapped jar
       # is the one whose access widener is named, which Fabric refuses in production.
