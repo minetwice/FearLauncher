@@ -234,17 +234,10 @@ jobs:
             exit 1
           fi
 
-      # Minecraft's own widgets, which nothing on the launcher side can see.
-      #
-      # The title screen buttons are drawn by the game, inside the engine. So once a second,
-      # from beginFrame, the current screen is read and every widget on it is written out with
-      # its box in Minecraft's own coordinates - the numbers the game itself hit-tests
-      # against, so a converted click can be checked against them exactly.
-      #
-      # Fully qualified names, because this is injected text and cannot rely on imports.
-      # Wrapped in Throwable: a mapping change upstream must never take the game down. A
-      # diagnostic that crashes is worse than no diagnostic.
-      - name: Log every widget on screen, with its box
+      # The widget log lives in the overlay, as FearUiLog, and reads everything by reflection -
+      # so a name that moved upstream is a miss rather than a compile error. This step only
+      # hooks it into the frame loop, which is all the injected text that is left.
+      - name: Hook the widget log into the frame loop
         run: |
           set -uo pipefail
           cd "$RUNNER_TEMP/engine"
@@ -253,65 +246,21 @@ jobs:
           import sys
           path = sys.argv[1]
           src = open(path).read()
-
           anchor = 'public void beginFrame() {'
           if anchor not in src:
               sys.exit('beginFrame not found in ' + path)
-
-          helper = '''
-    /* FEAR: master log, part 2 - Minecraft's own widgets, which the launcher cannot see. */
-    private int fearUiTick = 0;
-
-    private void fearDumpUi() {
-        try {
-            if ((this.fearUiTick++ % 60) != 0) return;
-            String dir = System.getenv("FEAR_GAME_DIR");
-            if (dir == null || dir.isEmpty()) return;
-            net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
-            if (mc == null || mc.currentScreen == null) return;
-            net.minecraft.client.gui.screen.Screen s = mc.currentScreen;
-            StringBuilder b = new StringBuilder();
-            b.append("=== FearMC === screen=").append(s.getClass().getSimpleName())
-             .append(" gui=").append(mc.getWindow().getGuiScale())
-             .append(" scaled=").append(mc.getWindow().getScaledWidth())
-             .append("x").append(mc.getWindow().getScaledHeight())
-             .append(" framebuffer=").append(mc.getWindow().getFramebufferWidth())
-             .append("x").append(mc.getWindow().getFramebufferHeight())
-             .append("\\n");
-            for (Object child : s.children()) {
-                if (child instanceof net.minecraft.client.gui.widget.ClickableWidget) {
-                    net.minecraft.client.gui.widget.ClickableWidget w =
-                            (net.minecraft.client.gui.widget.ClickableWidget) child;
-                    b.append("[FearMC] ").append(w.getClass().getSimpleName())
-                     .append(" \"").append(w.getMessage().getString())
-                     .append("\" (").append(w.getX()).append(",").append(w.getY())
-                     .append(")-(").append(w.getX() + w.getWidth()).append(",")
-                     .append(w.getY() + w.getHeight())
-                     .append(") active=").append(w.active)
-                     .append("\\n");
-                }
-            }
-            b.append("================\\n");
-            java.nio.file.Files.write(java.nio.file.Paths.get(dir, "fear_mc.txt"),
-                    b.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        } catch (Throwable ignored) {}
-    }
-
-'''
-
-          src = src.replace(anchor, helper + '    ' + anchor, 1)
-
-          call_anchor = anchor
-          idx = src.index(call_anchor) + len(call_anchor)
-          src = src[:idx] + '\n        fearDumpUi();' + src[idx:]
-
-          open(path, 'w').write(src)
-          print('added the widget dump to ' + path)
+          if 'FearUiLog.tick()' in src:
+              print('already hooked')
+          else:
+              src = src.replace(anchor,
+                  anchor + '\n        net.vulkanmod.vulkan.FearUiLog.tick();', 1)
+              open(path, 'w').write(src)
+              print('hooked the widget log into ' + path)
           PY
           echo "--- what the patch produced ---"
-          grep -n "fearDumpUi\|fearUiTick" "$F" || true
-          if ! grep -q 'fearDumpUi();' "$F"; then
-            echo "the widget dump was not inserted"
+          grep -n "FearUiLog" "$F" || true
+          if ! grep -q 'FearUiLog.tick()' "$F"; then
+            echo "the widget log was not hooked in"
             exit 1
           fi
 
