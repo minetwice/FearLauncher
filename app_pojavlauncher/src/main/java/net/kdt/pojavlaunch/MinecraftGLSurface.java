@@ -431,8 +431,21 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         return 270;
     }
 
-    /** The renderer this launch will use, or "" when it cannot be worked out. */
+    /**
+     * The renderer this launch will use.
+     *
+     * <p>FEAR_RENDERER is read first. onSurfaceAvailable publishes it into the environment
+     * before the window is set up, and the native side gates on the same value, so it is the
+     * one source that cannot be wrong from any thread. The instance lookup is the fallback -
+     * and it was the only source here, which is why the scale fix above did nothing: it throws
+     * from this thread, the catch returns "", and the comparison against "fear_monster" is
+     * false every time, silently.
+     */
     private String fearRNow() {
+        try {
+            String env = System.getenv("FEAR_RENDERER");
+            if (env != null && !env.isEmpty()) return env;
+        } catch (Throwable ignored) {}
         try {
             net.kdt.pojavlaunch.instances.Instance sel =
                     net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance();
