@@ -234,6 +234,46 @@ jobs:
             exit 1
           fi
 
+      # IDENTITY means no pre-rotation, and no pre-rotation means the swapchain has to be the
+      # surface's own size. getExtent() was still asking the window, so the engine rendered at
+      # one size and the compositor stretched it to another - the UI laid out in the window's
+      # coordinates, shown in the surface's, and the pointer converted between the two by
+      # nothing. That is why the buttons were visible in one place and clickable in another.
+      #
+      # currentExtent() is the surface's own size, reported by the driver. It is the number
+      # the swapchain must be created with, and the number the image is presented at.
+      - name: Make the swapchain match the surface, which IDENTITY requires
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=src/main/java/net/vulkanmod/vulkan/framebuffer/SwapChain.java
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          start = src.index('private static VkExtent2D getExtent(')
+          end = src.index('public VkExtent2D getExtent()', start)
+          body = src[start:end]
+          old = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())'
+                 '.set(width.get(0), height.get(0));')
+          new = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())\n'
+                 '                .set(capabilities.currentExtent().width(),'
+                 ' capabilities.currentExtent().height());'
+                 ' /* FEAR: the surface size, not the window - IDENTITY means no pre-rotation */')
+          if old not in body:
+              sys.exit('the extent line is not in getExtent() any more: ' + old)
+          body = body.replace(old, new, 1)
+          src = src[:start] + body + src[end:]
+          open(path, 'w').write(src)
+          print('patched getExtent in ' + path)
+          PY
+          echo "--- what the patch produced ---"
+          grep -n "currentExtent()" "$F" || true
+          if ! grep -q 'currentExtent().width()' "$F"; then
+            echo "getExtent was not rewritten"
+            exit 1
+          fi
+
       # The widget log lives in the overlay, as FearUiLog, and reads everything by reflection -
       # so a name that moved upstream is a miss rather than a compile error. This step only
       # hooks it into the frame loop, which is all the injected text that is left.
