@@ -291,8 +291,22 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         // Use the width and height of the View instead of display dimensions to avoid
         // getting squiched/stretched due to inconsistencies between the layout and
         // screen dimensions.
-        int newWidth = Tools.getDisplayFriendlyRes(getWidth(), LauncherPreferences.PREF_SCALE_FACTOR);
-        int newHeight = Tools.getDisplayFriendlyRes(getHeight(), LauncherPreferences.PREF_SCALE_FACTOR);
+        /* FEARWIRE-SURFACESIZE (v10.26): fear_monster renders at the surface's own size.
+           The master log showed why it has to: view=2584x1220 from the pointer log, and
+           overrideWidth=1808 from the diagnostic - and 2584 * 0.7 = 1808, with 0.7 being
+           PREF_SCALE_FACTOR. The game's window was being shrunk to 70% of the surface it
+           draws into.
+
+           With preTransform at IDENTITY the compositor scales whatever the engine draws up to
+           the surface, so a downscaled render was simply stretched back: the resolution
+           setting changed nothing on screen. And the pointer is normalised against the view
+           while the game hit-tests against its own window, so at any scale other than 1 the
+           buttons ended up somewhere other than where they are drawn. */
+        boolean fearRaw = "fear_monster".equals(fearRNow());
+        int newWidth = fearRaw ? getWidth()
+                : Tools.getDisplayFriendlyRes(getWidth(), LauncherPreferences.PREF_SCALE_FACTOR);
+        int newHeight = fearRaw ? getHeight()
+                : Tools.getDisplayFriendlyRes(getHeight(), LauncherPreferences.PREF_SCALE_FACTOR);
         if (newHeight < 1 || newWidth < 1) {
             Log.e("MGLSurface", String.format("Impossible resolution : %dx%d", newWidth, newHeight));
             return;
@@ -316,7 +330,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
      * is exactly what a ghost looks like.
      *
      * <p>So the pointer is turned back before it is handed over. The angle is read from
-     * fear_input.txt in the game dir (0/90/180/270, default 90) so it can be tried on the
+     * fear_input.txt in the game dir (0/90/180/270, default 270) so it can be tried on the
      * device without a rebuild, the same way holy_rotate.txt and fear_swap.txt are.
      *
      * <p>Every other renderer is untouched: their pointer goes through unchanged, exactly as
@@ -396,7 +410,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         } catch (Throwable ignored) {}
     }
 
-    /** The pointer rotation to apply, from fear_input.txt. Default 90. */
+    /** The pointer rotation to apply, from fear_input.txt. Default 270. */
     private int fearInputRot() {
         try {
             java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_input.txt");
@@ -409,11 +423,12 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                 }
                 String v = bos.toString().trim();
                 if ("0".equals(v)) return 0;
+                if ("90".equals(v)) return 90;
                 if ("180".equals(v)) return 180;
                 if ("270".equals(v)) return 270;
             }
         } catch (Throwable ignored) {}
-        return 90;
+        return 270;
     }
 
     /** The renderer this launch will use, or "" when it cannot be worked out. */
