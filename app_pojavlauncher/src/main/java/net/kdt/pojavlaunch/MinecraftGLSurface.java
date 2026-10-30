@@ -529,14 +529,23 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
                     : net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER;
             holyZink = "holy_zink_kopper".equals(fearR) || "fear_monster".equals(fearR);
         } catch (Throwable ignored) {}
-        /* FEARWIRE-HOLYZINK-ROTATE9: fear_monster needs this too, and it was the one
-           renderer left out. Its surface is landscape (2584x1220) but the ANativeWindow
-           reports the display's natural, portrait size, so Minecraft laid the UI out for a
-           tall window and everything came out rotated a quarter turn:
-           the title screen, its buttons, the whole HUD. holyRotate is exactly the switch
-           for that - it hands MC the swapped dimensions and enables the dnbglfw input
-           remap - and it was being computed and then thrown away. */
-        GLFW.holyRotate = holyZink;
+        /* FEARWIRE-ONEROT (v10.27): holyRotate is zink's alone now.
+
+           It is the dnbglfw input remap, and it was turned on for fear_monster because
+           holy_zink_kopper has it on and holy_zink_kopper works. But the two are not in the
+           same situation: zink presents a portrait swapchain that the compositor turns, while
+           this engine presents a surface-sized swapchain with preTransform at IDENTITY. The
+           remap is written for the first of those.
+
+           With it on here, the native side turned the pointer and nothing else did - which is
+           why fear_mouse.txt stayed empty while Singleplayer still opened: the input never
+           reached TouchEventProcessor at all, and the buttons sat wherever the remap put them
+           rather than where they are drawn. Singleplayer, at the top, is the one that
+           occasionally lands under what the remap produces.
+
+           With it off, the pointer reaches TouchEventProcessor, fear_mouse.txt fills up, and
+           the rotation that is applied is the one the file records. */
+        GLFW.holyRotate = "holy_zink_kopper".equals(fearRNow());
         /* FEARWIRE-HARDROTATE (v10.19): the swap is OFF for fear_monster now, and this is
            the one combination the diagnostic has not been through. It has shown, on a
            device, that the UI is a quarter turn out in all three states tried so far:
@@ -568,7 +577,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         MCOptionUtils.save();
         getMcScale();
         fearMouseReset();
-        fearDiag(holyZink, fearSwap);
+        fearDiag("holy_zink_kopper".equals(fearRNow()), fearSwap);
 
         new Thread(() -> {
             try {
