@@ -21,14 +21,15 @@ public abstract class TouchEventProcessor {
     /**
      * FEARWIRE-INPUTROT (v10.23): the path a finger actually takes.
      *
-     * <p>This is where the pointer was going wrong. The engine presents without pre-rotation,
-     * so the compositor turns the image a quarter turn, and Minecraft maps the pointer against
-     * a window that was never turned. The rotation was added on MinecraftGLSurface.onTouchEvent
-     * first, but that code is only reached for TOOL_TYPE_MOUSE and TOOL_TYPE_STYLUS: a finger
-     * falls through the loop and arrives here instead.
+     * <p>The engine presents without pre-rotation, so the compositor turns the image a quarter
+     * turn, and Minecraft maps the pointer against a window that was never turned. A finger is
+     * TOOL_TYPE_FINGER, which falls through MinecraftGLSurface.onTouchEvent's loop, and arrives
+     * here instead - so this is where the pointer has to be turned back.
      *
-     * <p>So the pointer is turned back here. The angle comes from fear_input.txt in the game dir
-     * (0/90/180/270, default 90), only for fear_monster.
+     * <p>The default is 270. Under case 90 the arithmetic is nx = ny, ny = 1 - nx, which is the
+     * counter-clockwise turn; the recorded line confirms it - screen (1753,37) becomes
+     * (0.0303,0.3216) and that is exactly what was sent. The turn the compositor needs is the
+     * clockwise one, which is case 270.
      */
     protected void sendTouchCoordinates(float x, float y) {
         if (!fearUiDumped) {
@@ -154,7 +155,7 @@ public abstract class TouchEventProcessor {
         }
     }
 
-    /** The pointer rotation to apply, from fear_input.txt. Default 90. */
+    /** The pointer rotation to apply, from fear_input.txt. Default 270. */
     private int fearInputRot() {
         try {
             java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_input.txt");
@@ -167,11 +168,12 @@ public abstract class TouchEventProcessor {
                 }
                 String v = bos.toString().trim();
                 if ("0".equals(v)) return 0;
+                if ("90".equals(v)) return 90;
                 if ("180".equals(v)) return 180;
                 if ("270".equals(v)) return 270;
             }
         } catch (Throwable ignored) {}
-        return 90;
+        return 270;
     }
 
     /** One line per pointer event: where it was, and where it went. */
