@@ -195,8 +195,42 @@ public abstract class TouchEventProcessor {
         applyMoveVector(vector[0], vector[1]);
     }
 
-    /** Relative movement for a grabbed mouse - no origin, so no rotation applies. */
+    /**
+     * FEARWIRE-MOVEROT (v10.28): relative movement, turned the same way as positions.
+     *
+     * <p>In game the mouse is grabbed, so the pointer arrives as a movement vector rather than
+     * a position. This was left unrotated on the reasoning that relative movement has no origin
+     * to rotate about - which is wrong. A rotation applies to a direction just as much as to a
+     * point: turn the frame a quarter turn and a nudge to the right becomes a nudge up. That is
+     * why the camera would not turn.
+     *
+     * <p>The same angle that sendTouchCoordinates uses is applied here, so the two stay
+     * consistent: change fear_input.txt and both follow.
+     */
     protected void applyMoveVector(float x, float y) {
+        if (fearIsMonster()) {
+            switch (fearInputRot()) {
+                case 90: {
+                    float t = x;
+                    x = y;
+                    y = -t;
+                    break;
+                }
+                case 180: {
+                    x = -x;
+                    y = -y;
+                    break;
+                }
+                case 270: {
+                    float t = x;
+                    x = -y;
+                    y = t;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
         GLFW.cursorX += x * LauncherPreferences.PREF_MOUSESPEED / mHostView.getWidth();
         GLFW.cursorY += y * LauncherPreferences.PREF_MOUSESPEED / mHostView.getHeight();
         GLFW.sendMousePos();
