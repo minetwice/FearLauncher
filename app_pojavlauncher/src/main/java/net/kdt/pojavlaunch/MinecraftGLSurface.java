@@ -291,18 +291,22 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         // Use the width and height of the View instead of display dimensions to avoid
         // getting squiched/stretched due to inconsistencies between the layout and
         // screen dimensions.
-        /* FEARWIRE-SURFACESIZE (v10.26): fear_monster renders at the surface's own size.
-           The master log showed why it has to: view=2584x1220 from the pointer log, and
-           overrideWidth=1808 from the diagnostic - and 2584 * 0.7 = 1808, with 0.7 being
-           PREF_SCALE_FACTOR. The game's window was being shrunk to 70% of the surface it
-           draws into.
+        /* FEARWIRE-SCALE (v10.30): the render scale applies again.
 
-           With preTransform at IDENTITY the compositor scales whatever the engine draws up to
-           the surface, so a downscaled render was simply stretched back: the resolution
-           setting changed nothing on screen. And the pointer is normalised against the view
-           while the game hit-tests against its own window, so at any scale other than 1 the
-           buttons ended up somewhere other than where they are drawn. */
-        boolean fearRaw = "fear_monster".equals(fearRNow());
+           It was bypassed for fear_monster because the buttons were landing in the wrong
+           place. That turned out to be holyRotate - two rotation systems fighting - and with
+           holyRotate off the buttons work. So the bypass was no longer needed, and it was
+           costing the resolution setting: the window was pinned to the surface's size, so
+           changing the scale changed nothing, and every pixel of a 2584x1220 panel was
+           rendered whether it was wanted or not.
+
+           The pointer is unaffected. It is normalised against the view and the game maps
+           that fraction against its own window, so the ratio survives whatever the window
+           size is - that was never the problem, the rotation was.
+
+           And because this has been guessed wrong before: fear_rawsize.txt in the game dir,
+           containing 1, pins the window back to the surface's size without a rebuild. */
+        boolean fearRaw = "fear_monster".equals(fearRNow()) && fearRawSizeFile();
         int newWidth = fearRaw ? getWidth()
                 : Tools.getDisplayFriendlyRes(getWidth(), LauncherPreferences.PREF_SCALE_FACTOR);
         int newHeight = fearRaw ? getHeight()
@@ -318,6 +322,23 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             return;
         }
         mSurfaceProvider.updateSize();
+    }
+
+    /** fear_rawsize.txt containing 1 pins the window to the surface's size. */
+    private boolean fearRawSizeFile() {
+        try {
+            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_rawsize.txt");
+            if (!f.isFile()) return false;
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(f)) {
+                byte[] buf = new byte[16];
+                int n;
+                while ((n = fis.read(buf)) > 0) bos.write(buf, 0, n);
+            }
+            return "1".equals(bos.toString().trim());
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /**
@@ -437,9 +458,9 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
      * <p>FEAR_RENDERER is read first. onSurfaceAvailable publishes it into the environment
      * before the window is set up, and the native side gates on the same value, so it is the
      * one source that cannot be wrong from any thread. The instance lookup is the fallback -
-     * and it was the only source here, which is why the scale fix above did nothing: it throws
-     * from this thread, the catch returns "", and the comparison against "fear_monster" is
-     * false every time, silently.
+     * and it was the only source here, which is why an earlier scale change did nothing: it
+     * throws from this thread, the catch returns "", and the comparison against
+     * "fear_monster" is false every time, silently.
      */
     private String fearRNow() {
         try {
@@ -478,6 +499,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             b.append("dimsSwapped=").append(swap).append("\n");
             b.append("overrideWidth=").append(fearSwapValue(swap, true)).append("\n");
             b.append("overrideHeight=").append(fearSwapValue(swap, false)).append("\n");
+            b.append("rawSize=").append(fearRawSizeFile()).append("\n");
             b.append("FEAR_ROTATE_T=").append(String.valueOf(System.getenv("FEAR_ROTATE_T"))).append("\n");
             b.append("sFearRotateDir=").append(net.kdt.pojavlaunch.utils.JREUtils.sFearRotateDir).append("\n");
             b.append("FEAR_RENDERER=").append(String.valueOf(System.getenv("FEAR_RENDERER"))).append("\n");
@@ -540,8 +562,7 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            With it on here, the native side turned the pointer and nothing else did - which is
            why fear_mouse.txt stayed empty while Singleplayer still opened: the input never
            reached TouchEventProcessor at all, and the buttons sat wherever the remap put them
-           rather than where they are drawn. Singleplayer, at the top, is the one that
-           occasionally lands under what the remap produces.
+           rather than where they are drawn.
 
            With it off, the pointer reaches TouchEventProcessor, fear_mouse.txt fills up, and
            the rotation that is applied is the one the file records. */
@@ -672,14 +693,6 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
            osm_bridge frame dump (FEAR_DUMP_FRAME=<seconds> via holy_zink.txt)
            can write holy_frame.raw next to latestlog for offline analysis. */
         try { android.system.Os.setenv("FEAR_GAME_DIR", Tools.DIR_GAME_HOME, true); } catch (Throwable ignored) {}
-        /* FEARWIRE-HARDROTATE (v10.20): fear_monster is handled exactly like
-           holy_zink_kopper now, because holy_zink_kopper is the one that works.
-           That means: holyRotate on, the dimensions left alone, and sFearRotateDir left to
-           holy_rotate.txt rather than forced.
-           v10.18 forced it to 0 and that was the mistake - it overrode holy_rotate.txt, so
-           the one setting that makes holy_zink_kopper work could never reach fear_monster,
-           and every combination tried after that was really the same combination.
-           v10.19's swap stays off for the same reason: holy_zink_kopper does not swap. */
         GLFW.nativeSurfaceCreated(surface);
         // Pass the Surface to the OSMesa bridge in pojavexec (for zink renderers)
         try {
