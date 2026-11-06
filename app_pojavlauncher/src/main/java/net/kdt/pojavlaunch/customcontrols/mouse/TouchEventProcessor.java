@@ -38,7 +38,7 @@ public abstract class TouchEventProcessor {
         }
         float nx = x / mHostView.getWidth();
         float ny = y / mHostView.getHeight();
-        int rot = fearIsMonster() ? fearInputRot() : 0;
+        int rot = fearIsMonster() ? fearRot("fear_input.txt", 270) : 0;
         if (rot != 0) {
             float ox = nx, oy = ny;
             switch (rot) {
@@ -155,10 +155,10 @@ public abstract class TouchEventProcessor {
         }
     }
 
-    /** The pointer rotation to apply, from fear_input.txt. Default 270. */
-    private int fearInputRot() {
+    /** A rotation angle from a file in the game dir, or the default. */
+    private int fearRot(String name, int def) {
         try {
-            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_input.txt");
+            java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, name);
             if (f.isFile()) {
                 java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
                 try (java.io.FileInputStream fis = new java.io.FileInputStream(f)) {
@@ -173,7 +173,7 @@ public abstract class TouchEventProcessor {
                 if ("270".equals(v)) return 270;
             }
         } catch (Throwable ignored) {}
-        return 270;
+        return def;
     }
 
     /** One line per pointer event: where it was, and where it went. */
@@ -196,20 +196,20 @@ public abstract class TouchEventProcessor {
     }
 
     /**
-     * FEARWIRE-MOVEROT (v10.28): relative movement, turned the same way as positions.
+     * FEARWIRE-MOVEROT (v10.29): relative movement, with an angle of its own.
      *
-     * <p>In game the mouse is grabbed, so the pointer arrives as a movement vector rather than
-     * a position. This was left unrotated on the reasoning that relative movement has no origin
-     * to rotate about - which is wrong. A rotation applies to a direction just as much as to a
-     * point: turn the frame a quarter turn and a nudge to the right becomes a nudge up. That is
-     * why the camera would not turn.
+     * <p>Positions land correctly with the pointer turned by 270. The camera did not: swiping
+     * up moved it sideways. One angle was being asked to do two jobs, and they are not the
+     * same quantity - a position is where the finger is on the panel and has to be mapped into
+     * the window the UI was laid out in, while a movement is a direction the game applies to
+     * the camera in its own, turned, space.
      *
-     * <p>The same angle that sendTouchCoordinates uses is applied here, so the two stay
-     * consistent: change fear_input.txt and both follow.
+     * <p>So this reads fear_move.txt rather than fear_input.txt, defaulting to 90. If that is
+     * wrong the other three are one launch each, with no rebuild.
      */
     protected void applyMoveVector(float x, float y) {
         if (fearIsMonster()) {
-            switch (fearInputRot()) {
+            switch (fearRot("fear_move.txt", 90)) {
                 case 90: {
                     float t = x;
                     x = y;
