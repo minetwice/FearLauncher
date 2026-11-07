@@ -3,31 +3,30 @@ package net.vulkanmod.vulkan;
 import org.joml.Matrix4f;
 
 /**
- * FEAR: Vulkan pre-rotation, the other half of the IDENTITY change.
+ * FEAR: Vulkan pre-rotation.
  *
- * <p>The engine presents with preTransform at IDENTITY so that the Android compositor does the
- * turning, exactly as it does for the GL renderers. That works, but the game's own coordinates
- * are then a quarter turn away from the panel: the pointer has to be turned by hand, and the
- * camera axes come out swapped.
+ * <p>preTransform is back at currentTransform and the swapchain is at the surface's identity
+ * size, which together mean the compositor no longer turns the image. The turning happens here
+ * instead, on the projection, which is the third of the three things Google's pre-rotation
+ * guidance asks for and the one VulkanMod never did.
  *
- * <p>This removes the need for any of that. preTransform goes back to currentTransform, the
- * swapchain goes back to the surface's identity size, and the projection matrix is turned here
- * - which is the third of the three things Google's pre-rotation guidance asks for, and the one
- * VulkanMod was missing.
+ * <p>This is what makes fear_monster behave like the GL renderers: the game draws in its own
+ * landscape coordinates, the result is presented upright, and nothing on the pointer side has
+ * to be turned by hand. No camera axes to swap, no fear_input.txt, no fear_move.txt.
  *
- * <p>Everything is behind fear_prerotate.txt in the game dir, default OFF, so this cannot break
- * a launch that works today. With the file absent the matrix is returned untouched.
+ * <p>fear_prerotate.txt in the game dir still overrides the angle (0/90/180/270) so it can be
+ * checked on the device without a rebuild; 0 turns the whole thing off again.
  */
 public final class FearPreRotation {
     private FearPreRotation() {}
 
     private static volatile int sAngle = -1;
 
-    /** 0/90/180/270 from fear_prerotate.txt, or 0 when the file is absent. */
+    /** 0/90/180/270 from fear_prerotate.txt. Default 90 - the panel is landscape. */
     private static int angle() {
         int a = sAngle;
         if (a >= 0) return a;
-        int v = 0;
+        int v = 90;
         try {
             String dir = System.getenv("FEAR_GAME_DIR");
             if (dir != null && !dir.isEmpty()) {
@@ -35,7 +34,8 @@ public final class FearPreRotation {
                 if (f.isFile()) {
                     String s = new String(java.nio.file.Files.readAllBytes(f.toPath()),
                             java.nio.charset.StandardCharsets.UTF_8).trim();
-                    if ("90".equals(s)) v = 90;
+                    if ("0".equals(s)) v = 0;
+                    else if ("90".equals(s)) v = 90;
                     else if ("180".equals(s)) v = 180;
                     else if ("270".equals(s)) v = 270;
                 }
