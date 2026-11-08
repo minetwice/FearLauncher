@@ -219,7 +219,7 @@ jobs:
           path = sys.argv[1]
           src = open(path).read()
           old = 'createInfo.preTransform(surfaceProperties.capabilities.currentTransform());'
-          new = ('createInfo.preTransform(surfaceProperties.capabilities.currentTransform()); /* FEAR: pre-rotation part 1 -'
+          new = ('createInfo.preTransform(0x00000001); /* FEAR: VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR -'
                  ' no pre-rotation, the compositor rotates, exactly as the GL renderers do */')
           if old not in src:
               sys.exit("the preTransform line is not in " + path + " any more")
@@ -229,8 +229,8 @@ jobs:
           PY
           echo "--- what the patch produced ---"
           grep -n "preTransform" "$F" || true
-          if ! grep -q 'currentTransform()' "$F"; then
-            echo "preTransform is not asking for currentTransform"
+          if grep -q 'currentTransform()' "$F"; then
+            echo "the preTransform line is still asking for currentTransform"
             exit 1
           fi
 
@@ -257,8 +257,8 @@ jobs:
           old = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())'
                  '.set(width.get(0), height.get(0));')
           new = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())\n'
-                 '                .set(capabilities.currentExtent().height(),'
-                 ' capabilities.currentExtent().width());'
+                 '                .set(capabilities.currentExtent().width(),'
+                 ' capabilities.currentExtent().height());'
                  ' /* FEAR: the surface size, not the window - IDENTITY means no pre-rotation */')
           if old not in body:
               sys.exit('the extent line is not in getExtent() any more: ' + old)
@@ -269,8 +269,8 @@ jobs:
           PY
           echo "--- what the patch produced ---"
           grep -n "currentExtent()" "$F" || true
-          if ! grep -q 'currentExtent().height(),' "$F"; then
-            echo "getExtent was not rewritten to the identity size"
+          if ! grep -q 'currentExtent().width()' "$F"; then
+            echo "getExtent was not rewritten"
             exit 1
           fi
 
