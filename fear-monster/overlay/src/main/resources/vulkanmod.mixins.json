@@ -6,7 +6,6 @@
   "plugin": "net.vulkanmod.mixin.MixinPlugin",
   "mixins": [],
   "client": [
-    "render.FearPreRotateMixin",
     "window.ScreenManagerMixin",
     "window.WindowMixin",
     "window.WindowAccessor",
