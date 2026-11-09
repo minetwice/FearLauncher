@@ -117,14 +117,6 @@ public class JREUtils {
                 envMap.put("ZINK_MALI_NOCOMPUTEUPLOAD", "1");
                 envMap.put("ZINK_MALI_NOREUSE", "1");
                 break;
-            /* FEAR: fear_monster takes the same backend as the zink renderers.
-               Its GL library was already libltw.so, so only the environment was
-               missing - and without it the engine went straight to Vulkan and had to
-               present through a surface the launcher never handed it in landscape.
-               Falling through here gives it exactly what turnip_zink and
-               holy_zink_kopper get, which on Mali is Zink over the system Vulkan
-               driver. */
-            case "fear_monster":
             case "holy_zink_kopper":
                 Logger.appendToLog("[HolyZink] Initializing Zink renderer (OSMesa + Mesa Zink over the system Vulkan driver)...");
                 envMap.put("GALLIUM_DRIVER", "zink");
@@ -261,6 +253,21 @@ public class JREUtils {
             envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
         }
 
+
+        if ("fear_monster".equals(renderer)) {
+            // The direct-Vulkan profile: the engine renders straight to Vulkan, so the
+            // launcher's job is to make a Vulkan device reachable and to hand the game a
+            // window it can present into.
+            Logger.appendToLog("[FearMonster] Applying the direct-Vulkan profile...");
+            envMap.put("FEAR_RENDERER", "fear_monster");
+            envMap.put("FEAR_MONSTER_ENGINE", "1");
+            envMap.put("FEAR_BIG_CORE_AFFINITY", "1");
+            envMap.put("MESA_NO_ERROR", "1");
+            if (GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
+                setUseTurnip(true);
+                Logger.appendToLog("[FearMonster] Adreno: requesting the Mesa Turnip Vulkan ICD");
+            }
+        }
 
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
