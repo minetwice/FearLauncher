@@ -6,6 +6,8 @@
   "plugin": "net.vulkanmod.mixin.MixinPlugin",
   "mixins": [],
   "client": [
+    "render.FearGuiProjectionMixin",
+    "render.FearWorldProjectionMixin",
     "window.ScreenManagerMixin",
     "window.WindowMixin",
     "window.WindowAccessor",
