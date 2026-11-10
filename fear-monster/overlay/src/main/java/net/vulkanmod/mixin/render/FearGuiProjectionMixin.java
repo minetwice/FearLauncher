@@ -14,20 +14,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * <p>This is the one that matters - the title screen, its buttons and the HUD are what a player
  * cannot use when the image is a quarter turn out.
  *
- * <p>targets = the intermediary name on purpose. Importing the class meant guessing which package
- * Mojang mappings put it in, and the guess was wrong - the build failed with "cannot find symbol
- * ProjectionMatrix2" under net.minecraft.client.renderer. A string target has no import to get
- * wrong: it is resolved against whatever name the game actually loads, which is the intermediary
- * one the mappings give as class_11278.
+ * <p>Both the class and the method are named by their intermediary names, on purpose. The mixin
+ * config ships without a refMap, so nothing translates the readable names to the ones the game
+ * actually loads, and the first attempt failed exactly there:
  *
- * <p>getMatrix is where the ortho matrix is built before ProjectionMatrix2 packs it into a GPU
- * buffer, so it is the last point at which a Matrix4f exists. Both guiProjectionMatrix and
- * itemsProjectionMatrix are ProjectionMatrix2, so one hook covers both.
+ *   could not find any targets matching 'getMatrix' in net/minecraft/class_11278
+ *
+ * <p>net.minecraft.class_11278 is ProjectionMatrix2 and method_71094 is its getMatrix(float,
+ * float) - the point where the ortho matrix is built before it is packed into a GPU buffer, and
+ * so the last place a Matrix4f exists. Both guiProjectionMatrix and itemsProjectionMatrix are
+ * ProjectionMatrix2, so one hook covers both.
  */
 @Mixin(targets = "net.minecraft.class_11278")
 public abstract class FearGuiProjectionMixin {
 
-    @Inject(method = "getMatrix", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "method_71094", at = @At("RETURN"), cancellable = true)
     private void fearRotateGui(float width, float height, CallbackInfoReturnable<Matrix4f> cir) {
         cir.setReturnValue(FearPreRotation.apply(cir.getReturnValue()));
     }
