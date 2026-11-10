@@ -19,17 +19,13 @@ public abstract class TouchEventProcessor {
     }
 
     /**
-     * FEARWIRE-INPUTROT (v10.23): the path a finger actually takes.
+     * FEARWIRE-INPUTROT: the pointer, turned to match what the engine did to the image.
      *
-     * <p>The engine presents without pre-rotation, so the compositor turns the image a quarter
-     * turn, and Minecraft maps the pointer against a window that was never turned. A finger is
-     * TOOL_TYPE_FINGER, which falls through MinecraftGLSurface.onTouchEvent's loop, and arrives
-     * here instead - so this is where the pointer has to be turned back.
-     *
-     * <p>The default is 270. Under case 90 the arithmetic is nx = ny, ny = 1 - nx, which is the
-     * counter-clockwise turn; the recorded line confirms it - screen (1753,37) becomes
-     * (0.0303,0.3216) and that is exactly what was sent. The turn the compositor needs is the
-     * clockwise one, which is case 270.
+     * <p>The angle is no longer a constant here. The engine turns the projection by whatever
+     * fear_prerotate.txt says, and the pointer has to be turned by the same amount or it lands
+     * a rotation away from the UI - which shows up as a mouse that moves sideways when the
+     * finger moves up. Reading the same file means the two cannot drift apart, whatever angle
+     * ends up being right.
      */
     protected void sendTouchCoordinates(float x, float y) {
         if (!fearUiDumped) {
@@ -38,7 +34,7 @@ public abstract class TouchEventProcessor {
         }
         float nx = x / mHostView.getWidth();
         float ny = y / mHostView.getHeight();
-        int rot = fearIsMonster() ? fearRot("fear_input.txt", 270) : 0;
+        int rot = fearIsMonster() ? fearAngle() : 0;
         if (rot != 0) {
             float ox = nx, oy = ny;
             switch (rot) {
@@ -58,23 +54,12 @@ public abstract class TouchEventProcessor {
                     break;
             }
         }
-        /* Written on every event, not only when the rotation ran. A skipped rotation and a
-           missing pointer event both left an empty file, which made two runs impossible to
-           tell apart. */
         fearMouseLog(rot, x, y, nx, ny);
         GLFW.cursorX = nx;
         GLFW.cursorY = ny;
         GLFW.sendMousePos();
     }
 
-    /**
-     * FEARWIRE-UIDUMP (v10.25): every view on screen, with the box it occupies.
-     *
-     * <p>Bounds are in screen pixels - the same space fear_mouse.txt records the pointer in -
-     * so a click and a box can be lined up directly, with no arithmetic in between. Only the
-     * first event of a launch triggers it: the tree does not move while the game runs, and a
-     * dump per touch would bury the pointer log it is meant to be read beside.
-     */
     private void fearDumpUi() {
         try {
             View root = mHostView.getRootView();
@@ -131,15 +116,6 @@ public abstract class TouchEventProcessor {
         } catch (Throwable ignored) {}
     }
 
-    /**
-     * True when this launch is the Fear Monster engine.
-     *
-     * <p>FEAR_RENDERER is read first: onSurfaceAvailable publishes the renderer into the
-     * environment before the window is set up, and the native side gates on the same value.
-     * The instance lookup is the fallback, but it can throw from this thread - and when it did,
-     * the catch below turned that into "not the engine" and the rotation was skipped without a
-     * trace, which is what the empty tracker file was reporting.
-     */
     private boolean fearIsMonster() {
         try {
             if ("fear_monster".equals(System.getenv("FEAR_RENDERER"))) return true;
@@ -155,7 +131,16 @@ public abstract class TouchEventProcessor {
         }
     }
 
-    /** A rotation angle from a file in the game dir, or the default. */
+    /**
+     * The angle the engine turned the image by, from fear_prerotate.txt. Default 180.
+     *
+     * <p>One file, one answer. The pointer and the projection cannot disagree because they read
+     * the same number.
+     */
+    private int fearAngle() {
+        return fearRot("fear_prerotate.txt", 180);
+    }
+
     private int fearRot(String name, int def) {
         try {
             java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, name);
@@ -176,7 +161,6 @@ public abstract class TouchEventProcessor {
         return def;
     }
 
-    /** One line per pointer event: where it was, and where it went. */
     private void fearMouseLog(int rot, float px, float py, float nx, float ny) {
         try {
             java.io.File f = new java.io.File(Tools.DIR_GAME_HOME, "fear_mouse.txt");
@@ -195,40 +179,14 @@ public abstract class TouchEventProcessor {
         applyMoveVector(vector[0], vector[1]);
     }
 
-    /**
-     * FEARWIRE-MOVEROT (v10.29): relative movement, with an angle of its own.
-     *
-     * <p>Positions land correctly with the pointer turned by 270. The camera did not: swiping
-     * up moved it sideways. One angle was being asked to do two jobs, and they are not the
-     * same quantity - a position is where the finger is on the panel and has to be mapped into
-     * the window the UI was laid out in, while a movement is a direction the game applies to
-     * the camera in its own, turned, space.
-     *
-     * <p>So this reads fear_move.txt rather than fear_input.txt, defaulting to 90. If that is
-     * wrong the other three are one launch each, with no rebuild.
-     */
+    /** Relative movement, turned by the same angle as the image. */
     protected void applyMoveVector(float x, float y) {
         if (fearIsMonster()) {
-            switch (fearRot("fear_move.txt", 90)) {
-                case 90: {
-                    float t = x;
-                    x = y;
-                    y = -t;
-                    break;
-                }
-                case 180: {
-                    x = -x;
-                    y = -y;
-                    break;
-                }
-                case 270: {
-                    float t = x;
-                    x = -y;
-                    y = t;
-                    break;
-                }
-                default:
-                    break;
+            switch (fearAngle()) {
+                case 90: { float t = x; x = y; y = -t; break; }
+                case 180: { x = -x; y = -y; break; }
+                case 270: { float t = x; x = -y; y = t; break; }
+                default: break;
             }
         }
         GLFW.cursorX += x * LauncherPreferences.PREF_MOUSESPEED / mHostView.getWidth();
