@@ -2,7 +2,7 @@ package net.vulkanmod.mixin.render;
 
 import net.vulkanmod.vulkan.FearPreRotation;
 
-import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.renderer.GameRenderer;
 
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,9 +13,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * FEAR: the world's projection, turned for pre-rotation.
  *
- * <p>getBasicProjectionMatrix is public and has kept that name in 1.21.11, which is what makes
- * this safe to inject - unlike RenderSystem.setProjectionMatrix, which now takes a packed
- * GpuBufferSlice and has no Matrix4f to modify at all.
+ * <p>getBasicProjectionMatrix is public and still returns a Matrix4f in 1.21.11 - unlike
+ * RenderSystem.setProjectionMatrix, which now takes a packed GpuBufferSlice and has no
+ * Matrix4f to modify.
+ *
+ * <p>Package note: the engine builds against Mojang mappings, not yarn. GameRenderer lives at
+ * net.minecraft.client.renderer, which is what VulkanMod's own GameRendererMixin imports.
  */
 @Mixin(GameRenderer.class)
 public abstract class FearWorldProjectionMixin {
