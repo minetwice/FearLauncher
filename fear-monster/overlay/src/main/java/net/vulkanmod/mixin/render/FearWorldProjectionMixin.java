@@ -13,17 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * FEAR: the world's projection, turned for pre-rotation.
  *
- * <p>getBasicProjectionMatrix is public and still returns a Matrix4f in 1.21.11 - unlike
- * RenderSystem.setProjectionMatrix, which now takes a packed GpuBufferSlice and has no
- * Matrix4f to modify.
+ * <p>method_22973 is getBasicProjectionMatrix(float) in intermediary. The config ships without a
+ * refMap, so nothing translates the readable name at runtime and the first attempt failed with
+ * "could not find any targets matching 'getBasicProjectionMatrix' in net.minecraft.class_757" -
+ * the class was right, the method name was not.
  *
- * <p>Package note: the engine builds against Mojang mappings, not yarn. GameRenderer lives at
- * net.minecraft.client.renderer, which is what VulkanMod's own GameRendererMixin imports.
+ * <p>The GUI hook already proved this is the pattern: class and method both have to be named the
+ * way the game loads them.
  */
 @Mixin(GameRenderer.class)
 public abstract class FearWorldProjectionMixin {
 
-    @Inject(method = "getBasicProjectionMatrix", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "method_22973", at = @At("RETURN"), cancellable = true)
     private void fearRotateWorld(float fovDegrees, CallbackInfoReturnable<Matrix4f> cir) {
         cir.setReturnValue(FearPreRotation.apply(cir.getReturnValue()));
     }
