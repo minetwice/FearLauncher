@@ -19,13 +19,11 @@ public abstract class TouchEventProcessor {
     }
 
     /**
-     * FEARWIRE-INPUTROT: the pointer, turned to match what the engine did to the image.
+     * The pointer, turned by whatever the engine turned the image by.
      *
-     * <p>The angle is no longer a constant here. The engine turns the projection by whatever
-     * fear_prerotate.txt says, and the pointer has to be turned by the same amount or it lands
-     * a rotation away from the UI - which shows up as a mouse that moves sideways when the
-     * finger moves up. Reading the same file means the two cannot drift apart, whatever angle
-     * ends up being right.
+     * <p>Both read fear_prerotate.txt, so they cannot drift apart. The default is 0: the engine's
+     * swapchain now follows the window rather than the surface, which leaves the compositor
+     * nothing to add and the projection nothing to undo, so an unturned pointer is the right one.
      */
     protected void sendTouchCoordinates(float x, float y) {
         if (!fearUiDumped) {
@@ -131,14 +129,9 @@ public abstract class TouchEventProcessor {
         }
     }
 
-    /**
-     * The angle the engine turned the image by, from fear_prerotate.txt. Default 180.
-     *
-     * <p>One file, one answer. The pointer and the projection cannot disagree because they read
-     * the same number.
-     */
+    /** The angle the engine turned the image by. Default 0 - see sendTouchCoordinates. */
     private int fearAngle() {
-        return fearRot("fear_prerotate.txt", 180);
+        return fearRot("fear_prerotate.txt", 0);
     }
 
     private int fearRot(String name, int def) {
