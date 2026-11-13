@@ -3,19 +3,14 @@ package net.vulkanmod.vulkan;
 import org.joml.Matrix4f;
 
 /**
- * FEAR: Vulkan pre-rotation.
+ * FEAR: Vulkan pre-rotation, off by default.
  *
- * <p>preTransform is at currentTransform and the swapchain is at the surface's identity size, so
- * the compositor no longer turns the image. The turning happens here instead, on the projection -
- * the third of the three things Google's pre-rotation guidance asks for and the one VulkanMod
- * never did. Two hooks feed it: GameRenderer's world projection and ProjectionMatrix2's GUI one.
+ * <p>Off because the extent is now the window's size rather than the surface's, and with that
+ * in place the image already arrives upright - the compositor's turn and the window's shape
+ * agree. Rotating the projection on top of that would be a second turn.
  *
- * <p>The default is 180. 90 was the first guess and it came out upside down on the device -
- * landscape right, screen inverted - so the panel's transform is a half turn rather than a
- * quarter. 90 and 270 turn it a quarter the other way, 0 turns the whole thing off.
- *
- * <p>fear_prerotate.txt in the game dir overrides the angle, so it can be checked without a
- * rebuild.
+ * <p>fear_prerotate.txt in the game dir turns it on: 90, 180 or 270. The launcher's pointer
+ * reads the same file, so the two cannot disagree.
  */
 public final class FearPreRotation {
     private FearPreRotation() {}
@@ -25,7 +20,7 @@ public final class FearPreRotation {
     private static int angle() {
         int a = sAngle;
         if (a >= 0) return a;
-        int v = 180;
+        int v = 0;
         try {
             String dir = System.getenv("FEAR_GAME_DIR");
             if (dir != null && !dir.isEmpty()) {
@@ -46,7 +41,6 @@ public final class FearPreRotation {
 
     public static boolean enabled() { return angle() != 0; }
 
-    /** Turn the finished projection so the image lands upright on the panel. */
     public static Matrix4f apply(Matrix4f proj) {
         int a = angle();
         if (a == 0 || proj == null) return proj;
