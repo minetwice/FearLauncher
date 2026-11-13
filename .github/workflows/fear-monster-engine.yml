@@ -219,7 +219,7 @@ jobs:
           path = sys.argv[1]
           src = open(path).read()
           old = 'createInfo.preTransform(surfaceProperties.capabilities.currentTransform());'
-          new = ('createInfo.preTransform(0x00000001); /* FEAR: VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR -'
+          new = ('createInfo.preTransform(surfaceProperties.capabilities.currentTransform()); /* FEAR: pre-rotation part 1 -'
                  ' no pre-rotation, the compositor rotates, exactly as the GL renderers do */')
           if old not in src:
               sys.exit("the preTransform line is not in " + path + " any more")
@@ -229,8 +229,8 @@ jobs:
           PY
           echo "--- what the patch produced ---"
           grep -n "preTransform" "$F" || true
-          if ! grep -q 'currentTransform()' "$F"; then
-            echo "preTransform is not asking for currentTransform"
+          if ! grep -q 'preTransform(0x00000001)' "$F"; then
+            echo "preTransform was not set to IDENTITY"
             exit 1
           fi
 
@@ -257,7 +257,8 @@ jobs:
           old = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())'
                  '.set(width.get(0), height.get(0));')
           new = ('VkExtent2D actualExtent = VkExtent2D.malloc(MemoryStack.stackPush())\n'
-                 '                .set(width.get(0), height.get(0));'
+                 '                .set(capabilities.currentExtent().height(),'
+                 ' capabilities.currentExtent().width());'
                  ' /* FEAR: the surface size, not the window - IDENTITY means no pre-rotation */')
           if old not in body:
               sys.exit('the extent line is not in getExtent() any more: ' + old)
@@ -300,44 +301,6 @@ jobs:
           grep -n "FearUiLog" "$F" || true
           if ! grep -q 'FearUiLog.tick()' "$F"; then
             echo "the widget log was not hooked in"
-            exit 1
-          fi
-
-
-      # FEAR: the extent is the window's size, not the surface's.
-      #
-      # getExtent() returns currentExtent whenever the driver reports one, and on Android it
-      # always does. currentExtent is the SURFACE's size - fixed, and unrelated to the window
-      # the game asked for - so the swapchain was pinned to it and the resolution setting
-      # changed nothing. The window-sized path below it, with the glfwGetFramebufferSize call,
-      # has never run on this platform.
-      #
-      # Reading the window makes the swapchain follow the game's own size, which is what every
-      # other renderer does and what makes the setting mean something.
-      - name: Take the extent from the window, not the surface
-        run: |
-          set -uo pipefail
-          cd "$RUNNER_TEMP/engine"
-          F=src/main/java/net/vulkanmod/vulkan/framebuffer/SwapChain.java
-          python3 - "$F" <<'PY'
-          import sys
-          path = sys.argv[1]
-          src = open(path).read()
-          old = ('        if (capabilities.currentExtent().width() != UINT32_MAX) {\n'
-                 '            return capabilities.currentExtent();\n'
-                 '        }\n')
-          new = ('        /* FEAR: currentExtent is the surface size and never changes, which pinned the\n'
-                 '           swapchain and made the resolution setting do nothing. The window is what the\n'
-                 '           game asked for, so that is what is used. */\n')
-          if old not in src:
-              sys.exit('the currentExtent early return is not in ' + path + ' any more')
-          src = src.replace(old, new, 1)
-          open(path, 'w').write(src)
-          print('patched getExtent in ' + path)
-          PY
-          grep -n "currentExtent" "$F" || true
-          if grep -q 'return capabilities.currentExtent();' "$F"; then
-            echo "getExtent still returns currentExtent"
             exit 1
           fi
 
