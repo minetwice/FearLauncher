@@ -219,7 +219,7 @@ jobs:
           path = sys.argv[1]
           src = open(path).read()
           old = 'createInfo.preTransform(surfaceProperties.capabilities.currentTransform());'
-          new = ('createInfo.preTransform(surfaceProperties.capabilities.currentTransform()); /* FEAR: pre-rotation part 1 -'
+          new = ('createInfo.preTransform(0x00000001); /* FEAR: VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR -'
                  ' no pre-rotation, the compositor rotates, exactly as the GL renderers do */')
           if old not in src:
               sys.exit("the preTransform line is not in " + path + " any more")
