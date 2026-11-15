@@ -30,8 +30,17 @@ public abstract class TouchEventProcessor {
             fearUiDumped = true;
             fearDumpUi();
         }
-        float nx = x / mHostView.getWidth();
-        float ny = y / mHostView.getHeight();
+        /* FEAR: the view is not always at the screen's origin.
+           The DecorView is 2712 wide while the game surface is 2584, and the surface sits inside
+           it - so a touch reported against the window is 128px away from the same point measured
+           against the view. Big buttons survived that, which is why this looked fixed; a text
+           field does not, which is why the server address box could not be selected and why the
+           keyboard appeared in the wrong place.
+           Subtracting the view's own screen position makes the two agree. */
+        int[] fearLoc = new int[2];
+        mHostView.getLocationOnScreen(fearLoc);
+        float nx = (x - fearLoc[0]) / mHostView.getWidth();
+        float ny = (y - fearLoc[1]) / mHostView.getHeight();
         int rot = fearIsMonster() ? fearAngle() : 0;
         if (rot != 0) {
             float ox = nx, oy = ny;
