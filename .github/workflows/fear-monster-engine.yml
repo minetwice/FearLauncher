@@ -219,7 +219,7 @@ jobs:
           path = sys.argv[1]
           src = open(path).read()
           old = 'createInfo.preTransform(surfaceProperties.capabilities.currentTransform());'
-          new = ('createInfo.preTransform(0x00000001); /* FEAR: VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR -'
+          new = ('createInfo.preTransform(surfaceProperties.capabilities.currentTransform()); /* FEAR: pre-rotation part 1 -'
                  ' no pre-rotation, the compositor rotates, exactly as the GL renderers do */')
           if old not in src:
               sys.exit("the preTransform line is not in " + path + " any more")
@@ -301,6 +301,42 @@ jobs:
           grep -n "FearUiLog" "$F" || true
           if ! grep -q 'FearUiLog.tick()' "$F"; then
             echo "the widget log was not hooked in"
+            exit 1
+          fi
+
+
+      # FEAR: the viewport has to follow the swapchain.
+      #
+      # recreateSwapChain resizes the framebuffer and tells Minecraft, but it never resets the
+      # viewport - so after a resolution change the viewport still describes the old rectangle and
+      # the image is drawn into the wrong part of the surface: smaller, larger, or shifted up or
+      # down depending on which way the size went. resetViewport() already exists and does exactly
+      # the right thing; nothing was calling it.
+      - name: Reset the viewport when the swapchain is recreated
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/engine"
+          F=src/main/java/net/vulkanmod/vulkan/Renderer.java
+          python3 - "$F" <<'PY'
+          import sys
+          path = sys.argv[1]
+          src = open(path).read()
+          old = ('        this.onResizeCallbacks.forEach(Runnable::run);\n'
+                 '        ((WindowAccessor) (Object) Minecraft.getInstance().getWindow())'
+                 '.getEventHandler().resizeDisplay();\n')
+          new = ('        this.onResizeCallbacks.forEach(Runnable::run);\n'
+                 '        resetViewport(); /* FEAR: the viewport follows the new framebuffer size */\n'
+                 '        ((WindowAccessor) (Object) Minecraft.getInstance().getWindow())'
+                 '.getEventHandler().resizeDisplay();\n')
+          if old not in src:
+              sys.exit('the resize callback block is not in ' + path + ' any more')
+          src = src.replace(old, new, 1)
+          open(path, 'w').write(src)
+          print('patched recreateSwapChain in ' + path)
+          PY
+          grep -n "resetViewport" "$F" || true
+          if ! grep -q 'resetViewport(); /\* FEAR' "$F"; then
+            echo "resetViewport was not added to the resize path"
             exit 1
           fi
 
