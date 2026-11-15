@@ -536,6 +536,12 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
         refreshSize(true);
 
         //Load Minecraft options:
+        /* FEAR: vsync off. The session diagnostic reported it plainly - "A 60 fps-class cap
+           is active because enableVsync is true" - while the game was asking for 120. Every
+           frame was being held for the panel, so the frame rate never went above the refresh
+           whatever the renderer did. The engine already paces itself; this cap was the ceiling. */
+        MCOptionUtils.set("enableVsync", "false");
+        MCOptionUtils.set("maxFps", "120");
         MCOptionUtils.set("fullscreen", "false"); /* FEARWIRE: "off" is not a boolean MC parses (error in latestlog) */
         /* FEARWIRE-HOLYZINK-ROTATE3: holy zink renders portrait (the compositor
            rotates it upright), so give MC swapped dims and enable the dnbglfw
