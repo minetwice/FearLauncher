@@ -140,9 +140,16 @@ public final class FearEngine {
             Log.i(TAG, "device: " + profile.describe());
             Log.i(TAG, "plan: " + plan);
 
-            sThread = new Thread(() -> govern(app, profile), "fear-engine");
-            sThread.setDaemon(true);
-            sThread.start();
+            /* FEAR: the governor is off.
+               It existed to drop the render scale when the frame rate sagged, and it did that by
+               writing PREF_SCALE_FACTOR and saving it - which meant the player's own resolution
+               choice was overwritten within seconds of a launch, and the setting appeared to do
+               nothing because the governor kept putting it back. Resolution is the player's call
+               now: whatever they set is what runs, and it stays set.
+               The device profile and the driver plan above are still written to the trace, which
+               is the useful half. */
+            appendTrace("governor: off - resolution is the player's choice\n");
+            sRunning = false;
         } catch (Throwable t) {
             sRunning = false;
             Log.w(TAG, "engine could not start, continuing without it", t);
