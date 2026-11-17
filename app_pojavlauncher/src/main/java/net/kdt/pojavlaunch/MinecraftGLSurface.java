@@ -147,6 +147,15 @@ public class MinecraftGLSurface extends View implements GrabListener, GamepadEna
             return true; //mouse event handled successfully
         }
         if (mIngameProcessor == null || mInGUIProcessor == null) return true;
+        /* FEAR: follow the grab state on every touch.
+           updateGrabState is only reached from dispatchGenericMotionEvent, which fires for mice and
+           styluses - so on a finger-driven session the processor was whatever it had been at startup
+           and never changed. With the ingame processor active on a GUI screen, taps are relative
+           nudges of a hidden cursor instead of clicks at an absolute point: large buttons survive
+           because their boxes are large, a one-line text field does not, and no click ever reaches
+           sendTouchCoordinates - which is why fear_mouse.txt came back with only its header.
+           One call here keeps the processor matched to what Minecraft is actually doing. */
+        updateGrabState(GLFW.isGrabbing());
         return mCurrentTouchProcessor.processTouchEvent(e);
     }
 
