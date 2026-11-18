@@ -32,9 +32,17 @@ public class InGUIEventProcessor extends TouchEventProcessor {
         switch (motionEvent.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 mTracker.startTracking(motionEvent);
+                /* FEAR: the cursor moves to the finger on every press, touchpad or not.
+                   It used to be inside the touchpadDisplayed() guard, so with the virtual mouse
+                   showing the cursor stayed wherever it had been left - and the tap that follows on
+                   ACTION_UP clicks at the cursor's old position, not where the finger went. Large
+                   buttons survived because the cursor was often already over them; a one-line text
+                   field never was, which is why the server address box could not be selected and
+                   why the video settings options would not change.
+                   This is also why fear_mouse.txt held nothing but its header: the only call to
+                   sendTouchCoordinates on press was behind that guard. */
+                sendTouchCoordinates(motionEvent.getX(), motionEvent.getY());
                 if(!touchpadDisplayed()) {
-                    sendTouchCoordinates(motionEvent.getX(), motionEvent.getY());
-
                     // disabled gestures means no scrolling possible, send gesture early
                     if (LauncherPreferences.PREF_DISABLE_GESTURES) enableMouse();
                     else setGestureStart(motionEvent);
