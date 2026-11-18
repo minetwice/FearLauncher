@@ -75,8 +75,15 @@ public class InGUIEventProcessor extends TouchEventProcessor {
                 mScroller.resetScrollOvershoot();
                 mTracker.cancelTracking();
 
-                // Handle single tap on gestures
-                if((!LauncherPreferences.PREF_DISABLE_GESTURES || touchpadDisplayed()) && !mIsMouseDown && singleTap) {
+                /* FEAR: click on every release, not only when the tap detector agrees.
+                   Three things had to line up before a click was sent: gestures enabled or the touchpad
+                   showing, the mouse button not already held, and mSingleTapDetector calling it a tap.
+                   With the virtual mouse on, a press also starts a gesture - so the release was being
+                   read as the end of a drag rather than a tap, and nothing was clicked. The cursor had
+                   already been moved to the finger on press, so a click here lands exactly where the
+                   finger was: big buttons happened to work before because the cursor was often already
+                   over them, and a one-line text field never was. */
+                if(!mIsMouseDown) {
                     CallbackBridge.performClick(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT);
                 }
 
