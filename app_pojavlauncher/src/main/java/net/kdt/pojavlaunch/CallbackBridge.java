@@ -21,11 +21,21 @@ public class CallbackBridge {
             holdingNumlock, holdingShift;
 
     public static void performClick(int button) {
+        /* FEAR: the position goes out with the click.
+           The cursor was saved and put back before the release, and nothing sent an xpos/ypos
+           event - but Minecraft's mouse handler reads the pointer position from those events, not
+           from the cursor fields. So the button went down and up at whatever position the game
+           last believed, which is why the drawn cursor could sit squarely on a text field while
+           the field never took focus.
+           Position first, then press, then release - and the release waits a frame so the game
+           has seen the position by the time it decides what was clicked. */
+        GLFW.sendMousePos();
         double ox = GLFW.cursorX, oy = GLFW.cursorY;
         GLFW.sendMouseEvent(button, 1, CallbackBridge.getCurrentMods());
         sChoreographer.postFrameCallbackDelayed(l -> {
             GLFW.cursorX = ox;
             GLFW.cursorY = oy;
+            GLFW.sendMousePos();
             GLFW.sendMouseEvent(button, 0, CallbackBridge.getCurrentMods());
         }, 33);
     }
