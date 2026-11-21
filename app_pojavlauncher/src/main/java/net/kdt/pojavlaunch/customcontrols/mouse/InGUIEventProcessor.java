@@ -83,11 +83,13 @@ public class InGUIEventProcessor extends TouchEventProcessor {
                    already been moved to the finger on press, so a click here lands exactly where the
                    finger was: big buttons happened to work before because the cursor was often already
                    over them, and a one-line text field never was. */
-                if(!mIsMouseDown) {
-                    CallbackBridge.performClick(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT);
-                }
-
+                /* FEAR: release first, then click.
+                   The click was guarded by !mIsMouseDown, and a press that turns into a small drag sets
+                   that flag - so a tap that moved by a pixel or two arrived here with the button already
+                   held and no click was sent. That is why the cursor follows the finger (the press moves
+                   it) while nothing on a GUI screen responds (the release never clicked). */
                 if(mIsMouseDown) disableMouse();
+                CallbackBridge.performClick(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT);
                 resetGesture();
         }
 
