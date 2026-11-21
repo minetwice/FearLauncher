@@ -304,9 +304,17 @@ public class JREUtils {
             Logger.appendToLog("[PanVK] Requesting Mesa PanVK ICD (libvulkan_panfrost.so)");
         } else if (GLInfoUtils.getGlInfo().isAdreno() && !PREF_ZINK_PREFER_SYSTEM_DRIVER) {
             setUseTurnip(true);
-        } else if (GLInfoUtils.getGlInfo().isArm() && ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer))) {
+        } else if (GLInfoUtils.getGlInfo().isArm()
+                && ("turnip_zink".equals(renderer) || "vulkan_zink".equals(renderer)
+                    || "fear_monster".equals(renderer))) {
+            /* FEAR: the engine runs on PanVK on Mali.
+               PanVK is Mesa's Mali Vulkan driver - the same ICD the zink renderers already use on
+               this hardware, and the reason their Vulkan side works. fear_monster was not in this
+               branch, so it fell through to whatever vendor ICD the loader picked, which is the
+               one driver on this device nobody has tested the engine against. */
             setUsePanvk(true);
-            Logger.appendToLog("[PanVK] Mali detected \u2014 using PanVK ICD under Zink");
+            Logger.appendToLog("[PanVK] Mali detected \u2014 using PanVK ICD"
+                    + ("fear_monster".equals(renderer) ? " for the engine" : " under Zink"));
         }
         if(LauncherPreferences.PREF_FREEDRENO_SYSMEM) {
             envMap.put("FD_MESA_DEBUG", "sysmem");
