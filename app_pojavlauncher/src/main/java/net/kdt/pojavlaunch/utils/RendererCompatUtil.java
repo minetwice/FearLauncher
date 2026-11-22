@@ -66,7 +66,12 @@ public class RendererCompatUtil {
             // for a version with no engine - and this path deliberately has no GL layer,
             // so the session then had no renderer at all and died on launch looking for
             // liblwjgl.so. That is a crash, not a renderer that merely does not work.
-            if(rendererId.equals("fear_monster") && !engineCanServeCurrentVersion()) continue;
+            /* FEAR: the engine entry is always listed.
+               It used to be hidden whenever engineCanServeCurrentVersion() said no, and that check
+               keys off the engine jar's own version - so on any instance that was not the exact
+               version the jar was built for, the renderer simply was not in the list and there was
+               nothing to select or explain. A missing option is worse than one that says why it
+               cannot run. */
             rendererIds.add(rendererId);
             rendererNames.add(defaultRendererNames[i]);
         }
