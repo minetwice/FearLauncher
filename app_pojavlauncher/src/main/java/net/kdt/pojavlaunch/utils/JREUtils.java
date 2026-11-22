@@ -491,7 +491,15 @@ public class JREUtils {
         // library LWJGL is told to use is the Vulkan loader. This path must not ask LWJGL
         // for OpenGL at all - the engine renders straight to Vulkan - and that is the only
         // thing that distinguishes it from the renderer it borrows the setup from.
-        if ("fear_monster".equals(renderer)) return "libvulkan.so";
+        /* FEAR: the engine still needs a real OpenGL library here.
+           This returned libvulkan.so, which GameRunner passes as -Dorg.lwjgl.opengl.libname -
+           so LWJGL tried to open the Vulkan loader as if it were libGL and failed:
+             [LWJGL] Failed to load a library
+             Platform/architecture mismatch detected for module: org.lwjgl.opengl
+           Minecraft 1.21.11 loads org.lwjgl.opengl whether or not anything draws with it, and
+           the engine has no GL layer of its own to offer instead. libltw.so is what the other
+           GL paths hand back and it satisfies that load. */
+        if ("fear_monster".equals(renderer)) return "libltw.so";
         return renderLibrary;
     }
 
