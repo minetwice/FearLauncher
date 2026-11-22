@@ -276,6 +276,14 @@ public class GameRunner {
             javaArgList.add("-Dorg.lwjgl.opengl.libname=" + (isZinkRenderer ? "libmh_drive_vulkan_mesa.so" : rendererLibrary));
         }
         javaArgList.add("-Dorg.lwjgl.freetype.libname="+ Tools.NATIVE_LIB_DIR+"/libfreetype.so");
+        /* FEAR: tell LWJGL which platform its natives are under.
+           The JVM reports os.arch as aarch64 while the bundled natives live under linux/arm64, and
+           LWJGL's own mapping does not bridge the two on this runtime:
+             [LWJGL] Platform/architecture mismatch detected for module: org.lwjgl.opengl
+             JVM platform: Linux aarch64
+             Platform available on classpath: linux/arm64
+           Setting the platform outright skips the guess. */
+        javaArgList.add("-Dorg.lwjgl.platform=linux-arm64");
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
 
