@@ -283,7 +283,13 @@ public class GameRunner {
              JVM platform: Linux aarch64
              Platform available on classpath: linux/arm64
            Setting the platform outright skips the guess. */
-        javaArgList.add("-Dorg.lwjgl.platform=linux-arm64");
+        /* FEAR: os.arch is what LWJGL actually reads.
+           org.lwjgl.platform is not a property it consults - setting it changed nothing and the same
+           mismatch came back. The JVM reports aarch64, the natives live under linux/arm64, and
+           naming the arch outright is the one thing LWJGL does look at. */
+        if ("aarch64".equals(System.getProperty("os.arch"))) {
+            javaArgList.add("-Dos.arch=arm64");
+        }
         javaArgList.add("-Dorg.lwjgl.util.NoChecks=true");
         javaArgList.add("-Dminecraft.narrator=false");
 
